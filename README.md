@@ -16,6 +16,55 @@ Thousands of hours later, this is the result.
 
 ---
 
+## Why This Is Open
+
+This project is open by design, not as a shortcut or a visibility exercise, but as a deliberate decision about how foundational healthcare infrastructure should be built.
+
+The challenges in precision medicine are no longer primarily scientific—they are architectural. Fragmented pipelines, opaque tooling, and closed systems slow the transition from genomic data to actionable insight. Solving this requires shared understanding of how systems are constructed, not just better algorithms.
+
+By open-sourcing the HCLS AI Factory, this project provides a reproducible, inspectable reference implementation for end-to-end genomics, AI reasoning, and therapeutic exploration. The goal is not to prescribe outcomes, but to remove unnecessary friction so researchers, clinicians, and engineers can build on a common, trustworthy foundation.
+
+Open access to infrastructure knowledge accelerates progress, enables collaboration, and shifts innovation away from re-solving plumbing toward advancing care.
+
+---
+
+## Who This Is For
+
+This project is for people and institutions working at the intersection of healthcare, life sciences, and AI who need systems, not abstractions.
+
+**Researchers and Bioinformaticians**
+Building, extending, or validating secondary genomics pipelines and variant interpretation workflows who need reproducible, inspectable infrastructure rather than ad hoc scripts.
+
+**Clinicians and Translational Teams**
+Exploring how genomic data, AI reasoning, and therapeutic insights can be integrated into real-world decision-making, without requiring deep expertise in infrastructure or orchestration.
+
+**Academic Medical Centers and R1 Institutions**
+Teaching, researching, or operationalizing genomics and AI at scale, where transparency, reproducibility, and extensibility are critical.
+
+**AI and Systems Engineers**
+Interested in how real biomedical workloads behave when treated as first-class AI systems, including data flow, orchestration, observability, and reasoning layers.
+
+**Platform Builders and Infrastructure Teams**
+Designing future healthcare platforms who want a concrete reference architecture for AI-native pipelines rather than high-level diagrams.
+
+This project is not limited to a single specialty, disease, or institution. It is designed to be a shared foundation that can support many domains while remaining grounded in real, working workflows.
+
+---
+
+## What This Is Not
+
+This project is intentionally open, but it is not:
+
+- **A clinical product** — It is a reference architecture and research platform, not a regulated medical device or diagnostic system.
+- **A black-box AI solution** — All workflows, data flows, and reasoning layers are inspectable and reproducible.
+- **A replacement for institutional expertise** — It is designed to augment researchers and clinicians, not automate judgment.
+- **A single prescribed workflow** — The system is modular by design and intended to be adapted, extended, or specialized.
+- **A vendor lock-in strategy** — The architecture is deliberately vendor-neutral and infrastructure-agnostic.
+
+The intent is clarity, not control.
+
+---
+
 ## What It Is
 
 The Healthcare & Life Sciences (HCLS) AI Factory unifies three production-grade AI workflows into a single, continuous system—designed to take raw patient DNA and produce viable drug candidates without the fragmentation and delays that define traditional approaches.
@@ -198,17 +247,76 @@ open http://localhost:8080
 
 ---
 
+## Path to Clinical Readiness
+
+This project is provided as an open research and reference implementation. It is not a clinical system and does not claim compliance with medical, regulatory, or safety standards.
+
+That said, the architecture is designed to support institutions that wish to pursue clinical readiness through appropriate processes and oversight. A typical progression includes:
+
+### 1. Research Validation
+- Reproducible execution across datasets and environments
+- Independent verification of outputs
+- Clear documentation of assumptions, limitations, and known failure modes
+
+*This project is intended to support and accelerate this phase.*
+
+### 2. Institutional Integration
+- Deployment within controlled institutional environments
+- Integration with access controls, identity systems, logging, and monitoring
+- Secure handling of sensitive or regulated data, as applicable
+
+*These requirements vary by organization and are outside the scope of this repository.*
+
+### 3. Regulatory and Compliance Review
+- Alignment with applicable regulatory frameworks (e.g., HIPAA, GDPR, FDA guidance)
+- Formal validation, documentation, and quality management processes
+- Clear definition of intended use
+
+*No regulatory claims are made by this project.*
+
+### 4. Clinical Governance
+- Human-in-the-loop workflows for interpretation and decision-making
+- Defined accountability and oversight structures
+- Ongoing evaluation of performance and limitations
+
+*AI-enabled systems should support clinical professionals, not replace them.*
+
+### 5. Ongoing Oversight
+- Versioned workflows and traceable outputs
+- Controlled updates and change management
+- Continuous monitoring and review after deployment
+
+*Clinical readiness is an ongoing process, not a single milestone.*
+
+**Scope Clarification**: This project provides technical building blocks and reference patterns. Responsibility for validation, compliance, governance, and clinical use rests entirely with the deploying institution.
+
+Open infrastructure can enable readiness. Clinical use requires formal stewardship.
+
+---
+
 ## License
 
 This project is released under the [Apache License 2.0](LICENSE).
 
-You are free to use, modify, and distribute this software. Attribution is appreciated but not required.
+### Why Apache 2.0
+
+This project is released under the Apache 2.0 License because the license reflects the same principles that guided the system's design: openness with responsibility.
+
+Apache 2.0 enables:
+- Free use, modification, and distribution
+- Commercial and non-commercial adoption
+- Patent protection for contributors
+- Clear attribution and transparency requirements
+
+This licensing model ensures the work can be used by academic institutions, startups, enterprises, and healthcare organizations without legal friction—while preserving credit, accountability, and long-term sustainability.
+
+Open infrastructure only succeeds when it is both permissive and principled. Apache 2.0 provides that balance.
 
 ---
 
 ## Contributing
 
-Contributions are welcome. Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+Contributions are welcome. Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for community standards.
 
 ---
 

@@ -2,6 +2,63 @@
 
 Thank you for your interest in contributing to the HCLS AI Factory project.
 
+---
+
+## Contributor Philosophy
+
+Contributions to this project are guided by the same principles that motivated it to be open: clarity, responsibility, and respect for the problem space.
+
+### Build for Understanding First
+
+Contributions should prioritize:
+- Readability over cleverness
+- Explicit workflows over implicit behavior
+- Documentation alongside code
+
+If a system cannot be understood, it cannot be trusted—especially in healthcare.
+
+### Favor Composability Over Complexity
+
+This project values modular, extensible designs that allow others to adapt workflows without rewrites. Contributions should avoid introducing unnecessary coupling, hidden dependencies, or tightly bound assumptions.
+
+The goal is to make the system easier to extend, not harder to reason about.
+
+### Preserve Transparency and Traceability
+
+All changes should maintain or improve:
+- Reproducibility
+- Observability
+- Clear data lineage
+- Explainable reasoning paths
+
+Black-box behavior is actively discouraged.
+
+### Respect the Human Context
+
+This project exists because real people are affected by the systems we build. Contributions should be made with an awareness of:
+- Clinical implications
+- Ethical considerations
+- The difference between research tooling and clinical deployment
+
+Speed matters—but not at the expense of trust.
+
+### Open Does Not Mean Unstructured
+
+Open contribution does not imply lack of rigor. Contributions are expected to:
+- Follow project conventions
+- Include tests or validation where appropriate
+- Be well-scoped and reviewable
+
+The aim is collective progress, not unchecked accumulation.
+
+### Shared Credit, Shared Responsibility
+
+Contributors retain ownership of their work and receive attribution, while agreeing to uphold the standards and intent of the project. Apache 2.0 ensures freedom to build, but responsibility to be transparent about changes.
+
+This project grows through collaboration—but it endures through care.
+
+---
+
 ## How to Contribute
 
 ### Reporting Issues
@@ -38,16 +95,19 @@ Thank you for your interest in contributing to the HCLS AI Factory project.
 - **Testing**: Add test coverage
 - **Performance**: Optimize for different hardware configurations
 
+---
+
 ## Code of Conduct
 
-- Be respectful and constructive
-- Focus on the work, not the person
-- Welcome newcomers
-- Assume good intent
+Please review our [Code of Conduct](CODE_OF_CONDUCT.md) before contributing. This project operates at the intersection of healthcare, life sciences, and AI, and requires a higher standard of professionalism, respect, and responsibility.
+
+---
 
 ## Questions
 
 Open an issue with the "question" label for general questions about the project.
+
+---
 
 ## License
 
