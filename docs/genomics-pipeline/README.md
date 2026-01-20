@@ -151,7 +151,7 @@ This pipeline processes whole-genome sequencing (WGS) data through a complete bi
 | **3. Indexing** | samtools | BAM file | BAM index + QC | 2-5 min |
 | **4. Variant Calling** | DeepVariant | BAM file | VCF file | 10-35 min |
 
-**Total: 30-90 minutes** (vs. 24-48 hours on CPU)
+**Total: 120-240 minutes** (vs. 24-48 hours on CPU)
 
 ### Pipeline Flow
 
@@ -214,7 +214,7 @@ This pipeline processes whole-genome sequencing (WGS) data through a complete bi
 
 ### GPU Acceleration
 - **10-50x faster** than CPU-only pipelines using NVIDIA Parabricks
-- Full genome analysis in **30-90 minutes** vs. 24-48 hours
+- Full genome analysis in **120-240 minutes** vs. 24-48 hours
 - Optimized for NVIDIA DGX Spark, A100, V100, and consumer GPUs
 
 ### Production-Ready Tools
@@ -389,7 +389,7 @@ cd genomics-pipeline
 ./run.sh download   # Download GIAB HG002 data (~200GB, 2-6 hours)
 ./run.sh reference  # Setup GRCh38 reference genome
 ./run.sh test       # Quick validation on chr20 (5-20 min)
-./run.sh full       # Full genome analysis (30-90 min)
+./run.sh full       # Full genome analysis (120-240 min)
 ```
 
 ### Option 2: Web Portal
@@ -503,7 +503,7 @@ Commands:
   download    Download GIAB HG002 data (~200GB)
   reference   Setup GRCh38 reference genome
   test        Run chr20 fast test (~5-20 min)
-  full        Run full genome pipeline (~30-90 min)
+  full        Run full genome pipeline (~120-240 min)
   clean       Clean output files (keeps input data)
   clean-all   Clean everything including downloaded data
   help        Show help message
@@ -533,7 +533,7 @@ After validation:
 
 **What this does:**
 - Processes all chromosomes (chr1-22, chrX, chrY, chrM)
-- Takes 30-90 minutes depending on GPU
+- Takes 120-240 minutes depending on GPU
 - Produces: `HG002.genome.bam`, `HG002.genome.vcf.gz`
 
 ### Web Portal

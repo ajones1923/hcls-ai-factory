@@ -56,7 +56,7 @@ The **HCLS AI Factory** represents a breakthrough in precision medicine, deliver
     │  │  VCF     │  │     │  │  TARGET   │  │     │  │ MOLECULES │  │
     │  └───────────┘  │     │  └───────────┘  │     │  └───────────┘  │
     │                 │     │                 │     │                 │
-    │  30-90 min      │     │  Interactive    │     │  Minutes        │
+    │  120-240 min      │     │  Interactive    │     │  Minutes        │
     └─────────────────┘     └─────────────────┘     └─────────────────┘
             │                       │                       │
             └───────────────────────┴───────────────────────┘
@@ -107,7 +107,7 @@ The Genomics Pipeline transforms raw DNA sequencing data (FASTQ) into variant ca
 │                  └─────────────────────────────┘    │variants │     │
 │                                                      └─────────┘     │
 │                                                                       │
-│   TIMING: 30-90 minutes (vs. 24-48 hours on CPU)                     │
+│   TIMING: 120-240 minutes (vs. 24-48 hours on CPU)                     │
 │                                                                       │
 └──────────────────────────────────────────────────────────────────────┘
 ```
@@ -118,7 +118,7 @@ The Genomics Pipeline transforms raw DNA sequencing data (FASTQ) into variant ca
 |:-------|------:|
 | Input Size | ~200 GB (paired-end FASTQ) |
 | Output Variants | ~11.7 million |
-| Processing Time | 30-90 minutes |
+| Processing Time | 120-240 minutes |
 | GPU Utilization | 85-95% |
 | Accuracy | >99% (DeepVariant) |
 
@@ -424,7 +424,7 @@ The Drug Discovery Pipeline leverages NVIDIA BioNeMo NIM microservices to genera
 
 | Process | Traditional | AI Factory | Improvement |
 |:--------|------------:|-----------:|-----------:|
-| FASTQ to VCF | 24-48 hours | 30-90 min | **50x faster** |
+| FASTQ to VCF | 24-48 hours | 120-240 min | **50x faster** |
 | Variant Interpretation | 2-4 weeks | Minutes | **1000x faster** |
 | Target Identification | 1-3 months | Hours | **100x faster** |
 | Lead Generation | 6-12 months | Hours | **1000x faster** |

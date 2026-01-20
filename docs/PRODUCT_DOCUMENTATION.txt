@@ -144,7 +144,7 @@ pipelines:
 3. DRUG DISCOVERY PIPELINE: Molecular generation using NVIDIA BioNeMo NIMs
 
 KEY METRICS:
-- Full genome analysis: 30-90 minutes (vs. 24-48 hours on CPU)
+- Full genome analysis: 120-240 minutes (vs. 24-48 hours on CPU)
 - Variant database: 3.5 million searchable variants with embeddings
 - Knowledge coverage: 201 genes across 13 therapeutic areas
 - Drug target coverage: 171 druggable targets (85% of gene panel)
@@ -568,7 +568,7 @@ CPU-based workflows.
 LOCATION: /home/adam/transfer/genomics-pipeline/
 
 KEY CAPABILITIES:
-- Full genome analysis in 30-90 minutes
+- Full genome analysis in 120-240 minutes
 - Clinical-grade accuracy (DeepVariant >99%)
 - Support for Illumina paired-end sequencing
 - Compatible with GIAB benchmark datasets
@@ -975,7 +975,7 @@ MAIN CLI (run.sh):
       download    Download GIAB HG002 data (~200GB)
       reference   Setup GRCh38 reference genome
       test        Run chr20 validation test (~5-20 min)
-      full        Run full genome pipeline (~30-90 min)
+      full        Run full genome pipeline (~120-240 min)
       clean       Clean output files (keeps input data)
       clean-all   Clean everything including downloaded data
       help        Show help message

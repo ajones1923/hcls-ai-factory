@@ -65,7 +65,7 @@
 - Automatic startup
 - Dependency check
 
-## Stage 1: Genomics Pipeline (FASTQ to VCF, 30-90 Minutes)
+## Stage 1: Genomics Pipeline (FASTQ to VCF, 120-240 Minutes)
 ### Input Layer
 #### Input FASTQ Files
 - HG002_R1.fastq.gz

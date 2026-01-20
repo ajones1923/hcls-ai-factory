@@ -124,7 +124,7 @@ What traditionally takes pharmaceutical companies **months to years** can now be
 │   TRADITIONAL                          AI FACTORY                           │
 │   ────────────                         ──────────                           │
 │                                                                             │
-│   Sequencing: 2-4 weeks                Parabricks: 30-90 min               │
+│   Sequencing: 2-4 weeks                Parabricks: 120-240 min               │
 │   Variant Analysis: 2-4 weeks          RAG/Chat: Interactive               │
 │   Target ID: 3-6 months                Clinker: Instant                     │
 │   Structure Analysis: 1-2 months       PDB Fetch: < 1 min                  │

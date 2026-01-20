@@ -40,7 +40,7 @@ Take it. Use it. Make it better.
 
 ### Performance
 
-- **Genome analysis**: 30-90 minutes (vs. 24-48 hours on CPU)
+- **Genome analysis**: 120-240 minutes (vs. 24-48 hours on CPU)
 - **Variant database**: 3.5 million searchable with semantic search
 - **Query response**: <5 seconds for complex natural language
 - **Molecule generation**: 10-100 candidates in seconds
