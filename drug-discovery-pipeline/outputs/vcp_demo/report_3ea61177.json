@@ -1,0 +1,93 @@
+{
+  "run_id": "3ea61177",
+  "target": {
+    "gene": "VCP",
+    "protein": "Valosin-containing protein (p97)",
+    "uniprot_id": "P55072",
+    "rationale": "VCP mutations cause FTD-ALS. CB-5083 is a known VCP inhibitor.",
+    "therapeutic_area": "Neurodegeneration",
+    "mechanism": "AAA+ ATPase inhibition",
+    "confidence": "high",
+    "priority": 5,
+    "pdb_ids": [
+      "5FTK",
+      "8OOI",
+      "9DIL"
+    ],
+    "variant_count": 0,
+    "status": "validated"
+  },
+  "config": {
+    "target_gene": "VCP",
+    "reference_compound_smiles": "CC(C)C1=C(C=C(C=C1)NC2=NC3=C(C=N2)N(C=C3)C)C(=O)NC4=CC=C(C=C4)CN5CCOCC5",
+    "num_molecules": 20,
+    "diversity": 0.3,
+    "generation_method": "molmim",
+    "docking_method": "diffdock",
+    "num_poses": 10,
+    "max_mw": 550,
+    "max_logp": 5.0,
+    "max_lipinski_violations": 1,
+    "docking_weight": 0.4,
+    "generation_weight": 0.3,
+    "qed_weight": 0.3,
+    "top_n_candidates": 10,
+    "output_dir": "outputs/vcp_demo",
+    "structure_cache": "data/structures",
+    "molmim_url": null,
+    "diffdock_url": null
+  },
+  "summary": {
+    "molecules_generated": 0,
+    "molecules_docked": 0,
+    "top_n": 10
+  },
+  "top_candidates": [],
+  "structures_used": [
+    {
+      "pdb_id": "5FTK",
+      "method": "Unknown",
+      "resolution": null,
+      "chain": "A",
+      "binding_site_residues": [],
+      "ligand_id": null,
+      "ligand_smiles": null,
+      "structure_file": null,
+      "prepared": true
+    },
+    {
+      "pdb_id": "8OOI",
+      "method": "Unknown",
+      "resolution": null,
+      "chain": "A",
+      "binding_site_residues": [],
+      "ligand_id": null,
+      "ligand_smiles": null,
+      "structure_file": null,
+      "prepared": true
+    },
+    {
+      "pdb_id": "9DIL",
+      "method": "Unknown",
+      "resolution": null,
+      "chain": "A",
+      "binding_site_residues": [],
+      "ligand_id": null,
+      "ligand_smiles": null,
+      "structure_file": null,
+      "prepared": true
+    },
+    {
+      "pdb_id": "7K56",
+      "method": "Cryo-EM",
+      "resolution": 2.4,
+      "chain": "A",
+      "binding_site_residues": [],
+      "ligand_id": null,
+      "ligand_smiles": null,
+      "structure_file": null,
+      "prepared": true
+    }
+  ],
+  "completed_at": "2026-01-12T11:40:08.510431"
+}

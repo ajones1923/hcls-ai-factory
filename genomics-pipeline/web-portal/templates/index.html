@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1 - Genomics Pipeline Portal</title>
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-dark bg-primary">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">
+                <span class="badge bg-light text-dark me-2">1</span>
+                <i class="bi bi-dna"></i> Genomics Pipeline Portal
+            </span>
+            <button class="btn btn-danger btn-sm" id="stop-all-btn" style="display: none;">
+                <i class="bi bi-stop-circle-fill"></i> Stop All
+            </button>
+        </div>
+    </nav>
+    <!-- Hidden status badge for JS compatibility -->
+    <span id="pipeline-status-badge" style="display:none;"><span class="badge bg-secondary">Idle</span></span>
+
+    <div class="container-fluid mt-2">
+        <!-- Executive Dashboard Header -->
+        <div class="executive-header compact">
+            <div class="header-content">
+                <div class="header-titles">
+                    <h2><i class="bi bi-activity"></i> Precision Medicine Pipeline</h2>
+                    <h1>FASTQ → VCF Processing Dashboard</h1>
+                </div>
+                <div class="header-stats">
+                    <div class="header-stat">
+                        <span class="stat-label">Runtime</span>
+                        <span class="stat-value" id="summary-runtime">00:00:00</span>
+                    </div>
+                    <div class="header-stat">
+                        <span class="stat-label">Throughput</span>
+                        <span class="stat-value" id="summary-throughput">-- GB/hr</span>
+                    </div>
+                    <div class="header-stat">
+                        <span class="stat-label">Status</span>
+                        <span class="stat-value" id="summary-status">Idle</span>
+                        <button class="btn btn-sm btn-outline-secondary ms-2" onclick="resetPipelineState()" title="Reset Status" style="padding: 0 4px; font-size: 0.7rem;">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <!-- Hidden elements for JS compatibility -->
+            <span id="summary-data" style="display:none;">0 GB</span>
+            <span id="summary-reads" style="display:none;">--</span>
+            <span id="summary-eta" style="display:none;">--</span>
+            <span id="summary-stage" style="display:none;">--</span>
+            <span id="summary-bases-per-min" style="display:none;">0.00/min</span>
+        </div>
+
+        <div class="row">
+            <!-- Left Sidebar - Workflow Steps -->
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="bi bi-list-check"></i> Workflow Steps</h5>
+                    </div>
+                    <div class="list-group list-group-flush" id="workflow-steps">
+                        <a href="#" class="list-group-item list-group-item-action" data-step="check">
+                            <div class="d-flex w-100 justify-content-between">
+                                <span><i class="bi bi-1-circle"></i> Prerequisites Check</span>
+                                <i class="bi bi-hourglass step-icon text-muted"></i>
+                            </div>
+                            <small class="text-muted">Verify system requirements</small>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action" data-step="login">
+                            <div class="d-flex w-100 justify-content-between">
+                                <span><i class="bi bi-2-circle"></i> NGC Login</span>
+                                <i class="bi bi-hourglass step-icon text-muted"></i>
+                            </div>
+                            <small class="text-muted">Authenticate with NVIDIA NGC</small>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action" data-step="download">
+                            <div class="d-flex w-100 justify-content-between">
+                                <span><i class="bi bi-3-circle"></i> Download Data</span>
+                                <i class="bi bi-hourglass step-icon text-muted"></i>
+                            </div>
+                            <small class="text-muted">Get GIAB HG002 FASTQ (~200GB)</small>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action" data-step="reference">
+                            <div class="d-flex w-100 justify-content-between">
+                                <span><i class="bi bi-4-circle"></i> Setup Reference</span>
+                                <i class="bi bi-hourglass step-icon text-muted"></i>
+                            </div>
+                            <small class="text-muted">Prepare GRCh38 genome</small>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action" data-step="test">
+                            <div class="d-flex w-100 justify-content-between">
+                                <span><i class="bi bi-5-circle"></i> Chr20 Test</span>
+                                <i class="bi bi-hourglass step-icon text-muted"></i>
+                            </div>
+                            <small class="text-muted">Quick test (~60-120 min)</small>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action" data-step="full">
+                            <div class="d-flex w-100 justify-content-between">
+                                <span><i class="bi bi-6-circle"></i> Full Genome</span>
+                                <i class="bi bi-hourglass step-icon text-muted"></i>
+                            </div>
+                            <small class="text-muted">Complete run (~120-240 min)</small>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- System Status Card -->
+                <div class="card mt-3">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="mb-0"><i class="bi bi-pc-display"></i> System Status</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-2">
+                            <small class="text-muted">Docker:</small>
+                            <span id="docker-status" class="badge bg-secondary float-end">Checking...</span>
+                        </div>
+                        <div class="mb-2">
+                            <small class="text-muted">GPU:</small>
+                            <span id="gpu-status" class="badge bg-secondary float-end">Checking...</span>
+                        </div>
+                        <div class="mb-3">
+                            <small class="text-muted">Disk Space:</small>
+                            <span id="disk-status" class="badge bg-secondary float-end">N/A</span>
+                        </div>
+
+                        <!-- CPU Utilization -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <small class="text-muted"><i class="bi bi-cpu"></i> CPU</small>
+                                <small id="cpu-percent" class="fw-bold">0%</small>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div id="cpu-progress" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                            </div>
+                            <small id="cpu-details" class="text-muted" style="font-size: 0.7rem;"></small>
+                        </div>
+
+                        <!-- GPU Utilization -->
+                        <div id="gpu-utilization-container">
+                            <!-- Will be populated dynamically -->
+                        </div>
+
+                        <!-- Memory Utilization -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <small class="text-muted"><i class="bi bi-memory"></i> Memory</small>
+                                <small id="memory-percent" class="fw-bold">0%</small>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div id="memory-progress" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                            </div>
+                            <small id="memory-details" class="text-muted" style="font-size: 0.7rem;"></small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data Files Card -->
+                <div class="card mt-3">
+                    <div class="card-header bg-success text-white">
+                        <h6 class="mb-0"><i class="bi bi-file-earmark-arrow-down"></i> Data Files</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-2">
+                            <small class="text-muted">FASTQ R1:</small>
+                            <span id="file-fastq-r1" class="badge bg-secondary float-end">N/A</span>
+                        </div>
+                        <div class="mb-2">
+                            <small class="text-muted">FASTQ R2:</small>
+                            <span id="file-fastq-r2" class="badge bg-secondary float-end">N/A</span>
+                        </div>
+                        <div class="mb-2">
+                            <small class="text-muted">Reference:</small>
+                            <span id="file-reference" class="badge bg-secondary float-end">N/A</span>
+                        </div>
+                        <div class="mb-2">
+                            <small class="text-muted">Chr20 VCF:</small>
+                            <span id="file-chr20" class="badge bg-secondary float-end">N/A</span>
+                        </div>
+                        <div>
+                            <small class="text-muted">Genome VCF:</small>
+                            <span id="file-genome" class="badge bg-secondary float-end">N/A</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- File Manager Card -->
+                <div class="card mt-3">
+                    <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0"><i class="bi bi-folder2-open"></i> File Manager</h6>
+                        <button class="btn btn-sm btn-outline-light" onclick="refreshFileList()">
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </button>
+                    </div>
+                    <div class="card-body p-2">
+                        <!-- Directory Selector -->
+                        <div class="mb-2">
+                            <select class="form-select form-select-sm" id="file-directory" onchange="loadFileList()">
+                                <option value="input">Input (FASTQ)</option>
+                                <option value="output">Output (VCF/BAM)</option>
+                                <option value="ref">Reference</option>
+                            </select>
+                        </div>
+
+                        <!-- File List -->
+                        <div id="file-list" class="file-list-container" style="max-height: 200px; overflow-y: auto;">
+                            <div class="text-center text-muted py-3">
+                                <i class="bi bi-arrow-up-circle"></i><br>
+                                <small>Select a directory</small>
+                            </div>
+                        </div>
+
+                        <!-- Upload Section -->
+                        <div class="mt-2 pt-2 border-top">
+                            <div class="d-flex gap-1">
+                                <input type="file" class="form-control form-control-sm" id="file-upload-input" style="flex: 1;">
+                                <button class="btn btn-sm btn-success" onclick="uploadFile()" title="Upload">
+                                    <i class="bi bi-upload"></i>
+                                </button>
+                            </div>
+                            <div id="upload-progress" class="mt-1" style="display: none;">
+                                <div class="progress" style="height: 4px;">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated" id="upload-progress-bar" style="width: 0%"></div>
+                                </div>
+                                <small class="text-muted" id="upload-status">Uploading...</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="col-md-9">
+                <!-- Pipeline Flow Visualization -->
+                <div class="pipeline-flow compact mb-3">
+                    <div class="pipeline-stages">
+                        <div class="pipeline-stage pending" data-stage="check">
+                            <div class="stage-node">
+                                <i class="bi bi-check2-circle"></i>
+                            </div>
+                            <div class="stage-label">Prerequisites</div>
+                        </div>
+                        <div class="pipeline-stage pending" data-stage="login">
+                            <div class="stage-node">
+                                <i class="bi bi-key"></i>
+                            </div>
+                            <div class="stage-label">NGC Login</div>
+                        </div>
+                        <div class="pipeline-stage pending" data-stage="download">
+                            <div class="stage-node">
+                                <i class="bi bi-cloud-download"></i>
+                            </div>
+                            <div class="stage-label">Download</div>
+                        </div>
+                        <div class="pipeline-stage pending" data-stage="reference">
+                            <div class="stage-node">
+                                <i class="bi bi-database"></i>
+                            </div>
+                            <div class="stage-label">Reference</div>
+                        </div>
+                        <div class="pipeline-stage pending" data-stage="test">
+                            <div class="stage-node">
+                                <i class="bi bi-speedometer2"></i>
+                            </div>
+                            <div class="stage-label">Chr20 Test</div>
+                        </div>
+                        <div class="pipeline-stage pending" data-stage="full">
+                            <div class="stage-node">
+                                <i class="bi bi-dna"></i>
+                            </div>
+                            <div class="stage-label">Full Genome</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Current Step Info -->
+                <div class="card mb-3" id="current-step-card" style="display: none;">
+                    <div class="card-header bg-warning">
+                        <h5 class="mb-0" id="current-step-title">
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                            Running Step...
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <p class="mb-1">Started: <span id="step-start-time">-</span></p>
+                                <p class="mb-0">Status: <span id="step-status-text" class="badge bg-primary">Running</span></p>
+                            </div>
+                            <div>
+                                <button class="btn btn-danger btn-sm" id="stop-btn">
+                                    <i class="bi bi-stop-circle"></i> Stop
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Sub-steps tracker for Chr20/Full Genome -->
+                        <div id="sub-steps-tracker" class="mt-3" style="display: none;">
+                            <div class="sub-steps-header">Pipeline Progress</div>
+                            <div class="sub-steps-list">
+                                <div class="sub-step" data-substep="1">
+                                    <span class="sub-step-icon"><i class="bi bi-hourglass"></i></span>
+                                    <span class="sub-step-text">Step 1: Create Interval BED</span>
+                                    <span class="sub-step-status badge bg-secondary">Pending</span>
+                                </div>
+                                <div class="sub-step" data-substep="2">
+                                    <span class="sub-step-icon"><i class="bi bi-hourglass"></i></span>
+                                    <span class="sub-step-text">Step 2: fq2bam (FASTQ → BAM)</span>
+                                    <span class="sub-step-status badge bg-secondary">Pending</span>
+                                </div>
+                                <div class="sub-step" data-substep="3">
+                                    <span class="sub-step-icon"><i class="bi bi-hourglass"></i></span>
+                                    <span class="sub-step-text">Step 3: BAM Indexing & QC</span>
+                                    <span class="sub-step-status badge bg-secondary">Pending</span>
+                                </div>
+                                <div class="sub-step" data-substep="4">
+                                    <span class="sub-step-icon"><i class="bi bi-hourglass"></i></span>
+                                    <span class="sub-step-text">Step 4: DeepVariant (Variant Calling)</span>
+                                    <span class="sub-step-status badge bg-secondary">Pending</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Real-time Metrics Dashboard (Always Visible) -->
+                <div class="row mb-3">
+                    <div class="col-md-8">
+                        <!-- Throughput Chart -->
+                        <div class="throughput-container h-100">
+                            <div class="throughput-header">
+                                <div>
+                                    <span class="throughput-title"><i class="bi bi-graph-up"></i> Real-time Processing Throughput</span>
+                                    <span class="live-indicator ms-3">
+                                        <span class="live-dot"></span>
+                                        LIVE
+                                    </span>
+                                </div>
+                                <div class="throughput-value" id="current-throughput">0 GB/hr</div>
+                            </div>
+                            <div class="throughput-chart">
+                                <canvas id="throughputChart"></canvas>
+                            </div>
+                            <!-- Genomics Metrics Bar -->
+                            <div class="genomics-metrics-bar">
+                                <div class="genomics-metric">
+                                    <i class="bi bi-dna"></i>
+                                    <span class="genomics-metric-value" id="metric-bases-per-min">0.00</span>
+                                    <span class="genomics-metric-label">Billion Bases/min</span>
+                                </div>
+                                <div class="genomics-metric">
+                                    <i class="bi bi-arrows-expand"></i>
+                                    <span class="genomics-metric-value" id="metric-reads-per-sec">--</span>
+                                    <span class="genomics-metric-label">M Reads/sec</span>
+                                </div>
+                                <div class="genomics-metric">
+                                    <i class="bi bi-bullseye"></i>
+                                    <span class="genomics-metric-value" id="metric-coverage">--</span>
+                                    <span class="genomics-metric-label">Est. Coverage</span>
+                                </div>
+                                <div class="genomics-metric">
+                                    <i class="bi bi-file-earmark-medical"></i>
+                                    <span class="genomics-metric-value" id="metric-variants">--</span>
+                                    <span class="genomics-metric-label">Variants</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <!-- GPU Metrics Panel -->
+                        <div class="gpu-metrics-panel h-100">
+                            <div class="metrics-panel-header">
+                                <i class="bi bi-gpu-card"></i> GPU Performance Metrics
+                            </div>
+                            <div class="metrics-panel-body">
+                                <div class="metric-item">
+                                    <div class="metric-label">Memory Bandwidth</div>
+                                    <div class="metric-value" id="metric-bandwidth">--</div>
+                                    <div class="metric-unit">GB/s</div>
+                                </div>
+                                <div class="metric-item">
+                                    <div class="metric-label">PCIe Throughput</div>
+                                    <div class="metric-value" id="metric-pcie">--</div>
+                                    <div class="metric-unit">GB/s</div>
+                                </div>
+                                <div class="metric-item">
+                                    <div class="metric-label">SM Efficiency</div>
+                                    <div class="metric-value" id="metric-sm">--</div>
+                                    <div class="metric-unit">%</div>
+                                </div>
+                                <div class="metric-item">
+                                    <div class="metric-label">Tensor Core Usage</div>
+                                    <div class="metric-value" id="metric-tensor">--</div>
+                                    <div class="metric-unit">%</div>
+                                </div>
+                                <div class="metric-item">
+                                    <div class="metric-label">IOPS</div>
+                                    <div class="metric-value" id="metric-iops">--</div>
+                                    <div class="metric-unit">K ops/sec</div>
+                                </div>
+                                <div class="metric-item">
+                                    <div class="metric-label">Power Draw</div>
+                                    <div class="metric-value" id="metric-power">--</div>
+                                    <div class="metric-unit">W</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="console-tab" data-bs-toggle="tab" data-bs-target="#console" type="button">
+                            <i class="bi bi-terminal"></i> Console Output
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="config-tab" data-bs-toggle="tab" data-bs-target="#config" type="button">
+                            <i class="bi bi-gear"></i> Configuration
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="logs-tab" data-bs-toggle="tab" data-bs-target="#logs" type="button">
+                            <i class="bi bi-file-text"></i> Pipeline Logs
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="help-tab" data-bs-toggle="tab" data-bs-target="#help" type="button">
+                            <i class="bi bi-question-circle"></i> Help
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content border border-top-0 p-3" id="myTabContent">
+                    <!-- Console Tab -->
+                    <div class="tab-pane fade show active" id="console">
+                        <div class="card">
+                            <div class="card-body p-0">
+                                <pre id="console-output" class="mb-0 p-3" style="height: 350px; overflow-y: auto; background-color: #1e1e1e; color: #d4d4d4; font-family: 'Courier New', monospace; font-size: 12px;">Waiting for command...</pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Configuration Tab -->
+                    <div class="tab-pane fade" id="config">
+                        <form id="config-form">
+                            <div class="mb-3">
+                                <label class="form-label">Number of GPUs</label>
+                                <input type="number" class="form-control" name="NUM_GPUS" value="1" min="1">
+                                <small class="form-text text-muted">Number of GPUs to use for processing</small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Low Memory Mode</label>
+                                <select class="form-select" name="LOW_MEMORY">
+                                    <option value="0">Disabled (Recommended)</option>
+                                    <option value="1">Enabled (If GPU memory issues)</option>
+                                </select>
+                                <small class="form-text text-muted">Enable if you encounter GPU out-of-memory errors</small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Patient ID</label>
+                                <input type="text" class="form-control" name="PATIENT_ID" value="HG002">
+                                <small class="form-text text-muted">Sample identifier</small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Parabricks Container Image</label>
+                                <input type="text" class="form-control" name="PB_IMG" value="nvcr.io/nvidia/clara/clara-parabricks:4.6.0-1">
+                                <small class="form-text text-muted">Docker image for Parabricks</small>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save"></i> Save Configuration
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Logs Tab -->
+                    <div class="tab-pane fade" id="logs">
+                        <div class="mb-3">
+                            <label class="form-label">Select Log File:</label>
+                            <select class="form-select" id="log-select">
+                                <option value="">-- Select a log file --</option>
+                                <option value="chr20_fq2bam">Chr20 fq2bam</option>
+                                <option value="chr20_deepvariant">Chr20 DeepVariant</option>
+                                <option value="genome_fq2bam">Full Genome fq2bam</option>
+                                <option value="genome_deepvariant">Full Genome DeepVariant</option>
+                            </select>
+                        </div>
+                        <div class="card">
+                            <div class="card-body p-0">
+                                <pre id="log-content" class="mb-0 p-3" style="height: 500px; overflow-y: auto; background-color: #f8f9fa; font-family: 'Courier New', monospace; font-size: 12px;">Select a log file to view...</pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Help Tab -->
+                    <div class="tab-pane fade" id="help">
+                        <h5>Quick Start Guide</h5>
+                        <ol>
+                            <li><strong>Prerequisites Check:</strong> Verify Docker, GPU, and disk space</li>
+                            <li><strong>NGC Login:</strong> Authenticate with your NGC API key</li>
+                            <li><strong>Download Data:</strong> Get GIAB HG002 FASTQ files (~200GB, takes several hours)</li>
+                            <li><strong>Setup Reference:</strong> Download and index GRCh38 reference genome</li>
+                            <li><strong>Chr20 Test:</strong> Quick validation run (~5-20 minutes)</li>
+                            <li><strong>Full Genome:</strong> Complete analysis (~30-110 minutes)</li>
+                        </ol>
+
+                        <h5 class="mt-4">System Requirements</h5>
+                        <ul>
+                            <li>Docker with NVIDIA Container Runtime</li>
+                            <li>NVIDIA GPU with CUDA support</li>
+                            <li>~500GB free disk space</li>
+                            <li>NGC account and API key</li>
+                        </ul>
+
+                        <h5 class="mt-4">Expected Timings</h5>
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Step</th>
+                                    <th>Chr20 Test</th>
+                                    <th>Full Genome</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>fq2bam</td>
+                                    <td>2-10 min</td>
+                                    <td>20-75 min</td>
+                                </tr>
+                                <tr>
+                                    <td>DeepVariant</td>
+                                    <td>1-6 min</td>
+                                    <td>10-35 min</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Total</strong></td>
+                                    <td><strong>5-20 min</strong></td>
+                                    <td><strong>30-110 min</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <h5 class="mt-4">Troubleshooting</h5>
+                        <p><strong>GPU out of memory?</strong> Enable "Low Memory Mode" in Configuration tab.</p>
+                        <p><strong>Download interrupted?</strong> Re-run the download step - it will resume from where it stopped.</p>
+                        <p><strong>NGC login issues?</strong> Make sure you're using username <code>$oauthtoken</code> and your NGC API key as password.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

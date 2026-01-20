@@ -1,0 +1,101 @@
+{
+  "version": "1.0",
+  "exported_at": "2026-01-12T10:00:00.000000",
+  "source": "rag-chat-pipeline",
+  "next_phase": "drug-discovery-pipeline",
+  "count": 5,
+  "targets": [
+    {
+      "id": "TH-20260112-VCP-FTD",
+      "gene": "VCP",
+      "protein": "Valosin-containing protein (p97)",
+      "uniprot_id": "P55072",
+      "rationale": "VCP (p97) is an AAA+ ATPase critical for protein quality control. Mutations cause IBMPFD (Inclusion Body Myopathy with Paget disease and Frontotemporal Dementia). VCP is a validated drug target with inhibitors in development including CB-5083.",
+      "therapeutic_area": "Neurodegeneration",
+      "mechanism": "AAA+ ATPase inhibition to modulate protein homeostasis",
+      "confidence": "high",
+      "priority": 5,
+      "variant_count": 1,
+      "pdb_ids": [
+        "5FTK",
+        "5FTJ",
+        "5FTI"
+      ],
+      "status": "validated",
+      "reference_compounds": [
+        {
+          "name": "CB-5083",
+          "smiles": "CC1=CC=C(C=C1)C2=NC3=C(N2)C=CC(=C3)C(=O)N4CCN(CC4)C(=O)C5=CC=CC=C5F",
+          "mechanism": "VCP/p97 inhibitor",
+          "status": "Clinical development (discontinued due to off-target effects)"
+        }
+      ]
+    },
+    {
+      "id": "TH-20260109183212-EGFR",
+      "gene": "EGFR",
+      "protein": "Epidermal growth factor receptor",
+      "uniprot_id": "P00533",
+      "rationale": "Key oncology target with known druggable kinase domain. Multiple approved inhibitors.",
+      "therapeutic_area": "Oncology",
+      "mechanism": "Tyrosine kinase inhibition",
+      "confidence": "high",
+      "priority": 5,
+      "variant_count": 0,
+      "pdb_ids": [
+        "7SYE",
+        "1M17"
+      ],
+      "status": "validated"
+    },
+    {
+      "id": "TH-20260109183212-BRAF",
+      "gene": "BRAF",
+      "protein": "B-Raf proto-oncogene",
+      "uniprot_id": "P15056",
+      "rationale": "V600E mutation is highly druggable with approved inhibitors.",
+      "therapeutic_area": "Oncology",
+      "mechanism": "Kinase inhibition",
+      "confidence": "high",
+      "priority": 5,
+      "variant_count": 0,
+      "pdb_ids": [
+        "6P3D",
+        "4MNE"
+      ],
+      "status": "validated"
+    },
+    {
+      "id": "TH-20260109183212-KRAS",
+      "gene": "KRAS",
+      "protein": "GTPase KRas",
+      "uniprot_id": "P01116",
+      "rationale": "G12C mutation targetable with covalent inhibitors.",
+      "therapeutic_area": "Oncology",
+      "mechanism": "Covalent GTPase inhibition",
+      "confidence": "high",
+      "priority": 4,
+      "variant_count": 0,
+      "pdb_ids": [
+        "6OIM"
+      ],
+      "status": "validated"
+    },
+    {
+      "id": "TH-20260109183212-PIK3CA",
+      "gene": "PIK3CA",
+      "protein": "PI3K catalytic subunit alpha",
+      "uniprot_id": "P42336",
+      "rationale": "PI3K pathway target with approved inhibitor alpelisib.",
+      "therapeutic_area": "Oncology",
+      "mechanism": "Lipid kinase inhibition",
+      "confidence": "medium",
+      "priority": 4,
+      "variant_count": 0,
+      "pdb_ids": [
+        "4JPS"
+      ],
+      "status": "hypothesis"
+    }
+  ]
+}

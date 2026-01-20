@@ -1,0 +1,85 @@
+# GPU Monitoring Stack for NVIDIA DGX Spark
+# Prometheus + Grafana + DCGM Exporter
+
+services:
+  # NVIDIA DCGM Exporter - GPU metrics
+  dcgm-exporter:
+    image: nvcr.io/nvidia/k8s/dcgm-exporter:3.3.5-3.4.0-ubuntu22.04
+    container_name: dcgm-exporter
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+    cap_add:
+      - SYS_ADMIN
+    ports:
+      - "9400:9400"
+    restart: unless-stopped
+
+  # Prometheus - Metrics collection
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    container_name: prometheus
+    ports:
+      - "9099:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+    restart: unless-stopped
+    depends_on:
+      - dcgm-exporter
+
+  # Grafana - Visualization
+  grafana:
+    image: grafana/grafana:10.2.2
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-changeme}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-piechart-panel
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+
+  # Node Exporter - System metrics (CPU, memory, disk)
+  node-exporter:
+    image: prom/node-exporter:v1.7.0
+    container_name: node-exporter
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--path.rootfs=/rootfs'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    restart: unless-stopped
+
+volumes:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  default:
+    name: monitoring-network

@@ -1,0 +1,45 @@
+# Prometheus Configuration for DGX Spark GPU Monitoring
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'dgx-spark-monitor'
+
+# Alerting (optional - can add Alertmanager later)
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets: ['alertmanager:9093']
+
+# Rule files (optional - can add alert rules later)
+# rule_files:
+#   - "alerts/*.yml"
+
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          instance: 'prometheus'
+
+  # NVIDIA DCGM Exporter - GPU Metrics
+  - job_name: 'dcgm-exporter'
+    static_configs:
+      - targets: ['dcgm-exporter:9400']
+        labels:
+          instance: 'dgx-spark'
+    scrape_interval: 5s  # More frequent for GPU metrics
+
+  # Node Exporter - System Metrics
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+        labels:
+          instance: 'dgx-spark'
+
+  # Optional: Scrape metrics from host directly if containers can reach host
+  # - job_name: 'dcgm-host'
+  #   static_configs:
+  #     - targets: ['host.docker.internal:9400']

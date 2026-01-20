@@ -1,0 +1,47 @@
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#76B900', 'primaryTextColor': '#fff', 'lineColor': '#333'}}}%%
+
+flowchart TB
+    START(("🚀 Start"))
+
+    subgraph S1["Step 1: Prerequisites"]
+        CHECK["00-setup-check.sh<br/>━━━━━━━━━━━━━━━━<br/>✓ Docker<br/>✓ NVIDIA Runtime<br/>✓ GPU Detection<br/>✓ Disk Space<br/>━━━━━━━━━━━━━━━━<br/>⏱️ ~30 seconds"]
+    end
+
+    subgraph S2["Step 2: Authentication"]
+        LOGIN["01-ngc-login.sh<br/>━━━━━━━━━━━━━━━━<br/>🔑 NGC Login<br/>📦 Pull Container<br/>━━━━━━━━━━━━━━━━<br/>⏱️ ~1 minute"]
+    end
+
+    subgraph S3["Step 3: Data Download"]
+        DOWNLOAD["02-download-data.sh<br/>━━━━━━━━━━━━━━━━<br/>⬇️ GIAB HG002 FASTQ<br/>🔀 Lane Merging<br/>✅ Read Validation<br/>━━━━━━━━━━━━━━━━<br/>⏱️ 2-6 hours"]
+    end
+
+    subgraph S4["Step 4: Reference Setup"]
+        REFERENCE["03-setup-reference.sh<br/>━━━━━━━━━━━━━━━━<br/>⬇️ Parabricks Bundle<br/>📂 Extract GRCh38<br/>📑 BWA Index<br/>🔧 FASTA Index<br/>━━━━━━━━━━━━━━━━<br/>⏱️ 5-15 minutes"]
+    end
+
+    subgraph S5["Step 5: Chr20 Test"]
+        TEST["04-run-chr20-test.sh<br/>━━━━━━━━━━━━━━━━<br/>🧬 fq2bam (chr20)<br/>📊 BAM Index + QC<br/>🧠 DeepVariant<br/>📑 VCF Index<br/>━━━━━━━━━━━━━━━━<br/>⏱️ 5-20 minutes"]
+    end
+
+    subgraph S6["Step 6: Full Genome"]
+        FULL["05-run-full-genome.sh<br/>━━━━━━━━━━━━━━━━<br/>🧬 fq2bam (all chr)<br/>📊 BAM Index + QC<br/>🧠 DeepVariant<br/>📑 VCF Index<br/>━━━━━━━━━━━━━━━━<br/>⏱️ 30-110 minutes"]
+    end
+
+    subgraph OUT["📤 Outputs"]
+        direction LR
+        BAM["📁 HG002.genome.bam<br/>~100GB"]
+        VCF["📁 HG002.genome.vcf.gz<br/>~1-2GB"]
+    end
+
+    DONE(("✅ Complete"))
+
+    START --> S1 --> S2 --> S3 --> S4 --> S5 --> S6 --> OUT --> DONE
+
+    %% Styling
+    classDef startEnd fill:#4CAF50,stroke:#2E7D32,stroke-width:2px,color:#fff
+    classDef stepBox fill:#E3F2FD,stroke:#1976D2,stroke-width:2px
+    classDef outputBox fill:#FFF3E0,stroke:#F57C00,stroke-width:2px
+
+    class START,DONE startEnd
+    class S1,S2,S3,S4,S5,S6 stepBox
+    class OUT outputBox

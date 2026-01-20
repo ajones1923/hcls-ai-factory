@@ -1,0 +1,95 @@
+ Diagram Structure (3-Step Pipeline):
+  ┌─────────────────────────┬───────────────────────────────────────────────────────────────────────────────────┐
+  │          Step           │                                    Components                                     │
+  ├─────────────────────────┼───────────────────────────────────────────────────────────────────────────────────┤
+  │ Input                   │ FASTQ files (GIAB HG002 Illumina 2x250bp, ~200GB) + GRCh38 Reference Genome       │
+  ├─────────────────────────┼───────────────────────────────────────────────────────────────────────────────────┤
+  │ Step 1: Alignment       │ BWA-MEM2 (GPU-accelerated) → Coordinate Sorting → Mark Duplicates                 │
+  ├─────────────────────────┼───────────────────────────────────────────────────────────────────────────────────┤
+  │ Step 2: BAM Processing  │ BAM Indexing (.bai) + Flagstat QC (alignment statistics)                          │
+  ├─────────────────────────┼───────────────────────────────────────────────────────────────────────────────────┤
+  │ Step 3: Variant Calling │ DeepVariant: Make Examples → Call Variants (CNN) → Post-Processing                │
+  ├─────────────────────────┼───────────────────────────────────────────────────────────────────────────────────┤
+  │ Output                  │ HG002.genome.bam (~100GB), HG002.genome.vcf.gz (5.4M variants), indexes, QC stats │
+  ├─────────────────────────┼───────────────────────────────────────────────────────────────────────────────────┤
+  │ Hardware                │ NVIDIA GPU (CUDA + Tensor Cores, 128GB on DGX Spark)                              │
+  ├─────────────────────────┼───────────────────────────────────────────────────────────────────────────────────┤
+  │ Interface               │ CLI (./run.sh) + Web Portal (Flask with real-time monitoring)                     │
+  ├─────────────────────────┼───────────────────────────────────────────────────────────────────────────────────┤
+  │ Next Phase              │ → rag-chat-pipeline (Variant Discovery & Analysis)                                │
+  └─────────────────────────┴───────────────────────────────────────────────────────────────────────────────────┘
+  Color Coding:
+  - Blue: Input data (FASTQ, Reference)
+  - Green: Step 1 - Alignment (BWA-MEM2)
+  - Purple: Step 2 - BAM Processing (samtools)
+  - Orange: Step 3 - Variant Calling (DeepVariant)
+  - NVIDIA Green: Output files + GPU
+  - Cyan: User interfaces (CLI, Web Portal)
+  - Pink: Next phase connection
+
+ Diagram Structure:
+  ┌────────────┬─────────────────────────────────────────────────────┐
+  │   Layer    │                     Components                      │
+  ├────────────┼─────────────────────────────────────────────────────┤
+  │ Input      │ VCF from genomics-pipeline (5.4M variants)          │
+  ├────────────┼─────────────────────────────────────────────────────┤
+  │ Ingestion  │ VCF Parser → ClinVar Annotator → Evidence Objects   │
+  ├────────────┼─────────────────────────────────────────────────────┤
+  │ Vector DB  │ BGE Embedder → Milvus (35,616 variants)             │
+  ├────────────┼─────────────────────────────────────────────────────┤
+  │ RAG Engine │ Query → Expansion → Search → Context Assembly       │
+  ├────────────┼─────────────────────────────────────────────────────┤
+  │ LLM        │ Ollama (Llama 70B) or Anthropic (Claude) → Response │
+  ├────────────┼─────────────────────────────────────────────────────┤
+  │ UI         │ Streamlit + Demo Questions                          │
+  ├────────────┼─────────────────────────────────────────────────────┤
+  │ Output     │ Target Hypothesis → drug-discovery-pipeline         │
+  └────────────┴─────────────────────────────────────────────────────┘
+
+  Color Coding:
+  - Blue: Input (genomics-pipeline)
+  - Green: Ingestion layer
+  - Purple: Vector database
+  - Orange: RAG engine
+  - Pink: LLM generation
+  - Cyan: User interface
+  - NVIDIA Green: Output to drug discovery
+
+  Diagram Structure (4-Step Pipeline):
+  ┌─────────────────────────────┬─────────────────────────────────────────────────────────────────────────────────┐
+  │            Step             │                                   Components                                    │
+  ├─────────────────────────────┼─────────────────────────────────────────────────────────────────────────────────┤
+  │ Input                       │ Target Hypothesis from rag-chat-pipeline (VCP, rs188935092, FTD)                │
+  ├─────────────────────────────┼─────────────────────────────────────────────────────────────────────────────────┤
+  │ Step 1: Target Import       │ Target Importer, VCP Demo Target, Imported Target Object                        │
+  ├─────────────────────────────┼─────────────────────────────────────────────────────────────────────────────────┤
+  │ Step 2: Cryo-EM Evidence    │ 4 VCP structures (8OOI, 9DIL, 7K56, 5FTK), Druggable Sites, CB-5083 Seed SMILES │
+  ├─────────────────────────────┼─────────────────────────────────────────────────────────────────────────────────┤
+  │ Step 3: Molecule Generation │ BioNeMo MegaMolBART / RDKit fallback → Generated Candidates with Properties     │
+  ├─────────────────────────────┼─────────────────────────────────────────────────────────────────────────────────┤
+  │ Step 4: Results             │ JSON export, Pipeline Summary                                                   │
+  ├─────────────────────────────┼─────────────────────────────────────────────────────────────────────────────────┤
+  │ UI                          │ 4-step Streamlit wizard (Port 8502)                                             │
+  └─────────────────────────────┴─────────────────────────────────────────────────────────────────────────────────┘
+  Color Coding:
+  - Blue: Input from RAG Chat
+  - Green: Target Import
+  - Purple: Cryo-EM structures
+  - Orange: Molecule generation
+  - Light Blue: Generated molecules
+  - NVIDIA Green: Output/results
+  - Cyan: UI steps
+
+
+  All three pipeline diagrams now available:
+  ┌────────────────────────────┬──────────────────────────────────────────────────────────────────┐
+  │          Pipeline          │                          File Location                           │
+  ├────────────────────────────┼──────────────────────────────────────────────────────────────────┤
+  │ Genomics (Phase 1-3)       │ genomics-pipeline/docs/genomics-pipeline-diagram.mmd             │
+  ├────────────────────────────┼──────────────────────────────────────────────────────────────────┤
+  │ RAG Chat (Phase 4)         │ rag-chat-pipeline/docs/phase4-pipeline-diagram.mmd               │
+  ├────────────────────────────┼──────────────────────────────────────────────────────────────────┤
+  │ Drug Discovery (Phase 5-6) │ drug-discovery-pipeline/docs/drug-discovery-pipeline-diagram.mmd │
+  └────────────────────────────┴──────────────────────────────────────────────────────────────────┘
+
+

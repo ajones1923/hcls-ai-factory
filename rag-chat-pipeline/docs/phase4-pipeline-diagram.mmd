@@ -1,0 +1,80 @@
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#76b900', 'primaryTextColor': '#fff', 'primaryBorderColor': '#5a8f00', 'lineColor': '#333', 'secondaryColor': '#f0f0f0', 'tertiaryColor': '#e8f5e9'}}}%%
+
+flowchart TB
+    subgraph INPUT["Phase 1-3: Genomics Pipeline Output"]
+        VCF["HG002.genome.vcf.gz<br/>(5.4M variants)"]
+    end
+
+    subgraph INGESTION["Data Ingestion Layer"]
+        PARSER["VCF Parser<br/>(cyvcf2)"]
+        CLINVAR["ClinVar Annotator<br/>(variant_summary.txt.gz)"]
+        EVIDENCE["Evidence Objects<br/>{variant_id, gene, consequence,<br/>clinical_sig, rsid, disease}"]
+    end
+
+    subgraph VECTORDB["Vector Database Layer"]
+        EMBEDDER["Text Embedder<br/>(BGE-small-en-v1.5)"]
+        MILVUS[("Milvus Vector Store<br/>35,616 annotated variants")]
+    end
+
+    subgraph RAG["RAG Engine"]
+        QUERY["User Query"]
+        EXPAND["Query Expansion<br/>(neurodegeneration, pharmacogenomics)"]
+        SEARCH["Vector Similarity Search<br/>(top-k retrieval)"]
+        CONTEXT["Context Assembly<br/>(retrieved evidence + system prompt)"]
+    end
+
+    subgraph LLM["LLM Generation"]
+        OLLAMA["Ollama<br/>(Llama 3.1 70B)"]
+        ANTHROPIC["Anthropic API<br/>(Claude Sonnet)"]
+        RESPONSE["Generated Response<br/>(with citations)"]
+    end
+
+    subgraph UI["User Interface"]
+        STREAMLIT["Streamlit Chat UI<br/>(Port 8501)"]
+        DEMO["Demo Questions<br/>- FTD/VCP Discovery<br/>- Pharmacogenomics<br/>- Gene Analysis"]
+    end
+
+    subgraph OUTPUT["Phase 5-6: Drug Discovery"]
+        HYPOTHESIS["Target Hypothesis<br/>{gene: VCP, variants: [...],<br/>evidence_score, disease}"]
+        DRUGPIPE["drug-discovery-pipeline<br/>(Cryo-EM + BioNeMo)"]
+    end
+
+    %% Flow connections
+    VCF --> PARSER
+    PARSER --> CLINVAR
+    CLINVAR --> EVIDENCE
+    EVIDENCE --> EMBEDDER
+    EMBEDDER --> MILVUS
+
+    STREAMLIT --> QUERY
+    DEMO --> QUERY
+    QUERY --> EXPAND
+    EXPAND --> SEARCH
+    MILVUS --> SEARCH
+    SEARCH --> CONTEXT
+
+    CONTEXT --> OLLAMA
+    CONTEXT --> ANTHROPIC
+    OLLAMA --> RESPONSE
+    ANTHROPIC --> RESPONSE
+    RESPONSE --> STREAMLIT
+
+    STREAMLIT --> HYPOTHESIS
+    HYPOTHESIS --> DRUGPIPE
+
+    %% Styling
+    classDef inputStyle fill:#1a73e8,stroke:#1557b0,color:#fff
+    classDef ingestStyle fill:#34a853,stroke:#2d8a47,color:#fff
+    classDef vectorStyle fill:#9c27b0,stroke:#7b1fa2,color:#fff
+    classDef ragStyle fill:#ff9800,stroke:#f57c00,color:#fff
+    classDef llmStyle fill:#e91e63,stroke:#c2185b,color:#fff
+    classDef uiStyle fill:#00bcd4,stroke:#0097a7,color:#fff
+    classDef outputStyle fill:#76b900,stroke:#5a8f00,color:#fff
+
+    class VCF inputStyle
+    class PARSER,CLINVAR,EVIDENCE ingestStyle
+    class EMBEDDER,MILVUS vectorStyle
+    class QUERY,EXPAND,SEARCH,CONTEXT ragStyle
+    class OLLAMA,ANTHROPIC,RESPONSE llmStyle
+    class STREAMLIT,DEMO uiStyle
+    class HYPOTHESIS,DRUGPIPE outputStyle

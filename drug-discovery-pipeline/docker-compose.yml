@@ -1,0 +1,77 @@
+# Drug Discovery Pipeline NIM Services
+# Docker Compose for MolMIM and DiffDock services
+
+version: "3.8"
+
+services:
+  # MolMIM - Molecule Generation via Masked Modeling
+  molmim:
+    image: nvcr.io/nvidia/clara/bionemo-molmim:1.0
+    container_name: dd-molmim
+    ports:
+      - "8001:8000"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    environment:
+      - NGC_API_KEY=${NGC_API_KEY}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # DiffDock - Molecular Docking via Diffusion
+  diffdock:
+    image: nvcr.io/nvidia/clara/diffdock:1.0
+    container_name: dd-diffdock
+    ports:
+      - "8002:8000"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    environment:
+      - NGC_API_KEY=${NGC_API_KEY}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # Pipeline UI (Streamlit)
+  pipeline-ui:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dd-pipeline-ui
+    ports:
+      - "${DD_UI_PORT:-8505}:8501"  # External port configurable, default 8505 per README
+    volumes:
+      - ./outputs:/app/outputs
+      - ./data:/app/data
+    environment:
+      - MOLMIM_URL=http://molmim:8000
+      - DIFFDOCK_URL=http://diffdock:8000
+      - NIM_ALLOW_MOCK_FALLBACK=${NIM_ALLOW_MOCK_FALLBACK:-false}
+    depends_on:
+      - molmim
+      - diffdock
+    restart: unless-stopped
+
+volumes:
+  outputs:
+  data:
+
+networks:
+  default:
+    name: drug-discovery-network

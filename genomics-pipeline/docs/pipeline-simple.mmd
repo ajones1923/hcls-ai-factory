@@ -1,0 +1,33 @@
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#76B900', 'primaryTextColor': '#fff', 'primaryBorderColor': '#5a8f00', 'lineColor': '#333', 'secondaryColor': '#2196F3', 'tertiaryColor': '#f5f5f5'}}}%%
+
+flowchart LR
+    subgraph INPUT["📥 Input"]
+        FASTQ["FASTQ Files<br/>~200GB"]
+        REF["GRCh38<br/>Reference"]
+    end
+
+    subgraph PROCESS["⚡ GPU Processing"]
+        direction TB
+        FQ2BAM["fq2bam<br/>BWA-MEM2 + Sort + MarkDup"]
+        DV["DeepVariant<br/>CNN Variant Calling"]
+        FQ2BAM --> DV
+    end
+
+    subgraph OUTPUT["📤 Output"]
+        BAM["BAM<br/>Aligned Reads"]
+        VCF["VCF<br/>Variants"]
+    end
+
+    FASTQ --> FQ2BAM
+    REF --> FQ2BAM
+    REF --> DV
+    FQ2BAM --> BAM
+    DV --> VCF
+
+    classDef inputClass fill:#B3E5FC,stroke:#0288D1,stroke-width:2px
+    classDef processClass fill:#76B900,stroke:#5a8f00,stroke-width:2px,color:#fff
+    classDef outputClass fill:#FFE082,stroke:#FFA000,stroke-width:2px
+
+    class FASTQ,REF inputClass
+    class FQ2BAM,DV processClass
+    class BAM,VCF outputClass

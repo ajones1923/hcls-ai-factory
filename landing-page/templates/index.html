@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HCLS AI Factory | Precision Medicine to Drug Discovery</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧬</text></svg>">
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="bg-animation">
+        <div class="bg-gradient"></div>
+        <div class="bg-grid"></div>
+        <div class="floating-particles" id="particles"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <span class="brand-text"><span class="hcls-text">HCLS</span> AI Factory</span>
+        </div>
+        <div class="nav-links">
+            <a href="#pipelines" class="nav-link">Pipelines</a>
+            <a href="#workflow" class="nav-link">Workflow</a>
+            <a href="#monitoring" class="nav-link">Monitoring</a>
+            <a href="#stats" class="nav-link">Statistics</a>
+        </div>
+        <div class="nav-status">
+            <span class="status-dot pulse"></span>
+            <span class="status-text">All Systems Operational</span>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-badge">
+                <span class="badge-icon">🧬</span>
+                <span>NVIDIA DGX Spark</span>
+            </div>
+            <h1 class="hero-title">
+                <span class="title-line">Precision Medicine</span>
+                <span class="title-line gradient-text">to Drug Discovery</span>
+            </h1>
+            <p class="hero-subtitle">
+                Transform patient DNA into therapeutic molecule candidates in under 5 hours.
+                <br>A complete AI-powered pipeline running on NVIDIA accelerated computing.
+            </p>
+            <div class="hero-cta">
+                <a href="#pipelines" class="btn btn-primary">
+                    <span>Launch Pipelines</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                </a>
+                <a href="/static/VCP_Drug_Candidate_Report.pdf" class="btn btn-secondary" target="_blank">
+                    <span>View Demo Report</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+        <div class="hero-visual">
+            <div class="dna-helix">
+                <div class="helix-strand strand-1"></div>
+                <div class="helix-strand strand-2"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pipeline Flow Section -->
+    <section id="workflow" class="workflow-section">
+        <div class="section-header">
+            <h2>End-to-End Workflow</h2>
+            <p>From raw sequencing data to drug candidates</p>
+        </div>
+        <div class="pipeline-flow">
+            <div class="flow-step" data-step="1">
+                <div class="step-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4"/>
+                    </svg>
+                </div>
+                <div class="step-content">
+                    <span class="step-label">Phase 1-3</span>
+                    <h3>Genomics Pipeline</h3>
+                    <p>FASTQ → Aligned BAM → Annotated VCF</p>
+                    <span class="step-time">120-240 min</span>
+                </div>
+            </div>
+            <div class="flow-arrow">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+            </div>
+            <div class="flow-step" data-step="2">
+                <div class="step-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                </div>
+                <div class="step-content">
+                    <span class="step-label">Phase 4</span>
+                    <h3>RAG/Chat Pipeline</h3>
+                    <p>VCF → Target Hypothesis</p>
+                    <span class="step-time">Interactive</span>
+                </div>
+            </div>
+            <div class="flow-arrow">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+            </div>
+            <div class="flow-step" data-step="3">
+                <div class="step-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 6v6l4 2"/>
+                    </svg>
+                </div>
+                <div class="step-content">
+                    <span class="step-label">Phase 5</span>
+                    <h3>Structure Evidence</h3>
+                    <p>Target → Cryo-EM/PDB</p>
+                    <span class="step-time">Seconds</span>
+                </div>
+            </div>
+            <div class="flow-arrow">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+            </div>
+            <div class="flow-step" data-step="4">
+                <div class="step-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                    </svg>
+                </div>
+                <div class="step-content">
+                    <span class="step-label">Phase 6</span>
+                    <h3>Drug Discovery</h3>
+                    <p>Structure → Molecules</p>
+                    <span class="step-time">Minutes</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pipelines Section -->
+    <section id="pipelines" class="pipelines-section">
+        <div class="section-header">
+            <h2>Pipeline Interfaces</h2>
+            <p>Click to launch each pipeline component</p>
+        </div>
+        <div class="pipeline-grid">
+            <!-- Genomics Pipeline -->
+            <a href="http://{{ host }}:5000" target="_blank" class="pipeline-card genomics">
+                <div class="card-glow"></div>
+                <div class="card-header">
+                    <div class="card-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4"/>
+                            <circle cx="5" cy="9" r="1"/><circle cx="5" cy="15" r="1"/>
+                            <circle cx="19" cy="9" r="1"/><circle cx="19" cy="15" r="1"/>
+                        </svg>
+                    </div>
+                    <div class="card-status online">
+                        <span class="status-indicator"></span>
+                        <span>Online</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h3>Genomics Pipeline</h3>
+                    <p>NVIDIA Parabricks accelerated variant calling and annotation with ClinVar & AlphaMissense</p>
+                    <div class="card-tech">
+                        <span class="tech-badge">Parabricks 4.6</span>
+                        <span class="tech-badge">Flask</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="port-label">Port 5000</span>
+                    <span class="launch-text">Launch →</span>
+                </div>
+            </a>
+
+            <!-- RAG Portal -->
+            <a href="http://{{ host }}:5001" target="_blank" class="pipeline-card rag-portal">
+                <div class="card-glow"></div>
+                <div class="card-header">
+                    <div class="card-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                            <path d="M22 6l-10 7L2 6"/>
+                        </svg>
+                    </div>
+                    <div class="card-status online">
+                        <span class="status-indicator"></span>
+                        <span>Online</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h3>RAG/Chat API</h3>
+                    <p>REST API backend for genomic evidence retrieval and LLM-powered analysis</p>
+                    <div class="card-tech">
+                        <span class="tech-badge">Milvus</span>
+                        <span class="tech-badge">Flask</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="port-label">Port 5001</span>
+                    <span class="launch-text">Launch →</span>
+                </div>
+            </a>
+
+            <!-- RAG Chat UI -->
+            <a href="http://{{ host }}:8501" target="_blank" class="pipeline-card rag-chat featured">
+                <div class="card-glow"></div>
+                <div class="card-badge">Primary Interface</div>
+                <div class="card-header">
+                    <div class="card-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            <path d="M8 9h8M8 13h6"/>
+                        </svg>
+                    </div>
+                    <div class="card-status online">
+                        <span class="status-indicator"></span>
+                        <span>Online</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h3>RAG Chat Interface</h3>
+                    <p>Interactive genomic evidence chat with semantic search across 3.5M variant embeddings</p>
+                    <div class="card-tech">
+                        <span class="tech-badge">Streamlit</span>
+                        <span class="tech-badge">LLM</span>
+                        <span class="tech-badge">80 Genes</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="port-label">Port 8501</span>
+                    <span class="launch-text">Launch →</span>
+                </div>
+            </a>
+
+            <!-- Drug Discovery Main -->
+            <a href="http://{{ host }}:8505" target="_blank" class="pipeline-card drug-main featured">
+                <div class="card-glow"></div>
+                <div class="card-badge">BioNeMo</div>
+                <div class="card-header">
+                    <div class="card-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                            <path d="M2 17l10 5 10-5"/>
+                            <path d="M2 12l10 5 10-5"/>
+                        </svg>
+                    </div>
+                    <div class="card-status online">
+                        <span class="status-indicator"></span>
+                        <span>Online</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h3>Drug Discovery</h3>
+                    <p>Structure-based drug design with MolMIM molecule generation and DiffDock docking</p>
+                    <div class="card-tech">
+                        <span class="tech-badge">MolMIM</span>
+                        <span class="tech-badge">DiffDock</span>
+                        <span class="tech-badge">Streamlit</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="port-label">Port 8505</span>
+                    <span class="launch-text">Launch →</span>
+                </div>
+            </a>
+
+            <!-- Drug Discovery Portal -->
+            <a href="http://{{ host }}:8510" target="_blank" class="pipeline-card drug-portal">
+                <div class="card-glow"></div>
+                <div class="card-header">
+                    <div class="card-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                            <path d="M3 9h18M9 21V9"/>
+                        </svg>
+                    </div>
+                    <div class="card-status online">
+                        <span class="status-indicator"></span>
+                        <span>Online</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h3>Discovery Portal</h3>
+                    <p>Target management dashboard and pipeline orchestration interface</p>
+                    <div class="card-tech">
+                        <span class="tech-badge">Streamlit</span>
+                        <span class="tech-badge">Dashboard</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="port-label">Port 8510</span>
+                    <span class="launch-text">Launch →</span>
+                </div>
+            </a>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section id="stats" class="stats-section">
+        <div class="section-header">
+            <h2>Platform Statistics</h2>
+            <p>Built for production-scale genomics</p>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" data-value="31213">0</div>
+                <div class="stat-label">Lines of Code</div>
+                <div class="stat-detail">Across 6 components</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" data-value="201">0</div>
+                <div class="stat-label">Target Genes</div>
+                <div class="stat-detail">Clinker Knowledge Base</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" data-value="71">0</div>
+                <div class="stat-label">Million Predictions</div>
+                <div class="stat-detail">AlphaMissense Database</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" data-value="3.5">0</div>
+                <div class="stat-label">Million Embeddings</div>
+                <div class="stat-detail">Milvus Vector Store</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" data-value="4.1">0</div>
+                <div class="stat-label">Million Variants</div>
+                <div class="stat-detail">ClinVar Annotations</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value"><span data-value="5">0</span> hrs</div>
+                <div class="stat-label">End-to-End</div>
+                <div class="stat-detail">FASTQ to Drug Candidates</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Monitoring Section -->
+    <section id="monitoring" class="monitoring-section">
+        <div class="section-header">
+            <h2>Monitoring & Infrastructure</h2>
+            <p>Real-time observability across the platform</p>
+        </div>
+        <div class="monitoring-grid">
+            <a href="http://{{ host }}:3000/d/nvidia-dgx-spark/nvidia-dgx-spark-gpu-monitoring" target="_blank" class="monitor-card grafana">
+                <div class="monitor-icon">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M22 12c0 5.52-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2s10 4.48 10 10zm-2 0c0-4.42-3.58-8-8-8s-8 3.58-8 8 3.58 8 8 8 8-3.58 8-8z"/>
+                        <path d="M12 6v6l4 2"/>
+                    </svg>
+                </div>
+                <div class="monitor-info">
+                    <h4>Grafana</h4>
+                    <span>Dashboards & Visualization</span>
+                </div>
+                <div class="monitor-port">:3000</div>
+            </a>
+            <a href="http://{{ host }}:9099" target="_blank" class="monitor-card prometheus">
+                <div class="monitor-icon">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                </div>
+                <div class="monitor-info">
+                    <h4>Prometheus</h4>
+                    <span>Metrics Collection</span>
+                </div>
+                <div class="monitor-port">:9099</div>
+            </a>
+            <a href="http://{{ host }}:9100" target="_blank" class="monitor-card node">
+                <div class="monitor-icon">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20 18c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 6h16v10H4V6z"/>
+                    </svg>
+                </div>
+                <div class="monitor-info">
+                    <h4>Node Exporter</h4>
+                    <span>System Metrics</span>
+                </div>
+                <div class="monitor-port">:9100</div>
+            </a>
+            <a href="http://{{ host }}:9400" target="_blank" class="monitor-card dcgm">
+                <div class="monitor-icon nvidia">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M8.948 8.798v-1.43a6.7 6.7 0 0 1 .424-.018c3.922-.124 6.493 3.374 6.493 3.374s-2.774 3.851-5.75 3.851c-.412 0-.807-.062-1.167-.171V9.442c1.632.201 1.961.912 2.958 2.351l2.218-1.86S12.073 8.095 9.371 8.095c-.144 0-.283.003-.423.009v-.001c-.001-.001 0 .695 0 .695zm0-4.678v2.06l.424-.024c5.41-.191 8.98 4.704 8.98 4.704s-4.161 5.306-8.102 5.306a5.5 5.5 0 0 1-1.302-.158v1.632a7.4 7.4 0 0 0 1.076.084c4.873 0 8.39-2.504 11.756-5.416 0 0-1.988-2.16-2.578-2.661l-.001.001c-2.149 1.846-4.766 3.394-7.753 3.394-.402 0-.784-.035-1.15-.094V4.12h-.001z"/>
+                    </svg>
+                </div>
+                <div class="monitor-info">
+                    <h4>DCGM Exporter</h4>
+                    <span>GPU Metrics</span>
+                </div>
+                <div class="monitor-port">:9400</div>
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <span class="nvidia-badge">Powered by NVIDIA</span>
+            </div>
+            <div class="footer-tech">
+                <span>DGX Spark</span>
+                <span class="dot">•</span>
+                <span>Parabricks 4.6</span>
+                <span class="dot">•</span>
+                <span>BioNeMo NIM</span>
+                <span class="dot">•</span>
+                <span>Milvus</span>
+            </div>
+            <div class="footer-copy">
+                HCLS AI Factory Demo
+            </div>
+        </div>
+    </footer>
+
+    <script src="/static/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+# Custom DCGM counters for DGX Spark
+# Includes profiling metrics for tensor cores
+
+# Clocks
+DCGM_FI_DEV_SM_CLOCK,  gauge, SM clock frequency (in MHz).
+DCGM_FI_DEV_MEM_CLOCK, gauge, Memory clock frequency (in MHz).
+
+# Temperature
+DCGM_FI_DEV_MEMORY_TEMP, gauge, Memory temperature (in C).
+DCGM_FI_DEV_GPU_TEMP,    gauge, GPU temperature (in C).
+
+# Power
+DCGM_FI_DEV_POWER_USAGE,              gauge, Power draw (in W).
+DCGM_FI_DEV_TOTAL_ENERGY_CONSUMPTION, counter, Total energy consumption since boot (in mJ).
+
+# PCIE
+DCGM_FI_DEV_PCIE_TX_THROUGHPUT,  counter, Total number of bytes transmitted through PCIe TX (in KB).
+DCGM_FI_DEV_PCIE_RX_THROUGHPUT,  counter, Total number of bytes received through PCIe RX (in KB).
+DCGM_FI_DEV_PCIE_REPLAY_COUNTER, counter, Total number of PCIe retries.
+
+# Utilization
+DCGM_FI_DEV_GPU_UTIL,      gauge, GPU utilization (in %).
+DCGM_FI_DEV_MEM_COPY_UTIL, gauge, Memory utilization (in %).
+DCGM_FI_DEV_ENC_UTIL,      gauge, Encoder utilization (in %).
+DCGM_FI_DEV_DEC_UTIL,      gauge, Decoder utilization (in %).
+
+# Memory usage
+DCGM_FI_DEV_FB_FREE, gauge, Framebuffer memory free (in MiB).
+DCGM_FI_DEV_FB_USED, gauge, Framebuffer memory used (in MiB).
+
+# Errors
+DCGM_FI_DEV_XID_ERRORS, gauge, Value of the last XID error encountered.
+
+# NVLink
+DCGM_FI_DEV_NVLINK_BANDWIDTH_TOTAL, counter, Total number of NVLink bandwidth counters for all lanes.
+
+# Profiling Metrics (Tensor Cores, SM activity, etc.)
+DCGM_FI_PROF_GR_ENGINE_ACTIVE,   gauge, Ratio of time the graphics engine is active.
+DCGM_FI_PROF_SM_ACTIVE,          gauge, Ratio of time at least one warp is active on a SM.
+DCGM_FI_PROF_SM_OCCUPANCY,       gauge, Ratio of warps resident on a SM.
+DCGM_FI_PROF_PIPE_TENSOR_ACTIVE, gauge, Ratio of time the tensor cores are active.
+DCGM_FI_PROF_PIPE_FP64_ACTIVE,   gauge, Ratio of time the FP64 pipes are active.
+DCGM_FI_PROF_PIPE_FP32_ACTIVE,   gauge, Ratio of time the FP32 pipes are active.
+DCGM_FI_PROF_PIPE_FP16_ACTIVE,   gauge, Ratio of time the FP16 pipes are active.
+DCGM_FI_PROF_DRAM_ACTIVE,        gauge, Ratio of time the device memory interface is active.
+DCGM_FI_PROF_PCIE_TX_BYTES,      counter, Total bytes transmitted through PCIe TX.
+DCGM_FI_PROF_PCIE_RX_BYTES,      counter, Total bytes received through PCIe RX.
+
+# Driver version label
+DCGM_FI_DRIVER_VERSION, label, Driver Version

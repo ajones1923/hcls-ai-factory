@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  web-portal:
+    build: .
+    container_name: genomics-portal
+    ports:
+      - "5000:5000"
+    volumes:
+      - ../data:/workspace/genome-pipeline/data
+      - ../scripts:/workspace/genome-pipeline/scripts
+      - ../config:/workspace/genome-pipeline/config
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - FLASK_ENV=production
+    restart: unless-stopped

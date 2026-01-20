@@ -1,0 +1,189 @@
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#76B900', 'primaryTextColor': '#fff', 'primaryBorderColor': '#5a8f00', 'lineColor': '#333', 'secondaryColor': '#2196F3', 'tertiaryColor': '#f5f5f5', 'background': '#ffffff', 'mainBkg': '#ffffff', 'nodeBorder': '#333', 'clusterBkg': '#f0f0f0', 'clusterBorder': '#999', 'titleColor': '#333', 'edgeLabelBackground': '#fff'}}}%%
+
+flowchart TB
+    %% Title
+    subgraph title[" "]
+        direction LR
+        T["🧬 GPU-Accelerated Genomics Pipeline<br/>FASTQ → VCF using NVIDIA Parabricks"]
+    end
+
+    %% ===== USER INTERFACES =====
+    subgraph UI["User Interfaces"]
+        direction LR
+        CLI["🖥️ Command Line<br/>run.sh"]
+        WEB["🌐 Web Portal<br/>Flask + SSE<br/>localhost:5000"]
+    end
+
+    %% ===== PHASE 1: SETUP =====
+    subgraph SETUP["Phase 1: Environment Setup"]
+        direction TB
+
+        subgraph CHECK["Prerequisites Check"]
+            C1["🐳 Docker<br/>Daemon Status"]
+            C2["🎮 NVIDIA Runtime<br/>Container Toolkit"]
+            C3["💾 GPU Detection<br/>Driver Version"]
+            C4["📀 Disk Space<br/>≥500GB Required"]
+        end
+
+        subgraph AUTH["NGC Authentication"]
+            A1["🔑 NGC Login<br/>nvcr.io"]
+            A2["📦 Pull Container<br/>clara-parabricks:4.6.0-1"]
+        end
+
+        C1 --> C2 --> C3 --> C4
+        C4 --> A1 --> A2
+    end
+
+    %% ===== PHASE 2: DATA ACQUISITION =====
+    subgraph DATA["Phase 2: Data Acquisition"]
+        direction TB
+
+        subgraph FASTQ_DL["FASTQ Download"]
+            F1["📋 Fetch Index<br/>GIAB HG002 Illumina 2x250bp"]
+            F2["⬇️ aria2c Download<br/>8 connections × 4 parallel<br/>~200GB total"]
+            F3["🔀 Lane Merging<br/>Concatenate L001-L008"]
+            F4["✅ Validation<br/>Read Count Verification"]
+        end
+
+        subgraph REF_DL["Reference Setup"]
+            R1["⬇️ Download Bundle<br/>Parabricks Sample (~11GB)"]
+            R2["📂 Extract GRCh38<br/>Reference FASTA (3GB)"]
+            R3["📑 Copy BWA Index<br/>.bwt .pac .sa .amb .ann"]
+            R4["🔧 Build Indexes<br/>.fai + .dict"]
+        end
+
+        F1 --> F2 --> F3 --> F4
+        R1 --> R2 --> R3 --> R4
+    end
+
+    %% ===== PHASE 3: CORE PROCESSING =====
+    subgraph PROCESS["Phase 3: GPU-Accelerated Processing"]
+        direction TB
+
+        subgraph ALIGN["Alignment Pipeline (fq2bam)"]
+            direction LR
+            AL1["🧬 BWA-MEM2<br/>Read Alignment<br/>GPU Accelerated"]
+            AL2["📊 Coordinate Sort<br/>Position Ordering<br/>Parallel Merge-Sort"]
+            AL3["🔖 Mark Duplicates<br/>PCR Artifact Removal<br/>Hash-Based Detection"]
+            AL1 --> AL2 --> AL3
+        end
+
+        subgraph QC["Quality Control"]
+            QC1["📑 BAM Index<br/>samtools index"]
+            QC2["📈 Flagstat QC<br/>Mapping Statistics"]
+        end
+
+        subgraph VARIANT["Variant Calling (DeepVariant)"]
+            direction LR
+            V1["🖼️ Pileup Images<br/>Visual Encoding"]
+            V2["🧠 CNN Inference<br/>Inception-v3<br/>Tensor Core Accelerated"]
+            V3["📝 VCF Output<br/>SNVs + Indels"]
+            V1 --> V2 --> V3
+        end
+
+        AL3 --> QC1 --> QC2 --> V1
+    end
+
+    %% ===== PHASE 4: OUTPUTS =====
+    subgraph OUTPUT["Phase 4: Output Generation"]
+        direction TB
+
+        subgraph FILES["Output Files"]
+            direction LR
+            O1["📁 BAM File<br/>HG002.genome.bam<br/>~100GB Aligned Reads"]
+            O2["📁 BAM Index<br/>.bam.bai<br/>Random Access"]
+            O3["📁 VCF File<br/>HG002.genome.vcf.gz<br/>~1-2GB Variants"]
+            O4["📁 VCF Index<br/>.vcf.gz.tbi<br/>Tabix Index"]
+        end
+
+        subgraph LOGS["Execution Logs"]
+            L1["📄 fq2bam.log"]
+            L2["📄 flagstat.log"]
+            L3["📄 deepvariant.log"]
+        end
+    end
+
+    %% ===== DOWNSTREAM =====
+    subgraph DOWNSTREAM["Downstream Analysis"]
+        direction LR
+        D1["💊 Pharmacogenomics<br/>PharmCAT / Stargazer"]
+        D2["🏥 Clinical<br/>ClinVar / ACMG"]
+        D3["🔬 Research<br/>GWAS / Annotation"]
+    end
+
+    %% ===== INPUT DATA =====
+    subgraph INPUTS["Input Data"]
+        direction LR
+        I1[("🧪 FASTQ R1<br/>Forward Reads<br/>~100GB")]
+        I2[("🧪 FASTQ R2<br/>Reverse Reads<br/>~100GB")]
+        I3[("📚 GRCh38.fa<br/>Reference Genome<br/>~3GB")]
+    end
+
+    %% ===== INFRASTRUCTURE =====
+    subgraph INFRA["Infrastructure Layer"]
+        direction LR
+        INF1["🐳 Docker<br/>Container Runtime"]
+        INF2["🎮 NVIDIA GPU<br/>CUDA + Tensor Cores"]
+        INF3["💾 NVMe Storage<br/>High-Speed I/O"]
+    end
+
+    %% ===== CONNECTIONS =====
+
+    %% User Interface connections
+    CLI --> SETUP
+    WEB --> SETUP
+
+    %% Phase connections
+    SETUP --> DATA
+    DATA --> PROCESS
+    PROCESS --> OUTPUT
+    OUTPUT --> DOWNSTREAM
+
+    %% Input data connections
+    I1 --> ALIGN
+    I2 --> ALIGN
+    I3 --> ALIGN
+    I3 --> VARIANT
+
+    %% Infrastructure connections
+    INFRA -.-> PROCESS
+
+    %% Output connections
+    AL3 --> O1
+    QC1 --> O2
+    V3 --> O3
+    V3 --> O4
+
+    %% Log connections
+    ALIGN -.-> L1
+    QC -.-> L2
+    VARIANT -.-> L3
+
+    %% ===== STYLING =====
+
+    %% Phase colors
+    classDef setupClass fill:#E3F2FD,stroke:#1976D2,stroke-width:2px
+    classDef dataClass fill:#E8F5E9,stroke:#388E3C,stroke-width:2px
+    classDef processClass fill:#FFF3E0,stroke:#F57C00,stroke-width:2px
+    classDef outputClass fill:#F3E5F5,stroke:#7B1FA2,stroke-width:2px
+    classDef downstreamClass fill:#ECEFF1,stroke:#546E7A,stroke-width:2px
+
+    %% Component colors
+    classDef gpuClass fill:#76B900,stroke:#5a8f00,stroke-width:2px,color:#fff
+    classDef dockerClass fill:#2196F3,stroke:#1565C0,stroke-width:2px,color:#fff
+    classDef fileClass fill:#FFE082,stroke:#FFA000,stroke-width:2px
+    classDef inputClass fill:#B3E5FC,stroke:#0288D1,stroke-width:2px
+    classDef uiClass fill:#CE93D8,stroke:#7B1FA2,stroke-width:2px
+
+    %% Apply styles
+    class SETUP setupClass
+    class DATA dataClass
+    class PROCESS processClass
+    class OUTPUT outputClass
+    class DOWNSTREAM downstreamClass
+
+    class AL1,AL2,AL3,V1,V2,V3 gpuClass
+    class INF1,A2 dockerClass
+    class O1,O2,O3,O4,L1,L2,L3 fileClass
+    class I1,I2,I3 inputClass
+    class CLI,WEB uiClass

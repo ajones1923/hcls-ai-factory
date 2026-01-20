@@ -1,0 +1,275 @@
+/* RAG Chat Pipeline Portal Styles */
+
+:root {
+    --primary-color: #0d6efd;
+    --primary-dark: #0a58ca;
+    --primary-light: #3d8bfd;
+}
+
+body {
+    background-color: #f8f9fa;
+}
+
+/* Executive Header */
+.executive-header {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.executive-header.compact {
+    padding: 0.75rem 1.5rem;
+}
+
+.executive-header .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.executive-header .header-titles h2 {
+    font-size: 0.9rem;
+    margin: 0;
+    opacity: 0.9;
+    font-weight: 400;
+}
+
+.executive-header .header-titles h1 {
+    font-size: 1.5rem;
+    margin: 0;
+    font-weight: 600;
+}
+
+.executive-header .header-stats {
+    display: flex;
+    gap: 2rem;
+}
+
+.executive-header .header-stat {
+    text-align: center;
+}
+
+.executive-header .stat-label {
+    display: block;
+    font-size: 0.75rem;
+    opacity: 0.8;
+}
+
+.executive-header .stat-value {
+    display: block;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+/* Workflow Steps */
+.list-group-item {
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.list-group-item:hover {
+    background-color: #f0f0f0;
+}
+
+.list-group-item.active {
+    background-color: var(--primary-light);
+    border-color: var(--primary-light);
+}
+
+.list-group-item.completed {
+    background-color: #d4edda;
+}
+
+.list-group-item.completed .step-icon {
+    color: #28a745 !important;
+}
+
+.list-group-item.running {
+    background-color: #fff3cd;
+}
+
+.list-group-item.error {
+    background-color: #f8d7da;
+}
+
+/* Console Output */
+#console-output {
+    font-family: 'Fira Code', 'Courier New', monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+/* Metric Boxes */
+.metric-box {
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+}
+
+.metric-box .metric-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.metric-box .metric-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #333;
+}
+
+/* Stat Items */
+.stat-item {
+    padding: 0.5rem;
+    border-bottom: 1px solid #eee;
+}
+
+.stat-item:last-child {
+    border-bottom: none;
+}
+
+.stat-item .stat-label {
+    font-weight: 500;
+    color: #666;
+}
+
+.stat-item .stat-value {
+    float: right;
+    font-weight: 600;
+}
+
+/* Progress Bars */
+.progress {
+    background-color: #e9ecef;
+}
+
+/* Table Styles */
+.table-responsive {
+    scrollbar-width: thin;
+}
+
+.table-responsive::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+    background-color: #888;
+    border-radius: 4px;
+}
+
+/* Badge Styles */
+.badge-online {
+    background-color: #28a745;
+}
+
+.badge-offline {
+    background-color: #dc3545;
+}
+
+/* Cards */
+.card {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: none;
+}
+
+.card-header {
+    font-weight: 600;
+}
+
+/* Nav Tabs */
+.nav-tabs .nav-link {
+    color: #495057;
+}
+
+.nav-tabs .nav-link.active {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.nav-tabs .nav-link:hover {
+    color: var(--primary-dark);
+}
+
+/* Tab Content */
+.tab-content {
+    background: white;
+    min-height: 500px;
+}
+
+/* VCF Table */
+#vcf-table-body tr:hover {
+    background-color: #f0f0f0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .executive-header .header-content {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .executive-header .header-stats {
+        margin-top: 1rem;
+    }
+}
+
+/* Animation for running status */
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+.running .step-icon {
+    animation: pulse 1.5s infinite;
+}
+
+/* Live indicator */
+.live-indicator {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    background: rgba(255, 0, 0, 0.1);
+    border-radius: 12px;
+    font-size: 0.75rem;
+    color: #dc3545;
+    font-weight: 600;
+}
+
+.live-dot {
+    width: 8px;
+    height: 8px;
+    background: #dc3545;
+    border-radius: 50%;
+    margin-right: 4px;
+    animation: pulse 1s infinite;
+}
+
+/* Button styling */
+.btn-group-sm .btn {
+    font-size: 0.8rem;
+}
+
+/* Custom scrollbar for console */
+#console-output::-webkit-scrollbar {
+    width: 8px;
+}
+
+#console-output::-webkit-scrollbar-track {
+    background: #2d2d2d;
+}
+
+#console-output::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 4px;
+}
+
+#console-output::-webkit-scrollbar-thumb:hover {
+    background: #777;
+}

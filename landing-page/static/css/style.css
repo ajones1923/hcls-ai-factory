@@ -1,0 +1,1041 @@
+/* ============================================================================
+   AI Factory Landing Page - Premium Design System
+   ============================================================================ */
+
+:root {
+    /* NVIDIA Brand Colors */
+    --nvidia-green: #76B900;
+    --nvidia-green-light: #8DD100;
+    --nvidia-green-dark: #5A8F00;
+
+    /* Dark Theme */
+    --bg-primary: #0a0a0f;
+    --bg-secondary: #12121a;
+    --bg-card: #1a1a24;
+    --bg-card-hover: #222230;
+
+    /* Text Colors */
+    --text-primary: #ffffff;
+    --text-secondary: #a0a0b0;
+    --text-muted: #6a6a7a;
+
+    /* Accent Colors */
+    --accent-blue: #3b82f6;
+    --accent-purple: #8b5cf6;
+    --accent-cyan: #06b6d4;
+    --accent-pink: #ec4899;
+    --accent-orange: #f97316;
+
+    /* Status Colors */
+    --status-online: #22c55e;
+    --status-warning: #eab308;
+    --status-error: #ef4444;
+
+    /* Gradients */
+    --gradient-nvidia: linear-gradient(135deg, #76B900 0%, #8DD100 50%, #5A8F00 100%);
+    --gradient-hero: linear-gradient(135deg, #76B900 0%, #06b6d4 50%, #8b5cf6 100%);
+    --gradient-card: linear-gradient(180deg, rgba(118, 185, 0, 0.1) 0%, transparent 100%);
+
+    /* Shadows */
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+    --shadow-glow: 0 0 40px rgba(118, 185, 0, 0.3);
+
+    /* Spacing */
+    --space-xs: 0.25rem;
+    --space-sm: 0.5rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+    --space-2xl: 3rem;
+    --space-3xl: 4rem;
+
+    /* Border Radius */
+    --radius-sm: 6px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+    --radius-full: 9999px;
+
+    /* Transitions */
+    --transition-fast: 150ms ease;
+    --transition-base: 250ms ease;
+    --transition-slow: 400ms ease;
+}
+
+/* ============================================================================
+   Base Styles
+   ============================================================================ */
+
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.6;
+    overflow-x: hidden;
+    min-height: 100vh;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* ============================================================================
+   Animated Background
+   ============================================================================ */
+
+.bg-animation {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    overflow: hidden;
+}
+
+.bg-gradient {
+    position: absolute;
+    width: 200%;
+    height: 200%;
+    top: -50%;
+    left: -50%;
+    background:
+        radial-gradient(ellipse at 20% 20%, rgba(118, 185, 0, 0.15) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 80%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 50%, rgba(6, 182, 212, 0.08) 0%, transparent 60%);
+    animation: bgPulse 20s ease-in-out infinite;
+}
+
+@keyframes bgPulse {
+    0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    50% { transform: scale(1.1) rotate(5deg); opacity: 0.8; }
+}
+
+.bg-grid {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-image:
+        linear-gradient(rgba(118, 185, 0, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(118, 185, 0, 0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse at center, black 0%, transparent 70%);
+}
+
+.floating-particles {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: var(--nvidia-green);
+    border-radius: 50%;
+    opacity: 0.3;
+    animation: float 15s infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(100vh) scale(0); opacity: 0; }
+    10% { opacity: 0.3; }
+    90% { opacity: 0.3; }
+    100% { transform: translateY(-100px) scale(1); opacity: 0; }
+}
+
+/* ============================================================================
+   Navigation
+   ============================================================================ */
+
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-md) var(--space-2xl);
+    background: rgba(10, 10, 15, 0.8);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(118, 185, 0, 0.1);
+}
+
+.nav-brand {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.nvidia-logo {
+    color: var(--nvidia-green);
+    display: flex;
+    align-items: center;
+}
+
+.brand-text {
+    font-size: 1.25rem;
+    font-weight: 700;
+    background: var(--gradient-nvidia);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.hcls-text {
+    font-weight: 800;
+    letter-spacing: 0.05em;
+}
+
+.nav-links {
+    display: flex;
+    gap: var(--space-xl);
+}
+
+.nav-link {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    transition: color var(--transition-fast);
+    position: relative;
+}
+
+.nav-link:hover {
+    color: var(--nvidia-green);
+}
+
+.nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--nvidia-green);
+    transition: width var(--transition-base);
+}
+
+.nav-link:hover::after {
+    width: 100%;
+}
+
+.nav-status {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-size: 0.85rem;
+    color: var(--status-online);
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--status-online);
+    border-radius: 50%;
+}
+
+.status-dot.pulse {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5); }
+    50% { box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
+}
+
+/* ============================================================================
+   Hero Section
+   ============================================================================ */
+
+.hero {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: calc(80px + var(--space-3xl)) var(--space-2xl) var(--space-3xl);
+    position: relative;
+}
+
+.hero-content {
+    max-width: 800px;
+    text-align: center;
+    z-index: 1;
+}
+
+.hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-lg);
+    background: rgba(118, 185, 0, 0.1);
+    border: 1px solid rgba(118, 185, 0, 0.3);
+    border-radius: var(--radius-full);
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--nvidia-green);
+    margin-bottom: var(--space-xl);
+}
+
+.badge-icon {
+    font-size: 1.1rem;
+}
+
+.hero-title {
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: var(--space-lg);
+}
+
+.title-line {
+    display: block;
+}
+
+.gradient-text {
+    background: var(--gradient-hero);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.hero-subtitle {
+    font-size: 1.25rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-2xl);
+    line-height: 1.7;
+}
+
+.hero-cta {
+    display: flex;
+    gap: var(--space-md);
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-md) var(--space-xl);
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all var(--transition-base);
+    cursor: pointer;
+    border: none;
+}
+
+.btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+.btn-primary {
+    background: var(--gradient-nvidia);
+    color: #000;
+    box-shadow: var(--shadow-glow);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 60px rgba(118, 185, 0, 0.5);
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(118, 185, 0, 0.3);
+}
+
+/* DNA Helix Animation */
+.hero-visual {
+    position: absolute;
+    right: 10%;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 200px;
+    height: 400px;
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+.dna-helix {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.helix-strand {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(180deg,
+        transparent 0%,
+        var(--nvidia-green) 25%,
+        var(--accent-cyan) 50%,
+        var(--nvidia-green) 75%,
+        transparent 100%);
+    mask: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 20px,
+        black 20px,
+        black 40px
+    );
+    animation: helixRotate 8s linear infinite;
+}
+
+.strand-2 {
+    animation-delay: -4s;
+    opacity: 0.5;
+}
+
+@keyframes helixRotate {
+    from { transform: rotateY(0deg) translateZ(50px); }
+    to { transform: rotateY(360deg) translateZ(50px); }
+}
+
+/* ============================================================================
+   Section Styles
+   ============================================================================ */
+
+section {
+    padding: var(--space-3xl) var(--space-2xl);
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: var(--space-3xl);
+}
+
+.section-header h2 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: var(--space-sm);
+}
+
+.section-header p {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+}
+
+/* ============================================================================
+   Workflow Section
+   ============================================================================ */
+
+.workflow-section {
+    background: linear-gradient(180deg, transparent 0%, rgba(118, 185, 0, 0.03) 50%, transparent 100%);
+}
+
+.pipeline-flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.flow-step {
+    background: var(--bg-card);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl);
+    text-align: center;
+    min-width: 200px;
+    transition: all var(--transition-base);
+    position: relative;
+    overflow: hidden;
+}
+
+.flow-step::before {
+    content: attr(data-step);
+    position: absolute;
+    top: -20px;
+    right: -20px;
+    font-size: 6rem;
+    font-weight: 800;
+    color: rgba(118, 185, 0, 0.05);
+    line-height: 1;
+}
+
+.flow-step:hover {
+    transform: translateY(-4px);
+    border-color: rgba(118, 185, 0, 0.3);
+    box-shadow: var(--shadow-glow);
+}
+
+.step-icon {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto var(--space-md);
+    background: rgba(118, 185, 0, 0.1);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.step-icon svg {
+    width: 32px;
+    height: 32px;
+    color: var(--nvidia-green);
+}
+
+.step-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--nvidia-green);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: var(--space-xs);
+}
+
+.step-content h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: var(--space-xs);
+}
+
+.step-content p {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-sm);
+}
+
+.step-time {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--accent-cyan);
+    background: rgba(6, 182, 212, 0.1);
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-sm);
+}
+
+.flow-arrow {
+    color: var(--nvidia-green);
+    opacity: 0.5;
+}
+
+.flow-arrow svg {
+    width: 24px;
+    height: 24px;
+}
+
+/* ============================================================================
+   Pipeline Cards Section
+   ============================================================================ */
+
+.pipelines-section {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.pipeline-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: var(--space-xl);
+}
+
+.pipeline-card {
+    position: relative;
+    background: var(--bg-card);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-xl);
+    padding: var(--space-xl);
+    transition: all var(--transition-base);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.pipeline-card:hover {
+    transform: translateY(-8px);
+    border-color: rgba(118, 185, 0, 0.4);
+}
+
+.pipeline-card.featured {
+    border-color: rgba(118, 185, 0, 0.2);
+}
+
+.card-glow {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 200px;
+    background: var(--gradient-card);
+    opacity: 0;
+    transition: opacity var(--transition-base);
+    pointer-events: none;
+}
+
+.pipeline-card:hover .card-glow {
+    opacity: 1;
+}
+
+.card-badge {
+    position: absolute;
+    top: var(--space-md);
+    right: var(--space-md);
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--nvidia-green);
+    background: rgba(118, 185, 0, 0.15);
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--space-lg);
+}
+
+.card-icon {
+    width: 56px;
+    height: 56px;
+    background: rgba(118, 185, 0, 0.1);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-icon svg {
+    width: 28px;
+    height: 28px;
+    color: var(--nvidia-green);
+}
+
+.card-status {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.card-status.online {
+    color: var(--status-online);
+}
+
+.status-indicator {
+    width: 8px;
+    height: 8px;
+    background: currentColor;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+.card-body {
+    flex: 1;
+}
+
+.card-body h3 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin-bottom: var(--space-sm);
+}
+
+.card-body p {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-md);
+    line-height: 1.6;
+}
+
+.card-tech {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+}
+
+.tech-badge {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: rgba(255, 255, 255, 0.05);
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-sm);
+}
+
+.card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: var(--space-lg);
+    padding-top: var(--space-md);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.port-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.launch-text {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--nvidia-green);
+    transition: transform var(--transition-fast);
+}
+
+.pipeline-card:hover .launch-text {
+    transform: translateX(4px);
+}
+
+/* Card Color Variations */
+.pipeline-card.genomics:hover { border-color: var(--accent-blue); }
+.pipeline-card.genomics .card-icon { background: rgba(59, 130, 246, 0.1); }
+.pipeline-card.genomics .card-icon svg { color: var(--accent-blue); }
+
+.pipeline-card.rag-portal:hover { border-color: var(--accent-purple); }
+.pipeline-card.rag-portal .card-icon { background: rgba(139, 92, 246, 0.1); }
+.pipeline-card.rag-portal .card-icon svg { color: var(--accent-purple); }
+
+.pipeline-card.rag-chat:hover { border-color: var(--nvidia-green); }
+
+.pipeline-card.drug-main:hover { border-color: var(--accent-cyan); }
+.pipeline-card.drug-main .card-icon { background: rgba(6, 182, 212, 0.1); }
+.pipeline-card.drug-main .card-icon svg { color: var(--accent-cyan); }
+
+.pipeline-card.drug-portal:hover { border-color: var(--accent-orange); }
+.pipeline-card.drug-portal .card-icon { background: rgba(249, 115, 22, 0.1); }
+.pipeline-card.drug-portal .card-icon svg { color: var(--accent-orange); }
+
+/* ============================================================================
+   Stats Section
+   ============================================================================ */
+
+.stats-section {
+    background: var(--bg-secondary);
+    border-top: 1px solid rgba(118, 185, 0, 0.1);
+    border-bottom: 1px solid rgba(118, 185, 0, 0.1);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: var(--space-md);
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.stat-card {
+    text-align: center;
+    padding: var(--space-lg);
+    min-width: 0;
+    overflow: hidden;
+}
+
+
+.stat-value {
+    font-size: clamp(1.8rem, 4vw, 2.5rem);
+    font-weight: 800;
+    background: var(--gradient-nvidia);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.2;
+    margin-bottom: var(--space-sm);
+    white-space: nowrap;
+}
+
+.stat-label {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: var(--space-xs);
+}
+
+.stat-detail {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+/* ============================================================================
+   Monitoring Section
+   ============================================================================ */
+
+.monitoring-section {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.monitoring-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--space-md);
+}
+
+.monitor-card {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    background: var(--bg-card);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    transition: all var(--transition-base);
+}
+
+.monitor-card:hover {
+    border-color: rgba(118, 185, 0, 0.3);
+    transform: translateY(-2px);
+}
+
+.monitor-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.monitor-icon svg {
+    width: 24px;
+    height: 24px;
+    color: var(--text-secondary);
+}
+
+.monitor-icon.nvidia svg {
+    color: var(--nvidia-green);
+}
+
+.monitor-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.monitor-info h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.monitor-info span {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.monitor-port {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--nvidia-green);
+    background: rgba(118, 185, 0, 0.1);
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-sm);
+}
+
+/* Monitor Card Colors */
+.monitor-card.grafana:hover .monitor-icon { background: rgba(249, 115, 22, 0.1); }
+.monitor-card.grafana:hover .monitor-icon svg { color: var(--accent-orange); }
+
+.monitor-card.prometheus:hover .monitor-icon { background: rgba(239, 68, 68, 0.1); }
+.monitor-card.prometheus:hover .monitor-icon svg { color: var(--status-error); }
+
+.monitor-card.node:hover .monitor-icon { background: rgba(59, 130, 246, 0.1); }
+.monitor-card.node:hover .monitor-icon svg { color: var(--accent-blue); }
+
+.monitor-card.dcgm:hover .monitor-icon { background: rgba(118, 185, 0, 0.15); }
+
+/* ============================================================================
+   Footer
+   ============================================================================ */
+
+.footer {
+    background: var(--bg-secondary);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding: var(--space-2xl) var(--space-2xl);
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-md);
+    text-align: center;
+}
+
+.nvidia-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-sm);
+    color: var(--nvidia-green);
+    font-weight: 600;
+}
+
+.footer-tech {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-sm);
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.footer-tech .dot {
+    color: var(--text-muted);
+}
+
+.footer-copy {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+/* ============================================================================
+   Responsive Design
+   ============================================================================ */
+
+@media (max-width: 768px) {
+    .navbar {
+        padding: var(--space-md);
+    }
+
+    .nav-links {
+        display: none;
+    }
+
+    .hero {
+        padding: calc(60px + var(--space-2xl)) var(--space-md) var(--space-2xl);
+    }
+
+    .hero-title {
+        font-size: 2rem;
+    }
+
+    .hero-subtitle {
+        font-size: 1rem;
+    }
+
+    .hero-visual {
+        display: none;
+    }
+
+    section {
+        padding: var(--space-2xl) var(--space-md);
+    }
+
+    .section-header h2 {
+        font-size: 1.75rem;
+    }
+
+    .pipeline-flow {
+        flex-direction: column;
+    }
+
+    .flow-arrow {
+        transform: rotate(90deg);
+    }
+
+    .flow-step {
+        width: 100%;
+        max-width: 300px;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* ============================================================================
+   Animations
+   ============================================================================ */
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.hero-content {
+    animation: fadeInUp 0.8s ease-out;
+}
+
+.flow-step {
+    animation: fadeInUp 0.6s ease-out;
+    animation-fill-mode: both;
+}
+
+.flow-step:nth-child(1) { animation-delay: 0.1s; }
+.flow-step:nth-child(3) { animation-delay: 0.2s; }
+.flow-step:nth-child(5) { animation-delay: 0.3s; }
+.flow-step:nth-child(7) { animation-delay: 0.4s; }
+
+.pipeline-card {
+    animation: fadeInUp 0.6s ease-out;
+    animation-fill-mode: both;
+}
+
+.pipeline-card:nth-child(1) { animation-delay: 0.1s; }
+.pipeline-card:nth-child(2) { animation-delay: 0.15s; }
+.pipeline-card:nth-child(3) { animation-delay: 0.2s; }
+.pipeline-card:nth-child(4) { animation-delay: 0.25s; }
+.pipeline-card:nth-child(5) { animation-delay: 0.3s; }
+
+.stat-card {
+    animation: fadeInUp 0.5s ease-out;
+    animation-fill-mode: both;
+}
+
+.stat-card:nth-child(1) { animation-delay: 0.1s; }
+.stat-card:nth-child(2) { animation-delay: 0.15s; }
+.stat-card:nth-child(3) { animation-delay: 0.2s; }
+.stat-card:nth-child(4) { animation-delay: 0.25s; }
+.stat-card:nth-child(5) { animation-delay: 0.3s; }
+.stat-card:nth-child(6) { animation-delay: 0.35s; }
+
+/* Scroll reveal */
+.reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.6s ease-out;
+}
+
+.reveal.active {
+    opacity: 1;
+    transform: translateY(0);
+}

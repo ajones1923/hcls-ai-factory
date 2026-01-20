@@ -1,0 +1,57 @@
+# Environment files (NEVER COMMIT)
+.env
+.env.local
+.env.*.local
+
+# Large data files
+data/input/**/*.fastq.gz
+data/input/**/*.fq.gz
+data/ref/**/*.fa
+data/ref/**/*.fasta
+data/ref/**/*.tar.gz
+data/output/**/*.bam
+data/output/**/*.bai
+data/output/**/*.vcf.gz
+data/output/**/*.tbi
+
+# Temporary files
+data/output/tmp_*/
+data/input/giab_hg002/reads/
+
+# Logs (optional - comment out if you want to track logs)
+# data/output/logs/*.log
+
+# Index files (regenerable)
+data/ref/*.amb
+data/ref/*.ann
+data/ref/*.bwt
+data/ref/*.pac
+data/ref/*.sa
+data/ref/*.fai
+data/ref/*.dict
+
+# Python virtual environments
+web-portal/venv/
+web-portal/__pycache__/
+web-portal/**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Keep directory structure
+!data/input/.gitkeep
+!data/ref/.gitkeep
+!data/output/.gitkeep
+!data/output/logs/.gitkeep

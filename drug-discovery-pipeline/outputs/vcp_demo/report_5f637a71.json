@@ -1,0 +1,214 @@
+{
+  "run_id": "5f637a71",
+  "target": {
+    "gene": "VCP",
+    "protein": "Valosin-containing protein (p97)",
+    "uniprot_id": "P55072",
+    "rationale": "VCP mutations cause FTD-ALS. CB-5083 is a known VCP inhibitor.",
+    "therapeutic_area": "Neurodegeneration",
+    "mechanism": "AAA+ ATPase inhibition",
+    "confidence": "high",
+    "priority": 5,
+    "pdb_ids": [
+      "5FTK",
+      "8OOI",
+      "9DIL"
+    ],
+    "variant_count": 0,
+    "status": "validated"
+  },
+  "config": {
+    "target_gene": "VCP",
+    "reference_compound_smiles": "CC(C)C1=C(C=C(C=C1)NC2=NC3=C(C=N2)N(C=C3)C)C(=O)NC4=CC=C(C=C4)CN5CCOCC5",
+    "num_molecules": 20,
+    "diversity": 0.3,
+    "generation_method": "molmim",
+    "docking_method": "diffdock",
+    "num_poses": 10,
+    "max_mw": 550,
+    "max_logp": 5.0,
+    "max_lipinski_violations": 1,
+    "docking_weight": 0.4,
+    "generation_weight": 0.3,
+    "qed_weight": 0.3,
+    "top_n_candidates": 10,
+    "output_dir": "outputs/vcp_demo",
+    "structure_cache": "data/structures",
+    "molmim_url": null,
+    "diffdock_url": null
+  },
+  "summary": {
+    "molecules_generated": 4,
+    "molecules_docked": 4,
+    "top_n": 10
+  },
+  "top_candidates": [
+    {
+      "rank": 1,
+      "molecule_id": "5f637a71-mol-0000",
+      "smiles": "CC(C)C1=C(C=C(C=C1)NC2=NC3=C(C=N2)N(C=C3)C)C(=O)NC4=CC=C(C=C4)CN5CCOCC5",
+      "name": null,
+      "target_gene": "VCP",
+      "docking_score": -8.62,
+      "generation_score": 1.0,
+      "qed_score": 0.387,
+      "composite_score": 0.4437,
+      "properties": {
+        "molecular_weight": 484.6,
+        "logP": 4.92,
+        "hbd": 2,
+        "hba": 7,
+        "tpsa": 84.31,
+        "rotatable_bonds": 7,
+        "lipinski_violations": 0,
+        "qed": 0.387,
+        "sa_score": null
+      },
+      "best_pose_file": null,
+      "binding_residues": [
+        "ALA100",
+        "GLY479",
+        "ASP320"
+      ],
+      "passes_filters": true,
+      "alerts": []
+    },
+    {
+      "rank": 2,
+      "molecule_id": "5f637a71-mol-0001",
+      "smiles": "CC(N)c1ccc(Nc2ncc3c(ccn3C)n2)cc1C(=O)Nc1ccc(CN2CCOCC2)cc1",
+      "name": null,
+      "target_gene": "VCP",
+      "docking_score": -8.26,
+      "generation_score": 0.85,
+      "qed_score": 0.365,
+      "composite_score": 0.3993,
+      "properties": {
+        "molecular_weight": 485.59,
+        "logP": 3.82,
+        "hbd": 3,
+        "hba": 8,
+        "tpsa": 110.33,
+        "rotatable_bonds": 7,
+        "lipinski_violations": 0,
+        "qed": 0.365,
+        "sa_score": null
+      },
+      "best_pose_file": null,
+      "binding_residues": [
+        "ALA464",
+        "GLY215",
+        "ASP364"
+      ],
+      "passes_filters": true,
+      "alerts": []
+    },
+    {
+      "rank": 3,
+      "molecule_id": "5f637a71-mol-0004",
+      "smiles": "Cc1ccc(NC2=NC3=C(C=N2)N(C=C3)C)c(C(=O)Nc4ccc(CN5CCOCC5)cc4)c1",
+      "name": null,
+      "target_gene": "VCP",
+      "docking_score": -9.86,
+      "generation_score": 0.75,
+      "qed_score": 0.454,
+      "composite_score": 0.364,
+      "properties": {
+        "molecular_weight": 456.55,
+        "logP": 4.1,
+        "hbd": 2,
+        "hba": 7,
+        "tpsa": 84.31,
+        "rotatable_bonds": 6,
+        "lipinski_violations": 0,
+        "qed": 0.454,
+        "sa_score": null
+      },
+      "best_pose_file": null,
+      "binding_residues": [
+        "ALA194",
+        "GLY475",
+        "ASP468"
+      ],
+      "passes_filters": true,
+      "alerts": []
+    },
+    {
+      "rank": 4,
+      "molecule_id": "5f637a71-mol-0003",
+      "smiles": "CC(C)c1ccc(NC2=NC3=C(C=N2)N(C=C3)C)c(C(=O)Nc4ccc(CN5CCOCC5)cc4)c1",
+      "name": null,
+      "target_gene": "VCP",
+      "docking_score": -10.95,
+      "generation_score": 0.8,
+      "qed_score": 0.387,
+      "composite_score": 0.3561,
+      "properties": {
+        "molecular_weight": 484.6,
+        "logP": 4.92,
+        "hbd": 2,
+        "hba": 7,
+        "tpsa": 84.31,
+        "rotatable_bonds": 7,
+        "lipinski_violations": 0,
+        "qed": 0.387,
+        "sa_score": null
+      },
+      "best_pose_file": null,
+      "binding_residues": [
+        "ALA323",
+        "GLY375",
+        "ASP348"
+      ],
+      "passes_filters": true,
+      "alerts": []
+    }
+  ],
+  "structures_used": [
+    {
+      "pdb_id": "5FTK",
+      "method": "Unknown",
+      "resolution": null,
+      "chain": "A",
+      "binding_site_residues": [],
+      "ligand_id": null,
+      "ligand_smiles": null,
+      "structure_file": null,
+      "prepared": true
+    },
+    {
+      "pdb_id": "8OOI",
+      "method": "Unknown",
+      "resolution": null,
+      "chain": "A",
+      "binding_site_residues": [],
+      "ligand_id": null,
+      "ligand_smiles": null,
+      "structure_file": null,
+      "prepared": true
+    },
+    {
+      "pdb_id": "9DIL",
+      "method": "Unknown",
+      "resolution": null,
+      "chain": "A",
+      "binding_site_residues": [],
+      "ligand_id": null,
+      "ligand_smiles": null,
+      "structure_file": null,
+      "prepared": true
+    },
+    {
+      "pdb_id": "7K56",
+      "method": "Cryo-EM",
+      "resolution": 2.4,
+      "chain": "A",
+      "binding_site_residues": [],
+      "ligand_id": null,
+      "ligand_smiles": null,
+      "structure_file": null,
+      "prepared": true
+    }
+  ],
+  "completed_at": "2026-01-12T11:42:56.191126"
+}

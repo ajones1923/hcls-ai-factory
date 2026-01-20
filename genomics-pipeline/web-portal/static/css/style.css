@@ -1,0 +1,1100 @@
+/* Genomics Pipeline Portal - Custom Styles */
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: #f5f7fa;
+}
+
+.navbar {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.card {
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border: none;
+    margin-bottom: 1rem;
+}
+
+.card-header {
+    border-bottom: 2px solid rgba(0,0,0,0.1);
+    font-weight: 600;
+}
+
+/* Workflow Steps */
+.list-group-item {
+    border-left: 3px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.list-group-item:hover {
+    border-left-color: #0d6efd;
+    background-color: #f8f9fa;
+}
+
+.list-group-item.active {
+    border-left-color: #198754;
+    background-color: #d1e7dd;
+    color: #000;
+}
+
+.list-group-item.step-success {
+    border-left-color: #198754;
+}
+
+.list-group-item.step-error {
+    border-left-color: #dc3545;
+}
+
+.list-group-item.step-running {
+    border-left-color: #ffc107;
+    background-color: #fff3cd;
+}
+
+.step-icon {
+    font-size: 1.2rem;
+}
+
+/* Console Output */
+#console-output {
+    line-height: 1.5;
+}
+
+#console-output::-webkit-scrollbar {
+    width: 8px;
+}
+
+#console-output::-webkit-scrollbar-track {
+    background: #2d2d2d;
+}
+
+#console-output::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 4px;
+}
+
+#console-output::-webkit-scrollbar-thumb:hover {
+    background: #666;
+}
+
+/* Log Content */
+#log-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+#log-content::-webkit-scrollbar-track {
+    background: #e9ecef;
+}
+
+#log-content::-webkit-scrollbar-thumb {
+    background: #adb5bd;
+    border-radius: 4px;
+}
+
+#log-content::-webkit-scrollbar-thumb:hover {
+    background: #6c757d;
+}
+
+/* Status Badges */
+.badge {
+    font-weight: 500;
+}
+
+/* Animations */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.spinner-border-sm {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* Current Step Card */
+#current-step-card {
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Tab Styling */
+.nav-tabs .nav-link {
+    color: #6c757d;
+    border: none;
+    border-bottom: 3px solid transparent;
+}
+
+.nav-tabs .nav-link:hover {
+    border-bottom-color: #dee2e6;
+}
+
+.nav-tabs .nav-link.active {
+    color: #0d6efd;
+    border-bottom-color: #0d6efd;
+    background-color: transparent;
+}
+
+/* Form Styling */
+.form-control:focus,
+.form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+}
+
+/* Button Enhancements */
+.btn {
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .col-md-3 {
+        margin-bottom: 1rem;
+    }
+
+    #console-output {
+        height: 400px !important;
+    }
+}
+
+/* Success/Error States */
+.text-success-emphasis {
+    color: #0a3622 !important;
+}
+
+.text-danger-emphasis {
+    color: #58151c !important;
+}
+
+/* Utilization Progress Bars */
+.progress {
+    background-color: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    transition: width 0.6s ease, background-color 0.3s ease;
+    font-size: 0.75rem;
+}
+
+/* Utilization Bar Animations */
+@keyframes barPulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.85;
+    }
+}
+
+.progress-bar.bg-danger {
+    animation: barPulse 2s ease-in-out infinite;
+}
+
+/* System Status Enhancements */
+#cpu-details,
+#memory-details {
+    display: block;
+    margin-top: 2px;
+}
+
+/* GPU Card Styling */
+.bi-gpu-card::before {
+    content: "\f5dd";
+}
+
+/* Utilization Text */
+.fw-bold {
+    font-family: 'Courier New', monospace;
+}
+
+/* Smooth Updates */
+#cpu-percent,
+#memory-percent {
+    transition: color 0.3s ease;
+}
+
+/* High utilization warning */
+.utilization-high {
+    color: #dc3545 !important;
+    font-weight: bold;
+}
+
+.utilization-medium {
+    color: #ffc107 !important;
+}
+
+.utilization-low {
+    color: #198754 !important;
+}
+
+/* ============================================
+   EXECUTIVE DASHBOARD STYLES
+   ============================================ */
+
+/* Hero Header with Gradient - Compact Version */
+.executive-header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    padding: 1rem 2rem;
+    margin: -1rem -12px 1rem -12px;
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.executive-header.compact {
+    padding: 0.75rem 1.5rem;
+    margin: -0.5rem -12px 0.75rem -12px;
+}
+
+.executive-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2300ff88' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    opacity: 0.5;
+}
+
+.executive-header .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+}
+
+.executive-header .header-titles h2 {
+    font-weight: 300;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    color: #00ff88;
+    margin-bottom: 0.125rem;
+}
+
+.executive-header .header-titles h1 {
+    font-weight: 700;
+    font-size: 1.4rem;
+    margin-bottom: 0;
+}
+
+.executive-header .header-stats {
+    display: flex;
+    gap: 2rem;
+}
+
+.executive-header .header-stat {
+    text-align: center;
+}
+
+.executive-header .stat-label {
+    display: block;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 0.125rem;
+}
+
+.executive-header .stat-value {
+    display: block;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #00ff88;
+    font-family: 'Courier New', monospace;
+}
+
+.executive-header h2 {
+    font-weight: 300;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    color: #00ff88;
+    margin-bottom: 0.25rem;
+}
+
+.executive-header h1 {
+    font-weight: 700;
+    font-size: 1.8rem;
+    margin-bottom: 0;
+}
+
+/* Executive Summary Cards */
+.executive-summary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.summary-card {
+    background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+    border-radius: 12px;
+    padding: 1.25rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    border: 1px solid rgba(0,0,0,0.05);
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.summary-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+}
+
+.summary-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+}
+
+.summary-card.card-runtime::before { background: linear-gradient(180deg, #667eea, #764ba2); }
+.summary-card.card-data::before { background: linear-gradient(180deg, #11998e, #38ef7d); }
+.summary-card.card-throughput::before { background: linear-gradient(180deg, #ee0979, #ff6a00); }
+.summary-card.card-status::before { background: linear-gradient(180deg, #4facfe, #00f2fe); }
+
+.summary-card .card-icon {
+    font-size: 2rem;
+    opacity: 0.15;
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.summary-card .card-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #6c757d;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.summary-card .card-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    line-height: 1.2;
+}
+
+.summary-card .card-subtext {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+}
+
+/* ============================================
+   PIPELINE FLOW VISUALIZATION
+   ============================================ */
+
+.pipeline-flow {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.pipeline-flow.compact {
+    padding: 1rem 1.5rem;
+    margin-bottom: 0;
+    border-radius: 12px;
+}
+
+.pipeline-flow::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+        radial-gradient(circle at 20% 80%, rgba(0, 255, 136, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(79, 172, 254, 0.1) 0%, transparent 50%);
+}
+
+.pipeline-flow-title {
+    color: #ffffff;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    position: relative;
+}
+
+.pipeline-stages {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    padding: 0 1rem;
+}
+
+/* Connection line between stages */
+.pipeline-stages::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 5%;
+    right: 5%;
+    height: 3px;
+    background: linear-gradient(90deg, #2d3748 0%, #4a5568 50%, #2d3748 100%);
+    transform: translateY(-50%);
+    z-index: 0;
+    border-radius: 2px;
+}
+
+.pipeline-stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.pipeline-stage:hover {
+    transform: scale(1.05);
+}
+
+.stage-node {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(145deg, #2d3748, #1a202c);
+    border: 3px solid #4a5568;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: #a0aec0;
+    transition: all 0.4s ease;
+    position: relative;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+.pipeline-flow.compact .stage-node {
+    width: 48px;
+    height: 48px;
+    font-size: 1.2rem;
+    border-width: 2px;
+}
+
+.pipeline-flow.compact .stage-label {
+    font-size: 0.6rem;
+    margin-top: 0.5rem;
+}
+
+.stage-node i {
+    z-index: 2;
+}
+
+/* Pending state */
+.pipeline-stage.pending .stage-node {
+    background: linear-gradient(145deg, #2d3748, #1a202c);
+    border-color: #4a5568;
+    color: #718096;
+}
+
+/* Running state with glow animation */
+.pipeline-stage.running .stage-node {
+    background: linear-gradient(145deg, #276749, #22543d);
+    border-color: #48bb78;
+    color: #ffffff;
+    box-shadow: 0 0 30px rgba(72, 187, 120, 0.6), 0 0 60px rgba(72, 187, 120, 0.3);
+    animation: nodeGlow 2s ease-in-out infinite;
+}
+
+@keyframes nodeGlow {
+    0%, 100% {
+        box-shadow: 0 0 30px rgba(72, 187, 120, 0.6), 0 0 60px rgba(72, 187, 120, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 40px rgba(72, 187, 120, 0.8), 0 0 80px rgba(72, 187, 120, 0.5);
+    }
+}
+
+/* Completed state */
+.pipeline-stage.completed .stage-node {
+    background: linear-gradient(145deg, #2f855a, #276749);
+    border-color: #68d391;
+    color: #ffffff;
+}
+
+.pipeline-stage.completed .stage-node::after {
+    content: '\f26b';
+    font-family: 'bootstrap-icons';
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    width: 22px;
+    height: 22px;
+    background: #48bb78;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    color: white;
+    box-shadow: 0 2px 8px rgba(72, 187, 120, 0.5);
+}
+
+/* Error state */
+.pipeline-stage.error .stage-node {
+    background: linear-gradient(145deg, #c53030, #9b2c2c);
+    border-color: #fc8181;
+    color: #ffffff;
+    box-shadow: 0 0 20px rgba(252, 129, 129, 0.4);
+}
+
+.stage-label {
+    margin-top: 0.75rem;
+    font-size: 0.7rem;
+    color: #a0aec0;
+    text-align: center;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    max-width: 80px;
+}
+
+.pipeline-stage.running .stage-label,
+.pipeline-stage.completed .stage-label {
+    color: #68d391;
+}
+
+/* Data flow animation */
+.pipeline-flow-data {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    overflow: hidden;
+    transform: translateY(-50%);
+    z-index: 0;
+}
+
+.data-particle {
+    position: absolute;
+    width: 20px;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #48bb78, transparent);
+    border-radius: 2px;
+    animation: flowData 3s linear infinite;
+}
+
+@keyframes flowData {
+    0% { left: -20px; opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { left: 100%; opacity: 0; }
+}
+
+/* ============================================
+   THROUGHPUT CHART
+   ============================================ */
+
+.throughput-container {
+    background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    margin-bottom: 1.5rem;
+}
+
+.throughput-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.throughput-title {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+    color: #1a1a2e;
+}
+
+.throughput-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #48bb78;
+}
+
+.throughput-chart {
+    height: 150px;
+    position: relative;
+}
+
+#throughputChart {
+    width: 100%;
+    height: 100%;
+}
+
+/* Live indicator */
+.live-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    color: #48bb78;
+    font-weight: 600;
+}
+
+.live-dot {
+    width: 8px;
+    height: 8px;
+    background: #48bb78;
+    border-radius: 50%;
+    animation: livePulse 1.5s ease-in-out infinite;
+}
+
+@keyframes livePulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.2); }
+}
+
+/* ============================================
+   GENOMICS METRICS BAR
+   ============================================ */
+
+.genomics-metrics-bar {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    margin-top: 0.75rem;
+}
+
+.genomics-metric {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #a0aec0;
+}
+
+.genomics-metric i {
+    font-size: 1.1rem;
+    color: #48bb78;
+}
+
+.genomics-metric-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #48bb78;
+    font-family: 'Courier New', monospace;
+    min-width: 50px;
+}
+
+.genomics-metric-value.active {
+    animation: metricPulse 2s ease-in-out infinite;
+}
+
+.genomics-metric-label {
+    font-size: 0.7rem;
+    color: #718096;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* ============================================
+   GPU METRICS PANEL
+   ============================================ */
+
+.gpu-metrics-panel {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border-radius: 12px;
+    overflow: hidden;
+    height: 100%;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.metrics-panel-header {
+    background: linear-gradient(90deg, rgba(72, 187, 120, 0.2), transparent);
+    color: #ffffff;
+    padding: 1rem 1.25rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.metrics-panel-header i {
+    color: #48bb78;
+    margin-right: 0.5rem;
+}
+
+.metrics-panel-body {
+    padding: 1rem;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+}
+
+.metric-item {
+    background: rgba(255,255,255,0.05);
+    border-radius: 8px;
+    padding: 0.75rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.metric-item:hover {
+    background: rgba(72, 187, 120, 0.1);
+    border-color: rgba(72, 187, 120, 0.3);
+    transform: translateY(-2px);
+}
+
+.metric-label {
+    font-size: 0.65rem;
+    color: #a0aec0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.25rem;
+}
+
+.metric-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #48bb78;
+    line-height: 1.2;
+    font-family: 'Courier New', monospace;
+}
+
+.metric-value.active {
+    animation: metricPulse 2s ease-in-out infinite;
+}
+
+@keyframes metricPulse {
+    0%, 100% { color: #48bb78; }
+    50% { color: #68d391; }
+}
+
+.metric-unit {
+    font-size: 0.7rem;
+    color: #718096;
+    margin-top: 0.125rem;
+}
+
+/* Metrics Dashboard Layout */
+.metrics-dashboard {
+    margin-top: 0.75rem;
+}
+
+.metrics-dashboard .throughput-container {
+    height: 100%;
+    min-height: 320px;
+    padding: 1.5rem;
+}
+
+.metrics-dashboard .throughput-chart {
+    height: 240px;
+}
+
+.metrics-dashboard .throughput-header {
+    margin-bottom: 0.5rem;
+}
+
+.metrics-dashboard .throughput-title {
+    font-size: 0.75rem;
+}
+
+.metrics-dashboard .throughput-value {
+    font-size: 1.25rem;
+}
+
+/* Compact GPU Metrics Panel */
+.metrics-dashboard .gpu-metrics-panel {
+    min-height: 220px;
+}
+
+.metrics-dashboard .metrics-panel-header {
+    padding: 0.75rem 1rem;
+    font-size: 0.75rem;
+}
+
+.metrics-dashboard .metrics-panel-body {
+    padding: 0.75rem;
+    gap: 0.5rem;
+}
+
+.metrics-dashboard .metric-item {
+    padding: 0.5rem;
+}
+
+.metrics-dashboard .metric-label {
+    font-size: 0.55rem;
+}
+
+.metrics-dashboard .metric-value {
+    font-size: 1.1rem;
+}
+
+.metrics-dashboard .metric-unit {
+    font-size: 0.6rem;
+}
+
+/* Horizontal GPU Metrics Panel */
+.gpu-metrics-panel.horizontal {
+    border-radius: 12px;
+}
+
+.gpu-metrics-panel.horizontal .metrics-panel-body {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.5rem 1.5rem;
+}
+
+.gpu-metrics-panel.horizontal .metric-item {
+    flex: 1;
+    min-width: 0;
+    padding: 1.25rem 0.75rem;
+}
+
+.gpu-metrics-panel.horizontal .metric-value {
+    font-size: 1.75rem;
+}
+
+.gpu-metrics-panel.horizontal .metric-label {
+    font-size: 0.7rem;
+    margin-bottom: 0.25rem;
+}
+
+.gpu-metrics-panel.horizontal .metric-unit {
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+}
+
+/* ============================================
+   SUB-STEPS TRACKER (Chr20/Full Genome)
+   ============================================ */
+
+#sub-steps-tracker {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 8px;
+    padding: 1rem;
+    border: 1px solid #dee2e6;
+}
+
+.sub-steps-header {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #495057;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.sub-steps-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.sub-step {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    background: white;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.sub-step.running {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%);
+    border-color: #ffc107;
+    box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
+}
+
+.sub-step.completed {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    border-color: #28a745;
+}
+
+.sub-step.error {
+    background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+    border-color: #dc3545;
+}
+
+.sub-step-icon {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.75rem;
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.sub-step.running .sub-step-icon {
+    color: #856404;
+}
+
+.sub-step.running .sub-step-icon i {
+    animation: spin 1s linear infinite;
+}
+
+.sub-step.completed .sub-step-icon {
+    color: #155724;
+}
+
+.sub-step.error .sub-step-icon {
+    color: #721c24;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.sub-step-text {
+    flex: 1;
+    font-size: 0.85rem;
+    color: #495057;
+}
+
+.sub-step.running .sub-step-text {
+    color: #856404;
+    font-weight: 600;
+}
+
+.sub-step.completed .sub-step-text {
+    color: #155724;
+}
+
+.sub-step.error .sub-step-text {
+    color: #721c24;
+}
+
+.sub-step-status {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+}
+
+/* ============================================
+   RESPONSIVE ADJUSTMENTS
+   ============================================ */
+
+@media (max-width: 1200px) {
+    .executive-summary {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .executive-summary {
+        grid-template-columns: 1fr;
+    }
+
+    .pipeline-stages {
+        flex-wrap: wrap;
+        gap: 1rem;
+        justify-content: center;
+    }
+
+    .pipeline-stages::before {
+        display: none;
+    }
+
+    .stage-node {
+        width: 50px;
+        height: 50px;
+        font-size: 1.25rem;
+    }
+}
+
+/* ============================================
+   FILE MANAGER STYLES
+   ============================================ */
+
+.file-list-container {
+    background: #f8f9fa;
+    border-radius: 4px;
+    border: 1px solid #e9ecef;
+}
+
+.file-item {
+    background: white;
+    transition: background-color 0.2s;
+}
+
+.file-item:hover {
+    background-color: #e9ecef;
+}
+
+.file-item:last-child {
+    border-bottom: none !important;
+}
+
+.file-item .btn {
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+
+.file-item:hover .btn {
+    opacity: 1;
+}
+
+.file-item .btn-outline-primary:hover {
+    background-color: #0d6efd;
+    color: white;
+}
+
+.file-item .btn-outline-danger:hover {
+    background-color: #dc3545;
+    color: white;
+}
+
+#file-upload-input {
+    font-size: 0.75rem;
+}
+
+#upload-progress {
+    font-size: 0.75rem;
+}

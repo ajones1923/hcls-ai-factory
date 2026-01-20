@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  # Milvus Vector Database (Standalone) - ARM64 compatible
+  milvus:
+    image: milvusdb/milvus:v2.4.17
+    platform: linux/arm64
+    container_name: milvus-standalone
+    command: ["milvus", "run", "standalone"]
+    ports:
+      - "19530:19530"   # gRPC
+      - "9091:9091"     # Metrics
+    volumes:
+      - milvus_data:/var/lib/milvus
+    environment:
+      ETCD_USE_EMBED: "true"
+      ETCD_DATA_DIR: "/var/lib/milvus/etcd"
+      COMMON_STORAGETYPE: "local"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9091/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+  # Milvus Web UI (Attu) - x86 only, use web version instead
+  # attu:
+  #   image: zilliz/attu:v2.3.4
+  #   container_name: milvus-attu
+  #   ports:
+  #     - "8000:3000"
+  #   environment:
+  #     MILVUS_URL: "milvus:19530"
+  #   depends_on:
+  #     - milvus
+  #   restart: unless-stopped
+
+  # VEP Annotation Service (Ensembl)
+  vep:
+    image: ensemblorg/ensembl-vep:release_110.1
+    container_name: vep-annotator
+    volumes:
+      - vep_cache:/opt/vep/.vep
+      - ${VCF_INPUT_DIR:-./data/input}:/data/input:ro
+      - ${VCF_OUTPUT_DIR:-./data/output}:/data/output
+    profiles:
+      - annotation  # Only start with --profile annotation
+    command: ["echo", "VEP container ready. Run annotation manually."]
+
+  # Local LLM - Uses Ollama (already running on host, ARM64 native)
+  # vLLM doesn't have ARM64 images, so we use Ollama at localhost:11434
+  # The llm_client.py will connect to Ollama's OpenAI-compatible API
+  #
+  # To load the model:
+  #   ollama pull llama3.1:70b
+  #
+  # vllm:
+  #   image: vllm/vllm-openai:latest
+  #   container_name: vllm-server
+  #   ports:
+  #     - "8080:8000"
+  #   ...
+
+
+volumes:
+  milvus_data:
+    driver: local
+  vep_cache:
+    driver: local
+  llm_models:
+    driver: local
+
+networks:
+  default:
+    name: rag-chat-network

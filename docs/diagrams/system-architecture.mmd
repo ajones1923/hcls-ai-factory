@@ -1,0 +1,99 @@
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#76B900', 'primaryTextColor': '#fff', 'lineColor': '#333', 'secondaryColor': '#2196F3'}}}%%
+
+flowchart TB
+    subgraph USER["👤 User Layer"]
+        direction LR
+        BROWSER["🌐 Web Browser<br/>http://localhost:5000"]
+        TERMINAL["🖥️ Terminal<br/>./run.sh commands"]
+    end
+
+    subgraph APP["📱 Application Layer"]
+        direction TB
+        subgraph PORTAL["Web Portal"]
+            FLASK["Flask Server<br/>REST API + SSE"]
+            STATIC["Static Files<br/>HTML/CSS/JS"]
+        end
+        subgraph SCRIPTS["Pipeline Scripts"]
+            S0["00-setup-check"]
+            S1["01-ngc-login"]
+            S2["02-download-data"]
+            S3["03-setup-reference"]
+            S4["04-run-chr20-test"]
+            S5["05-run-full-genome"]
+        end
+    end
+
+    subgraph CONTAINER["🐳 Container Layer"]
+        DOCKER["Docker Engine<br/>Container Runtime"]
+        subgraph PB["clara-parabricks:4.6.0-1"]
+            BWA["BWA-MEM2<br/>Aligner"]
+            SAM["samtools<br/>BAM Tools"]
+            DV["DeepVariant<br/>Variant Caller"]
+            BCF["bcftools<br/>VCF Tools"]
+        end
+    end
+
+    subgraph RUNTIME["⚡ Runtime Layer"]
+        direction LR
+        NCT["nvidia-container-toolkit<br/>GPU Passthrough"]
+        CUDA["CUDA 12.x<br/>GPU Runtime"]
+    end
+
+    subgraph HW["🖥️ Hardware Layer"]
+        direction LR
+        CPU["CPU<br/>Host Processing"]
+        GPU["NVIDIA GPU<br/>Accelerated Compute"]
+        MEM["System RAM<br/>64GB+"]
+        DISK["NVMe Storage<br/>500GB+"]
+    end
+
+    subgraph STORAGE["💾 Data Layer"]
+        direction LR
+        INPUT["data/input/<br/>FASTQ Files"]
+        REF["data/ref/<br/>Reference Genome"]
+        OUTPUT["data/output/<br/>BAM + VCF"]
+        CONFIG["config/<br/>pipeline.env"]
+    end
+
+    subgraph EXTERNAL["☁️ External Services"]
+        direction LR
+        NGC["NVIDIA NGC<br/>Container Registry"]
+        NCBI["NCBI FTP<br/>GIAB Data"]
+    end
+
+    %% Connections
+    BROWSER --> FLASK
+    TERMINAL --> SCRIPTS
+    FLASK --> SCRIPTS
+    SCRIPTS --> DOCKER
+    DOCKER --> PB
+    DOCKER --> NCT
+    NCT --> CUDA
+    CUDA --> GPU
+    PB --> STORAGE
+    SCRIPTS --> EXTERNAL
+    DOCKER --> NGC
+
+    %% Cross-layer connections
+    CPU -.-> DOCKER
+    MEM -.-> PB
+    DISK -.-> STORAGE
+
+    %% Styling
+    classDef userClass fill:#E1BEE7,stroke:#7B1FA2,stroke-width:2px
+    classDef appClass fill:#BBDEFB,stroke:#1976D2,stroke-width:2px
+    classDef containerClass fill:#B2DFDB,stroke:#00796B,stroke-width:2px
+    classDef runtimeClass fill:#C8E6C9,stroke:#388E3C,stroke-width:2px
+    classDef hwClass fill:#FFE0B2,stroke:#F57C00,stroke-width:2px
+    classDef storageClass fill:#FFF9C4,stroke:#FBC02D,stroke-width:2px
+    classDef externalClass fill:#F5F5F5,stroke:#9E9E9E,stroke-width:2px
+    classDef nvidiaClass fill:#76B900,stroke:#5a8f00,stroke-width:2px,color:#fff
+
+    class USER userClass
+    class APP appClass
+    class CONTAINER containerClass
+    class RUNTIME runtimeClass
+    class HW hwClass
+    class STORAGE storageClass
+    class EXTERNAL externalClass
+    class GPU,CUDA,NCT,PB,BWA,DV nvidiaClass

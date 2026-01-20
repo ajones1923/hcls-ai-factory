@@ -1,0 +1,31 @@
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#76B900', 'primaryTextColor': '#fff', 'lineColor': '#333'}}}%%
+
+flowchart LR
+    subgraph GENOMICS["Genomics Pipeline"]
+        direction TB
+        P1["Phase 1<br/>Prerequisites<br/>━━━━━━━━━━<br/>Docker + GPU"]
+        P2["Phase 2<br/>Authentication<br/>━━━━━━━━━━<br/>NGC + Parabricks"]
+        P3["Phase 3<br/>Processing<br/>━━━━━━━━━━<br/>FASTQ → VCF"]
+        P1 --> P2 --> P3
+    end
+
+    subgraph DISCOVERY["Drug Discovery"]
+        direction TB
+        P4["Phase 4<br/>RAG Chat<br/>━━━━━━━━━━<br/>Milvus + Evidence"]
+        P5["Phase 5<br/>Target Selection<br/>━━━━━━━━━━<br/>Cryo-EM + Hypothesis"]
+        P6["Phase 6<br/>Molecule Gen<br/>━━━━━━━━━━<br/>BioNeMo"]
+        P4 --> P5 --> P6
+    end
+
+    GENOMICS --> DISCOVERY
+
+    INPUT[("FASTQ<br/>200GB")] --> P1
+    P6 --> OUTPUT[("SMILES<br/>Drug Candidates")]
+
+    classDef genomicsClass fill:#76B900,stroke:#5a8f00,stroke-width:2px,color:#fff
+    classDef discoveryClass fill:#2196F3,stroke:#1565C0,stroke-width:2px,color:#fff
+    classDef ioClass fill:#FFF9C4,stroke:#FBC02D,stroke-width:2px
+
+    class P1,P2,P3 genomicsClass
+    class P4,P5,P6 discoveryClass
+    class INPUT,OUTPUT ioClass

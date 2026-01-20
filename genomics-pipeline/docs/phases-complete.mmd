@@ -1,0 +1,103 @@
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#76B900', 'primaryTextColor': '#fff', 'lineColor': '#333'}}}%%
+
+flowchart TB
+    subgraph P1["Phase 1: Prerequisites"]
+        direction TB
+        P1A["00-setup-check.sh"]
+        P1B["Docker Daemon"]
+        P1C["NVIDIA Runtime"]
+        P1D["GPU Detection"]
+        P1E["Disk Space"]
+        P1A --> P1B & P1C & P1D & P1E
+    end
+
+    subgraph P2["Phase 2: Authentication"]
+        direction TB
+        P2A["01-ngc-login.sh"]
+        P2B["NGC API Key"]
+        P2C["Docker Login nvcr.io"]
+        P2D["Pull Parabricks 4.6.0-1"]
+        P2A --> P2B --> P2C --> P2D
+    end
+
+    subgraph P3["Phase 3: Data & Processing"]
+        direction TB
+        subgraph P3_DATA["Data Acquisition"]
+            P3A["02-download-data.sh"]
+            P3B["GIAB HG002 FASTQ"]
+            P3C["03-setup-reference.sh"]
+            P3D["GRCh38 + BWA Index"]
+        end
+        subgraph P3_PROC["GPU Processing"]
+            P3E["fq2bam"]
+            P3F["BWA-MEM2 Alignment"]
+            P3G["Sort + MarkDup"]
+            P3H["DeepVariant"]
+            P3I["CNN Variant Calling"]
+        end
+        subgraph P3_OUT["Outputs"]
+            BAM[("BAM ~100GB")]
+            VCF[("VCF ~4M variants")]
+        end
+        P3A --> P3B
+        P3C --> P3D
+        P3B & P3D --> P3E
+        P3E --> P3F --> P3G --> BAM
+        BAM --> P3H --> P3I --> VCF
+    end
+
+    subgraph P4["Phase 4: RAG Chat"]
+        direction TB
+        P4A[("Milvus Vector DB")]
+        P4B["VCF Evidence Extraction"]
+        P4C["Embeddings bge-small-en"]
+        P4D["Streamlit Chat UI"]
+        P4E["LLM Backend"]
+        VCF -.-> P4B
+        P4B --> P4C --> P4A
+        P4D --> P4A
+        P4D --> P4E
+    end
+
+    subgraph P5["Phase 5: Target Selection"]
+        direction TB
+        P5A["RAG Query Evidence"]
+        P5B["Hypothesis Formation"]
+        P5C["Cryo-EM Fetch PDB:7SYE"]
+        P5D["Binding Site ID"]
+        P5E[("Target Profile")]
+        P5A --> P5B --> P5C --> P5D --> P5E
+    end
+
+    subgraph P6["Phase 6: Molecule Generation"]
+        direction TB
+        P6A["BioNeMo MegaMolBART"]
+        P6B["Constraint Filtering"]
+        P6C["Affinity Ranking"]
+        P6D["SMILES/SDF Export"]
+        P6E[("Drug Candidates")]
+        P5E -.-> P6A
+        P6A --> P6B --> P6C --> P6D --> P6E
+    end
+
+    %% Phase Connections
+    P1 --> P2 --> P3
+    P3 --> P4 --> P5 --> P6
+
+    %% Styling
+    classDef prereqClass fill:#E1BEE7,stroke:#7B1FA2,stroke-width:2px
+    classDef authClass fill:#BBDEFB,stroke:#1976D2,stroke-width:2px
+    classDef procClass fill:#76B900,stroke:#5a8f00,stroke-width:2px,color:#fff
+    classDef ragClass fill:#B2DFDB,stroke:#00796B,stroke-width:2px
+    classDef targetClass fill:#FFE0B2,stroke:#F57C00,stroke-width:2px
+    classDef molgenClass fill:#FFCDD2,stroke:#D32F2F,stroke-width:2px
+    classDef dataClass fill:#FFF9C4,stroke:#FBC02D,stroke-width:2px
+
+    class P1 prereqClass
+    class P2 authClass
+    class P3,P3_PROC procClass
+    class P4 ragClass
+    class P5 targetClass
+    class P6 molgenClass
+    class P3_DATA,P3_OUT dataClass
+    class BAM,VCF,P5E,P6E dataClass

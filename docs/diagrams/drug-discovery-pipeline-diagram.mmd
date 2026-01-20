@@ -1,0 +1,112 @@
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#76b900', 'primaryTextColor': '#fff', 'primaryBorderColor': '#5a8f00', 'lineColor': '#333', 'secondaryColor': '#f0f0f0', 'tertiaryColor': '#e8f5e9'}}}%%
+
+flowchart TB
+    subgraph INPUT["Phase 4: RAG Chat Pipeline Output"]
+        HYPOTHESIS["Target Hypothesis<br/>{gene: VCP, variants: [rs188935092],<br/>confidence: high, disease: FTD}"]
+    end
+
+    subgraph IMPORT["Step 1: Target Import"]
+        IMPORTER["Target Importer"]
+        TARGET["Imported Target<br/>• Gene: VCP (p97 AAA+ ATPase)<br/>• Rationale: FTD-associated mutations<br/>• Priority: 1 (High)<br/>• Therapeutic Area: Neurodegeneration"]
+        DEMO_TARGET["Demo Target Loader<br/>(VCP pre-configured)"]
+    end
+
+    subgraph CRYOEM["Step 2: Cryo-EM Evidence"]
+        EVIDENCE_MGR["CryoEM Evidence Manager"]
+
+        subgraph STRUCTURES["VCP Structural Evidence"]
+            PDB1["PDB:8OOI<br/>VCP Hexamer (2.9Å)<br/>ADP-bound state"]
+            PDB2["PDB:9DIL<br/>VCP-p47 Complex (3.2Å)<br/>Cofactor-bound"]
+            PDB3["PDB:7K56<br/>VCP D2 Domain (2.4Å)<br/>ATP-bound active"]
+            PDB4["PDB:5FTK<br/>VCP + CB-5083 (2.3Å)<br/>Inhibitor-bound"]
+        end
+
+        BINDING["Druggable Sites Identified<br/>• D1-D2 allosteric interface<br/>• D2 ATP binding pocket<br/>• N-domain cofactor groove"]
+        SEED["Seed Molecule: CB-5083<br/>SMILES extracted from 5FTK"]
+    end
+
+    subgraph MOLGEN["Step 3: Molecule Generation"]
+        GENERATOR["Molecule Generator"]
+
+        subgraph METHODS["Generation Methods"]
+            BIONEMO["BioNeMo MegaMolBART<br/>(GPU-accelerated)"]
+            RDKIT["RDKit Fallback<br/>(CPU-based analogues)"]
+        end
+
+        subgraph MOLECULES["Generated Candidates"]
+            MOL1["CB-5083-A1<br/>Score: 0.92"]
+            MOL2["CB-5083-A2<br/>Score: 0.89"]
+            MOL3["CB-5083-A3<br/>Score: 0.87"]
+            MOLN["... + more analogues"]
+        end
+
+        PROPERTIES["Property Calculation<br/>• Molecular Weight<br/>• LogP / Lipophilicity<br/>• H-bond donors/acceptors<br/>• Druglikeness Score"]
+    end
+
+    subgraph OUTPUT["Step 4: Results & Export"]
+        RESULTS["Generated Molecules JSON<br/>outputs/molecules/vcp_candidates.json"]
+        SUMMARY["Pipeline Summary<br/>• Target validated<br/>• 4 structures analyzed<br/>• N candidates generated"]
+    end
+
+    subgraph UI["Streamlit Interface (Port 8502)"]
+        STEP1_UI["1. Target Selection<br/>Import or use VCP demo"]
+        STEP2_UI["2. Structure Viewer<br/>Browse Cryo-EM evidence"]
+        STEP3_UI["3. Generate Molecules<br/>BioNeMo / RDKit"]
+        STEP4_UI["4. Review & Export<br/>Download candidates"]
+    end
+
+    %% Flow connections
+    HYPOTHESIS --> IMPORTER
+    IMPORTER --> TARGET
+    DEMO_TARGET --> TARGET
+
+    TARGET --> EVIDENCE_MGR
+    EVIDENCE_MGR --> PDB1
+    EVIDENCE_MGR --> PDB2
+    EVIDENCE_MGR --> PDB3
+    EVIDENCE_MGR --> PDB4
+    PDB4 --> SEED
+    PDB1 --> BINDING
+    PDB2 --> BINDING
+    PDB3 --> BINDING
+    BINDING --> SEED
+
+    SEED --> GENERATOR
+    GENERATOR --> BIONEMO
+    GENERATOR --> RDKIT
+    BIONEMO --> MOL1
+    BIONEMO --> MOL2
+    RDKIT --> MOL3
+    RDKIT --> MOLN
+    MOL1 --> PROPERTIES
+    MOL2 --> PROPERTIES
+    MOL3 --> PROPERTIES
+    MOLN --> PROPERTIES
+
+    PROPERTIES --> RESULTS
+    RESULTS --> SUMMARY
+
+    STEP1_UI --> STEP2_UI
+    STEP2_UI --> STEP3_UI
+    STEP3_UI --> STEP4_UI
+
+    %% Styling
+    classDef inputStyle fill:#1a73e8,stroke:#1557b0,color:#fff
+    classDef importStyle fill:#34a853,stroke:#2d8a47,color:#fff
+    classDef cryoemStyle fill:#9c27b0,stroke:#7b1fa2,color:#fff
+    classDef structureStyle fill:#7e57c2,stroke:#5e35b1,color:#fff
+    classDef molgenStyle fill:#ff9800,stroke:#f57c00,color:#fff
+    classDef methodStyle fill:#ffb74d,stroke:#ff9800,color:#000
+    classDef moleculeStyle fill:#2196f3,stroke:#1976d2,color:#fff
+    classDef outputStyle fill:#76b900,stroke:#5a8f00,color:#fff
+    classDef uiStyle fill:#00bcd4,stroke:#0097a7,color:#fff
+
+    class HYPOTHESIS inputStyle
+    class IMPORTER,TARGET,DEMO_TARGET importStyle
+    class EVIDENCE_MGR,BINDING,SEED cryoemStyle
+    class PDB1,PDB2,PDB3,PDB4 structureStyle
+    class GENERATOR,PROPERTIES molgenStyle
+    class BIONEMO,RDKIT methodStyle
+    class MOL1,MOL2,MOL3,MOLN moleculeStyle
+    class RESULTS,SUMMARY outputStyle
+    class STEP1_UI,STEP2_UI,STEP3_UI,STEP4_UI uiStyle

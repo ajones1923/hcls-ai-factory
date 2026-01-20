@@ -1,0 +1,377 @@
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'primaryColor': '#f8f9fa',
+    'primaryTextColor': '#2c3e50',
+    'primaryBorderColor': '#dee2e6',
+    'lineColor': '#6c757d',
+    'secondaryColor': '#ffffff',
+    'tertiaryColor': '#f1f3f4',
+    'background': '#ffffff',
+    'mainBkg': '#ffffff',
+    'nodeBorder': '#dee2e6',
+    'clusterBkg': '#ffffff',
+    'clusterBorder': '#adb5bd',
+    'titleColor': '#2c3e50',
+    'fontFamily': 'Segoe UI, Arial, sans-serif'
+  },
+  'flowchart': {
+    'curve': 'basis',
+    'useMaxWidth': true,
+    'htmlLabels': true,
+    'nodeSpacing': 50,
+    'rankSpacing': 50
+  }
+}}%%
+
+flowchart TB
+    %% ==================================================================================
+    %% HCLS AI FACTORY - PRECISION MEDICINE TO DRUG DISCOVERY
+    %% Complete Architecture Diagram
+    %% ==================================================================================
+
+    %% ==== ENTRY POINT: PATIENT DATA ====
+    subgraph PATIENT["👤 PATIENT DATA SOURCE"]
+        direction TB
+        DNA["🧬 Patient DNA Sample<br/>Blood/Saliva/Tissue"]
+        SEQ["🔬 Illumina Sequencer<br/>Short-Read Sequencing<br/>2x250bp Paired-End"]
+        FASTQ_R1["📄 FASTQ R1<br/>~100GB Forward Reads<br/>~400M Read Pairs"]
+        FASTQ_R2["📄 FASTQ R2<br/>~100GB Reverse Reads<br/>Quality Scores (Phred)"]
+
+        DNA --> SEQ
+        SEQ --> FASTQ_R1
+        SEQ --> FASTQ_R2
+    end
+
+    %% ==== HCLS LANDING PAGE ====
+    subgraph LANDING["🏠 HCLS LANDING PAGE<br/>Port 8080"]
+        direction TB
+
+        subgraph LANDING_CORE["Flask Server"]
+            LP_SERVER["🖥️ server.py<br/>Flask + CORS<br/>Auto-Start Dependencies"]
+            LP_HEALTH["❤️ Health Monitor<br/>10 Services<br/>30s Refresh Interval"]
+            LP_API["🔌 REST API<br/>/api/check-services<br/>/api/check-service/&lt;id&gt;"]
+        end
+
+        subgraph LANDING_UI["Web Interface"]
+            LP_CARDS["🎴 Pipeline Cards<br/>5 Pipeline Interfaces<br/>Click-to-Launch"]
+            LP_MONITOR["📊 Monitor Cards<br/>4 Infrastructure Services<br/>Real-Time Status"]
+            LP_STATS["📈 Platform Statistics<br/>36,000 Lines of Code<br/>Animated Counters"]
+        end
+
+        subgraph LANDING_AUTO["Auto-Start Services"]
+            LP_AUTO1["🚀 Genomics Portal<br/>Port 5000"]
+            LP_AUTO2["🚀 RAG/Chat API<br/>Port 5001"]
+        end
+
+        LP_SERVER --> LP_HEALTH
+        LP_SERVER --> LP_API
+        LP_HEALTH --> LP_CARDS
+        LP_HEALTH --> LP_MONITOR
+        LP_SERVER --> LP_AUTO1
+        LP_SERVER --> LP_AUTO2
+    end
+
+    %% ==== STAGE 1: GENOMICS PIPELINE ====
+    subgraph GENOMICS["🧬 STAGE 1: GENOMICS PIPELINE<br/>FASTQ → VCF | 30-90 Minutes"]
+        direction TB
+
+        subgraph GENOMICS_INPUT["Input Layer"]
+            G_FASTQ["📥 Input FASTQ Files<br/>HG002_R1.fastq.gz<br/>HG002_R2.fastq.gz<br/>~200GB Total"]
+            G_REF["📚 Reference Genome<br/>GRCh38.fa (3.1GB)<br/>BWA Index Files<br/>FASTA Index (.fai)"]
+        end
+
+        subgraph GENOMICS_PORTAL["Web Portal - Port 5000"]
+            GP_FLASK["🌐 Flask Server<br/>app/server.py<br/>Real-Time Monitoring"]
+            GP_UI["🖥️ Web Interface<br/>templates/index.html<br/>Click-to-Run Steps"]
+            GP_JS["⚡ Frontend Logic<br/>static/js/app.js<br/>SSE Streaming"]
+            GP_CSS["🎨 Styling<br/>static/css/style.css<br/>Bootstrap 5"]
+        end
+
+        subgraph GENOMICS_DOCKER["Docker Container"]
+            G_CONTAINER["🐳 clara-parabricks:4.6.0-1<br/>NVIDIA Container Runtime<br/>GPU Passthrough"]
+        end
+
+        subgraph GENOMICS_ALIGN["Step 1: Alignment (20-45 min)"]
+            G_FQ2BAM["⚙️ pbrun fq2bam<br/>BWA-MEM2 (GPU)<br/>Coordinate Sorting<br/>PCR Duplicate Marking"]
+        end
+
+        subgraph GENOMICS_INDEX["Step 2: Indexing (2-5 min)"]
+            G_SAMTOOLS["🔧 samtools index<br/>BAM Index (.bai)<br/>samtools flagstat<br/>Alignment QC Stats"]
+        end
+
+        subgraph GENOMICS_VARIANT["Step 3: Variant Calling (10-35 min)"]
+            G_DEEPVAR["🧠 pbrun deepvariant<br/>Google DeepVariant<br/>CNN-Based Caller<br/>GPU Accelerated<br/>&gt;99% Accuracy"]
+        end
+
+        subgraph GENOMICS_OUTPUT["Output Layer"]
+            G_BAM["📦 BAM File<br/>HG002.genome.bam<br/>~100GB Aligned Reads<br/>Sorted + Deduplicated"]
+            G_VCF["📋 VCF File<br/>HG002.genome.vcf.gz<br/>~11.7M Variants<br/>SNPs + Indels"]
+        end
+
+        G_FASTQ --> G_FQ2BAM
+        G_REF --> G_FQ2BAM
+        G_CONTAINER --> G_FQ2BAM
+        G_FQ2BAM --> G_BAM
+        G_BAM --> G_SAMTOOLS
+        G_SAMTOOLS --> G_DEEPVAR
+        G_REF --> G_DEEPVAR
+        G_DEEPVAR --> G_VCF
+
+        GP_FLASK --> GP_UI
+        GP_UI --> GP_JS
+        GP_UI --> GP_CSS
+    end
+
+    %% ==== STAGE 2: RAG/CHAT PIPELINE ====
+    subgraph RAG["💬 STAGE 2: RAG/CHAT PIPELINE<br/>VCF → Target Hypothesis | Interactive"]
+        direction TB
+
+        subgraph RAG_ANNOTATION["Annotation Layer"]
+            R_CLINVAR["🏥 ClinVar<br/>4.1M Clinical Variants<br/>Pathogenicity Status<br/>Disease Associations"]
+            R_ALPHAM["🤖 AlphaMissense<br/>71M AI Predictions<br/>Pathogenicity Scores<br/>0.0-1.0 Range"]
+            R_VEP["🔬 VEP<br/>Functional Consequences<br/>Gene Impact<br/>Protein Changes"]
+            R_ANNOTATED["📊 Annotated Variants<br/>35,616 ClinVar Matches<br/>6,831 AlphaMissense<br/>Combined Evidence"]
+        end
+
+        subgraph RAG_EMBED["Embedding Layer"]
+            R_BGE["🧮 BGE-small-en-v1.5<br/>BAAI Embedding Model<br/>384 Dimensions<br/>Semantic Encoding"]
+            R_VECTORS["📐 Variant Embeddings<br/>3.5M Vectors<br/>Semantic Representation<br/>Query-Ready"]
+        end
+
+        subgraph RAG_MILVUS["Vector Database - Port 19530"]
+            R_MILVUS["🗄️ Milvus<br/>Vector Similarity Search<br/>Millisecond Latency<br/>Hybrid Filtering"]
+            R_COLLECTION["📚 genomic_variants<br/>Collection Schema<br/>Metadata + Vectors<br/>IVF_FLAT Index"]
+        end
+
+        subgraph RAG_KNOWLEDGE["Knowledge Layer"]
+            R_CLINKER["🧠 Clinker Knowledge Base<br/>201 Target Genes<br/>150+ Diseases<br/>13 Therapeutic Areas"]
+            R_GENES["🎯 Gene Coverage<br/>Oncology: 45 genes<br/>Neurology: 38 genes<br/>Rare Disease: 52 genes<br/>Cardiovascular: 28 genes"]
+            R_DRUGGABLE["💊 Druggability<br/>171 Druggable Targets<br/>85% Druggability Rate<br/>Known Inhibitors"]
+        end
+
+        subgraph RAG_API["API Portal - Port 5001"]
+            R_API_SERVER["🔌 Flask API Server<br/>portal/app/server.py<br/>REST Endpoints"]
+            R_API_SEARCH["🔍 /api/search<br/>Semantic Search<br/>Metadata Filtering"]
+            R_API_QUERY["❓ /api/query<br/>Natural Language<br/>RAG Pipeline"]
+        end
+
+        subgraph RAG_CHAT["Chat Interface - Port 8501"]
+            R_STREAMLIT["🎨 Streamlit UI<br/>app/chat_ui.py<br/>Interactive Chat"]
+            R_CHAT_INPUT["💬 Natural Language Input<br/>'What pathogenic variants<br/>are associated with VCP?'"]
+            R_CHAT_OUTPUT["📝 AI Response<br/>Grounded in Evidence<br/>Citations Included"]
+        end
+
+        subgraph RAG_LLM["LLM Layer"]
+            R_CLAUDE["🤖 Claude (Anthropic)<br/>claude-sonnet-4-20250514<br/>RAG Grounding<br/>Evidence Synthesis"]
+            R_PROMPT["📋 System Prompt<br/>Genomics Expert Role<br/>Citation Requirements<br/>Structured Output"]
+        end
+
+        subgraph RAG_OUTPUT["Output Layer"]
+            R_HYPOTHESIS["🎯 Target Hypothesis<br/>'VCP is a druggable<br/>target for FTD'"]
+            R_EVIDENCE["📊 Supporting Evidence<br/>Variant Details<br/>Clinical Significance<br/>Literature References"]
+        end
+
+        R_CLINVAR --> R_ANNOTATED
+        R_ALPHAM --> R_ANNOTATED
+        R_VEP --> R_ANNOTATED
+        R_ANNOTATED --> R_BGE
+        R_BGE --> R_VECTORS
+        R_VECTORS --> R_MILVUS
+        R_MILVUS --> R_COLLECTION
+        R_CLINKER --> R_GENES
+        R_GENES --> R_DRUGGABLE
+        R_API_SERVER --> R_API_SEARCH
+        R_API_SERVER --> R_API_QUERY
+        R_STREAMLIT --> R_CHAT_INPUT
+        R_CHAT_INPUT --> R_CLAUDE
+        R_COLLECTION --> R_CLAUDE
+        R_CLINKER --> R_CLAUDE
+        R_PROMPT --> R_CLAUDE
+        R_CLAUDE --> R_CHAT_OUTPUT
+        R_CHAT_OUTPUT --> R_HYPOTHESIS
+        R_CHAT_OUTPUT --> R_EVIDENCE
+    end
+
+    %% ==== STAGE 3: DRUG DISCOVERY PIPELINE ====
+    subgraph DRUG["💊 STAGE 3: DRUG DISCOVERY PIPELINE<br/>Target → Drug Candidates | Minutes"]
+        direction TB
+
+        subgraph DRUG_STRUCTURE["Phase 5: Structure Evidence"]
+            D_PDB_API["🌐 RCSB PDB API<br/>Protein Data Bank<br/>Real-Time Fetch"]
+            D_STRUCTURES["🔬 Cryo-EM Structures<br/>8OOI: WT Hexamer 2.9Å<br/>9DIL: Mutant 3.2Å<br/>7K56: Complex 2.5Å<br/>5FTK: +CB-5083 2.3Å"]
+            D_BINDING["🎯 Binding Site Analysis<br/>D2 ATPase Domain<br/>ATP-Competitive Pocket<br/>Key Residues Mapped"]
+            D_CACHE["💾 Structure Cache<br/>PDB Files (.pdb)<br/>Structure Images (.jpeg)<br/>Local Storage"]
+        end
+
+        subgraph DRUG_SEED["Seed Molecule"]
+            D_CB5083["💎 CB-5083<br/>Known VCP Inhibitor<br/>Phase I Clinical<br/>Reference Structure"]
+            D_SMILES["🔤 SMILES Encoding<br/>Molecular String<br/>Generation Seed"]
+        end
+
+        subgraph DRUG_BIONEMO["BioNeMo NIM Microservices"]
+            D_MOLMIM["🧪 MolMIM<br/>Molecule Generation<br/>Masked Language Model<br/>Novel Analogs"]
+            D_DIFFDOCK["🎯 DiffDock<br/>Molecular Docking<br/>Diffusion-Based<br/>Binding Pose Prediction"]
+            D_CONFORMER["📐 3D Conformers<br/>RDKit Generation<br/>Energy Minimization<br/>SDF Output"]
+        end
+
+        subgraph DRUG_SCORING["Drug-Likeness Scoring"]
+            D_LIPINSKI["📏 Lipinski's Rule of 5<br/>MW ≤ 500<br/>LogP ≤ 5<br/>HBD ≤ 5, HBA ≤ 10"]
+            D_QED["📊 QED Score<br/>Quantitative Estimate<br/>of Drug-likeness<br/>0.0-1.0 Scale"]
+            D_ADMET["🧬 ADMET Properties<br/>Absorption<br/>Distribution<br/>Metabolism<br/>Excretion<br/>Toxicity"]
+            D_RANKING["🏆 Candidate Ranking<br/>Binding Affinity<br/>Drug-likeness<br/>Synthetic Feasibility"]
+        end
+
+        subgraph DRUG_MAIN["Main UI - Port 8505"]
+            D_STREAMLIT["🎨 Streamlit Interface<br/>app/discovery_ui.py<br/>Structure Visualization"]
+            D_3DMOL["🔮 3Dmol.js Viewer<br/>Interactive 3D<br/>Binding Site View"]
+            D_CONTROLS["🎛️ Generation Controls<br/>Similarity Threshold<br/>Number of Candidates<br/>Scoring Weights"]
+        end
+
+        subgraph DRUG_PORTAL["Discovery Portal - Port 8510"]
+            D_PORTAL["📊 Management Dashboard<br/>portal/app.py<br/>Pipeline Orchestration"]
+            D_TARGETS["🎯 Target Management<br/>Active Targets List<br/>Progress Tracking"]
+            D_HISTORY["📜 Generation History<br/>Previous Runs<br/>Result Comparison"]
+        end
+
+        subgraph DRUG_REPORT["Report Generation"]
+            D_REPORTLAB["📄 ReportLab<br/>PDF Generation<br/>Professional Layout"]
+            D_PDF["📑 Drug Candidate Report<br/>VCP_Drug_Candidate_Report.pdf<br/>Executive Summary<br/>Ranked Candidates<br/>Structure Images<br/>Scoring Details"]
+        end
+
+        D_PDB_API --> D_STRUCTURES
+        D_STRUCTURES --> D_BINDING
+        D_STRUCTURES --> D_CACHE
+        D_CB5083 --> D_SMILES
+        D_SMILES --> D_MOLMIM
+        D_MOLMIM --> D_CONFORMER
+        D_CONFORMER --> D_DIFFDOCK
+        D_STRUCTURES --> D_DIFFDOCK
+        D_DIFFDOCK --> D_LIPINSKI
+        D_DIFFDOCK --> D_QED
+        D_DIFFDOCK --> D_ADMET
+        D_LIPINSKI --> D_RANKING
+        D_QED --> D_RANKING
+        D_ADMET --> D_RANKING
+        D_STREAMLIT --> D_3DMOL
+        D_STREAMLIT --> D_CONTROLS
+        D_RANKING --> D_REPORTLAB
+        D_REPORTLAB --> D_PDF
+    end
+
+    %% ==== MONITORING & INFRASTRUCTURE ====
+    subgraph MONITORING["📊 MONITORING & INFRASTRUCTURE"]
+        direction TB
+
+        subgraph MON_GRAFANA["Grafana - Port 3000"]
+            M_GRAFANA["📈 Grafana Dashboard<br/>nvidia-dgx-spark<br/>GPU Monitoring"]
+            M_PANELS["📊 Dashboard Panels<br/>GPU Utilization<br/>CPU Utilization<br/>GPU Temperature<br/>GPU Power Usage<br/>Memory Bandwidth<br/>NVMe Throughput"]
+        end
+
+        subgraph MON_PROMETHEUS["Prometheus - Port 9099"]
+            M_PROM["📉 Prometheus<br/>Metrics Collection<br/>Time Series DB<br/>15s Scrape Interval"]
+            M_TARGETS["🎯 Scrape Targets<br/>Node Exporter<br/>DCGM Exporter<br/>Application Metrics"]
+        end
+
+        subgraph MON_EXPORTERS["Metric Exporters"]
+            M_NODE["🖥️ Node Exporter<br/>Port 9100<br/>System Metrics<br/>CPU, RAM, Disk, Network"]
+            M_DCGM["🎮 DCGM Exporter<br/>Port 9400<br/>GPU Metrics<br/>NVIDIA Data Center<br/>GPU Manager"]
+        end
+
+        M_NODE --> M_PROM
+        M_DCGM --> M_PROM
+        M_PROM --> M_GRAFANA
+        M_GRAFANA --> M_PANELS
+    end
+
+    %% ==== NVIDIA DGX SPARK INFRASTRUCTURE ====
+    subgraph HARDWARE["🖥️ NVIDIA DGX SPARK INFRASTRUCTURE"]
+        direction TB
+
+        subgraph HW_GPU["GPU Resources"]
+            H_GPU["🎮 NVIDIA GB10 GPU<br/>128GB HBM3 Memory<br/>Blackwell Architecture<br/>CUDA 12.x"]
+            H_TENSOR["⚡ Tensor Cores<br/>DeepVariant Inference<br/>AI Acceleration"]
+            H_CUDA["🔧 CUDA Cores<br/>BWA-MEM2 Alignment<br/>General Compute"]
+        end
+
+        subgraph HW_SYSTEM["System Resources"]
+            H_CPU["🧠 CPU<br/>144 Cores<br/>ARM Architecture<br/>Parallel Processing"]
+            H_RAM["💾 System RAM<br/>512GB DDR5<br/>BAM Processing<br/>Large Datasets"]
+            H_NVME["💿 NVMe Storage<br/>2TB+ Capacity<br/>High IOPS<br/>Fast I/O"]
+        end
+
+        subgraph HW_DOCKER["Container Runtime"]
+            H_DOCKER["🐳 Docker<br/>24.0+<br/>Container Orchestration"]
+            H_NVIDIA_RT["🔌 NVIDIA Container Runtime<br/>GPU Passthrough<br/>CUDA Support"]
+        end
+    end
+
+    %% ==== HCLS AI FACTORY ORCHESTRATION ====
+    subgraph FACTORY["🏭 HCLS AI FACTORY ORCHESTRATION"]
+        direction TB
+
+        subgraph FACTORY_SCRIPTS["Startup Scripts"]
+            F_START["🚀 start-services.sh<br/>Master Startup<br/>All Services"]
+            F_STATUS["📊 --status<br/>Service Health Check"]
+            F_STOP["🛑 --stop<br/>Graceful Shutdown"]
+        end
+
+        subgraph FACTORY_DOCS["Documentation"]
+            F_README["📖 README.md<br/>650+ Lines<br/>Complete Guide"]
+            F_PRODUCT["📚 Product Docs<br/>3,200+ Lines<br/>Technical Reference"]
+            F_EXEC["📋 Executive Summary<br/>Business Overview<br/>Key Metrics"]
+        end
+
+        subgraph FACTORY_CONFIG["Configuration"]
+            F_ENV["⚙️ Environment Variables<br/>ANTHROPIC_API_KEY<br/>NGC_API_KEY<br/>Service Ports"]
+            F_PORTS["🔌 Port Assignments<br/>8080: Landing<br/>5000: Genomics<br/>5001: RAG API<br/>8501: Chat<br/>8505: Drug Discovery<br/>8510: Portal"]
+        end
+    end
+
+    %% ==== DATA FLOW CONNECTIONS ====
+    PATIENT --> GENOMICS
+    FASTQ_R1 --> G_FASTQ
+    FASTQ_R2 --> G_FASTQ
+    G_VCF --> RAG
+    G_VCF --> R_CLINVAR
+    G_VCF --> R_ALPHAM
+    R_HYPOTHESIS --> DRUG
+    R_EVIDENCE --> DRUG
+    R_HYPOTHESIS --> D_PDB_API
+
+    LANDING --> GENOMICS
+    LANDING --> RAG
+    LANDING --> DRUG
+    LANDING --> MONITORING
+
+    LP_AUTO1 --> GP_FLASK
+    LP_AUTO2 --> R_API_SERVER
+
+    HARDWARE --> GENOMICS
+    HARDWARE --> RAG
+    HARDWARE --> DRUG
+
+    FACTORY --> LANDING
+    FACTORY --> GENOMICS
+    FACTORY --> RAG
+    FACTORY --> DRUG
+    FACTORY --> MONITORING
+
+    %% ==== VISUALLY STUNNING STYLING ====
+    classDef patient fill:#ede9fe,stroke:#7c3aed,stroke-width:2px,color:#1e1b4b
+    classDef landing fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+    classDef genomics fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#14532d
+    classDef rag fill:#f3e8ff,stroke:#9333ea,stroke-width:2px,color:#3b0764
+    classDef drug fill:#fee2e2,stroke:#dc2626,stroke-width:2px,color:#7f1d1d
+    classDef monitor fill:#e0f2fe,stroke:#0284c7,stroke-width:2px,color:#0c4a6e
+    classDef hardware fill:#d9f99d,stroke:#65a30d,stroke-width:2px,color:#365314
+    classDef factory fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#78350f
+
+    class PATIENT patient
+    class LANDING,LANDING_CORE,LANDING_UI,LANDING_AUTO landing
+    class GENOMICS,GENOMICS_INPUT,GENOMICS_PORTAL,GENOMICS_DOCKER,GENOMICS_ALIGN,GENOMICS_INDEX,GENOMICS_VARIANT,GENOMICS_OUTPUT genomics
+    class RAG,RAG_ANNOTATION,RAG_EMBED,RAG_MILVUS,RAG_KNOWLEDGE,RAG_API,RAG_CHAT,RAG_LLM,RAG_OUTPUT rag
+    class DRUG,DRUG_STRUCTURE,DRUG_SEED,DRUG_BIONEMO,DRUG_SCORING,DRUG_MAIN,DRUG_PORTAL,DRUG_REPORT drug
+    class MONITORING,MON_GRAFANA,MON_PROMETHEUS,MON_EXPORTERS monitor
+    class HARDWARE,HW_GPU,HW_SYSTEM,HW_DOCKER hardware
+    class FACTORY,FACTORY_SCRIPTS,FACTORY_DOCS,FACTORY_CONFIG factory

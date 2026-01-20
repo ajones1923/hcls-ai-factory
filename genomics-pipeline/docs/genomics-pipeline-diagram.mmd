@@ -1,0 +1,94 @@
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#76b900', 'primaryTextColor': '#fff', 'primaryBorderColor': '#5a8f00', 'lineColor': '#333', 'secondaryColor': '#f0f0f0', 'tertiaryColor': '#e8f5e9'}}}%%
+
+flowchart TB
+    subgraph INPUT["Input Data"]
+        FASTQ["FASTQ Files<br/>(GIAB HG002 Illumina 2x250bp)<br/>~200GB raw reads"]
+        REFERENCE["GRCh38 Reference Genome<br/>(Human reference + BWA index)"]
+    end
+
+    subgraph CONTAINER["NVIDIA Parabricks Container (clara-parabricks:4.6.0)"]
+        subgraph STEP1["Step 1: Alignment (fq2bam)"]
+            BWA["BWA-MEM2<br/>(GPU-accelerated alignment)"]
+            SORT["Coordinate Sorting<br/>(GPU-accelerated)"]
+            MARKDUP["Mark Duplicates<br/>(PCR duplicate flagging)"]
+        end
+
+        subgraph STEP2["Step 2: BAM Processing (samtools)"]
+            INDEX["BAM Indexing<br/>(Create .bai index)"]
+            FLAGSTAT["Flagstat QC<br/>(Alignment statistics)"]
+        end
+
+        subgraph STEP3["Step 3: Variant Calling (DeepVariant)"]
+            MAKEEX["Make Examples<br/>(Pileup images)"]
+            CALLVAR["Call Variants<br/>(CNN inference)"]
+            POSTPROC["Post-Processing<br/>(VCF generation)"]
+        end
+    end
+
+    subgraph OUTPUT["Output Files"]
+        BAM["HG002.genome.bam<br/>(Aligned reads, ~100GB)"]
+        BAI["HG002.genome.bam.bai<br/>(BAM index)"]
+        VCF["HG002.genome.vcf.gz<br/>(5.4M variants)"]
+        TBI["HG002.genome.vcf.gz.tbi<br/>(VCF index)"]
+        QC["Alignment QC Stats<br/>(flagstat output)"]
+    end
+
+    subgraph HARDWARE["NVIDIA GPU Acceleration"]
+        GPU["NVIDIA GPU<br/>• CUDA Cores<br/>• Tensor Cores<br/>• 128GB GPU Memory (DGX Spark)"]
+    end
+
+    subgraph INTERFACE["User Interface"]
+        CLI["Command Line<br/>./run.sh test | full"]
+        PORTAL["Web Portal (Flask)<br/>• Real-time monitoring<br/>• GPU utilization<br/>• Log streaming"]
+    end
+
+    subgraph NEXT["Phase 4: RAG Chat Pipeline"]
+        RAGCHAT["rag-chat-pipeline<br/>Variant Discovery & Analysis"]
+    end
+
+    %% Flow connections
+    FASTQ --> BWA
+    REFERENCE --> BWA
+    BWA --> SORT
+    SORT --> MARKDUP
+    MARKDUP --> BAM
+
+    BAM --> INDEX
+    BAM --> FLAGSTAT
+    INDEX --> BAI
+    FLAGSTAT --> QC
+
+    BAM --> MAKEEX
+    REFERENCE --> MAKEEX
+    MAKEEX --> CALLVAR
+    CALLVAR --> POSTPROC
+    POSTPROC --> VCF
+    POSTPROC --> TBI
+
+    GPU -.->|accelerates| BWA
+    GPU -.->|accelerates| SORT
+    GPU -.->|accelerates| CALLVAR
+
+    CLI --> CONTAINER
+    PORTAL --> CONTAINER
+
+    VCF --> RAGCHAT
+
+    %% Styling
+    classDef inputStyle fill:#1a73e8,stroke:#1557b0,color:#fff
+    classDef step1Style fill:#34a853,stroke:#2d8a47,color:#fff
+    classDef step2Style fill:#9c27b0,stroke:#7b1fa2,color:#fff
+    classDef step3Style fill:#ff9800,stroke:#f57c00,color:#fff
+    classDef outputStyle fill:#76b900,stroke:#5a8f00,color:#fff
+    classDef gpuStyle fill:#76b900,stroke:#5a8f00,color:#fff
+    classDef interfaceStyle fill:#00bcd4,stroke:#0097a7,color:#fff
+    classDef nextStyle fill:#e91e63,stroke:#c2185b,color:#fff
+
+    class FASTQ,REFERENCE inputStyle
+    class BWA,SORT,MARKDUP step1Style
+    class INDEX,FLAGSTAT step2Style
+    class MAKEEX,CALLVAR,POSTPROC step3Style
+    class BAM,BAI,VCF,TBI,QC outputStyle
+    class GPU gpuStyle
+    class CLI,PORTAL interfaceStyle
+    class RAGCHAT nextStyle

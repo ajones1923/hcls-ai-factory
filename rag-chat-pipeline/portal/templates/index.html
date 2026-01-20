@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2 - RAG Chat Pipeline Portal</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-dark bg-primary">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">
+                <span class="badge bg-light text-dark me-2">2</span>
+                <i class="bi bi-chat-dots"></i> RAG Chat Pipeline Portal
+            </span>
+            <div class="d-flex align-items-center">
+                <span class="badge bg-light text-dark me-3" id="pipeline-status-badge">
+                    <i class="bi bi-circle-fill text-secondary"></i> Idle
+                </span>
+                <button class="btn btn-danger btn-sm" id="stop-btn" style="display: none;">
+                    <i class="bi bi-stop-circle-fill"></i> Stop
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-3">
+        <!-- Executive Dashboard Header -->
+        <div class="executive-header compact">
+            <div class="header-content">
+                <div class="header-titles">
+                    <h2><i class="bi bi-activity"></i> Genomic Evidence RAG</h2>
+                    <h1>VCF to Vector Database to Chat</h1>
+                </div>
+                <div class="header-stats">
+                    <div class="header-stat">
+                        <span class="stat-label">Variants</span>
+                        <span class="stat-value" id="summary-variants">--</span>
+                    </div>
+                    <div class="header-stat">
+                        <span class="stat-label">LLM Model</span>
+                        <span class="stat-value" id="summary-model">--</span>
+                    </div>
+                    <div class="header-stat">
+                        <span class="stat-label">Status</span>
+                        <span class="stat-value" id="summary-status">Idle</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Left Sidebar - Workflow Steps -->
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="bi bi-list-check"></i> Workflow Steps</h5>
+                    </div>
+                    <div class="list-group list-group-flush" id="workflow-steps">
+                        <a href="#" class="list-group-item list-group-item-action" data-step="setup">
+                            <div class="d-flex w-100 justify-content-between">
+                                <span><i class="bi bi-1-circle"></i> Python Setup</span>
+                                <i class="bi bi-hourglass step-icon text-muted"></i>
+                            </div>
+                            <small class="text-muted">Install dependencies</small>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action" data-step="start-milvus">
+                            <div class="d-flex w-100 justify-content-between">
+                                <span><i class="bi bi-2-circle"></i> Start Milvus</span>
+                                <i class="bi bi-hourglass step-icon text-muted"></i>
+                            </div>
+                            <small class="text-muted">Vector database</small>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action" data-step="check-ollama">
+                            <div class="d-flex w-100 justify-content-between">
+                                <span><i class="bi bi-3-circle"></i> Check Ollama</span>
+                                <i class="bi bi-hourglass step-icon text-muted"></i>
+                            </div>
+                            <small class="text-muted">Local LLM (Llama 70B)</small>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action" data-step="ingest">
+                            <div class="d-flex w-100 justify-content-between">
+                                <span><i class="bi bi-4-circle"></i> Ingest VCF</span>
+                                <i class="bi bi-hourglass step-icon text-muted"></i>
+                            </div>
+                            <small class="text-muted">Embed variants into Milvus</small>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action" data-step="chat">
+                            <div class="d-flex w-100 justify-content-between">
+                                <span><i class="bi bi-5-circle"></i> Launch Chat</span>
+                                <i class="bi bi-hourglass step-icon text-muted"></i>
+                            </div>
+                            <small class="text-muted">Start Streamlit UI</small>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Model Selector Card -->
+                <div class="card mt-3">
+                    <div class="card-header bg-primary text-white">
+                        <h6 class="mb-0"><i class="bi bi-robot"></i> LLM Model</h6>
+                    </div>
+                    <div class="card-body">
+                        <select class="form-select form-select-sm mb-2" id="model-selector" onchange="switchModel(this.value)">
+                            <optgroup label="Local - Optimized">
+                                <option value="llama3.1:8b-fast-ctx2k">Llama 8B Fast (Q4_0, 2K ctx)</option>
+                                <option value="llama3.1:8b-instruct-q4_0">Llama 8B Q4_0</option>
+                            </optgroup>
+                            <optgroup label="Local - Standard">
+                                <option value="llama3.1:8b">Llama 3.1 8B (Q4_K_M)</option>
+                                <option value="llama3.1:70b">Llama 3.1 70B (Best Local)</option>
+                            </optgroup>
+                            <optgroup label="Cloud (Anthropic)">
+                                <option value="claude-sonnet-4-20250514">Claude Sonnet 4 (Fast)</option>
+                                <option value="claude-opus-4-20250514">Claude Opus 4 (Best)</option>
+                            </optgroup>
+                        </select>
+                        <div id="model-info" class="small text-muted">
+                            <span id="model-status-text">Select a model</span>
+                        </div>
+                        <div id="model-switch-status" class="mt-2" style="display: none;">
+                            <span class="spinner-border spinner-border-sm text-primary"></span>
+                            <small class="text-primary">Switching model...</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Services Status Card -->
+                <div class="card mt-3">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="mb-0"><i class="bi bi-hdd-stack"></i> Services</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-2 d-flex justify-content-between">
+                            <small class="text-muted">Milvus (Vector DB):</small>
+                            <span id="service-milvus" class="badge bg-secondary">Checking...</span>
+                        </div>
+                        <div class="mb-2 d-flex justify-content-between">
+                            <small class="text-muted">Ollama (Local LLM):</small>
+                            <span id="service-ollama" class="badge bg-secondary">Checking...</span>
+                        </div>
+                        <div class="mt-3">
+                            <div class="btn-group btn-group-sm w-100">
+                                <button class="btn btn-outline-success" onclick="runStep('start-all')">
+                                    <i class="bi bi-play-fill"></i> Start All
+                                </button>
+                                <button class="btn btn-outline-danger" onclick="runStep('stop')">
+                                    <i class="bi bi-stop-fill"></i> Stop All
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Status Card -->
+                <div class="card mt-3">
+                    <div class="card-header bg-secondary text-white">
+                        <h6 class="mb-0"><i class="bi bi-pc-display"></i> System</h6>
+                    </div>
+                    <div class="card-body">
+                        <!-- GPU Utilization -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <small class="text-muted"><i class="bi bi-gpu-card"></i> GPU</small>
+                                <small id="gpu-percent" class="fw-bold">0%</small>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div id="gpu-progress" class="progress-bar bg-success" role="progressbar" style="width: 0%"></div>
+                            </div>
+                            <small id="gpu-details" class="text-muted" style="font-size: 0.7rem;"></small>
+                        </div>
+
+                        <!-- Memory Utilization -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <small class="text-muted"><i class="bi bi-memory"></i> Memory</small>
+                                <small id="memory-percent" class="fw-bold">0%</small>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div id="memory-progress" class="progress-bar bg-info" role="progressbar" style="width: 0%"></div>
+                            </div>
+                            <small id="memory-details" class="text-muted" style="font-size: 0.7rem;"></small>
+                        </div>
+
+                        <!-- Disk Space -->
+                        <div class="mb-2 d-flex justify-content-between">
+                            <small class="text-muted">Disk:</small>
+                            <span id="disk-status" class="badge bg-secondary">N/A</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Collection Info Card -->
+                <div class="card mt-3">
+                    <div class="card-header bg-success text-white">
+                        <h6 class="mb-0"><i class="bi bi-database"></i> Vector Collection</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-2 d-flex justify-content-between">
+                            <small class="text-muted">Collection:</small>
+                            <span id="collection-name" class="badge bg-secondary">--</span>
+                        </div>
+                        <div class="mb-2 d-flex justify-content-between">
+                            <small class="text-muted">Variants:</small>
+                            <span id="collection-count" class="badge bg-secondary">--</span>
+                        </div>
+                        <div class="mb-2 d-flex justify-content-between">
+                            <small class="text-muted">VCF Source:</small>
+                            <span id="vcf-status" class="badge bg-secondary">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="col-md-9">
+                <!-- Current Step Info -->
+                <div class="card mb-3" id="current-step-card" style="display: none;">
+                    <div class="card-header bg-warning">
+                        <h5 class="mb-0" id="current-step-title">
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                            Running Step...
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <p class="mb-1">Started: <span id="step-start-time">-</span></p>
+                                <p class="mb-0">Status: <span id="step-status-text" class="badge bg-primary">Running</span></p>
+                            </div>
+                            <div>
+                                <button class="btn btn-danger btn-sm" onclick="stopStep()">
+                                    <i class="bi bi-stop-circle"></i> Stop
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="console-tab" data-bs-toggle="tab" data-bs-target="#console" type="button">
+                            <i class="bi bi-terminal"></i> Console Output
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="vcf-tab" data-bs-toggle="tab" data-bs-target="#vcf" type="button">
+                            <i class="bi bi-table"></i> VCF Preview
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="targets-tab" data-bs-toggle="tab" data-bs-target="#targets" type="button">
+                            <i class="bi bi-bullseye"></i> Targets
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="metrics-tab" data-bs-toggle="tab" data-bs-target="#metrics" type="button">
+                            <i class="bi bi-graph-up"></i> LLM Metrics
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="config-tab" data-bs-toggle="tab" data-bs-target="#config" type="button">
+                            <i class="bi bi-gear"></i> Configuration
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="help-tab" data-bs-toggle="tab" data-bs-target="#help" type="button">
+                            <i class="bi bi-question-circle"></i> Help
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content border border-top-0 p-3" id="myTabContent">
+                    <!-- Console Tab -->
+                    <div class="tab-pane fade show active" id="console">
+                        <div class="card">
+                            <div class="card-body p-0">
+                                <pre id="console-output" class="mb-0 p-3" style="height: 500px; overflow-y: auto; background-color: #1e1e1e; color: #d4d4d4; font-family: 'Courier New', monospace; font-size: 12px;">Waiting for command...</pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- VCF Preview Tab -->
+                    <div class="tab-pane fade" id="vcf">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span><i class="bi bi-file-earmark-medical"></i> VCF File Preview</span>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="loadVcfPreview()">
+                                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                                    <table class="table table-sm table-striped table-hover mb-0">
+                                        <thead class="table-dark sticky-top">
+                                            <tr>
+                                                <th>CHROM</th>
+                                                <th>POS</th>
+                                                <th>REF</th>
+                                                <th>ALT</th>
+                                                <th>QUAL</th>
+                                                <th>FILTER</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="vcf-table-body">
+                                            <tr>
+                                                <td colspan="6" class="text-center text-muted">
+                                                    Click "Refresh" to load VCF preview...
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="card-footer text-muted small">
+                                <span id="vcf-path-display">VCF Path: --</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Targets Tab -->
+                    <div class="tab-pane fade" id="targets">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span><i class="bi bi-bullseye"></i> Target Hypotheses</span>
+                                    <div>
+                                        <button class="btn btn-sm btn-outline-primary me-2" onclick="loadTargets()">
+                                            <i class="bi bi-arrow-clockwise"></i> Refresh
+                                        </button>
+                                        <button class="btn btn-sm btn-success" onclick="exportTargets()">
+                                            <i class="bi bi-download"></i> Export for Phase 5
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <!-- Summary -->
+                                <div class="row mb-3" id="targets-summary">
+                                    <div class="col-md-3">
+                                        <div class="card bg-light">
+                                            <div class="card-body text-center py-2">
+                                                <h4 id="targets-total" class="mb-0">--</h4>
+                                                <small class="text-muted">Total Targets</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="card bg-light">
+                                            <div class="card-body text-center py-2">
+                                                <h4 id="targets-high-priority" class="mb-0">--</h4>
+                                                <small class="text-muted">High Priority</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="card bg-light">
+                                            <div class="card-body text-center py-2">
+                                                <h4 id="targets-validated" class="mb-0">--</h4>
+                                                <small class="text-muted">Validated</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="card bg-light">
+                                            <div class="card-body text-center py-2">
+                                                <h4 id="targets-selected" class="mb-0">--</h4>
+                                                <small class="text-muted">Selected</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Targets Table -->
+                                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                                    <table class="table table-sm table-hover">
+                                        <thead class="table-dark sticky-top">
+                                            <tr>
+                                                <th>Priority</th>
+                                                <th>Gene</th>
+                                                <th>Protein</th>
+                                                <th>Confidence</th>
+                                                <th>Status</th>
+                                                <th>Variants</th>
+                                                <th>PDB IDs</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="targets-table-body">
+                                            <tr>
+                                                <td colspan="7" class="text-center text-muted">
+                                                    Click "Refresh" to load targets or add targets via the Streamlit Chat UI...
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="card-footer text-muted small">
+                                <i class="bi bi-info-circle"></i> Targets are created in the Streamlit Chat UI (port 8501) and can be exported here for Phase 5 (Cryo-EM).
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- LLM Metrics Tab -->
+                    <div class="tab-pane fade" id="metrics">
+                        <div class="row">
+                            <!-- Inference Performance -->
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-header bg-primary text-white">
+                                        <i class="bi bi-speedometer2"></i> Inference Performance
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row text-center">
+                                            <div class="col-6">
+                                                <div class="metric-box">
+                                                    <div class="metric-value" id="metric-ttft">--</div>
+                                                    <div class="metric-label">TTFT (ms)</div>
+                                                    <small class="text-muted">Time to First Token</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="metric-box">
+                                                    <div class="metric-value" id="metric-tps">--</div>
+                                                    <div class="metric-label">Tokens/sec</div>
+                                                    <small class="text-muted">Generation Speed</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Query Statistics -->
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-header bg-success text-white">
+                                        <i class="bi bi-chat-dots"></i> Query Statistics
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row text-center">
+                                            <div class="col-6">
+                                                <div class="metric-box">
+                                                    <div class="metric-value" id="metric-queries">0</div>
+                                                    <div class="metric-label">Total Queries</div>
+                                                    <small class="text-muted">This Session</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="metric-box">
+                                                    <div class="metric-value" id="metric-latency">--</div>
+                                                    <div class="metric-label">Avg Latency</div>
+                                                    <small class="text-muted">Response Time</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <!-- Cache Status -->
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-header bg-info text-white">
+                                        <i class="bi bi-hdd-stack"></i> Cache Status
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row text-center">
+                                            <div class="col-6">
+                                                <div class="metric-box">
+                                                    <div class="metric-value" id="metric-cache-hits">0</div>
+                                                    <div class="metric-label">Cache Hits</div>
+                                                    <small class="text-muted">Embedding Cache</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="metric-box">
+                                                    <div class="metric-value" id="metric-cache-misses">0</div>
+                                                    <div class="metric-label">Cache Misses</div>
+                                                    <small class="text-muted">New Embeddings</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3">
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <small class="text-muted">Hit Rate</small>
+                                                <small id="cache-hit-rate">0%</small>
+                                            </div>
+                                            <div class="progress" style="height: 8px;">
+                                                <div id="cache-hit-progress" class="progress-bar bg-info" role="progressbar" style="width: 0%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- KV Cache -->
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-header bg-warning text-dark">
+                                        <i class="bi bi-memory"></i> KV Cache (GPU)
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row text-center">
+                                            <div class="col-6">
+                                                <div class="metric-box">
+                                                    <div class="metric-value" id="metric-kv-usage">--</div>
+                                                    <div class="metric-label">KV Usage</div>
+                                                    <small class="text-muted">GPU Cache %</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="metric-box">
+                                                    <div class="metric-value" id="metric-prefix-hits">--</div>
+                                                    <div class="metric-label">Prefix Hits</div>
+                                                    <small class="text-muted">Reused Context</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3">
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <small class="text-muted">Ollama Status</small>
+                                                <span class="badge bg-secondary" id="metric-ollama-status">Checking...</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- GPU Memory Chart -->
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <i class="bi bi-gpu-card"></i> GPU Memory Usage
+                            </div>
+                            <div class="card-body">
+                                <div style="height: 200px;">
+                                    <canvas id="gpuMemoryChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- LLM Server Info -->
+                        <div class="card">
+                            <div class="card-header">
+                                <i class="bi bi-bar-chart"></i> LLM Server (Ollama)
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="stat-item">
+                                            <span class="stat-label">Model:</span>
+                                            <span class="stat-value">llama3.1:70b</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="stat-item">
+                                            <span class="stat-label">Endpoint:</span>
+                                            <span class="stat-value">localhost:11434</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p class="text-muted small mt-2 mb-0">
+                                    Using Ollama for ARM64 compatibility (DGX Spark)
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Configuration Tab -->
+                    <div class="tab-pane fade" id="config">
+                        <form id="config-form">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>LLM Settings</h6>
+                                    <div class="mb-3">
+                                        <label class="form-label">LLM Provider</label>
+                                        <select class="form-select" name="LLM_PROVIDER">
+                                            <option value="ollama" selected>Ollama (Local - ARM64)</option>
+                                            <option value="vllm">vLLM (Local - x86)</option>
+                                            <option value="anthropic">Anthropic Claude</option>
+                                            <option value="openai">OpenAI GPT</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Model</label>
+                                        <input type="text" class="form-control" name="LLM_MODEL" value="llama3.1:70b">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Max Tokens</label>
+                                        <input type="number" class="form-control" name="LLM_MAX_TOKENS" value="4096">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Temperature</label>
+                                        <input type="number" class="form-control" name="LLM_TEMPERATURE" value="0.7" step="0.1" min="0" max="2">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>RAG Settings</h6>
+                                    <div class="mb-3">
+                                        <label class="form-label">Top K Results</label>
+                                        <input type="number" class="form-control" name="RAG_TOP_K" value="10">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Score Threshold</label>
+                                        <input type="number" class="form-control" name="RAG_SCORE_THRESHOLD" value="0.5" step="0.1" min="0" max="1">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">VCF Input Path</label>
+                                        <input type="text" class="form-control" name="VCF_INPUT_PATH" value="/home/adam/transfer/genomics-pipeline/data/output/HG002.genome.vcf.gz">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Hugging Face Token</label>
+                                        <input type="password" class="form-control" name="HF_TOKEN" placeholder="hf_xxxx...">
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save"></i> Save Configuration
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Help Tab -->
+                    <div class="tab-pane fade" id="help">
+                        <h5>Quick Start Guide</h5>
+                        <ol>
+                            <li><strong>Python Setup:</strong> Install Python dependencies in virtual environment</li>
+                            <li><strong>Start Milvus:</strong> Launch the vector database (required for RAG)</li>
+                            <li><strong>Check Ollama:</strong> Verify Ollama LLM server is running with Llama 3.1 70B</li>
+                            <li><strong>Ingest VCF:</strong> Parse and embed variants into Milvus</li>
+                            <li><strong>Launch Chat:</strong> Open the Streamlit chat interface</li>
+                        </ol>
+
+                        <h5 class="mt-4">Service URLs</h5>
+                        <ul>
+                            <li><strong>Milvus:</strong> localhost:19530 (gRPC API)</li>
+                            <li><strong>Ollama:</strong> localhost:11434 (OpenAI-compatible API)</li>
+                            <li><strong>Streamlit Chat:</strong> <a href="http://localhost:8501" target="_blank">http://localhost:8501</a></li>
+                            <li><strong>Portal:</strong> <a href="http://localhost:5001" target="_blank">http://localhost:5001</a></li>
+                        </ul>
+
+                        <h5 class="mt-4">System Requirements</h5>
+                        <ul>
+                            <li>Docker with NVIDIA Container Runtime</li>
+                            <li>NVIDIA DGX Spark or similar ARM64 GPU system</li>
+                            <li>Ollama with llama3.1:70b model loaded</li>
+                            <li>Python 3.10+</li>
+                        </ul>
+
+                        <h5 class="mt-4">Model Options</h5>
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Model</th>
+                                    <th>VRAM</th>
+                                    <th>Quality</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>meta-llama/Llama-3.1-70B-Instruct</td>
+                                    <td>80GB+</td>
+                                    <td>Excellent</td>
+                                </tr>
+                                <tr>
+                                    <td>meta-llama/Llama-3.1-8B-Instruct</td>
+                                    <td>16GB+</td>
+                                    <td>Good</td>
+                                </tr>
+                                <tr>
+                                    <td>BioMistral/BioMistral-7B</td>
+                                    <td>14GB+</td>
+                                    <td>Biomedical</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

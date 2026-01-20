@@ -1,0 +1,3309 @@
+================================================================================
+                      HCLS AI FACTORY - PRODUCT DOCUMENTATION
+                   Precision Medicine to Drug Discovery Platform
+================================================================================
+
+                              VERSION 1.0
+                           January 14, 2026
+
+================================================================================
+                            TABLE OF CONTENTS
+================================================================================
+
+Documentation Sections:
+  ┌────────────────────────────────┬────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │            Section             │                                            Contents                                            │
+  ├────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ 1. Executive Summary           │ Key metrics, primary use case, value proposition                                               │
+  ├────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ 2. Product Overview            │ Vision, target users, use cases                                                                │
+  ├────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ 3. System Architecture         │ High-level diagrams, pipeline flow, technology stack, service topology                         │
+  ├────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ 4. Genomics Pipeline           │ Biological foundation, technical architecture, all 5 pipeline steps, configuration, benchmarks │
+  ├────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ 5. RAG/Chat Pipeline           │ Annotation sources (ClinVar, AlphaMissense, VEP), Milvus, Clinker, Claude AI, API reference    │
+  ├────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ 6. Drug Discovery Pipeline     │ BioNeMo integration, MolMIM/DiffDock APIs, molecule generation, docking, scoring, PDF reports  │
+  ├────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ 7. HLS Orchestrator            │ Service management, portal dashboard, Nextflow configuration                                   │
+  ├────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ 8. Installation & Deployment   │ System requirements, prerequisites, step-by-step installation                                  │
+  ├────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ 9. Configuration Reference     │ All environment variables, configuration files, Docker Compose services                        │
+  ├────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ 10. User Guide                 │ Web interfaces, CLI commands, workflow examples                                                │
+  ├────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ 11. Monitoring & Observability │ Grafana dashboards, Prometheus metrics, GPU monitoring, logs                                   │
+  ├────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ 12. Security Considerations    │ API key management, network security, data privacy                                             │
+  ├────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ 13. Troubleshooting            │ Common issues with solutions, diagnostic commands                                              │
+  ├────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ 14. Appendices                 │ Glossary (50+ terms), 201 gene list, file formats, references                                  │
+  └────────────────────────────────┴────────────────────────────────────────────────────────────────────────────────────────────────┘
+  Key Details Documented:
+
+  - All 12 service ports with descriptions
+  - Complete API specifications for MolMIM and DiffDock
+  - Full environment variable reference (40+ variables)
+  - Performance benchmarks by GPU model
+  - 201 genes organized by 13 therapeutic areas
+  - File format specifications (FASTQ, VCF, BAM, SMILES)
+  - Network architecture diagrams
+  - Step-by-step installation instructions
+
+1.  EXECUTIVE SUMMARY
+2.  PRODUCT OVERVIEW
+    2.1  Vision and Mission
+    2.2  Key Value Propositions
+    2.3  Target Users
+    2.4  Use Cases
+3.  SYSTEM ARCHITECTURE
+    3.1  High-Level Architecture
+    3.2  Pipeline Integration Flow
+    3.3  Technology Stack
+    3.4  Service Topology
+4.  PIPELINE 1: GENOMICS PIPELINE
+    4.1  Overview
+    4.2  Biological Foundation
+    4.3  Technical Architecture
+    4.4  Pipeline Steps
+    4.5  Configuration Options
+    4.6  Input/Output Specifications
+    4.7  Performance Benchmarks
+    4.8  Command Reference
+5.  PIPELINE 2: RAG/CHAT PIPELINE
+    5.1  Overview
+    5.2  Annotation Sources
+    5.3  Vector Database (Milvus)
+    5.4  Knowledge Graph (Clinker)
+    5.5  AI Reasoning (Claude)
+    5.6  Configuration Options
+    5.7  API Reference
+    5.8  Query Examples
+6.  PIPELINE 3: DRUG DISCOVERY PIPELINE
+    6.1  Overview
+    6.2  BioNeMo Integration
+    6.3  Molecule Generation
+    6.4  Molecular Docking
+    6.5  Drug-Likeness Scoring
+    6.6  PDF Report Generation
+    6.7  Configuration Options
+    6.8  API Reference
+7.  HLS ORCHESTRATOR
+    7.1  Overview
+    7.2  Service Management
+    7.3  Portal Dashboard
+    7.4  Nextflow Integration
+8.  INSTALLATION & DEPLOYMENT
+    8.1  System Requirements
+    8.2  Prerequisites
+    8.3  Installation Steps
+    8.4  Environment Configuration
+    8.5  Service Startup
+9.  CONFIGURATION REFERENCE
+    9.1  Environment Variables
+    9.2  Configuration Files
+    9.3  Docker Compose Services
+10. USER GUIDE
+    10.1 Web Interfaces
+    10.2 Command Line Interface
+    10.3 Workflow Examples
+11. MONITORING & OBSERVABILITY
+    11.1 Grafana Dashboards
+    11.2 Prometheus Metrics
+    11.3 GPU Monitoring
+    11.4 Log Management
+12. SECURITY CONSIDERATIONS
+    12.1 API Key Management
+    12.2 Network Security
+    12.3 Data Privacy
+13. TROUBLESHOOTING
+    13.1 Common Issues
+    13.2 Diagnostic Commands
+    13.3 Support Resources
+14. APPENDICES
+    A. Glossary of Terms
+    B. Gene Coverage List
+    C. File Format Specifications
+    D. References and Resources
+
+
+================================================================================
+1. EXECUTIVE SUMMARY
+================================================================================
+
+The HCLS AI Factory is an end-to-end precision medicine platform that transforms
+raw DNA sequencing data into actionable drug discovery candidates. Built on
+NVIDIA's accelerated computing stack, it integrates three production-grade
+pipelines:
+
+1. GENOMICS PIPELINE: GPU-accelerated variant calling using NVIDIA Parabricks
+2. RAG/CHAT PIPELINE: AI-powered genomic evidence retrieval using Claude
+3. DRUG DISCOVERY PIPELINE: Molecular generation using NVIDIA BioNeMo NIMs
+
+KEY METRICS:
+- Full genome analysis: 30-90 minutes (vs. 24-48 hours on CPU)
+- Variant database: 3.5 million searchable variants with embeddings
+- Knowledge coverage: 201 genes across 13 therapeutic areas
+- Drug target coverage: 171 druggable targets (85% of gene panel)
+- Molecule generation: 10-100 candidates in seconds via BioNeMo
+
+PRIMARY USE CASE:
+The platform demonstrates a complete precision medicine workflow using VCP
+(Valosin-containing protein) as the target gene, exploring its role in
+Frontotemporal Dementia (FTD) and generating novel drug candidates for this
+neurodegenerative condition.
+
+
+================================================================================
+2. PRODUCT OVERVIEW
+================================================================================
+
+--------------------------------------------------------------------------------
+2.1 VISION AND MISSION
+--------------------------------------------------------------------------------
+
+VISION:
+To democratize precision medicine by making the complete journey from patient
+DNA to therapeutic candidates accessible, fast, and intelligent.
+
+MISSION:
+Provide pharmaceutical companies, research institutions, and healthcare
+organizations with an integrated platform that:
+- Reduces genomic analysis time from days to hours
+- Enables natural language interaction with genomic evidence
+- Accelerates target identification and validation
+- Generates novel drug candidates using AI-driven molecular design
+
+--------------------------------------------------------------------------------
+2.2 KEY VALUE PROPOSITIONS
+--------------------------------------------------------------------------------
+
+FOR PHARMACEUTICAL COMPANIES:
+- Accelerate target identification pipelines
+- Reduce computational infrastructure costs
+- Enable rapid hypothesis generation and testing
+- Generate novel chemical matter for hit-to-lead programs
+
+FOR RESEARCH INSTITUTIONS:
+- Process patient cohorts at scale
+- Query genomic databases using natural language
+- Connect variants to biological pathways and drugs
+- Publish-ready visualizations and reports
+
+FOR HEALTHCARE ORGANIZATIONS:
+- Clinical-grade variant calling (DeepVariant >99% accuracy)
+- Actionable therapeutic insights from patient genomes
+- Integration with existing clinical workflows
+- Compliance-ready audit trails
+
+--------------------------------------------------------------------------------
+2.3 TARGET USERS
+--------------------------------------------------------------------------------
+
+PRIMARY USERS:
+1. Computational Biologists - Pipeline configuration and customization
+2. Genomic Scientists - Variant interpretation and target validation
+3. Medicinal Chemists - Molecule evaluation and optimization
+4. Clinical Researchers - Patient cohort analysis
+
+SECONDARY USERS:
+5. IT/DevOps Engineers - Deployment and infrastructure management
+6. Data Scientists - Custom model integration and analysis
+7. Leadership/Executives - Strategic decision-making from reports
+
+--------------------------------------------------------------------------------
+2.4 USE CASES
+--------------------------------------------------------------------------------
+
+USE CASE 1: NOVEL TARGET DISCOVERY
+Input: Patient whole-genome sequencing (WGS) data
+Process: Variant calling -> Annotation -> AI reasoning -> Target hypothesis
+Output: Prioritized list of druggable targets with confidence scores
+
+USE CASE 2: KNOWN TARGET VALIDATION
+Input: Target gene (e.g., VCP, BRCA1, EGFR)
+Process: Evidence retrieval -> Knowledge connection -> Literature support
+Output: Validation report with structural evidence and drug connections
+
+USE CASE 3: DRUG CANDIDATE GENERATION
+Input: Validated protein target with 3D structure
+Process: Seed molecule -> Molecular generation -> Docking -> Scoring
+Output: Ranked list of drug candidates with properties
+
+USE CASE 4: CLINICAL REPORTING
+Input: Patient VCF file
+Process: Annotation -> Clinical significance -> Pharmacogenomics
+Output: Clinical-grade report for healthcare providers
+
+
+================================================================================
+3. SYSTEM ARCHITECTURE
+================================================================================
+
+--------------------------------------------------------------------------------
+3.1 HIGH-LEVEL ARCHITECTURE
+--------------------------------------------------------------------------------
+
++==============================================================================+
+|                          HCLS AI FACTORY                                      |
++==============================================================================+
+|                                                                              |
+|  +-----------------+    +-----------------+    +------------------------+    |
+|  |    GENOMICS     |    |    RAG/CHAT     |    |    DRUG DISCOVERY      |    |
+|  |    PIPELINE     |--->|    PIPELINE     |--->|       PIPELINE         |    |
+|  |                 |    |                 |    |                        |    |
+|  |  FASTQ -> VCF   |    |  VCF -> Target  |    |  Target -> Molecules   |    |
+|  |                 |    |                 |    |                        |    |
+|  |  - Parabricks   |    |  - Milvus       |    |  - BioNeMo MolMIM      |    |
+|  |  - BWA-MEM2     |    |  - ClinVar      |    |  - BioNeMo DiffDock    |    |
+|  |  - DeepVariant  |    |  - Claude AI    |    |  - RDKit               |    |
+|  |  - Docker       |    |  - Clinker      |    |  - ReportLab           |    |
+|  +-----------------+    +-----------------+    +------------------------+    |
+|          |                      |                        |                   |
+|          v                      v                        v                   |
+|  +-----------------+    +-----------------+    +------------------------+    |
+|  |   WEB PORTAL    |    |   CHAT UI       |    |   DISCOVERY UI         |    |
+|  |   Port: 5000    |    |   Port: 8501    |    |   Port: 8505           |    |
+|  +-----------------+    +-----------------+    +------------------------+    |
+|                                                                              |
+|  +------------------------------------------------------------------------+  |
+|  |                        HLS ORCHESTRATOR                                 |  |
+|  |                                                                         |  |
+|  |  +-------------+  +-------------+  +-------------+  +-------------+    |  |
+|  |  | Landing     |  | Portal      |  | Grafana     |  | Prometheus  |    |  |
+|  |  | Page :8080  |  | UI :8510    |  | :3000       |  | :9099       |    |  |
+|  |  +-------------+  +-------------+  +-------------+  +-------------+    |  |
+|  +------------------------------------------------------------------------+  |
+|                                                                              |
++==============================================================================+
+
+--------------------------------------------------------------------------------
+3.2 PIPELINE INTEGRATION FLOW
+--------------------------------------------------------------------------------
+
+STAGE 1: GENOMICS PIPELINE
+==========================
+
+    Input: FASTQ Files (Raw Sequencing Data)
+           - HG002_R1.fastq.gz (~100 GB)
+           - HG002_R2.fastq.gz (~100 GB)
+                    |
+                    v
+    +--------------------------------+
+    |        NVIDIA PARABRICKS        |
+    |                                |
+    |  1. fq2bam (BWA-MEM2)          |
+    |     - Alignment to GRCh38      |
+    |     - Coordinate sorting       |
+    |     - Duplicate marking        |
+    |                                |
+    |  2. samtools index             |
+    |     - BAM indexing             |
+    |     - QC statistics            |
+    |                                |
+    |  3. DeepVariant                |
+    |     - Deep learning caller     |
+    |     - GPU-accelerated CNN      |
+    +--------------------------------+
+                    |
+                    v
+    Output: VCF File (Variant Calls)
+            - HG002.genome.vcf.gz (~1.5 GB)
+            - ~11.7 million variants identified
+
+
+STAGE 2: RAG/CHAT PIPELINE
+==========================
+
+    Input: VCF File from Stage 1
+                    |
+                    v
+    +--------------------------------+
+    |        ANNOTATION LAYER         |
+    |                                |
+    |  ClinVar:                      |
+    |  - 4.1M known variants         |
+    |  - Clinical significance       |
+    |  - Disease associations        |
+    |                                |
+    |  AlphaMissense:                |
+    |  - 71M AI predictions          |
+    |  - Pathogenicity scores        |
+    |                                |
+    |  VEP (Optional):               |
+    |  - Functional consequences     |
+    |  - Gene/transcript mapping     |
+    +--------------------------------+
+                    |
+                    v
+    +--------------------------------+
+    |         VECTOR DATABASE         |
+    |                                |
+    |  Milvus:                       |
+    |  - 3.5M variant embeddings     |
+    |  - BGE-small-en-v1.5 model     |
+    |  - Cosine similarity search    |
+    |  - Hybrid filtering            |
+    +--------------------------------+
+                    |
+                    v
+    +--------------------------------+
+    |        KNOWLEDGE LAYER          |
+    |                                |
+    |  Clinker:                      |
+    |  - 201 genes                   |
+    |  - 13 therapeutic areas        |
+    |  - 171 druggable targets       |
+    |  - Gene -> Drug connections    |
+    +--------------------------------+
+                    |
+                    v
+    +--------------------------------+
+    |         AI REASONING            |
+    |                                |
+    |  Claude (Anthropic):           |
+    |  - Natural language queries    |
+    |  - RAG-grounded responses      |
+    |  - Evidence citations          |
+    |  - Therapeutic insights        |
+    +--------------------------------+
+                    |
+                    v
+    Output: Target Hypothesis
+            - Gene: VCP
+            - Disease: Frontotemporal Dementia
+            - Confidence: High
+            - Evidence: 13 variants
+
+
+STAGE 3: DRUG DISCOVERY PIPELINE
+================================
+
+    Input: Target Hypothesis from Stage 2
+           - Target Gene: VCP
+           - PDB Structure: 5FTK
+                    |
+                    v
+    +--------------------------------+
+    |     STRUCTURAL EVIDENCE         |
+    |                                |
+    |  Cryo-EM Structures:           |
+    |  - 8OOI (2024, 2.5A)           |
+    |  - 9DIL (2024, 2.8A)           |
+    |  - 7K56 (2022, 2.9A)           |
+    |  - 5FTK (2016, 3.4A)           |
+    |                                |
+    |  Binding Sites:                |
+    |  - ATP-binding pocket          |
+    |  - D1/D2 ATPase domains        |
+    +--------------------------------+
+                    |
+                    v
+    +--------------------------------+
+    |     MOLECULE GENERATION         |
+    |                                |
+    |  BioNeMo MolMIM:               |
+    |  - Masked language modeling    |
+    |  - Seed SMILES input           |
+    |  - Novel analog generation     |
+    |  - Temperature control         |
+    +--------------------------------+
+                    |
+                    v
+    +--------------------------------+
+    |      MOLECULAR DOCKING          |
+    |                                |
+    |  BioNeMo DiffDock:             |
+    |  - Diffusion-based docking     |
+    |  - Pose generation             |
+    |  - Binding affinity prediction |
+    +--------------------------------+
+                    |
+                    v
+    +--------------------------------+
+    |     DRUG-LIKENESS SCORING       |
+    |                                |
+    |  Properties:                   |
+    |  - Lipinski Rule of Five       |
+    |  - QED (Quantitative Estimate) |
+    |  - Tanimoto Similarity         |
+    |  - Molecular Weight            |
+    |  - LogP (Lipophilicity)        |
+    |  - H-bond Donors/Acceptors     |
+    +--------------------------------+
+                    |
+                    v
+    Output: Drug Candidates
+            - Ranked molecule list
+            - Property profiles
+            - Docking scores
+            - PDF Report
+
+--------------------------------------------------------------------------------
+3.3 TECHNOLOGY STACK
+--------------------------------------------------------------------------------
+
+COMPUTE INFRASTRUCTURE:
+- NVIDIA DGX Spark (GB10 GPU, 128GB VRAM, 512GB RAM)
+- NVIDIA CUDA 12.x
+- Docker with NVIDIA Container Runtime
+- Ubuntu 22.04 LTS
+
+GENOMICS TOOLS:
+- NVIDIA Parabricks 4.6.0-1
+- BWA-MEM2 (GPU-accelerated alignment)
+- DeepVariant (Deep learning variant caller)
+- samtools/bcftools (BAM/VCF processing)
+
+AI/ML FRAMEWORKS:
+- Anthropic Claude API (claude-sonnet-4-20250514)
+- NVIDIA BioNeMo NIMs (MolMIM, DiffDock)
+- HuggingFace Transformers (BGE embeddings)
+- Sentence Transformers
+
+DATABASES:
+- Milvus 2.4.17 (Vector database)
+- ClinVar (Clinical variant database)
+- AlphaMissense (AI pathogenicity predictions)
+- RCSB PDB (Protein structures)
+
+WEB FRAMEWORKS:
+- Streamlit (Interactive UIs)
+- Flask (REST APIs)
+- Flask-CORS (Cross-origin support)
+
+CHEMISTRY TOOLS:
+- RDKit (Molecular informatics)
+- ReportLab (PDF generation)
+- Py3Dmol (3D visualization)
+
+ORCHESTRATION:
+- Nextflow (Workflow management)
+- Docker Compose (Service orchestration)
+
+MONITORING:
+- Grafana (Dashboards)
+- Prometheus (Metrics collection)
+- pynvml (GPU monitoring)
+
+--------------------------------------------------------------------------------
+3.4 SERVICE TOPOLOGY
+--------------------------------------------------------------------------------
+
+SERVICE PORT MAP:
++----------------+-------+------------------+-------------------------------+
+| Service        | Port  | Protocol         | Description                   |
++----------------+-------+------------------+-------------------------------+
+| Landing Page   | 8080  | HTTP             | Main demo entry point         |
+| Genomics Portal| 5000  | HTTP             | Genomics pipeline web UI      |
+| RAG Chat API   | 5001  | HTTP/SSE         | RAG backend REST API          |
+| RAG Chat UI    | 8501  | HTTP             | Streamlit chat interface      |
+| Drug Discovery | 8505  | HTTP             | Drug discovery Streamlit UI   |
+| Pipeline Portal| 8510  | HTTP             | HLS orchestrator dashboard    |
+| Milvus         | 19530 | gRPC             | Vector database               |
+| Milvus Metrics | 9091  | HTTP             | Milvus health/metrics         |
+| Attu           | 8000  | HTTP             | Milvus web admin UI           |
+| MolMIM NIM     | 8001  | HTTP             | Molecule generation service   |
+| DiffDock NIM   | 8002  | HTTP             | Molecular docking service     |
+| Ollama         | 11434 | HTTP             | Local LLM server (optional)   |
+| Prometheus     | 9099  | HTTP             | Metrics collection            |
+| Grafana        | 3000  | HTTP             | Monitoring dashboards         |
++----------------+-------+------------------+-------------------------------+
+
+NETWORK ARCHITECTURE:
+
+    +------------------+
+    |   External       |
+    |   Browser        |
+    +--------+---------+
+             |
+             | HTTP (8080, 8501, 8505, 8510, 3000)
+             v
+    +------------------+
+    |   Host Network   |
+    |   (DGX Spark)    |
+    +--------+---------+
+             |
+    +--------+--------------------------------------------+
+    |        |                                            |
+    |   +----v----+  +----------+  +----------+          |
+    |   | Landing |  | Streamlit|  | Grafana  |          |
+    |   | :8080   |  | :8501    |  | :3000    |          |
+    |   +---------+  | :8505    |  +----+-----+          |
+    |                | :8510    |       |                |
+    |                +----+-----+       |                |
+    |                     |             |                |
+    |   +-----------------+-------------+                |
+    |   |                                                |
+    |   +----v----+  +----------+  +----------+          |
+    |   | Flask   |  | Milvus   |  |Prometheus|          |
+    |   | :5000   |  | :19530   |  | :9099    |          |
+    |   | :5001   |  +----------+  +----------+          |
+    |   +---------+                                      |
+    |                                                    |
+    |   +----------+  +----------+                       |
+    |   | MolMIM   |  | DiffDock |                       |
+    |   | :8001    |  | :8002    |                       |
+    |   +----------+  +----------+                       |
+    |                                                    |
+    +----------------------------------------------------+
+
+
+================================================================================
+4. PIPELINE 1: GENOMICS PIPELINE
+================================================================================
+
+--------------------------------------------------------------------------------
+4.1 OVERVIEW
+--------------------------------------------------------------------------------
+
+The Genomics Pipeline transforms raw DNA sequencing data (FASTQ files) into
+analysis-ready variant calls (VCF files) using NVIDIA Parabricks. This
+GPU-accelerated pipeline achieves 10-50x speedup compared to traditional
+CPU-based workflows.
+
+LOCATION: /home/adam/transfer/genomics-pipeline/
+
+KEY CAPABILITIES:
+- Full genome analysis in 30-90 minutes
+- Clinical-grade accuracy (DeepVariant >99%)
+- Support for Illumina paired-end sequencing
+- Compatible with GIAB benchmark datasets
+- Dual interface: CLI and Web Portal
+
+--------------------------------------------------------------------------------
+4.2 BIOLOGICAL FOUNDATION
+--------------------------------------------------------------------------------
+
+DNA TO DISEASE PATHWAY:
+
+    DNA (3 billion base pairs)
+        |
+        v
+    Chromosomes (23 pairs)
+        |
+        v
+    Genes (~20,000 protein-coding)
+        |
+        v
+    Proteins (Molecular machines)
+        |
+        v
+    Function (Normal or Disease)
+
+HUMAN GENOME STATISTICS:
+- Total base pairs: ~3 billion (A, C, G, T)
+- Chromosomes: 46 (23 pairs)
+- Protein-coding genes: ~20,000
+- Variants vs. reference: 4-5 million per individual
+- Total variants (including non-coding): ~11.7 million
+
+WHY VARIANTS MATTER:
+Most variants are harmless - normal human diversity. However, some variants
+affect genes in ways that change protein structure or function. These changes
+can disrupt normal biology and lead to disease. Finding these critical variants
+is the foundation of precision medicine.
+
+SEQUENCING WORKFLOW:
+1. Sample Collection: DNA extracted from cells (blood, saliva, tissue)
+2. Library Preparation: DNA fragmented into ~250bp segments
+3. Sequencing: Each fragment read as string of letters (A, C, G, T)
+4. Quality Scoring: Each base assigned confidence score (Phred quality)
+5. Output: FASTQ files with hundreds of millions of reads
+
+--------------------------------------------------------------------------------
+4.3 TECHNICAL ARCHITECTURE
+--------------------------------------------------------------------------------
+
+SYSTEM ARCHITECTURE:
+
++==============================================================================+
+|                              HOST SYSTEM                                      |
++==============================================================================+
+|                                                                              |
+|  +------------------------------------------------------------------------+  |
+|  |                      WEB PORTAL (Port 5000)                             |  |
+|  |  Flask Server | Real-time Monitoring | GPU Status | Log Streaming      |  |
+|  +------------------------------------------------------------------------+  |
+|                                    |                                         |
+|  +------------------------------------------------------------------------+  |
+|  |                      PIPELINE SCRIPTS                                   |  |
+|  |                                                                         |  |
+|  |  00-setup-check.sh -> 01-ngc-login.sh -> 02-download-data.sh           |  |
+|  |         |                                                               |  |
+|  |         v                                                               |  |
+|  |  03-setup-reference.sh -> 04-run-chr20-test.sh -> 05-run-full-genome.sh|  |
+|  +------------------------------------------------------------------------+  |
+|                                    |                                         |
+|  +------------------------------------------------------------------------+  |
+|  |              DOCKER + NVIDIA CONTAINER RUNTIME                          |  |
+|  |  +------------------------------------------------------------------+  |  |
+|  |  |              clara-parabricks:4.6.0-1 Container                  |  |  |
+|  |  |                                                                  |  |  |
+|  |  |   +----------+  +----------+  +------------+  +----------+      |  |  |
+|  |  |   | BWA-MEM2 |  | samtools |  | DeepVariant|  | bcftools |      |  |  |
+|  |  |   |  (GPU)   |  |          |  |   (GPU)    |  |          |      |  |  |
+|  |  |   +----------+  +----------+  +------------+  +----------+      |  |  |
+|  |  +------------------------------------------------------------------+  |  |
+|  +------------------------------------------------------------------------+  |
+|                                    |                                         |
+|  +------------------------------------------------------------------------+  |
+|  |                         NVIDIA GPU                                      |  |
+|  |  DGX Spark (GB10) | A100 | V100 | RTX 4090/3090                        |  |
+|  +------------------------------------------------------------------------+  |
++==============================================================================+
+
+DATA FLOW:
+
+    GIAB FTP Server              NVIDIA Sample Bundle
+         |                              |
+         v                              v
+    +----------+                 +--------------+
+    |  FASTQ   |                 |  Reference   |
+    |  Files   |                 |  GRCh38.fa   |
+    |  ~200GB  |                 |  + Indexes   |
+    +----+-----+                 +------+-------+
+         |                              |
+         +------------+  +--------------+
+                      |  |
+                      v  v
+              +---------------+
+              |    fq2bam     |
+              |  (Alignment)  |
+              +-------+-------+
+                      |
+                      v
+              +---------------+
+              |   BAM File    |
+              |   (~100 GB)   |
+              +-------+-------+
+                      |
+                      v
+              +---------------+
+              |  DeepVariant  |
+              | (Variant Call)|
+              +-------+-------+
+                      |
+                      v
+              +---------------+
+              |   VCF File    |-----------> RAG/Chat Pipeline
+              | ~11.7M vars   |              (Stage 2)
+              +---------------+
+
+--------------------------------------------------------------------------------
+4.4 PIPELINE STEPS
+--------------------------------------------------------------------------------
+
+STEP 0: PREREQUISITES CHECK
+---------------------------
+Script: scripts/00-setup-check.sh
+
+Validates system requirements:
+- Docker installed and running
+- NVIDIA Container Runtime configured
+- GPU detected with appropriate driver (525+)
+- Sufficient disk space (500GB+)
+- Network connectivity
+
+Command:
+    ./run.sh check
+
+Expected Output:
+    [CHECK] Docker installation... OK
+    [CHECK] Docker daemon running... OK
+    [CHECK] NVIDIA Container Runtime... OK
+    [CHECK] GPU detected: NVIDIA GB10 (128GB)
+    [CHECK] Driver version: 560.35.03
+    [CHECK] Available disk space: 1.2TB
+    [CHECK] All prerequisites met!
+
+
+STEP 1: NGC AUTHENTICATION
+--------------------------
+Script: scripts/01-ngc-login.sh
+
+Authenticates with NVIDIA NGC to access Parabricks container.
+
+Command:
+    ./run.sh login
+
+Credentials:
+    Username: $oauthtoken (literal string)
+    Password: <your NGC API key from ngc.nvidia.com>
+
+
+STEP 2: DATA DOWNLOAD
+---------------------
+Script: scripts/02-download-data.sh
+
+Downloads GIAB HG002 benchmark genome:
+- Source: NCBI GIAB FTP server
+- Size: ~200GB (multiple lane files)
+- Format: Paired-end FASTQ (R1, R2)
+- Features: Parallel downloads, automatic resume
+
+Command:
+    ./run.sh download
+
+Output Files:
+    data/input/HG002_R1.fastq.gz (~100GB)
+    data/input/HG002_R2.fastq.gz (~100GB)
+
+
+STEP 3: REFERENCE GENOME SETUP
+------------------------------
+Script: scripts/03-setup-reference.sh
+
+Downloads and indexes GRCh38 human reference genome.
+
+Command:
+    ./run.sh reference
+
+Output Files:
+    data/ref/GRCh38.fa       (3.1 GB - Reference FASTA)
+    data/ref/GRCh38.fa.fai   (3 KB - FASTA index)
+    data/ref/GRCh38.fa.bwt   (3 GB - BWA index)
+    data/ref/GRCh38.dict     (50 KB - Sequence dictionary)
+
+
+STEP 4: CHROMOSOME 20 TEST
+--------------------------
+Script: scripts/04-run-chr20-test.sh
+
+Quick validation using chromosome 20 (~2% of genome):
+- Validates GPU acceleration is working
+- Completes in 5-20 minutes
+- Produces test BAM and VCF files
+
+Command:
+    ./run.sh test
+
+Docker Commands:
+    # Alignment
+    pbrun fq2bam \
+      --ref data/ref/GRCh38.fa \
+      --in-fq data/input/HG002_R1.fastq.gz data/input/HG002_R2.fastq.gz \
+      --out-bam data/output/HG002.chr20.bam \
+      --interval chr20
+
+    # Variant Calling
+    pbrun deepvariant \
+      --ref data/ref/GRCh38.fa \
+      --in-bam data/output/HG002.chr20.bam \
+      --out-vcf data/output/HG002.chr20.vcf.gz
+
+Output Files:
+    data/output/HG002.chr20.bam
+    data/output/HG002.chr20.vcf.gz
+
+
+STEP 5: FULL GENOME ANALYSIS
+----------------------------
+Script: scripts/05-run-full-genome.sh
+
+Complete whole-genome analysis (all chromosomes):
+
+Command:
+    ./run.sh full
+
+Sub-step 5.1: fq2bam (FASTQ to BAM)
+    - Alignment: Maps reads to reference using BWA-MEM2 (GPU)
+    - Sorting: Orders reads by genomic coordinate
+    - Duplicate Marking: Flags PCR duplicates
+    - Time: 20-45 minutes
+
+    pbrun fq2bam \
+      --ref data/ref/GRCh38.fa \
+      --in-fq data/input/HG002_R1.fastq.gz data/input/HG002_R2.fastq.gz \
+      --out-bam data/output/HG002.genome.bam \
+      --num-gpus 1
+
+Sub-step 5.2: BAM Indexing
+    - Creates BAM index for random access
+    - Generates alignment statistics
+    - Time: 2-5 minutes
+
+    samtools index data/output/HG002.genome.bam
+    samtools flagstat data/output/HG002.genome.bam
+
+Sub-step 5.3: DeepVariant (Variant Calling)
+    - Pileup Images: Creates images of read alignments
+    - CNN Inference: Deep learning model classifies variants (GPU)
+    - Variant Calling: Outputs high-confidence calls
+    - Time: 15-35 minutes
+
+    pbrun deepvariant \
+      --ref data/ref/GRCh38.fa \
+      --in-bam data/output/HG002.genome.bam \
+      --out-vcf data/output/HG002.genome.vcf.gz \
+      --num-gpus 1
+
+Output Files:
+    data/output/HG002.genome.bam      (~100 GB)
+    data/output/HG002.genome.bam.bai  (~10 MB)
+    data/output/HG002.genome.vcf.gz   (~1.5 GB) --> Stage 2
+    data/output/HG002.genome.vcf.gz.tbi
+
+--------------------------------------------------------------------------------
+4.5 CONFIGURATION OPTIONS
+--------------------------------------------------------------------------------
+
+CONFIGURATION FILE: config/pipeline.env
+
+# GPU Configuration
+NUM_GPUS=1                    # Number of GPUs (1-8)
+LOW_MEMORY=0                  # Set to 1 for GPUs <16GB VRAM
+
+# Sample Configuration
+PATIENT_ID=HG002              # Sample identifier in filenames
+
+# Reference Genome
+REF_BUILD=GRCh38              # Reference genome build
+
+# Container Image
+PB_IMG=nvcr.io/nvidia/clara/clara-parabricks:4.6.0-1
+
+# Performance Tuning
+FQ2BAM_ARGS=""                # Additional fq2bam arguments
+DEEPVARIANT_ARGS=""           # Additional DeepVariant arguments
+
+# Paths
+GP=/workspace/genome-pipeline
+IN=${GP}/data/input
+REF=${GP}/data/ref
+OUT=${GP}/data/output
+LOG=${GP}/data/output/logs
+
+# Data Source
+GIAB_INDEX_URL=https://ftp-trace.ncbi.nlm.nih.gov/...
+
+--------------------------------------------------------------------------------
+4.6 INPUT/OUTPUT SPECIFICATIONS
+--------------------------------------------------------------------------------
+
+INPUT FILES:
++---------------------------+----------+----------------------------------+
+| File                      | Size     | Description                      |
++---------------------------+----------+----------------------------------+
+| HG002_R1.fastq.gz         | ~100 GB  | Forward reads (Read 1)           |
+| HG002_R2.fastq.gz         | ~100 GB  | Reverse reads (Read 2)           |
+| GRCh38.fa                 | 3.1 GB   | Reference genome FASTA           |
+| GRCh38.fa.fai             | 3 KB     | FASTA index                      |
+| GRCh38.fa.bwt             | 3 GB     | BWA index                        |
+| GRCh38.dict               | 50 KB    | Sequence dictionary              |
++---------------------------+----------+----------------------------------+
+
+OUTPUT FILES:
++---------------------------+----------+----------------------------------+
+| File                      | Size     | Description                      |
++---------------------------+----------+----------------------------------+
+| HG002.genome.bam          | ~100 GB  | Aligned, sorted, deduped reads   |
+| HG002.genome.bam.bai      | ~10 MB   | BAM index                        |
+| HG002.genome.vcf.gz       | ~1.5 GB  | Variant calls (main output)      |
+| HG002.genome.vcf.gz.tbi   | ~2 MB    | VCF tabix index                  |
+| logs/genome_fq2bam.log    | Variable | Alignment metrics                |
+| logs/genome_flagstat.log  | Variable | Alignment statistics             |
+| logs/genome_deepvariant.log| Variable| Variant calling statistics       |
++---------------------------+----------+----------------------------------+
+
+VCF FORMAT:
+#CHROM  POS       ID           REF  ALT  QUAL   FILTER  INFO         FORMAT  HG002
+chr7    117559590 rs188935092  G    A    45.2   PASS    DP=32;AF=0.5 GT:DP   0/1:32
+
+Column Descriptions:
+- CHROM: Chromosome (chr1-22, chrX, chrY, chrM)
+- POS: Position on chromosome
+- ID: dbSNP identifier (if known)
+- REF: Reference allele
+- ALT: Alternate allele
+- QUAL: Quality score (higher = more confident)
+- FILTER: PASS or filter reason
+- INFO: Additional annotations
+- FORMAT: Sample data format
+- HG002: Sample genotype (0/1 = heterozygous)
+
+--------------------------------------------------------------------------------
+4.7 PERFORMANCE BENCHMARKS
+--------------------------------------------------------------------------------
+
+BY GPU MODEL:
++--------------------+--------+------------+-------------+------------------+
+| GPU Model          | VRAM   | Chr20 Test | Full Genome | Notes            |
++--------------------+--------+------------+-------------+------------------+
+| DGX Spark (GB10)   | 128 GB | 5-10 min   | 30-60 min   | Recommended      |
+| NVIDIA A100        | 80 GB  | 3-8 min    | 25-45 min   | Data center      |
+| NVIDIA A100        | 40 GB  | 5-10 min   | 35-55 min   | Data center      |
+| NVIDIA V100        | 32 GB  | 8-15 min   | 50-75 min   | Older DC         |
+| NVIDIA RTX 4090    | 24 GB  | 6-12 min   | 40-60 min   | Consumer         |
+| NVIDIA RTX 3090    | 24 GB  | 8-15 min   | 50-75 min   | Consumer         |
+| CPU Baseline       | N/A    | 2-4 hours  | 24-48 hours | Intel Xeon 32-core|
++--------------------+--------+------------+-------------+------------------+
+
+BY PIPELINE STEP:
++----------------------+------------+-------------+------------+
+| Step                 | Chr20 Time | Full Genome | % of Total |
++----------------------+------------+-------------+------------+
+| fq2bam (alignment)   | 2-8 min    | 20-45 min   | ~60%       |
+| BAM indexing         | <1 min     | 2-5 min     | ~5%        |
+| DeepVariant          | 2-6 min    | 15-35 min   | ~35%       |
+| TOTAL                | 5-15 min   | 37-85 min   | 100%       |
++----------------------+------------+-------------+------------+
+
+RESOURCE UTILIZATION:
++------------+---------------+-------------------+
+| Resource   | During fq2bam | During DeepVariant|
++------------+---------------+-------------------+
+| GPU Compute| 70-90%        | 80-95%            |
+| GPU Memory | 8-12 GB       | 12-20 GB          |
+| System RAM | 24-48 GB      | 16-32 GB          |
+| Disk I/O   | High (write)  | Moderate (read)   |
++------------+---------------+-------------------+
+
+--------------------------------------------------------------------------------
+4.8 COMMAND REFERENCE
+--------------------------------------------------------------------------------
+
+MAIN CLI (run.sh):
+    ./run.sh <command>
+
+    Commands:
+      check       Verify prerequisites (Docker, GPU, disk space)
+      login       Authenticate with NGC
+      download    Download GIAB HG002 data (~200GB)
+      reference   Setup GRCh38 reference genome
+      test        Run chr20 validation test (~5-20 min)
+      full        Run full genome pipeline (~30-90 min)
+      clean       Clean output files (keeps input data)
+      clean-all   Clean everything including downloaded data
+      help        Show help message
+
+WEB PORTAL (port 5000):
+    cd web-portal
+    ./start-portal.sh
+
+    Features:
+    - Click-to-run buttons for each step
+    - Real-time console output streaming
+    - Live GPU utilization monitoring
+    - Configuration management UI
+    - Historical log browser
+
+DOCKER COMMANDS:
+    # Pull Parabricks container
+    docker pull nvcr.io/nvidia/clara/clara-parabricks:4.6.0-1
+
+    # Run alignment
+    docker run --gpus all \
+      -v $(pwd)/data:/data \
+      nvcr.io/nvidia/clara/clara-parabricks:4.6.0-1 \
+      pbrun fq2bam \
+        --ref /data/ref/GRCh38.fa \
+        --in-fq /data/input/HG002_R1.fastq.gz /data/input/HG002_R2.fastq.gz \
+        --out-bam /data/output/HG002.genome.bam
+
+    # Run DeepVariant
+    docker run --gpus all \
+      -v $(pwd)/data:/data \
+      nvcr.io/nvidia/clara/clara-parabricks:4.6.0-1 \
+      pbrun deepvariant \
+        --ref /data/ref/GRCh38.fa \
+        --in-bam /data/output/HG002.genome.bam \
+        --out-vcf /data/output/HG002.genome.vcf.gz
+
+
+================================================================================
+5. PIPELINE 2: RAG/CHAT PIPELINE
+================================================================================
+
+--------------------------------------------------------------------------------
+5.1 OVERVIEW
+--------------------------------------------------------------------------------
+
+The RAG/Chat Pipeline is the intelligence layer of the HCLS AI Factory. It
+transforms the VCF file from Stage 1 into actionable therapeutic insights
+through multi-source annotation, semantic search, knowledge connections, and
+AI-powered reasoning.
+
+LOCATION: /home/adam/transfer/rag-chat-pipeline/
+
+KEY CAPABILITIES:
+- Multi-source annotation (ClinVar, AlphaMissense, VEP)
+- Semantic search across 3.5 million variants
+- Knowledge graph with 201 genes and 171 druggable targets
+- Natural language queries with Claude AI
+- Real-time streaming responses with evidence citations
+
+RAG (Retrieval-Augmented Generation) ARCHITECTURE:
+1. User submits natural language query
+2. Query analyzed for gene names and intent
+3. Relevant variants retrieved from vector database
+4. Knowledge connections added from Clinker
+5. Context assembled and sent to Claude
+6. AI generates grounded response with citations
+
+--------------------------------------------------------------------------------
+5.2 ANNOTATION SOURCES
+--------------------------------------------------------------------------------
+
+CLINVAR: CLINICAL EVIDENCE
+--------------------------
+Source: NIH National Library of Medicine
+URL: https://www.ncbi.nlm.nih.gov/clinvar/
+Size: 4.1 million GRCh38 variants
+File: data/annotations/variant_summary.txt.gz
+
+What ClinVar Provides:
+- Clinical significance classifications:
+  * Pathogenic
+  * Likely Pathogenic
+  * Uncertain Significance (VUS)
+  * Likely Benign
+  * Benign
+- Disease associations with OMIM IDs
+- Review status (star ratings)
+- Supporting publications
+- Submitter information
+
+Implementation:
+    class ClinVarAnnotator:
+        def __init__(self, clinvar_file: Path):
+            self._variant_db = {}  # Indexed by chr_pos_ref_alt
+            # Loads 4.1M variants at initialization
+
+        def annotate(self, variant: VariantEvidence) -> VariantEvidence:
+            key = f"{variant.chrom}_{variant.pos}_{variant.ref}_{variant.alt}"
+            if key in self._variant_db:
+                variant.clinical_significance = data['clinical_significance']
+                variant.disease_associations = data['disease_associations']
+                variant.rsid = data['rsid']
+            return variant
+
+HG002 Statistics:
+- ClinVar matches: 35,616 variants (1% of high-quality variants)
+
+
+ALPHAMISSENSE: AI-PREDICTED PATHOGENICITY
+-----------------------------------------
+Source: Google DeepMind
+URL: https://github.com/google-deepmind/alphamissense
+Size: 71,697,560 missense variant predictions
+File: data/annotations/AlphaMissense_hg38.tsv.gz (614 MB)
+
+What AlphaMissense Provides:
+- Pathogenicity score: 0.0 (benign) to 1.0 (pathogenic)
+- Classification:
+  * Likely Pathogenic: Score > 0.564
+  * Ambiguous: Score 0.340 - 0.564
+  * Likely Benign: Score < 0.340
+- Coverage of all possible human missense variants
+- Built on AlphaFold protein structure predictions
+
+Why It Matters:
+AlphaMissense enables assessment of variants NOT in ClinVar - potential novel
+drug targets that haven't been clinically studied yet. This is precisely the
+novel target discovery workflow pharmaceutical companies need.
+
+Implementation:
+    class AlphaMissenseAnnotator:
+        def __init__(self, alphamissense_file: Path):
+            self._variant_db = {}  # 71M predictions indexed
+
+        def annotate(self, variant: VariantEvidence) -> VariantEvidence:
+            key = f"{variant.chrom}_{variant.pos}_{variant.ref}_{variant.alt}"
+            if key in self._variant_db:
+                variant.am_pathogenicity = data['am_pathogenicity']
+                variant.am_class = data['am_class']
+            return variant
+
+HG002 Statistics:
+- AlphaMissense matches: 6,831 variants with pathogenicity predictions
+
+
+VEP: FUNCTIONAL CONSEQUENCE PREDICTION
+--------------------------------------
+Source: Ensembl (European Bioinformatics Institute)
+URL: https://www.ensembl.org/info/docs/tools/vep/
+Docker: ensemblorg/ensembl-vep:release_110.1
+
+What VEP Provides:
+- Affected gene and transcript
+- Consequence type:
+  * missense_variant
+  * stop_gained (nonsense)
+  * frameshift_variant
+  * splice_donor_variant
+  * splice_acceptor_variant
+  * synonymous_variant
+- Protein position and amino acid change
+- Impact severity: HIGH, MODERATE, LOW, MODIFIER
+- SIFT and PolyPhen predictions
+
+How Annotations Work Together:
+- VEP: Describes what the variant does structurally
+- ClinVar: Provides clinical evidence of its effect
+- AlphaMissense: Offers AI prediction of its impact
+
+--------------------------------------------------------------------------------
+5.3 VECTOR DATABASE (MILVUS)
+--------------------------------------------------------------------------------
+
+OVERVIEW:
+Milvus is an open-source vector database purpose-built for AI applications.
+Unlike traditional databases that search by exact matches, Milvus searches
+by semantic meaning.
+
+Why Vectors?
+A query about "dementia" automatically finds variants annotated with
+"frontotemporal lobar degeneration" or "cognitive decline" because these
+concepts are nearby in vector space. Researchers can ask natural questions
+without knowing exact terminology.
+
+TECHNICAL SPECIFICATIONS:
+- Version: 2.4.17 (ARM64 compatible)
+- Port: 19530 (gRPC)
+- Embedding Model: BGE-small-en-v1.5 (384 dimensions)
+- Index Type: IVF_FLAT (nlist=1024)
+- Metric: Cosine similarity
+- Collection Size: 3.5 million variant embeddings
+- Search Latency: <100ms
+
+DOCKER COMPOSE:
+    services:
+      milvus:
+        image: milvusdb/milvus:v2.4.17
+        ports:
+          - "19530:19530"
+          - "9091:9091"
+        volumes:
+          - milvus_data:/var/lib/milvus
+        healthcheck:
+          test: curl -f http://localhost:9091/healthz
+
+COLLECTION SCHEMA:
+    Fields:
+    - id: INT64 (primary key, auto-generated)
+    - embedding: FLOAT_VECTOR[384]
+    - chrom: VARCHAR(10)
+    - pos: INT64
+    - ref: VARCHAR(255)
+    - alt: VARCHAR(255)
+    - gene: VARCHAR(50)
+    - rsid: VARCHAR(20)
+    - clinical_significance: VARCHAR(50)
+    - disease_associations: VARCHAR(2000)
+    - am_pathogenicity: FLOAT
+    - am_class: VARCHAR(20)
+    - consequence: VARCHAR(100)
+    - impact: VARCHAR(20)
+    - text_content: VARCHAR(4000)  # For embedding generation
+
+SEARCH IMPLEMENTATION:
+    class MilvusClient:
+        def search(self, query_embedding: np.ndarray, top_k: int = 10,
+                   filter_expr: Optional[str] = None) -> List[Dict]:
+            results = collection.search(
+                data=[query_embedding.tolist()],
+                anns_field="embedding",
+                param={"metric_type": "COSINE", "params": {"nprobe": 16}},
+                limit=top_k,
+                expr=filter_expr,  # e.g., "gene == 'VCP'"
+                output_fields=[
+                    "chrom", "pos", "gene", "rsid",
+                    "clinical_significance", "disease_associations",
+                    "am_pathogenicity", "am_class", "consequence"
+                ]
+            )
+            return results
+
+HYBRID SEARCH EXAMPLES:
+    # Semantic only
+    results = milvus.search(embed("frontotemporal dementia"), top_k=20)
+
+    # Semantic + Gene filter
+    results = milvus.search(
+        embed("pathogenic variants"),
+        top_k=20,
+        filter_expr='gene == "VCP"'
+    )
+
+    # Semantic + Multiple filters
+    results = milvus.search(
+        embed("cancer risk"),
+        top_k=20,
+        filter_expr='gene in ["BRCA1", "BRCA2"] and impact == "HIGH"'
+    )
+
+--------------------------------------------------------------------------------
+5.4 KNOWLEDGE GRAPH (CLINKER)
+--------------------------------------------------------------------------------
+
+OVERVIEW:
+Clinker is the semantic layer that transforms isolated variant annotations
+into connected biological narratives. Annotation tells you WHAT a variant is;
+Clinker tells you WHY it matters.
+
+THE CONNECTION CHAIN:
+    Variant -> Gene -> Protein -> Pathway -> Disease -> Drug
+       |        |        |         |         |        |
+       |        |        |         |         |        +-- Therapeutic options
+       |        |        |         |         +-- Clinical relevance
+       |        |        |         +-- Biological context
+       |        |        +-- Molecular function
+       |        +-- Gene symbol
+       +-- Genomic coordinates
+
+EXAMPLE CONNECTION (VCP):
+    rs188935092 (chr7:117559590 G>A)
+          |
+          v
+    Gene: VCP
+          |
+          v
+    Protein: p97/VCP ATPase
+          |
+          v
+    Pathway: Ubiquitin-proteasome system
+          |
+          v
+    Diseases: Frontotemporal Dementia, ALS, IBMPFD
+          |
+          v
+    Drugs: CB-5083 (Phase I), NMS-873, DBeQ
+
+IMPLEMENTATION:
+    KNOWLEDGE_CONNECTIONS = {
+        'VCP': {
+            'protein': 'p97/VCP ATPase',
+            'function': 'Protein quality control, ERAD, autophagy',
+            'pathway': 'Ubiquitin-proteasome system',
+            'diseases': ['Frontotemporal Dementia (FTD)', 'ALS', 'IBMPFD'],
+            'drugs': ['CB-5083 (Phase I)', 'NMS-873', 'DBeQ'],
+            'drug_status': 'Clinical development',
+            'pdb_ids': ['5FTK', '7K56', '8OOI'],
+            'druggable': True,
+        },
+        'BRCA1': {
+            'protein': 'BRCA1 DNA Repair Associated',
+            'function': 'DNA double-strand break repair',
+            'pathway': 'Homologous recombination',
+            'diseases': ['Breast Cancer', 'Ovarian Cancer'],
+            'drugs': ['Olaparib', 'Rucaparib', 'Niraparib', 'Talazoparib'],
+            'drug_status': 'FDA approved',
+            'pdb_ids': ['1JNX', '1N5O'],
+            'druggable': True,
+        },
+        # ... 199 more genes
+    }
+
+COVERAGE STATISTICS:
++----------------------+--------+
+| Metric               | Value  |
++----------------------+--------+
+| Total Genes          | 201    |
+| Druggable Targets    | 171    |
+| Druggability Rate    | 85%    |
+| Disease Conditions   | 150+   |
+| FDA-Approved Drugs   | 100+   |
+| Therapeutic Areas    | 13     |
++----------------------+--------+
+
+THERAPEUTIC AREA BREAKDOWN:
++--------------------+-------+--------------------------------------------+
+| Area               | Genes | Key Examples                               |
++--------------------+-------+--------------------------------------------+
+| Oncology           | 23    | BRCA1, BRCA2, EGFR, KRAS, ALK, BRAF, HER2  |
+| Neurology          | 36    | VCP, GRN, C9orf72, MAPT, APP, LRRK2, HTT   |
+| Rare Disease       | 16    | CFTR, SMN1, DMD, HBB, F8, GAA, GBA         |
+| Cardiovascular     | 12    | LDLR, PCSK9, TTR, MYBPC3, SCN5A            |
+| Immunology         | 8     | IL6, TNF, JAK1, JAK2, IL17A                |
+| Pharmacogenomics   | 6     | CYP2D6, CYP2C19, CYP3A4, DPYD, TPMT        |
+| Metabolic/Endocrine| 22    | GLP1R, SGLT2, DPP4, PPARG, GCK             |
+| Infectious Disease | 21    | HIV RT/PR/IN, HCV NS3/NS5, SARS-CoV-2      |
+| Respiratory        | 13    | ADRB2, IL4R, IL5, BMPR2, CFTR              |
+| Ophthalmology      | 11    | VEGFA, CFH, RPE65, RHO                     |
+| Dermatology        | 9     | IL31RA, TYK2, IL13, COL7A1                 |
+| Hematology         | 12    | SYK, THPO, F10, BTK                        |
+| GI/Hepatology      | 12    | ATP4A, S1PR1, THR_BETA, FXR                |
++--------------------+-------+--------------------------------------------+
+
+--------------------------------------------------------------------------------
+5.5 AI REASONING (CLAUDE)
+--------------------------------------------------------------------------------
+
+OVERVIEW:
+Claude is Anthropic's large language model that serves as the reasoning and
+communication layer. While Milvus finds relevant evidence and Clinker connects
+it to biological context, Claude synthesizes everything into coherent,
+actionable answers.
+
+KEY FEATURE: GROUNDING
+Claude doesn't hallucinate genomic facts because it's grounded in retrieved
+data. Every response cites specific variant evidence from the database.
+
+RAG ENGINE IMPLEMENTATION:
+    class RAGEngine:
+        def query(self, user_query: str) -> Generator[str, None, None]:
+            # 1. Analyze query and expand genes
+            genes = self._extract_genes(user_query)
+            expanded_genes = self._expand_pharmacogenomics(user_query, genes)
+
+            # 2. Semantic search in Milvus
+            query_embedding = self.embedder.embed(user_query)
+            evidence = self.milvus.search(query_embedding, top_k=20)
+
+            # 3. Get knowledge connections
+            knowledge = get_knowledge_for_evidence(evidence)
+
+            # 4. Build prompt with context
+            prompt = self._build_prompt(user_query, evidence, knowledge)
+
+            # 5. Stream Claude response
+            for chunk in self.llm.stream(prompt):
+                yield chunk
+
+LLM CLIENT OPTIONS:
+    # Option 1: Anthropic Claude (Recommended)
+    LLM_PROVIDER=anthropic
+    LLM_MODEL=claude-sonnet-4-20250514
+
+    # Option 2: Local Ollama
+    LLM_PROVIDER=ollama
+    LLM_MODEL=llama3.1:70b
+
+    # Option 3: OpenAI
+    LLM_PROVIDER=openai
+    LLM_MODEL=gpt-4-turbo
+
+    # Option 4: Local vLLM
+    LLM_PROVIDER=vllm
+    VLLM_MODEL=meta-llama/Llama-3.1-70B-Instruct
+
+SUPPORTED LLM CLIENTS:
+    class AnthropicClient:
+        def generate(self, prompt, system_prompt, max_tokens, temperature)
+        def generate_stream(...)  # Streaming responses
+
+    class OpenAIClient:
+        # Same interface
+
+    class OllamaClient:
+        # Same interface
+
+    class vLLMClient:
+        # Same interface
+
+TECHNICAL SPECIFICATIONS:
+- Model: claude-sonnet-4-20250514
+- Temperature: 0.3 (factual consistency)
+- Max Tokens: 2048
+- Streaming: Server-Sent Events (SSE)
+- Context Window: 200K tokens
+
+--------------------------------------------------------------------------------
+5.6 CONFIGURATION OPTIONS
+--------------------------------------------------------------------------------
+
+ENVIRONMENT FILE (.env):
+
+# Required API Keys
+ANTHROPIC_API_KEY=sk-ant-...            # Required for Claude
+
+# Milvus Configuration
+MILVUS_HOST=localhost
+MILVUS_PORT=19530
+MILVUS_COLLECTION=genomic_evidence
+
+# Data Paths
+VCF_PATH=data/input/HG002.genome.vcf.gz
+CLINVAR_PATH=data/annotations/variant_summary.txt.gz
+ALPHAMISSENSE_PATH=data/annotations/AlphaMissense_hg38.tsv.gz
+
+# LLM Configuration
+LLM_PROVIDER=anthropic                  # anthropic|openai|ollama|vllm
+LLM_MODEL=claude-sonnet-4-20250514
+LLM_MAX_TOKENS=2048
+LLM_TEMPERATURE=0.7
+OLLAMA_HOST=http://localhost:11434      # For Ollama
+
+# RAG Settings
+RAG_TOP_K=10                            # Evidence items to retrieve
+RAG_SCORE_THRESHOLD=0.5                 # Minimum similarity score
+
+# Embedding Configuration
+EMBEDDING_MODEL=BAAI/bge-small-en-v1.5
+EMBEDDING_DIMENSION=384
+EMBEDDING_BATCH_SIZE=32
+
+# Ingestion Settings
+INGESTION_BATCH_SIZE=1000
+MAX_VARIANTS_TO_INGEST=                 # Empty = all variants
+
+# Quality Filters
+MIN_VARIANT_QUAL=20.0                   # QUAL score threshold
+
+SETTINGS FILE (config/settings.py):
+    # Embedding model
+    EMBEDDING_MODEL = "BAAI/bge-small-en-v1.5"
+    EMBEDDING_DIMENSION = 384
+    EMBEDDING_BATCH_SIZE = 32
+
+    # Ingestion
+    INGESTION_BATCH_SIZE = 1000
+    MAX_VARIANTS_TO_INGEST = None  # None = all
+
+    # Quality filters
+    MIN_VARIANT_QUAL = 20.0
+    INCLUDE_CHROMOSOMES = ['chr1'-'chr22', 'chrX', 'chrY']
+
+--------------------------------------------------------------------------------
+5.7 API REFERENCE
+--------------------------------------------------------------------------------
+
+REST API (Port 5001):
+
+GET /api/vcf/preview
+    Description: Get VCF variant preview
+    Parameters:
+      - limit: int (default: 100)
+    Response: { "variants": [...], "total": int }
+
+GET /api/vcf/stats
+    Description: Get variant statistics
+    Response: {
+        "total_variants": int,
+        "clinvar_annotated": int,
+        "alphamissense_annotated": int,
+        "genes": [...]
+    }
+
+POST /api/search
+    Description: Search genomic evidence
+    Body: {
+        "query": string,
+        "top_k": int (default: 10),
+        "filter": {
+            "gene": string (optional),
+            "impact": string (optional),
+            "chromosome": string (optional)
+        }
+    }
+    Response: {
+        "results": [...],
+        "knowledge": {...},
+        "total": int
+    }
+
+GET /api/config
+    Description: Get current configuration
+    Response: {
+        "llm_provider": string,
+        "llm_model": string,
+        "milvus_host": string,
+        "embedding_model": string
+    }
+
+STREAMING ENDPOINT:
+POST /api/chat (SSE)
+    Description: Chat with streaming response
+    Body: { "message": string }
+    Response: Server-Sent Events stream
+
+--------------------------------------------------------------------------------
+5.8 QUERY EXAMPLES
+--------------------------------------------------------------------------------
+
+ONCOLOGY QUERIES:
++--------------------------------------------------+--------------------------------+
+| Query                                            | What It Does                   |
++--------------------------------------------------+--------------------------------+
+| "What BRCA variants do I have?"                  | BRCA1/BRCA2 variants + PARP    |
+|                                                  | inhibitor connections          |
+| "Show me lung cancer variants"                   | EGFR, ALK, KRAS, ROS1 + TKIs   |
+| "What pathogenic variants affect cancer genes?"  | Comprehensive oncology panel   |
+| "Do I have any HER2 mutations?"                  | ERBB2 variants + trastuzumab   |
++--------------------------------------------------+--------------------------------+
+
+NEUROLOGY QUERIES:
++--------------------------------------------------+--------------------------------+
+| Query                                            | What It Does                   |
++--------------------------------------------------+--------------------------------+
+| "What variants are associated with FTD?"         | VCP, GRN, C9orf72, MAPT        |
+| "Do I have any ALS-related variants?"            | SOD1, FUS, TARDBP, C9orf72     |
+| "Find Alzheimer's disease variants"              | APP, PSEN1, PSEN2, APOE        |
+| "Show Parkinson's variants"                      | LRRK2, SNCA, PINK1, PARK7      |
++--------------------------------------------------+--------------------------------+
+
+RARE DISEASE QUERIES:
++--------------------------------------------------+--------------------------------+
+| Query                                            | What It Does                   |
++--------------------------------------------------+--------------------------------+
+| "What cystic fibrosis variants do I have?"       | CFTR + Trikafta eligibility    |
+| "Show me muscular dystrophy variants"            | DMD + exon-skipping options    |
+| "Find sickle cell or thalassemia variants"       | HBB + gene therapy connections |
+| "What SMA variants are present?"                 | SMN1/SMN2 + Zolgensma          |
++--------------------------------------------------+--------------------------------+
+
+CARDIOVASCULAR QUERIES:
++--------------------------------------------------+--------------------------------+
+| Query                                            | What It Does                   |
++--------------------------------------------------+--------------------------------+
+| "What heart disease variants do I have?"         | MYBPC3, MYH7, TTR, channels    |
+| "Find cholesterol-related variants"              | LDLR, PCSK9, APOB              |
+| "Show me arrhythmia variants"                    | SCN5A, KCNH2, KCNQ1 Long QT    |
+| "Do I have familial hypercholesterolemia?"       | LDLR, APOB, PCSK9              |
++--------------------------------------------------+--------------------------------+
+
+PHARMACOGENOMICS QUERIES:
++--------------------------------------------------+--------------------------------+
+| Query                                            | What It Does                   |
++--------------------------------------------------+--------------------------------+
+| "What drug metabolism variants do I have?"       | CYP2D6, CYP2C19, CYP3A4        |
+| "Am I sensitive to warfarin?"                    | CYP2C9, VKORC1 variants        |
+| "Check for chemotherapy toxicity risk"           | DPYD, TPMT, UGT1A1             |
+| "What's my codeine metabolism status?"           | CYP2D6 metabolizer status      |
++--------------------------------------------------+--------------------------------+
+
+
+================================================================================
+6. PIPELINE 3: DRUG DISCOVERY PIPELINE
+================================================================================
+
+--------------------------------------------------------------------------------
+6.1 OVERVIEW
+--------------------------------------------------------------------------------
+
+The Drug Discovery Pipeline transforms validated protein targets into novel
+drug candidates using NVIDIA BioNeMo AI services. It integrates structural
+biology evidence with generative AI for molecule design and molecular docking
+for binding prediction.
+
+LOCATION: /home/adam/transfer/drug-discovery-pipeline/
+
+KEY CAPABILITIES:
+- Cryo-EM structure retrieval from RCSB PDB
+- AI-driven molecule generation using BioNeMo MolMIM
+- Molecular docking using BioNeMo DiffDock
+- Drug-likeness scoring (Lipinski, QED, Tanimoto)
+- Professional PDF report generation
+
+DEMO WORKFLOW:
+Target: VCP (Valosin-containing protein) / p97 ATPase
+Disease: Frontotemporal Dementia (FTD)
+Structures: 8OOI, 9DIL, 7K56, 5FTK
+Output: Ranked drug candidates with binding predictions
+
+--------------------------------------------------------------------------------
+6.2 BIONEMO INTEGRATION
+--------------------------------------------------------------------------------
+
+OVERVIEW:
+NVIDIA BioNeMo provides GPU-accelerated AI microservices (NIMs) for drug
+discovery. The pipeline integrates two key services:
+
+1. MolMIM: Molecule generation using masked language modeling
+2. DiffDock: Molecular docking using diffusion models
+
+BIONEMO MOLMIM:
+---------------
+Purpose: Generate novel drug-like molecules from seed structures
+URL: http://localhost:8001
+Container: nvcr.io/nvidia/clara/bionemo-molmim:1.0
+
+API Specification:
+    POST /v1/generate
+    {
+        "smiles": "CC(=O)Nc1ccc(O)cc1",     # Seed SMILES
+        "num_molecules": 10,                  # Molecules to generate
+        "temperature": 1.0,                   # Sampling temperature
+        "num_samples_per_token": 10,
+        "masked_ratio": 0.1                   # Token masking ratio
+    }
+
+    Response:
+    {
+        "molecules": [
+            {"smiles": "CC(=O)Nc1ccc(O)c(C)c1", "score": 0.95},
+            {"smiles": "CC(=O)Nc1ccc(O)c(F)c1", "score": 0.92},
+            ...
+        ]
+    }
+
+Implementation:
+    class MolMIMClient:
+        def __init__(self, config: NIMServiceConfig):
+            self.base_url = f"http://{config.host}:{config.port}"
+            self.timeout = config.timeout
+            self.max_retries = config.max_retries
+
+        def generate(self, smiles: str, num_molecules: int = 10,
+                     temperature: float = 1.0) -> List[Dict]:
+            response = requests.post(
+                f"{self.base_url}/v1/generate",
+                json={
+                    "smiles": smiles,
+                    "num_molecules": num_molecules,
+                    "temperature": temperature,
+                    "num_samples_per_token": 10,
+                    "masked_ratio": 0.1
+                },
+                timeout=self.timeout
+            )
+            return response.json()["molecules"]
+
+BIONEMO DIFFDOCK:
+-----------------
+Purpose: Predict protein-ligand binding poses and affinities
+URL: http://localhost:8002
+Container: nvcr.io/nvidia/clara/diffdock:1.0
+
+API Specification:
+    POST /v1/dock
+    {
+        "protein_pdb": "/path/to/protein.pdb",  # PDB file path
+        "ligand_smiles": "CC(=O)Nc1ccc(O)cc1",  # Ligand SMILES
+        "num_poses": 10,                         # Poses to generate
+        "sampling_steps": 20                     # Diffusion steps
+    }
+
+    Response:
+    {
+        "poses": [
+            {"coordinates": [...], "confidence": 0.95},
+            ...
+        ],
+        "affinity": -8.5  # Binding affinity (kcal/mol)
+    }
+
+Implementation:
+    class DiffDockClient:
+        def dock(self, protein_pdb: str, ligand_smiles: str,
+                 num_poses: int = 10) -> Dict:
+            response = requests.post(
+                f"{self.base_url}/v1/dock",
+                json={
+                    "protein_pdb": protein_pdb,
+                    "ligand_smiles": ligand_smiles,
+                    "num_poses": num_poses,
+                    "sampling_steps": 20
+                },
+                timeout=self.timeout
+            )
+            return response.json()
+
+DOCKER COMPOSE:
+    services:
+      molmim:
+        image: nvcr.io/nvidia/clara/bionemo-molmim:1.0
+        ports:
+          - "8001:8000"
+        deploy:
+          resources:
+            reservations:
+              devices:
+                - capabilities: [gpu]
+
+      diffdock:
+        image: nvcr.io/nvidia/clara/diffdock:1.0
+        ports:
+          - "8002:8000"
+        deploy:
+          resources:
+            reservations:
+              devices:
+                - capabilities: [gpu]
+
+--------------------------------------------------------------------------------
+6.3 MOLECULE GENERATION
+--------------------------------------------------------------------------------
+
+GENERATION WORKFLOW:
+
+1. INPUT: Seed molecule (reference compound or known inhibitor)
+   - SMILES string format
+   - Example: CB-5083 seed for VCP inhibition
+
+2. MASKING: Random tokens masked for generation
+   - masked_ratio controls diversity
+   - Lower ratio = more similar to seed
+   - Higher ratio = more novel structures
+
+3. GENERATION: MolMIM generates completions
+   - Temperature controls creativity
+   - num_molecules sets output count
+   - GPU-accelerated inference
+
+4. FILTERING: Invalid SMILES removed
+   - RDKit validation
+   - Molecular weight filters
+   - Substructure checks
+
+5. OUTPUT: Valid molecules with metadata
+   - Source seed reference
+   - Generation timestamp
+   - Initial property estimates
+
+GENERATED MOLECULE DATA MODEL:
+    @dataclass
+    class GeneratedMolecule:
+        smiles: str                         # SMILES string
+        name: Optional[str]                 # Molecule name
+        source_seed: str                    # Original seed SMILES
+        generation_method: str              # "bionemo", "rdkit"
+        target_gene: str                    # Target protein
+        properties: Dict[str, Any]          # MW, logP, etc.
+        score: float                        # Drug-likeness (0-1)
+        generated_at: str                   # ISO timestamp
+
+GENERATION PARAMETERS:
++---------------------+----------+------------------------------------------+
+| Parameter           | Default  | Description                              |
++---------------------+----------+------------------------------------------+
+| num_molecules       | 10       | Molecules to generate per seed           |
+| temperature         | 1.0      | Sampling temperature (0.5-2.0)           |
+| masked_ratio        | 0.1      | Fraction of tokens to mask (0.05-0.3)    |
+| num_samples_per_token| 10      | Samples per masked position              |
+| max_attempts        | 3        | Retry attempts for API calls             |
++---------------------+----------+------------------------------------------+
+
+--------------------------------------------------------------------------------
+6.4 MOLECULAR DOCKING
+--------------------------------------------------------------------------------
+
+DOCKING WORKFLOW:
+
+1. STRUCTURE RETRIEVAL: Fetch protein from RCSB PDB
+   - Cryo-EM or X-ray structures
+   - Example: VCP/p97 structures (5FTK, 7K56, 8OOI)
+
+2. PREPARATION: Prepare protein and ligand
+   - Remove water molecules
+   - Add hydrogen atoms
+   - Define binding site
+
+3. DOCKING: DiffDock generates binding poses
+   - Diffusion-based approach
+   - Multiple pose sampling
+   - Confidence scoring
+
+4. SCORING: Estimate binding affinity
+   - Physics-based scoring
+   - AI-predicted affinity
+   - Pose confidence
+
+5. OUTPUT: Ranked poses with metrics
+   - Binding coordinates
+   - Affinity estimates
+   - Confidence scores
+
+CRYO-EM STRUCTURES FOR VCP:
++--------+------+------------+----------------------------------+
+| PDB ID | Year | Resolution | Description                      |
++--------+------+------------+----------------------------------+
+| 8OOI   | 2024 | 2.5 A      | Latest high-resolution structure |
+| 9DIL   | 2024 | 2.8 A      | Substrate-bound conformation     |
+| 7K56   | 2022 | 2.9 A      | ATP-bound state                  |
+| 5FTK   | 2016 | 3.4 A      | CB-5083 inhibitor complex        |
++--------+------+------------+----------------------------------+
+
+DOCKING PARAMETERS:
++---------------------+----------+------------------------------------------+
+| Parameter           | Default  | Description                              |
++---------------------+----------+------------------------------------------+
+| num_poses           | 10       | Binding poses to generate                |
+| sampling_steps      | 20       | Diffusion sampling steps                 |
+| confidence_threshold| 0.5      | Minimum pose confidence                  |
++---------------------+----------+------------------------------------------+
+
+--------------------------------------------------------------------------------
+6.5 DRUG-LIKENESS SCORING
+--------------------------------------------------------------------------------
+
+LIPINSKI'S RULE OF FIVE:
+Drug-like molecules typically satisfy:
+- Molecular Weight <= 500 Da
+- LogP <= 5 (lipophilicity)
+- H-bond Donors <= 5
+- H-bond Acceptors <= 10
+
+Implementation:
+    def calculate_lipinski(mol) -> Dict:
+        return {
+            'molecular_weight': Descriptors.MolWt(mol),
+            'logp': Descriptors.MolLogP(mol),
+            'hbd': Descriptors.NumHDonors(mol),
+            'hba': Descriptors.NumHAcceptors(mol),
+            'violations': count_violations(mol)
+        }
+
+QED (QUANTITATIVE ESTIMATE OF DRUG-LIKENESS):
+Composite score (0-1) based on:
+- Molecular weight
+- LogP
+- H-bond donors/acceptors
+- Polar surface area
+- Rotatable bonds
+- Aromatic rings
+- Structural alerts
+
+Implementation:
+    from rdkit.Chem.QED import qed
+    qed_score = qed(mol)  # Returns 0.0 - 1.0
+
+TANIMOTO SIMILARITY:
+Measures structural similarity to reference compounds
+- 1.0 = Identical
+- 0.0 = Completely different
+- >0.85 = High similarity (likely similar activity)
+
+Implementation:
+    def tanimoto_similarity(mol1, mol2) -> float:
+        fp1 = AllChem.GetMorganFingerprintAsBitVect(mol1, 2, nBits=2048)
+        fp2 = AllChem.GetMorganFingerprintAsBitVect(mol2, 2, nBits=2048)
+        return DataStructs.TanimotoSimilarity(fp1, fp2)
+
+SCORING CRITERIA:
++----------------------+----------+-----------+--------------------------------+
+| Property             | Optimal  | Acceptable| Description                    |
++----------------------+----------+-----------+--------------------------------+
+| Molecular Weight     | 300-450  | <550      | Size for oral bioavailability  |
+| LogP                 | 1-3      | -0.5-5    | Lipophilicity                  |
+| H-bond Donors        | 0-3      | <=5       | Permeability                   |
+| H-bond Acceptors     | 2-7      | <=10      | Solubility                     |
+| Polar Surface Area   | 60-90    | <=140     | Membrane permeability          |
+| Rotatable Bonds      | 2-7      | <=10      | Conformational flexibility     |
+| QED Score            | >0.6     | >0.4      | Overall drug-likeness          |
+| Tanimoto to Seed     | >0.4     | >0.2      | Structural novelty/similarity  |
++----------------------+----------+-----------+--------------------------------+
+
+--------------------------------------------------------------------------------
+6.6 PDF REPORT GENERATION
+--------------------------------------------------------------------------------
+
+OVERVIEW:
+The pipeline generates professional PDF reports suitable for VP-level
+presentations and scientific review.
+
+REPORT GENERATOR:
+    class VCPReportGeneratorEnhanced:
+        def __init__(self, output_path: str = "outputs/report.pdf"):
+            self.output_path = output_path
+            self.styles = self._create_styles()
+
+        def generate(self) -> str:
+            # Build document elements
+            elements = []
+            elements.extend(self._create_title_page())
+            elements.extend(self._create_executive_summary())
+            elements.extend(self._create_target_validation())
+            elements.extend(self._create_structural_evidence())
+            elements.extend(self._create_molecule_candidates())
+            elements.extend(self._create_docking_results())
+            elements.extend(self._create_conclusions())
+
+            # Build PDF
+            doc = SimpleDocTemplate(self.output_path, ...)
+            doc.build(elements)
+            return self.output_path
+
+REPORT SECTIONS:
+
+1. TITLE PAGE
+   - "PRECISION MEDICINE TO DRUG DISCOVERY"
+   - "AI Factory Pipeline Report"
+   - Date and version
+
+2. EXECUTIVE SUMMARY
+   - Target gene and disease
+   - Key findings
+   - Recommendations
+
+3. TARGET VALIDATION
+   - VCP gene information
+   - Variant evidence (rs188935092)
+   - Clinical significance
+   - Pathway context
+
+4. STRUCTURAL EVIDENCE
+   - Cryo-EM structures table
+   - Binding site analysis
+   - Structure quality metrics
+
+5. MOLECULE CANDIDATES
+   - Generated molecules table
+   - Property profiles
+   - Drug-likeness scores
+   - Structural diversity
+
+6. DOCKING RESULTS
+   - Binding pose analysis
+   - Affinity predictions
+   - Confidence scores
+
+7. CONCLUSIONS
+   - Summary of findings
+   - Next steps
+   - References
+
+PDF STYLING:
+    # NVIDIA Green theme
+    NVIDIA_GREEN = HexColor('#76B900')
+    TITLE_BLUE = HexColor('#0B2375')
+
+    # Title styles
+    styles.add(ParagraphStyle(
+        name='TitleMain',
+        fontSize=24,
+        textColor=TITLE_BLUE,
+        alignment=TA_CENTER,
+        spaceAfter=12
+    ))
+
+OUTPUT:
+    outputs/VCP_Drug_Candidate_Report.pdf
+
+--------------------------------------------------------------------------------
+6.7 CONFIGURATION OPTIONS
+--------------------------------------------------------------------------------
+
+ENVIRONMENT FILE (.env):
+
+# Required
+NGC_API_KEY=your-ngc-api-key              # For BioNeMo NIMs
+
+# Service Endpoints
+DD_UI_PORT=8505                           # Main UI port
+MOLMIM_URL=http://localhost:8001          # MolMIM service
+DIFFDOCK_URL=http://localhost:8002        # DiffDock service
+
+# Optional
+NIM_ALLOW_MOCK_FALLBACK=false             # Mock data for dev
+GRAFANA_USER=admin
+GRAFANA_PASSWORD=your-password
+
+SERVICE CONFIGURATION:
+    @dataclass
+    class NIMServiceConfig:
+        host: str = "localhost"
+        port: int = 8000
+        api_version: str = "v1"
+        timeout: int = 300                # 5 minute timeout
+        max_retries: int = 3
+
+GENERATION DEFAULTS:
+    DEFAULT_NUM_MOLECULES = 10
+    DEFAULT_TEMPERATURE = 1.0
+    DEFAULT_MASKED_RATIO = 0.1
+    DEFAULT_NUM_POSES = 10
+    DEFAULT_SAMPLING_STEPS = 20
+
+--------------------------------------------------------------------------------
+6.8 API REFERENCE
+--------------------------------------------------------------------------------
+
+STREAMLIT UI (Port 8505):
+
+Features:
+- Target selection dropdown
+- Molecule generation controls
+- Real-time progress display
+- Results visualization
+- PDF export button
+
+Sidebar Controls:
+- Number of molecules slider
+- Temperature slider
+- Seed SMILES input
+- Structure selection
+
+Main Panel:
+- Target information card
+- Generated molecules table
+- Property charts
+- Docking visualization
+- Download buttons
+
+INTERNAL APIs:
+
+MolMIM Client:
+    client = MolMIMClient(config)
+    molecules = client.generate(
+        smiles="CC(=O)Nc1ccc(O)cc1",
+        num_molecules=10,
+        temperature=1.0
+    )
+
+DiffDock Client:
+    client = DiffDockClient(config)
+    result = client.dock(
+        protein_pdb="structures/5FTK.pdb",
+        ligand_smiles="CC(=O)Nc1ccc(O)cc1",
+        num_poses=10
+    )
+
+Report Generator:
+    generator = VCPReportGeneratorEnhanced(
+        output_path="outputs/report.pdf"
+    )
+    output_file = generator.generate()
+
+
+================================================================================
+7. HLS ORCHESTRATOR
+================================================================================
+
+--------------------------------------------------------------------------------
+7.1 OVERVIEW
+--------------------------------------------------------------------------------
+
+The HLS Orchestrator provides unified management and monitoring for all three
+pipelines. It includes a landing page, portal dashboard, and integration with
+Nextflow for workflow automation.
+
+LOCATION: /home/adam/transfer/hls-orchestrator/
+
+COMPONENTS:
+- Landing Page (Port 8080): Main demo entry point
+- Portal Dashboard (Port 8510): Unified status monitoring
+- Nextflow Configuration: Workflow automation
+- Start Services Script: Service management
+
+--------------------------------------------------------------------------------
+7.2 SERVICE MANAGEMENT
+--------------------------------------------------------------------------------
+
+START SERVICES SCRIPT:
+Location: /home/adam/transfer/hcls-ai-factory/start-services.sh
+
+COMMANDS:
+    ./start-services.sh              # Start all services
+    ./start-services.sh --status     # Check service status
+    ./start-services.sh --stop       # Stop all services
+    ./start-services.sh --landing    # Start landing page only
+    ./start-services.sh --rag        # Start RAG/Chat only
+    ./start-services.sh --drug       # Start Drug Discovery only
+
+SERVICE STARTUP SEQUENCE:
+1. Milvus Vector Database (port 19530)
+2. Landing Page (port 8080)
+3. RAG Chat UI (port 8501)
+4. Drug Discovery UI (port 8505)
+5. Pipeline Portal (port 8510)
+
+STARTUP LOGIC:
+    # For each service:
+    if check_port $PORT; then
+        print_success "Service already running on port $PORT"
+    else
+        print_info "Starting service..."
+        cd $SERVICE_DIR
+        source venv/bin/activate
+        nohup streamlit run app.py \
+            --server.port $PORT \
+            --server.address 0.0.0.0 \
+            --server.headless true \
+            > /tmp/service.log 2>&1 &
+        wait_for_service "Service Name" $PORT 30
+    fi
+
+LOG LOCATIONS:
+    /tmp/landing-page.log
+    /tmp/rag-chat.log
+    /tmp/drug-discovery.log
+    /tmp/drug-portal.log
+
+--------------------------------------------------------------------------------
+7.3 PORTAL DASHBOARD
+--------------------------------------------------------------------------------
+
+LOCATION: /home/adam/transfer/hls-orchestrator/portal/app.py
+PORT: 8510
+
+FEATURES:
+
+Service Integration:
+- Monitors all three pipelines
+- Provides unified workflow orchestration
+- Detects service host dynamically
+
+Status Dashboard:
+- Real-time service status
+- Health indicators (Running/Idle/Error)
+- Performance metrics cards
+
+Navigation:
+- Sidebar links to all services
+- Status overview on main dashboard
+- Integration with Grafana metrics
+
+CONFIGURATION:
+    # Environment variables
+    SERVICE_HOST  # Auto-detected or manually set
+    GRAFANA_URL   # Dynamic routing
+    PROMETHEUS_URL
+
+STYLING:
+    # NVIDIA green theme
+    # Responsive layout
+    # Wide mode with expanded sidebar
+
+--------------------------------------------------------------------------------
+7.4 NEXTFLOW INTEGRATION
+--------------------------------------------------------------------------------
+
+CONFIGURATION FILE: nextflow.config
+
+PIPELINE PARAMETERS:
+    params {
+        // I/O
+        input = null
+        vcf = null
+        target = null
+        outdir = "${launchDir}/results"
+        mode = 'demo'  # full|target|drug|demo|genomics_only
+
+        // Genomics
+        genome = 'GRCh38'
+        bwa_index = null
+        known_sites = null
+
+        // RAG Chat
+        rag_model = 'claude-3-sonnet'
+        max_targets = 5
+        confidence_threshold = 0.7
+
+        // Drug Discovery
+        num_molecules = 20
+        diversity = 0.3
+        max_mw = 550
+        docking_poses = 10
+
+        // NIM URLs
+        molmim_url = 'http://localhost:8001'
+        diffdock_url = 'http://localhost:8002'
+
+        // Resources
+        max_memory = '128.GB'
+        max_cpus = 32
+        max_time = '24.h'
+        max_gpus = 1
+    }
+
+EXECUTION PROFILES:
+    profiles {
+        standard {
+            executor.name = 'local'
+        }
+        docker {
+            docker.enabled = true
+        }
+        singularity {
+            singularity.enabled = true
+        }
+        dgx_spark {
+            docker.runOptions = '--gpus all'
+            process.memory = '128 GB'
+        }
+        slurm {
+            executor.name = 'slurm'
+        }
+        test {
+            params.mode = 'demo'
+        }
+    }
+
+PROCESS RESOURCES:
+    process {
+        withLabel: 'gpu' {
+            cpus = 8
+            memory = '32 GB'
+            accelerator = 1
+            containerOptions = '--gpus all'
+        }
+        withLabel: 'process_high' {
+            cpus = 16
+            memory = '64 GB'
+        }
+    }
+
+CONTAINER ASSIGNMENTS:
+    GENOMICS: nfcore/sarek:3.4.0
+    RAG_CHAT: hls-pipeline/rag-chat:latest
+    DRUG_DISCOVERY: hls-pipeline/drug-discovery:latest
+    MOLMIM: nvcr.io/nvidia/clara/bionemo-molmim:1.0
+    DIFFDOCK: nvcr.io/nvidia/clara/diffdock:1.0
+
+RUNNING NEXTFLOW:
+    # Demo mode
+    nextflow run main.nf -profile dgx_spark
+
+    # Full pipeline
+    nextflow run main.nf -profile dgx_spark \
+        --input /path/to/fastq \
+        --mode full
+
+    # Target-specific
+    nextflow run main.nf -profile dgx_spark \
+        --target VCP \
+        --mode drug
+
+OUTPUT REPORTS:
+    results/
+    ├── pipeline_report.html    # Execution summary
+    ├── timeline.html           # Task timing
+    ├── trace.tsv               # Detailed metrics
+    └── dag.html                # Workflow DAG
+
+
+================================================================================
+8. INSTALLATION & DEPLOYMENT
+================================================================================
+
+--------------------------------------------------------------------------------
+8.1 SYSTEM REQUIREMENTS
+--------------------------------------------------------------------------------
+
+HARDWARE REQUIREMENTS:
++------------------+------------------+-------------------+-------------------+
+| Component        | Minimum          | Recommended       | DGX Spark         |
++------------------+------------------+-------------------+-------------------+
+| GPU              | 8 GB VRAM        | 24 GB VRAM        | 128 GB (GB10)     |
+| GPU Architecture | Volta (V100)+    | Ampere (A100)     | Blackwell (GB10)  |
+| System RAM       | 32 GB            | 128 GB            | 512 GB            |
+| Storage          | 500 GB SSD       | 1 TB NVMe         | 8 TB NVMe         |
+| CPU              | 8 cores          | 32 cores          | 144 cores         |
+| Network          | 1 Gbps           | 10 Gbps           | 100 Gbps          |
++------------------+------------------+-------------------+-------------------+
+
+SOFTWARE REQUIREMENTS:
++---------------------------+---------------+--------------------------------+
+| Software                  | Version       | Purpose                        |
++---------------------------+---------------+--------------------------------+
+| Operating System          | Ubuntu 22.04+ | Host OS                        |
+| Docker                    | 20.10+        | Container runtime              |
+| Docker Compose            | 2.0+          | Service orchestration          |
+| NVIDIA Driver             | 525+          | GPU driver                     |
+| NVIDIA Container Toolkit  | Latest        | GPU container support          |
+| Python                    | 3.10+         | Application runtime            |
+| CUDA                      | 12.0+         | GPU acceleration               |
++---------------------------+---------------+--------------------------------+
+
+--------------------------------------------------------------------------------
+8.2 PREREQUISITES
+--------------------------------------------------------------------------------
+
+1. NVIDIA GPU SETUP:
+   # Verify GPU
+   nvidia-smi
+
+   # Install NVIDIA Container Toolkit
+   distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+   curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | \
+     sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+   curl -s -L https://nvidia.github.io/libnvidia-container/$distribution/libnvidia-container.list | \
+     sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
+     sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+   sudo apt-get update
+   sudo apt-get install -y nvidia-container-toolkit
+   sudo systemctl restart docker
+
+2. DOCKER SETUP:
+   # Install Docker
+   curl -fsSL https://get.docker.com -o get-docker.sh
+   sudo sh get-docker.sh
+
+   # Add user to docker group
+   sudo usermod -aG docker $USER
+   newgrp docker
+
+   # Verify
+   docker run --rm --gpus all nvidia/cuda:12.0-base nvidia-smi
+
+3. NGC ACCOUNT:
+   # Sign up at https://ngc.nvidia.com
+   # Generate API key at https://ngc.nvidia.com/setup/api-key
+   # Login to NGC
+   docker login nvcr.io
+   # Username: $oauthtoken
+   # Password: <your API key>
+
+4. ANTHROPIC API KEY:
+   # Sign up at https://www.anthropic.com
+   # Generate API key
+   export ANTHROPIC_API_KEY=sk-ant-...
+
+--------------------------------------------------------------------------------
+8.3 INSTALLATION STEPS
+--------------------------------------------------------------------------------
+
+STEP 1: CLONE REPOSITORIES
+    cd /home/adam/transfer
+    git clone https://github.com/ajones1923/genomics-pipeline.git
+    git clone https://github.com/ajones1923/rag-chat-pipeline.git
+    git clone https://github.com/ajones1923/drug-discovery-pipeline.git
+    git clone https://github.com/ajones1923/hls-orchestrator.git
+
+STEP 2: CREATE HCLS AI FACTORY DIRECTORY
+    mkdir -p /home/adam/transfer/hcls-ai-factory
+    # Copy start-services.sh and configuration files
+
+STEP 3: SETUP GENOMICS PIPELINE
+    cd /home/adam/transfer/genomics-pipeline
+    ./run.sh check
+    ./run.sh login
+    ./run.sh download    # ~200GB, 2-6 hours
+    ./run.sh reference
+
+STEP 4: SETUP RAG/CHAT PIPELINE
+    cd /home/adam/transfer/rag-chat-pipeline
+    ./run.sh setup
+    cp .env.example .env
+    # Edit .env with ANTHROPIC_API_KEY
+    docker-compose up -d  # Start Milvus
+    ./run.sh ingest --annotated-only
+
+STEP 5: SETUP DRUG DISCOVERY PIPELINE
+    cd /home/adam/transfer/drug-discovery-pipeline
+    python -m venv venv
+    source venv/bin/activate
+    pip install -r requirements.txt
+    cp .env.example .env
+    # Edit .env with NGC_API_KEY
+
+STEP 6: VERIFY INSTALLATION
+    cd /home/adam/transfer/hcls-ai-factory
+    ./start-services.sh --status
+
+--------------------------------------------------------------------------------
+8.4 ENVIRONMENT CONFIGURATION
+--------------------------------------------------------------------------------
+
+GTC SETUP SCRIPT (gtc-setup.sh):
+    #!/bin/bash
+
+    # Auto-detect service host
+    export SERVICE_HOST=${SERVICE_HOST:-$(hostname -I | awk '{print $1}')}
+
+    # API Keys (set before running)
+    export ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-""}
+    export NGC_API_KEY=${NGC_API_KEY:-""}
+
+    # Ports
+    export DD_UI_PORT=${DD_UI_PORT:-8505}
+    export RAG_UI_PORT=${RAG_UI_PORT:-8501}
+    export LANDING_PORT=${LANDING_PORT:-8080}
+    export PORTAL_PORT=${PORTAL_PORT:-8510}
+
+    # Grafana
+    export GRAFANA_USER=${GRAFANA_USER:-admin}
+    export GRAFANA_PASSWORD=${GRAFANA_PASSWORD:-$(openssl rand -base64 12)}
+
+    # CORS
+    export CORS_ORIGINS=${CORS_ORIGINS:-"*"}
+
+    echo "Service Host: $SERVICE_HOST"
+    echo "Landing Page: http://$SERVICE_HOST:$LANDING_PORT"
+
+REQUIRED ENVIRONMENT VARIABLES:
++----------------------+-------------+-------------------------------------+
+| Variable             | Required    | Description                         |
++----------------------+-------------+-------------------------------------+
+| ANTHROPIC_API_KEY    | Yes         | Claude API key                      |
+| NGC_API_KEY          | Yes         | NVIDIA NGC API key                  |
+| SERVICE_HOST         | No          | Auto-detected if not set            |
+| DD_UI_PORT           | No          | Drug Discovery port (default: 8505) |
+| GRAFANA_PASSWORD     | No          | Auto-generated if not set           |
++----------------------+-------------+-------------------------------------+
+
+--------------------------------------------------------------------------------
+8.5 SERVICE STARTUP
+--------------------------------------------------------------------------------
+
+QUICK START:
+    cd /home/adam/transfer/hcls-ai-factory
+    source gtc-setup.sh
+    ./start-services.sh
+
+STEP-BY-STEP:
+    # 1. Start Milvus
+    cd /home/adam/transfer/rag-chat-pipeline
+    docker-compose up -d
+
+    # 2. Start Landing Page
+    cd /home/adam/transfer/hls-orchestrator
+    source ../drug-discovery-pipeline/venv/bin/activate
+    python -m flask run --host=0.0.0.0 --port=8080 &
+
+    # 3. Start RAG Chat
+    cd /home/adam/transfer/rag-chat-pipeline
+    source venv/bin/activate
+    streamlit run app/chat_ui.py --server.port 8501 &
+
+    # 4. Start Drug Discovery
+    cd /home/adam/transfer/drug-discovery-pipeline
+    source venv/bin/activate
+    streamlit run app/discovery_ui.py --server.port 8505 &
+
+    # 5. Start Portal
+    cd /home/adam/transfer/hls-orchestrator
+    streamlit run portal/app.py --server.port 8510 &
+
+VERIFY SERVICES:
+    # Check all ports
+    for port in 8080 8501 8505 8510 19530; do
+        if nc -z localhost $port; then
+            echo "Port $port: ACTIVE"
+        else
+            echo "Port $port: INACTIVE"
+        fi
+    done
+
+
+================================================================================
+9. CONFIGURATION REFERENCE
+================================================================================
+
+--------------------------------------------------------------------------------
+9.1 ENVIRONMENT VARIABLES
+--------------------------------------------------------------------------------
+
+GLOBAL VARIABLES:
++---------------------------+--------------------+-----------------------------+
+| Variable                  | Default            | Description                 |
++---------------------------+--------------------+-----------------------------+
+| SERVICE_HOST              | Auto-detect        | Host IP for services        |
+| CORS_ORIGINS              | *                  | CORS allowed origins        |
++---------------------------+--------------------+-----------------------------+
+
+GENOMICS PIPELINE:
++---------------------------+--------------------+-----------------------------+
+| Variable                  | Default            | Description                 |
++---------------------------+--------------------+-----------------------------+
+| NUM_GPUS                  | 1                  | GPUs for processing         |
+| LOW_MEMORY                | 0                  | Enable low-memory mode      |
+| PATIENT_ID                | HG002              | Sample identifier           |
+| REF_BUILD                 | GRCh38             | Reference genome build      |
+| PB_IMG                    | 4.6.0-1            | Parabricks container version|
++---------------------------+--------------------+-----------------------------+
+
+RAG/CHAT PIPELINE:
++---------------------------+--------------------+-----------------------------+
+| Variable                  | Default            | Description                 |
++---------------------------+--------------------+-----------------------------+
+| ANTHROPIC_API_KEY         | (required)         | Claude API key              |
+| MILVUS_HOST               | localhost          | Milvus hostname             |
+| MILVUS_PORT               | 19530              | Milvus port                 |
+| MILVUS_COLLECTION         | genomic_evidence   | Collection name             |
+| LLM_PROVIDER              | anthropic          | LLM provider                |
+| LLM_MODEL                 | claude-sonnet-4    | Model name                  |
+| LLM_MAX_TOKENS            | 2048               | Max response tokens         |
+| LLM_TEMPERATURE           | 0.7                | Sampling temperature        |
+| RAG_TOP_K                 | 10                 | Evidence items to retrieve  |
+| RAG_SCORE_THRESHOLD       | 0.5                | Min similarity score        |
+| EMBEDDING_MODEL           | bge-small-en-v1.5  | Embedding model             |
+| EMBEDDING_DIMENSION       | 384                | Embedding dimensions        |
+| MIN_VARIANT_QUAL          | 20.0               | QUAL score threshold        |
++---------------------------+--------------------+-----------------------------+
+
+DRUG DISCOVERY PIPELINE:
++---------------------------+--------------------+-----------------------------+
+| Variable                  | Default            | Description                 |
++---------------------------+--------------------+-----------------------------+
+| NGC_API_KEY               | (required)         | NGC API key                 |
+| DD_UI_PORT                | 8505               | UI port                     |
+| MOLMIM_URL                | localhost:8001     | MolMIM service URL          |
+| DIFFDOCK_URL              | localhost:8002     | DiffDock service URL        |
+| NIM_ALLOW_MOCK_FALLBACK   | false              | Use mock data if NIMs down  |
+| GRAFANA_USER              | admin              | Grafana username            |
+| GRAFANA_PASSWORD          | (generated)        | Grafana password            |
++---------------------------+--------------------+-----------------------------+
+
+--------------------------------------------------------------------------------
+9.2 CONFIGURATION FILES
+--------------------------------------------------------------------------------
+
+GENOMICS PIPELINE:
+    config/pipeline.env
+    - GPU settings
+    - Sample ID
+    - Reference genome
+    - Container version
+
+RAG/CHAT PIPELINE:
+    .env
+    - API keys
+    - Milvus connection
+    - LLM configuration
+    - Embedding settings
+
+    config/settings.py
+    - Python configuration
+    - Quality filters
+    - Batch sizes
+
+DRUG DISCOVERY PIPELINE:
+    .env
+    - NGC API key
+    - Service URLs
+    - UI port
+    - Monitoring credentials
+
+NEXTFLOW:
+    nextflow.config
+    - Pipeline parameters
+    - Resource allocation
+    - Profile definitions
+    - Container assignments
+
+--------------------------------------------------------------------------------
+9.3 DOCKER COMPOSE SERVICES
+--------------------------------------------------------------------------------
+
+MILVUS (rag-chat-pipeline/docker-compose.yml):
+    services:
+      milvus:
+        image: milvusdb/milvus:v2.4.17
+        ports:
+          - "19530:19530"
+          - "9091:9091"
+        volumes:
+          - milvus_data:/var/lib/milvus
+        healthcheck:
+          test: curl -f http://localhost:9091/healthz
+          interval: 30s
+          timeout: 10s
+          retries: 3
+
+BIONEMO NIMS (drug-discovery-pipeline/docker-compose.yml):
+    services:
+      molmim:
+        image: nvcr.io/nvidia/clara/bionemo-molmim:1.0
+        ports:
+          - "8001:8000"
+        deploy:
+          resources:
+            reservations:
+              devices:
+                - capabilities: [gpu]
+        healthcheck:
+          test: curl -f http://localhost:8000/v1/health
+          interval: 30s
+
+      diffdock:
+        image: nvcr.io/nvidia/clara/diffdock:1.0
+        ports:
+          - "8002:8000"
+        deploy:
+          resources:
+            reservations:
+              devices:
+                - capabilities: [gpu]
+
+MONITORING (optional):
+    services:
+      prometheus:
+        image: prom/prometheus:latest
+        ports:
+          - "9099:9090"
+        volumes:
+          - ./prometheus.yml:/etc/prometheus/prometheus.yml
+
+      grafana:
+        image: grafana/grafana:latest
+        ports:
+          - "3000:3000"
+        environment:
+          - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+
+
+================================================================================
+10. USER GUIDE
+================================================================================
+
+--------------------------------------------------------------------------------
+10.1 WEB INTERFACES
+--------------------------------------------------------------------------------
+
+LANDING PAGE (http://localhost:8080):
+- Main entry point for demos
+- Overview of all pipelines
+- Quick links to each service
+- System status indicators
+
+GENOMICS PORTAL (http://localhost:5000):
+- Pipeline step controls
+- Real-time log streaming
+- GPU utilization display
+- Configuration management
+
+RAG CHAT UI (http://localhost:8501):
+- Natural language query input
+- Evidence panel with citations
+- Clinker knowledge visualization
+- File manager for VCF upload
+
+DRUG DISCOVERY UI (http://localhost:8505):
+- Target selection
+- Molecule generation controls
+- Results visualization
+- PDF export
+
+PIPELINE PORTAL (http://localhost:8510):
+- Unified dashboard
+- Service status monitoring
+- Performance metrics
+- Navigation to all services
+
+GRAFANA (http://localhost:3000):
+- GPU monitoring dashboard
+- Service health metrics
+- Historical performance data
+- Alert configuration
+
+--------------------------------------------------------------------------------
+10.2 COMMAND LINE INTERFACE
+--------------------------------------------------------------------------------
+
+GENOMICS PIPELINE:
+    ./run.sh check      # Verify prerequisites
+    ./run.sh login      # NGC authentication
+    ./run.sh download   # Download data
+    ./run.sh reference  # Setup reference
+    ./run.sh test       # Chr20 test
+    ./run.sh full       # Full genome
+    ./run.sh clean      # Clean outputs
+
+RAG/CHAT PIPELINE:
+    ./run.sh setup      # Install dependencies
+    ./run.sh start      # Start Milvus
+    ./run.sh stop       # Stop services
+    ./run.sh status     # Check status
+    ./run.sh ingest     # Ingest VCF
+    ./run.sh chat       # Start chat UI
+
+DRUG DISCOVERY PIPELINE:
+    # Start UI
+    source venv/bin/activate
+    streamlit run app/discovery_ui.py --server.port 8505
+
+    # Generate report
+    python generate_vcp_report_enhanced.py
+
+HLS AI FACTORY:
+    ./start-services.sh              # Start all
+    ./start-services.sh --status     # Check status
+    ./start-services.sh --stop       # Stop all
+    ./start-services.sh --rag        # RAG only
+    ./start-services.sh --drug       # Drug Discovery only
+
+--------------------------------------------------------------------------------
+10.3 WORKFLOW EXAMPLES
+--------------------------------------------------------------------------------
+
+EXAMPLE 1: COMPLETE DEMO WORKFLOW
+---------------------------------
+# 1. Start all services
+cd /home/adam/transfer/hcls-ai-factory
+./start-services.sh
+
+# 2. Open landing page
+# Navigate to http://localhost:8080
+
+# 3. View genomic analysis
+# Navigate to http://localhost:5000
+# Review HG002 analysis results
+
+# 4. Query for VCP variants
+# Navigate to http://localhost:8501
+# Ask: "What VCP variants are associated with FTD?"
+
+# 5. Generate drug candidates
+# Navigate to http://localhost:8505
+# Select VCP as target
+# Generate molecules
+# Export PDF report
+
+
+EXAMPLE 2: NEW PATIENT ANALYSIS
+-------------------------------
+# 1. Copy patient FASTQ files
+cp patient_R1.fastq.gz /home/adam/transfer/genomics-pipeline/data/input/
+cp patient_R2.fastq.gz /home/adam/transfer/genomics-pipeline/data/input/
+
+# 2. Update patient ID
+# Edit config/pipeline.env
+PATIENT_ID=PATIENT001
+
+# 3. Run genomics pipeline
+cd /home/adam/transfer/genomics-pipeline
+./run.sh full
+
+# 4. Copy VCF to RAG pipeline
+cp data/output/PATIENT001.genome.vcf.gz \
+   /home/adam/transfer/rag-chat-pipeline/data/input/
+
+# 5. Ingest new patient data
+cd /home/adam/transfer/rag-chat-pipeline
+./run.sh ingest --drop-existing
+
+# 6. Query patient variants
+# Navigate to http://localhost:8501
+# Query for pathogenic variants
+
+
+EXAMPLE 3: TARGET-SPECIFIC DRUG DISCOVERY
+-----------------------------------------
+# 1. Identify target via RAG Chat
+# Query: "What are the most druggable pathogenic variants?"
+
+# 2. Export target to drug discovery
+# Click "Export to Drug Discovery" button
+
+# 3. Generate molecules
+# Navigate to http://localhost:8505
+# Select exported target
+# Configure generation parameters
+# Generate molecules
+
+# 4. Review and export results
+# Analyze molecule properties
+# Review docking scores
+# Export PDF report
+
+
+================================================================================
+11. MONITORING & OBSERVABILITY
+================================================================================
+
+--------------------------------------------------------------------------------
+11.1 GRAFANA DASHBOARDS
+--------------------------------------------------------------------------------
+
+ACCESS: http://localhost:3000
+CREDENTIALS: admin / ${GRAFANA_PASSWORD}
+
+AVAILABLE DASHBOARDS:
+
+GPU Monitoring:
+- GPU Utilization (%)
+- GPU Memory Usage
+- GPU Temperature
+- Power Consumption
+- Process GPU Usage
+
+Service Health:
+- Service Uptime
+- Request Rate
+- Error Rate
+- Response Latency
+
+Pipeline Metrics:
+- Variants Processed
+- Ingestion Rate
+- Query Latency
+- LLM Token Usage
+
+--------------------------------------------------------------------------------
+11.2 PROMETHEUS METRICS
+--------------------------------------------------------------------------------
+
+ACCESS: http://localhost:9099
+
+COLLECTED METRICS:
+
+System Metrics:
+- node_cpu_seconds_total
+- node_memory_MemAvailable_bytes
+- node_disk_io_time_seconds_total
+
+GPU Metrics:
+- nvidia_gpu_utilization
+- nvidia_gpu_memory_used_bytes
+- nvidia_gpu_temperature_celsius
+- nvidia_gpu_power_watts
+
+Application Metrics:
+- http_requests_total
+- http_request_duration_seconds
+- milvus_query_latency
+- llm_tokens_generated
+
+--------------------------------------------------------------------------------
+11.3 GPU MONITORING
+--------------------------------------------------------------------------------
+
+COMMAND LINE:
+    # Real-time monitoring
+    watch -n 1 nvidia-smi
+
+    # Query specific metrics
+    nvidia-smi --query-gpu=utilization.gpu,memory.used,temperature.gpu --format=csv
+
+PYTHON (pynvml):
+    import pynvml
+    pynvml.nvmlInit()
+    handle = pynvml.nvmlDeviceGetHandleByIndex(0)
+
+    # Get utilization
+    util = pynvml.nvmlDeviceGetUtilizationRates(handle)
+    print(f"GPU: {util.gpu}%, Memory: {util.memory}%")
+
+    # Get memory
+    mem = pynvml.nvmlDeviceGetMemoryInfo(handle)
+    print(f"Used: {mem.used / 1024**3:.2f} GB")
+
+--------------------------------------------------------------------------------
+11.4 LOG MANAGEMENT
+--------------------------------------------------------------------------------
+
+LOG LOCATIONS:
+    /tmp/landing-page.log       # Landing page
+    /tmp/rag-chat.log           # RAG Chat UI
+    /tmp/drug-discovery.log     # Drug Discovery UI
+    /tmp/drug-portal.log        # Pipeline Portal
+
+GENOMICS LOGS:
+    genomics-pipeline/data/output/logs/
+    ├── genome_fq2bam.log
+    ├── genome_flagstat.log
+    └── genome_deepvariant.log
+
+VIEW LOGS:
+    # Real-time log viewing
+    tail -f /tmp/rag-chat.log
+
+    # Search logs
+    grep -i error /tmp/*.log
+
+    # View recent entries
+    tail -100 /tmp/drug-discovery.log
+
+
+================================================================================
+12. SECURITY CONSIDERATIONS
+================================================================================
+
+--------------------------------------------------------------------------------
+12.1 API KEY MANAGEMENT
+--------------------------------------------------------------------------------
+
+BEST PRACTICES:
+1. Never commit API keys to version control
+2. Use environment variables for sensitive data
+3. Rotate keys periodically
+4. Use separate keys for dev/prod environments
+
+SECURE STORAGE:
+    # Use .env file (git-ignored)
+    ANTHROPIC_API_KEY=sk-ant-...
+    NGC_API_KEY=nvapi-...
+
+    # Or export in shell profile
+    export ANTHROPIC_API_KEY=sk-ant-...
+
+KEY ROTATION:
+    # Anthropic: https://console.anthropic.com/settings/keys
+    # NGC: https://ngc.nvidia.com/setup/api-key
+
+--------------------------------------------------------------------------------
+12.2 NETWORK SECURITY
+--------------------------------------------------------------------------------
+
+RECOMMENDATIONS:
+1. Run services on internal network only
+2. Use reverse proxy (nginx) for external access
+3. Enable HTTPS for production deployments
+4. Configure firewall rules
+
+FIREWALL CONFIGURATION:
+    # Allow only necessary ports
+    sudo ufw allow 8080/tcp   # Landing page
+    sudo ufw allow 8501/tcp   # RAG Chat
+    sudo ufw allow 8505/tcp   # Drug Discovery
+    sudo ufw allow 8510/tcp   # Portal
+
+NGINX REVERSE PROXY:
+    server {
+        listen 443 ssl;
+        server_name hcls.example.com;
+
+        ssl_certificate /path/to/cert.pem;
+        ssl_certificate_key /path/to/key.pem;
+
+        location / {
+            proxy_pass http://localhost:8080;
+        }
+
+        location /rag {
+            proxy_pass http://localhost:8501;
+        }
+
+        location /drug {
+            proxy_pass http://localhost:8505;
+        }
+    }
+
+--------------------------------------------------------------------------------
+12.3 DATA PRIVACY
+--------------------------------------------------------------------------------
+
+GENOMIC DATA HANDLING:
+1. Patient data should be de-identified
+2. Use secure transfer protocols (SFTP, SCP)
+3. Encrypt data at rest
+4. Implement access controls
+5. Maintain audit logs
+
+COMPLIANCE CONSIDERATIONS:
+- HIPAA (US healthcare)
+- GDPR (EU data protection)
+- Institutional IRB requirements
+- Data use agreements
+
+DATA RETENTION:
+- Define retention policies
+- Implement secure deletion
+- Document data lineage
+- Maintain backup security
+
+
+================================================================================
+13. TROUBLESHOOTING
+================================================================================
+
+--------------------------------------------------------------------------------
+13.1 COMMON ISSUES
+--------------------------------------------------------------------------------
+
+ISSUE: GPU Out of Memory
+SYMPTOM: "CUDA out of memory" error
+SOLUTION:
+    # Enable low-memory mode
+    echo "LOW_MEMORY=1" >> config/pipeline.env
+    ./run.sh full
+
+ISSUE: Docker Permission Denied
+SYMPTOM: "Got permission denied while trying to connect to Docker daemon"
+SOLUTION:
+    sudo usermod -aG docker $USER
+    newgrp docker
+
+ISSUE: Milvus Won't Start
+SYMPTOM: Milvus container exits immediately
+SOLUTION:
+    docker-compose logs milvus
+    docker-compose down -v
+    docker-compose up -d
+
+ISSUE: NGC Authentication Failed
+SYMPTOM: "unauthorized: authentication required"
+SOLUTION:
+    docker logout nvcr.io
+    docker login nvcr.io
+    # Username: $oauthtoken
+    # Password: <NGC API key>
+
+ISSUE: Anthropic API Error
+SYMPTOM: "Authentication error" or "Rate limit exceeded"
+SOLUTION:
+    # Verify API key
+    echo $ANTHROPIC_API_KEY
+
+    # Test connection
+    curl https://api.anthropic.com/v1/messages \
+      -H "x-api-key: $ANTHROPIC_API_KEY" \
+      -H "content-type: application/json" \
+      -d '{"model": "claude-sonnet-4-20250514", "max_tokens": 10, "messages": [{"role": "user", "content": "Hi"}]}'
+
+ISSUE: No Search Results
+SYMPTOM: RAG queries return empty results
+SOLUTION:
+    # Check Milvus collection
+    ./run.sh status
+
+    # Re-ingest if needed
+    ./run.sh ingest --drop-existing --annotated-only
+
+ISSUE: Streamlit Not Starting
+SYMPTOM: "Address already in use"
+SOLUTION:
+    # Find and kill existing process
+    lsof -i :8501
+    kill -9 <PID>
+
+    # Or use different port
+    streamlit run app/chat_ui.py --server.port 8502
+
+--------------------------------------------------------------------------------
+13.2 DIAGNOSTIC COMMANDS
+--------------------------------------------------------------------------------
+
+SYSTEM DIAGNOSTICS:
+    # GPU status
+    nvidia-smi
+
+    # Docker status
+    docker ps -a
+    docker-compose ps
+
+    # Port usage
+    netstat -tlnp | grep -E '8080|8501|8505|8510|19530'
+
+    # Disk space
+    df -h
+
+    # Memory usage
+    free -h
+
+SERVICE DIAGNOSTICS:
+    # Check all services
+    ./start-services.sh --status
+
+    # Check Milvus
+    curl http://localhost:9091/healthz
+
+    # Check logs
+    tail -100 /tmp/rag-chat.log
+
+PIPELINE DIAGNOSTICS:
+    # Genomics pipeline
+    cd genomics-pipeline
+    ./run.sh check
+
+    # RAG pipeline
+    cd rag-chat-pipeline
+    ./run.sh status
+
+    # Test Milvus connection
+    python -c "from pymilvus import connections; connections.connect(); print('OK')"
+
+--------------------------------------------------------------------------------
+13.3 SUPPORT RESOURCES
+--------------------------------------------------------------------------------
+
+DOCUMENTATION:
+- NVIDIA Parabricks: https://docs.nvidia.com/clara/parabricks/
+- Milvus: https://milvus.io/docs/
+- Anthropic Claude: https://docs.anthropic.com/
+- BioNeMo: https://developer.nvidia.com/bionemo
+
+COMMUNITY:
+- NVIDIA Developer Forums: https://forums.developer.nvidia.com/
+- Milvus Discord: https://discord.gg/milvus
+- GitHub Issues: (repository-specific)
+
+ENTERPRISE SUPPORT:
+- NVIDIA Enterprise: https://www.nvidia.com/en-us/data-center/dgx-spark/
+- Anthropic Enterprise: https://www.anthropic.com/enterprise
+
+
+================================================================================
+14. APPENDICES
+================================================================================
+
+--------------------------------------------------------------------------------
+APPENDIX A: GLOSSARY OF TERMS
+--------------------------------------------------------------------------------
+
+GENOMICS TERMS:
+- BAM: Binary Alignment Map - compressed format for aligned sequencing reads
+- BWA: Burrows-Wheeler Aligner - algorithm for mapping reads to reference
+- DeepVariant: Google's deep learning-based variant caller
+- FASTQ: Text format for storing sequencing reads with quality scores
+- GIAB: Genome in a Bottle - NIST reference datasets for benchmarking
+- GRCh38: Genome Reference Consortium Human Build 38 (latest human reference)
+- Parabricks: NVIDIA's GPU-accelerated genomics toolkit
+- SNP: Single Nucleotide Polymorphism - single base change
+- VCF: Variant Call Format - standard format for genetic variants
+- WGS: Whole Genome Sequencing
+
+ANNOTATION TERMS:
+- AlphaMissense: DeepMind's AI model predicting variant pathogenicity
+- ClinVar: NIH database of clinically interpreted variants
+- Pathogenic: Variant known to cause disease
+- VEP: Variant Effect Predictor - Ensembl's annotation tool
+- VUS: Variant of Uncertain Significance
+
+AI/ML TERMS:
+- BGE: BAAI General Embedding - text embedding model
+- Claude: Anthropic's large language model
+- Embedding: Dense vector representation of text
+- LLM: Large Language Model
+- RAG: Retrieval-Augmented Generation
+- Vector Database: Database optimized for similarity search
+
+DRUG DISCOVERY TERMS:
+- BioNeMo: NVIDIA's platform for biomolecular AI
+- Cryo-EM: Cryo-Electron Microscopy - structural biology technique
+- DiffDock: Diffusion-based molecular docking
+- Lipinski: Rule of Five for drug-likeness
+- MolMIM: Molecular Masked Language Model
+- PDB: Protein Data Bank
+- QED: Quantitative Estimate of Drug-likeness
+- SMILES: Simplified Molecular Input Line Entry System
+- Tanimoto: Similarity coefficient for molecular comparison
+
+--------------------------------------------------------------------------------
+APPENDIX B: GENE COVERAGE LIST (201 GENES)
+--------------------------------------------------------------------------------
+
+ONCOLOGY (23 genes):
+BRCA1, BRCA2, EGFR, KRAS, ALK, BRAF, HER2/ERBB2, PD-1/PDCD1, PD-L1/CD274,
+TP53, PTEN, PIK3CA, MYC, RB1, CDK4, CDK6, NRAS, MET, ROS1, RET, NTRK1,
+NTRK2, NTRK3
+
+NEUROLOGY (36 genes):
+VCP, GRN, C9orf72, MAPT, APP, PSEN1, PSEN2, APOE, LRRK2, SNCA, PINK1,
+PARK7/DJ1, PARKIN/PRKN, GBA, HTT, ATXN1, ATXN2, ATXN3, FUS, TARDBP, SOD1,
+TBK1, OPTN, SQSTM1, UBQLN2, CHMP2B, DCTN1, FIG4, ANG, SETX, VAPB, VPS35,
+CHCHD10, NEK1, TREM2, CGRP/CALCA
+
+RARE DISEASE (16 genes):
+CFTR, SMN1, SMN2, DMD, HBB, F8, F9, GAA, GLA, IDUA, IDS, HEXA, HEXB,
+NPC1, NPC2, ASS1
+
+CARDIOVASCULAR (12 genes):
+LDLR, PCSK9, APOB, TTR, MYBPC3, MYH7, TNNT2, TNNI3, LMNA, SCN5A, KCNH2,
+KCNQ1
+
+IMMUNOLOGY (8 genes):
+IL6, TNF, JAK1, JAK2, JAK3, TYK2, IL17A, IL23A
+
+PHARMACOGENOMICS (6 genes):
+CYP2D6, CYP2C19, CYP2C9, CYP3A4, DPYD, TPMT
+
+METABOLIC/ENDOCRINE (22 genes):
+GLP1R, SGLT2/SLC5A2, DPP4, PPARG, PPARA, GCK, INS, INSR, IGF1R, GCGR,
+GIPR, MC4R, POMC, LEPR, LEP, FGF21, FGF19, ADIPOQ, ADIPOR1, GH1, GHR,
+IGF1
+
+INFECTIOUS DISEASE (21 genes):
+HIV RT, HIV PR, HIV IN, HIV GP41, HIV GP120, HCV NS3, HCV NS5A, HCV NS5B,
+HBV POL, HBV SURFACE, SARS-CoV-2 SPIKE, SARS-CoV-2 MPRO, SARS-CoV-2 RDRP,
+SARS-CoV-2 PLpro, Influenza NA, Influenza HA, CMV UL97, CMV UL54, HSV TK,
+RSV F, RSV N
+
+RESPIRATORY (13 genes):
+ADRB2, IL4R, IL4, IL5, IL13, TSLP, IL33, ST2/IL1RL1, BMPR2, ACVRL1, ENG,
+SMAD4, CFTR
+
+OPHTHALMOLOGY (11 genes):
+VEGFA, VEGFR2/KDR, CFH, CFB, C3, C5, RPE65, ABCA4, RHO, BEST1, RS1
+
+DERMATOLOGY (9 genes):
+IL31RA, OSM, IL4R, IL13, TYK2, JAK1, IL17A, IL23A, COL7A1
+
+HEMATOLOGY (12 genes):
+SYK, BTK, BCL2, BCL-XL, MCL1, THPO, MPL, EPO, EPOR, F10, SERPINC1, VWF
+
+GI/HEPATOLOGY (12 genes):
+ATP4A, HK2, S1PR1, S1PR5, THR_BETA, FXR/NR1H4, TGR5/GPBAR1, PPAR, ASBT,
+FGF19, FGFR4, KLB
+
+--------------------------------------------------------------------------------
+APPENDIX C: FILE FORMAT SPECIFICATIONS
+--------------------------------------------------------------------------------
+
+FASTQ FORMAT:
+    @SEQ_ID
+    GATTTGGGGTTCAAAGCAGTATCGATCAAATAGTAAATCCATTTGTTCAACTCACAGTTT
+    +
+    !''*((((***+))%%%++)(%%%%).1***-+*''))**55CCF>>>>>>CCCCCCC65
+
+    Line 1: Sequence identifier (starts with @)
+    Line 2: Raw sequence (A, C, G, T, N)
+    Line 3: Plus sign (separator)
+    Line 4: Quality scores (Phred+33 encoding)
+
+VCF FORMAT:
+    ##fileformat=VCFv4.3
+    ##reference=GRCh38
+    #CHROM  POS     ID          REF ALT QUAL    FILTER  INFO            FORMAT  SAMPLE
+    chr7    117559590   rs188935092 G   A   45.2    PASS    DP=32;AF=0.5    GT:DP   0/1:32
+
+    Header lines: Start with ##
+    Column header: Starts with #CHROM
+    Data columns:
+      1. CHROM: Chromosome
+      2. POS: Position (1-based)
+      3. ID: Variant identifier
+      4. REF: Reference allele
+      5. ALT: Alternate allele
+      6. QUAL: Quality score
+      7. FILTER: Filter status
+      8. INFO: Additional information
+      9. FORMAT: Sample data format
+      10+. SAMPLE: Sample genotype data
+
+BAM FORMAT (Binary):
+    Contains aligned sequence reads with:
+    - Read name
+    - Alignment flags
+    - Reference position
+    - Mapping quality
+    - CIGAR string (alignment operations)
+    - Sequence and quality scores
+
+SMILES FORMAT:
+    CC(=O)Nc1ccc(O)cc1    # Acetaminophen
+    c1ccccc1              # Benzene
+    CCO                   # Ethanol
+
+    Notation:
+    - Uppercase: Aromatic atoms
+    - Lowercase: Aliphatic atoms
+    - Numbers: Ring closures
+    - Parentheses: Branches
+    - =, #: Double, triple bonds
+
+--------------------------------------------------------------------------------
+APPENDIX D: REFERENCES AND RESOURCES
+--------------------------------------------------------------------------------
+
+DOCUMENTATION:
+- NVIDIA Parabricks: https://docs.nvidia.com/clara/parabricks/
+- Milvus Vector Database: https://milvus.io/docs/
+- Anthropic Claude API: https://docs.anthropic.com/
+- NVIDIA BioNeMo: https://developer.nvidia.com/bionemo
+- RDKit Documentation: https://www.rdkit.org/docs/
+- Streamlit Documentation: https://docs.streamlit.io/
+
+DATA SOURCES:
+- GIAB Reference Data: https://www.nist.gov/programs-projects/genome-bottle
+- GRCh38 Reference: https://www.ncbi.nlm.nih.gov/assembly/GCF_000001405.26/
+- ClinVar Database: https://www.ncbi.nlm.nih.gov/clinvar/
+- AlphaMissense: https://github.com/google-deepmind/alphamissense
+- RCSB PDB: https://www.rcsb.org/
+
+PUBLICATIONS:
+- DeepVariant: Poplin et al. (2018) Nature Biotechnology
+- AlphaMissense: Cheng et al. (2023) Science
+- AlphaFold: Jumper et al. (2021) Nature
+- DiffDock: Corso et al. (2022) arXiv
+- BGE Embeddings: Xiao et al. (2023) arXiv
+
+TOOLS:
+- Docker: https://www.docker.com/
+- Nextflow: https://www.nextflow.io/
+- Grafana: https://grafana.com/
+- Prometheus: https://prometheus.io/
+
+NVIDIA RESOURCES:
+- NGC Catalog: https://catalog.ngc.nvidia.com/
+- DGX Spark: https://www.nvidia.com/en-us/data-center/dgx-spark/
+- Clara Platform: https://www.nvidia.com/en-us/clara/
+
+
+================================================================================
+                            END OF DOCUMENTATION
+================================================================================
+
+Document Version: 1.0
+Last Updated: January 14, 2026
+Generated by: HCLS AI Factory Documentation System
+
+For questions or feedback, please contact the development team.
+
+================================================================================

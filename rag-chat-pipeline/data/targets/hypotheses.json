@@ -1,0 +1,149 @@
+{
+  "version": "1.0",
+  "updated_at": "2026-01-12T10:00:00.000000",
+  "count": 6,
+  "hypotheses": [
+    {
+      "gene": "VCP",
+      "protein": "Valosin-containing protein (p97)",
+      "uniprot_id": "P55072",
+      "variants": [
+        {
+          "id": "chr9_35056064_G_A",
+          "chrom": "chr9",
+          "pos": 35056064,
+          "ref": "G",
+          "alt": "A",
+          "consequence": "missense_variant",
+          "impact": "HIGH",
+          "hgvs_p": "p.Arg155His",
+          "clinical_significance": "Pathogenic"
+        }
+      ],
+      "variant_count": 1,
+      "rationale": "VCP (p97) is an AAA+ ATPase critical for protein quality control. Mutations cause IBMPFD (Inclusion Body Myopathy with Paget disease and Frontotemporal Dementia). VCP is a validated drug target with inhibitors in development including CB-5083. The protein plays key roles in ERAD, autophagy, and DNA damage response - dysfunction leads to protein aggregation and neurodegeneration.",
+      "therapeutic_area": "Neurodegeneration",
+      "mechanism": "AAA+ ATPase inhibition to modulate protein homeostasis",
+      "confidence": "high",
+      "priority": 5,
+      "id": "TH-20260112-VCP-FTD",
+      "created_at": "2026-01-12T10:00:00.000000",
+      "updated_at": "2026-01-12T10:00:00.000000",
+      "source_query": "What genes are associated with frontotemporal dementia?",
+      "notes": "Primary target for FTD drug discovery demo. Reference compound: CB-5083 (VCP/p97 inhibitor).",
+      "status": "validated",
+      "pdb_ids": [
+        "5FTK",
+        "5FTJ",
+        "5FTI"
+      ]
+    },
+    {
+      "gene": "EGFR",
+      "protein": "Epidermal growth factor receptor",
+      "uniprot_id": "P00533",
+      "variants": [],
+      "variant_count": 0,
+      "rationale": "Key oncology target with known druggable kinase domain. Multiple approved inhibitors (erlotinib, gefitinib, osimertinib).",
+      "therapeutic_area": "Oncology",
+      "mechanism": "Tyrosine kinase inhibition",
+      "confidence": "high",
+      "priority": 5,
+      "id": "TH-20260109183212-EGFR",
+      "created_at": "2026-01-09T18:32:12.253620",
+      "updated_at": "2026-01-12T10:00:00.000000",
+      "source_query": null,
+      "notes": "",
+      "status": "validated",
+      "pdb_ids": [
+        "7SYE",
+        "1M17"
+      ]
+    },
+    {
+      "gene": "BRAF",
+      "protein": "B-Raf proto-oncogene",
+      "uniprot_id": "P15056",
+      "variants": [],
+      "variant_count": 0,
+      "rationale": "V600E mutation is highly druggable with approved inhibitors (vemurafenib, dabrafenib).",
+      "therapeutic_area": "Oncology",
+      "mechanism": "Kinase inhibition",
+      "confidence": "high",
+      "priority": 5,
+      "id": "TH-20260109183212-BRAF",
+      "created_at": "2026-01-09T18:32:12.255612",
+      "updated_at": "2026-01-12T10:00:00.000000",
+      "source_query": null,
+      "notes": "",
+      "status": "validated",
+      "pdb_ids": [
+        "6P3D",
+        "4MNE"
+      ]
+    },
+    {
+      "gene": "KRAS",
+      "protein": "GTPase KRas",
+      "uniprot_id": "P01116",
+      "variants": [],
+      "variant_count": 0,
+      "rationale": "G12C mutation targetable with covalent inhibitors (sotorasib, adagrasib). Previously considered undruggable.",
+      "therapeutic_area": "Oncology",
+      "mechanism": "Covalent GTPase inhibition",
+      "confidence": "high",
+      "priority": 4,
+      "id": "TH-20260109183212-KRAS",
+      "created_at": "2026-01-09T18:32:12.256167",
+      "updated_at": "2026-01-12T10:00:00.000000",
+      "source_query": null,
+      "notes": "",
+      "status": "validated",
+      "pdb_ids": [
+        "6OIM"
+      ]
+    },
+    {
+      "gene": "PIK3CA",
+      "protein": "PI3K catalytic subunit alpha",
+      "uniprot_id": "P42336",
+      "variants": [],
+      "variant_count": 0,
+      "rationale": "PI3K pathway target with approved inhibitor alpelisib for breast cancer.",
+      "therapeutic_area": "Oncology",
+      "mechanism": "Lipid kinase inhibition",
+      "confidence": "medium",
+      "priority": 4,
+      "id": "TH-20260109183212-PIK3CA",
+      "created_at": "2026-01-09T18:32:12.255893",
+      "updated_at": "2026-01-12T10:00:00.000000",
+      "source_query": null,
+      "notes": "",
+      "status": "hypothesis",
+      "pdb_ids": [
+        "4JPS"
+      ]
+    },
+    {
+      "gene": "JAK2",
+      "protein": "Tyrosine-protein kinase JAK2",
+      "uniprot_id": "O60674",
+      "variants": [],
+      "variant_count": 0,
+      "rationale": "V617F mutation driver of myeloproliferative neoplasms. Multiple approved inhibitors (ruxolitinib, fedratinib).",
+      "therapeutic_area": "Hematology",
+      "mechanism": "Tyrosine kinase inhibition",
+      "confidence": "medium",
+      "priority": 4,
+      "id": "TH-20260109183212-JAK2",
+      "created_at": "2026-01-09T18:32:12.256430",
+      "updated_at": "2026-01-12T10:00:00.000000",
+      "source_query": null,
+      "notes": "",
+      "status": "hypothesis",
+      "pdb_ids": [
+        "4IVA"
+      ]
+    }
+  ]
+}

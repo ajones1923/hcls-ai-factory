@@ -1,0 +1,31 @@
+{
+  "gene": "VCP",
+  "protein": "Valosin-containing protein (p97)",
+  "uniprot_id": "P55072",
+  "therapeutic_area": "Neurodegeneration",
+  "diseases": ["Frontotemporal Dementia", "ALS", "Inclusion Body Myopathy"],
+  "mechanism": "AAA+ ATPase inhibition",
+  "druggability": "high",
+  "confidence": "high",
+  "priority": 5,
+  "pdb_ids": ["5FTK", "8OOI", "9DIL", "7K56"],
+  "rationale": "VCP mutations cause FTD-ALS. CB-5083 is a known VCP inhibitor that demonstrates the druggability of this target.",
+  "reference_compound": {
+    "name": "CB-5083",
+    "smiles": "CC(C)C1=C(C=C(C=C1)NC2=NC3=C(C=N2)N(C=C3)C)C(=O)NC4=CC=C(C=C4)CN5CCOCC5",
+    "mechanism": "ATP-competitive inhibitor"
+  },
+  "variants": [
+    {
+      "rsid": "rs188935092",
+      "chrom": "9",
+      "pos": 35065263,
+      "ref": "G",
+      "alt": "A",
+      "consequence": "missense_variant",
+      "impact": "high",
+      "disease_association": "Frontotemporal Dementia"
+    }
+  ],
+  "status": "validated"
+}

@@ -1,0 +1,155 @@
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#76B900', 'actorTextColor': '#333', 'actorLineColor': '#333', 'signalColor': '#333', 'signalTextColor': '#333'}}}%%
+
+sequenceDiagram
+    autonumber
+
+    participant User as 👤 User
+    participant Portal as 🌐 Web Portal
+    participant Scripts as 📜 Pipeline Scripts
+    participant Docker as 🐳 Docker
+    participant Parabricks as ⚡ Parabricks
+    participant GPU as 🎮 GPU
+    participant Storage as 💾 Storage
+    participant NGC as ☁️ NGC
+    participant NCBI as ☁️ NCBI
+
+    Note over User,NCBI: Phase 1: Environment Setup
+
+    User->>Portal: Start Portal (./start-portal.sh)
+    activate Portal
+    Portal-->>User: http://localhost:5000
+
+    User->>Portal: Click "Prerequisites Check"
+    Portal->>Scripts: Execute 00-setup-check.sh
+    activate Scripts
+    Scripts->>Docker: Check docker daemon
+    Docker-->>Scripts: ✓ Running
+    Scripts->>Docker: Run nvidia/cuda test container
+    Docker->>GPU: Access GPU
+    GPU-->>Docker: ✓ GPU Available
+    Docker-->>Scripts: ✓ NVIDIA Runtime OK
+    Scripts->>Storage: Check disk space
+    Storage-->>Scripts: ✓ 500GB+ Available
+    Scripts-->>Portal: All checks passed
+    Portal-->>User: ✅ Prerequisites OK
+    deactivate Scripts
+
+    Note over User,NCBI: Phase 2: Authentication
+
+    User->>Portal: Click "NGC Login"
+    Portal->>Scripts: Execute 01-ngc-login.sh
+    activate Scripts
+    Scripts->>Docker: docker login nvcr.io
+    Docker->>NGC: Authenticate with API key
+    NGC-->>Docker: ✓ Token valid
+    Docker-->>Scripts: Login succeeded
+    Scripts->>Docker: Pull clara-parabricks:4.6.0-1
+    Docker->>NGC: Pull ~15GB image
+    NGC-->>Docker: Image layers
+    Docker-->>Scripts: Image ready
+    Scripts-->>Portal: NGC login complete
+    Portal-->>User: ✅ Authenticated
+    deactivate Scripts
+
+    Note over User,NCBI: Phase 3: Data Download
+
+    User->>Portal: Click "Download Data"
+    Portal->>Scripts: Execute 02-download-data.sh
+    activate Scripts
+    Scripts->>NCBI: Fetch index file
+    NCBI-->>Scripts: hg002_illumina_2x250.index.tsv
+    Scripts->>NCBI: aria2c parallel download (8 connections)
+    Note right of NCBI: ~200GB over 2-6 hours
+    NCBI-->>Scripts: FASTQ lane files
+
+    Scripts->>Scripts: Merge lanes (zcat | gzip)
+    Scripts->>Storage: Write HG002_R1.fastq.gz
+    Scripts->>Storage: Write HG002_R2.fastq.gz
+    Scripts->>Scripts: Validate read counts
+    Scripts-->>Portal: Download complete
+    Portal-->>User: ✅ Data Ready (~200GB)
+    deactivate Scripts
+
+    Note over User,NCBI: Phase 4: Reference Setup
+
+    User->>Portal: Click "Setup Reference"
+    Portal->>Scripts: Execute 03-setup-reference.sh
+    activate Scripts
+    Scripts->>Storage: Download parabricks_sample.tar.gz
+    Scripts->>Scripts: Extract GRCh38.fa
+    Scripts->>Docker: Run samtools faidx
+    Docker->>Parabricks: Create FASTA index
+    Parabricks-->>Docker: GRCh38.fa.fai
+    Docker-->>Scripts: Index complete
+    Scripts->>Storage: Copy BWA index files
+    Scripts-->>Portal: Reference ready
+    Portal-->>User: ✅ Reference Genome Setup
+    deactivate Scripts
+
+    Note over User,NCBI: Phase 5: Full Genome Processing
+
+    User->>Portal: Click "Full Genome"
+    Portal->>Scripts: Execute 05-run-full-genome.sh
+    activate Scripts
+
+    rect rgb(200, 230, 200)
+        Note over Scripts,GPU: Step 1: fq2bam (~60-180 min)
+        Scripts->>Docker: docker run --gpus all parabricks fq2bam
+        activate Docker
+        Docker->>Parabricks: Load FASTQ files
+        activate Parabricks
+        Parabricks->>GPU: BWA-MEM2 alignment
+        activate GPU
+        Note right of GPU: GPU utilization: 80-95%
+        GPU-->>Parabricks: Aligned reads
+        Parabricks->>GPU: Coordinate sorting
+        GPU-->>Parabricks: Sorted reads
+        Parabricks->>GPU: Duplicate marking
+        GPU-->>Parabricks: Deduplicated BAM
+        deactivate GPU
+        Parabricks->>Storage: Write HG002.genome.bam
+        deactivate Parabricks
+        Docker-->>Scripts: fq2bam complete
+        deactivate Docker
+    end
+
+    rect rgb(200, 200, 230)
+        Note over Scripts,GPU: Step 2: BAM Indexing (~5 min)
+        Scripts->>Docker: samtools index
+        Docker->>Parabricks: Create BAM index
+        Parabricks->>Storage: Write .bam.bai
+        Docker-->>Scripts: Index complete
+    end
+
+    rect rgb(230, 200, 200)
+        Note over Scripts,GPU: Step 3: DeepVariant (~60-90 min)
+        Scripts->>Docker: docker run --gpus all parabricks deepvariant
+        activate Docker
+        Docker->>Parabricks: Load BAM file
+        activate Parabricks
+        Parabricks->>GPU: Generate pileup images
+        activate GPU
+        Note right of GPU: CNN inference on GPU
+        GPU-->>Parabricks: Genotype predictions
+        deactivate GPU
+        Parabricks->>Storage: Write HG002.genome.vcf.gz
+        deactivate Parabricks
+        Docker-->>Scripts: DeepVariant complete
+        deactivate Docker
+    end
+
+    rect rgb(230, 230, 200)
+        Note over Scripts,GPU: Step 4: VCF Indexing (~1 min)
+        Scripts->>Docker: tabix index
+        Docker->>Parabricks: Create VCF index
+        Parabricks->>Storage: Write .vcf.gz.tbi
+        Docker-->>Scripts: Index complete
+    end
+
+    Scripts-->>Portal: Pipeline complete
+    Portal-->>User: ✅ Full Genome Complete!
+    deactivate Scripts
+
+    Note over User,NCBI: Results: BAM (~100GB) + VCF (~1-2GB)
+
+    deactivate Portal
