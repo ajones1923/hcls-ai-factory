@@ -126,7 +126,7 @@ The platform includes a complete demonstration using VCP (Valosin-containing pro
 
 ```bash
 # Clone the repository
-git clone https://github.com/[org]/hcls-ai-factory.git
+git clone https://github.com/ajones1923/hcls-ai-factory.git
 cd hcls-ai-factory
 
 # Configure environment
@@ -218,7 +218,7 @@ If you use HCLS AI Factory in academic work, please consider citing:
 
 ```
 HCLS AI Factory: An End-to-End Precision Medicine Platform
-https://github.com/[org]/hcls-ai-factory
+https://github.com/ajones1923/hcls-ai-factory
 ```
 
 ---
