@@ -158,14 +158,14 @@ Files created:
 
 #### 6️⃣ Full Genome
 **What it does:** Complete genome analysis
-**Duration:** 30-110 minutes
+**Duration:** 120-240 minutes
 **Click:** "Full Genome" button
 
 **Progress stages:**
 ```
-[1/4] Running fq2bam (whole genome)...      [20-75 min]
+[1/4] Running fq2bam (whole genome)...      [60-150 min]
 [2/4] Indexing and QC genome BAM...         [1-6 min]
-[3/4] Running DeepVariant (whole genome)... [10-35 min]
+[3/4] Running DeepVariant (whole genome)... [60-90 min]
 [4/4] Indexing VCF...                       [1-2 min]
 ```
 

@@ -162,9 +162,9 @@ GRCh38.fa (3GB) ────────────┘                         
 | Metric | Chr20 Test | Full Genome |
 |--------|------------|-------------|
 | Input Size | ~10GB subset | ~200GB |
-| Alignment Time | 2-10 min | 20-75 min |
-| Variant Calling | 1-6 min | 10-35 min |
-| Total Runtime | 5-20 min | 30-110 min |
+| Alignment Time | 2-10 min | 60-150 min |
+| Variant Calling | 1-6 min | 60-90 min |
+| Total Runtime | 5-20 min | 120-240 min |
 | GPU Memory | 8-12 GB | 12-16 GB |
 | Peak Throughput | 10 GB/hr | 45-60 GB/hr |
 

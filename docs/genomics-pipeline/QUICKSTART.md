@@ -18,7 +18,7 @@
 # Run fast test (chr20 only, ~5-20 min)
 ./run.sh test
 
-# Run full genome (~30-110 min)
+# Run full genome (~120-240 min)
 ./run.sh full
 ```
 
@@ -121,7 +121,7 @@ data/output/
 | Data download | 2-6 hours |
 | Reference setup | 5-15 min |
 | Chr20 test | 5-20 min |
-| Full genome | 30-110 min |
+| Full genome | 120-240 min |
 
 ## Next Steps
 
