@@ -77,6 +77,10 @@ One workstation. One workflow. Hours, not months.
 
 Take it. Use it. Make it better.
 
+<p align="center">
+  <img src="assets/HCLS AI Factory Pipeline Diagram.png" alt="HCLS AI Factory Pipeline - From DNA to Drug Candidates" width="100%">
+</p>
+
 ---
 
 ## What It Does
@@ -117,6 +121,10 @@ Take it. Use it. Make it better.
          ▼                 ▼                           ▼
    Web Portal:8080   Chat UI:8501              Discovery UI:8505
 ```
+
+<p align="center">
+  <img src="assets/HCLS AI Factory Portal-GUI.png" alt="HCLS AI Factory Portal Interface" width="100%">
+</p>
 
 ---
 
