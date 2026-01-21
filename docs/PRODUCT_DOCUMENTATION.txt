@@ -565,7 +565,7 @@ analysis-ready variant calls (VCF files) using NVIDIA Parabricks. This
 GPU-accelerated pipeline achieves 10-50x speedup compared to traditional
 CPU-based workflows.
 
-LOCATION: /home/adam/transfer/genomics-pipeline/
+LOCATION: genomics-pipeline/
 
 KEY CAPABILITIES:
 - Full genome analysis in 120-240 minutes
@@ -1027,7 +1027,7 @@ transforms the VCF file from Stage 1 into actionable therapeutic insights
 through multi-source annotation, semantic search, knowledge connections, and
 AI-powered reasoning.
 
-LOCATION: /home/adam/transfer/rag-chat-pipeline/
+LOCATION: rag-chat-pipeline/
 
 KEY CAPABILITIES:
 - Multi-source annotation (ClinVar, AlphaMissense, VEP)
@@ -1580,7 +1580,7 @@ drug candidates using NVIDIA BioNeMo AI services. It integrates structural
 biology evidence with generative AI for molecule design and molecular docking
 for binding prediction.
 
-LOCATION: /home/adam/transfer/drug-discovery-pipeline/
+LOCATION: drug-discovery-pipeline/
 
 KEY CAPABILITIES:
 - Cryo-EM structure retrieval from RCSB PDB
@@ -2062,7 +2062,7 @@ The HLS Orchestrator provides unified management and monitoring for all three
 pipelines. It includes a landing page, portal dashboard, and integration with
 Nextflow for workflow automation.
 
-LOCATION: /home/adam/transfer/hls-orchestrator/
+LOCATION: hls-orchestrator/
 
 COMPONENTS:
 - Landing Page (Port 8080): Main demo entry point
@@ -2075,7 +2075,7 @@ COMPONENTS:
 --------------------------------------------------------------------------------
 
 START SERVICES SCRIPT:
-Location: /home/adam/transfer/hcls-ai-factory/start-services.sh
+Location: start-services.sh
 
 COMMANDS:
     ./start-services.sh              # Start all services
@@ -2118,7 +2118,7 @@ LOG LOCATIONS:
 7.3 PORTAL DASHBOARD
 --------------------------------------------------------------------------------
 
-LOCATION: /home/adam/transfer/hls-orchestrator/portal/app.py
+LOCATION: hls-orchestrator/portal/app.py
 PORT: 8510
 
 FEATURES:
@@ -2338,42 +2338,41 @@ SOFTWARE REQUIREMENTS:
 8.3 INSTALLATION STEPS
 --------------------------------------------------------------------------------
 
-STEP 1: CLONE REPOSITORIES
-    cd /home/adam/transfer
-    git clone https://github.com/ajones1923/genomics-pipeline.git
-    git clone https://github.com/ajones1923/rag-chat-pipeline.git
-    git clone https://github.com/ajones1923/drug-discovery-pipeline.git
-    git clone https://github.com/ajones1923/hls-orchestrator.git
+STEP 1: CLONE REPOSITORY
+    git clone https://github.com/ajones1923/hcls-ai-factory.git
+    cd hcls-ai-factory
 
-STEP 2: CREATE HCLS AI FACTORY DIRECTORY
-    mkdir -p /home/adam/transfer/hcls-ai-factory
-    # Copy start-services.sh and configuration files
+STEP 2: CONFIGURE ENVIRONMENT
+    cp .env.example .env
+    # Edit .env with your NGC_API_KEY and ANTHROPIC_API_KEY
 
 STEP 3: SETUP GENOMICS PIPELINE
-    cd /home/adam/transfer/genomics-pipeline
+    cd genomics-pipeline
     ./run.sh check
     ./run.sh login
     ./run.sh download    # ~200GB, 2-6 hours
     ./run.sh reference
+    cd ..
 
 STEP 4: SETUP RAG/CHAT PIPELINE
-    cd /home/adam/transfer/rag-chat-pipeline
+    cd rag-chat-pipeline
     ./run.sh setup
     cp .env.example .env
     # Edit .env with ANTHROPIC_API_KEY
     docker-compose up -d  # Start Milvus
     ./run.sh ingest --annotated-only
+    cd ..
 
 STEP 5: SETUP DRUG DISCOVERY PIPELINE
-    cd /home/adam/transfer/drug-discovery-pipeline
+    cd drug-discovery-pipeline
     python -m venv venv
     source venv/bin/activate
     pip install -r requirements.txt
     cp .env.example .env
     # Edit .env with NGC_API_KEY
+    cd ..
 
 STEP 6: VERIFY INSTALLATION
-    cd /home/adam/transfer/hcls-ai-factory
     ./start-services.sh --status
 
 --------------------------------------------------------------------------------
@@ -2422,32 +2421,32 @@ REQUIRED ENVIRONMENT VARIABLES:
 --------------------------------------------------------------------------------
 
 QUICK START:
-    cd /home/adam/transfer/hcls-ai-factory
+    # From repository root (hcls-ai-factory/)
     source gtc-setup.sh
     ./start-services.sh
 
 STEP-BY-STEP:
     # 1. Start Milvus
-    cd /home/adam/transfer/rag-chat-pipeline
+    cd rag-chat-pipeline
     docker-compose up -d
 
     # 2. Start Landing Page
-    cd /home/adam/transfer/hls-orchestrator
+    cd ../hls-orchestrator
     source ../drug-discovery-pipeline/venv/bin/activate
     python -m flask run --host=0.0.0.0 --port=8080 &
 
     # 3. Start RAG Chat
-    cd /home/adam/transfer/rag-chat-pipeline
+    cd ../rag-chat-pipeline
     source venv/bin/activate
     streamlit run app/chat_ui.py --server.port 8501 &
 
     # 4. Start Drug Discovery
-    cd /home/adam/transfer/drug-discovery-pipeline
+    cd ../drug-discovery-pipeline
     source venv/bin/activate
     streamlit run app/discovery_ui.py --server.port 8505 &
 
     # 5. Start Portal
-    cd /home/adam/transfer/hls-orchestrator
+    cd ../hls-orchestrator
     streamlit run portal/app.py --server.port 8510 &
 
 VERIFY SERVICES:
@@ -2704,8 +2703,7 @@ HLS AI FACTORY:
 
 EXAMPLE 1: COMPLETE DEMO WORKFLOW
 ---------------------------------
-# 1. Start all services
-cd /home/adam/transfer/hcls-ai-factory
+# 1. Start all services (from repository root)
 ./start-services.sh
 
 # 2. Open landing page
@@ -2728,24 +2726,24 @@ cd /home/adam/transfer/hcls-ai-factory
 
 EXAMPLE 2: NEW PATIENT ANALYSIS
 -------------------------------
-# 1. Copy patient FASTQ files
-cp patient_R1.fastq.gz /home/adam/transfer/genomics-pipeline/data/input/
-cp patient_R2.fastq.gz /home/adam/transfer/genomics-pipeline/data/input/
+# 1. Copy patient FASTQ files (from repository root)
+cp patient_R1.fastq.gz genomics-pipeline/data/input/
+cp patient_R2.fastq.gz genomics-pipeline/data/input/
 
 # 2. Update patient ID
-# Edit config/pipeline.env
+# Edit genomics-pipeline/config/pipeline.env
 PATIENT_ID=PATIENT001
 
 # 3. Run genomics pipeline
-cd /home/adam/transfer/genomics-pipeline
+cd genomics-pipeline
 ./run.sh full
 
 # 4. Copy VCF to RAG pipeline
 cp data/output/PATIENT001.genome.vcf.gz \
-   /home/adam/transfer/rag-chat-pipeline/data/input/
+   ../rag-chat-pipeline/data/input/
 
 # 5. Ingest new patient data
-cd /home/adam/transfer/rag-chat-pipeline
+cd ../rag-chat-pipeline
 ./run.sh ingest --drop-existing
 
 # 6. Query patient variants
@@ -3092,7 +3090,7 @@ DOCUMENTATION:
 COMMUNITY:
 - NVIDIA Developer Forums: https://forums.developer.nvidia.com/
 - Milvus Discord: https://discord.gg/milvus
-- GitHub Issues: (repository-specific)
+- GitHub Issues: https://github.com/ajones1923/hcls-ai-factory/issues
 
 ENTERPRISE SUPPORT:
 - NVIDIA Enterprise: https://www.nvidia.com/en-us/data-center/dgx-spark/
