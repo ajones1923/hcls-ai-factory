@@ -3,6 +3,11 @@
 # ================================================================
 
 # ================================================================
+# INTERNAL DOCUMENTATION - Development only, not for public
+# ================================================================
+HCLS_AI_FACTORY_ENVIRONMENT_GUIDE.md
+
+# ================================================================
 # CREDENTIALS & SECRETS - NEVER COMMIT THESE
 # ================================================================
 .env
@@ -12,6 +17,7 @@
 *.key
 *credentials*
 *secret*
+!scripts/check-secrets.sh
 .ngc/
 .anthropic/
 

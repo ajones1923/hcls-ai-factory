@@ -203,12 +203,12 @@ open http://localhost:8080
 
 ## Documentation
 
-- [Installation Guide](docs/INSTALLATION.md)
-- [Genomics Pipeline](docs/GENOMICS_PIPELINE.md)
-- [RAG/Chat Pipeline](docs/RAG_CHAT_PIPELINE.md)
-- [Drug Discovery Pipeline](docs/DRUG_DISCOVERY_PIPELINE.md)
-- [Configuration Reference](docs/CONFIGURATION.md)
-- [API Reference](docs/API_REFERENCE.md)
+- [Documentation Index](docs/README.md) — Quick navigation to all docs
+- [Complete Reference](docs/PRODUCT_DOCUMENTATION.txt) — Installation, configuration, API, troubleshooting (3,300+ lines)
+- [Genomics Pipeline](docs/genomics-pipeline/README.md) — Stage 1: FASTQ → VCF
+- [RAG/Chat Pipeline](docs/rag-chat-pipeline/README.md) — Stage 2: VCF → Target Hypothesis
+- [Drug Discovery Pipeline](docs/drug-discovery-pipeline/README.md) — Stage 3: Target → Molecules
+- [Architecture Diagrams](docs/diagrams/) — Mermaid workflow diagrams
 
 ---
 

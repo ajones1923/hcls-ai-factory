@@ -6,7 +6,7 @@
  * ========================================================
  *  Unified workflow: Genomics → RAG Chat → Drug Discovery
  *
- *  Author: HLS Pipeline Team
+ *  Author: Adam Jones
  *  Version: 1.0.0
  * ========================================================
  */
