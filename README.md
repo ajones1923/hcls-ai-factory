@@ -2,6 +2,10 @@
 
 **Transform patient DNA into therapeutic candidates in hours, not months.**
 
+<p align="center">
+  <img src="docs/diagrams/hcls-ai-factory-diagram.png" alt="HCLS AI Factory on NVIDIA DGX Spark" width="800">
+</p>
+
 ---
 
 ## Origin
