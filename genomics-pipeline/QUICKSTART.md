@@ -26,7 +26,7 @@
 
 ```bash
 # Navigate to project
-cd /home/adam/transfer/genomics-pipeline
+cd genomics-pipeline
 
 # Run all setup steps
 ./run.sh check && \

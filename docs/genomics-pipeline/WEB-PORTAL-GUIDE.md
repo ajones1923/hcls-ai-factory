@@ -3,7 +3,7 @@
 ## 🎯 Launch the Portal (30 seconds)
 
 ```bash
-cd /home/adam/transfer/genomics-pipeline/web-portal
+cd genomics-pipeline/web-portal
 ./start-portal.sh
 ```
 
@@ -17,7 +17,7 @@ That's it! The portal is running.
 
 ### Step 1: Start the Portal
 ```bash
-cd /home/adam/transfer/genomics-pipeline/web-portal
+cd genomics-pipeline/web-portal
 ./start-portal.sh
 ```
 
@@ -287,7 +287,7 @@ watch -n 1 nvidia-smi
 
 ### Tip 3: Check Disk Usage
 ```bash
-df -h /home/adam/transfer/genomics-pipeline
+df -h genomics-pipeline
 ```
 
 ### Tip 4: Resume After Disconnect

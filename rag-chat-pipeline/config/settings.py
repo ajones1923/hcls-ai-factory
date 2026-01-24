@@ -1,6 +1,7 @@
 """
 RAG Chat Pipeline Configuration
 """
+import os
 from pathlib import Path
 from typing import Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -20,9 +21,17 @@ class Settings(BaseSettings):
     DATA_DIR: Path = PROJECT_ROOT / "data"
     CACHE_DIR: Path = DATA_DIR / "cache"
 
+    # HCLS AI Factory Root (parent of all pipelines)
+    HCLS_ROOT: Path = PROJECT_ROOT.parent
+
     # Genomics Pipeline Integration
-    GENOMICS_PIPELINE_DIR: Path = Path("/home/adam/transfer/genomics-pipeline")
-    VCF_INPUT_PATH: Path = GENOMICS_PIPELINE_DIR / "data/output/HG002.genome.vcf.gz"
+    # Can be overridden via GENOMICS_PIPELINE_DIR environment variable
+    GENOMICS_PIPELINE_DIR: Path = Path(
+        os.environ.get("GENOMICS_PIPELINE_DIR", str(PROJECT_ROOT.parent / "genomics-pipeline"))
+    )
+    VCF_INPUT_PATH: Path = Path(
+        os.environ.get("VCF_INPUT_PATH", str(GENOMICS_PIPELINE_DIR / "data/output/HG002.genome.vcf.gz"))
+    )
 
     # Milvus Configuration
     MILVUS_HOST: str = "localhost"

@@ -1,6 +1,11 @@
 #!/bin/bash
 set -e
 
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PIPELINE_DIR="$(dirname "$SCRIPT_DIR")"
+DATA_DIR="${PIPELINE_DIR}/data"
+
 echo "=========================================="
 echo "Fast Parallel FASTQ Merge (with pigz)"
 echo "=========================================="
@@ -11,7 +16,7 @@ echo "System: $CORES CPU cores"
 echo "Using pigz (parallel gzip) for maximum speed"
 echo ""
 
-cd /home/adam/transfer/genomics-pipeline/data/input/giab_hg002/reads
+cd "${DATA_DIR}/input/giab_hg002/reads"
 
 echo "Creating file lists..."
 ls -1 D1_S1_L001_R1_*.fastq.gz D1_S1_L002_R1_*.fastq.gz | sort > R1_files.txt
@@ -66,8 +71,8 @@ echo "R1: $(printf "%'d" $R1_READS) reads ($R1_SIZE)"
 echo "R2: $(printf "%'d" $R2_READS) reads ($R2_SIZE)"
 echo ""
 echo "Copying to pipeline input directory..."
-cp -v HG002_R1.fastq.gz /home/adam/transfer/genomics-pipeline/data/input/
-cp -v HG002_R2.fastq.gz /home/adam/transfer/genomics-pipeline/data/input/
+cp -v HG002_R1.fastq.gz "${DATA_DIR}/input/"
+cp -v HG002_R2.fastq.gz "${DATA_DIR}/input/"
 echo ""
 echo "✅ Files ready for Chr20 Test and Full Genome Pipeline!"
 echo "   Used all $CORES CPU cores for processing"

@@ -21,7 +21,7 @@ A modern web interface for managing the complete FASTQ → VCF genomics workflow
 ### Option 1: Direct Python (Recommended)
 
 ```bash
-cd /home/adam/transfer/genomics-pipeline/web-portal
+cd genomics-pipeline/web-portal
 ./start-portal.sh
 ```
 
@@ -30,7 +30,7 @@ Then open: **http://localhost:5000**
 ### Option 2: Docker Compose
 
 ```bash
-cd /home/adam/transfer/genomics-pipeline/web-portal
+cd genomics-pipeline/web-portal
 docker-compose up -d
 ```
 

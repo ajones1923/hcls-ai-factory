@@ -104,7 +104,7 @@
 
 ### Step 1: Environment Setup
 ```bash
-cd /home/adam/transfer/rag-chat-pipeline
+cd rag-chat-pipeline
 cp .env.example .env
 # Edit .env: Add HF_TOKEN
 ./run.sh setup
@@ -218,7 +218,7 @@ HG002.genome.vcf.gz ──▶ Ingest ──▶ Milvus ──▶ RAG Chat ──�
 ## Key Files
 
 ```
-/home/adam/transfer/rag-chat-pipeline/
+rag-chat-pipeline/
 ├── .env                              # Configuration (HF_TOKEN, model)
 ├── docker-compose.yml                # Milvus, Attu, vLLM
 ├── run.sh                            # CLI interface

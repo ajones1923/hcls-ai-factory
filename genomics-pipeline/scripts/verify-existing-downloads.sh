@@ -1,11 +1,16 @@
 #!/bin/bash
 
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PIPELINE_DIR="$(dirname "$SCRIPT_DIR")"
+DATA_DIR="${PIPELINE_DIR}/data"
+
 echo "=========================================="
 echo "Verifying Existing Downloaded Files"
 echo "=========================================="
 echo ""
 
-cd /home/adam/transfer/genomics-pipeline/data/input/giab_hg002
+cd "${DATA_DIR}/input/giab_hg002"
 
 if [ ! -f hg002_illumina_2x250.index.tsv ]; then
     echo "❌ Index file not found"

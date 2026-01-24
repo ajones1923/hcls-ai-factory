@@ -4,7 +4,7 @@
 [![Milvus](https://img.shields.io/badge/Milvus-Vector%20DB-00A4EF?style=flat)](https://milvus.io/)
 [![Claude](https://img.shields.io/badge/Anthropic-Claude-CC785C?style=flat)](https://www.anthropic.com/)
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat&logo=python)](https://www.python.org/)
-[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](../LICENSE)
 
 **Stage 2 of the Precision Medicine to Drug Discovery AI Factory**
 
@@ -1049,7 +1049,7 @@ Genomics Pipeline          RAG/Chat Pipeline          Drug Discovery
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the Apache License 2.0 - see the [LICENSE](../LICENSE) file for details.
 
 ---
 

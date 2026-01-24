@@ -16,7 +16,7 @@ Complete build and test plan for Phase 4 (RAG Chat Pipeline) to be demo-ready fo
 - [ ] Docker with NVIDIA Container Runtime installed
 - [ ] Hugging Face account with token
 - [ ] Llama 3.1 70B license accepted on Hugging Face
-- [ ] VCF file exists: `/home/adam/transfer/genomics-pipeline/data/output/HG002.genome.vcf.gz`
+- [ ] VCF file exists: `genomics-pipeline/data/output/HG002.genome.vcf.gz`
 
 ---
 
@@ -24,7 +24,7 @@ Complete build and test plan for Phase 4 (RAG Chat Pipeline) to be demo-ready fo
 
 ### 1.1 Configure Environment Variables
 ```bash
-cd /home/adam/transfer/rag-chat-pipeline
+cd rag-chat-pipeline
 cp .env.example .env
 ```
 
@@ -32,7 +32,7 @@ Edit `.env` and set:
 ```bash
 HF_TOKEN=hf_xxxxxxxxxxxxxxxxxxxx  # Your Hugging Face token
 VLLM_MODEL=meta-llama/Llama-3.1-70B-Instruct
-VCF_INPUT_PATH=/home/adam/transfer/genomics-pipeline/data/output/HG002.genome.vcf.gz
+VCF_INPUT_PATH=genomics-pipeline/data/output/HG002.genome.vcf.gz
 ```
 
 ### 1.2 Install Python Dependencies
@@ -380,7 +380,7 @@ Phase 4 is complete when:
 ## Files Created in Phase 4
 
 ```
-/home/adam/transfer/rag-chat-pipeline/
+rag-chat-pipeline/
 ├── .env                          # Configuration
 ├── docker-compose.yml            # Services
 ├── requirements.txt              # Python deps

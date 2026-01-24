@@ -2,10 +2,16 @@
 Target Import Module - Imports target hypotheses from RAG Chat pipeline.
 """
 import json
+import os
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 from dataclasses import dataclass, asdict
 from datetime import datetime
+
+# HCLS AI Factory root directory (parent of this pipeline)
+_PIPELINE_ROOT = Path(__file__).parent.parent
+_HCLS_ROOT = _PIPELINE_ROOT.parent
+_DEFAULT_RAG_TARGETS_DIR = _HCLS_ROOT / "rag-chat-pipeline" / "data" / "targets"
 
 
 @dataclass
@@ -39,9 +45,14 @@ class TargetImporter:
     def __init__(self, rag_data_dir: Path = None):
         """
         Args:
-            rag_data_dir: Path to RAG Chat data directory containing targets
+            rag_data_dir: Path to RAG Chat data directory containing targets.
+                          Defaults to sibling rag-chat-pipeline/data/targets directory.
+                          Can be overridden via RAG_TARGETS_DIR environment variable.
         """
-        self.rag_data_dir = rag_data_dir or Path("/home/adam/transfer/rag-chat-pipeline/data/targets")
+        if rag_data_dir:
+            self.rag_data_dir = rag_data_dir
+        else:
+            self.rag_data_dir = Path(os.environ.get("RAG_TARGETS_DIR", str(_DEFAULT_RAG_TARGETS_DIR)))
 
     def import_from_export(self, export_file: Path) -> List[ImportedTarget]:
         """Import targets from a Phase 5 export JSON file."""

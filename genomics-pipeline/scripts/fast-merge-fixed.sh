@@ -1,6 +1,11 @@
 #!/bin/bash
 set -e
 
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PIPELINE_DIR="$(dirname "$SCRIPT_DIR")"
+DATA_DIR="${PIPELINE_DIR}/data"
+
 echo "=========================================="
 echo "Fast Parallel FASTQ Merge (zcat + pigz)"
 echo "=========================================="
@@ -14,7 +19,7 @@ CORES=$(nproc)
 echo "System: $CORES CPU cores"
 echo ""
 
-cd /home/adam/transfer/genomics-pipeline/data/input/giab_hg002
+cd "${DATA_DIR}/input/giab_hg002"
 
 # Clean up previous attempts
 rm -f HG002_R1.fastq.gz HG002_R2.fastq.gz
@@ -72,8 +77,8 @@ echo "R1: $R1_SIZE ($((R1_LINES / 4)) reads in first million lines)"
 echo "R2: $R2_SIZE ($((R2_LINES / 4)) reads in first million lines)"
 echo ""
 echo "Copying to pipeline input directory..."
-cp -v HG002_R1.fastq.gz /home/adam/transfer/genomics-pipeline/data/input/
-cp -v HG002_R2.fastq.gz /home/adam/transfer/genomics-pipeline/data/input/
+cp -v HG002_R1.fastq.gz "${DATA_DIR}/input/"
+cp -v HG002_R2.fastq.gz "${DATA_DIR}/input/"
 echo ""
 echo "✅ Files ready for Chr20 Test and Full Genome Pipeline!"
 echo "   Compression used all $CORES CPU cores"

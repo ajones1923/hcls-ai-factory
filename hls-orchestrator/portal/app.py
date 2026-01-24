@@ -16,9 +16,12 @@ from typing import Dict, List, Any, Optional
 
 # Configuration
 ORCHESTRATOR_DIR = Path(__file__).parent.parent
-GENOMICS_DIR = Path("/home/adam/transfer/genomics-pipeline")
-RAG_CHAT_DIR = Path("/home/adam/transfer/rag-chat-pipeline")
-DRUG_DISCOVERY_DIR = Path("/home/adam/transfer/drug-discovery-pipeline")
+HCLS_ROOT = ORCHESTRATOR_DIR.parent  # Root of HCLS AI Factory
+
+# Pipeline directories - can be overridden via environment variables
+GENOMICS_DIR = Path(os.environ.get("GENOMICS_PIPELINE_DIR", str(HCLS_ROOT / "genomics-pipeline")))
+RAG_CHAT_DIR = Path(os.environ.get("RAG_CHAT_PIPELINE_DIR", str(HCLS_ROOT / "rag-chat-pipeline")))
+DRUG_DISCOVERY_DIR = Path(os.environ.get("DRUG_DISCOVERY_PIPELINE_DIR", str(HCLS_ROOT / "drug-discovery-pipeline")))
 
 def get_service_host():
     """
@@ -558,7 +561,7 @@ def render_drug_discovery():
             """, unsafe_allow_html=True)
         else:
             st.warning(f"Drug Discovery UI is not available at http://{SERVICE_HOST}:8505")
-            st.info("Start it with: `cd /home/adam/transfer/drug-discovery-pipeline && source venv/bin/activate && streamlit run app/discovery_ui.py --server.port 8505`")
+            st.info(f"Start it with: `cd {DRUG_DISCOVERY_DIR} && source venv/bin/activate && streamlit run app/discovery_ui.py --server.port 8505`")
 
     elif view_mode == "⚙️ Quick Controls":
         # Quick controls mode
@@ -621,7 +624,7 @@ def render_drug_discovery():
         st.markdown("### Recent Drug Discovery Results")
 
         # Check for results
-        results_dir = Path("/home/adam/transfer/drug-discovery-pipeline/outputs")
+        results_dir = DRUG_DISCOVERY_DIR / "outputs"
         if results_dir.exists():
             result_files = sorted(results_dir.glob("**/*.json"), key=lambda x: x.stat().st_mtime, reverse=True)[:5]
 
@@ -770,7 +773,7 @@ def render_monitoring():
         """, unsafe_allow_html=True)
     else:
         st.warning("Grafana is not available. Start the monitoring stack with:")
-        st.code("cd /home/adam/transfer/drug-discovery-pipeline/monitoring && docker compose up -d")
+        st.code(f"cd {DRUG_DISCOVERY_DIR}/monitoring && docker compose up -d")
 
 
 def render_results():

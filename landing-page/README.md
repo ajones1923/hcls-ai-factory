@@ -98,7 +98,7 @@ The Landing Page is a Flask-based web application that provides:
 ### Option 1: Using Virtual Environment (Recommended)
 
 ```bash
-cd /home/adam/transfer/landing-page
+cd landing-page
 
 # Create virtual environment (first time only)
 python3 -m venv venv
@@ -111,7 +111,7 @@ python3 -m venv venv
 ### Option 2: Start All Services
 
 ```bash
-cd /home/adam/transfer/landing-page
+cd landing-page
 ./start-all.sh
 ```
 
@@ -120,7 +120,7 @@ This starts all 6 pipeline services plus the landing page.
 ### Option 3: Direct Python
 
 ```bash
-cd /home/adam/transfer/landing-page
+cd landing-page
 python3 server.py
 ```
 
@@ -485,7 +485,7 @@ requests>=2.28.0
 ### Installation
 
 ```bash
-cd /home/adam/transfer/landing-page
+cd landing-page
 python3 -m venv venv
 ./venv/bin/pip install -r requirements.txt
 ```
@@ -494,10 +494,10 @@ python3 -m venv venv
 
 ## Related Documentation
 
-- **Main README:** `/home/adam/transfer/hcls-ai-factory/README.md`
-- **Genomics Pipeline:** `/home/adam/transfer/genomics-pipeline/README.md`
-- **RAG/Chat Pipeline:** `/home/adam/transfer/rag-chat-pipeline/README.md`
-- **Drug Discovery:** `/home/adam/transfer/drug-discovery-pipeline/README.md`
+- **Main README:** [../README.md](../README.md)
+- **Genomics Pipeline:** [../genomics-pipeline/README.md](../genomics-pipeline/README.md)
+- **RAG/Chat Pipeline:** [../rag-chat-pipeline/README.md](../rag-chat-pipeline/README.md)
+- **Drug Discovery:** [../drug-discovery-pipeline/README.md](../drug-discovery-pipeline/README.md)
 
 ---
 

@@ -1,6 +1,11 @@
 #!/bin/bash
 set -e
 
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PIPELINE_DIR="$(dirname "$SCRIPT_DIR")"
+DATA_DIR="${PIPELINE_DIR}/data"
+
 echo "=========================================="
 echo "Fast Parallel FASTQ Re-merge"
 echo "=========================================="
@@ -21,7 +26,7 @@ echo "System: $CORES CPU cores detected"
 echo "Will use all cores for parallel compression"
 echo ""
 
-cd /home/adam/transfer/genomics-pipeline/data/input/giab_hg002/reads
+cd "${DATA_DIR}/input/giab_hg002/reads"
 
 echo "Cleaning up partial files..."
 rm -f ../HG002_R1.fastq.gz ../HG002_R2.fastq.gz
@@ -81,8 +86,8 @@ echo ""
 ls -lh HG002_*.fastq.gz
 echo ""
 echo "Copying to input directory..."
-cp -v HG002_R1.fastq.gz /home/adam/transfer/genomics-pipeline/data/input/
-cp -v HG002_R2.fastq.gz /home/adam/transfer/genomics-pipeline/data/input/
+cp -v HG002_R1.fastq.gz "${DATA_DIR}/input/"
+cp -v HG002_R2.fastq.gz "${DATA_DIR}/input/"
 echo ""
 echo "✅ Done! Files are ready for pipeline."
 echo "   Processing used all $CORES cores for maximum speed!"

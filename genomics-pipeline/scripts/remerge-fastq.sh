@@ -1,6 +1,11 @@
 #!/bin/bash
 set -e
 
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PIPELINE_DIR="$(dirname "$SCRIPT_DIR")"
+DATA_DIR="${PIPELINE_DIR}/data"
+
 echo "=========================================="
 echo "Re-merging FASTQ Files"
 echo "=========================================="
@@ -9,7 +14,7 @@ echo "This will properly merge the downloaded FASTQ chunks"
 echo "using decompression and recompression instead of simple cat"
 echo ""
 
-cd /home/adam/transfer/genomics-pipeline/data/input/giab_hg002/reads
+cd "${DATA_DIR}/input/giab_hg002/reads"
 
 echo "Deleting old corrupted merged files..."
 rm -f ../HG002_R1.fastq.gz ../HG002_R2.fastq.gz
@@ -55,6 +60,6 @@ echo "R2 reads: $(printf "%'d" $R2_READS)"
 ls -lh HG002_*.fastq.gz
 echo ""
 echo "Copying to input directory..."
-cp -v HG002_R1.fastq.gz /home/adam/transfer/genomics-pipeline/data/input/
-cp -v HG002_R2.fastq.gz /home/adam/transfer/genomics-pipeline/data/input/
+cp -v HG002_R1.fastq.gz "${DATA_DIR}/input/"
+cp -v HG002_R2.fastq.gz "${DATA_DIR}/input/"
 echo "✅ Done! Files are ready for pipeline."

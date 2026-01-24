@@ -11,11 +11,14 @@ echo "║  Healthcare & Life Sciences Pipeline Portal                   ║"
 echo "╚═══════════════════════════════════════════════════════════════╝"
 echo ""
 
+# HCLS AI Factory root directory
+HCLS_ROOT="$(dirname "$SCRIPT_DIR")"
+
 # Check for virtual environment
 if [ -d "${SCRIPT_DIR}/venv" ]; then
     source "${SCRIPT_DIR}/venv/bin/activate"
-elif [ -d "/home/adam/transfer/drug-discovery-pipeline/venv" ]; then
-    source "/home/adam/transfer/drug-discovery-pipeline/venv/bin/activate"
+elif [ -d "${HCLS_ROOT}/drug-discovery-pipeline/venv" ]; then
+    source "${HCLS_ROOT}/drug-discovery-pipeline/venv/bin/activate"
 fi
 
 # Install requirements if needed
