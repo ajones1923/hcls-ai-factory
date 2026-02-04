@@ -1,5 +1,5 @@
 site_name: HCLS AI Factory
-site_description: Transform patient DNA into therapeutic candidates in hours, not months.
+site_description: Transform patient DNA into therapeutic candidates in hours, not months. Open-source precision medicine on NVIDIA DGX Spark.
 site_author: Adam Jones
 site_url: https://hclsaifactory.netlify.app
 
@@ -10,6 +10,7 @@ copyright: Copyright &copy; 2026 Adam Jones — Apache 2.0 License
 
 theme:
   name: material
+  custom_dir: docs/overrides
   palette:
     - scheme: default
       primary: custom
@@ -32,19 +33,29 @@ theme:
     - navigation.top
     - navigation.indexes
     - navigation.expand
+    - navigation.instant
+    - navigation.instant.prefetch
+    - navigation.instant.progress
+    - navigation.footer
     - search.suggest
     - search.highlight
+    - search.share
     - content.code.copy
     - content.tabs.link
     - toc.follow
+    - announce.dismiss
   icon:
     repo: fontawesome/brands/github
 
 extra_css:
   - stylesheets/extra.css
 
+extra_javascript:
+  - javascripts/extra.js
+
 plugins:
   - search
+  - privacy
 
 markdown_extensions:
   - admonition
@@ -64,6 +75,9 @@ markdown_extensions:
   - pymdownx.mark
   - pymdownx.tasklist:
       custom_checkbox: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - tables
   - attr_list
   - md_in_html
@@ -74,10 +88,11 @@ markdown_extensions:
 
 nav:
   - Home: index.md
+  - Architecture: architecture.md
   - Getting Started:
     - Demo Guide: HCLS_AI_FACTORY_DEMO_GUIDE.md
     - Deployment Guide: HCLS_AI_FACTORY_DGX_SPARK_DEPLOYMENT_GUIDE.md
-  - Architecture:
+  - Design:
     - Project Bible: HCLS_AI_FACTORY_PROJECT_BIBLE.md
     - White Paper: HCLS_AI_FACTORY_WHITE_PAPER_DGX_SPARK.md
     - Architecture Mindmap: HCLS_AI_Factory_Mindmap_Open.md
@@ -92,8 +107,10 @@ nav:
     - Intelligence Report: HCLS_AI_FACTORY_INTELLIGENCE_REPORT.md
     - Executive Summary: HCLS_AI_FACTORY_EXECUTIVE_BULLETS.md
     - Pipeline Report: PIPELINE_REPORT.md
+  - Downloads: downloads.md
 
 extra:
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/ajones1923/hcls-ai-factory
+  generator: false
