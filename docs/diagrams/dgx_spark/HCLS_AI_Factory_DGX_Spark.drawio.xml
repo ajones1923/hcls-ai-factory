@@ -1,0 +1,464 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="Claude Code" modified="2026-02-03T00:00:00.000Z" agent="Claude Code" version="21.6.5" type="device" pages="1">
+  <diagram name="HCLS AI Factory - DGX Spark" id="hcls-dgx-spark">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="spark-1" value="&lt;b style=&quot;font-size:18px;color:#1B2333;&quot;&gt;Healthcare &amp;amp; Life Sciences AI Factory&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="250" y="10" width="550" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-2" value="&lt;font style=&quot;font-size:11px;color:#666666;&quot;&gt;Precision Medicine MVP on NVIDIA DGX Spark&lt;/font&gt;  &lt;b style=&quot;font-size:11px;color:#76B900;&quot;&gt;NVIDIA&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="300" y="36" width="400" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-3" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#CCCCCC;arcSize=8;fontSize=8;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="910" y="10" width="130" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-4" value="&lt;b&gt;Key&lt;/b&gt;" style="text;html=1;align=left;verticalAlign=top;resizable=0;points=[];fontSize=9;fontFamily=Helvetica;fontColor=#333333;fontStyle=1;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="918" y="12" width="60" height="14" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-5" value="&lt;font color=&quot;#76B900&quot;&gt;●&lt;/font&gt; &lt;font style=&quot;font-size:8px&quot;&gt;Genomics Pipeline&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];fontSize=8;fontFamily=Helvetica;fontColor=#333333;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="918" y="28" width="120" height="14" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-6" value="&lt;font color=&quot;#1AAFCC&quot;&gt;●&lt;/font&gt; &lt;font style=&quot;font-size:8px&quot;&gt;RAG/Evidence Pipeline&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];fontSize=8;fontFamily=Helvetica;fontColor=#333333;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="918" y="43" width="120" height="14" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-7" value="&lt;font color=&quot;#F5A623&quot;&gt;●&lt;/font&gt; &lt;font style=&quot;font-size:8px&quot;&gt;Drug Discovery Pipeline&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];fontSize=8;fontFamily=Helvetica;fontColor=#333333;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="918" y="58" width="120" height="14" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-8" value="&lt;font color=&quot;#999999&quot;&gt;●&lt;/font&gt; &lt;font style=&quot;font-size:8px&quot;&gt;Data Flow&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];fontSize=8;fontFamily=Helvetica;fontColor=#333333;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="918" y="73" width="120" height="14" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-9" value="&lt;b style=&quot;font-size:8px;&quot;&gt;Demo Use Case Badge&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:7px;color:#666666;&quot;&gt;Demo: VCP &amp;amp; Frontotemporal Dementia&lt;br&gt;1:3 Pathogenic Variants → Novel Inhibitors&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=8;fontFamily=Helvetica;fillColor=#FFF9E6;strokeColor=#E6D98C;arcSize=8;align=left;verticalAlign=top;spacingLeft=4;spacingTop=2;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="10" y="10" width="165" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-10" value="&lt;b&gt;FASTQ&lt;/b&gt;&lt;br&gt;&lt;font style=&#x27;font-size:8px;color:#666666;&#x27;&gt;Raw Sequencing&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=9;fontFamily=Helvetica;fontColor=#333333;fillColor=#FFF9E6;strokeColor=#E6D98C;arcSize=10;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="10" y="80" width="95" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-11" value="&lt;b&gt;GRCh38&lt;/b&gt;&lt;br&gt;&lt;font style=&#x27;font-size:8px;color:#666666;&#x27;&gt;Reference Genome&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=9;fontFamily=Helvetica;fontColor=#333333;fillColor=#FFF9E6;strokeColor=#E6D98C;arcSize=10;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="10" y="131" width="95" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-12" value="&lt;b&gt;Known Sites&lt;/b&gt;&lt;br&gt;&lt;font style=&#x27;font-size:8px;color:#666666;&#x27;&gt;dbSNP, Mills&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=9;fontFamily=Helvetica;fontColor=#333333;fillColor=#FFF9E6;strokeColor=#E6D98C;arcSize=10;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="10" y="182" width="95" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-13" value="&lt;b&gt;ClinVar&lt;/b&gt;&lt;br&gt;&lt;font style=&#x27;font-size:8px;color:#666666;&#x27;&gt;4.1M Variants&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=9;fontFamily=Helvetica;fontColor=#333333;fillColor=#F0F9E0;strokeColor=#76B900;arcSize=10;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="10" y="233" width="95" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-14" value="&lt;b&gt;AlphaMissense&lt;/b&gt;&lt;br&gt;&lt;font style=&#x27;font-size:8px;color:#666666;&#x27;&gt;71M Predictions&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=9;fontFamily=Helvetica;fontColor=#333333;fillColor=#F0F9E0;strokeColor=#76B900;arcSize=10;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="10" y="284" width="95" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-15" value="&lt;b&gt;RCSB PDB&lt;/b&gt;&lt;br&gt;&lt;font style=&#x27;font-size:8px;color:#666666;&#x27;&gt;Protein Structures&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=9;fontFamily=Helvetica;fontColor=#333333;fillColor=#F0F9E0;strokeColor=#76B900;arcSize=10;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="10" y="335" width="95" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-16" value="&lt;b&gt;Cryo-EM&lt;/b&gt;&lt;br&gt;&lt;font style=&#x27;font-size:8px;color:#666666;&#x27;&gt;3D Structures&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=9;fontFamily=Helvetica;fontColor=#333333;fillColor=#F0F9E0;strokeColor=#76B900;arcSize=10;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="10" y="386" width="95" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-17" value="&lt;b style=&quot;font-size:8px;color:#666666;&quot;&gt;Biological&lt;br&gt;Data Sources&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:7px;color:#999999;&quot;&gt;FASTQ | VCF | PDB | SDF&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=top;resizable=0;points=[];labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="10" y="445" width="95" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-18" value="&lt;b&gt;HCLS AI Factory Pipeline&lt;/b&gt;  &lt;font style=&quot;font-size:8px;color:#999999;&quot;&gt;Three Integrated AI Pipelines&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=11;fontFamily=Helvetica;fontColor=#1B2333;fontStyle=1;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="120" y="62" width="660" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-19" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F0F9E0;strokeColor=#76B900;arcSize=4;strokeWidth=2;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="120" y="85" width="660" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-20" value="&lt;b&gt;&lt;font color=&quot;#76B900&quot;&gt;◆&lt;/font&gt; GPU-Accelerated Genomics&lt;/b&gt;" style="text;html=1;align=left;verticalAlign=top;resizable=0;points=[];fontSize=11;fontFamily=Helvetica;fontColor=#1B2333;fontStyle=1;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="130" y="87" width="280" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-21" value="&lt;b&gt;fq2bam
+BWA-MEM2&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=8;fontFamily=Helvetica;fontColor=#FFFFFF;fontStyle=1;fillColor=#76B900;strokeColor=#76B900;arcSize=10;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="140" y="110" width="85" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-22" value="&lt;font style=&quot;font-size:6px;color:#666666;&quot;&gt;Parabricks&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=top;resizable=0;points=[];labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="140" y="146" width="85" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-23" value="&lt;b&gt;Sort&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=8;fontFamily=Helvetica;fontColor=#333333;fontStyle=1;fillColor=#A8D86E;strokeColor=#A8D86E;arcSize=10;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="240" y="110" width="85" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-24" value="&lt;b&gt;Mark
+Duplicates&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=8;fontFamily=Helvetica;fontColor=#333333;fontStyle=1;fillColor=#A8D86E;strokeColor=#A8D86E;arcSize=10;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="340" y="110" width="85" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-25" value="&lt;b&gt;BQSR&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=8;fontFamily=Helvetica;fontColor=#333333;fontStyle=1;fillColor=#A8D86E;strokeColor=#A8D86E;arcSize=10;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="440" y="110" width="85" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-26" value="&lt;font style=&quot;font-size:6px;color:#666666;&quot;&gt;Base Quality Score
+Recalibration&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=top;resizable=0;points=[];labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="440" y="146" width="85" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-27" value="&lt;b&gt;DeepVariant&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=8;fontFamily=Helvetica;fontColor=#FFFFFF;fontStyle=1;fillColor=#76B900;strokeColor=#76B900;arcSize=10;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="540" y="110" width="85" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-28" value="&lt;font style=&quot;font-size:6px;color:#666666;&quot;&gt;CNN Variant
+Calling
+Parabricks&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=top;resizable=0;points=[];labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="540" y="146" width="85" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-29" value="&lt;b&gt;VCF Output&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=8;fontFamily=Helvetica;fontColor=#333333;fontStyle=1;fillColor=#EEEEEE;strokeColor=#EEEEEE;arcSize=10;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="640" y="110" width="85" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-30" value="" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#76B900;strokeWidth=2;fontSize=8;fontFamily=Helvetica;endArrow=classic;" parent="1" edge="1" source="spark-21" target="spark-23">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="spark-31" value="" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#76B900;strokeWidth=2;fontSize=8;fontFamily=Helvetica;endArrow=classic;" parent="1" edge="1" source="spark-23" target="spark-24">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="spark-32" value="" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#76B900;strokeWidth=2;fontSize=8;fontFamily=Helvetica;endArrow=classic;" parent="1" edge="1" source="spark-24" target="spark-25">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="spark-33" value="" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#76B900;strokeWidth=2;fontSize=8;fontFamily=Helvetica;endArrow=classic;" parent="1" edge="1" source="spark-25" target="spark-27">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="spark-34" value="" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#76B900;strokeWidth=2;fontSize=8;fontFamily=Helvetica;endArrow=classic;" parent="1" edge="1" source="spark-27" target="spark-29">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="spark-35" value="&lt;font style=&quot;font-size:8px;color:#666666;&quot;&gt;10-50× Speedup | &gt;99% Accuracy | 2-4 Hours&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="250" y="160" width="350" height="14" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-36" value="" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#999999;strokeWidth=1;dashed=1;fontSize=8;fontFamily=Helvetica;endArrow=classic;" parent="1" edge="1" source="spark-10" target="spark-19">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="spark-37" value="" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#999999;strokeWidth=1;dashed=1;fontSize=8;fontFamily=Helvetica;endArrow=classic;" parent="1" edge="1" source="spark-11" target="spark-19">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="spark-38" value="" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#999999;strokeWidth=1;dashed=1;fontSize=8;fontFamily=Helvetica;endArrow=classic;" parent="1" edge="1" source="spark-12" target="spark-19">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="spark-39" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F8FC;strokeColor=#1AAFCC;arcSize=4;strokeWidth=2;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="120" y="190" width="660" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-40" value="&lt;b&gt;&lt;font color=&quot;#1AAFCC&quot;&gt;◇&lt;/font&gt; RAG/Chat Evidence Retrieval&lt;/b&gt;" style="text;html=1;align=left;verticalAlign=top;resizable=0;points=[];fontSize=11;fontFamily=Helvetica;fontColor=#1B2333;fontStyle=1;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="130" y="192" width="300" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-41" value="&lt;b&gt;Variant
+Annotation&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=8;fontFamily=Helvetica;fontColor=#333333;fontStyle=1;fillColor=#E8F8FC;strokeColor=#1AAFCC;arcSize=10;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="140" y="215" width="100" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-42" value="&lt;font style=&quot;font-size:6px;color:#666666;&quot;&gt;ClinVar/AlphaMissense
+VEP&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=top;resizable=0;points=[];labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="140" y="246" width="100" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-43" value="&lt;b&gt;Embedding
+Generation&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=8;fontFamily=Helvetica;fontColor=#333333;fontStyle=1;fillColor=#E8F8FC;strokeColor=#1AAFCC;arcSize=10;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="260" y="215" width="100" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-44" value="&lt;font style=&quot;font-size:6px;color:#666666;&quot;&gt;BGE-small-en-v1.5
+384-dim&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=top;resizable=0;points=[];labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="260" y="246" width="100" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-45" value="&lt;b&gt;Milvus
+User Query&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=7;fontFamily=Helvetica;fontColor=#FFFFFF;fontStyle=1;fillColor=#1AAFCC;strokeColor=#1AAFCC;arcSize=10;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="380" y="215" width="65" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-46" value="&lt;b&gt;Vector
+Search&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=7;fontFamily=Helvetica;fontColor=#FFFFFF;fontStyle=1;fillColor=#1AAFCC;strokeColor=#1AAFCC;arcSize=10;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="455" y="215" width="65" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-47" value="&lt;b&gt;Metadata
+Search&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=7;fontFamily=Helvetica;fontColor=#FFFFFF;fontStyle=1;fillColor=#1AAFCC;strokeColor=#1AAFCC;arcSize=10;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="530" y="215" width="65" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-48" value="&lt;b&gt;Hybrid
+Search&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=7;fontFamily=Helvetica;fontColor=#FFFFFF;fontStyle=1;fillColor=#1AAFCC;strokeColor=#1AAFCC;arcSize=10;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="605" y="215" width="65" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-49" value="" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1AAFCC;strokeWidth=2;fontSize=8;fontFamily=Helvetica;endArrow=classic;" parent="1" edge="1" source="spark-45" target="spark-46">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="spark-50" value="" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1AAFCC;strokeWidth=2;fontSize=8;fontFamily=Helvetica;endArrow=classic;" parent="1" edge="1" source="spark-46" target="spark-47">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="spark-51" value="" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1AAFCC;strokeWidth=2;fontSize=8;fontFamily=Helvetica;endArrow=classic;" parent="1" edge="1" source="spark-47" target="spark-48">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="spark-52" value="" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1AAFCC;strokeWidth=2;fontSize=8;fontFamily=Helvetica;endArrow=classic;" parent="1" edge="1" source="spark-43" target="spark-45">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="spark-53" value="&lt;b&gt;Clinker Knowledge Layer&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:7px;color:#666666;&quot;&gt;Variant → Gene → Protein → Pathway → Disease → Drug&lt;br&gt;201 Genes | 13 Therapeutic Areas&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=8;fontFamily=Helvetica;fontColor=#333333;fillColor=#F0F5FF;strokeColor=#99BBDD;arcSize=8;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="380" y="255" width="220" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-54" value="&lt;b&gt;Claude&lt;br&gt;Sonnet 4&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=8;fontFamily=Helvetica;fontColor=#FFFFFF;fontStyle=1;fillColor=#1B2333;strokeColor=#1B2333;arcSize=10;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="620" y="255" width="70" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-55" value="&lt;b&gt;Target&lt;br&gt;Hypothesis&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=8;fontFamily=Helvetica;fontColor=#333333;fontStyle=1;fillColor=#FFF3E0;strokeColor=#F5A623;arcSize=10;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="710" y="255" width="60" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-56" value="" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1AAFCC;strokeWidth=2;fontSize=8;fontFamily=Helvetica;endArrow=classic;" parent="1" edge="1" source="spark-48" target="spark-53">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="spark-57" value="" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1AAFCC;strokeWidth=2;fontSize=8;fontFamily=Helvetica;endArrow=classic;" parent="1" edge="1" source="spark-53" target="spark-54">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="spark-58" value="" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1AAFCC;strokeWidth=2;fontSize=8;fontFamily=Helvetica;endArrow=classic;" parent="1" edge="1" source="spark-54" target="spark-55">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="spark-59" value="&lt;font style=&quot;font-size:7px;color:#666666;&quot;&gt;35,600 ClinVar Matches | 3.5M Variants Indexed&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="130" y="300" width="240" height="12" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-60" value="" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#999999;strokeWidth=1;dashed=1;fontSize=8;fontFamily=Helvetica;endArrow=classic;" parent="1" edge="1" source="spark-13" target="spark-39">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="spark-61" value="" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#999999;strokeWidth=1;dashed=1;fontSize=8;fontFamily=Helvetica;endArrow=classic;" parent="1" edge="1" source="spark-14" target="spark-39">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="spark-62" value="" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#76B900;strokeWidth=2;fontSize=8;fontFamily=Helvetica;endArrow=classic;" parent="1" edge="1" source="spark-19" target="spark-39">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="spark-63" value="&lt;font style=&quot;font-size:8px;color:#666666;&quot;&gt;&lt;b&gt;VCF&lt;/b&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="125" y="182" width="30" height="14" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-64" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF8F0;strokeColor=#F5A623;arcSize=4;strokeWidth=2;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="120" y="330" width="660" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-65" value="&lt;b&gt;&lt;font color=&quot;#F5A623&quot;&gt;◆&lt;/font&gt; Generative Drug Discovery&lt;/b&gt;" style="text;html=1;align=left;verticalAlign=top;resizable=0;points=[];fontSize=11;fontFamily=Helvetica;fontColor=#1B2333;fontStyle=1;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="130" y="332" width="300" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-66" value="&lt;b&gt;Target
+Import&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=7;fontFamily=Helvetica;fontColor=#FFFFFF;fontStyle=1;fillColor=#F5A623;strokeColor=#F5A623;arcSize=10;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="130" y="355" width="68" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-67" value="&lt;b&gt;Structure
+Retrieval&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=7;fontFamily=Helvetica;fontColor=#FFFFFF;fontStyle=1;fillColor=#F5A623;strokeColor=#F5A623;arcSize=10;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="209" y="355" width="68" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-68" value="&lt;font style=&quot;font-size:6px;color:#666666;&quot;&gt;PDB / EMDB&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=top;resizable=0;points=[];labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="209" y="386" width="68" height="14" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-69" value="&lt;b&gt;Seed Molecule
+CB-5083&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=7;fontFamily=Helvetica;fontColor=#FFFFFF;fontStyle=1;fillColor=#F5A623;strokeColor=#F5A623;arcSize=10;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="288" y="355" width="68" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-70" value="&lt;font style=&quot;font-size:6px;color:#666666;&quot;&gt;SMILES/properties&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=top;resizable=0;points=[];labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="288" y="386" width="68" height="14" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-71" value="&lt;b&gt;MolMIM&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=7;fontFamily=Helvetica;fontColor=#FFFFFF;fontStyle=1;fillColor=#76B900;strokeColor=#76B900;arcSize=10;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="367" y="355" width="68" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-72" value="&lt;font style=&quot;font-size:6px;color:#666666;&quot;&gt;BioNeMo NIM&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=top;resizable=0;points=[];labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="367" y="386" width="68" height="14" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-73" value="&lt;b&gt;Lipinski
+Filtering&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=7;fontFamily=Helvetica;fontColor=#FFFFFF;fontStyle=1;fillColor=#F5A623;strokeColor=#F5A623;arcSize=10;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="446" y="355" width="68" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-74" value="&lt;b&gt;DiffDock&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=7;fontFamily=Helvetica;fontColor=#FFFFFF;fontStyle=1;fillColor=#76B900;strokeColor=#76B900;arcSize=10;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="525" y="355" width="68" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-75" value="&lt;font style=&quot;font-size:6px;color:#666666;&quot;&gt;BioNeMo NIM&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=top;resizable=0;points=[];labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="525" y="386" width="68" height="14" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-76" value="&lt;b&gt;Composite
+Scoring&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=7;fontFamily=Helvetica;fontColor=#FFFFFF;fontStyle=1;fillColor=#F5A623;strokeColor=#F5A623;arcSize=10;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="604" y="355" width="68" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-77" value="&lt;b&gt;Results
+&amp;amp; Export&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=7;fontFamily=Helvetica;fontColor=#333333;fontStyle=1;fillColor=#EEEEEE;strokeColor=#EEEEEE;arcSize=10;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="683" y="355" width="68" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-78" value="" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#F5A623;strokeWidth=2;fontSize=8;fontFamily=Helvetica;endArrow=classic;" parent="1" edge="1" source="spark-66" target="spark-67">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="spark-79" value="" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#F5A623;strokeWidth=2;fontSize=8;fontFamily=Helvetica;endArrow=classic;" parent="1" edge="1" source="spark-67" target="spark-69">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="spark-80" value="" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#F5A623;strokeWidth=2;fontSize=8;fontFamily=Helvetica;endArrow=classic;" parent="1" edge="1" source="spark-69" target="spark-71">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="spark-81" value="" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#F5A623;strokeWidth=2;fontSize=8;fontFamily=Helvetica;endArrow=classic;" parent="1" edge="1" source="spark-71" target="spark-73">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="spark-82" value="" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#F5A623;strokeWidth=2;fontSize=8;fontFamily=Helvetica;endArrow=classic;" parent="1" edge="1" source="spark-73" target="spark-74">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="spark-83" value="" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#F5A623;strokeWidth=2;fontSize=8;fontFamily=Helvetica;endArrow=classic;" parent="1" edge="1" source="spark-74" target="spark-76">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="spark-84" value="" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#F5A623;strokeWidth=2;fontSize=8;fontFamily=Helvetica;endArrow=classic;" parent="1" edge="1" source="spark-76" target="spark-77">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="spark-85" value="&lt;font style=&quot;font-size:7px;color:#666666;&quot;&gt;~2 Minutes | 50-100 Candidates | Complete Lineage&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="300" y="400" width="300" height="12" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-86" value="" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#999999;strokeWidth=1;dashed=1;fontSize=8;fontFamily=Helvetica;endArrow=classic;" parent="1" edge="1" source="spark-15" target="spark-64">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="spark-87" value="" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#999999;strokeWidth=1;dashed=1;fontSize=8;fontFamily=Helvetica;endArrow=classic;" parent="1" edge="1" source="spark-16" target="spark-64">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="spark-88" value="" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1AAFCC;strokeWidth=2;fontSize=8;fontFamily=Helvetica;endArrow=classic;" parent="1" edge="1" source="spark-55" target="spark-64">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="spark-89" value="&lt;font style=&quot;font-size:8px;color:#666666;&quot;&gt;&lt;b&gt;Target Gene&lt;/b&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="740" y="318" width="60" height="14" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-90" value="&lt;b&gt;Researcher&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=9;fontFamily=Helvetica;fontColor=#333333;fontStyle=1;fillColor=#F0F9E0;strokeColor=#76B900;arcSize=10;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="800" y="100" width="80" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-91" value="&lt;b&gt;Clinician&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=9;fontFamily=Helvetica;fontColor=#333333;fontStyle=1;fillColor=#E8F8FC;strokeColor=#1AAFCC;arcSize=10;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="800" y="210" width="80" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-92" value="&lt;b&gt;Med Chemist&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=9;fontFamily=Helvetica;fontColor=#333333;fontStyle=1;fillColor=#E8F8FC;strokeColor=#1AAFCC;arcSize=10;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="800" y="260" width="80" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-93" value="&lt;b&gt;Reports&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=9;fontFamily=Helvetica;fontColor=#333333;fontStyle=1;fillColor=#FFF8F0;strokeColor=#F5A623;arcSize=10;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="800" y="345" width="80" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-94" value="&lt;b&gt;Molecules&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=9;fontFamily=Helvetica;fontColor=#333333;fontStyle=1;fillColor=#FFF8F0;strokeColor=#F5A623;arcSize=10;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="800" y="375" width="80" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-95" value="&lt;font style=&quot;font-size:7px;color:#999999;&quot;&gt;SDF&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="882" y="375" width="25" height="14" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-96" value="" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#76B900;strokeWidth=2;fontSize=8;fontFamily=Helvetica;endArrow=classic;" parent="1" edge="1" source="spark-19" target="spark-90">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="spark-97" value="" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1AAFCC;strokeWidth=2;fontSize=8;fontFamily=Helvetica;endArrow=classic;" parent="1" edge="1" source="spark-55" target="spark-91">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="spark-98" value="" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1AAFCC;strokeWidth=2;fontSize=8;fontFamily=Helvetica;endArrow=classic;" parent="1" edge="1" source="spark-55" target="spark-92">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="spark-99" value="" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#F5A623;strokeWidth=2;fontSize=8;fontFamily=Helvetica;endArrow=classic;" parent="1" edge="1" source="spark-77" target="spark-93">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="spark-100" value="" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#F5A623;strokeWidth=2;fontSize=8;fontFamily=Helvetica;endArrow=classic;" parent="1" edge="1" source="spark-77" target="spark-94">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="spark-101" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#1AAFCC;arcSize=6;strokeWidth=2;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="120" y="435" width="280" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-102" value="&lt;b&gt;&lt;font color=&quot;#1AAFCC&quot;&gt;⬡&lt;/font&gt; Milvus Vector Database&lt;/b&gt;" style="text;html=1;align=left;verticalAlign=top;resizable=0;points=[];fontSize=10;fontFamily=Helvetica;fontColor=#1B2333;fontStyle=1;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="125" y="437" width="200" height="14" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-103" value="&lt;b&gt;PyMilvus Client&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=7;fontFamily=Helvetica;fontColor=#333333;fillColor=#F5F5F5;strokeColor=#CCCCCC;arcSize=50;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="130" y="457" width="82" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-104" value="&lt;b&gt;IVF_FLAT Index&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=7;fontFamily=Helvetica;fontColor=#333333;fillColor=#F5F5F5;strokeColor=#CCCCCC;arcSize=50;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="220" y="457" width="82" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-105" value="&lt;b&gt;384-dim Vectors&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=7;fontFamily=Helvetica;fontColor=#333333;fillColor=#F5F5F5;strokeColor=#CCCCCC;arcSize=50;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="310" y="457" width="82" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-106" value="&lt;font style=&quot;font-size:7px;color:#666666;&quot;&gt;3.5M Variants Indexed | COSINE Metric&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="130" y="476" width="260" height="12" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-107" value="" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1AAFCC;strokeWidth=2;fontSize=8;fontFamily=Helvetica;endArrow=classic;" parent="1" edge="1" source="spark-39" target="spark-101">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="spark-108" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#333333;arcSize=6;strokeWidth=1;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="420" y="435" width="240" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-109" value="&lt;b&gt;Application Database&lt;/b&gt;" style="text;html=1;align=left;verticalAlign=top;resizable=0;points=[];fontSize=10;fontFamily=Helvetica;fontColor=#1B2333;fontStyle=1;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="425" y="437" width="180" height="14" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-110" value="&lt;b&gt;Pipeline Runs&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=7;fontFamily=Helvetica;fontColor=#333333;fillColor=#F5F5F5;strokeColor=#CCCCCC;arcSize=50;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="428" y="457" width="72" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-111" value="&lt;b&gt;Drug Candidates&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=7;fontFamily=Helvetica;fontColor=#333333;fillColor=#F5F5F5;strokeColor=#CCCCCC;arcSize=50;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="506" y="457" width="72" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-112" value="&lt;b&gt;Target
+Hypotheses&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=7;fontFamily=Helvetica;fontColor=#333333;fillColor=#F5F5F5;strokeColor=#CCCCCC;arcSize=50;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="584" y="457" width="72" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-113" value="" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#333333;strokeWidth=1;fontSize=8;fontFamily=Helvetica;endArrow=classic;" parent="1" edge="1" source="spark-64" target="spark-108">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="spark-114" value="&lt;b&gt;Streamlit UI&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:7px;color:#666666;&quot;&gt;Pipeline Dashboard&lt;br&gt;RAG Chat | Drug Explorer&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=9;fontFamily=Helvetica;fontColor=#333333;fillColor=#F5F5F5;strokeColor=#CCCCCC;arcSize=8;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="680" y="435" width="100" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-115" value="" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#999999;strokeWidth=1;dashed=1;fontSize=8;fontFamily=Helvetica;endArrow=classic;" parent="1" edge="1" source="spark-108" target="spark-114">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="spark-116" value="&lt;b&gt;File Storage&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:7px;color:#666666;&quot;&gt;/genomics /rag /discovery&lt;br&gt;NVMe SSD | Thunderbolt I/O&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=8;fontFamily=Helvetica;fontColor=#333333;fillColor=none;strokeColor=#999999;arcSize=8;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="120" y="502" width="160" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-117" value="" style="edgeStyle=orthogonalEdgeStyle;shape=connector;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#999999;strokeWidth=1;dashed=1;fontSize=8;fontFamily=Helvetica;endArrow=classic;" parent="1" edge="1" source="spark-101" target="spark-116">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="spark-118" value="&lt;b style=&quot;font-size:8px;&quot;&gt;Performance Metrics Badge&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:7px;color:#666666;&quot;&gt;End-to-End: Hours, Not Months&lt;br&gt;Patient DNA → Drug Candidates&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=8;fontFamily=Helvetica;fontColor=#333333;fillColor=#FFF9E6;strokeColor=#E6D98C;arcSize=8;align=left;spacingLeft=4;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="10" y="502" width="100" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-119" value="&lt;b style=&quot;font-size:8px;&quot;&gt;Open Source MVP&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:7px;color:#666666;&quot;&gt;GitHub Available&lt;br&gt;Apache 2.0&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=8;fontFamily=Helvetica;fontColor=#333333;fillColor=#F0F9E0;strokeColor=#76B900;arcSize=8;align=left;spacingLeft=4;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="800" y="435" width="85" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-120" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1B2333;strokeColor=#1B2333;arcSize=4;" parent="1" vertex="1">
+          <mxGeometry x="10" y="555" width="1030" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-121" value="&lt;b style=&quot;color:#76B900;&quot;&gt;NVIDIA&lt;/b&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontFamily=Helvetica;fontColor=#76B900;fontStyle=1;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="20" y="557" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-122" value="&lt;b&gt;GPU Compute (B10)&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=7;fontFamily=Helvetica;fontColor=#FFFFFF;fontStyle=1;fillColor=#2A3545;strokeColor=#2A3545;arcSize=50;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="85" y="563" width="88" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-123" value="&lt;b&gt;Grace (72 ARM cores)&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=7;fontFamily=Helvetica;fontColor=#FFFFFF;fontStyle=1;fillColor=#2A3545;strokeColor=#2A3545;arcSize=50;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="181" y="563" width="88" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-124" value="&lt;b&gt;System Memory&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=7;fontFamily=Helvetica;fontColor=#FFFFFF;fontStyle=1;fillColor=#2A3545;strokeColor=#2A3545;arcSize=50;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="277" y="563" width="88" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-125" value="&lt;b&gt;Storage&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=7;fontFamily=Helvetica;fontColor=#FFFFFF;fontStyle=1;fillColor=#2A3545;strokeColor=#2A3545;arcSize=50;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="373" y="563" width="88" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-126" value="&lt;b&gt;Connectivity&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=7;fontFamily=Helvetica;fontColor=#FFFFFF;fontStyle=1;fillColor=#2A3545;strokeColor=#2A3545;arcSize=50;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="469" y="563" width="88" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-127" value="&lt;b&gt;ConnectX-7&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=7;fontFamily=Helvetica;fontColor=#FFFFFF;fontStyle=1;fillColor=#2A3545;strokeColor=#2A3545;arcSize=50;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="565" y="563" width="88" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-128" value="&lt;b&gt;Parabricks&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=7;fontFamily=Helvetica;fontColor=#FFFFFF;fontStyle=1;fillColor=#2A3545;strokeColor=#2A3545;arcSize=50;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="661" y="563" width="88" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-129" value="&lt;b&gt;BioNeMo NIMs&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=7;fontFamily=Helvetica;fontColor=#FFFFFF;fontStyle=1;fillColor=#2A3545;strokeColor=#2A3545;arcSize=50;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="757" y="563" width="88" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-130" value="&lt;b&gt;Ollama&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=7;fontFamily=Helvetica;fontColor=#FFFFFF;fontStyle=1;fillColor=#2A3545;strokeColor=#2A3545;arcSize=50;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="853" y="563" width="88" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-131" value="&lt;b&gt;Docker&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=7;fontFamily=Helvetica;fontColor=#FFFFFF;fontStyle=1;fillColor=#2A3545;strokeColor=#2A3545;arcSize=50;labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="949" y="563" width="88" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="spark-132" value="&lt;font style=&quot;font-size:8px;color:#999999;&quot;&gt;HCLS AI FACTORY | Author: Adam Jones | February 2026 | Apache 2.0 | $3,999 Desktop AI Factory&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];labelBackgroundColor=none;" parent="1" vertex="1">
+          <mxGeometry x="250" y="591" width="550" height="14" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

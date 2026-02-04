@@ -1,0 +1,168 @@
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#1B2333', 'primaryTextColor': '#ffffff', 'lineColor': '#76B900'}}}%%
+flowchart TB
+
+    %% ── Style Definitions ──────────────────────────────────
+    classDef green fill:#76B900,stroke:#5a8f00,color:#fff,stroke-width:2px
+    classDef navy fill:#1B2333,stroke:#0f1520,color:#fff,stroke-width:2px
+    classDef teal fill:#1AAFCC,stroke:#148fa8,color:#fff,stroke-width:2px
+    classDef orange fill:#F5A623,stroke:#d4901e,color:#fff,stroke-width:2px
+    classDef red fill:#DC2626,stroke:#b91c1c,color:#fff,stroke-width:2px
+    classDef purple fill:#7B2D8E,stroke:#5c2169,color:#fff,stroke-width:2px
+    classDef emerald fill:#059669,stroke:#047857,color:#fff,stroke-width:2px
+    classDef lightgray fill:#F8FAFB,stroke:#D0D0D0,color:#333,stroke-width:1px
+
+    %% ── Patient Data Source ────────────────────────────────
+    subgraph INPUT["Patient Data Source"]
+        DNA["Patient DNA Sample"]:::navy
+        SEQ["Illumina Sequencer<br/>2×250bp paired-end"]:::navy
+        FASTQ["FASTQ Files<br/>~200 GB / 30× WGS"]:::navy
+        REF["GRCh38 Reference<br/>3.1 GB"]:::lightgray
+    end
+    DNA --> SEQ --> FASTQ
+
+    %% ── Landing Page ───────────────────────────────────────
+    LANDING["HCLS AI Factory Landing Page<br/>Flask :8080 | 10-Service Health Monitor"]:::green
+
+    FASTQ --> LANDING
+
+    %% ── Stage 1: Genomics ──────────────────────────────────
+    subgraph STAGE1["Stage 1: Genomics Pipeline (120-240 min)"]
+        direction TB
+        PB["NVIDIA Parabricks 4.6<br/>GPU-Accelerated"]:::green
+        BWA["BWA-MEM2 Alignment<br/>fq2bam (20-45 min)"]:::teal
+        DV["Google DeepVariant<br/>Variant Calling (10-35 min)"]:::teal
+        VCF["VCF Output<br/>~11.7M Variants"]:::navy
+        PORTAL1["Genomics Portal<br/>Flask :5000"]:::lightgray
+    end
+    LANDING --> PB
+    REF --> BWA
+    PB --> BWA --> DV --> VCF
+    PB -.-> PORTAL1
+
+    %% ── Stage 2: RAG/Chat ──────────────────────────────────
+    subgraph STAGE2["Stage 2: RAG/Chat Pipeline (Interactive)"]
+        direction TB
+
+        subgraph ANNO["Variant Annotation"]
+            CLINVAR["ClinVar<br/>4.1M Clinical Variants"]:::purple
+            AM["AlphaMissense<br/>71M AI Predictions"]:::purple
+            VEP["Ensembl VEP<br/>Functional Consequences"]:::purple
+        end
+
+        subgraph VECDB["Vector Database"]
+            MILVUS["Milvus 2.4<br/>:19530 | IVF_FLAT"]:::teal
+            EMB["BGE-small-en-v1.5<br/>384-dim Embeddings"]:::teal
+            INDEXED["3.5M Variant<br/>Embeddings Indexed"]:::lightgray
+        end
+
+        subgraph KNOWLEDGE["Knowledge Base (Clinker)"]
+            GENES["201 Target Genes<br/>13 Therapeutic Areas"]:::emerald
+            DRUGGABLE["171 Druggable Targets<br/>85% Druggability"]:::emerald
+        end
+
+        CLAUDE["Anthropic Claude<br/>RAG-Grounded Reasoning"]:::navy
+        CHAT["Streamlit Chat UI<br/>:8501"]:::lightgray
+        TARGET["Target Hypothesis<br/>Gene + Evidence"]:::orange
+    end
+
+    VCF --> ANNO
+    ANNO --> MILVUS
+    EMB --> MILVUS
+    MILVUS --> INDEXED
+    INDEXED --> CLAUDE
+    KNOWLEDGE --> CLAUDE
+    CLAUDE --> TARGET
+    CLAUDE -.-> CHAT
+
+    %% ── Stage 3: Drug Discovery ────────────────────────────
+    subgraph STAGE3["Stage 3: Drug Discovery Pipeline (8-16 min)"]
+        direction TB
+
+        subgraph STRUCT["Structure Evidence"]
+            PDB["RCSB PDB / EMDB<br/>Cryo-EM Structures"]:::purple
+            CRYOEM["VCP: 8OOI, 9DIL,<br/>7K56, 5FTK"]:::lightgray
+        end
+
+        subgraph BIONEMO["BioNeMo NIM Services"]
+            MOLMIM["MolMIM :8001<br/>Molecule Generation"]:::green
+            DIFFDOCK["DiffDock :8002<br/>Molecular Docking"]:::green
+        end
+
+        subgraph SCORING["Drug-Likeness Scoring"]
+            RDKIT["RDKit<br/>Lipinski + QED + TPSA"]:::teal
+            RANK["Composite Ranking<br/>30% Gen + 40% Dock + 30% QED"]:::teal
+        end
+
+        SEED["Seed Compound<br/>CB-5083 (VCP Inhibitor)"]:::orange
+        CANDIDATES["100 Novel Drug<br/>Candidates Ranked"]:::orange
+        PDF["PDF Report<br/>ReportLab"]:::lightgray
+        DISCO["Discovery UI<br/>Streamlit :8505"]:::lightgray
+    end
+
+    TARGET --> PDB
+    PDB --> CRYOEM
+    CRYOEM --> MOLMIM
+    SEED --> MOLMIM
+    MOLMIM --> DIFFDOCK
+    DIFFDOCK --> RDKIT
+    RDKIT --> RANK
+    RANK --> CANDIDATES
+    CANDIDATES --> PDF
+    CANDIDATES -.-> DISCO
+
+    %% ── Nextflow Orchestration ─────────────────────────────
+    subgraph ORCH["Nextflow DSL2 Orchestration"]
+        NF["HLS-Pipeline v1.0<br/>Modes: full | target | drug | demo"]:::navy
+        MOD1["genomics.nf"]:::lightgray
+        MOD2["rag_chat.nf"]:::lightgray
+        MOD3["drug_discovery.nf"]:::lightgray
+        MOD4["reporting.nf"]:::lightgray
+    end
+    NF --> MOD1 --> MOD2 --> MOD3 --> MOD4
+    MOD1 -.-> PB
+    MOD2 -.-> CLAUDE
+    MOD3 -.-> MOLMIM
+
+    %% ── Monitoring Stack ───────────────────────────────────
+    subgraph MONITOR["Observability"]
+        GRAFANA["Grafana :3000<br/>Dashboards"]:::green
+        PROM["Prometheus :9099<br/>Metrics TSDB"]:::teal
+        NODE["Node Exporter :9100<br/>CPU/RAM/Disk"]:::lightgray
+        DCGM["DCGM Exporter :9400<br/>GPU Metrics"]:::lightgray
+    end
+    PROM --> GRAFANA
+    NODE --> PROM
+    DCGM --> PROM
+
+    %% ── DGX Spark Hardware ─────────────────────────────────
+    subgraph HW["NVIDIA DGX Spark ($3,999)"]
+        GPU["GB10 GPU<br/>128 GB LPDDR5x"]:::green
+        GRACE["Grace CPU<br/>144 ARM64 Cores"]:::green
+        NVME["NVMe Storage<br/>High-throughput I/O"]:::lightgray
+        RAM["512 GB System RAM"]:::lightgray
+    end
+
+    %% ── Cross-Modal Integration ────────────────────────────
+    subgraph XMODAL["HCLS AI Factory Cross-Modal"]
+        IMAGING["Imaging Intelligence Agent<br/>CT/MRI/X-Ray AI"]:::navy
+        TRIGGER["Lung-RADS 4B+ →<br/>FHIR ServiceRequest"]:::red
+        FEDERATED["NVIDIA FLARE<br/>Federated Learning"]:::green
+    end
+
+    IMAGING -. "Cross-modal<br/>trigger" .-> TRIGGER
+    TRIGGER -. "Genomics<br/>analysis" .-> PB
+    CANDIDATES -. "Combined<br/>report" .-> IMAGING
+
+    %% ── Deployment Scale ───────────────────────────────────
+    subgraph DEPLOY["Deployment Roadmap"]
+        P1["Phase 1: Proof Build<br/>DGX Spark | Docker Compose"]:::green
+        P2["Phase 2: Departmental<br/>DGX B200 | Kubernetes"]:::teal
+        P3["Phase 3: Enterprise<br/>DGX SuperPOD | Federated"]:::navy
+    end
+    P1 --> P2 --> P3
+
+    %% ── Primary Data Flow ──────────────────────────────────
+    FASTQ ==> PB
+    VCF ==> MILVUS
+    TARGET ==> MOLMIM
+    CANDIDATES ==> PDF
