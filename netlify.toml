@@ -1,12 +1,6 @@
 [build]
-  command = "pip install -r requirements-docs.txt && mkdocs build"
+  command = "pip install mkdocs-material && mkdocs build"
   publish = "site"
 
 [build.environment]
   PYTHON_VERSION = "3.12"
-
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-  conditions = {Role = ["admin"]}
