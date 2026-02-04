@@ -1,0 +1,99 @@
+site_name: HCLS AI Factory
+site_description: Transform patient DNA into therapeutic candidates in hours, not months.
+site_author: Adam Jones
+site_url: https://hcls-ai-factory.netlify.app
+
+repo_name: ajones1923/hcls-ai-factory
+repo_url: https://github.com/ajones1923/hcls-ai-factory
+
+copyright: Copyright &copy; 2026 Adam Jones — Apache 2.0 License
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: custom
+      accent: teal
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: custom
+      accent: teal
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  font:
+    text: Inter
+    code: JetBrains Mono
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.indexes
+    - navigation.expand
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.tabs.link
+    - toc.follow
+  icon:
+    repo: fontawesome/brands/github
+
+extra_css:
+  - stylesheets/extra.css
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      guess_lang: true
+  - pymdownx.inlinehilite
+  - pymdownx.mark
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - tables
+  - attr_list
+  - md_in_html
+  - def_list
+  - footnotes
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Demo Guide: HCLS_AI_FACTORY_DEMO_GUIDE.md
+    - Deployment Guide: HCLS_AI_FACTORY_DGX_SPARK_DEPLOYMENT_GUIDE.md
+  - Architecture:
+    - Project Bible: HCLS_AI_FACTORY_PROJECT_BIBLE.md
+    - White Paper: HCLS_AI_FACTORY_WHITE_PAPER_DGX_SPARK.md
+    - Architecture Mindmap: HCLS_AI_Factory_Mindmap_Open.md
+  - Learning:
+    - Foundations: HCLS_AI_FACTORY_LEARNING_GUIDE_FOUNDATIONS.md
+    - Advanced: HCLS_AI_FACTORY_LEARNING_GUIDE_ADVANCED.md
+  - Pipelines:
+    - Genomics: genomics-pipeline/README.md
+    - RAG & Chat: rag-chat-pipeline/README.md
+    - Drug Discovery: drug-discovery-pipeline/README.md
+  - Reports:
+    - Intelligence Report: HCLS_AI_FACTORY_INTELLIGENCE_REPORT.md
+    - Executive Summary: HCLS_AI_FACTORY_EXECUTIVE_BULLETS.md
+    - Pipeline Report: PIPELINE_REPORT.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/ajones1923/hcls-ai-factory
