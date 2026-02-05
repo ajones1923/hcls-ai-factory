@@ -679,3 +679,408 @@
 .download-table a:hover {
   color: var(--hcls-teal);
 }
+
+/* ----------------------------------------------------------------
+   15. Hero Scroll Indicator
+   ---------------------------------------------------------------- */
+.hero-scroll-indicator {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.8rem;
+  font-weight: 500;
+  animation: fadeInUp 0.8s ease-out 1s both;
+}
+
+.hero-scroll-indicator svg {
+  animation: bounce 2s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(6px); }
+}
+
+/* ----------------------------------------------------------------
+   16. What It Is Section
+   ---------------------------------------------------------------- */
+.hcls-what-it-is {
+  padding: 6rem 0;
+  background: linear-gradient(180deg, #fff 0%, #f8f9fa 100%);
+}
+
+[data-md-color-scheme="slate"] .hcls-what-it-is {
+  background: linear-gradient(180deg, var(--md-default-bg-color) 0%, var(--md-default-bg-color--light) 100%);
+}
+
+.what-it-is-content {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.what-it-is-lead {
+  font-size: 1.25rem;
+  line-height: 1.8;
+  text-align: center;
+  color: var(--md-default-fg-color);
+  margin-bottom: 3rem;
+}
+
+.what-it-is-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.flow-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  padding: 1.5rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+}
+
+[data-md-color-scheme="slate"] .flow-item {
+  background: var(--md-default-bg-color);
+}
+
+.flow-item:hover {
+  transform: translateX(8px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.flow-icon {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flow-icon-green {
+  background: rgba(118, 185, 0, 0.12);
+  color: var(--hcls-green);
+}
+
+.flow-icon-teal {
+  background: rgba(0, 180, 216, 0.12);
+  color: var(--hcls-teal);
+}
+
+.flow-icon-purple {
+  background: rgba(139, 92, 246, 0.12);
+  color: var(--hcls-purple);
+}
+
+.flow-item p {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--md-default-fg-color--light);
+}
+
+.flow-item strong {
+  color: var(--md-default-fg-color);
+}
+
+.what-it-is-tagline {
+  text-align: center;
+  padding: 2rem;
+  background: var(--hcls-navy);
+  border-radius: 16px;
+  color: #fff;
+}
+
+.what-it-is-tagline p {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.what-it-is-tagline strong {
+  color: #fff;
+}
+
+.tagline-emphasis {
+  margin-top: 1rem !important;
+  font-size: 1.5rem !important;
+  font-weight: 700;
+  background: var(--gradient-nvidia);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ----------------------------------------------------------------
+   17. Origin Story Section
+   ---------------------------------------------------------------- */
+.hcls-origin {
+  padding: 6rem 0;
+  background: var(--hcls-navy);
+  color: #fff;
+}
+
+.origin-content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.origin-header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.origin-title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #fff;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.origin-line {
+  flex: 1;
+  height: 2px;
+  background: linear-gradient(90deg, var(--hcls-green) 0%, transparent 100%);
+}
+
+.origin-text {
+  font-size: 1.15rem;
+  line-height: 1.9;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.origin-text p {
+  margin: 0 0 1.5rem 0;
+}
+
+.origin-text strong {
+  color: var(--hcls-green-light);
+  font-weight: 600;
+}
+
+.origin-signature {
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 2rem !important;
+}
+
+/* ----------------------------------------------------------------
+   18. Why Open Section
+   ---------------------------------------------------------------- */
+.hcls-why-open {
+  padding: 6rem 0;
+  background: #fff;
+}
+
+[data-md-color-scheme="slate"] .hcls-why-open {
+  background: var(--md-default-bg-color);
+}
+
+.why-open-content {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.why-open-lead {
+  font-size: 1.2rem;
+  line-height: 1.8;
+  text-align: center;
+  margin-bottom: 3rem;
+  color: var(--md-default-fg-color--light);
+}
+
+.why-open-points {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.why-open-point {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 12px;
+  border-left: 4px solid var(--hcls-green);
+  transition: all 0.3s ease;
+}
+
+[data-md-color-scheme="slate"] .why-open-point {
+  background: var(--md-default-bg-color--light);
+}
+
+.why-open-point:hover {
+  transform: translateX(8px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.why-open-icon {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: rgba(118, 185, 0, 0.12);
+  color: var(--hcls-green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.why-open-point p {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--md-default-fg-color--light);
+}
+
+.why-open-point strong {
+  color: var(--md-default-fg-color);
+}
+
+/* ----------------------------------------------------------------
+   19. Who This Is For Section
+   ---------------------------------------------------------------- */
+.hcls-who-for {
+  padding: 6rem 0;
+  background: #f8f9fa;
+}
+
+[data-md-color-scheme="slate"] .hcls-who-for {
+  background: var(--md-default-bg-color--light);
+}
+
+.who-for-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.who-for-card {
+  padding: 2rem 1.5rem;
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+}
+
+[data-md-color-scheme="slate"] .who-for-card {
+  background: var(--md-default-bg-color);
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+.who-for-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+  border-color: rgba(118, 185, 0, 0.3);
+}
+
+.who-for-icon {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.who-for-card h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 0.75rem 0;
+  color: var(--md-default-fg-color);
+}
+
+.who-for-card p {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin: 0;
+  color: var(--md-default-fg-color--light);
+}
+
+@media (max-width: 900px) {
+  .who-for-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .who-for-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ----------------------------------------------------------------
+   20. What This Is Not Section
+   ---------------------------------------------------------------- */
+.hcls-not {
+  padding: 5rem 0;
+  background: #fff;
+}
+
+[data-md-color-scheme="slate"] .hcls-not {
+  background: var(--md-default-bg-color);
+}
+
+.not-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  max-width: 1000px;
+  margin: 2rem auto 0;
+}
+
+.not-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: #f8f9fa;
+  border-radius: 10px;
+  transition: all 0.25s ease;
+}
+
+[data-md-color-scheme="slate"] .not-item {
+  background: var(--md-default-bg-color--light);
+}
+
+.not-item:hover {
+  background: #fff;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+[data-md-color-scheme="slate"] .not-item:hover {
+  background: var(--md-default-bg-color);
+}
+
+.not-icon {
+  flex-shrink: 0;
+  font-size: 1.25rem;
+  color: #dc2626;
+  font-weight: bold;
+}
+
+.not-text strong {
+  display: block;
+  font-size: 0.95rem;
+  margin-bottom: 0.25rem;
+  color: var(--md-default-fg-color);
+}
+
+.not-text p {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--md-default-fg-color--light);
+}
