@@ -37,7 +37,7 @@ No two people have exactly the same DNA (except identical twins). The difference
 
 ### How Do Scientists Read DNA?
 
-A machine called a **DNA sequencer** (made by a company called Illumina) reads your DNA by chopping it into millions of small pieces, reading each piece, and then using computers to put the puzzle back together.
+A machine called a **DNA sequencer** (made by companies like Illumina or Oxford Nanopore) reads your DNA by chopping it into millions of small pieces, reading each piece, and then using computers to put the puzzle back together.
 
 ### Whole-Genome Sequencing (WGS)
 
@@ -69,7 +69,7 @@ On a regular computer, this takes **1-2 days**. That's too slow for clinical use
 
 A **GPU** (Graphics Processing Unit) is a special computer chip originally designed for video games. It turns out GPUs are also great at biology — they can process millions of DNA reads simultaneously.
 
-**NVIDIA Parabricks** is software that uses a GPU to do both alignment and variant calling. On the NVIDIA DGX Spark (a desktop computer that costs $3,999), Parabricks completes the entire process in about **1 hour** instead of 1-2 days. That's a 10-20× speedup!
+**NVIDIA Parabricks** is software that uses a GPU to do both alignment and variant calling. On the NVIDIA DGX Spark (a desktop computer that costs $3,999), Parabricks completes the entire process in about **1-4 hours** instead of 1-2 days. That's a 10-20× speedup!
 
 ### BWA-MEM2: Alignment
 
