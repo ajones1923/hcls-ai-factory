@@ -6,15 +6,20 @@
 
 {% block extrahead %}
   <style>
-    /* Override MkDocs Material container constraints for full-width homepage */
-    .md-main__inner.md-grid { max-width: 100%; margin: 0; padding: 0; margin-top: 0 !important; }
-    .md-main__inner { margin: 0; padding: 0; max-width: 100%; margin-top: 0 !important; }
-    .md-sidebar { display: none; }
-    .md-content { max-width: 100%; margin: 0; padding: 0; width: 100%; }
-    .md-content__inner { margin: 0; padding: 0; max-width: 100%; }
-    .md-content__inner > * { margin-top: 0; margin-bottom: 0; }
+    /* Override ALL MkDocs Material container constraints for full-width homepage */
+    body { background: #0a0a0f !important; }
+    .md-container { background: transparent; }
+    .md-main { background: transparent; }
+    .md-main__inner.md-grid { max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
+    .md-main__inner { margin: 0 !important; padding: 0 !important; max-width: 100% !important; }
+    .md-grid { max-width: 100% !important; }
+    .md-sidebar { display: none !important; }
+    .md-content { max-width: 100% !important; margin: 0 !important; padding: 0 !important; width: 100% !important; }
+    .md-content__inner { margin: 0 !important; padding: 0 !important; max-width: 100% !important; }
+    .md-content__inner > * { margin-top: 0 !important; margin-bottom: 0 !important; }
     .md-content__inner > h1:first-child { display: none; }
     .md-footer { display: none; }
+    .md-typeset { margin: 0; }
   </style>
 {% endblock %}
 
