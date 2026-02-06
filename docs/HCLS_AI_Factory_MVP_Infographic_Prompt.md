@@ -370,5 +370,5 @@ Dashed teal lines from this callout to: VCF Output (Stage 1), Claude (Stage 2), 
 6. **The VCP/FTD demo callout** should be prominent — it's what the audience sees live.
 7. **All port numbers must be visible** on their respective components.
 8. **The $3,999 price point** in the footer should be visually prominent — it's a key selling point.
-9. **No proprietary tools.** Everything shown is open-source or NVIDIA-licensed.
+9. **No proprietary tools.** Everything shown is open or NVIDIA-licensed.
 10. **The cross-modal section** on the right shows the connection to the Imaging Intelligence Agent — this is the broader HCLS AI Factory ecosystem.

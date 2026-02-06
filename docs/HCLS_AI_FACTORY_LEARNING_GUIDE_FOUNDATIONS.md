@@ -257,7 +257,7 @@ This platform is part of the **HCLS AI Factory** — a broader ecosystem that al
 - **Cross-modal triggers** — for example, a suspicious lung nodule found on a CT scan can automatically trigger genomic analysis to look for cancer-related variants
 - **NVIDIA FLARE** — technology that lets multiple hospitals train AI models together without sharing patient data
 
-### Open Source
+### Open Project
 
 All HCLS AI Factory code is released under the **Apache 2.0 license** — meaning anyone can use, modify, and share it for free. The platform also uses open-source tools like Milvus, RDKit, and DeepVariant. This means:
 - Any hospital can run it

@@ -1,5 +1,5 @@
 site_name: HCLS AI Factory
-site_description: Transform patient DNA into therapeutic candidates in hours, not months. Open-source precision medicine on NVIDIA DGX Spark.
+site_description: Transform patient DNA into therapeutic candidates in hours, not months. Precision Medicine Accelerator on NVIDIA DGX Spark.
 site_url: https://hcls-ai-factory.org
 
 repo_name: ajones1923/hcls-ai-factory

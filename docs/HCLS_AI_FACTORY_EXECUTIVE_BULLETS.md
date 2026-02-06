@@ -114,7 +114,7 @@ The HCLS AI Factory transforms patient DNA into ranked novel drug candidates in 
 - **End-to-end:** No manual handoffs between stages
 - **< 5 hours** total pipeline time (vs. weeks/months traditional)
 - **$3,999** proof build cost (vs. $100K+ for equivalent CPU infrastructure)
-- **Open-source:** Apache 2.0, reproducible, auditable
+- **Open project:** Apache 2.0, reproducible, auditable
 - **Scalable:** Same Nextflow pipelines scale from DGX Spark to SuperPOD
 
 ---

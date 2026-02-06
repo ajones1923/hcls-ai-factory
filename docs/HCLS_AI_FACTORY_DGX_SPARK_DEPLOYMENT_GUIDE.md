@@ -1,8 +1,8 @@
 # HCLS AI Factory — Deployment and Configuration Guide for NVIDIA DGX Spark
 
-> **Open-Source Precision Medicine Platform on NVIDIA DGX Spark**
+> **Precision Medicine Accelerator on NVIDIA DGX Spark**
 >
-> The HCLS AI Factory is a three-stage precision medicine pipeline that transforms raw genomic sequencing data (FASTQ) into actionable drug discovery candidates. Stage 1 performs GPU-accelerated genomics alignment and variant calling with NVIDIA Parabricks. Stage 2 annotates variants against clinical databases, embeds them into a Milvus vector store, and provides a RAG-powered conversational interface using Anthropic Claude. Stage 3 leverages NVIDIA BioNeMo NIM microservices for structure-aware molecule generation and molecular docking, producing ranked drug candidates with composite scores. The entire platform runs on a single NVIDIA DGX Spark desktop workstation — a $3,999 system powered by the GB10 Grace Blackwell Superchip with 128 GB unified LPDDR5x memory. This guide covers the open-source fork: everything you need to clone, configure, and deploy the full stack using Docker Compose.
+> The HCLS AI Factory is a three-stage precision medicine pipeline that transforms raw genomic sequencing data (FASTQ) into actionable drug discovery candidates. Stage 1 performs GPU-accelerated genomics alignment and variant calling with NVIDIA Parabricks. Stage 2 annotates variants against clinical databases, embeds them into a Milvus vector store, and provides a RAG-powered conversational interface using Anthropic Claude. Stage 3 leverages NVIDIA BioNeMo NIM microservices for structure-aware molecule generation and molecular docking, producing ranked drug candidates with composite scores. The entire platform runs on a single NVIDIA DGX Spark desktop workstation — a $3,999 system powered by the GB10 Grace Blackwell Superchip with 128 GB unified LPDDR5x memory. This guide covers the public fork: everything you need to clone, configure, and deploy the full stack using Docker Compose.
 >
 > License: Apache 2.0 | Date: February 2026
 
@@ -42,11 +42,11 @@
 
 ### 1.1 Purpose
 
-This document provides step-by-step instructions for deploying the HCLS AI Factory on an NVIDIA DGX Spark workstation. It covers all three pipeline stages — genomics, RAG-powered variant intelligence, and AI-driven drug discovery — using exclusively open-source and publicly available components.
+This document provides step-by-step instructions for deploying the HCLS AI Factory on an NVIDIA DGX Spark workstation. It covers all three pipeline stages — genomics, RAG-powered variant intelligence, and AI-driven drug discovery — using publicly available components.
 
 ### 1.2 Scope
 
-The guide addresses hardware validation, software installation, container deployment, data preparation, pipeline execution, monitoring, security, and troubleshooting. It targets the open-source HCLS AI Factory that runs entirely on Docker Compose without requiring Kubernetes or multi-node infrastructure.
+The guide addresses hardware validation, software installation, container deployment, data preparation, pipeline execution, monitoring, security, and troubleshooting. It targets the HCLS AI Factory that runs entirely on Docker Compose without requiring Kubernetes or multi-node infrastructure.
 
 ### 1.3 Audience
 
@@ -2665,6 +2665,6 @@ docker build --platform linux/arm64 -t my-service:latest ./my-service/
 
 ---
 
-*This deployment guide is maintained as part of the HCLS AI Factory open-source project. For updates, issues, and contributions, visit the project repository on GitHub.*
+*This deployment guide is maintained as part of the HCLS AI Factory open project. For updates, issues, and contributions, visit the project repository on GitHub.*
 
 *Copyright 2026 Adam Jones. Licensed under the Apache License, Version 2.0.*

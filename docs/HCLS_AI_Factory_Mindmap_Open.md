@@ -317,7 +317,7 @@
 
 ---
 
-## 10. Open-Source Technology Stack
+## 10. Technology Stack
 
 | Component | Technology | License |
 |---|---|---|
