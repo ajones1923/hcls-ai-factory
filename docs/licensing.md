@@ -71,7 +71,7 @@ For a Phase 1 proof build on DGX Spark, the only recurring costs are Anthropic A
 
 ---
 
-## What "Open-Source Project" Means
+## What "Open Source" Means
 
 The HCLS AI Factory is an open-source project: all code authored for this platform is Apache 2.0, published on GitHub, and free to use.
 
