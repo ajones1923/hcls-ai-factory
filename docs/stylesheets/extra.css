@@ -63,9 +63,10 @@
 .md-header__topic:first-child .md-ellipsis::after {
   content: "";
   display: inline-block;
-  width: 140px;
+  width: 80px;
   height: 32px;
   background: url('../assets/logo-blue.png') no-repeat center/contain;
+  border-radius: 4px;
 }
 
 .md-tabs {
