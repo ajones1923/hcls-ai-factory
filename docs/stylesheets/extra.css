@@ -211,14 +211,14 @@
 }
 
 .hero-btn-primary {
-  background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+  background: #8b5cf6;
   color: #fff !important;
-  box-shadow: 0 0 20px rgba(8, 145, 178, 0.3);
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
 }
 
 .hero-btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 0 35px rgba(8, 145, 178, 0.5);
+  box-shadow: 0 0 35px rgba(139, 92, 246, 0.5);
   color: #fff !important;
 }
 
@@ -444,10 +444,7 @@
 .metric-value {
   font-size: 2.5rem;
   font-weight: 800;
-  background: var(--gradient-text);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #8b5cf6;
   line-height: 1.2;
 }
 
@@ -824,10 +821,7 @@
   margin-top: 1rem !important;
   font-size: 1.5rem !important;
   font-weight: 700;
-  background: var(--gradient-text);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #8b5cf6;
 }
 
 /* ----------------------------------------------------------------
@@ -887,10 +881,7 @@
 }
 
 .origin-conviction {
-  background: var(--gradient-text);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #8b5cf6;
 }
 
 /* ----------------------------------------------------------------
