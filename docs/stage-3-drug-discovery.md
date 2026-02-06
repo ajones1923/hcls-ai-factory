@@ -35,7 +35,7 @@ This is generative drug discovery:
 For VCP (the target from Stage 2), the pipeline queries the Protein Data Bank:
 
 - **PDB ID:** 5FTK
-- **Resolution:** 2.4 Å
+- **Resolution:** 2.3 Å
 - **Key insight:** Structure shows VCP bound to an existing inhibitor — this reveals exactly where drugs should attach
 
 ### 2. Identify a Seed Compound

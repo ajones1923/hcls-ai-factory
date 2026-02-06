@@ -90,7 +90,7 @@ The AI can only cite variants and evidence that **actually exist in this patient
 
 **Question:** "What pathogenic variants does this patient have in genes associated with neurodegeneration?"
 
-**Response:** The system identifies a VCP variant (chr9:35,065,254 G>A) with:
+**Response:** The system identifies a VCP variant (chr9:35,065,263 G>A) with:
 
 - ClinVar classification: **Pathogenic**
 - AlphaMissense score: **0.87** (threshold: 0.564)
@@ -121,7 +121,7 @@ This variant becomes the input for [Stage 3: Drug Discovery](stage-3-drug-discov
 | Metric | Value |
 |--------|-------|
 | Variants indexed | 3.5 million |
-| Embedding dimensions | 1536 |
+| Embedding dimensions | 384 |
 | Query latency | < 2 seconds |
 | Knowledge sources | 4 (ClinVar, AlphaMissense, Gene Panel, PDB) |
 | Genes covered | 201 |

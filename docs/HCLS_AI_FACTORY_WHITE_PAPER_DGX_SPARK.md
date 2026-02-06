@@ -118,7 +118,7 @@ Each annotated variant is transformed into a text summary and embedded using BGE
 
 ### RAG-Grounded Reasoning with Claude
 
-User queries are expanded using 10 therapeutic area keyword maps, embedded, and used for approximate nearest-neighbor search in Milvus (top_k=20). Retrieved variant contexts are assembled into a RAG prompt and processed by Anthropic Claude (claude-sonnet-4-20250514, temperature=0.3).
+User queries are expanded using 13 therapeutic area keyword maps, embedded, and used for approximate nearest-neighbor search in Milvus (top_k=20). Retrieved variant contexts are assembled into a RAG prompt and processed by Anthropic Claude (claude-sonnet-4-20250514, temperature=0.3).
 
 Claude generates structured target hypotheses: gene name, confidence level, evidence chain (from variant to clinical significance to druggability), therapeutic area, and recommended action.
 

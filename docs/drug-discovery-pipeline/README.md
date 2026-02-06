@@ -319,7 +319,7 @@ Patient: HG002 (GIAB reference genome)
 Variant: rs188935092 (chr9:35065263 G>A)
 Gene: VCP (Valosin-Containing Protein)
 Impact: Missense mutation
-AlphaMissense: 0.89 (Likely Pathogenic)
+AlphaMissense: 0.87 (Likely Pathogenic)
 ```
 
 #### Step 2: Target Validation (Stage 2)
@@ -524,10 +524,9 @@ Candidates are ranked by a weighted combination:
 
 ```python
 score = (
-    0.3 * qed_score +
-    0.3 * (1 - lipinski_violations / 4) +
-    0.2 * tanimoto_similarity +
-    0.2 * normalized_docking_score
+    0.30 * gen_score +
+    0.40 * normalized_docking_score +
+    0.30 * qed_score
 )
 ```
 
@@ -568,7 +567,7 @@ The pipeline generates stunning PDF reports suitable for VP-level presentations:
 │                                                                             │
 │   1. GENOMIC VARIANT DETECTION                                             │
 │      VCP missense variant rs188935092                                      │
-│      AlphaMissense: 0.89 (LIKELY PATHOGENIC)                              │
+│      AlphaMissense: 0.87 (LIKELY PATHOGENIC)                              │
 │                                                                             │
 │   2. RAG/CHAT TARGET HYPOTHESIS                                            │
 │      VCP/p97 confirmed as high-priority target                            │
@@ -633,7 +632,7 @@ generator.generate()
 
 ```bash
 # Clone the repository
-git clone https://github.com/ajones1923/drug-discovery-pipeline.git
+git clone https://github.com/ajones1923/hcls-ai-factory.git
 cd drug-discovery-pipeline
 
 # Create virtual environment
@@ -670,7 +669,7 @@ Access the UI at: **http://localhost:8505**
 ### Step 1: Clone the Repository
 
 ```bash
-git clone https://github.com/ajones1923/drug-discovery-pipeline.git
+git clone https://github.com/ajones1923/hcls-ai-factory.git
 cd drug-discovery-pipeline
 ```
 
@@ -1026,9 +1025,9 @@ cd monitoring && docker-compose down && docker-compose up -d
 
 | Stage | Pipeline | Description |
 |-------|----------|-------------|
-| **1** | [Genomics Pipeline](https://github.com/ajones1923/genomics-pipeline) | FASTQ → VCF with Parabricks |
-| **2** | [RAG/Chat Pipeline](https://github.com/ajones1923/rag-chat-pipeline) | VCF → Target Hypothesis |
-| **3** | **Drug Discovery Pipeline** (This repo) | Target → Molecule Candidates |
+| **1** | [Genomics Pipeline](https://github.com/ajones1923/hcls-ai-factory/tree/main/genomics-pipeline) | FASTQ → VCF with Parabricks |
+| **2** | [RAG/Chat Pipeline](https://github.com/ajones1923/hcls-ai-factory/tree/main/rag-chat-pipeline) | VCF → Target Hypothesis |
+| **3** | **Drug Discovery Pipeline** (This component) | Target → Molecule Candidates |
 
 ### Integration Flow
 

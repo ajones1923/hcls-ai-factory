@@ -148,7 +148,7 @@ This process allows us to quickly separate normal human variation from the small
 6,831 AI-predicted pathogenic variants
       │
       ▼ Clinker knowledge matching
-Variants in 80 druggable genes
+Variants in 171 druggable targets
       │
       ▼ Natural language query
 Therapeutic insights for specific diseases
@@ -187,9 +187,9 @@ This pipeline demonstrates how these annotation layers work together:
 - **BGE Embeddings**: State-of-the-art text embeddings (384 dimensions)
 
 ### Knowledge Graph (Clinker)
-- **80 high-value genes** across 6 therapeutic areas
-- **100+ disease conditions** with therapeutic connections
-- **66 druggable targets** (82%) with FDA-approved drugs
+- **201 high-value genes** across 13 therapeutic areas
+- **150+ disease conditions** with therapeutic connections
+- **171 druggable targets** (85%) with FDA-approved drugs
 - Visual knowledge paths: Variant → Gene → Protein → Pathway → Disease → Drug
 
 ### AI-Powered Reasoning
@@ -207,12 +207,19 @@ This pipeline demonstrates how these annotation layers work together:
 
 | Therapeutic Area | Genes | Example Conditions |
 |------------------|-------|-------------------|
-| **Oncology** | 25 | Breast cancer, Lung cancer, Leukemia, Melanoma |
-| **Neurology** | 14 | FTD, ALS, Alzheimer's, Parkinson's, Huntington's |
-| **Rare Disease** | 12 | Cystic fibrosis, SMA, Muscular dystrophy, Hemophilia |
-| **Cardiovascular** | 10 | Cardiomyopathy, Long QT, Hypercholesterolemia |
+| **Oncology** | 23 | Breast cancer, Lung cancer, Leukemia, Melanoma |
+| **Neurology** | 36 | FTD, ALS, Alzheimer's, Parkinson's, Huntington's |
+| **Metabolic/Endocrine** | 22 | Diabetes, Obesity, Thyroid disorders |
+| **Infectious Disease** | 21 | HIV, HCV, SARS-CoV-2 |
+| **Rare Disease** | 16 | Cystic fibrosis, SMA, Muscular dystrophy, Hemophilia |
+| **Respiratory** | 13 | Asthma, COPD, Pulmonary hypertension |
+| **Cardiovascular** | 12 | Cardiomyopathy, Long QT, Hypercholesterolemia |
+| **Hematology** | 12 | Thrombocytopenia, Hemophilia, CLL |
+| **GI/Hepatology** | 12 | IBD, GERD, Liver disease |
+| **Ophthalmology** | 11 | Macular degeneration, Retinitis pigmentosa |
+| **Dermatology** | 9 | Psoriasis, Atopic dermatitis |
 | **Immunology** | 8 | Rheumatoid arthritis, Psoriasis, Crohn's disease |
-| **Pharmacogenomics** | 10 | Drug metabolism, Warfarin sensitivity, Chemotherapy toxicity |
+| **Pharmacogenomics** | 6 | Drug metabolism, Warfarin sensitivity, Chemotherapy toxicity |
 
 ---
 
@@ -474,7 +481,7 @@ Variant → Gene → Protein → Pathway → Disease → Drug
 **Example Connection (VCP):**
 
 ```
-rs188935092 (chr7:117559590 G>A)
+rs188935092 (chr9:35065263 G>A)
       │
       ▼
 Gene: VCP
@@ -623,7 +630,7 @@ Open **http://localhost:8501** in your browser.
 ### Step 1: Clone the Repository
 
 ```bash
-git clone https://github.com/ajones1923/rag-chat-pipeline.git
+git clone https://github.com/ajones1923/hcls-ai-factory.git
 cd rag-chat-pipeline
 ```
 
@@ -1004,9 +1011,9 @@ curl https://api.anthropic.com/v1/messages \
 
 | Stage | Pipeline | Description |
 |-------|----------|-------------|
-| **1** | [Genomics Pipeline](https://github.com/ajones1923/genomics-pipeline) | FASTQ → VCF with Parabricks |
-| **2** | **RAG/Chat Pipeline** (This repo) | VCF → Target Hypothesis |
-| **3** | [Drug Discovery Pipeline](https://github.com/ajones1923/drug-discovery-pipeline) | Target → Molecule Candidates |
+| **1** | [Genomics Pipeline](https://github.com/ajones1923/hcls-ai-factory/tree/main/genomics-pipeline) | FASTQ → VCF with Parabricks |
+| **2** | **RAG/Chat Pipeline** (This component) | VCF → Target Hypothesis |
+| **3** | [Drug Discovery Pipeline](https://github.com/ajones1923/hcls-ai-factory/tree/main/drug-discovery-pipeline) | Target → Molecule Candidates |
 
 ### Integration Flow
 

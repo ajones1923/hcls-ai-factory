@@ -53,11 +53,14 @@ docker compose ps
 
 **Expected services:**
 
-- `genomics-pipeline` — Parabricks + DeepVariant
-- `rag-service` — Milvus + Claude integration
-- `drug-discovery` — BioNeMo MolMIM + DiffDock
+- `genomics-portal` — Parabricks + DeepVariant (port 5000)
+- `rag-api` — RAG engine + Claude integration (port 5001)
+- `streamlit-chat` — Chat UI (port 8501)
+- `molmim` / `diffdock` — BioNeMo NIMs (ports 8001, 8002)
+- `discovery-ui` — Drug discovery interface (port 8505)
+- `milvus` / `etcd` / `minio` — Vector database stack (port 19530)
 - `grafana` — Monitoring dashboard (port 3000)
-- `streamlit` — Chat UI (port 8501)
+- `landing-page` — Service health monitor (port 8080)
 
 ---
 
@@ -65,7 +68,7 @@ docker compose ps
 
 ```bash
 # Check GPU visibility
-docker compose exec genomics-pipeline nvidia-smi
+docker compose exec genomics-portal nvidia-smi
 ```
 
 You should see your GPU(s) listed with available memory.
@@ -76,10 +79,7 @@ You should see your GPU(s) listed with available memory.
 
 ```bash
 # Download reference genome (one-time, ~15GB)
-./scripts/download_reference.sh
-
-# Load ClinVar and AlphaMissense annotations
-./scripts/load_annotations.sh
+./scripts/download_references.sh
 ```
 
 ---
@@ -87,8 +87,8 @@ You should see your GPU(s) listed with available memory.
 ## Step 6: Run a Test Pipeline
 
 ```bash
-# Run with synthetic test data
-./scripts/run_demo.sh --mock
+# Run the demo pipeline
+python run_pipeline.py --mode demo
 
 # Expected output: variant calls in output/demo/
 ```
@@ -103,7 +103,8 @@ Open your browser:
 |---------|-----|---------|
 | Streamlit Chat | `http://localhost:8501` | Query variants with Claude |
 | Grafana | `http://localhost:3000` | Monitor pipeline metrics |
-| API Docs | `http://localhost:8080/docs` | REST API reference |
+| Landing Page | `http://localhost:8080` | Service health dashboard |
+| RAG API | `http://localhost:5001` | REST API for variant queries |
 
 ---
 
@@ -116,14 +117,14 @@ Open your browser:
 docker compose logs -f
 
 # Restart specific service
-docker compose restart rag-service
+docker compose restart rag-api
 ```
 
 ### GPU not detected
 
 ```bash
 # Verify NVIDIA runtime
-docker run --rm --gpus all nvidia/cuda:12.0-base nvidia-smi
+docker run --rm --gpus all nvidia/cuda:12.4.0-base-ubuntu22.04 nvidia-smi
 ```
 
 ### Out of memory

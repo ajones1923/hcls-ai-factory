@@ -447,7 +447,7 @@ STAGE 3: DRUG DISCOVERY PIPELINE
 --------------------------------------------------------------------------------
 
 COMPUTE INFRASTRUCTURE:
-- NVIDIA DGX Spark (GB10 GPU, 128GB VRAM, 512GB RAM)
+- NVIDIA DGX Spark (GB10 GPU, 128GB unified LPDDR5x)
 - NVIDIA CUDA 12.x
 - Docker with NVIDIA Container Runtime
 - Ubuntu 22.04 LTS
@@ -911,7 +911,7 @@ OUTPUT FILES:
 
 VCF FORMAT:
 #CHROM  POS       ID           REF  ALT  QUAL   FILTER  INFO         FORMAT  HG002
-chr7    117559590 rs188935092  G    A    45.2   PASS    DP=32;AF=0.5 GT:DP   0/1:32
+chr9    35065263  rs188935092  G    A    45.2   PASS    DP=32;AF=0.5 GT:DP   0/1:32
 
 Column Descriptions:
 - CHROM: Chromosome (chr1-22, chrX, chrY, chrM)
@@ -1256,7 +1256,7 @@ THE CONNECTION CHAIN:
        +-- Genomic coordinates
 
 EXAMPLE CONNECTION (VCP):
-    rs188935092 (chr7:117559590 G>A)
+    rs188935092 (chr9:35065263 G>A)
           |
           v
     Gene: VCP
@@ -2229,7 +2229,7 @@ PROCESS RESOURCES:
     }
 
 CONTAINER ASSIGNMENTS:
-    GENOMICS: nfcore/sarek:3.4.0
+    GENOMICS: nvcr.io/nvidia/clara/clara-parabricks:4.6.0-1
     RAG_CHAT: hls-pipeline/rag-chat:latest
     DRUG_DISCOVERY: hls-pipeline/drug-discovery:latest
     MOLMIM: nvcr.io/nvidia/clara/bionemo-molmim:1.0
@@ -2271,7 +2271,7 @@ HARDWARE REQUIREMENTS:
 +------------------+------------------+-------------------+-------------------+
 | GPU              | 8 GB VRAM        | 24 GB VRAM        | 128 GB (GB10)     |
 | GPU Architecture | Volta (V100)+    | Ampere (A100)     | Blackwell (GB10)  |
-| System RAM       | 32 GB            | 128 GB            | 512 GB            |
+| System RAM       | 32 GB            | 128 GB            | 128 GB (unified)  |
 | Storage          | 500 GB SSD       | 1 TB NVMe         | 8 TB NVMe         |
 | CPU              | 8 cores          | 32 cores          | 144 cores         |
 | Network          | 1 Gbps           | 10 Gbps           | 100 Gbps          |
@@ -3219,7 +3219,7 @@ VCF FORMAT:
     ##fileformat=VCFv4.3
     ##reference=GRCh38
     #CHROM  POS     ID          REF ALT QUAL    FILTER  INFO            FORMAT  SAMPLE
-    chr7    117559590   rs188935092 G   A   45.2    PASS    DP=32;AF=0.5    GT:DP   0/1:32
+    chr9    35065263    rs188935092 G   A   45.2    PASS    DP=32;AF=0.5    GT:DP   0/1:32
 
     Header lines: Start with ##
     Column header: Starts with #CHROM

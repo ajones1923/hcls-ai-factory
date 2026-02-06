@@ -349,7 +349,7 @@ This pipeline processes whole-genome sequencing (WGS) data through a complete bi
 |-----------|---------|-------------------------|-------|
 | **GPU** | 8GB VRAM | 128GB (GB10) | More VRAM = faster processing |
 | **GPU Architecture** | Volta (V100)+ | Blackwell (GB10) | Newer = better DeepVariant perf |
-| **System RAM** | 32 GB | 512 GB | BAM sorting is memory-intensive |
+| **System RAM** | 32 GB | 128 GB (unified) | BAM sorting is memory-intensive |
 | **Storage** | 500 GB SSD | 1 TB NVMe | Fast I/O critical for BAM files |
 | **CPU** | 8 cores | 144 cores | Parallel I/O and preprocessing |
 
@@ -380,7 +380,7 @@ An NVIDIA NGC account is required to pull the Parabricks container:
 
 ```bash
 # Clone the repository
-git clone https://github.com/ajones1923/genomics-pipeline.git
+git clone https://github.com/ajones1923/hcls-ai-factory.git
 cd genomics-pipeline
 
 # Run the complete workflow
@@ -424,7 +424,7 @@ cp your_sample_R2.fastq.gz data/input/HG002_R2.fastq.gz
 ### Step 1: Clone the Repository
 
 ```bash
-git clone https://github.com/ajones1923/genomics-pipeline.git
+git clone https://github.com/ajones1923/hcls-ai-factory.git
 cd genomics-pipeline
 ```
 
@@ -696,14 +696,14 @@ A VCF (Variant Call Format) file is a structured summary of how one genome diffe
 
 ```
 #CHROM  POS       ID           REF  ALT  QUAL   FILTER  INFO                    FORMAT  HG002
-chr7    117559590 rs188935092  G    A    45.2   PASS    DP=32;AF=0.5           GT:DP   0/1:32
+chr9    35065263  rs188935092  G    A    45.2   PASS    DP=32;AF=0.5           GT:DP   0/1:32
 chr17   7674220   rs1042522    G    C    99.0   PASS    DP=45;AF=0.5           GT:DP   0/1:45
 ```
 
 | Column | Meaning |
 |--------|---------|
-| CHROM | Chromosome (chr7) |
-| POS | Position on chromosome (117559590) |
+| CHROM | Chromosome (chr9) |
+| POS | Position on chromosome (35065263) |
 | ID | dbSNP identifier (rs188935092) |
 | REF | Reference allele (G) |
 | ALT | Alternate allele (A) |
@@ -991,9 +991,9 @@ This pipeline is **Stage 1** of the Precision Medicine to Drug Discovery AI Fact
 
 | Stage | Pipeline | Repository | Description |
 |-------|----------|------------|-------------|
-| **1** | **Genomics Pipeline** | [genomics-pipeline](https://github.com/ajones1923/genomics-pipeline) | FASTQ → VCF (This repo) |
-| **2** | RAG/Chat Pipeline | [rag-chat-pipeline](https://github.com/ajones1923/rag-chat-pipeline) | VCF → Target Hypothesis |
-| **3** | Drug Discovery Pipeline | [drug-discovery-pipeline](https://github.com/ajones1923/drug-discovery-pipeline) | Target → Molecule Candidates |
+| **1** | **Genomics Pipeline** | [genomics-pipeline](https://github.com/ajones1923/hcls-ai-factory/tree/main/genomics-pipeline) | FASTQ → VCF (This component) |
+| **2** | RAG/Chat Pipeline | [rag-chat-pipeline](https://github.com/ajones1923/hcls-ai-factory/tree/main/rag-chat-pipeline) | VCF → Target Hypothesis |
+| **3** | Drug Discovery Pipeline | [drug-discovery-pipeline](https://github.com/ajones1923/hcls-ai-factory/tree/main/drug-discovery-pipeline) | Target → Molecule Candidates |
 
 ### Complete Demo Flow
 

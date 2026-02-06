@@ -199,7 +199,7 @@ flowchart TB
 
         subgraph DRUG_STRUCTURE["Phase 5: Structure Evidence"]
             D_PDB_API["🌐 RCSB PDB API<br/>Protein Data Bank<br/>Real-Time Fetch"]
-            D_STRUCTURES["🔬 Cryo-EM Structures<br/>8OOI: WT Hexamer 2.9Å<br/>9DIL: Mutant 3.2Å<br/>7K56: Complex 2.5Å<br/>5FTK: +CB-5083 2.3Å"]
+            D_STRUCTURES["🔬 PDB Structures<br/>8OOI: WT Hexamer 2.9Å (Cryo-EM)<br/>9DIL: Mutant 3.2Å (Cryo-EM)<br/>7K56: Complex 2.5Å (Cryo-EM)<br/>5FTK: +CB-5083 2.3Å (X-ray)"]
             D_BINDING["🎯 Binding Site Analysis<br/>D2 ATPase Domain<br/>ATP-Competitive Pocket<br/>Key Residues Mapped"]
             D_CACHE["💾 Structure Cache<br/>PDB Files (.pdb)<br/>Structure Images (.jpeg)<br/>Local Storage"]
         end
@@ -296,7 +296,7 @@ flowchart TB
 
         subgraph HW_SYSTEM["System Resources"]
             H_CPU["🧠 CPU<br/>144 Cores<br/>ARM Architecture<br/>Parallel Processing"]
-            H_RAM["💾 System RAM<br/>512GB DDR5<br/>BAM Processing<br/>Large Datasets"]
+            H_RAM["💾 Unified Memory<br/>128GB LPDDR5x<br/>Shared CPU/GPU<br/>NVLink-C2C"]
             H_NVME["💿 NVMe Storage<br/>2TB+ Capacity<br/>High IOPS<br/>Fast I/O"]
         end
 

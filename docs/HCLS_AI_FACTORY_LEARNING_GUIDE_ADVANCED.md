@@ -187,7 +187,7 @@ The `genomic_evidence` collection in Milvus 2.4 uses a 17-field schema designed 
 
 The RAG pipeline in `rag_engine.py` (23 KB) implements a multi-stage retrieval strategy:
 
-1. **Query expansion:** User queries are enriched using 10 therapeutic area keyword maps. For example, a query about "neurodegeneration" is expanded with terms like "frontotemporal dementia," "ALS," "motor neuron," "tau protein."
+1. **Query expansion:** User queries are enriched using 13 therapeutic area keyword maps. For example, a query about "neurodegeneration" is expanded with terms like "frontotemporal dementia," "ALS," "motor neuron," "tau protein."
 
 2. **Hybrid retrieval:** The expanded query is embedded and used for vector search (top_k=20). Results are optionally filtered by scalar fields (e.g., impact=HIGH, am_class=pathogenic).
 

@@ -284,7 +284,7 @@ Use small colored dots: NVIDIA green for Stage 1, teal for Stage 2, orange for S
 **Left:** NVIDIA logo mark + "NVIDIA DGX Spark" in white
 
 **Center (metric badges, green pills on navy background):**
-- "GB10 GPU" | "128 GB LPDDR5x" | "144 ARM64 Cores" | "NVMe Storage" | "512 GB RAM"
+- "GB10 GPU" | "128 GB LPDDR5x" | "144 ARM64 Cores" | "NVMe Storage" | "NVLink-C2C"
 
 **Right:**
 - "$3,999" in large bold white text

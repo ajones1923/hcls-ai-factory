@@ -210,7 +210,7 @@
 
 ### Cryo-EM Structure Evidence
 - **Source:** RCSB PDB / EMDB
-- **Structure scoring:** Resolution (max 5 - Å), inhibitor-bound (+3), druggable pockets (+0.5 each), Cryo-EM method (+0.5)
+- **Structure scoring:** Resolution (max 5 Å), inhibitor-bound (+3), druggable pockets (+0.5 each), Cryo-EM method (+0.5)
 - **VCP structures:**
   - 8OOI — Wild-type hexamer (Cryo-EM, 2.9 Å)
   - 9DIL — Disease mutant (Cryo-EM, 3.2 Å)
@@ -245,7 +245,7 @@
 - **Error handling:** Retry on exit codes 143, 137, 104, 134, 139 (max 2 retries)
 - **Reports:** Pipeline HTML, timeline, DAG visualization, trace TSV
 - **Container images:**
-  - Genomics: `nfcore/sarek:3.4.0`
+  - Genomics: `nvcr.io/nvidia/clara/clara-parabricks:4.6.0-1`
   - RAG/Chat: `hls-pipeline/rag-chat:latest`
   - Drug Discovery: `hls-pipeline/drug-discovery:latest`
   - MolMIM: `nvcr.io/nvidia/clara/bionemo-molmim:1.0`
@@ -263,8 +263,7 @@
 
 ### NVIDIA DGX Spark
 - **GPU:** GB10 (Blackwell generation)
-- **GPU Memory:** 128 GB unified LPDDR5x
-- **System RAM:** 512 GB
+- **Memory:** 128 GB unified LPDDR5x (shared CPU/GPU)
 - **CPU:** 144 ARM64 (Grace) cores
 - **Interconnect:** NVLink-C2C (~900 GB/s)
 - **Storage:** NVMe SSD

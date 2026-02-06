@@ -84,7 +84,6 @@ Patient DNA → Illumina Sequencer → FASTQ (~200 GB)
 | CPU | NVIDIA Grace (ARM64 / aarch64), 144 cores |
 | GPU | NVIDIA GB10, 1 GPU |
 | Memory | 128 GB unified LPDDR5x (CPU + GPU shared pool) |
-| System RAM | 512 GB |
 | Storage | NVMe, high-throughput I/O |
 | Storage Access | GPUDirect Storage (zero-copy GPU access) |
 | Price | $3,999 |
@@ -394,7 +393,7 @@ VCF (11.7M variants)
 ### Query Flow
 
 1. User asks a natural language question in the Streamlit chat
-2. Query is expanded using 10 therapeutic area keyword maps
+2. Query is expanded using 13 therapeutic area keyword maps
 3. BGE-small-en-v1.5 embeds the expanded query
 4. Milvus performs approximate nearest-neighbor search (top_k=20)
 5. Retrieved variant contexts are assembled into a RAG prompt
@@ -555,7 +554,7 @@ Each gene entry in `knowledge.py` (88 KB) contains:
 
 ### Query Expansion Maps
 
-10 therapeutic area query expansion maps enrich user queries with domain-specific terminology:
+13 therapeutic area query expansion maps enrich user queries with domain-specific terminology:
 
 ```python
 QUERY_EXPANSION = {
@@ -910,7 +909,7 @@ def score_structure(structure: StructureInfo) -> float:
 
 **Stage 3 — Drug Discovery (~10 min):**
 1. VCP → UniProt P55072 → PDB structure retrieval
-2. Cryo-EM structures scored: 8OOI, 9DIL, 7K56, 5FTK
+2. PDB structures scored: 8OOI, 9DIL, 7K56 (Cryo-EM), 5FTK (X-ray)
 3. 5FTK selected (inhibitor-bound, highest score)
 4. CB-5083 seed SMILES → MolMIM generates 100 novel analogs
 5. RDKit validates Lipinski, QED, TPSA

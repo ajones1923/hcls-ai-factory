@@ -440,7 +440,7 @@
 - Parallel Processing
 
 #### System RAM
-- 512GB DDR5
+- 128GB unified LPDDR5x
 - BAM Processing
 - Large Dataset handling
 

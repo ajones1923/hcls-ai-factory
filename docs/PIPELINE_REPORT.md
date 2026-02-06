@@ -1,4 +1,4 @@
-<![CDATA[<div align="center">
+<div align="center">
 
 # PRECISION MEDICINE TO DRUG DISCOVERY
 ## AI Factory Pipeline Report
@@ -15,7 +15,7 @@
 [![Status](https://img.shields.io/badge/Status-Production%20Ready-success?style=for-the-badge)]()
 [![Pipeline](https://img.shields.io/badge/Pipeline-End%20to%20End-blue?style=for-the-badge)]()
 
-**January 2026**
+**February 2026**
 
 </div>
 
@@ -63,7 +63,7 @@ The **HCLS AI Factory** represents a breakthrough in precision medicine, deliver
                                     │
                     ┌───────────────────────────────┐
                     │     NVIDIA DGX SPARK          │
-                    │  128GB GPU | 512GB RAM | 144  │
+                    │  128GB unified LPDDR5x | 144  │
                     └───────────────────────────────┘
 ```
 
@@ -316,8 +316,7 @@ The Drug Discovery Pipeline leverages NVIDIA BioNeMo NIM microservices to genera
 | Component | Specification |
 |:----------|:--------------|
 | **GPU** | NVIDIA GB10 (Blackwell) |
-| **GPU Memory** | 128 GB HBM3 |
-| **System RAM** | 512 GB DDR5 |
+| **Unified Memory** | 128 GB LPDDR5x (shared CPU/GPU) |
 | **CPU** | 144 Cores (ARM) |
 | **Storage** | 2+ TB NVMe |
 | **Network** | 100 GbE |
@@ -481,7 +480,6 @@ Powered by **Claude AI** | **DeepVariant** | **AlphaMissense**
 
 ---
 
-*January 2026*
+*February 2026*
 
 </div>
-]]>
