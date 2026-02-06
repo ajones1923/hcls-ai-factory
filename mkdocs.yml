@@ -101,9 +101,13 @@ nav:
     - Foundations: HCLS_AI_FACTORY_LEARNING_GUIDE_FOUNDATIONS.md
     - Advanced: HCLS_AI_FACTORY_LEARNING_GUIDE_ADVANCED.md
   - Pipelines:
-    - Genomics: genomics-pipeline/README.md
-    - RAG & Chat: rag-chat-pipeline/README.md
-    - Drug Discovery: drug-discovery-pipeline/README.md
+    - Stage 1 - GPU Genomics: stage-1-genomics.md
+    - Stage 2 - Evidence RAG: stage-2-rag.md
+    - Stage 3 - Drug Discovery: stage-3-drug-discovery.md
+    - Technical Docs:
+      - Genomics Pipeline: genomics-pipeline/README.md
+      - RAG Chat Pipeline: rag-chat-pipeline/README.md
+      - Drug Discovery Pipeline: drug-discovery-pipeline/README.md
   - Reports:
     - Intelligence Report: HCLS_AI_FACTORY_INTELLIGENCE_REPORT.md
     - Executive Summary: HCLS_AI_FACTORY_EXECUTIVE_BULLETS.md

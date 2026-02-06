@@ -1206,7 +1206,132 @@
 }
 
 /* ----------------------------------------------------------------
-   21. Comparison Table
+   21. Stage Landing Pages
+   ---------------------------------------------------------------- */
+.stage-hero {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  padding: 2rem;
+  border-radius: 16px;
+  margin: 2rem 0;
+}
+
+.stage-hero-green {
+  background: linear-gradient(135deg, rgba(118, 185, 0, 0.15) 0%, rgba(118, 185, 0, 0.05) 100%);
+  border-left: 4px solid #76B900;
+}
+
+.stage-hero-teal {
+  background: linear-gradient(135deg, rgba(0, 180, 216, 0.15) 0%, rgba(0, 180, 216, 0.05) 100%);
+  border-left: 4px solid #00B4D8;
+}
+
+.stage-hero-purple {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(139, 92, 246, 0.05) 100%);
+  border-left: 4px solid #8b5cf6;
+}
+
+.stage-number {
+  font-size: 4rem;
+  font-weight: 800;
+  line-height: 1;
+  opacity: 0.3;
+}
+
+.stage-hero-green .stage-number { color: #76B900; }
+.stage-hero-teal .stage-number { color: #00B4D8; }
+.stage-hero-purple .stage-number { color: #8b5cf6; }
+
+.stage-intro {
+  flex: 1;
+}
+
+.stage-tagline {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  color: var(--md-default-fg-color);
+}
+
+.stage-time {
+  font-size: 1rem;
+  margin: 0;
+  padding: 0.35rem 0.75rem;
+  border-radius: 9999px;
+  display: inline-block;
+}
+
+.stage-hero-green .stage-time {
+  background: rgba(118, 185, 0, 0.15);
+  color: #76B900;
+}
+
+.stage-hero-teal .stage-time {
+  background: rgba(0, 180, 216, 0.15);
+  color: #00B4D8;
+}
+
+.stage-hero-purple .stage-time {
+  background: rgba(139, 92, 246, 0.15);
+  color: #8b5cf6;
+}
+
+.tech-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0;
+}
+
+.tech-pills li {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+  padding: 0.4rem 0.8rem;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.next-steps {
+  background: rgba(59, 130, 246, 0.08);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin: 2rem 0;
+}
+
+.next-steps a {
+  display: block;
+  padding: 0.5rem 0;
+  color: #3b82f6;
+  font-weight: 500;
+}
+
+.next-steps a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+  .stage-hero {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+    padding: 1.5rem;
+  }
+
+  .stage-number {
+    font-size: 3rem;
+  }
+
+  .stage-tagline {
+    font-size: 1.25rem;
+  }
+}
+
+/* ----------------------------------------------------------------
+   22. Comparison Table
    ---------------------------------------------------------------- */
 .hcls-comparison {
   padding: 5rem 0;
