@@ -499,7 +499,7 @@
 .architecture-caption {
   margin-top: 1.5rem;
   font-weight: 600;
-  color: var(--hcls-green);
+  color: #3b82f6;
   font-size: 0.95rem;
 }
 
@@ -540,8 +540,8 @@
 }
 
 .tech-badge:hover {
-  border-color: var(--hcls-green);
-  box-shadow: 0 0 20px rgba(118, 185, 0, 0.2);
+  border-color: #3b82f6;
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.25);
   transform: translateY(-2px);
 }
 
@@ -679,11 +679,11 @@
    ---------------------------------------------------------------- */
 .download-table a {
   font-weight: 600;
-  color: var(--hcls-green);
+  color: #3b82f6;
 }
 
 .download-table a:hover {
-  color: var(--hcls-teal);
+  color: #2563eb;
 }
 
 /* ----------------------------------------------------------------
@@ -857,7 +857,7 @@
 .origin-line {
   flex: 1;
   height: 2px;
-  background: linear-gradient(90deg, var(--hcls-green) 0%, transparent 100%);
+  background: linear-gradient(90deg, #3b82f6 0%, transparent 100%);
 }
 
 .origin-text {
@@ -871,7 +871,7 @@
 }
 
 .origin-text strong {
-  color: var(--hcls-green-light);
+  color: #3b82f6;
   font-weight: 600;
 }
 
@@ -923,7 +923,7 @@
   padding: 1.5rem;
   background: #f8f9fa;
   border-radius: 12px;
-  border-left: 4px solid var(--hcls-green);
+  border-left: 4px solid #3b82f6;
   transition: all 0.3s ease;
 }
 
@@ -941,8 +941,8 @@
   width: 44px;
   height: 44px;
   border-radius: 10px;
-  background: rgba(118, 185, 0, 0.12);
-  color: var(--hcls-green);
+  background: rgba(59, 130, 246, 0.12);
+  color: #3b82f6;
   display: flex;
   align-items: center;
   justify-content: center;
