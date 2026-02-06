@@ -53,6 +53,21 @@
   backdrop-filter: blur(20px);
 }
 
+/* Replace site name text with logo image */
+.md-header__topic:first-child .md-ellipsis {
+  font-size: 0;
+  display: flex;
+  align-items: center;
+}
+
+.md-header__topic:first-child .md-ellipsis::after {
+  content: "";
+  display: inline-block;
+  width: 140px;
+  height: 32px;
+  background: url('../assets/logo-blue.png') no-repeat center/contain;
+}
+
 .md-tabs {
   background-color: var(--hcls-navy);
   border-bottom: 1px solid rgba(6, 182, 212, 0.1);
