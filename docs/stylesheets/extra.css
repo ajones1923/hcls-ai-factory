@@ -19,7 +19,7 @@
   --hcls-green: #76B900;
   --hcls-green-light: #8DD100;
   --hcls-teal: #00B4D8;
-  --hcls-purple: #8b5cf6;
+  --hcls-purple: #00B4D8;
   --hcls-blue: #3b82f6;
   --hcls-accent: #06B6D4;  /* Cyan accent - distinct from NVIDIA green */
 
@@ -151,7 +151,7 @@
 }
 
 .badge-text {
-  background: linear-gradient(90deg, #76B900 0%, #00B4D8 50%, #8b5cf6 100%);
+  background: linear-gradient(90deg, #76B900 0%, #00B4D8 50%, #00B4D8 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -211,7 +211,7 @@
 }
 
 .hero-btn-primary {
-  background: #8b5cf6;
+  background: #00B4D8;
   color: #fff !important;
   box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
 }
@@ -444,7 +444,7 @@
 .metric-value {
   font-size: 2.5rem;
   font-weight: 800;
-  color: #8b5cf6;
+  color: #00B4D8;
   line-height: 1.2;
 }
 
@@ -821,7 +821,7 @@
   margin-top: 1rem !important;
   font-size: 1.5rem !important;
   font-weight: 700;
-  color: #8b5cf6;
+  color: #00B4D8;
 }
 
 /* ----------------------------------------------------------------
@@ -881,7 +881,7 @@
 }
 
 .origin-conviction {
-  color: #8b5cf6;
+  color: #00B4D8;
 }
 
 /* ----------------------------------------------------------------
