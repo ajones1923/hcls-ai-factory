@@ -71,6 +71,8 @@ cp .env.example .env
 
 Open the landing page: **http://localhost:8080**
 
+![HCLS AI Factory landing page showing all services operational](images/portal-gui.png){ loading=lazy style="max-width:100%; border-radius:12px; box-shadow: 0 4px 20px rgba(0,0,0,0.12); margin-bottom: 1rem;" }
+
 All 10 services should show green status:
 
 | Service | Port | Expected Status |

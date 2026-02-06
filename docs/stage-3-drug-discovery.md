@@ -30,6 +30,25 @@ This is generative drug discovery:
 
 ## The Process
 
+```mermaid
+flowchart TD
+    S1["1. Structure Retrieval\nPDB: 5FTK (2.3 A)"]
+    S2["2. Seed Compound\nCB-5083 inhibitor"]
+    S3["3. Molecule Generation\nBioNeMo MolMIM × 100"]
+    S4["4. Binding Prediction\nBioNeMo DiffDock"]
+    S5["5. Drug-Likeness Scoring\nRDKit + Lipinski + QED"]
+    OUT["100 Ranked Candidates\nTop: 0.89 composite score"]
+
+    S1 --> S2 --> S3 --> S4 --> S5 --> OUT
+
+    style S1 fill:#9c27b0,stroke:#7b1fa2,color:#fff
+    style S2 fill:#7e57c2,stroke:#5e35b1,color:#fff
+    style S3 fill:#8b5cf6,stroke:#7c3aed,color:#fff
+    style S4 fill:#a78bfa,stroke:#8b5cf6,color:#fff
+    style S5 fill:#c4b5fd,stroke:#a78bfa
+    style OUT fill:#76B900,stroke:#5a8f00,color:#fff
+```
+
 ### 1. Get the Target Structure
 
 For VCP (the target from Stage 2), the pipeline queries the Protein Data Bank:
@@ -45,6 +64,13 @@ The existing drug **CB-5083** serves as our starting point:
 - VCP inhibitor that reached Phase I trials
 - Discontinued due to off-target effects
 - Provides a molecular scaffold to improve upon
+
+<figure style="text-align:center; margin: 1.5rem 0;">
+  <img src="../images/mol_CB5083.png"
+       alt="CB-5083 molecular structure — VCP inhibitor seed compound"
+       style="max-width: 280px; border-radius: 12px; background: #fff; padding: 0.5rem;">
+  <figcaption style="font-size: 0.85rem; opacity: 0.7; margin-top: 0.5rem;">CB-5083 molecular structure — starting scaffold for AI optimization</figcaption>
+</figure>
 
 ### 3. Generate Novel Molecules
 
@@ -168,14 +194,25 @@ Each candidate includes:
 
 ## Full Pipeline Summary
 
-```
-Patient DNA ──▶ Stage 1 ──▶ Stage 2 ──▶ Stage 3 ──▶ Drug Candidates
-   (FASTQ)      (VCF)      (Target)    (Molecules)
+```mermaid
+flowchart LR
+    DNA["Patient DNA\n200 GB FASTQ"]
+    S1["Stage 1\nGPU Genomics\n2–4 hours"]
+    VCF["11.7M\nVariants"]
+    S2["Stage 2\nEvidence RAG\nMinutes"]
+    TGT["VCP\nDrug Target"]
+    S3["Stage 3\nDrug Discovery\n8–16 min"]
+    OUT["100 Ranked\nCandidates"]
 
-   200 GB       11.7M       VCP         100 ranked
-   raw data     variants    gene        candidates
+    DNA --> S1 --> VCF --> S2 --> TGT --> S3 --> OUT
 
-               2-4 hrs     minutes     8-16 min
+    style DNA fill:#B3E5FC,stroke:#0288D1
+    style S1 fill:#76B900,stroke:#5a8f00,color:#fff
+    style VCF fill:#FFE082,stroke:#FFA000
+    style S2 fill:#00B4D8,stroke:#0077B6,color:#fff
+    style TGT fill:#FFE082,stroke:#FFA000
+    style S3 fill:#8b5cf6,stroke:#7c3aed,color:#fff
+    style OUT fill:#76B900,stroke:#5a8f00,color:#fff
 ```
 
 **Total time:** Under 5 hours from raw DNA to drug candidates.

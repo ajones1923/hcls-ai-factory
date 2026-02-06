@@ -69,17 +69,32 @@ GPU acceleration via NVIDIA Parabricks delivers **10–50x speedup** over tradit
 
 ## How It Works
 
+```mermaid
+flowchart LR
+    FASTQ["FASTQ\n200 GB raw reads"]
+    ALIGN["BWA-MEM2\nGPU Alignment"]
+    DV["DeepVariant\nAI Variant Calling"]
+    VCF["VCF\n11.7M variants"]
+    GPU["⚡ NVIDIA GPU"]
+
+    FASTQ --> ALIGN --> DV --> VCF
+    GPU -.->|accelerates| ALIGN
+    GPU -.->|accelerates| DV
+
+    style FASTQ fill:#B3E5FC,stroke:#0288D1
+    style ALIGN fill:#76B900,stroke:#5a8f00,color:#fff
+    style DV fill:#76B900,stroke:#5a8f00,color:#fff
+    style VCF fill:#FFE082,stroke:#FFA000
+    style GPU fill:#1B2333,stroke:#76B900,color:#76B900
 ```
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│   FASTQ     │ ──▶ │  Alignment  │ ──▶ │   Variant   │ ──▶ │     VCF     │
-│  (200 GB)   │     │  (BWA-MEM2) │     │   Calling   │     │  (11.7M)    │
-└─────────────┘     └─────────────┘     └─────────────┘     └─────────────┘
-      │                   │                   │                   │
-      │                   │                   │                   │
-   Raw reads         Mapped BAM         DeepVariant          Variants
-   from sequencer    coordinates        AI model             ready for
-                                                             Stage 2
-```
+
+<a href="../diagrams/dgx_spark/HCLS%20AI%20Factory%20on%20NVIDIA%20DGX%20Spark%20Pipeline%20Logical%20Diagram%20v1.0.png" target="_blank">
+  <img src="../diagrams/dgx_spark/HCLS%20AI%20Factory%20on%20NVIDIA%20DGX%20Spark%20Pipeline%20Logical%20Diagram%20v1.0.png"
+       alt="Detailed HCLS AI Factory Pipeline Logical Diagram"
+       loading="lazy"
+       style="max-width:100%; border-radius:12px; box-shadow: 0 4px 20px rgba(0,0,0,0.12); margin-top: 1.5rem;">
+</a>
+<p style="text-align:center; font-size:0.9rem; opacity:0.7; margin-top:0.5rem;">Click to view the full pipeline logical diagram</p>
 
 ---
 

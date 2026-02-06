@@ -30,18 +30,27 @@ Stage 2 uses **Retrieval-Augmented Generation (RAG)** to:
 
 This is the heart of what the platform does — narrowing millions of variants to actionable targets:
 
-```
-    11,700,000  Variants discovered
-         ↓
-     3,500,000  Pass quality filters
-         ↓
-        35,616  Match ClinVar records
-         ↓
-         6,831  Have pathogenicity predictions
-         ↓
-         2,400  High-impact, disease-causing
-         ↓
-           847  In druggable genes
+```mermaid
+flowchart TD
+    A["11,700,000 variants discovered"]
+    B["3,500,000 pass quality filters"]
+    C["35,616 match ClinVar records"]
+    D["6,831 have pathogenicity predictions"]
+    E["2,400 high-impact, disease-causing"]
+    F["847 in druggable genes"]
+
+    A -->|"Quality filter (QUAL>30)"| B
+    B -->|"ClinVar annotation"| C
+    C -->|"AlphaMissense scoring"| D
+    D -->|"Impact classification"| E
+    E -->|"Druggability filter"| F
+
+    style A fill:#B3E5FC,stroke:#0288D1
+    style B fill:#81D4FA,stroke:#0288D1
+    style C fill:#4FC3F7,stroke:#0277BD
+    style D fill:#29B6F6,stroke:#0277BD,color:#fff
+    style E fill:#039BE5,stroke:#01579B,color:#fff
+    style F fill:#00B4D8,stroke:#0077B6,color:#fff
 ```
 
 From 11.7 million down to 847. That's the power of AI-driven annotation.
@@ -69,12 +78,23 @@ Neurology · Oncology · Cardiovascular · Metabolic · Immunology · Rare Disea
 
 **Retrieval-Augmented Generation** combines search with AI reasoning:
 
-```
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│   Query     │ ──▶ │   Vector    │ ──▶ │  Retrieved  │ ──▶ │     AI      │
-│  (natural   │     │   Search    │     │  Evidence   │     │  Reasoning  │
-│  language)  │     │  (Milvus)   │     │  (context)  │     │  (Claude)   │
-└─────────────┘     └─────────────┘     └─────────────┘     └─────────────┘
+```mermaid
+flowchart LR
+    Q["Natural Language\nQuery"]
+    E["BGE Embedding\n384 dimensions"]
+    M["Milvus Vector Search\n3.5M variants"]
+    R["Retrieved Evidence\nClinVar + AlphaMissense"]
+    C["Claude AI\nGrounded Reasoning"]
+    A["Grounded Answer\nwith citations"]
+
+    Q --> E --> M --> R --> C --> A
+
+    style Q fill:#E1BEE7,stroke:#7B1FA2
+    style E fill:#B3E5FC,stroke:#0288D1
+    style M fill:#00B4D8,stroke:#0077B6,color:#fff
+    style R fill:#B2DFDB,stroke:#00796B
+    style C fill:#FFE082,stroke:#FFA000
+    style A fill:#C8E6C9,stroke:#388E3C
 ```
 
 1. **You ask a question** in natural language
