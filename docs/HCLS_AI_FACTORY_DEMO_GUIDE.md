@@ -2,7 +2,7 @@
 
 > **Step-by-step walkthrough for demonstrating the HCLS AI Factory on DGX Spark.**
 >
-> **License:** Apache 2.0 |**Date:** February 2026
+> License: Apache 2.0 | Date: February 2026
 
 ---
 

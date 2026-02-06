@@ -2,7 +2,7 @@
 
 > **Patient:** GEN-2026-0087 | **Pipeline Run:** HCLS-VCP-2026-0087 | **Mode:** Full (Stages 1→2→3)
 >
-> **License:** Apache 2.0 |**Date:** February 2026
+> License: Apache 2.0 | Date: February 2026
 
 ---
 

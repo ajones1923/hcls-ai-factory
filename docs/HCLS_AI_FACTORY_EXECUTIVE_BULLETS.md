@@ -2,7 +2,7 @@
 
 > **One-page reference for executives, stakeholders, and demo audiences.**
 >
-> **License:** Apache 2.0 |**Date:** February 2026
+> License: Apache 2.0 | Date: February 2026
 
 ---
 

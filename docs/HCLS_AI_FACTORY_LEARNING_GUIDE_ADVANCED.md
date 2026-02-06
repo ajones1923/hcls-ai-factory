@@ -4,7 +4,7 @@
 >
 > **What You'll Learn:** Deep technical analysis of the HCLS AI Factory architecture, from BWA-MEM2 seed-and-extend algorithms through diffusion-based molecular docking, with emphasis on algorithmic design decisions, scaling bottlenecks, and clinical translation barriers.
 >
-> **License:** Apache 2.0 |**Date:** February 2026
+> License: Apache 2.0 | Date: February 2026
 
 ---
 

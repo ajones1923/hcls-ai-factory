@@ -2,7 +2,7 @@
 
 > **From Patient DNA to Novel Drug Candidates in Under Five Hours**
 >
-> **License:** Apache 2.0 |**Date:** February 2026
+> License: Apache 2.0 | Date: February 2026
 
 ---
 

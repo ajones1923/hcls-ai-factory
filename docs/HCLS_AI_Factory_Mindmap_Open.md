@@ -2,7 +2,7 @@
 
 > **Purpose:** Comprehensive reference map of the HCLS AI Factory platform for Secondary Genomics to Novel Drug Discovery. Covers every component, data flow, technology, and integration point.
 >
-> **License:** Apache 2.0 |**Date:** February 2026
+> License: Apache 2.0 | Date: February 2026
 
 ---
 

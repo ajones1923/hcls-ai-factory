@@ -2,7 +2,7 @@
 
 > **Purpose:** Complete implementation reference for building the HCLS AI Factory on NVIDIA DGX Spark. This platform transforms patient DNA into novel drug candidates in under 5 hours across three GPU-accelerated stages: Secondary Genomics, RAG-Grounded Target Identification, and AI-Driven Drug Discovery. Import this document into a Claude Code session as context for implementation.
 >
-> **License:** Apache 2.0 |**Date:** February 2026
+> License: Apache 2.0 | Date: February 2026
 
 ---
 
