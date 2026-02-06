@@ -1,3 +1,12 @@
+// Open repo link in new tab
+document.addEventListener("DOMContentLoaded", function () {
+  var repoLink = document.querySelector(".md-source");
+  if (repoLink) {
+    repoLink.setAttribute("target", "_blank");
+    repoLink.setAttribute("rel", "noopener");
+  }
+});
+
 // Scroll-triggered fade-in animations
 document.addEventListener("DOMContentLoaded", function () {
   var elements = document.querySelectorAll(".fade-in");
