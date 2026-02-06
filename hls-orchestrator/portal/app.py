@@ -204,7 +204,7 @@ def get_service_status(url: str, timeout: float = 2.0) -> bool:
     try:
         response = requests.get(url, timeout=timeout)
         return response.status_code < 500
-    except:
+    except Exception:
         return False
 
 
@@ -223,7 +223,7 @@ def get_gpu_metrics() -> Dict[str, Any]:
             elif line.startswith('DCGM_FI_DEV_FB_USED'):
                 metrics['mem_used'] = float(line.split()[-1])
         return metrics
-    except:
+    except Exception:
         return {}
 
 
@@ -635,7 +635,7 @@ def render_drug_discovery():
                             with open(f) as file:
                                 data = json.load(file)
                             st.json(data)
-                        except:
+                        except (json.JSONDecodeError, OSError):
                             st.error("Could not load file")
             else:
                 st.info("No results found. Run the drug discovery pipeline to generate outputs.")

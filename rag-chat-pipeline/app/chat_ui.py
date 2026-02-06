@@ -1435,7 +1435,7 @@ def main():
         engine = get_rag_engine()
         stats = engine.milvus.get_stats()
         variant_count = stats.get('num_entities', 0)
-    except:
+    except Exception:
         variant_count = 35616  # Fallback to known count
 
     # Stats in styled columns - Light Theme

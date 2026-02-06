@@ -610,7 +610,7 @@ class VCPReportGeneratorEnhanced:
             try:
                 mol_img = Image(str(mol_img_path), width=2*inch, height=2*inch)
                 ref_content.append([mol_img])
-            except:
+            except Exception:
                 pass
 
         ref_props = [
