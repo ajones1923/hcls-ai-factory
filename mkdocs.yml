@@ -1,7 +1,7 @@
 site_name: HCLS AI Factory
 site_description: Transform patient DNA into therapeutic candidates in hours, not months. Open-source precision medicine on NVIDIA DGX Spark.
 site_author: Adam Jones
-site_url: https://hclsaifactory.netlify.app
+site_url: https://hcls-ai-factory.org
 
 repo_name: ajones1923/hcls-ai-factory
 repo_url: https://github.com/ajones1923/hcls-ai-factory

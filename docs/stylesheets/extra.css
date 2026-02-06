@@ -68,7 +68,7 @@
   background: url('../assets/logo-header.png') no-repeat center;
   background-size: 174px 48px;
   border-radius: 6px;
-  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
 }
 
 .md-tabs {
@@ -399,7 +399,7 @@
   font-weight: 600;
   font-size: 0.9rem;
   text-decoration: none !important;
-  transition: gap 0.2s ease;
+  transition: color 0.2s ease;
 }
 
 .pipeline-genomics .pipeline-link { color: var(--pipeline-genomics); }
@@ -536,7 +536,7 @@
    9. Technology Badges
    ---------------------------------------------------------------- */
 .hcls-tech-stack {
-  padding: 5rem 0;
+  padding: 6rem 0;
   background: #f8f9fa;
 }
 
@@ -1621,5 +1621,110 @@
   .hero-gradient,
   .hero-grid {
     animation: none;
+  }
+}
+
+/* ----------------------------------------------------------------
+   23. Focus Indicators — Keyboard Accessibility
+   ---------------------------------------------------------------- */
+.hero-btn:focus-visible,
+.pipeline-link:focus-visible,
+.footer-links a:focus-visible,
+.tech-badge:focus-visible,
+.who-for-card:focus-visible,
+.architecture-img:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.pipeline-card:focus-within {
+  outline: 2px solid #3b82f6;
+  outline-offset: 3px;
+}
+
+/* ----------------------------------------------------------------
+   24. Print Styles
+   ---------------------------------------------------------------- */
+@media print {
+  .hcls-hero {
+    min-height: auto;
+    padding: 2rem 0;
+    background: #fff;
+    color: #000;
+  }
+
+  .hero-bg,
+  .hero-scroll-indicator,
+  .hero-gradient,
+  .hero-grid {
+    display: none;
+  }
+
+  .hero-title,
+  .hero-gradient-text {
+    -webkit-text-fill-color: #000;
+    background: none;
+    color: #000;
+  }
+
+  .hero-subtitle {
+    color: #333;
+  }
+
+  .hero-btn {
+    border: 1px solid #333;
+    color: #333 !important;
+    background: none;
+    box-shadow: none;
+  }
+
+  .hcls-metrics,
+  .hcls-comparison,
+  .hcls-origin,
+  .hcls-cta {
+    background: #fff;
+    color: #000;
+  }
+
+  .metric-value {
+    color: #000;
+  }
+
+  .metric-label {
+    color: #333;
+  }
+
+  .section-title,
+  .cta-title,
+  .origin-title {
+    color: #000;
+  }
+
+  .section-subtitle,
+  .cta-subtitle {
+    color: #333;
+  }
+
+  .hcls-footer {
+    background: #fff;
+    color: #000;
+    border-top: 1px solid #ccc;
+  }
+
+  .footer-brand h3,
+  .footer-links h4 {
+    color: #000;
+  }
+
+  .footer-brand p,
+  .footer-links a,
+  .footer-bottom p {
+    color: #333;
+  }
+
+  .fade-in {
+    opacity: 1;
+    transform: none;
   }
 }
