@@ -12,7 +12,7 @@ The HCLS AI Factory follows a reusable pattern: identify a canonical artifact, b
 
 The platform transforms patient FASTQ files (~200 GB of raw sequencing data from a 30× whole-genome study) into 100 ranked novel drug candidates in under 5 hours. Three stages execute sequentially: NVIDIA Parabricks performs GPU-accelerated alignment and variant calling (120-240 min), producing ~11.7 million variants. A RAG pipeline annotates variants with ClinVar, AlphaMissense, and VEP, indexes 3.5 million high-quality variants in a Milvus vector database, and uses Anthropic Claude to identify druggable gene targets. Finally, BioNeMo NIM services (MolMIM and DiffDock) generate novel molecules, predict binding affinities, and rank candidates by a composite drug-likeness score.
 
-The architecture is designed to run end-to-end on a $3,999 DGX Spark for proof builds and scale to DGX SuperPOD for enterprise deployments. All components are open-source or NVIDIA-licensed, released under Apache 2.0 as part of the HCLS AI Factory.
+The architecture is designed to run end-to-end on a $3,999 DGX Spark for proof builds and scale to DGX SuperPOD for enterprise deployments. All HCLS AI Factory code is released under Apache 2.0. The platform integrates open-source tools (Milvus, RDKit, DeepVariant), NVIDIA software (Parabricks, BioNeMo NIMs — free for development on DGX Spark), and the Anthropic Claude API. See the [Licensing & Cost Guide](licensing.md) for details.
 
 ---
 
@@ -266,7 +266,7 @@ DGX SuperPOD deployments with InfiniBand fabric, NVIDIA FLARE for federated lear
 
 The HCLS AI Factory demonstrates that the full precision medicine pipeline — from raw DNA to novel drug candidates — can run on a single desktop workstation. GPU acceleration collapses genomics from days to hours. Vector databases and LLM reasoning transform annotation from manual curation to interactive exploration. Generative chemistry and molecular docking automate the target-to-lead transition that traditionally takes months.
 
-The three-stage architecture (Genomics → RAG/Chat → Drug Discovery) provides a reproducible, auditable, and scalable framework. The same Nextflow pipelines that run on a $3,999 DGX Spark scale to DGX SuperPOD for enterprise deployments. All components are open-source or NVIDIA-licensed under Apache 2.0.
+The three-stage architecture (Genomics → RAG/Chat → Drug Discovery) provides a reproducible, auditable, and scalable framework. The same Nextflow pipelines that run on a $3,999 DGX Spark scale to DGX SuperPOD for enterprise deployments. All HCLS AI Factory code is Apache 2.0; NVIDIA components are free for development on DGX Spark, with enterprise licensing required at scale (see [Licensing & Cost Guide](licensing.md)).
 
 This is precision medicine as a continuous, computable workflow — not a disconnected collection of tools, but an integrated factory that transforms patient data into therapeutic hypotheses in a single session.
 

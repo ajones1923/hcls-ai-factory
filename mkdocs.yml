@@ -92,6 +92,7 @@ nav:
     - Quick-Start Checklist: quickstart.md
     - Demo Guide: HCLS_AI_FACTORY_DEMO_GUIDE.md
     - Deployment Guide: HCLS_AI_FACTORY_DGX_SPARK_DEPLOYMENT_GUIDE.md
+    - Licensing & Cost: licensing.md
   - Design:
     - Project Bible: HCLS_AI_FACTORY_PROJECT_BIBLE.md
     - White Paper: HCLS_AI_FACTORY_WHITE_PAPER_DGX_SPARK.md

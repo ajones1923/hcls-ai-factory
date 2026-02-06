@@ -347,7 +347,7 @@
 - Docker Compose orchestration
 - 10+ services on one node
 - VCP/FTD end-to-end demonstration
-- All open-source code on GitHub (Apache 2.0)
+- All HCLS AI Factory code on GitHub (Apache 2.0) — see [Licensing & Cost Guide](licensing.md)
 
 ### Phase 2 — Departmental
 - DGX B200 (8 GPUs) or small cluster

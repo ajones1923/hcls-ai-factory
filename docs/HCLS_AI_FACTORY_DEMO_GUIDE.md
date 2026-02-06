@@ -256,7 +256,7 @@ Claude will identify VCP as the primary target with:
 - "In under 5 hours, on a $3,999 desktop workstation, we went from raw DNA to 100 ranked drug candidates."
 - "This collapses a process that traditionally takes weeks to months."
 - "The same Nextflow pipelines scale from DGX Spark to DGX SuperPOD for enterprise deployments."
-- "Everything is open-source under Apache 2.0."
+- "All HCLS AI Factory code is open-source under Apache 2.0. NVIDIA components are free for development on DGX Spark."
 
 **Scaling story:**
 

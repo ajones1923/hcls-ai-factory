@@ -259,10 +259,12 @@ This platform is part of the **HCLS AI Factory** — a broader ecosystem that al
 
 ### Open Source
 
-The entire platform is released under the **Apache 2.0 license** — meaning anyone can use, modify, and share it for free. This is important because it means:
+All HCLS AI Factory code is released under the **Apache 2.0 license** — meaning anyone can use, modify, and share it for free. The platform also uses open-source tools like Milvus, RDKit, and DeepVariant. This means:
 - Any hospital can run it
 - Researchers can verify and improve the methods
-- No expensive software licenses required
+- No software license fees for development on DGX Spark
+
+Note: NVIDIA BioNeMo NIMs (MolMIM, DiffDock) are free for development but require an enterprise license for production deployments. The Anthropic Claude API is a paid commercial service. See the [Licensing & Cost Guide](licensing.md) for full details.
 
 ---
 
