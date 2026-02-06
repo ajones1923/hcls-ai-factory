@@ -499,7 +499,7 @@
 .architecture-caption {
   margin-top: 1.5rem;
   font-weight: 600;
-  color: #3b82f6;
+  color: #3b82f6 !important;
   font-size: 0.95rem;
 }
 
@@ -871,7 +871,7 @@
 }
 
 .origin-text strong {
-  color: #3b82f6;
+  color: #3b82f6 !important;
   font-weight: 600;
 }
 
@@ -882,7 +882,7 @@
 }
 
 .origin-conviction {
-  color: #3b82f6;
+  color: #3b82f6 !important;
 }
 
 /* ----------------------------------------------------------------
