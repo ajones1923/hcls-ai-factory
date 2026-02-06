@@ -13,6 +13,14 @@ HCLS_AI_FACTORY_ENVIRONMENT_GUIDE.md
 site/
 
 # ================================================================
+# Documentation binaries (use web docs instead)
+# ================================================================
+docs/*.pdf
+docs/*.docx
+!docs/diagrams/**/*.pdf
+primary-docs/
+
+# ================================================================
 # CREDENTIALS & SECRETS - NEVER COMMIT THESE
 # ================================================================
 .env

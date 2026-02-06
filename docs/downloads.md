@@ -2,28 +2,28 @@
 title: Downloads
 ---
 
-# Downloads
+# Resources
 
-All documentation is available for offline reading in PDF and Microsoft Word formats. These are the official v1.0 release documents.
+All documentation is available on this site. Use the links below to jump to each document.
 
 ## Documentation
 
-| Document | PDF | Word |
-|---|---|---|
-| **Project Bible** | [:material-file-pdf-box: PDF](HCLS%20AI%20Factory%20Open-Source%20Project%20Bible%20v1.0.pdf) | [:material-file-word-box: DOCX](HCLS%20AI%20Factory%20Open-Source%20Project%20Bible%20v1.0.docx) |
-| **White Paper** | [:material-file-pdf-box: PDF](HCLS%20AI%20Factory%20Open-Source%20Project%20White%20Paper%20v1.0.pdf) | [:material-file-word-box: DOCX](HCLS%20AI%20Factory%20Open-Source%20Project%20White%20Paper%20v1.0.docx) |
-| **Deployment Guide** | [:material-file-pdf-box: PDF](HCLS%20AI%20Factory%20Open-Source%20Project%20Deployment%20Guide%20v1.0.pdf) | [:material-file-word-box: DOCX](HCLS%20AI%20Factory%20Open-Source%20Project%20Deployment%20Guide%20v1.0.docx) |
-| **Demo Guide** | [:material-file-pdf-box: PDF](HCLS%20AI%20Factory%20Open-Source%20Project%20Demo%20Guide%20v1.0.pdf) | [:material-file-word-box: DOCX](HCLS%20AI%20Factory%20Open-Source%20Project%20Demo%20Guide%20v1.0.docx) |
-| **Intelligence Report** | [:material-file-pdf-box: PDF](HCLS%20AI%20Factory%20Open-Source%20Project%20Intelligence%20Report%20v1.0.pdf) | [:material-file-word-box: DOCX](HCLS%20AI%20Factory%20Open-Source%20Project%20Intelligence%20Report%20v1.0.docx) |
-| **High-Level Points** | [:material-file-pdf-box: PDF](HCLS%20AI%20Factory%20Open-Source%20Project%20High-Level%20Points%20v1.0.pdf) | [:material-file-word-box: DOCX](HCLS%20AI%20Factory%20Open-Source%20Project%20High-Level%20Points%20v1.0.docx) |
-| **Foundational Learning Guide** | [:material-file-pdf-box: PDF](HCLS%20AI%20Factory%20Open-Source%20Project%20Foundational%20Learning%20Guide%20v1.0.pdf) | [:material-file-word-box: DOCX](HCLS%20AI%20Factory%20Open-Source%20Project%20Foundational%20Learning%20Guide%20v1.0.docx) |
-| **Intermediate-Advanced Learning Guide** | [:material-file-pdf-box: PDF](HCLS%20AI%20Factory%20Open-Source%20Project%20Intermediate-Advanced%20Learning%20Guide%20v1.0.pdf) | [:material-file-word-box: DOCX](HCLS%20AI%20Factory%20Open-Source%20Project%20Intermediate-Advanced%20Learning%20Guide%20v1.0.docx) |
+| Document | Description |
+|---|---|
+| **[Project Bible](HCLS_AI_FACTORY_PROJECT_BIBLE.md)** | Complete implementation reference (24 sections) |
+| **[White Paper](HCLS_AI_FACTORY_WHITE_PAPER_DGX_SPARK.md)** | Technical overview and architecture |
+| **[Deployment Guide](HCLS_AI_FACTORY_DGX_SPARK_DEPLOYMENT_GUIDE.md)** | Step-by-step setup on DGX Spark |
+| **[Demo Guide](HCLS_AI_FACTORY_DEMO_GUIDE.md)** | Live demo walkthrough and script |
+| **[Intelligence Report](HCLS_AI_FACTORY_INTELLIGENCE_REPORT.md)** | Analysis and competitive landscape |
+| **[Executive Summary](HCLS_AI_FACTORY_EXECUTIVE_BULLETS.md)** | Key metrics and highlights |
+| **[Learning Guide — Foundations](HCLS_AI_FACTORY_LEARNING_GUIDE_FOUNDATIONS.md)** | Core concepts for beginners |
+| **[Learning Guide — Advanced](HCLS_AI_FACTORY_LEARNING_GUIDE_ADVANCED.md)** | Deep technical content |
 
 ## Reports
 
-| Document | PDF |
+| Document | Description |
 |---|---|
-| **VCP Drug Candidate Report** | [:material-file-pdf-box: PDF](HCLS%20AI%20Factory%20Open-Source%20Project%20VCP%20Drug%20Candidate%20Report%20v1.0.pdf) |
+| **[Pipeline Report](PIPELINE_REPORT.md)** | Detailed pipeline metrics and results |
 
 ## Architecture Diagrams
 
