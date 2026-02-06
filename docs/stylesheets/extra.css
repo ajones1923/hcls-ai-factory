@@ -63,10 +63,12 @@
 .md-header__topic:first-child .md-ellipsis::after {
   content: "";
   display: inline-block;
-  width: 175px;
+  width: 174px;
   height: 48px;
-  background: url('../assets/logo-blue.png') no-repeat center/contain;
+  background: url('../assets/logo-blue.png') no-repeat center;
+  background-size: 174px 48px;
   border-radius: 6px;
+  image-rendering: -webkit-optimize-contrast;
 }
 
 .md-tabs {
