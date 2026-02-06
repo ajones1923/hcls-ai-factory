@@ -90,6 +90,7 @@ nav:
   - Home: index.md
   - Architecture: architecture.md
   - Getting Started:
+    - Quick-Start Checklist: quickstart.md
     - Demo Guide: HCLS_AI_FACTORY_DEMO_GUIDE.md
     - Deployment Guide: HCLS_AI_FACTORY_DGX_SPARK_DEPLOYMENT_GUIDE.md
   - Design:

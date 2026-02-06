@@ -95,7 +95,7 @@
     <div class="pipeline-cards">
       <div class="pipeline-card pipeline-genomics">
         <div class="pipeline-number">01</div>
-        <div class="pipeline-icon">&#x1F9EC;</div>
+        <div class="pipeline-icon"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 15c6.667-6 13.333 0 20-6"/><path d="M9 22c1.798-1.998 2.518-3.995 2.807-5.993"/><path d="M15 2c-1.798 1.998-2.518 3.995-2.807 5.993"/><path d="m17 6-2.5-2.5"/><path d="m14 8-1-1"/><path d="m7 18 2.5 2.5"/><path d="m3.5 14.5.5.5"/><path d="m20 9 .5.5"/><path d="m6.5 12.5 1 1"/><path d="m16.5 10.5 1 1"/><path d="m10 16 1.5 1.5"/></svg></div>
         <h3>GPU Genomics</h3>
         <p>200 GB FASTQ processed via NVIDIA Parabricks and DeepVariant. 11.7M variants called at &gt;99% accuracy.</p>
         <span class="pipeline-time">120 &ndash; 240 min</span>
@@ -105,7 +105,7 @@
       <div class="pipeline-arrow">&#x25B6;</div>
       <div class="pipeline-card pipeline-rag">
         <div class="pipeline-number">02</div>
-        <div class="pipeline-icon">&#x1F50D;</div>
+        <div class="pipeline-icon"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M11 8v6"/><path d="M8 11h6"/></svg></div>
         <h3>Evidence RAG</h3>
         <p>3.5M variants annotated, embedded, and indexed. AI-powered reasoning identifies 171 druggable targets across 13 therapeutic areas.</p>
         <span class="pipeline-time">Interactive</span>
@@ -115,7 +115,7 @@
       <div class="pipeline-arrow">&#x25B6;</div>
       <div class="pipeline-card pipeline-drug">
         <div class="pipeline-number">03</div>
-        <div class="pipeline-icon">&#x1F9EA;</div>
+        <div class="pipeline-icon"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><path d="M8.5 2h7"/><path d="M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.52 16h12.96"/></svg></div>
         <h3>Drug Discovery</h3>
         <p>BioNeMo MolMIM generates novel molecules. DiffDock predicts binding. RDKit scores drug-likeness. 100 ranked candidates per target.</p>
         <span class="pipeline-time">8 &ndash; 16 min</span>
@@ -156,6 +156,67 @@
         <div class="metric-value">100</div>
         <div class="metric-label">Drug Candidates per Target</div>
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== COMPARISON ===== -->
+<section class="hcls-comparison fade-in">
+  <div class="section-container">
+    <h2 class="section-title">Traditional vs. HCLS AI Factory</h2>
+    <p class="section-subtitle">What used to take months now takes hours</p>
+    <div class="comparison-table-wrapper">
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Traditional Approach</th>
+            <th>HCLS AI Factory</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Sequence Alignment</strong></td>
+            <td>12 &ndash; 24 hours</td>
+            <td class="highlight">2 &ndash; 3 hours</td>
+          </tr>
+          <tr>
+            <td><strong>Variant Calling</strong></td>
+            <td>8 &ndash; 12 hours</td>
+            <td class="highlight">1 &ndash; 2 hours</td>
+          </tr>
+          <tr>
+            <td><strong>Annotation &amp; Interpretation</strong></td>
+            <td>Days of manual work</td>
+            <td class="highlight">Minutes (automated)</td>
+          </tr>
+          <tr>
+            <td><strong>Target Identification</strong></td>
+            <td>Weeks of literature review</td>
+            <td class="highlight">Minutes (AI-powered)</td>
+          </tr>
+          <tr>
+            <td><strong>Drug Candidate Design</strong></td>
+            <td>Months of medicinal chemistry</td>
+            <td class="highlight">8 &ndash; 16 minutes</td>
+          </tr>
+          <tr>
+            <td><strong>Total Time</strong></td>
+            <td>Weeks to months</td>
+            <td class="highlight">&lt; 5 hours</td>
+          </tr>
+          <tr>
+            <td><strong>Infrastructure Cost</strong></td>
+            <td>$100K+ (cluster)</td>
+            <td class="highlight">$3,999 (DGX Spark)</td>
+          </tr>
+          <tr>
+            <td><strong>Reproducibility</strong></td>
+            <td>Variable</td>
+            <td class="highlight">Deterministic</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </section>
@@ -215,32 +276,32 @@
     <p class="section-subtitle">For people and institutions working at the intersection of healthcare, life sciences, and AI who need systems, not abstractions.</p>
     <div class="who-for-grid">
       <div class="who-for-card">
-        <div class="who-for-icon">&#x1F9EC;</div>
+        <div class="who-for-icon"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 15c6.667-6 13.333 0 20-6"/><path d="M9 22c1.798-1.998 2.518-3.995 2.807-5.993"/><path d="M15 2c-1.798 1.998-2.518 3.995-2.807 5.993"/></svg></div>
         <h3>Researchers &amp; Bioinformaticians</h3>
         <p>Building, extending, or validating secondary genomics pipelines and variant interpretation workflows who need reproducible, inspectable infrastructure.</p>
       </div>
       <div class="who-for-card">
-        <div class="who-for-icon">&#x1F3E5;</div>
+        <div class="who-for-icon"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v4"/><path d="M14 14h-4"/><path d="M14 18h-4"/><path d="M14 8h-4"/><path d="M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2h2"/><path d="M18 22V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v18"/></svg></div>
         <h3>Clinicians &amp; Translational Teams</h3>
         <p>Exploring how genomic data, AI reasoning, and therapeutic insights can be integrated into real-world decision-making.</p>
       </div>
       <div class="who-for-card">
-        <div class="who-for-icon">&#x1F393;</div>
+        <div class="who-for-icon"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div>
         <h3>Academic Medical Centers</h3>
         <p>Teaching, researching, or operationalizing genomics and AI at scale, where transparency, reproducibility, and extensibility are critical.</p>
       </div>
       <div class="who-for-card">
-        <div class="who-for-icon">&#x1F527;</div>
+        <div class="who-for-icon"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z"/><path d="M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/><path d="M12 2v2"/><path d="M12 22v-2"/><path d="m17 20.66-1-1.73"/><path d="M11 10.27 7 3.34"/><path d="m20.66 17-1.73-1"/><path d="m3.34 7 1.73 1"/><path d="M14 12h8"/><path d="M2 12h2"/><path d="m20.66 7-1.73 1"/><path d="m3.34 17 1.73-1"/><path d="m17 3.34-1 1.73"/><path d="m11 13.73-4 6.93"/></svg></div>
         <h3>AI &amp; Systems Engineers</h3>
         <p>Interested in how real biomedical workloads behave when treated as first-class AI systems, including data flow, orchestration, and reasoning layers.</p>
       </div>
       <div class="who-for-card">
-        <div class="who-for-icon">&#x1F4BB;</div>
+        <div class="who-for-icon"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg></div>
         <h3>Platform Builders</h3>
         <p>Designing future healthcare platforms who want a concrete reference architecture for AI-native pipelines rather than high-level diagrams.</p>
       </div>
       <div class="who-for-card">
-        <div class="who-for-icon">&#x1F30D;</div>
+        <div class="who-for-icon"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg></div>
         <h3>Anyone, Anywhere</h3>
         <p>This project is not limited to a single specialty, disease, or institution. It is designed to be a shared foundation that can support many domains.</p>
       </div>
@@ -350,4 +411,39 @@
     </div>
   </div>
 </section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="hcls-footer">
+  <div class="section-container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <h3>HCLS AI Factory</h3>
+        <p>Open-source precision medicine infrastructure.<br>From patient DNA to drug candidates in hours.</p>
+      </div>
+      <div class="footer-links">
+        <h4>Documentation</h4>
+        <a href="HCLS_AI_FACTORY_DEMO_GUIDE/">Demo Guide</a>
+        <a href="HCLS_AI_FACTORY_DGX_SPARK_DEPLOYMENT_GUIDE/">Deployment Guide</a>
+        <a href="HCLS_AI_FACTORY_WHITE_PAPER_DGX_SPARK/">White Paper</a>
+        <a href="HCLS_AI_FACTORY_PROJECT_BIBLE/">Project Bible</a>
+      </div>
+      <div class="footer-links">
+        <h4>Pipelines</h4>
+        <a href="genomics-pipeline/README/">Genomics Pipeline</a>
+        <a href="rag-chat-pipeline/README/">RAG Chat Pipeline</a>
+        <a href="drug-discovery-pipeline/README/">Drug Discovery Pipeline</a>
+      </div>
+      <div class="footer-links">
+        <h4>Connect</h4>
+        <a href="https://github.com/ajones1923/hcls-ai-factory" target="_blank" rel="noopener">GitHub Repository</a>
+        <a href="architecture/">Architecture</a>
+        <a href="downloads/">Downloads</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 Adam Jones. Licensed under <a href="https://www.apache.org/licenses/LICENSE-2.0" target="_blank" rel="noopener">Apache 2.0</a>.</p>
+      <p class="footer-tagline">Built with conviction: no parent should ever have to lose a child to disease.</p>
+    </div>
+  </div>
+</footer>
 {% endblock %}

@@ -325,9 +325,20 @@
 }
 
 .pipeline-icon {
-  font-size: 2.25rem;
   margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
+.pipeline-icon svg {
+  width: 40px;
+  height: 40px;
+}
+
+.pipeline-genomics .pipeline-icon svg { color: var(--pipeline-genomics); }
+.pipeline-rag .pipeline-icon svg { color: var(--pipeline-rag); }
+.pipeline-drug .pipeline-icon svg { color: var(--pipeline-drug); }
 
 .pipeline-card h3 {
   font-size: 1.35rem;
@@ -566,6 +577,100 @@
   font-size: 1.15rem;
   color: rgba(255, 255, 255, 0.6);
   margin: 0 0 2.5rem 0;
+}
+
+/* ----------------------------------------------------------------
+   10b. Site Footer
+   ---------------------------------------------------------------- */
+.hcls-footer {
+  background: #0d1117;
+  color: rgba(255, 255, 255, 0.8);
+  padding: 4rem 0 2rem;
+  border-top: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 3rem;
+  margin-bottom: 3rem;
+}
+
+@media (max-width: 900px) {
+  .footer-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .footer-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}
+
+.footer-brand h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 0.75rem 0;
+}
+
+.footer-brand p {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+}
+
+.footer-links h4 {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #3b82f6;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 1rem 0;
+}
+
+.footer-links a {
+  display: block;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  padding: 0.35rem 0;
+  transition: color 0.2s ease;
+}
+
+.footer-links a:hover {
+  color: #3b82f6;
+}
+
+.footer-bottom {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 2rem;
+  text-align: center;
+}
+
+.footer-bottom p {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0 0 0.5rem 0;
+}
+
+.footer-bottom a {
+  color: #3b82f6;
+  text-decoration: none;
+}
+
+.footer-bottom a:hover {
+  text-decoration: underline;
+}
+
+.footer-tagline {
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.4) !important;
+  font-size: 0.8rem !important;
 }
 
 /* ----------------------------------------------------------------
@@ -998,8 +1103,16 @@
 }
 
 .who-for-icon {
-  font-size: 2rem;
   margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.who-for-icon svg {
+  width: 36px;
+  height: 36px;
+  color: #3b82f6;
 }
 
 .who-for-card h3 {
@@ -1090,4 +1203,271 @@
   font-size: 0.85rem;
   line-height: 1.5;
   color: var(--md-default-fg-color--light);
+}
+
+/* ----------------------------------------------------------------
+   21. Comparison Table
+   ---------------------------------------------------------------- */
+.hcls-comparison {
+  padding: 5rem 0;
+  background: var(--hcls-navy-deep);
+  color: #fff;
+}
+
+.comparison-table-wrapper {
+  overflow-x: auto;
+  margin-top: 2rem;
+}
+
+.comparison-table {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.comparison-table th,
+.comparison-table td {
+  padding: 1rem 1.25rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.comparison-table thead th {
+  background: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.comparison-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.comparison-table td:first-child {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.comparison-table td:nth-child(2) {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.comparison-table td.highlight {
+  color: #3b82f6;
+  font-weight: 600;
+}
+
+@media (max-width: 600px) {
+  .comparison-table {
+    font-size: 0.85rem;
+  }
+
+  .comparison-table th,
+  .comparison-table td {
+    padding: 0.75rem;
+  }
+}
+
+/* ================================================================
+   22. MOBILE RESPONSIVENESS
+   ================================================================ */
+
+/* Tablet breakpoint */
+@media (max-width: 960px) {
+  .section-container {
+    padding: 0 1.5rem;
+  }
+
+  .hero-title {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+  }
+
+  .hero-subtitle {
+    font-size: 1.1rem;
+  }
+
+  .what-it-is-flow {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .flow-item {
+    flex-direction: row;
+    text-align: left;
+  }
+}
+
+/* Mobile breakpoint */
+@media (max-width: 600px) {
+  /* Hero adjustments */
+  .hcls-hero {
+    min-height: auto;
+    padding: 4rem 0 3rem;
+  }
+
+  .hero-content {
+    padding: 0 1rem;
+  }
+
+  .hero-badge {
+    font-size: 0.75rem;
+    padding: 0.35rem 0.75rem;
+  }
+
+  .hero-title {
+    font-size: 1.75rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  .hero-buttons {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .hero-btn {
+    width: 100%;
+    justify-content: center;
+    min-height: 48px; /* Touch target */
+  }
+
+  .hero-scroll-indicator {
+    display: none;
+  }
+
+  /* Section padding */
+  .hcls-what-it-is,
+  .hcls-pipelines,
+  .hcls-metrics,
+  .hcls-origin,
+  .hcls-why-open,
+  .hcls-who-for,
+  .hcls-architecture,
+  .hcls-not,
+  .hcls-tech-stack,
+  .hcls-cta {
+    padding: 3rem 0;
+  }
+
+  .section-title {
+    font-size: 1.5rem;
+  }
+
+  .section-subtitle {
+    font-size: 0.95rem;
+  }
+
+  /* Pipeline cards */
+  .pipeline-card {
+    padding: 1.5rem;
+  }
+
+  .pipeline-arrow {
+    transform: rotate(90deg);
+    margin: 0.5rem 0;
+  }
+
+  /* Metrics */
+  .metric-value {
+    font-size: 2rem;
+  }
+
+  /* Origin section */
+  .origin-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .origin-line {
+    width: 60px;
+  }
+
+  .origin-text {
+    font-size: 1rem;
+  }
+
+  /* Why open points */
+  .why-open-point {
+    flex-direction: column;
+    text-align: center;
+    padding: 1.25rem;
+  }
+
+  .why-open-icon {
+    margin-bottom: 0.75rem;
+  }
+
+  /* Who for cards */
+  .who-for-card {
+    padding: 1.5rem;
+  }
+
+  /* Tech badges */
+  .tech-grid {
+    gap: 0.5rem;
+  }
+
+  .tech-badge {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.75rem;
+  }
+
+  /* Footer */
+  .hcls-footer {
+    padding: 3rem 0 1.5rem;
+  }
+
+  .footer-grid {
+    text-align: center;
+  }
+
+  .footer-brand p {
+    margin-bottom: 1rem;
+  }
+
+  /* CTA section */
+  .cta-title {
+    font-size: 1.5rem;
+  }
+
+  .cta-subtitle {
+    font-size: 1rem;
+  }
+}
+
+/* Ensure touch targets are at least 44x44px */
+@media (pointer: coarse) {
+  .hero-btn,
+  .pipeline-link,
+  .footer-links a,
+  .tech-badge {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .fade-in {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .hero-scroll-indicator svg {
+    animation: none;
+  }
+
+  .hero-gradient,
+  .hero-grid {
+    animation: none;
+  }
 }
