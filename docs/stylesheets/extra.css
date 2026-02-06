@@ -444,7 +444,7 @@
 .metric-value {
   font-size: 2.5rem;
   font-weight: 800;
-  background: var(--gradient-nvidia);
+  background: var(--gradient-text);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -824,7 +824,7 @@
   margin-top: 1rem !important;
   font-size: 1.5rem !important;
   font-weight: 700;
-  background: var(--gradient-nvidia);
+  background: var(--gradient-text);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -884,6 +884,13 @@
   font-style: italic;
   color: rgba(255, 255, 255, 0.6);
   margin-top: 2rem !important;
+}
+
+.origin-conviction {
+  background: var(--gradient-text);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 /* ----------------------------------------------------------------
