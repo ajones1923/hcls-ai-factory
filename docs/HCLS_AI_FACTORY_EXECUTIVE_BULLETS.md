@@ -2,7 +2,7 @@
 
 > **One-page reference for executives, stakeholders, and demo audiences.**
 >
-> **License:** Apache 2.0 | **Author:** Adam Jones | **Date:** February 2026
+> **License:** Apache 2.0 |**Date:** February 2026
 
 ---
 
@@ -119,4 +119,4 @@ The HCLS AI Factory transforms patient DNA into ranked novel drug candidates in 
 
 ---
 
-*HCLS AI Factory — Apache 2.0 | Author: Adam Jones | February 2026*
+*HCLS AI Factory — Apache 2.0 | February 2026*

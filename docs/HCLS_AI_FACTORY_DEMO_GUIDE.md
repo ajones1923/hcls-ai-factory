@@ -2,7 +2,7 @@
 
 > **Step-by-step walkthrough for demonstrating the HCLS AI Factory on DGX Spark.**
 >
-> **License:** Apache 2.0 | **Author:** Adam Jones | **Date:** February 2026
+> **License:** Apache 2.0 |**Date:** February 2026
 
 ---
 
@@ -336,4 +336,4 @@ watch -n 1 nvidia-smi
 
 ---
 
-*HCLS AI Factory — Apache 2.0 | Author: Adam Jones | February 2026*
+*HCLS AI Factory — Apache 2.0 | February 2026*

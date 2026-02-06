@@ -2,7 +2,7 @@
 
 > **From Patient DNA to Novel Drug Candidates in Under Five Hours**
 >
-> **License:** Apache 2.0 | **Author:** Adam Jones | **Date:** February 2026
+> **License:** Apache 2.0 |**Date:** February 2026
 
 ---
 
@@ -272,4 +272,4 @@ This is precision medicine as a continuous, computable workflow — not a discon
 
 ---
 
-*HCLS AI Factory — Apache 2.0 | Author: Adam Jones | February 2026*
+*HCLS AI Factory — Apache 2.0 | February 2026*

@@ -4,7 +4,7 @@
 >
 > **What You'll Learn:** Deep technical analysis of the HCLS AI Factory architecture, from BWA-MEM2 seed-and-extend algorithms through diffusion-based molecular docking, with emphasis on algorithmic design decisions, scaling bottlenecks, and clinical translation barriers.
 >
-> **License:** Apache 2.0 | **Author:** Adam Jones | **Date:** February 2026
+> **License:** Apache 2.0 |**Date:** February 2026
 
 ---
 
@@ -463,4 +463,4 @@ The knowledge base includes 11 pharmacogenomics genes (CYP2D6, CYP2C19, CYP3A4, 
 
 ---
 
-*HCLS AI Factory Learning Guide: Advanced — Apache 2.0 | Author: Adam Jones | February 2026*
+*HCLS AI Factory Learning Guide: Advanced — Apache 2.0 | February 2026*

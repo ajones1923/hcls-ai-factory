@@ -4,7 +4,7 @@
 >
 > **What You'll Learn:** How scientists use computers and AI to read DNA, find disease-causing changes, and design new medicines — all on a single desktop computer.
 >
-> **License:** Apache 2.0 | **Author:** Adam Jones | **Date:** February 2026
+> **License:** Apache 2.0 |**Date:** February 2026
 
 ---
 
@@ -317,4 +317,4 @@ The entire platform is released under the **Apache 2.0 license** — meaning any
 
 ---
 
-*HCLS AI Factory Learning Guide: Foundations — Apache 2.0 | Author: Adam Jones | February 2026*
+*HCLS AI Factory Learning Guide: Foundations — Apache 2.0 | February 2026*

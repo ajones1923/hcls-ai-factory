@@ -4,7 +4,7 @@
 >
 > The HCLS AI Factory is a three-stage precision medicine pipeline that transforms raw genomic sequencing data (FASTQ) into actionable drug discovery candidates. Stage 1 performs GPU-accelerated genomics alignment and variant calling with NVIDIA Parabricks. Stage 2 annotates variants against clinical databases, embeds them into a Milvus vector store, and provides a RAG-powered conversational interface using Anthropic Claude. Stage 3 leverages NVIDIA BioNeMo NIM microservices for structure-aware molecule generation and molecular docking, producing ranked drug candidates with composite scores. The entire platform runs on a single NVIDIA DGX Spark desktop workstation — a $3,999 system powered by the GB10 Grace Blackwell Superchip with 128 GB unified LPDDR5x memory. This guide covers the open-source fork: everything you need to clone, configure, and deploy the full stack using Docker Compose.
 >
-> **License:** Apache 2.0 | **Author:** Adam Jones | **Date:** February 2026
+> **License:** Apache 2.0 |**Date:** February 2026
 
 ---
 
