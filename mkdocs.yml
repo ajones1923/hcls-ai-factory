@@ -11,6 +11,7 @@ copyright: Copyright &copy; 2026 Adam Jones — Apache 2.0 License
 theme:
   name: material
   custom_dir: docs/overrides
+  logo: assets/logo.png
   palette:
     - scheme: default
       primary: custom
