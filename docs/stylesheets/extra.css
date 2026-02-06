@@ -3,6 +3,12 @@
    Conference-grade styling for MkDocs Material
    ================================================================ */
 
+/* Prevent iOS Safari from auto-inflating text */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 /* ----------------------------------------------------------------
    1. Design Tokens
    ---------------------------------------------------------------- */
@@ -1466,12 +1472,21 @@
   }
 }
 
+/* Scale header logo for small screens */
+@media (max-width: 600px) {
+  .md-header__topic:first-child .md-ellipsis::after {
+    width: 130px;
+    height: 36px;
+    background-size: 130px 36px;
+  }
+}
+
 /* Mobile breakpoint */
 @media (max-width: 600px) {
   /* Hero adjustments */
   .hcls-hero {
     min-height: auto;
-    padding: 4rem 0 3rem;
+    padding: 3rem 0 2.5rem;
   }
 
   .hero-content {
@@ -1479,17 +1494,19 @@
   }
 
   .hero-badge {
-    font-size: 0.75rem;
-    padding: 0.35rem 0.75rem;
+    font-size: 0.7rem;
+    padding: 0.3rem 0.65rem;
   }
 
   .hero-title {
     font-size: 1.75rem;
+    margin-bottom: 1rem;
   }
 
   .hero-subtitle {
-    font-size: 1rem;
+    font-size: 0.95rem;
     line-height: 1.6;
+    margin-bottom: 1.5rem;
   }
 
   .hero-buttons {
@@ -1501,13 +1518,15 @@
     width: 100%;
     justify-content: center;
     min-height: 48px; /* Touch target */
+    padding: 0.75rem 1.5rem;
+    font-size: 0.9rem;
   }
 
   .hero-scroll-indicator {
     display: none;
   }
 
-  /* Section padding */
+  /* Section padding — tighter on mobile */
   .hcls-what-it-is,
   .hcls-pipelines,
   .hcls-metrics,
@@ -1518,30 +1537,120 @@
   .hcls-not,
   .hcls-tech-stack,
   .hcls-cta {
-    padding: 3rem 0;
+    padding: 2.5rem 0;
+  }
+
+  .section-container {
+    padding: 0 1rem;
   }
 
   .section-title {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
+    margin-bottom: 0.35rem;
   }
 
   .section-subtitle {
-    font-size: 0.95rem;
+    font-size: 0.85rem;
+    margin-bottom: 1.5rem;
+  }
+
+  /* What It Is */
+  .what-it-is-lead {
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+
+  .what-it-is-disclaimer {
+    font-size: 0.85rem;
+    line-height: 1.7;
+    margin-bottom: 2rem;
+  }
+
+  .flow-item {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .flow-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .flow-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .flow-item p {
+    font-size: 0.85rem;
+    line-height: 1.6;
+  }
+
+  .what-it-is-tagline {
+    padding: 1.25rem;
+  }
+
+  .what-it-is-tagline p {
+    font-size: 0.9rem;
+  }
+
+  .tagline-emphasis {
+    font-size: 1.15rem !important;
   }
 
   /* Pipeline cards */
   .pipeline-card {
-    padding: 1.5rem;
+    padding: 1.25rem;
+  }
+
+  .pipeline-card h3 {
+    font-size: 1.1rem;
+  }
+
+  .pipeline-card p {
+    font-size: 0.85rem;
+  }
+
+  .pipeline-number {
+    font-size: 2.5rem;
+  }
+
+  .pipeline-icon svg {
+    width: 32px;
+    height: 32px;
   }
 
   .pipeline-arrow {
     transform: rotate(90deg);
-    margin: 0.5rem 0;
+    margin: 0.25rem 0;
+    font-size: 1rem;
   }
 
   /* Metrics */
+  .metric-card {
+    padding: 1.25rem 1rem;
+  }
+
   .metric-value {
-    font-size: 2rem;
+    font-size: 1.75rem;
+  }
+
+  .metric-label {
+    font-size: 0.8rem;
+  }
+
+  /* Comparison table */
+  .hcls-comparison {
+    padding: 2.5rem 0;
+  }
+
+  .comparison-table {
+    font-size: 0.8rem;
+  }
+
+  .comparison-table th,
+  .comparison-table td {
+    padding: 0.6rem 0.5rem;
   }
 
   /* Origin section */
@@ -1551,60 +1660,128 @@
     gap: 0.75rem;
   }
 
+  .origin-title {
+    font-size: 1.5rem;
+  }
+
   .origin-line {
     width: 60px;
   }
 
   .origin-text {
-    font-size: 1rem;
+    font-size: 0.95rem;
+    line-height: 1.7;
   }
 
-  /* Why open points */
+  /* Why open */
+  .why-open-lead {
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+  }
+
   .why-open-point {
     flex-direction: column;
     text-align: center;
-    padding: 1.25rem;
+    padding: 1rem;
   }
 
   .why-open-icon {
-    margin-bottom: 0.75rem;
+    width: 38px;
+    height: 38px;
+    margin: 0 auto 0.5rem;
+  }
+
+  .why-open-point p {
+    font-size: 0.85rem;
   }
 
   /* Who for cards */
   .who-for-card {
-    padding: 1.5rem;
+    padding: 1.25rem;
+  }
+
+  .who-for-icon svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .who-for-card h3 {
+    font-size: 1rem;
+  }
+
+  .who-for-card p {
+    font-size: 0.8rem;
+  }
+
+  /* What This Is Not */
+  .not-item {
+    padding: 1rem;
+  }
+
+  .not-text strong {
+    font-size: 0.85rem;
+  }
+
+  .not-text p {
+    font-size: 0.8rem;
   }
 
   /* Tech badges */
   .tech-grid {
-    gap: 0.5rem;
+    gap: 0.4rem;
   }
 
   .tech-badge {
-    font-size: 0.8rem;
-    padding: 0.4rem 0.75rem;
-  }
-
-  /* Footer */
-  .hcls-footer {
-    padding: 3rem 0 1.5rem;
-  }
-
-  .footer-grid {
-    text-align: center;
-  }
-
-  .footer-brand p {
-    margin-bottom: 1rem;
+    font-size: 0.75rem;
+    padding: 0.35rem 0.65rem;
   }
 
   /* CTA section */
   .cta-title {
-    font-size: 1.5rem;
+    font-size: 1.3rem;
   }
 
   .cta-subtitle {
-    font-size: 1rem;
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+  }
+
+  /* Footer */
+  .hcls-footer {
+    padding: 2.5rem 0 1.5rem;
+  }
+
+  .footer-grid {
+    text-align: center;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .footer-brand h3 {
+    font-size: 1.1rem;
+  }
+
+  .footer-brand p {
+    font-size: 0.8rem;
+    margin-bottom: 1rem;
+  }
+
+  .footer-links h4 {
+    font-size: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .footer-links a {
+    font-size: 0.8rem;
+    padding: 0.25rem 0;
+  }
+
+  .footer-bottom p {
+    font-size: 0.75rem;
+  }
+
+  .footer-tagline {
+    font-size: 0.7rem !important;
   }
 }
 
