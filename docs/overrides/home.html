@@ -25,8 +25,8 @@
       flex-direction: column !important;
     }
     .md-content__inner > h1:first-child { display: none !important; }
-    /* Hide sidebar on desktop only — mobile needs it for the hamburger drawer */
-    @media (min-width: 60em) {
+    /* Hide sidebar only on wide screens — the hamburger drawer appears below 76.25em */
+    @media (min-width: 76.25em) {
       .md-sidebar { display: none !important; }
     }
     .md-footer { display: none !important; }
