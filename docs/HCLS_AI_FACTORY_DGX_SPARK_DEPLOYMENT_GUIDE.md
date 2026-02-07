@@ -187,29 +187,25 @@ The platform deploys 14 services across 14 ports:
 ### 2.4 Data Flow
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                        HCLS AI Factory — Data Flow                         │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  FASTQ ──► Parabricks fq2bam ──► BAM ──► Parabricks DeepVariant ──► VCF   │
-│  (200 GB)   (20-45 min)         (100 GB)   (10-35 min)            (11.7M)  │
-│                                                                             │
-│  VCF ──► ClinVar (4.1M) ──► AlphaMissense (71.7M) ──► VEP ──► Annotated   │
-│          (35,616 match)     (6,831 matched)                                 │
-│                                                                             │
-│  Annotated ──► BGE-small-en-v1.5 ──► Milvus (384-dim, IVF_FLAT) ──►       │
-│                                      (COSINE, nlist=1024)                   │
-│                                                                             │
-│  Milvus ──► Claude (sonnet-4) ──► Target Hypothesis                        │
-│             (temp=0.3, 4096 tokens)                                         │
-│                                                                             │
-│  Target ──► PDB Structures ──► MolMIM (8001) ──► Chemistry QC ──►          │
-│                                                   (Lipinski + QED)          │
-│                                                                             │
-│  Conformers ──► DiffDock (8002) ──► Composite Ranking ──► PDF Report       │
-│                                     (0.3*gen + 0.4*dock + 0.3*QED)         │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────────┐
+│                    HCLS AI Factory — Data Flow                        │
+├────────────────────────────────────────────────────────────────────────┤
+│                                                                        │
+│  Stage 1 — GPU Genomics                                                │
+│  FASTQ ──► Parabricks fq2bam ──► BAM ──► DeepVariant ──► VCF         │
+│  (200 GB)   (20-45 min)         (100 GB)   (10-35 min)    (11.7M)    │
+│                                                                        │
+│  Stage 2 — Evidence RAG                                                │
+│  VCF ──► ClinVar + AlphaMissense ──► VEP ──► Annotated VCF           │
+│  Annotated ──► BGE-small ──► Milvus (384-dim, COSINE)                 │
+│  Milvus ──► Claude (sonnet-4, temp=0.3) ──► Target Hypothesis         │
+│                                                                        │
+│  Stage 3 — Drug Discovery                                              │
+│  Target ──► PDB Structures ──► MolMIM ──► Chemistry QC                │
+│  Conformers ──► DiffDock ──► Composite Ranking ──► PDF Report         │
+│                               (0.3*gen + 0.4*dock + 0.3*QED)          │
+│                                                                        │
+└────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
