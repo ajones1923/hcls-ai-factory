@@ -55,7 +55,7 @@ These are fully open-source. No API keys, no license fees, no restrictions on co
 |---|---|---|---|
 | **Claude** (RAG reasoning) | Anthropic | Commercial API | Pay-per-token ([pricing](https://www.anthropic.com/pricing)) |
 
-An Anthropic API key is required for Stage 2 RAG chat. Claude is a commercial service — not open-source, not free. API costs depend on usage volume.
+An Anthropic API key is required for Stage 2 RAG chat. Claude is a commercial service — not open-source, not free. The pipeline defaults to Claude Sonnet 4 ($3 per million input tokens, $15 per million output tokens). For a typical development session (10–50 RAG queries), expect roughly **$0.50–$3 per session**. Monthly costs during active development are typically **$5–$50/month** depending on query volume. See [Anthropic API Pricing](https://www.anthropic.com/pricing) for current rates.
 
 ---
 

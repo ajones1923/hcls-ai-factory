@@ -8,6 +8,16 @@ hide:
 
 The HCLS AI Factory runs three GPU-accelerated AI pipelines on a single NVIDIA DGX Spark workstation — from raw FASTQ sequencing data to ranked drug candidates in under 5 hours.
 
+### Three Stages, One System
+
+**Stage 1 — GPU Genomics (120–240 min):** Raw FASTQ sequencing files are aligned to the human reference genome using BWA-MEM2, then variant-called with Google DeepVariant — both accelerated through NVIDIA Parabricks. The output is a clinical-grade VCF containing 11.7 million variants at >99% accuracy.
+
+**Stage 2 — Evidence RAG (interactive):** Variants are annotated against ClinVar (4.1M clinical records) and AlphaMissense (71M pathogenicity predictions), embedded with BGE-small-en-v1.5, and indexed into a Milvus vector database (3.5M vectors). A conversational RAG interface powered by Anthropic Claude lets researchers query variants in natural language, with every answer grounded in retrieved clinical evidence.
+
+**Stage 3 — Drug Discovery (8–16 min):** For validated targets, NVIDIA BioNeMo MolMIM generates novel molecular candidates from a seed compound, DiffDock predicts protein-ligand binding poses, and RDKit scores drug-likeness (QED, Lipinski, synthetic accessibility). The result: 100 ranked candidates per target with full structural and pharmacological profiles.
+
+All three stages run on the DGX Spark's GB10 Grace Blackwell Superchip with 128 GB unified memory — connected via NVLink-C2C so the GPU and CPU share the same memory pool without transfer bottlenecks.
+
 ---
 
 ## System Architecture
