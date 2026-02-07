@@ -77,6 +77,11 @@ html {
   image-rendering: crisp-edges;
 }
 
+/* Mobile drawer header — match "Get Started" button blue */
+.md-nav--primary > .md-nav__title {
+  background-color: #3b82f6;
+}
+
 .md-tabs {
   background-color: var(--hcls-navy);
   border-bottom: 1px solid rgba(6, 182, 212, 0.1);
