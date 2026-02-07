@@ -25,7 +25,10 @@
       flex-direction: column !important;
     }
     .md-content__inner > h1:first-child { display: none !important; }
-    .md-sidebar { display: none !important; }
+    /* Hide sidebar on desktop only — mobile needs it for the hamburger drawer */
+    @media (min-width: 60em) {
+      .md-sidebar { display: none !important; }
+    }
     .md-footer { display: none !important; }
   </style>
 {% endblock %}
