@@ -12,7 +12,7 @@ pysam==0.23.3
 pymilvus==2.6.6
 
 # Embeddings
-sentence-transformers==5.2.0
+sentence-transformers==5.2.2
 torch==2.9.1
 
 # LLM Integration
