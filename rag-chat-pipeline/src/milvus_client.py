@@ -2,6 +2,7 @@
 Milvus Client - Vector database operations for genomic evidence.
 """
 from typing import List, Optional, Dict, Any
+import re
 import numpy as np
 from loguru import logger
 
@@ -22,6 +23,10 @@ class MilvusClient:
     Client for storing and retrieving genomic evidence from Milvus.
     """
 
+    # Input validation patterns for filter expression safety
+    _GENE_PATTERN = re.compile(r'^[A-Za-z0-9_\-]+$')
+    _CHROM_PATTERN = re.compile(r'^(chr)?[0-9XYM]+$')
+
     def __init__(
         self,
         host: str = "localhost",
@@ -34,6 +39,20 @@ class MilvusClient:
         self.collection_name = collection_name
         self.embedding_dim = embedding_dim
         self._collection: Optional[Collection] = None
+
+    @staticmethod
+    def _sanitize_gene(gene: str) -> str:
+        """Validate gene name to prevent filter expression injection."""
+        if not gene or not MilvusClient._GENE_PATTERN.match(gene):
+            raise ValueError(f"Invalid gene name: {gene!r}")
+        return gene
+
+    @staticmethod
+    def _sanitize_chrom(chrom: str) -> str:
+        """Validate chromosome name to prevent filter expression injection."""
+        if not chrom or not MilvusClient._CHROM_PATTERN.match(chrom):
+            raise ValueError(f"Invalid chromosome: {chrom!r}")
+        return chrom
 
     def connect(self) -> None:
         """Connect to Milvus server."""
@@ -331,6 +350,7 @@ class MilvusClient:
         top_k: int = 100,
     ) -> List[Dict[str, Any]]:
         """Search for all variants in a specific gene."""
+        gene = self._sanitize_gene(gene)
         collection = self.get_collection()
 
         results = collection.query(
@@ -353,6 +373,11 @@ class MilvusClient:
         top_k: int = 100,
     ) -> List[Dict[str, Any]]:
         """Search for variants in a genomic region."""
+        chrom = self._sanitize_chrom(chrom)
+        start = int(start)
+        end = int(end)
+        if start < 0 or end < 0 or end < start:
+            raise ValueError(f"Invalid region: start={start}, end={end}")
         collection = self.get_collection()
 
         results = collection.query(

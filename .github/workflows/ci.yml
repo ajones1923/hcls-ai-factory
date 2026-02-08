@@ -24,6 +24,54 @@ jobs:
       - name: Run ruff check
         run: ruff check --select E9,F63,F7,F82 --output-format github .
 
+  test:
+    name: Test ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: rag-chat-pipeline
+            workdir: rag-chat-pipeline
+            deps: "pydantic pydantic-settings loguru numpy pymilvus pytest pytest-cov"
+            markers: "not slow and not integration"
+          - service: drug-discovery-pipeline
+            workdir: drug-discovery-pipeline
+            deps: "pydantic loguru numpy requests typer rich pytest pytest-cov"
+            markers: "not slow and not integration and not rdkit"
+          - service: genomics-portal
+            workdir: genomics-pipeline/web-portal
+            deps: "flask flask-cors python-dotenv psutil pytest pytest-cov"
+            markers: "not slow and not integration"
+          - service: landing-page
+            workdir: landing-page
+            deps: "flask flask-cors requests pytest pytest-cov"
+            markers: "not slow and not integration"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install ${{ matrix.deps }}
+
+      - name: Run tests
+        working-directory: ${{ matrix.workdir }}
+        run: |
+          python -m pytest tests/ -v --tb=short \
+            -m '${{ matrix.markers }}' \
+            --cov=. --cov-report=xml:coverage.xml --cov-report=term-missing
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.service }}
+          path: ${{ matrix.workdir }}/coverage.xml
+
   docs:
     name: Build Docs
     runs-on: ubuntu-latest
