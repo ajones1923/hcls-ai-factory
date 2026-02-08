@@ -523,11 +523,14 @@ qed_score = qed(mol)
 Candidates are ranked by a weighted combination:
 
 ```python
+# Normalize docking score: lower is better, map to [0, 1]
+dock_normalized = max(0, min(1, (10 + dock_score) / 20))
+
+# Composite score (weights sum to 1.0)
 score = (
-    0.3 * qed_score +
-    0.3 * (1 - lipinski_violations / 4) +
-    0.2 * tanimoto_similarity +
-    0.2 * normalized_docking_score
+    0.3 * generation_score +
+    0.4 * dock_normalized +
+    0.3 * qed_score
 )
 ```
 
@@ -654,10 +657,7 @@ nano .env  # Add your NGC_API_KEY
 # Option 1: Streamlit Discovery UI (Recommended)
 streamlit run app/discovery_ui.py --server.port 8505
 
-# Option 2: Pipeline Portal
-streamlit run portal/app.py --server.port 8510
-
-# Option 3: Generate PDF Report
+# Option 2: Generate PDF Report
 python generate_vcp_report_enhanced.py
 ```
 
@@ -692,7 +692,7 @@ Required packages:
 - `rdkit`: Cheminformatics toolkit
 - `reportlab`: PDF generation
 - `requests`: HTTP client for NIMs
-- `plotly`: Interactive visualizations
+- `pydantic`: Data validation and models
 
 ### Step 4: Configure Environment
 
@@ -745,20 +745,6 @@ streamlit run app/discovery_ui.py --server.port 8505
 - Real-time molecule generation
 - Export to PDF report
 
-### Pipeline Portal
-
-Dashboard for managing multiple targets:
-
-```bash
-streamlit run portal/app.py --server.port 8510
-```
-
-**Features:**
-- Target hypothesis management
-- Batch molecule generation
-- Pipeline orchestration
-- Results comparison
-
 ### PDF Report Generation
 
 Generate executive-ready reports:
@@ -773,19 +759,21 @@ Output: `outputs/VCP_Drug_Candidate_Report.pdf`
 
 ```python
 from src.pipeline import DrugDiscoveryPipeline
+from src.models import PipelineConfig
 
-pipeline = DrugDiscoveryPipeline()
+config = PipelineConfig(
+    target_gene="VCP",
+    reference_compound_smiles="CC(C)C1=C(C=C(C=C1)...",
+    num_molecules=50,
+)
+pipeline = DrugDiscoveryPipeline(config=config, use_mock=True)
 
 # Run complete workflow
-results = pipeline.run(
-    gene="VCP",
-    disease="Frontotemporal Dementia",
-    seed_smiles="CC(C)C1=C(C=C(C=C1)..."
-)
+run = pipeline.run_pipeline()
 
 # Access results
-print(results['candidates'])
-print(results['top_score'])
+print(run.ranked_candidates)
+print(run.status)
 ```
 
 ---
@@ -807,11 +795,10 @@ NUM_MOLECULES=100
 SIMILARITY_THRESHOLD=0.7
 TEMPERATURE=0.8
 
-# Scoring Weights
-DOCKING_WEIGHT=0.3
+# Scoring Weights (must sum to 1.0)
+DOCKING_WEIGHT=0.4
+GENERATION_WEIGHT=0.3
 QED_WEIGHT=0.3
-SIMILARITY_WEIGHT=0.2
-LIPINSKI_WEIGHT=0.2
 
 # Mock Mode
 NIM_ALLOW_MOCK_FALLBACK=true
@@ -843,16 +830,14 @@ NIM_ALLOW_MOCK_FALLBACK=true
 drug-discovery-pipeline/
 ├── app/
 │   └── discovery_ui.py              # Main Streamlit UI (Port 8505)
-├── portal/
-│   └── app.py                       # Pipeline portal (Port 8510)
 ├── src/
-│   ├── pipeline.py                  # Main pipeline orchestrator
+│   ├── pipeline.py                  # Main pipeline orchestrator (includes scoring)
 │   ├── target_import.py             # Import from RAG/Chat
 │   ├── cryoem_evidence.py           # Cryo-EM structure handling
 │   ├── structure_viewer.py          # 3D visualization
 │   ├── molecule_generator.py        # BioNeMo MolMIM integration
 │   ├── nim_clients.py               # NIM API clients
-│   ├── scoring.py                   # Drug-likeness scoring
+│   ├── cli.py                       # Typer CLI interface
 │   └── models.py                    # Data models (Pydantic)
 ├── generate_vcp_report_enhanced.py  # PDF report generator
 ├── data/
@@ -884,7 +869,6 @@ drug-discovery-pipeline/
 | Service | Port | Description | URL |
 |---------|------|-------------|-----|
 | **Discovery UI** | 8505 | Main Streamlit interface | http://localhost:8505 |
-| **Pipeline Portal** | 8510 | Target management portal | http://localhost:8510 |
 | **MolMIM NIM** | 8001 | Molecule generation | http://localhost:8001 |
 | **DiffDock NIM** | 8002 | Molecular docking | http://localhost:8002 |
 | **Grafana** | 3000 | GPU monitoring dashboards | http://localhost:3000 |
