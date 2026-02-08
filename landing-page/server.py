@@ -6,11 +6,13 @@ A Flask server that serves the landing page for the Precision Medicine
 to Drug Discovery AI Factory.
 """
 
+import json
 import os
 import socket
 import subprocess
 import time
 import requests
+from datetime import datetime
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from flask import Flask, render_template, send_from_directory, jsonify
@@ -167,6 +169,24 @@ def static_files(filename):
 def health():
     """Health check endpoint."""
     return {'status': 'healthy', 'service': 'landing-page'}
+
+
+@app.route('/api/report-status')
+def report_status():
+    """Return pipeline report freshness metadata."""
+    meta_path = Path(__file__).parent / 'static' / 'report_meta.json'
+    if meta_path.exists():
+        try:
+            with open(meta_path) as f:
+                return jsonify(json.load(f))
+        except (json.JSONDecodeError, OSError):
+            pass
+    # Fallback to file mtime
+    pdf_path = Path(__file__).parent / 'static' / 'VCP_Drug_Candidate_Report.pdf'
+    if pdf_path.exists():
+        mtime = datetime.fromtimestamp(pdf_path.stat().st_mtime)
+        return jsonify({'generated_at': mtime.strftime('%Y-%m-%d %H:%M:%S'), 'has_context': False})
+    return jsonify({'generated_at': None})
 
 
 @app.route('/api/check-service/<service_id>')

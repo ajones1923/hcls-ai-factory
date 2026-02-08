@@ -331,7 +331,7 @@ def get_status():
     }
 
     # Check data files
-    vcf_path = config.get('VCF_INPUT_PATH', '/home/adam/transfer/genomics-pipeline/data/output/HG002.genome.vcf.gz')
+    vcf_path = config.get('VCF_INPUT_PATH', str(PROJECT_ROOT.parent / 'genomics-pipeline' / 'data' / 'output' / 'HG002.genome.vcf.gz'))
     data_status = {
         'vcf_exists': check_file_exists(vcf_path),
         'vcf_path': vcf_path,
@@ -365,7 +365,7 @@ def get_status():
 def vcf_preview():
     """Get VCF file preview"""
     config = load_config()
-    vcf_path = config.get('VCF_INPUT_PATH', '/home/adam/transfer/genomics-pipeline/data/output/HG002.genome.vcf.gz')
+    vcf_path = config.get('VCF_INPUT_PATH', str(PROJECT_ROOT.parent / 'genomics-pipeline' / 'data' / 'output' / 'HG002.genome.vcf.gz'))
     limit = request.args.get('limit', 100, type=int)
 
     if not check_file_exists(vcf_path):

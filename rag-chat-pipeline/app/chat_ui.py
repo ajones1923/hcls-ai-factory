@@ -18,7 +18,7 @@ from src.target_hypothesis import (
     TargetHypothesisManager,
     create_hypothesis_from_chat
 )
-from src.knowledge import KNOWLEDGE_CONNECTIONS
+from src.knowledge import KNOWLEDGE_CONNECTIONS, get_gene_reference_data
 from config.settings import settings
 
 
@@ -1255,15 +1255,23 @@ def render_target_panel():
                                 if ev.get('gene', '').upper() == gene.upper():
                                     recent_evidence.append(ev)
 
+                # Auto-populate from knowledge base if gene is known
+                ref_data = get_gene_reference_data(gene)
+                parsed_pdb_ids = [p.strip() for p in pdb_ids.split(',') if p.strip()] if pdb_ids else []
+
                 target = TargetHypothesis(
                     gene=gene.upper(),
-                    protein=protein or None,
+                    protein=protein or ref_data.get('protein') or None,
                     rationale=rationale,
                     confidence=confidence,
                     priority=priority,
                     therapeutic_area=therapeutic_area or None,
-                    mechanism=mechanism or None,
-                    pdb_ids=[p.strip() for p in pdb_ids.split(',') if p.strip()] if pdb_ids else [],
+                    mechanism=mechanism or ref_data.get('mechanism') or None,
+                    pdb_ids=parsed_pdb_ids or ref_data.get('pdb_ids', []),
+                    uniprot_id=ref_data.get('uniprot_id'),
+                    reference_smiles=ref_data.get('reference_smiles'),
+                    reference_drug=ref_data.get('reference_drug'),
+                    druggability='high' if ref_data.get('druggable') else 'low',
                     variants=recent_evidence,
                     source_query=st.session_state.messages[-1]['content'] if st.session_state.messages else None
                 )
@@ -1374,6 +1382,85 @@ def update_metrics(ttft: float, total_tokens: int, duration: float):
 
     # Save to shared metrics file for portal access
     save_shared_metrics(metrics)
+
+
+def _extract_knowledge(evidence: list) -> list:
+    """Extract unique knowledge connections from evidence genes."""
+    seen = set()
+    connections = []
+    for ev in (evidence or []):
+        gene = ev.get('gene', '').upper()
+        if gene and gene not in seen and gene in KNOWLEDGE_CONNECTIONS:
+            seen.add(gene)
+            kc = KNOWLEDGE_CONNECTIONS[gene]
+            connections.append({
+                'gene': gene,
+                'protein': kc.get('protein', ''),
+                'pathway': kc.get('pathway', ''),
+                'diseases': kc.get('diseases', []),
+                'drugs': kc.get('drugs', []),
+                'druggable': kc.get('druggable', False),
+                'pdb_ids': kc.get('pdb_ids', []),
+            })
+    return connections
+
+
+def trigger_report_refresh(query: str, evidence: list, response: str):
+    """Trigger background PDF report regeneration with latest query context."""
+    import subprocess
+    import threading
+
+    def _regenerate():
+        try:
+            # Write context for the report generator
+            context = {
+                'query': query,
+                'response': response,
+                'evidence': [
+                    {
+                        'gene': ev.get('gene', ''),
+                        'rsid': ev.get('rsid', ''),
+                        'chrom': ev.get('chrom', ''),
+                        'pos': ev.get('pos', ''),
+                        'consequence': ev.get('consequence', ''),
+                        'impact': ev.get('impact', ''),
+                        'clinical_significance': ev.get('clinical_significance', ''),
+                        'score': ev.get('score', 0),
+                        'am_pathogenicity': ev.get('am_pathogenicity', ''),
+                        'am_class': ev.get('am_class', ''),
+                        'text_summary': ev.get('text_summary', ''),
+                    }
+                    for ev in (evidence or [])
+                ],
+                'knowledge_connections': _extract_knowledge(evidence),
+                'timestamp': time.strftime('%Y-%m-%d %H:%M:%S'),
+                'total_queries': st.session_state.get('llm_metrics', {}).get('total_queries', 0),
+                'model': st.session_state.get('selected_model', 'unknown'),
+            }
+
+            context_file = Path(__file__).parent.parent / 'data' / 'report_context.json'
+            context_file.parent.mkdir(parents=True, exist_ok=True)
+            with open(context_file, 'w') as f:
+                json.dump(context, f, indent=2, default=str)
+
+            # Call the report generator via subprocess (uses drug-discovery venv with reportlab)
+            base_dir = Path(__file__).parent.parent.parent
+            generator_script = base_dir / 'drug-discovery-pipeline' / 'generate_vcp_report_enhanced.py'
+            generator_python = base_dir / 'drug-discovery-pipeline' / 'venv' / 'bin' / 'python'
+
+            if generator_script.exists() and generator_python.exists():
+                subprocess.run(
+                    [str(generator_python), str(generator_script), '--context', str(context_file)],
+                    cwd=str(generator_script.parent),
+                    timeout=60,
+                    capture_output=True,
+                )
+        except Exception:
+            pass  # Report refresh is best-effort, never block the chat
+
+    # Run in background thread so the chat UI is not blocked
+    thread = threading.Thread(target=_regenerate, daemon=True)
+    thread.start()
 
 
 def save_shared_metrics(metrics: dict):
@@ -1655,6 +1742,9 @@ def main():
                             "content": full_response,
                             "evidence": evidence,
                         })
+
+                        # Trigger pipeline report refresh (background, non-blocking)
+                        trigger_report_refresh(prompt, evidence, full_response)
 
                 except Exception as e:
                     st.error(f"Error: {e}")

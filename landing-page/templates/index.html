@@ -65,6 +65,7 @@
                     </svg>
                 </a>
             </div>
+            <div id="report-freshness" style="text-align:center; margin-top:8px; font-size:0.75rem; color:#a0a0b0; opacity:0; transition:opacity 0.3s;"></div>
         </div>
         <div class="hero-visual">
             <div class="dna-helix">
@@ -433,5 +434,19 @@
     </footer>
 
     <script src="/static/js/main.js"></script>
+    <script>
+        // Fetch and display pipeline report freshness
+        fetch('/api/report-status')
+            .then(r => r.json())
+            .then(data => {
+                const el = document.getElementById('report-freshness');
+                if (el && data.generated_at) {
+                    const label = data.has_context ? 'Live report updated' : 'Report generated';
+                    el.textContent = label + ' ' + data.generated_at;
+                    el.style.opacity = '1';
+                }
+            })
+            .catch(() => {});
+    </script>
 </body>
 </html>

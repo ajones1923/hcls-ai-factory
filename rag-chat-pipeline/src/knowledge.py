@@ -2114,6 +2114,439 @@ KNOWLEDGE_CONNECTIONS: Dict[str, Dict[str, Any]] = {
 # HELPER FUNCTIONS
 # =============================================================================
 
+# =============================================================================
+# GENE REFERENCE DATA - UniProt IDs and Seed Compound SMILES
+# Used for Stage 2 → Stage 3 handoff (target export with drug discovery data)
+# =============================================================================
+
+GENE_REFERENCE_DATA: Dict[str, Dict[str, Any]] = {
+    # --- Neurodegeneration ---
+    'VCP': {
+        'uniprot_id': 'P55072',
+        'reference_smiles': 'CC(C)C1=C(C=C(C=C1)NC2=NC3=C(C=N2)N(C=C3)C)C(=O)NC4=CC=C(C=C4)CN5CCOCC5',
+        'reference_drug': 'CB-5083',
+    },
+    'LRRK2': {
+        'uniprot_id': 'Q5S007',
+        'reference_smiles': 'CC1=CC(=CC(=C1)F)NC(=O)C2=CC=C(C=C2)C3=CC=NC4=C3C=NN4',
+        'reference_drug': 'DNL201',
+    },
+    'TBK1': {
+        'uniprot_id': 'Q9UHD2',
+        'reference_smiles': 'C1CNCC1C2=CC(=CC3=C2OC(=N3)N)F',
+        'reference_drug': 'BX795',
+    },
+    # --- Oncology (small molecule targets) ---
+    'EGFR': {
+        'uniprot_id': 'P00533',
+        'reference_smiles': 'C1=CC2=C(C=C1OCCOC)C(=NC=N2)NC3=CC=CC(=C3)C#C',
+        'reference_drug': 'Erlotinib',
+    },
+    'KRAS': {
+        'uniprot_id': 'P01116',
+        'reference_smiles': 'C1CC(=O)N(C1)C2=NC(=NC(=C2F)N)N3CC(C3)O',
+        'reference_drug': 'Sotorasib',
+    },
+    'BRAF': {
+        'uniprot_id': 'P15056',
+        'reference_smiles': 'CCCS(=O)(=O)NC1=CC(=C(C=C1F)C(=O)C2=CNC3=NC=C(C=C23)Cl)F',
+        'reference_drug': 'Vemurafenib',
+    },
+    'ALK': {
+        'uniprot_id': 'Q9UM73',
+        'reference_smiles': 'CC(C1=CC(=CC=C1)C2=NN=C(O2)C3=CC(=CC=C3)Cl)N4CCN(CC4)CC5=CC=CC=N5',
+        'reference_drug': 'Crizotinib',
+    },
+    'BCR-ABL1': {
+        'uniprot_id': 'P00519',
+        'reference_smiles': 'CC1=C(C=C(C=C1)NC(=O)C2=CC=C(C=C2)CN3CCN(CC3)C)NC4=NC=CC(=N4)C5=CN=CC=C5',
+        'reference_drug': 'Imatinib',
+    },
+    'RET': {
+        'uniprot_id': 'P07949',
+        'reference_smiles': 'CC1=CC(=NN1C2=CC3=C(C=C2)N=CC(=C3)OC)C(=O)NC4=CC(=CC=C4)C(F)(F)F',
+        'reference_drug': 'Selpercatinib',
+    },
+    'MET': {
+        'uniprot_id': 'P08581',
+        'reference_smiles': 'CN1C=C(C2=CC=CC=C21)C3=NN=C(C=C3)NC4=NC=C(C=C4)F',
+        'reference_drug': 'Capmatinib',
+    },
+    'BTK': {
+        'uniprot_id': 'Q06187',
+        'reference_smiles': 'C=CC(=O)N1CCC(CC1)N2C3=C(C=C(C=C3)OC4=CC=CC=C4)C(=N2)C5=CC=C(C=C5)NC6=NC=CC(=N6)N7CCN(CC7)C',
+        'reference_drug': 'Ibrutinib',
+    },
+    'BCL2': {
+        'uniprot_id': 'P10415',
+        'reference_smiles': 'CC1(CCC(=C(C1)C2=CC=C(C=C2)Cl)CN3CCN(CC3)C4=CC(=C(C=C4)C(=O)NS(=O)(=O)C5=CC(=C(C=C5)NCC6CCOCC6)[N+](=O)[O-])OC7=CC=C(C=C7)Cl)C',
+        'reference_drug': 'Venetoclax',
+    },
+    'IDH1': {
+        'uniprot_id': 'O75874',
+        'reference_smiles': 'CC(C1=CC=CC(=C1)C(F)(F)F)N2C(=O)C3=C(C=C(C=C3)Cl)N=C2C4=CC=C(C=C4)C(F)(F)F',
+        'reference_drug': 'Ivosidenib',
+    },
+    'FLT3': {
+        'uniprot_id': 'P36888',
+        'reference_smiles': 'CC1=C2C=CC=CC2=C(C3=C1C(=O)C4=C(C3=O)C5=CC=CC=C5N4)O',
+        'reference_drug': 'Midostaurin',
+    },
+    'PIK3CA': {
+        'uniprot_id': 'P42336',
+        'reference_smiles': 'CC(C)N1C(=O)C2=C(C=C(C=C2)C3=CC=C(C=C3)F)N=C1N4CCCC(C4)NC(=O)C5=CC=CC=C5F',
+        'reference_drug': 'Alpelisib',
+    },
+    'CDK4': {
+        'uniprot_id': 'P11802',
+        'reference_smiles': 'CC(C1=C(C=CC(=C1)C2=CC=NC3=CC(=CN=C23)C#N)F)N4C(=O)C=CC4=O',
+        'reference_drug': 'Palbociclib',
+    },
+    'MTOR': {
+        'uniprot_id': 'P42345',
+        'reference_smiles': 'CCC(=O)OC1CC(OC(C1OC)C(C)CC(=O)C(CC(C(C(CC(=CC=CC=CC(C(CC2CCC(C(O2)CC(=O)OC)O)O)OC)C)O)OC)O)OC)CC=CC3=CC(=CC(=C3)OC)OC',
+        'reference_drug': 'Everolimus',
+    },
+    'KIT': {
+        'uniprot_id': 'P10721',
+        'reference_smiles': 'CC1=C(C=C(C=C1)NC(=O)C2=CC=C(C=C2)CN3CCN(CC3)C)NC4=NC=CC(=N4)C5=CN=CC=C5',
+        'reference_drug': 'Imatinib',
+    },
+    # --- Cardiovascular ---
+    'PCSK9': {
+        'uniprot_id': 'Q8NBP7',
+    },
+    'TTR': {
+        'uniprot_id': 'P02766',
+        'reference_smiles': 'C1=CC(=CC(=C1)Cl)C(=O)C2=CC(=C(C=C2)O)O',
+        'reference_drug': 'Tafamidis',
+    },
+    # --- Metabolic ---
+    'DPP4': {
+        'uniprot_id': 'P27487',
+        'reference_smiles': 'C1CN2CC3=NN=C(C3=O)N(C2=O)C1N4C=C(N=C4)C(F)(F)F',
+        'reference_drug': 'Sitagliptin',
+    },
+    'HMGCR': {
+        'uniprot_id': 'P04035',
+        'reference_smiles': 'CC1=CC2=C(C=C1)C(C(=CC(CC(CC(=O)[O-])O)O)C3=CC=C(C=C3)F)C(=O)N2C(C)C',
+        'reference_drug': 'Atorvastatin',
+    },
+    'PPARG': {
+        'uniprot_id': 'P37231',
+        'reference_smiles': 'C1=CC(=CC=C1CC2C(=O)NC(=O)S2)OCC3=CC4=C(C=C3)N=CC=C4',
+        'reference_drug': 'Pioglitazone',
+    },
+    # --- Rare Disease ---
+    'CFTR': {
+        'uniprot_id': 'P13569',
+        'reference_smiles': 'CC1=C(C=CC(=C1)OCC(C)(C)C2=CC(=C(C=C2)O)Br)C3=CC=CC=C3',
+        'reference_drug': 'Ivacaftor',
+    },
+    # --- Immunology ---
+    'JAK1': {
+        'uniprot_id': 'P23458',
+        'reference_smiles': 'CC1=C(C=C(C=C1)C(=O)NC2=CC=CC=N2)NC3=CC=CC(=C3)CN4CCCC4',
+        'reference_drug': 'Tofacitinib',
+    },
+    'JAK2': {
+        'uniprot_id': 'O60674',
+        'reference_smiles': 'CC1=C(C(=O)N(C1=O)C2=CC=CC=C2)C3=CC(=CC=C3)CN4CCCC4',
+        'reference_drug': 'Ruxolitinib',
+    },
+    'TYK2': {
+        'uniprot_id': 'P29597',
+        'reference_smiles': 'CC(C)(C#N)C1=CC=C(C=C1)NC(=O)C2=CC=C3C(=C2)N=CN3C4CCCC4',
+        'reference_drug': 'Deucravacitinib',
+    },
+    # --- Infectious Disease ---
+    'SARS2_MPRO': {
+        'uniprot_id': 'P0DTD1',
+        'reference_smiles': 'CC1(C2C1C(N(C2=O)C(CC3=CC4=CC=CC=C4C=C3)C(=O)NC(CC5CCNC5=O)C#N)O)C',
+        'reference_drug': 'Nirmatrelvir',
+    },
+    'HIV1_PR': {
+        'uniprot_id': 'P03367',
+        'reference_smiles': 'CC(C)CN(CC(C(CC1=CC=CC=C1)NC(=O)OC2CCOC2)O)S(=O)(=O)C3=CC=C(C=C3)N',
+        'reference_drug': 'Darunavir',
+    },
+    # --- Respiratory ---
+    'PDE5A': {
+        'uniprot_id': 'O76074',
+        'reference_smiles': 'CCCC1=NN(C2=C1NC(=NC2=O)C3=C(C=CC(=C3)OCC)S(=O)(=O)N4CCN(CC4)C)C',
+        'reference_drug': 'Sildenafil',
+    },
+    # --- Ophthalmology ---
+    'ROCK1': {
+        'uniprot_id': 'Q13464',
+        'reference_smiles': 'CC(C)OC(=O)C(C)NC(=O)COC1=CC=C(C=C1)NC(=O)C2=CC(=CC3=C2C=CN3)Br',
+        'reference_drug': 'Netarsudil',
+    },
+    # --- Oncology (additional) ---
+    'BRCA1': {
+        'uniprot_id': 'P38398',
+        'reference_smiles': 'C1CC1C(=O)N2CCN(CC2)C(=O)C3=C(C=CC(=C3)CC4=NNC(=O)C5=CC=CC=C54)F',
+        'reference_drug': 'Olaparib',
+    },
+    'BRCA2': {
+        'uniprot_id': 'P51587',
+        'reference_smiles': 'C1CC1C(=O)N2CCN(CC2)C(=O)C3=C(C=CC(=C3)CC4=NNC(=O)C5=CC=CC=C54)F',
+        'reference_drug': 'Olaparib',
+    },
+    'ERBB2': {
+        'uniprot_id': 'P04626',
+        'reference_smiles': 'CC1=C(C=CC(=C1)NC2=NC=NC3=C2C=C(C=C3)NC4=NC(CO4)(C)C)OC5=CC6=NC=NN6C=C5',
+        'reference_drug': 'Tucatinib',
+    },
+    'IDH2': {
+        'uniprot_id': 'P48735',
+        'reference_smiles': 'CC(C)(CNC1=NC(=NC(=N1)C2=NC(=CC=C2)C(F)(F)F)NC3=CC(=NC=C3)C(F)(F)F)O',
+        'reference_drug': 'Enasidenib',
+    },
+    'NTRK1': {
+        'uniprot_id': 'P04629',
+        'reference_smiles': 'C1CC(N(C1)C2=NC3=C(C=NN3C=C2)NC(=O)N4CCC(C4)O)C5=C(C=CC(=C5)F)F',
+        'reference_drug': 'Larotrectinib',
+    },
+    'ROS1': {
+        'uniprot_id': 'P08922',
+        'reference_smiles': 'CN1CCN(CC1)C2=CC(=C(C=C2)C(=O)NC3=NNC4=C3C=C(C=C4)CC5=CC(=CC(=C5)F)F)NC6CCOCC6',
+        'reference_drug': 'Entrectinib',
+    },
+    'CDK6': {
+        'uniprot_id': 'Q00534',
+        'reference_smiles': 'CC1=C(C(=O)N(C2=NC(=NC=C12)NC3=NC=C(C=C3)N4CCNCC4)C5CCCC5)C(=O)C',
+        'reference_drug': 'Palbociclib',
+    },
+    'TP53': {
+        'uniprot_id': 'P04637',
+        'reference_smiles': 'CC(C)N1C(=O)C=C(NC1=O)NC(C)C2=CC=CC=C2',
+        'reference_drug': 'Mavacamten',
+    },
+    # --- Hematology ---
+    'HIF2A': {
+        'uniprot_id': 'Q99814',
+        'reference_smiles': 'CS(=O)(=O)C1=C2C(C(C(C2=C(C=C1)OC3=CC(=CC(=C3)C#N)F)F)F)O',
+        'reference_drug': 'Belzutifan',
+    },
+    'SYK': {
+        'uniprot_id': 'P43405',
+        'reference_smiles': 'CC1(C(=O)N(C2=C(O1)C=CC(=N2)NC3=NC(=NC=C3F)NC4=CC(=C(C(=C4)OC)OC)OC)COP(=O)(O)O)C',
+        'reference_drug': 'Fostamatinib',
+    },
+    'F10': {
+        'uniprot_id': 'P00742',
+        'reference_smiles': 'C1COCC(=O)N1C2=CC=C(C=C2)N3CC(OC3=O)CNC(=O)C4=CC=C(S4)Cl',
+        'reference_drug': 'Rivaroxaban',
+    },
+    'F2': {
+        'uniprot_id': 'P00734',
+        'reference_smiles': 'CCCCCCOC(=O)NC(=N)C1=CC=C(C=C1)NCC2=NC3=C(N2C)C=CC(=C3)C(=O)N(CCC(=O)OCC)C4=CC=CC=N4',
+        'reference_drug': 'Dabigatran',
+    },
+    'CXCR4': {
+        'uniprot_id': 'P61073',
+        'reference_smiles': 'C1CNCCNCCCN(CCNC1)CC2=CC=C(C=C2)CN3CCCNCCNCCCNCC3',
+        'reference_drug': 'Plerixafor',
+    },
+    # --- Cardiovascular (additional) ---
+    'MYH7': {
+        'uniprot_id': 'P12883',
+        'reference_smiles': 'CC(C)N1C(=O)C=C(NC1=O)NC(C)C2=CC=CC=C2',
+        'reference_drug': 'Mavacamten',
+    },
+    'NPC1L1': {
+        'uniprot_id': 'Q9UHC9',
+        'reference_smiles': 'C1=CC(=CC=C1C2C(C(=O)N2C3=CC=C(C=C3)F)CCC(C4=CC=C(C=C4)F)O)O',
+        'reference_drug': 'Ezetimibe',
+    },
+    'EDNRA': {
+        'uniprot_id': 'P25101',
+        'reference_smiles': 'CC(C)(C)C1=CC=C(C=C1)S(=O)(=O)NC2=C(C(=NC(=N2)C3=NC=CC=N3)OCCO)OC4=CC=CC=C4OC',
+        'reference_drug': 'Bosentan',
+    },
+    'GUCY1A1': {
+        'uniprot_id': 'Q02108',
+        'reference_smiles': 'CN(C1=C(N=C(N=C1N)C2=NN(C3=C2C=CC=N3)CC4=CC=CC=C4F)N)C(=O)OC',
+        'reference_drug': 'Riociguat',
+    },
+    # --- Metabolic (additional) ---
+    'SGLT2': {
+        'uniprot_id': 'P31639',
+        'reference_smiles': 'C1COCC1OC2=CC=C(C=C2)CC3=C(C=CC(=C3)C4C(C(C(C(O4)CO)O)O)O)Cl',
+        'reference_drug': 'Empagliflozin',
+    },
+    'ATP4A': {
+        'uniprot_id': 'P20648',
+        'reference_smiles': 'CC1=CN=C(C(=C1OC)C)CS(=O)C2=NC3=C(N2)C=C(C=C3)OC',
+        'reference_drug': 'Omeprazole',
+    },
+    'FXR': {
+        'uniprot_id': 'Q96RI1',
+        'reference_smiles': 'CCC1C2CC(CCC2(C3CCC4(C(C3C1O)CCC4C(C)CCC(=O)O)C)C)O',
+        'reference_drug': 'Obeticholic acid',
+    },
+    'THRB': {
+        'uniprot_id': 'P10828',
+        'reference_smiles': 'CC(C)C1=CC(=NNC1=O)OC2=C(C=C(C=C2Cl)N3C(=O)NC(=O)C(=N3)C#N)Cl',
+        'reference_drug': 'Resmetirom',
+    },
+    'GBA': {
+        'uniprot_id': 'P04062',
+        'reference_smiles': 'CCCCCCCC(=O)NC(CN1CCCC1)C(C2=CC3=C(C=C2)OCCO3)O',
+        'reference_drug': 'Eliglustat',
+    },
+    'PAH': {
+        'uniprot_id': 'P00439',
+        'reference_smiles': 'CC(C(C1CNC2=C(N1)C(=O)NC(=N2)N)O)O',
+        'reference_drug': 'Sapropterin',
+    },
+    # --- Infectious Disease (additional) ---
+    'HIV1_IN': {
+        'uniprot_id': 'Q76353',
+        'reference_smiles': 'CC1CCOC2N1C(=O)C3=C(C(=O)C(=CN3C2)C(=O)NCC4=C(C=C(C=C4)F)F)O',
+        'reference_drug': 'Dolutegravir',
+    },
+    'HIV1_RT': {
+        'uniprot_id': 'P03366',
+        'reference_smiles': 'C1CC1C#CC2(C3=C(C=CC(=C3)Cl)NC(=O)O2)C(F)(F)F',
+        'reference_drug': 'Efavirenz',
+    },
+    'CCR5': {
+        'uniprot_id': 'P51681',
+        'reference_smiles': 'CC1=NN=C(N1C2CC3CCC(C2)N3CCC(C4=CC=CC=C4)NC(=O)C5CCC(CC5)(F)F)C(C)C',
+        'reference_drug': 'Maraviroc',
+    },
+    'HCV_NS5B': {
+        'uniprot_id': 'Q9WMX2',
+        'reference_smiles': 'CC(C)OC(=O)C(C)NP(=O)(OCC1C(C(C(O1)N2C=CC(=O)NC2=O)(C)F)O)OC3=CC=CC=C3',
+        'reference_drug': 'Sofosbuvir',
+    },
+    'HCV_NS3': {
+        'uniprot_id': 'P26664',
+        'reference_smiles': 'CC1(CC1)S(=O)(=O)NC(=O)C2(CC2C(F)F)NC(=O)C3CC4CN3C(=O)C(NC(=O)OC5CCCC5OCC=CC(C6=NC7=CC=CC=C7N=C6O4)(F)F)C(C)(C)C',
+        'reference_drug': 'Glecaprevir',
+    },
+    'SARS2_RDRP': {
+        'uniprot_id': 'P0DTD1',
+        'reference_smiles': 'CCC(CC)COC(=O)C(C)NP(=O)(OCC1C(C(C(O1)(C#N)C2=CC=C3N2N=CN=C3N)O)O)OC4=CC=CC=C4',
+        'reference_drug': 'Remdesivir',
+    },
+    'DHFR': {
+        'uniprot_id': 'P00374',
+        'reference_smiles': 'COC1=CC(=CC(=C1OC)OC)CC2=CN=C(N=C2N)N',
+        'reference_drug': 'Trimethoprim',
+    },
+    'GYRA': {
+        'uniprot_id': 'P0AES4',
+        'reference_smiles': 'C1CC1N2C=C(C(=O)C3=CC(=C(C=C32)N4CCNCC4)F)C(=O)O',
+        'reference_drug': 'Ciprofloxacin',
+    },
+    'INHA': {
+        'uniprot_id': 'P9WGR1',
+        'reference_smiles': 'C1=CN=CC=C1C(=O)NN',
+        'reference_drug': 'Isoniazid',
+    },
+    'CYP51A1': {
+        'uniprot_id': 'Q16850',
+        'reference_smiles': 'C1=CC(=C(C=C1F)F)C(CN2C=NC=N2)(CN3C=NC=N3)O',
+        'reference_drug': 'Fluconazole',
+    },
+    'TMPRSS2': {
+        'uniprot_id': 'O15393',
+        'reference_smiles': 'CN(C)C(=O)COC(=O)CC1=CC=C(C=C1)OC(=O)C2=CC=C(C=C2)N=C(N)N',
+        'reference_drug': 'Camostat',
+    },
+    # --- Respiratory (additional) ---
+    'PDE4D': {
+        'uniprot_id': 'Q08499',
+        'reference_smiles': 'C1CC1COC2=C(C=CC(=C2)C(=O)NC3=C(C=NC=C3Cl)Cl)OC(F)F',
+        'reference_drug': 'Roflumilast',
+    },
+    'ADRB2': {
+        'uniprot_id': 'P07550',
+        'reference_smiles': 'CC(C)(C)NCC(C1=CC(=C(C=C1)O)CO)O',
+        'reference_drug': 'Salbutamol',
+    },
+    'S1PR1': {
+        'uniprot_id': 'P21453',
+        'reference_smiles': 'CC(C)OC1=C(C=C(C=C1)C2=NC(=NO2)C3=C4CCC(C4=CC=C3)NCCO)C#N',
+        'reference_drug': 'Ozanimod',
+    },
+    # --- Neurology (additional) ---
+    'SV2A': {
+        'uniprot_id': 'Q7L0J3',
+        'reference_smiles': 'CCC(C(=O)N)N1CCCC1=O',
+        'reference_drug': 'Levetiracetam',
+    },
+    'SCN1A': {
+        'uniprot_id': 'P35498',
+        'reference_smiles': 'CCNC(C)CC1=CC(=CC=C1)C(F)(F)F',
+        'reference_drug': 'Fenfluramine',
+    },
+    'SCN5A': {
+        'uniprot_id': 'Q14524',
+        'reference_smiles': 'CC1=C(C(=CC=C1)C)OCC(C)N',
+        'reference_drug': 'Mexiletine',
+    },
+    'CGRP': {
+        'uniprot_id': 'Q16602',
+        'reference_smiles': 'C1CC(C2=C(C=CC=N2)C(C1C3=C(C(=CC=C3)F)F)N)OC(=O)N4CCC(CC4)N5C6=C(NC5=O)N=CC=C6',
+        'reference_drug': 'Rimegepant',
+    },
+    # --- Ophthalmology (additional) ---
+    'CA2': {
+        'uniprot_id': 'P00918',
+        'reference_smiles': 'CCNC1CC(S(=O)(=O)C2=C1C=C(S2)S(=O)(=O)N)C',
+        'reference_drug': 'Dorzolamide',
+    },
+}
+
+
+def get_gene_reference_data(gene: str) -> Dict[str, Any]:
+    """
+    Get reference data for a gene including UniProt ID, seed compound SMILES,
+    PDB IDs, drugs, and druggability.
+
+    Merges KNOWLEDGE_CONNECTIONS with GENE_REFERENCE_DATA for complete info
+    needed by Stage 3 drug discovery pipeline.
+
+    Args:
+        gene: Gene symbol (case-insensitive)
+
+    Returns:
+        Dict with keys: gene, protein, uniprot_id, pdb_ids, druggable, drugs,
+        reference_smiles, reference_drug, diseases, mechanism
+    """
+    gene_upper = gene.upper()
+    result = {'gene': gene_upper}
+
+    # Base knowledge
+    if gene_upper in KNOWLEDGE_CONNECTIONS:
+        conn = KNOWLEDGE_CONNECTIONS[gene_upper]
+        result['protein'] = conn.get('protein')
+        result['pdb_ids'] = conn.get('pdb_ids', [])
+        result['druggable'] = conn.get('druggable', False)
+        result['drugs'] = conn.get('drugs', [])
+        result['diseases'] = conn.get('diseases', [])
+        result['mechanism'] = conn.get('function')
+        result['pathway'] = conn.get('pathway')
+        result['drug_status'] = conn.get('drug_status')
+
+    # Reference data (UniProt, SMILES)
+    if gene_upper in GENE_REFERENCE_DATA:
+        ref = GENE_REFERENCE_DATA[gene_upper]
+        result['uniprot_id'] = ref.get('uniprot_id')
+        result['reference_smiles'] = ref.get('reference_smiles')
+        result['reference_drug'] = ref.get('reference_drug')
+    else:
+        result['uniprot_id'] = None
+        result['reference_smiles'] = None
+        result['reference_drug'] = None
+
+    return result
+
+
 def get_knowledge_for_genes(genes: List[str]) -> List[Dict[str, Any]]:
     """
     Get knowledge connections for a list of genes.

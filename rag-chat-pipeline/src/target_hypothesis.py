@@ -43,6 +43,11 @@ class TargetHypothesis:
     status: str = "hypothesis"  # hypothesis, validated, selected, rejected
     pdb_ids: List[str] = field(default_factory=list)  # For Cryo-EM phase
 
+    # Drug discovery handoff data
+    reference_smiles: Optional[str] = None  # Seed compound SMILES for molecule generation
+    reference_drug: Optional[str] = None  # Name of the seed compound (e.g., "CB-5083")
+    druggability: Optional[str] = None  # From knowledge base: "high", "medium", "low"
+
     def __post_init__(self):
         if not self.id:
             self.id = f"TH-{datetime.now().strftime('%Y%m%d%H%M%S')}-{self.gene}"
@@ -182,7 +187,7 @@ class TargetHypothesisManager:
         }
 
         for hyp in selected:
-            export_data['targets'].append({
+            target_data = {
                 'id': hyp.id,
                 'gene': hyp.gene,
                 'protein': hyp.protein,
@@ -195,7 +200,15 @@ class TargetHypothesisManager:
                 'variant_count': hyp.variant_count,
                 'pdb_ids': hyp.pdb_ids,
                 'status': hyp.status,
-            })
+            }
+            # Include drug discovery handoff data if available
+            if hyp.reference_smiles:
+                target_data['reference_smiles'] = hyp.reference_smiles
+            if hyp.reference_drug:
+                target_data['reference_drug'] = hyp.reference_drug
+            if hyp.druggability:
+                target_data['druggability'] = hyp.druggability
+            export_data['targets'].append(target_data)
 
         with open(output_file, 'w') as f:
             json.dump(export_data, f, indent=2)

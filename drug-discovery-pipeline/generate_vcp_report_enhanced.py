@@ -87,11 +87,12 @@ class GradientRect(Flowable):
 class VCPReportGeneratorEnhanced:
     """Generate stunning VCP Drug Candidate PDF Report."""
 
-    def __init__(self, output_path: str = "outputs/VCP_Drug_Candidate_Report.pdf"):
+    def __init__(self, output_path: str = "outputs/VCP_Drug_Candidate_Report.pdf", context: dict = None):
         self.output_path = Path(output_path)
         self.output_path.parent.mkdir(parents=True, exist_ok=True)
         self.cache_dir = Path("data/structures/image_cache")
         self.cache_dir.mkdir(parents=True, exist_ok=True)
+        self.context = context  # Dynamic data from latest RAG query
         self.styles = getSampleStyleSheet()
         self._setup_styles()
         self._load_structure_data()
@@ -464,6 +465,120 @@ class VCPReportGeneratorEnhanced:
 
         return elements
 
+    def _create_rag_query_section(self):
+        """Create dynamic section showing the latest RAG chat query and evidence."""
+        if not self.context:
+            return []
+
+        elements = []
+
+        elements.append(Spacer(1, 10))
+        elements.append(GradientRect(6.5*inch, 2, Colors.ACCENT_BLUE, Colors.ACCENT_CYAN))
+        elements.append(Spacer(1, 8))
+
+        timestamp = self.context.get('timestamp', 'Unknown')
+        model = self.context.get('model', 'Unknown')
+        total_queries = self.context.get('total_queries', 0)
+
+        elements.append(Paragraph(
+            f"LIVE RAG QUERY — {timestamp}",
+            self.styles['SectionHeader']
+        ))
+
+        elements.append(Paragraph(
+            f"This section reflects the most recent query processed by the RAG/Chat pipeline. "
+            f"Model: {self._safe(model)} | Session queries: {total_queries}",
+            self.styles['BodyJustified']
+        ))
+
+        # User query
+        query = self.context.get('query', '')
+        if query:
+            query_header = Paragraph("User Query", self.styles['SubSection'])
+            query_text = Paragraph(
+                f"<i>\"{self._safe(query)}\"</i>",
+                self.styles['BodyJustified']
+            )
+            elements.append(KeepTogether([query_header, query_text]))
+            elements.append(Spacer(1, 10))
+
+        # Evidence table
+        evidence = self.context.get('evidence', [])
+        if evidence:
+            ev_header = Paragraph(f"Retrieved Evidence ({len(evidence)} variants)", self.styles['SubSection'])
+
+            ev_data = [['Gene', 'rsID', 'Consequence', 'Impact', 'Score', 'AlphaMissense']]
+            for ev in evidence[:10]:  # Cap at 10 rows
+                score = ev.get('score', 0)
+                score_str = f"{score:.2f}" if isinstance(score, (int, float)) else str(score)
+                am = ev.get('am_pathogenicity', '')
+                am_str = f"{am:.2f}" if isinstance(am, (int, float)) and am else str(am) if am else '—'
+                ev_data.append([
+                    self._safe(str(ev.get('gene', '—'))),
+                    self._safe(str(ev.get('rsid', '—'))),
+                    self._safe(str(ev.get('consequence', '—'))),
+                    self._safe(str(ev.get('impact', '—'))),
+                    score_str,
+                    am_str,
+                ])
+
+            ev_table = Table(ev_data, colWidths=[0.8*inch, 1.2*inch, 1.2*inch, 0.8*inch, 0.7*inch, 1.1*inch])
+            ev_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), Colors.ACCENT_BLUE),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, -1), 8),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f0f7ff')]),
+                ('BOX', (0, 0), (-1, -1), 1, Colors.ACCENT_BLUE),
+                ('INNERGRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#cce0ff')),
+                ('TOPPADDING', (0, 0), (-1, -1), 5),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+            ]))
+            elements.append(KeepTogether([ev_header, ev_table]))
+            elements.append(Spacer(1, 10))
+
+        # Knowledge connections
+        connections = self.context.get('knowledge_connections', [])
+        if connections:
+            kc_header = Paragraph(f"Knowledge Connections ({len(connections)} genes)", self.styles['SubSection'])
+
+            kc_data = [['Gene', 'Protein', 'Pathway', 'Drugs', 'Druggable']]
+            for kc in connections[:8]:
+                drugs = kc.get('drugs', [])
+                drug_str = ', '.join(drugs[:2]) + ('...' if len(drugs) > 2 else '') if drugs else '—'
+                kc_data.append([
+                    self._safe(str(kc.get('gene', ''))),
+                    self._safe(str(kc.get('protein', ''))[:30]),
+                    self._safe(str(kc.get('pathway', ''))[:25]),
+                    self._safe(drug_str[:30]),
+                    'YES' if kc.get('druggable') else 'NO',
+                ])
+
+            kc_table = Table(kc_data, colWidths=[0.7*inch, 1.5*inch, 1.3*inch, 1.5*inch, 0.8*inch])
+            kc_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), Colors.ACCENT_PURPLE),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, -1), 8),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f8f8fc')]),
+                ('BOX', (0, 0), (-1, -1), 1, Colors.ACCENT_PURPLE),
+                ('INNERGRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#e0e0f0')),
+                ('TOPPADDING', (0, 0), (-1, -1), 5),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+            ]))
+            elements.append(KeepTogether([kc_header, kc_table]))
+
+        return elements
+
+    @staticmethod
+    def _safe(text: str) -> str:
+        """Escape XML special characters for ReportLab paragraphs."""
+        return text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+
     def _create_structure_section(self):
         """Create structural biology section with Cryo-EM images."""
         elements = []
@@ -610,7 +725,7 @@ class VCPReportGeneratorEnhanced:
             try:
                 mol_img = Image(str(mol_img_path), width=2*inch, height=2*inch)
                 ref_content.append([mol_img])
-            except Exception:
+            except:
                 pass
 
         ref_props = [
@@ -872,6 +987,8 @@ class VCPReportGeneratorEnhanced:
         elements.extend(self._create_pipeline_flow())
         elements.extend(self._create_variant_section())
         elements.extend(self._create_target_section())
+        if self.context:
+            elements.extend(self._create_rag_query_section())
         elements.extend(self._create_structure_section())
         elements.extend(self._create_molecules_section())
         elements.extend(self._create_summary_section())
@@ -885,21 +1002,43 @@ class VCPReportGeneratorEnhanced:
 
 def main():
     """Generate enhanced VCP Drug Candidate Report."""
-    # Generate to both locations
+    import argparse
+    import shutil
+
+    parser = argparse.ArgumentParser(description='Generate VCP Drug Candidate PDF Report')
+    parser.add_argument('--context', type=str, help='Path to report_context.json from RAG chat')
+    args = parser.parse_args()
+
+    # Load context if provided
+    context = None
+    if args.context and Path(args.context).exists():
+        with open(args.context) as f:
+            context = json.load(f)
+
     generator = VCPReportGeneratorEnhanced(
-        output_path="outputs/VCP_Drug_Candidate_Report.pdf"
+        output_path="outputs/VCP_Drug_Candidate_Report.pdf",
+        context=context,
     )
     output_file = generator.generate()
 
     # Copy to landing page
-    import shutil
     landing_page_path = Path("../landing-page/static/VCP_Drug_Candidate_Report.pdf")
     if landing_page_path.parent.exists():
         shutil.copy(output_file, landing_page_path)
         print(f"Copied to: {landing_page_path}")
 
-    print(f"\n✅ Enhanced VCP Drug Candidate Report generated!")
-    print(f"📄 Output: {output_file}")
+    # Write metadata for landing page freshness check
+    meta_path = Path("../landing-page/static/report_meta.json")
+    if meta_path.parent.exists():
+        meta = {
+            'generated_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'has_context': context is not None,
+            'query': context.get('query', '')[:100] if context else '',
+        }
+        with open(meta_path, 'w') as f:
+            json.dump(meta, f)
+
+    print(f"Report generated: {output_file}")
 
 
 if __name__ == "__main__":

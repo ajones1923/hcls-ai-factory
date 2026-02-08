@@ -1,44 +1,44 @@
 # Core dependencies
-python-dotenv>=1.0.0
-pydantic>=2.0.0
-pydantic-settings>=2.0.0
-loguru>=0.7.0
+python-dotenv==1.2.1
+pydantic==2.12.5
+pydantic-settings==2.12.0
+loguru==0.7.3
 
 # VCF Processing
-cyvcf2>=0.30.0
-pysam>=0.22.0
+cyvcf2==0.31.4
+pysam==0.23.3
 
 # Vector Database
-pymilvus>=2.3.0
+pymilvus==2.6.6
 
 # Embeddings
-sentence-transformers>=2.2.0
-torch>=2.0.0
+sentence-transformers==5.2.0
+torch==2.9.1
 
 # LLM Integration
-openai>=1.0.0
-anthropic>=0.18.0
+openai==2.15.0
+anthropic==0.75.0
 # vllm>=0.3.0  # Uncomment for local LLM
 
 # Web Interface
-streamlit>=1.30.0
-streamlit-chat>=0.1.0
+streamlit==1.52.2
+streamlit-chat==0.1.1
 
 # Data Processing
-pandas>=2.0.0
-numpy>=1.24.0
-tqdm>=4.65.0
+pandas==2.3.3
+numpy==2.4.0
+tqdm==4.67.1
 
 # API Server (optional)
-fastapi>=0.109.0
-uvicorn>=0.27.0
+fastapi==0.128.0
+uvicorn==0.40.0
 
 # Portal
-flask>=3.0.0
-flask-cors>=4.0.0
-psutil>=5.9.0
-pynvml>=11.5.0
+flask==3.1.2
+flask-cors==6.0.2
+psutil==7.2.1
+pynvml==13.0.1
 
 # Testing
-pytest>=7.0.0
-pytest-asyncio>=0.23.0
+pytest==9.0.2
+pytest-asyncio==1.3.0

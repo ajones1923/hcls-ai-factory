@@ -634,7 +634,7 @@ Open **http://localhost:8501** in your browser.
 ### Step 1: Clone the Repository
 
 ```bash
-git clone https://github.com/ajones1923/rag-chat-pipeline.git
+git clone https://github.com/NVIDIA/hcls-ai-factory.git
 cd rag-chat-pipeline
 ```
 
@@ -1015,9 +1015,9 @@ curl https://api.anthropic.com/v1/messages \
 
 | Stage | Pipeline | Description |
 |-------|----------|-------------|
-| **1** | [Genomics Pipeline](https://github.com/ajones1923/genomics-pipeline) | FASTQ → VCF with Parabricks |
+| **1** | [Genomics Pipeline](https://github.com/NVIDIA/hcls-ai-factory/tree/main/genomics-pipeline) | FASTQ → VCF with Parabricks |
 | **2** | **RAG/Chat Pipeline** (This repo) | VCF → Target Hypothesis |
-| **3** | [Drug Discovery Pipeline](https://github.com/ajones1923/drug-discovery-pipeline) | Target → Molecule Candidates |
+| **3** | [Drug Discovery Pipeline](https://github.com/NVIDIA/hcls-ai-factory/tree/main/drug-discovery-pipeline) | Target → Molecule Candidates |
 
 ### Integration Flow
 
