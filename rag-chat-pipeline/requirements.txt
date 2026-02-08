@@ -17,7 +17,7 @@ torch==2.9.1
 
 # LLM Integration
 openai==2.15.0
-anthropic==0.75.0
+anthropic==0.79.0
 # vllm>=0.3.0  # Uncomment for local LLM
 
 # Web Interface
