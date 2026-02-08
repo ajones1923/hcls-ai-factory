@@ -555,10 +555,30 @@ mkdir -p monitoring/data/{grafana,prometheus}
 
 ## 6. Reference Data Preparation
 
+> **Automated setup**: The `setup-data.sh` script handles all data downloads with automatic retry, checksum verification, and progress tracking. Run `./setup-data.sh --all` from the repository root to download everything. See [DATA_SETUP.md](DATA_SETUP.md) for complete troubleshooting.
+
+```bash
+# Recommended: Automated download of all data (~500 GB)
+./setup-data.sh --all
+
+# Or download by stage
+./setup-data.sh --stage1    # Genomics: FASTQ + reference (~300 GB)
+./setup-data.sh --stage2    # RAG/Chat: ClinVar + AlphaMissense (~2 GB)
+./setup-data.sh --stage3    # Drug Discovery: PDB cache (optional)
+
+# Check status
+./setup-data.sh --status
+```
+
+The sections below document the manual process for reference. For most deployments, `setup-data.sh` is the recommended approach.
+
 ### 6.1 GRCh38 Reference Genome
 
 ```bash
-# Download GRCh38 reference genome (~3.1 GB)
+# Automated (recommended):
+./setup-data.sh --stage1    # Downloads reference as part of Stage 1
+
+# Manual alternative:
 cd genomics/data/reference
 
 wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/001/405/GCA_000001405.15_GRCh38/seqs_for_alignment_pipelines.ucsc_ids/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.gz
@@ -568,7 +588,6 @@ gunzip GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.gz
 mv GCA_000001405.15_GRCh38_no_alt_analysis_set.fna GRCh38.fa
 
 # Index the reference (required by Parabricks)
-# Note: Parabricks fq2bam can build its own index, but pre-building saves time
 samtools faidx GRCh38.fa
 
 # Verify
@@ -579,7 +598,10 @@ ls -lh GRCh38.fa*
 ### 6.2 ClinVar Database
 
 ```bash
-# Download ClinVar VCF (~1.2 GB)
+# Automated (recommended):
+./setup-data.sh --stage2    # Downloads ClinVar + AlphaMissense with verification
+
+# Manual alternative:
 cd rag/data/clinvar
 
 wget https://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/clinvar.vcf.gz
@@ -595,7 +617,10 @@ echo "ClinVar download complete"
 ### 6.3 AlphaMissense Database
 
 ```bash
-# Download AlphaMissense predictions (~4 GB)
+# Automated (recommended):
+./setup-data.sh --stage2    # Downloads AlphaMissense with gzip integrity check
+
+# Manual alternative:
 cd rag/data/alphamissense
 
 wget https://storage.googleapis.com/dm_alphamissense/AlphaMissense_hg38.tsv.gz
@@ -618,17 +643,23 @@ echo "AlphaMissense download complete"
 ### 6.4 HG002 Sample Data
 
 ```bash
-# Download HG002 FASTQ files for demo/testing (~200 GB)
+# Automated (recommended):
+./setup-data.sh --stage1
+# Downloads all 68 FASTQ files with MD5 verification, auto-retry,
+# and merges into HG002_R1.fastq.gz + HG002_R2.fastq.gz
+
+# Manual alternative (not recommended — no checksum retry):
 cd genomics/data/fastq
 
 # GIAB HG002 30x WGS, 2x250 bp paired-end
-# Note: These are large files — ensure ~200 GB free space
+# Note: These are large files — ensure ~350 GB free space
 wget ftp://ftp-trace.ncbi.nlm.nih.gov/ReferenceSamples/giab/data/AshkenazimTrio/HG002_NA24385_son/NIST_HiSeq_HG002_Homogeneity-10953946/NHGRI_Illumina300X_AJtrio_novoalign_bams/HG002.GRCh38.2x250.fastq.gz
 
-# For a smaller test subset, use a downsampled version if available
 echo "HG002 download complete — verify file sizes match expected ~200 GB"
 ls -lh *.fastq.gz
 ```
+
+> **Troubleshooting FASTQ downloads**: FASTQ files are the most failure-prone download (~200 GB across 68 files from NCBI FTP). If downloads fail checksum verification, the `setup-data.sh` script automatically retries with progressively more conservative settings. See [DATA_SETUP.md](DATA_SETUP.md) for detailed troubleshooting.
 
 ---
 

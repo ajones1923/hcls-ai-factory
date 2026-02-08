@@ -99,9 +99,10 @@ Documentation Sections:
 8.  INSTALLATION & DEPLOYMENT
     8.1  System Requirements
     8.2  Prerequisites
-    8.3  Installation Steps
-    8.4  Environment Configuration
-    8.5  Service Startup
+    8.3  Data Acquisition (Stage 0)
+    8.4  Installation Steps
+    8.5  Environment Configuration
+    8.6  Service Startup
 9.  CONFIGURATION REFERENCE
     9.1  Environment Variables
     9.2  Configuration Files
@@ -2335,7 +2336,57 @@ SOFTWARE REQUIREMENTS:
    export ANTHROPIC_API_KEY=sk-ant-...
 
 --------------------------------------------------------------------------------
-8.3 INSTALLATION STEPS
+8.3 DATA ACQUISITION (STAGE 0)
+--------------------------------------------------------------------------------
+
+Before installing or starting any pipeline services, download the required data
+(~500 GB total). The setup-data.sh script handles all stages with automatic
+retry, checksum verification, and progress tracking.
+
+AUTOMATED DOWNLOAD (RECOMMENDED):
+    # Download everything (run once, ~500 GB total)
+    ./setup-data.sh --all
+
+    # Or download stage by stage
+    ./setup-data.sh --stage2    # ClinVar + AlphaMissense (~2 GB, 5 min)
+    ./setup-data.sh --stage1    # HG002 FASTQ + reference (~300 GB, 2-6 hours)
+    ./setup-data.sh --stage3    # PDB structure cache (optional)
+
+    # Check download status
+    ./setup-data.sh --status
+
+    # Re-verify all checksums
+    ./setup-data.sh --verify
+
+    # Preview without downloading
+    ./setup-data.sh --all --dry-run
+
+DATA REQUIRED BY STAGE:
++----------------------------+----------+---------------------------------------+
+| Component                  | Size     | Source                                |
++----------------------------+----------+---------------------------------------+
+| HG002 FASTQ files (68)    | ~200 GB  | NCBI GIAB FTP                        |
+| GRCh38 reference genome   | ~11 GB   | Parabricks sample bundle (S3)        |
+| Merged FASTQ (R1 + R2)    | ~100 GB  | Generated locally (zcat + pigz)      |
+| ClinVar databases          | ~480 MB  | NCBI FTP                             |
+| AlphaMissense predictions  | ~614 MB  | Google Cloud Storage                 |
+| PDB structures (optional)  | ~12 MB   | RCSB PDB (auto-fetched on demand)    |
++----------------------------+----------+---------------------------------------+
+
+FASTQ DOWNLOAD TROUBLESHOOTING:
+    The most common issue is FASTQ checksum failures. setup-data.sh handles
+    this with automatic retry (up to 3 attempts), fallback from aria2c to
+    wget, and exponential backoff. If downloads still fail:
+
+    1. Re-run: ./setup-data.sh --stage1   (only re-downloads failed files)
+    2. Reduce connections: ./setup-data.sh --stage1 --connections 4
+    3. Wait and retry: NCBI rate-limits aggressive downloaders
+    4. Try off-peak hours: NCBI is less loaded US Eastern 2-6 AM
+
+    For complete troubleshooting, see: docs/DATA_SETUP.md
+
+--------------------------------------------------------------------------------
+8.4 INSTALLATION STEPS
 --------------------------------------------------------------------------------
 
 STEP 1: CLONE REPOSITORY
@@ -2346,15 +2397,18 @@ STEP 2: CONFIGURE ENVIRONMENT
     cp .env.example .env
     # Edit .env with your NGC_API_KEY and ANTHROPIC_API_KEY
 
-STEP 3: SETUP GENOMICS PIPELINE
+STEP 3: DOWNLOAD REQUIRED DATA
+    ./setup-data.sh --all
+    # ~500 GB total, 2-6 hours depending on connection speed
+    # See Section 8.3 and docs/DATA_SETUP.md for details
+
+STEP 4: SETUP GENOMICS PIPELINE
     cd genomics-pipeline
     ./run.sh check
     ./run.sh login
-    ./run.sh download    # ~200GB, 2-6 hours
-    ./run.sh reference
     cd ..
 
-STEP 4: SETUP RAG/CHAT PIPELINE
+STEP 5: SETUP RAG/CHAT PIPELINE
     cd rag-chat-pipeline
     ./run.sh setup
     cp .env.example .env
@@ -2363,7 +2417,7 @@ STEP 4: SETUP RAG/CHAT PIPELINE
     ./run.sh ingest --annotated-only
     cd ..
 
-STEP 5: SETUP DRUG DISCOVERY PIPELINE
+STEP 6: SETUP DRUG DISCOVERY PIPELINE
     cd drug-discovery-pipeline
     python -m venv venv
     source venv/bin/activate
@@ -2372,11 +2426,11 @@ STEP 5: SETUP DRUG DISCOVERY PIPELINE
     # Edit .env with NGC_API_KEY
     cd ..
 
-STEP 6: VERIFY INSTALLATION
+STEP 7: VERIFY INSTALLATION
     ./start-services.sh --status
 
 --------------------------------------------------------------------------------
-8.4 ENVIRONMENT CONFIGURATION
+8.5 ENVIRONMENT CONFIGURATION
 --------------------------------------------------------------------------------
 
 GTC SETUP SCRIPT (gtc-setup.sh):
@@ -2417,7 +2471,7 @@ REQUIRED ENVIRONMENT VARIABLES:
 +----------------------+-------------+-------------------------------------+
 
 --------------------------------------------------------------------------------
-8.5 SERVICE STARTUP
+8.6 SERVICE STARTUP
 --------------------------------------------------------------------------------
 
 QUICK START:

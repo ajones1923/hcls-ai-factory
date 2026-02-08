@@ -194,12 +194,17 @@ cd hcls-ai-factory
 cp .env.example .env
 # Edit .env with your NGC and Anthropic API keys
 
+# Stage 0: Download all required data (~500 GB, run once)
+./setup-data.sh --all
+
 # Start all services
 ./start-services.sh
 
 # Access the landing page
 open http://localhost:8080
 ```
+
+> **First time?** The data download (`setup-data.sh`) is a one-time step that fetches ~500 GB of genomic reference data, clinical databases, and sequencing files. It includes automatic retry, checksum verification, and can be safely re-run if interrupted. See [Data Setup Guide](docs/DATA_SETUP.md) for details and troubleshooting.
 
 ### Service Ports
 

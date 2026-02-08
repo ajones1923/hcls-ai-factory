@@ -10,6 +10,7 @@ Deploy the HCLS AI Factory in 30 minutes. This checklist extracts the critical s
 - [ ] **Storage**: 500GB+ free space for genomics data and models
 - [ ] **Network**: Internet access for pulling containers and reference data
 - [ ] **Software**: Docker 24+, Docker Compose 2.20+, Git
+- [ ] **Download tools**: `aria2c`, `pigz` (`sudo apt-get install -y aria2 pigz`)
 
 ---
 
@@ -41,7 +42,25 @@ nano .env
 
 ---
 
-## Step 3: Start Core Services
+## Step 3: Download Required Data
+
+```bash
+# Download all data (~500 GB, one-time)
+./setup-data.sh --all
+
+# Or download by stage
+./setup-data.sh --stage2    # ClinVar + AlphaMissense (~2 GB, fast)
+./setup-data.sh --stage1    # HG002 FASTQ + reference (~300 GB, 2-6 hours)
+
+# Check status
+./setup-data.sh --status
+```
+
+> **Note**: This is the most time-consuming step. See [DATA_SETUP.md](DATA_SETUP.md) for troubleshooting FASTQ checksum failures, disk space issues, and resuming interrupted downloads.
+
+---
+
+## Step 4: Start Core Services
 
 ```bash
 # Start all services
@@ -64,7 +83,7 @@ docker compose ps
 
 ---
 
-## Step 4: Verify GPU Access
+## Step 5: Verify GPU Access
 
 ```bash
 # Check GPU visibility
@@ -72,15 +91,6 @@ docker compose exec genomics-portal nvidia-smi
 ```
 
 You should see your GPU(s) listed with available memory.
-
----
-
-## Step 5: Load Reference Data
-
-```bash
-# Download reference genome (one-time, ~15GB)
-./scripts/download_references.sh
-```
 
 ---
 
@@ -155,7 +165,7 @@ You're ready when:
 - [ ] Streamlit chat responds to queries
 - [ ] Grafana shows pipeline metrics
 
-**Total time**: ~30 minutes (excluding reference data download)
+**Total time**: ~30 minutes (excluding data download — see Step 3 and [DATA_SETUP.md](DATA_SETUP.md))
 
 ---
 

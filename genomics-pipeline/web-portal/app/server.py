@@ -259,6 +259,13 @@ def run_script(script_name, step_name):
 
 
 # Routes
+@app.route('/health')
+@app.route('/healthz')
+def health():
+    """Health check endpoint for monitoring systems"""
+    return jsonify({'status': 'healthy', 'service': 'genomics-portal', 'port': 5000})
+
+
 @app.route('/')
 def index():
     """Main page"""
@@ -358,7 +365,7 @@ def stop():
         try:
             process.terminate()
             process.wait(timeout=5)
-        except Exception:
+        except:
             process.kill()
 
     running_processes.clear()
@@ -380,11 +387,11 @@ def stop_all():
             process.terminate()
             process.wait(timeout=5)
             killed_count += 1
-        except Exception:
+        except:
             try:
                 process.kill()
                 killed_count += 1
-            except Exception:
+            except:
                 pass
 
     running_processes.clear()
@@ -448,7 +455,7 @@ def stop_all():
                     if cid:
                         subprocess.run(['docker', 'stop', cid], capture_output=True, timeout=30)
                         killed_count += 1
-            except Exception:
+            except:
                 pass
 
         # Also find any container with parabricks in the name
@@ -464,7 +471,7 @@ def stop_all():
                     cid = line.split()[0]
                     subprocess.run(['docker', 'stop', cid], capture_output=True, timeout=30)
                     killed_count += 1
-        except Exception:
+        except:
             pass
 
     except Exception as e:
@@ -569,7 +576,7 @@ def reset_state():
     if STATE_FILE.exists():
         try:
             STATE_FILE.unlink()
-        except OSError:
+        except:
             pass
 
     return jsonify({'success': True, 'message': 'Pipeline state reset to idle'})
@@ -798,14 +805,14 @@ def get_detailed_gpu_metrics():
         try:
             compute_procs = pynvml.nvmlDeviceGetComputeRunningProcesses(handle)
             is_active = len(compute_procs) > 0
-        except Exception:
+        except:
             is_active = False
 
         # Get power usage
         try:
             power = pynvml.nvmlDeviceGetPowerUsage(handle) / 1000.0
             metrics['power_draw'] = round(power, 1)
-        except Exception:
+        except:
             pass
 
         # Estimate other metrics based on utilization when GPU is active
@@ -844,7 +851,7 @@ def check_docker():
             timeout=5
         )
         return result.returncode == 0
-    except Exception:
+    except:
         return False
 
 
@@ -857,7 +864,7 @@ def check_gpu():
             timeout=5
         )
         return result.returncode == 0
-    except Exception:
+    except:
         return False
 
 
@@ -920,7 +927,7 @@ def get_gpu_utilization():
                 mem_used_gb = mem_info.used / (1024**3)
                 mem_total_gb = mem_info.total / (1024**3)
                 mem_percent = (mem_info.used / mem_info.total) * 100
-            except Exception:
+            except:
                 mem_used_gb = 0
                 mem_total_gb = 0
                 mem_percent = 0
@@ -929,7 +936,7 @@ def get_gpu_utilization():
             try:
                 compute_procs = pynvml.nvmlDeviceGetComputeRunningProcesses(handle)
                 has_compute_procs = len(compute_procs) > 0
-            except Exception:
+            except:
                 has_compute_procs = False
 
             # GB10 workaround: if SM utilization is stuck high (>=90%) but no
@@ -940,13 +947,13 @@ def get_gpu_utilization():
             # Get temperature
             try:
                 temp = pynvml.nvmlDeviceGetTemperature(handle, pynvml.NVML_TEMPERATURE_GPU)
-            except Exception:
+            except:
                 temp = 0
 
             # Get power usage
             try:
                 power = pynvml.nvmlDeviceGetPowerUsage(handle) / 1000.0  # Convert to watts
-            except Exception:
+            except:
                 power = 0
 
             devices.append({

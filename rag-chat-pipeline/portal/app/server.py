@@ -32,15 +32,11 @@ CORS(app)
 
 # Configuration
 PROJECT_ROOT = Path(__file__).parent.parent.parent.absolute()
-HCLS_ROOT = PROJECT_ROOT.parent  # Root of HCLS AI Factory
 SCRIPTS_DIR = PROJECT_ROOT / 'scripts'
 DATA_DIR = PROJECT_ROOT / 'data'
 CONFIG_FILE = PROJECT_ROOT / '.env'
 LOG_DIR = DATA_DIR / 'logs'
 VCF_PREVIEW_CACHE = {}
-
-# Default VCF path - uses sibling genomics-pipeline directory
-DEFAULT_VCF_PATH = str(HCLS_ROOT / 'genomics-pipeline' / 'data' / 'output' / 'HG002.genome.vcf.gz')
 
 # Global state
 pipeline_state = {
@@ -309,6 +305,13 @@ def run_command(command, step_name, cwd=None):
 
 
 # Routes
+@app.route('/health')
+@app.route('/healthz')
+def health():
+    """Health check endpoint for monitoring systems"""
+    return jsonify({'status': 'healthy', 'service': 'rag-portal', 'port': 5001})
+
+
 @app.route('/')
 def index():
     """Main page"""
@@ -328,7 +331,7 @@ def get_status():
     }
 
     # Check data files
-    vcf_path = config.get('VCF_INPUT_PATH', 'DEFAULT_VCF_PATH')
+    vcf_path = config.get('VCF_INPUT_PATH', '/home/adam/transfer/genomics-pipeline/data/output/HG002.genome.vcf.gz')
     data_status = {
         'vcf_exists': check_file_exists(vcf_path),
         'vcf_path': vcf_path,
@@ -362,7 +365,7 @@ def get_status():
 def vcf_preview():
     """Get VCF file preview"""
     config = load_config()
-    vcf_path = config.get('VCF_INPUT_PATH', 'DEFAULT_VCF_PATH')
+    vcf_path = config.get('VCF_INPUT_PATH', '/home/adam/transfer/genomics-pipeline/data/output/HG002.genome.vcf.gz')
     limit = request.args.get('limit', 100, type=int)
 
     if not check_file_exists(vcf_path):

@@ -4,6 +4,7 @@
 
 | Document | Description |
 |----------|-------------|
+| [DATA_SETUP.md](DATA_SETUP.md) | **Start here** — Download and verify all required data (~500 GB) |
 | [PRODUCT_DOCUMENTATION.txt](PRODUCT_DOCUMENTATION.txt) | **Complete reference** (3,300+ lines) — Installation, configuration, API reference, troubleshooting |
 | [COMPLETE_PIPELINE_OVERVIEW.txt](COMPLETE_PIPELINE_OVERVIEW.txt) | Visual pipeline diagrams and data flow |
 | [ARCHITECTURE_MINDMAP.md](ARCHITECTURE_MINDMAP.md) | System architecture overview |
@@ -84,9 +85,10 @@ The main `PRODUCT_DOCUMENTATION.txt` contains:
 ## Getting Started
 
 1. Start with the main [README.md](../README.md) in the repository root
-2. Review [PRODUCT_DOCUMENTATION.txt](PRODUCT_DOCUMENTATION.txt) for detailed setup
-3. Run `./start-services.sh` to launch all services
-4. Access the landing page at http://localhost:8080
+2. Configure environment: `cp .env.example .env` and add your API keys
+3. **Download all required data** (~500 GB, one-time): `./setup-data.sh --all` — see [DATA_SETUP.md](DATA_SETUP.md) for details and troubleshooting
+4. Run `./start-services.sh` to launch all services
+5. Access the landing page at http://localhost:8080
 
 ---
 

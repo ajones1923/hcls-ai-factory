@@ -1,5 +1,7 @@
 # Quick Start Guide
 
+> **Part of HCLS AI Factory?** Use `./setup-data.sh --stage1` from the repository root for automated data download with retry and checksum verification. See [docs/DATA_SETUP.md](../docs/DATA_SETUP.md).
+
 ## One-Line Commands
 
 ```bash
@@ -11,6 +13,7 @@
 
 # Download data (~200GB, several hours)
 ./run.sh download
+# Or from HCLS AI Factory root: ./setup-data.sh --stage1 (recommended)
 
 # Setup reference genome
 ./run.sh reference

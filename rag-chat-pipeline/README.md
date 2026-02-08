@@ -586,6 +586,17 @@ class RAGEngine:
 - **Python 3.10+**
 - **Anthropic API Key** (for Claude)
 - **VCF file** from Genomics Pipeline
+- **Annotation data**: ClinVar + AlphaMissense (~2 GB)
+
+### Download Annotation Data
+
+```bash
+# From HCLS AI Factory root (recommended):
+./setup-data.sh --stage2
+
+# This downloads ClinVar (~480 MB) and AlphaMissense (~614 MB)
+# with automatic verification. See docs/DATA_SETUP.md for details.
+```
 
 ### Installation
 

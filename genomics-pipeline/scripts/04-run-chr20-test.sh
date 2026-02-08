@@ -9,7 +9,10 @@ echo "║              FASTQ → BAM → VCF Validation Test                    
 echo "╚════════════════════════════════════════════════════════════════════╝"
 echo ""
 
-set -e
+# Use pipefail so Docker failures piped through tee are caught
+set -o pipefail
+# NOTE: No set -e — we handle errors explicitly per step to avoid
+# masking exit codes through pipes and to provide clear error messages
 
 # Disable output buffering completely
 export PYTHONUNBUFFERED=1
@@ -46,6 +49,18 @@ mkdir -p "${LOG_DIR}"
 mkdir -p "${OUT_DIR}/tmp_chr20"
 echo "✓  Directories ready"
 echo ""
+
+# ============================================================================
+# CLEANUP TRAP — ensures heartbeat processes are killed on exit/error/interrupt
+# ============================================================================
+HEARTBEAT_PID=""
+cleanup() {
+    if [ -n "$HEARTBEAT_PID" ] && kill -0 "$HEARTBEAT_PID" 2>/dev/null; then
+        kill "$HEARTBEAT_PID" 2>/dev/null
+        wait "$HEARTBEAT_PID" 2>/dev/null
+    fi
+}
+trap cleanup EXIT INT TERM
 
 # Helper functions for progress messages
 log_step_start() {
@@ -91,6 +106,14 @@ log_success() {
     echo "   ✅ $1"
 }
 
+log_warn() {
+    echo "   ⚠️  $1"
+}
+
+log_error() {
+    echo "   ❌ $1"
+}
+
 # Function to show periodic status updates during long operations
 status_heartbeat() {
     local message="$1"
@@ -133,37 +156,12 @@ echo "│  Total Estimated Time: 5-20 minutes                             │"
 echo "└──────────────────────────────────────────────────────────────────┘"
 echo ""
 
-STEP1_START=$(date +%s)
-log_step_start "1" "Create Interval BED" "Identifying chromosome 20 coordinates for targeted analysis"
-log_info "Reading reference genome index..."
-log_detail "Reference: GRCh38.fa"
-log_detail "Target: Chromosome 20 only"
-docker run --rm -i \
-    -v "${REF_DIR}:/ref" \
-    -v "${OUT_DIR}:/out" \
-    "${PB_IMG}" \
-    bash -c '
-        test -f /ref/GRCh38.fa.fai || samtools faidx /ref/GRCh38.fa
-        C20=$(awk '"'"'$1=="chr20"{print "chr20"} $1=="20"{print "20"}'"'"' /ref/GRCh38.fa.fai | head -n 1)
-        if [ -z "$C20" ]; then
-            echo "ERROR: chr20/20 not found in reference index"
-            exit 1
-        fi
-        LEN=$(awk -v c="$C20" '"'"'$1==c{print $2}'"'"' /ref/GRCh38.fa.fai)
-        echo -e "${C20}\t0\t${LEN}" > /out/interval_chr20.bed
-        echo "Created interval file:"
-        cat /out/interval_chr20.bed
-    ' 2>&1
-
-# Get chr20 name for DeepVariant
-CHR20_NAME=$(cat "${OUT_DIR}/interval_chr20.bed" | cut -f1)
-log_success "Interval BED created for chromosome: ${CHR20_NAME}"
-STEP1_END=$(date +%s)
-log_step_complete "1" "Create Interval BED"
-
-# Create nvidia-smi wrapper to work around GPU memory detection bug
-# Parabricks queries: nvidia-smi --query-gpu=index,name,memory.total --format=csv,noheader,nounits
-cat > /tmp/nvidia-smi-wrapper.sh << 'WRAPPER_EOF'
+# ============================================================================
+# nvidia-smi wrapper — stored in project dir (not /tmp which can be cleaned)
+# Works around GPU memory detection bug on DGX Spark
+# ============================================================================
+NVIDIA_SMI_WRAPPER="${OUT_DIR}/nvidia-smi-wrapper.sh"
+cat > "${NVIDIA_SMI_WRAPPER}" << 'WRAPPER_EOF'
 #!/bin/bash
 # Handle specific Parabricks query that expects: "index, name, memory_in_MiB" (no header, no units)
 if [[ "$*" == *"--query-gpu=index,name,memory.total"* ]] && [[ "$*" == *"noheader"* ]]; then
@@ -198,7 +196,48 @@ echo "| N/A   45C    P0    25W / N/A |      0MiB / 16384MiB |      0%      Defau
 echo "+-------------------------------+----------------------+----------------------+"
 exit 0
 WRAPPER_EOF
-chmod +x /tmp/nvidia-smi-wrapper.sh
+chmod +x "${NVIDIA_SMI_WRAPPER}"
+
+# ============================================================================
+# STEP 1: Create Interval BED
+# ============================================================================
+STEP1_START=$(date +%s)
+log_step_start "1" "Create Interval BED" "Identifying chromosome 20 coordinates for targeted analysis"
+log_info "Reading reference genome index..."
+log_detail "Reference: GRCh38.fa"
+log_detail "Target: Chromosome 20 only"
+docker run --rm -i \
+    -v "${REF_DIR}:/ref" \
+    -v "${OUT_DIR}:/out" \
+    "${PB_IMG}" \
+    bash -c '
+        test -f /ref/GRCh38.fa.fai || samtools faidx /ref/GRCh38.fa
+        C20=$(awk '"'"'$1=="chr20"{print "chr20"} $1=="20"{print "20"}'"'"' /ref/GRCh38.fa.fai | head -n 1)
+        if [ -z "$C20" ]; then
+            echo "ERROR: chr20/20 not found in reference index"
+            exit 1
+        fi
+        LEN=$(awk -v c="$C20" '"'"'$1==c{print $2}'"'"' /ref/GRCh38.fa.fai)
+        echo -e "${C20}\t0\t${LEN}" > /out/interval_chr20.bed
+        echo "Created interval file:"
+        cat /out/interval_chr20.bed
+    ' 2>&1
+BED_EXIT=$?
+
+if [ $BED_EXIT -ne 0 ]; then
+    log_error "Failed to create interval BED (exit code $BED_EXIT)"
+    exit 1
+fi
+
+# Get chr20 name for DeepVariant
+CHR20_NAME=$(cat "${OUT_DIR}/interval_chr20.bed" | cut -f1)
+log_success "Interval BED created for chromosome: ${CHR20_NAME}"
+STEP1_END=$(date +%s)
+log_step_complete "1" "Create Interval BED"
+
+# ============================================================================
+# STEP 2: fq2bam (FASTQ → BAM)
+# ============================================================================
 
 # Build fq2bam command
 # Note: Using nvidia-smi wrapper to work around GPU memory detection bug
@@ -237,15 +276,23 @@ HEARTBEAT_PID=$!
     -v "${IN_DIR}:/in" \
     -v "${REF_DIR}:/ref" \
     -v "${OUT_DIR}:/out" \
-    -v /tmp/nvidia-smi-wrapper.sh:/usr/local/bin/nvidia-smi:ro \
+    -v "${NVIDIA_SMI_WRAPPER}:/usr/local/bin/nvidia-smi:ro" \
     -e PATH="/usr/local/bin:/usr/local/parabricks:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" \
     "${PB_IMG}" \
     ${FQ2BAM_CMD} \
     2>&1 | tee "${LOG_DIR}/chr20_fq2bam.log"
+FQ2BAM_EXIT=${PIPESTATUS[0]}
 
 # Stop heartbeat
 kill $HEARTBEAT_PID 2>/dev/null
 wait $HEARTBEAT_PID 2>/dev/null
+HEARTBEAT_PID=""
+
+if [ $FQ2BAM_EXIT -ne 0 ]; then
+    log_error "fq2bam failed with exit code $FQ2BAM_EXIT"
+    log_error "Check log: ${LOG_DIR}/chr20_fq2bam.log"
+    exit 1
+fi
 
 log_success "fq2bam completed successfully"
 
@@ -262,10 +309,10 @@ MAX_RETRIES=6
 while [ ! -f "$BAM_FILE" ] || [ ! -s "$BAM_FILE" ]; do
     RETRY_COUNT=$((RETRY_COUNT + 1))
     if [ $RETRY_COUNT -ge $MAX_RETRIES ]; then
-        echo "   ❌ ERROR: BAM file not found after ${MAX_RETRIES} attempts"
+        log_error "BAM file not found after ${MAX_RETRIES} attempts"
         exit 1
     fi
-    echo "   → Waiting for BAM file (attempt ${RETRY_COUNT}/${MAX_RETRIES})..."
+    log_detail "Waiting for BAM file (attempt ${RETRY_COUNT}/${MAX_RETRIES})..."
     sleep 10
 done
 
@@ -274,6 +321,9 @@ log_success "BAM file verified: ${BAM_SIZE}"
 STEP2_END=$(date +%s)
 log_step_complete "2" "fq2bam (FASTQ → BAM)"
 
+# ============================================================================
+# STEP 3: BAM Indexing & QC
+# ============================================================================
 STEP3_START=$(date +%s)
 log_step_start "3" "BAM Indexing & QC" "Creating BAM index and generating alignment statistics"
 log_info "Processing alignment results..."
@@ -289,6 +339,13 @@ docker run --rm -i \
              echo '   → Running flagstat QC...' && \
              samtools flagstat /out/HG002.chr20.bam" \
     2>&1 | tee "${LOG_DIR}/chr20_flagstat.log"
+INDEXING_EXIT=${PIPESTATUS[0]}
+
+if [ $INDEXING_EXIT -ne 0 ]; then
+    log_error "BAM indexing failed with exit code $INDEXING_EXIT"
+    log_error "Check log: ${LOG_DIR}/chr20_flagstat.log"
+    exit 1
+fi
 
 log_success "BAM indexed and QC complete"
 
@@ -304,16 +361,19 @@ MAX_RETRIES=6
 while [ ! -f "$BAI_FILE" ] || [ ! -s "$BAI_FILE" ]; do
     RETRY_COUNT=$((RETRY_COUNT + 1))
     if [ $RETRY_COUNT -ge $MAX_RETRIES ]; then
-        echo "   ❌ ERROR: BAM index not found after ${MAX_RETRIES} attempts"
+        log_error "BAM index not found after ${MAX_RETRIES} attempts"
         exit 1
     fi
-    echo "   → Waiting for BAM index (attempt ${RETRY_COUNT}/${MAX_RETRIES})..."
+    log_detail "Waiting for BAM index (attempt ${RETRY_COUNT}/${MAX_RETRIES})..."
     sleep 5
 done
 log_success "BAM index verified"
 STEP3_END=$(date +%s)
 log_step_complete "3" "BAM Indexing & QC"
 
+# ============================================================================
+# STEP 4: DeepVariant (Variant Calling)
+# ============================================================================
 STEP4_START=$(date +%s)
 log_step_start "4" "DeepVariant (Variant Calling)" "GPU-accelerated variant calling using DeepVariant"
 log_info "Identifying genetic variants in chromosome 20..."
@@ -321,6 +381,19 @@ log_detail "Input: HG002.chr20.bam"
 log_detail "Output: HG002.chr20.vcf.gz"
 log_detail "Estimated time: 1-6 minutes"
 echo ""
+
+# GPU health check before DeepVariant
+log_info "🔍 Checking GPU availability..."
+if nvidia-smi > /dev/null 2>&1; then
+    log_success "GPU is responsive"
+else
+    log_warn "GPU not responding — waiting 15 seconds for recovery..."
+    sleep 15
+    if ! nvidia-smi > /dev/null 2>&1; then
+        log_warn "GPU still not responding — attempting DeepVariant anyway..."
+    fi
+fi
+
 log_info "🧬 Starting DeepVariant variant caller..."
 log_detail "Using deep learning model for variant detection"
 log_detail "Analyzing SNPs and small indels"
@@ -333,22 +406,61 @@ HEARTBEAT_PID=$!
 # Run DeepVariant
 # Mount nvidia-smi wrapper to work around [N/A] memory reporting bug
 /usr/bin/time -v docker run --rm --gpus all \
+    --shm-size=4g \
     -v "${REF_DIR}:/ref" \
     -v "${OUT_DIR}:/out" \
-    -v /tmp/nvidia-smi-wrapper.sh:/usr/local/bin/nvidia-smi:ro \
+    -v "${NVIDIA_SMI_WRAPPER}:/usr/local/bin/nvidia-smi:ro" \
     -e PATH="/usr/local/bin:/usr/local/parabricks:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" \
     "${PB_IMG}" \
     pbrun deepvariant --ref /ref/GRCh38.fa --in-bam /out/HG002.chr20.bam --out-variants /out/HG002.chr20.vcf.gz --regions "${CHR20_NAME}" --num-gpus ${NUM_GPUS} \
     2>&1 | tee "${LOG_DIR}/chr20_deepvariant.log"
+DV_EXIT=${PIPESTATUS[0]}
 
 # Stop heartbeat
 kill $HEARTBEAT_PID 2>/dev/null
 wait $HEARTBEAT_PID 2>/dev/null
+HEARTBEAT_PID=""
 
+if [ $DV_EXIT -ne 0 ]; then
+    log_error "DeepVariant failed with exit code $DV_EXIT"
+    log_error "Check log: ${LOG_DIR}/chr20_deepvariant.log"
+    log_error ""
+    log_error "Troubleshooting:"
+    log_error "  1. Check GPU memory: nvidia-smi"
+    log_error "  2. Check Docker logs: docker logs (container_id)"
+    log_error "  3. Try with --low-memory: set LOW_MEMORY=1 in config/pipeline.env"
+    exit 1
+fi
+
+# Verify VCF was actually produced
+VCF_FILE="${OUT_DIR}/HG002.chr20.vcf.gz"
+log_info "⏳ Waiting for file system sync..."
+sync
+sleep 3
+
+log_info "🔍 Verifying VCF output..."
+RETRY_COUNT=0
+MAX_RETRIES=6
+while [ ! -f "$VCF_FILE" ] || [ ! -s "$VCF_FILE" ]; do
+    RETRY_COUNT=$((RETRY_COUNT + 1))
+    if [ $RETRY_COUNT -ge $MAX_RETRIES ]; then
+        log_error "VCF file not found after ${MAX_RETRIES} attempts"
+        log_error "DeepVariant exited 0 but did not produce output"
+        exit 1
+    fi
+    log_detail "Waiting for VCF file (attempt ${RETRY_COUNT}/${MAX_RETRIES})..."
+    sleep 5
+done
+
+VCF_SIZE_CHECK=$(ls -lh "$VCF_FILE" | awk '{print $5}')
+log_success "VCF file verified: ${VCF_SIZE_CHECK}"
 log_success "DeepVariant completed successfully"
 STEP4_END=$(date +%s)
 log_step_complete "4" "DeepVariant (Variant Calling)"
 
+# ============================================================================
+# VCF Indexing & Summary
+# ============================================================================
 echo ""
 log_info "📑 Indexing VCF file and viewing header..."
 docker run --rm -i \
@@ -362,6 +474,15 @@ docker run --rm -i \
              VARIANT_COUNT=\$(bcftools view -H /out/HG002.chr20.vcf.gz | wc -l) && \
              echo \"      Total variants called: \${VARIANT_COUNT}\"" \
     2>&1 | tee "${LOG_DIR}/chr20_vcf_header.log"
+VCF_INDEX_EXIT=${PIPESTATUS[0]}
+
+if [ $VCF_INDEX_EXIT -ne 0 ]; then
+    log_warn "VCF indexing failed (exit code $VCF_INDEX_EXIT) — non-critical, VCF is still usable"
+fi
+
+# ============================================================================
+# PIPELINE SUMMARY
+# ============================================================================
 
 # Calculate timing
 PIPELINE_END_TIME=$(date +%s)
@@ -394,7 +515,6 @@ STEP4_FORMATTED=$(format_time $STEP4_TIME)
 TOTAL_FORMATTED=$(format_time $TOTAL_TIME)
 
 # Get file sizes and variant count
-VCF_FILE="${OUT_DIR}/HG002.chr20.vcf.gz"
 VCF_INDEX="${OUT_DIR}/HG002.chr20.vcf.gz.tbi"
 VCF_SIZE=$(ls -lh "$VCF_FILE" 2>/dev/null | awk '{print $5}' || echo "N/A")
 VCF_INDEX_SIZE=$(ls -lh "$VCF_INDEX" 2>/dev/null | awk '{print $5}' || echo "N/A")

@@ -30,6 +30,21 @@
 
 ## Pre-Demo Setup
 
+### Step 0: Download Required Data
+
+Before running the demo, all pipeline data must be downloaded. This is a one-time step (~500 GB).
+
+```bash
+# Download all required data (run once)
+./setup-data.sh --all
+
+# Verify data is ready
+./setup-data.sh --status
+# All 7 components should show [OK]
+```
+
+> If data was previously downloaded, `setup-data.sh` will detect existing files and skip them. See [DATA_SETUP.md](DATA_SETUP.md) for troubleshooting.
+
 ### Step 1: Verify Hardware
 
 ```bash
@@ -88,14 +103,20 @@ All 10 services should show green status:
 | Prometheus | 9099 | GREEN |
 | DCGM Exporter | 9400 | GREEN |
 
-### Step 5: Pre-stage Demo Data
+### Step 5: Verify Demo Data
 
 ```bash
-# Ensure reference genome and FASTQ data are available
-ls /reference/GRCh38.fa          # 3.1 GB reference
-ls /data/HG002_R1.fastq.gz      # ~100 GB read 1
-ls /data/HG002_R2.fastq.gz      # ~100 GB read 2
+# Verify all data is downloaded and ready
+./setup-data.sh --status
+
+# Or check individual files
+ls genomics-pipeline/data/ref/GRCh38.fa              # 3.1 GB reference
+ls genomics-pipeline/data/input/HG002_R1.fastq.gz    # ~100 GB read 1
+ls genomics-pipeline/data/input/HG002_R2.fastq.gz    # ~100 GB read 2
+ls rag-chat-pipeline/data/annotations/                # ClinVar + AlphaMissense
 ```
+
+> If any files are missing, run `./setup-data.sh --all` to download them. See Step 0 above.
 
 ---
 
@@ -324,6 +345,8 @@ watch -n 1 nvidia-smi
 
 | Action | Command / URL |
 |---|---|
+| Download data | `./setup-data.sh --all` |
+| Check data status | `./setup-data.sh --status` |
 | Start services | `./start-services.sh` |
 | Launch demo | `python run_pipeline.py --mode demo` |
 | Landing page | http://localhost:8080 |

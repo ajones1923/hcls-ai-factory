@@ -68,6 +68,23 @@ This project grows through collaboration—but it endures through care.
 - Describe expected vs. actual behavior
 - Include system information (GPU, OS, Docker version)
 
+### Development Setup
+
+Before developing or testing changes, download the required data:
+
+```bash
+cp .env.example .env
+# Edit .env with your NGC_API_KEY and ANTHROPIC_API_KEY
+
+# Download all data (~500 GB, one-time)
+./setup-data.sh --all
+
+# Or just Stage 2 for RAG/Chat development (~2 GB, fast)
+./setup-data.sh --stage2
+```
+
+See [docs/DATA_SETUP.md](docs/DATA_SETUP.md) for troubleshooting and stage-by-stage options.
+
 ### Submitting Changes
 
 1. Fork the repository

@@ -374,6 +374,28 @@ An NVIDIA NGC account is required to pull the Parabricks container:
 
 ---
 
+## Data Setup
+
+The genomics pipeline requires ~300 GB of data: HG002 FASTQ files (~200 GB), the GRCh38 reference genome (~11 GB), and merged FASTQ files (~100 GB).
+
+**From the HCLS AI Factory root** (recommended):
+
+```bash
+# Download all Stage 1 data with auto-retry and checksum verification
+./setup-data.sh --stage1
+```
+
+This handles FASTQ download, MD5 verification, reference genome setup, and FASTQ merging. See [docs/DATA_SETUP.md](../docs/DATA_SETUP.md) for troubleshooting.
+
+**From this directory** (standalone):
+
+```bash
+./run.sh download   # Download GIAB HG002 data (~200GB, 2-6 hours)
+./run.sh reference  # Setup GRCh38 reference genome
+```
+
+---
+
 ## Quick Start
 
 ### Option 1: Command Line (Recommended)
@@ -391,6 +413,8 @@ cd genomics-pipeline
 ./run.sh test       # Quick validation on chr20 (5-20 min)
 ./run.sh full       # Full genome analysis (120-240 min)
 ```
+
+> **Tip**: If running as part of the full HCLS AI Factory, use `./setup-data.sh --stage1` from the repository root instead of `./run.sh download` — it provides automatic retry on checksum failures and idempotent re-runs.
 
 ### Option 2: Web Portal
 
