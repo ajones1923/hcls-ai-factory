@@ -13,6 +13,7 @@ from pathlib import Path
 from datetime import datetime
 from flask import Flask, render_template, jsonify, request, Response, stream_with_context, send_file
 from flask_cors import CORS
+from werkzeug.utils import secure_filename
 import psutil
 try:
     import pynvml
@@ -20,15 +21,22 @@ try:
 except ImportError:
     NVML_AVAILABLE = False
 
+from security import add_security_headers, authenticator, require_local_access, rate_limiter
+from validation import validate_step_name, validate_log_type, validate_config_key, validate_config_value
+
 app = Flask(__name__,
             template_folder='../templates',
             static_folder='../static')
+
+# Register security headers on all responses
+app.after_request(add_security_headers)
+
 # CORS configuration - restrict in production
 CORS(app, resources={
     r"/api/*": {
-        "origins": os.environ.get('CORS_ORIGINS', '*').split(','),
+        "origins": os.environ.get('CORS_ORIGINS', 'http://localhost:5000').split(','),
         "methods": ["GET", "POST", "DELETE"],
-        "allow_headers": ["Content-Type"]
+        "allow_headers": ["Content-Type", "Authorization"]
     }
 })
 
@@ -312,17 +320,32 @@ def get_status():
 
 
 @app.route('/api/config', methods=['GET', 'POST'])
+@authenticator.require_auth
 def config():
     """Get or update configuration"""
     if request.method == 'GET':
         return jsonify(load_config())
     else:
         config_data = request.json
+        if not config_data or not isinstance(config_data, dict):
+            return jsonify({'error': 'Invalid request body'}), 400
+
+        # Validate all keys and values before writing
+        for key, value in config_data.items():
+            valid, err = validate_config_key(key)
+            if not valid:
+                return jsonify({'error': f'Invalid key "{key}": {err}'}), 400
+            valid, err = validate_config_value(str(value))
+            if not valid:
+                return jsonify({'error': f'Invalid value for "{key}": {err}'}), 400
+
         save_config(config_data)
         return jsonify({'success': True})
 
 
-@app.route('/api/run/<step>')
+@app.route('/api/run/<step>', methods=['POST'])
+@authenticator.require_auth
+@rate_limiter.limit
 def run_step(step):
     """Run a specific workflow step"""
     global pipeline_state
@@ -356,7 +379,8 @@ def run_step(step):
     return jsonify({'success': True, 'step': step_name})
 
 
-@app.route('/api/stop')
+@app.route('/api/stop', methods=['POST'])
+@authenticator.require_auth
 def stop():
     """Stop running process"""
     global pipeline_state, running_processes
@@ -375,7 +399,8 @@ def stop():
     return jsonify({'success': True})
 
 
-@app.route('/api/stop-all')
+@app.route('/api/stop-all', methods=['POST'])
+@authenticator.require_auth
 def stop_all():
     """Stop all pipeline-related processes"""
     global pipeline_state, running_processes
@@ -557,6 +582,7 @@ def stream():
 
 
 @app.route('/api/reset', methods=['POST'])
+@authenticator.require_auth
 def reset_state():
     """Reset pipeline state to idle"""
     global pipeline_state
@@ -677,6 +703,8 @@ def download_file(directory, filename):
 
 
 @app.route('/api/files/upload/<directory>', methods=['POST'])
+@authenticator.require_auth
+@rate_limiter.limit
 def upload_file(directory):
     """Upload a file to a directory"""
     # Map directory names to actual paths
@@ -698,7 +726,9 @@ def upload_file(directory):
         return jsonify({'error': 'No file selected'}), 400
 
     # Security: sanitize filename
-    filename = file.filename.replace('..', '').replace('/', '_')
+    filename = secure_filename(file.filename)
+    if not filename:
+        return jsonify({'error': 'Invalid filename'}), 400
 
     target_dir = dir_mapping[directory]
     target_dir.mkdir(parents=True, exist_ok=True)
@@ -718,6 +748,7 @@ def upload_file(directory):
 
 
 @app.route('/api/files/delete/<directory>/<filename>', methods=['DELETE'])
+@authenticator.require_auth
 def delete_file(directory, filename):
     """Delete a file"""
     # Map directory names to actual paths

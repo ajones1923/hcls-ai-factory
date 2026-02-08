@@ -129,7 +129,7 @@ data/output/
 ## Next Steps
 
 Use the output VCF for:
-- Pharmacogenomics analysis (Procedure 3)
+- Evidence RAG analysis (Stage 2)
 - Variant annotation
 - Clinical interpretation
 - Research workflows

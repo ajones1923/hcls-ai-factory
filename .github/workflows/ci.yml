@@ -17,6 +17,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: 'pip'
 
       - name: Install ruff
         run: pip install ruff
@@ -33,19 +34,27 @@ jobs:
         include:
           - service: rag-chat-pipeline
             workdir: rag-chat-pipeline
-            deps: "pydantic pydantic-settings loguru numpy pymilvus pytest pytest-cov"
+            reqfile: requirements.txt
+            extra_deps: "pytest pytest-cov"
+            exclude_deps: "torch sentence-transformers"
             markers: "not slow and not integration"
           - service: drug-discovery-pipeline
             workdir: drug-discovery-pipeline
-            deps: "pydantic loguru numpy requests typer rich pytest pytest-cov"
+            reqfile: requirements.txt
+            extra_deps: "pytest pytest-cov"
+            exclude_deps: "rdkit stmol py3Dmol streamlit"
             markers: "not slow and not integration and not rdkit"
           - service: genomics-portal
             workdir: genomics-pipeline/web-portal
-            deps: "flask flask-cors python-dotenv psutil pytest pytest-cov"
+            reqfile: requirements.txt
+            extra_deps: "pytest pytest-cov"
+            exclude_deps: "pynvml"
             markers: "not slow and not integration"
           - service: landing-page
             workdir: landing-page
-            deps: "flask flask-cors requests pytest pytest-cov"
+            reqfile: requirements.txt
+            extra_deps: "pytest pytest-cov"
+            exclude_deps: ""
             markers: "not slow and not integration"
     steps:
       - uses: actions/checkout@v4
@@ -54,9 +63,19 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: 'pip'
 
-      - name: Install dependencies
-        run: pip install ${{ matrix.deps }}
+      - name: Install dependencies from requirements.txt
+        working-directory: ${{ matrix.workdir }}
+        run: |
+          # Install from requirements.txt, skipping packages that need GPU/system libs
+          if [ -n "${{ matrix.exclude_deps }}" ]; then
+            grep -ivE "$(echo '${{ matrix.exclude_deps }}' | tr ' ' '|')" ${{ matrix.reqfile }} | pip install -r /dev/stdin || true
+          else
+            pip install -r ${{ matrix.reqfile }}
+          fi
+          # Install test dependencies
+          pip install ${{ matrix.extra_deps }}
 
       - name: Run tests
         working-directory: ${{ matrix.workdir }}
@@ -82,9 +101,10 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: 'pip'
 
       - name: Install mkdocs-material
-        run: pip install 'mkdocs-material>=9.5'
+        run: pip install -r requirements-docs.txt
 
       - name: Build docs
         run: mkdocs build

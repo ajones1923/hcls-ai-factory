@@ -1,7 +1,7 @@
 """
 Molecule Generation Module - BioNeMo integration for drug-like molecule generation.
 
-Uses MegaMolBART or similar models to generate candidate molecules
+Uses MolMIM or similar models to generate candidate molecules
 from seed SMILES strings derived from known inhibitors.
 """
 import json
@@ -38,7 +38,7 @@ class MoleculeGenerator:
     Generate drug-like molecules using BioNeMo or fallback methods.
 
     Supports:
-    - BioNeMo MegaMolBART (when available)
+    - BioNeMo MolMIM (when available)
     - RDKit-based analogue generation (fallback)
     - Pre-computed demo molecules
     """
@@ -109,7 +109,7 @@ class MoleculeGenerator:
         num_molecules: int,
         diversity: float,
     ) -> List[GeneratedMolecule]:
-        """Generate molecules using BioNeMo MegaMolBART."""
+        """Generate molecules using BioNeMo MolMIM."""
         molecules = []
 
         # BioNeMo API call would go here

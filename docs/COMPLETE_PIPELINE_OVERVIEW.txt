@@ -65,7 +65,7 @@
   ├─────────────────────────────┼─────────────────────────────────────────────────────────────────────────────────┤
   │ Step 2: Cryo-EM Evidence    │ 4 VCP structures (8OOI, 9DIL, 7K56, 5FTK), Druggable Sites, CB-5083 Seed SMILES │
   ├─────────────────────────────┼─────────────────────────────────────────────────────────────────────────────────┤
-  │ Step 3: Molecule Generation │ BioNeMo MegaMolBART / RDKit fallback → Generated Candidates with Properties     │
+  │ Step 3: Molecule Generation │ BioNeMo MolMIM / RDKit fallback → Generated Candidates with Properties     │
   ├─────────────────────────────┼─────────────────────────────────────────────────────────────────────────────────┤
   │ Step 4: Results             │ JSON export, Pipeline Summary                                                   │
   ├─────────────────────────────┼─────────────────────────────────────────────────────────────────────────────────┤

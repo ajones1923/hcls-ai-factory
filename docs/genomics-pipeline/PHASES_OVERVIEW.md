@@ -217,7 +217,7 @@ Evidence-backed response to user
 
 ### Project Structure
 ```
-~/genomics-rag-bionemo/
+~/rag-chat-pipeline/
 ├── docker-compose.yml          # Milvus standalone
 ├── ingest_evidence.py          # VCF → embeddings → Milvus
 ├── chat_app.py                 # Streamlit interface
@@ -302,7 +302,7 @@ Key Residues:
 
 ## Phase 6: Molecule Generation
 
-**Objective**: Generate drug candidate molecules using NVIDIA BioNeMo and MegaMolBART.
+**Objective**: Generate drug candidate molecules using NVIDIA BioNeMo and MolMIM.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -310,7 +310,7 @@ Key Residues:
 ├─────────────────────────────────────────────────────────────┤
 │  Components:                                                │
 │                                                             │
-│  ├── BioNeMo MegaMolBART model                              │
+│  ├── BioNeMo MolMIM model                              │
 │  ├── Constraint-based molecule filtering                    │
 │  └── SMILES/SDF export for wet lab                          │
 └─────────────────────────────────────────────────────────────┘
@@ -322,7 +322,7 @@ Key Residues:
 Target Profile (from Phase 5)
     ↓
 ┌───────────────────────────────────┐
-│         MegaMolBART               │
+│         MolMIM               │
 │  Transformer-based generation     │
 │  SMILES string output             │
 └───────────────────────────────────┘
@@ -354,7 +354,7 @@ Ready for wet lab synthesis/testing
 
 | Component | Output |
 |-----------|--------|
-| MegaMolBART | Candidate molecules (SMILES strings) |
+| MolMIM | Candidate molecules (SMILES strings) |
 | Filtering | Ranked molecules by binding affinity |
 | Export | CSV/SDF for wet lab or further simulation |
 
@@ -407,7 +407,7 @@ Phase 1: Prerequisites          Phase 2: Authentication
                                           ▼
                             Phase 6: Molecule Generation
                         ┌─────────────────────────────────┐
-                        │  BioNeMo MegaMolBART            │
+                        │  BioNeMo MolMIM            │
                         │  SMILES → Wet Lab               │
                         └─────────────────────────────────┘
 
@@ -426,7 +426,7 @@ Phase 1: Prerequisites          Phase 2: Authentication
 | 1-3 | Docker, NVIDIA Parabricks, CUDA, BWA-MEM2, DeepVariant |
 | 4 | Milvus, sentence-transformers, Streamlit, vLLM/OpenAI |
 | 5 | PDB/RCSB API, PyMOL/ChimeraX, BioPython |
-| 6 | NVIDIA BioNeMo, MegaMolBART, RDKit |
+| 6 | NVIDIA BioNeMo, MolMIM, RDKit |
 
 ---
 

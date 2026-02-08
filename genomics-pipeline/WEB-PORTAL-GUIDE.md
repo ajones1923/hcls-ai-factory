@@ -176,7 +176,7 @@ Files created:
 Output VCF: /data/output/HG002.genome.vcf.gz
 Output VCF index: /data/output/HG002.genome.vcf.gz.tbi
 
-This VCF is ready for Procedure 3 (PGx RAG/Chat)!
+This VCF is ready for Stage 2 (Evidence RAG/Chat)!
 ```
 
 ---
@@ -375,7 +375,7 @@ The web portal makes the entire genomics pipeline:
 
 After completing the pipeline:
 1. **Find your VCF:** `data/output/HG002.genome.vcf.gz`
-2. **Use for Procedure 3:** Pharmacogenomics analysis
+2. **Use for Stage 2:** Evidence RAG analysis
 3. **Explore logs:** Review detailed execution logs
 4. **Optimize:** Adjust GPU/memory settings if needed
 
