@@ -20,7 +20,7 @@ pillow==12.1.0
 
 # 3D Molecular Visualization
 stmol==0.0.9
-py3Dmol==2.5.3
+py3Dmol==2.5.4
 
 # Testing
 pytest==9.0.2
