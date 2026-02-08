@@ -9,7 +9,7 @@ reportlab==4.4.0
 
 # CLI
 typer==0.21.1
-rich==14.2.0
+rich==14.3.2
 
 # Chemistry
 rdkit==2025.9.3
