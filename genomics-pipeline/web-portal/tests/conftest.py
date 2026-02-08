@@ -76,7 +76,11 @@ def temp_data_dir():
 def mock_psutil():
     """Mock psutil for system metrics."""
     with patch('server.psutil') as mock:
-        mock.cpu_percent.return_value = 25.5
+        def cpu_percent_side_effect(interval=None, percpu=False):
+            if percpu:
+                return [25.5, 20.0, 30.0, 15.0]
+            return 25.5
+        mock.cpu_percent.side_effect = cpu_percent_side_effect
         mock.cpu_freq.return_value = Mock(current=3200)
         mock.cpu_count.return_value = 128
         mock.virtual_memory.return_value = Mock(

@@ -161,7 +161,9 @@ class TestMetricsEndpoint:
             with patch('server.pipeline_state', {
                 'status': 'idle',
                 'start_time': None,
-                'end_time': None
+                'end_time': None,
+                'current_step': None,
+                'runtime_seconds': 0,
             }):
                 response = client.get('/api/metrics')
                 assert response.status_code == 200
@@ -173,7 +175,9 @@ class TestMetricsEndpoint:
             with patch('server.pipeline_state', {
                 'status': 'idle',
                 'start_time': None,
-                'end_time': None
+                'end_time': None,
+                'current_step': None,
+                'runtime_seconds': 0,
             }):
                 response = client.get('/api/metrics')
                 data = json.loads(response.data)
@@ -294,17 +298,17 @@ class TestInputValidation:
     """Tests for input validation."""
 
     def test_run_step_validates_input(self, client):
-        """Test that run step validates step name."""
-        # SQL injection attempt
+        """Test that run step rejects malicious input."""
+        # SQL injection attempt — Flask may return 404 (route not matched) or 400
         response = client.get('/api/run/check;rm -rf /')
-        assert response.status_code == 400
+        assert response.status_code in (400, 404)
 
-        # Path traversal attempt
+        # Path traversal attempt — Werkzeug normalizes ../  before routing
         response = client.get('/api/run/../../../etc/passwd')
-        assert response.status_code == 400
+        assert response.status_code in (400, 404)
 
     def test_logs_validates_input(self, client):
-        """Test that logs endpoint validates log type."""
-        # Path traversal attempt
+        """Test that logs endpoint rejects malicious input."""
+        # Path traversal attempt — Werkzeug normalizes ../ before routing
         response = client.get('/api/logs/../../../etc/passwd')
-        assert response.status_code == 400
+        assert response.status_code in (400, 404)
