@@ -55,7 +55,7 @@ extra_javascript:
 plugins:
   - search:
       lang: en
-      separator: '[\s\-\.\,\;\:\!\?\(\)\[\]\{\}\/\|\_\#\@\&\*\+\=\~\`\"\']+'
+      separator: "[\\s\\-\\.,;:!?()/_#@&*+=~]+"
   - privacy
 
 markdown_extensions:
