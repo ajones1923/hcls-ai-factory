@@ -1,6 +1,6 @@
 # HCLS AI Factory — Learning Guide: Foundations
 
-> **Level:** High School (Grades 9-12) — No prior biology or computer science required
+> **Level:** Introduction — No prior biology or computer science required
 >
 > **What You'll Learn:** How scientists use computers and AI to read DNA, find disease-causing changes, and design new medicines — all on a single desktop computer.
 >
@@ -301,21 +301,6 @@ Note: NVIDIA BioNeMo NIMs (MolMIM, DiffDock) are free for development but requir
 | **VCP** | Valosin-Containing Protein — the demo target gene |
 | **VEP** | Variant Effect Predictor — classifies variant impacts |
 | **WGS** | Whole-Genome Sequencing — reading the entire genome |
-
----
-
-## Review Questions
-
-1. How many letters are in the human genome alphabet, and what are they?
-2. Why does whole-genome sequencing read each position ~30 times?
-3. What makes GPU processing faster than CPU processing for genomics?
-4. Name the three databases used to annotate variants and what each one does.
-5. What does a QED score above 0.67 mean?
-6. How much does the DGX Spark hardware cost?
-7. What is the composite scoring formula for ranking drug candidates?
-8. Why is the VCP gene important in the demo?
-9. What does "RAG" stand for and why is it important for AI accuracy?
-10. How does the HCLS AI Factory connect to medical imaging?
 
 ---
 

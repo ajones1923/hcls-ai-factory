@@ -1,6 +1,6 @@
 # HCLS AI Factory — Learning Guide: Advanced
 
-> **Level:** Graduate / Professional — Assumes familiarity with molecular biology, bioinformatics, and machine learning concepts.
+> **Level:** Professional — Assumes familiarity with molecular biology, bioinformatics, and machine learning concepts.
 >
 > **What You'll Learn:** Deep technical analysis of the HCLS AI Factory architecture, from BWA-MEM2 seed-and-extend algorithms through diffusion-based molecular docking, with emphasis on algorithmic design decisions, scaling bottlenecks, and clinical translation barriers.
 >
@@ -436,30 +436,6 @@ The knowledge base includes 11 pharmacogenomics genes (CYP2D6, CYP2C19, CYP3A4, 
 - Star allele calling with PharmCAT
 - Drug-drug interaction prediction
 - Dosing recommendations based on metabolizer status
-
----
-
-## Review Questions
-
-1. Explain why DeepVariant reframes variant calling as an image classification problem. What advantages does this provide over statistical models like GATK HaplotypeCaller?
-
-2. Describe the IVF_FLAT index configuration (nlist=1024, nprobe=16) and calculate the approximate number of vectors examined per query from a collection of 3.5M vectors.
-
-3. Why does the RAG pipeline use temperature=0.3 for Claude? What are the trade-offs of lower vs. higher temperature in clinical genomics applications?
-
-4. Explain the docking score normalization formula `max(0, min(1, (10 + dock_score) / 20))`. What docking score maps to 0.5? Why is this mapping appropriate?
-
-5. Compare the AlphaMissense thresholds (pathogenic >0.564, benign <0.34) with ClinVar classifications. What does the "ambiguous" zone represent, and why is it clinically significant?
-
-6. Describe three limitations of DiffDock that could affect the reliability of the drug candidate rankings.
-
-7. Explain why inhibitor-bound PDB structures (like 5FTK) receive a +3 bonus in the structure scoring algorithm. What information does an inhibitor-bound structure provide that an apo structure does not?
-
-8. Design a validation experiment to test the top 5 drug candidates from the VCP/FTD demo pipeline. What assays would you use, and what would constitute a positive result?
-
-9. Calculate the approximate memory budget for the Milvus vector index: 3.5M vectors × 384 dimensions × 4 bytes per float. How does this compare to the available memory on DGX Spark?
-
-10. The composite scoring weights (30% generation, 40% docking, 30% QED) are heuristic. Propose an approach to optimize these weights using experimental feedback from in vitro screening.
 
 ---
 
