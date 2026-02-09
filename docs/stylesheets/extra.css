@@ -278,9 +278,10 @@ html {
 }
 
 .hero-title {
-  font-size: clamp(3rem, 7vw, 5.5rem);
+  font-size: clamp(3.5rem, 8vw, 6.5rem);
   font-weight: 900;
-  line-height: 1.05;
+  line-height: 1.0;
+  letter-spacing: -0.02em;
   color: #ffffff;
   margin: 0 0 1.5rem 0;
   animation: fadeInUp 0.8s ease-out 0.2s both;
