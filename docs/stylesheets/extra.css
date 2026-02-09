@@ -315,6 +315,7 @@ html {
 .hcls-origin,
 .hcls-why-open,
 .hcls-who-for,
+.hcls-getting-started,
 .hcls-architecture,
 .hcls-not,
 .hcls-tech-stack,
@@ -1262,6 +1263,77 @@ html {
 
 @media (max-width: 600px) {
   .who-for-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ----------------------------------------------------------------
+   Getting Started Section
+   ---------------------------------------------------------------- */
+.hcls-getting-started {
+  padding: 6rem 0;
+  background: linear-gradient(135deg, #1B2333 0%, #1e3a5f 100%);
+}
+
+.hcls-getting-started .section-title {
+  color: #fff;
+}
+
+.hcls-getting-started .section-subtitle {
+  color: rgba(255, 255, 255, 0.85);
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.getting-started-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+  margin-top: 2.5rem;
+}
+
+.getting-started-card {
+  padding: 2rem 1.5rem;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: block;
+}
+
+.getting-started-card:hover {
+  transform: translateY(-6px);
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(6, 182, 212, 0.4);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+
+.getting-started-card h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  color: #fff;
+}
+
+.getting-started-card p {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+@media (max-width: 900px) {
+  .getting-started-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .getting-started-grid {
     grid-template-columns: 1fr;
   }
 }
