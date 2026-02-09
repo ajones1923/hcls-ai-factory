@@ -1,11 +1,11 @@
-site_name: HCLS AI Factory
+site_name: HCLS AI Factory Open Project
 site_description: Transform patient DNA into therapeutic candidates in hours, not months. Precision Medicine Accelerator on NVIDIA DGX Spark.
 site_url: https://hcls-ai-factory.org
 
 repo_name: ajones1923/hcls-ai-factory
 repo_url: https://github.com/ajones1923/hcls-ai-factory
 
-copyright: Copyright &copy; 2026 Adam Jones. HCLS AI Factory Open Project. Licensed under Apache 2.0.
+copyright: Copyright &copy; 2026 Adam Jones - HCLS AI Factory Open Project - Licensed under Apache 2.0
 
 theme:
   name: material
@@ -89,7 +89,7 @@ markdown_extensions:
 
 nav:
   - Home: index.md
-  - Architecture: architecture.md
+  - Architecture Guide: architecture.md
   - Getting Started:
     - Quick-Start Checklist: quickstart.md
     - Demo Guide: HCLS_AI_FACTORY_DEMO_GUIDE.md
