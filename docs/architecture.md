@@ -44,7 +44,7 @@ All three stages run on the DGX Spark's GB10 Grace Blackwell Superchip with 128 
 
 ---
 
-## From Patient DNA to New Medicine
+## From Patient DNA to New Medicine Infographic
 
 <div class="architecture-showcase">
   <a href="../diagrams/dgx_spark/From%20Patient%20DNA%20to%20New%20Medicine%20Infographic.png" class="lightbox-link" target="_blank">

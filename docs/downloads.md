@@ -29,9 +29,9 @@ All documentation is available on this site. Use the links below to jump to each
 
 | Diagram | Format |
 |---|---|
-| **Architectural Infographic** | [:material-image: PNG](diagrams/dgx_spark/HCLS%20AI%20Factory%20on%20NVIDIA%20DGX%20Spark%20Architectural%20Infographic%20v1.0.png) |
-| **Architectural Infographic (Alt View)** | [:material-image: PNG](diagrams/dgx_spark/HCLS%20AI%20Factory%20on%20NVIDIA%20DGX%20Spark%20Architectural%20Infographic%20v1.0%20%28Alt%20View%29.png) |
-| **Pipeline Logical Diagram** | [:material-image: PNG](diagrams/dgx_spark/HCLS%20AI%20Factory%20on%20NVIDIA%20DGX%20Spark%20Pipeline%20Logical%20Diagram%20v1.0.png) |
-| **draw.io Diagram — High Level** | [:material-image: PNG](diagrams/dgx_spark/HCLS%20AI%20Factory%20on%20NVIDIA%20DGX%20Spark%20drawio%20Diagram-High%20Level%20v1.0.png) |
-| **draw.io Diagram — Medium Level** | [:material-image: PNG](diagrams/dgx_spark/HCLS%20AI%20Factory%20on%20NVIDIA%20DGX%20Spark%20drawio%20Diagram-Medium%20Level%20v1.0.png) |
-| **Pipeline Mindmap** | [:material-file-pdf-box: PDF](diagrams/dgx_spark/HCLS%20AI%20Factory%20on%20NVIDIA%20DGX%20Spark%20Pipeline%20Mindmap%20v1.0.pdf) |
+| **Architectural Infographic** | [:material-image: PNG](diagrams/dgx_spark/HCLS%20AI%20Factory%20on%20NVIDIA%20DGX%20Spark%20Architectural%20Infographic%20v1.0.png){target="_blank"} |
+| **Architectural Infographic (Alt View)** | [:material-image: PNG](diagrams/dgx_spark/HCLS%20AI%20Factory%20on%20NVIDIA%20DGX%20Spark%20Architectural%20Infographic%20v1.0%20%28Alt%20View%29.png){target="_blank"} |
+| **Pipeline Logical Diagram** | [:material-image: PNG](diagrams/dgx_spark/HCLS%20AI%20Factory%20on%20NVIDIA%20DGX%20Spark%20Pipeline%20Logical%20Diagram%20v1.0.png){target="_blank"} |
+| **draw.io Diagram — High Level** | [:material-image: PNG](diagrams/dgx_spark/HCLS%20AI%20Factory%20on%20NVIDIA%20DGX%20Spark%20drawio%20Diagram-High%20Level%20v1.0.png){target="_blank"} |
+| **draw.io Diagram — Medium Level** | [:material-image: PNG](diagrams/dgx_spark/HCLS%20AI%20Factory%20on%20NVIDIA%20DGX%20Spark%20drawio%20Diagram-Medium%20Level%20v1.0.png){target="_blank"} |
+| **Pipeline Mindmap** | [:material-file-pdf-box: PDF](diagrams/dgx_spark/HCLS%20AI%20Factory%20on%20NVIDIA%20DGX%20Spark%20Pipeline%20Mindmap%20v1.0.pdf){target="_blank"} |
