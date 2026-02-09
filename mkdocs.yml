@@ -115,6 +115,7 @@ nav:
       - RAG Chat Pipeline: rag-chat-pipeline/README.md
       - Drug Discovery Pipeline: drug-discovery-pipeline/README.md
   - Reports:
+    - Final Audit Report: FINAL_AUDIT_REPORT.md
     - Intelligence Report: HCLS_AI_FACTORY_INTELLIGENCE_REPORT.md
     - Executive Summary: HCLS_AI_FACTORY_EXECUTIVE_BULLETS.md
     - Pipeline Report: PIPELINE_REPORT.md
