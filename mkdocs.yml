@@ -90,7 +90,6 @@ nav:
   - Architecture: architecture.md
   - Getting Started:
     - Quick-Start Checklist: quickstart.md
-    - "Stage 0: Data Acquisition": DATA_SETUP.md
     - Deployment Flow: DEPLOYMENT_FLOW.md
     - Demo Guide: HCLS_AI_FACTORY_DEMO_GUIDE.md
     - Deployment Guide: HCLS_AI_FACTORY_DGX_SPARK_DEPLOYMENT_GUIDE.md
@@ -103,10 +102,9 @@ nav:
     - Foundations: HCLS_AI_FACTORY_LEARNING_GUIDE_FOUNDATIONS.md
     - Advanced: HCLS_AI_FACTORY_LEARNING_GUIDE_ADVANCED.md
   - Pipelines:
-    - Stage 0 - Data Acquisition: DATA_SETUP.md
-    - Stage 1 - GPU Genomics: stage-1-genomics.md
-    - Stage 2 - Evidence RAG: stage-2-rag.md
-    - Stage 3 - Drug Discovery: stage-3-drug-discovery.md
+    - GPU Genomics: stage-1-genomics.md
+    - Evidence RAG: stage-2-rag.md
+    - Drug Discovery: stage-3-drug-discovery.md
     - Technical Docs:
       - Genomics Pipeline: genomics-pipeline/README.md
       - Genomics Quick Start: genomics-pipeline/QUICKSTART.md
