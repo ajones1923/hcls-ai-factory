@@ -1,3 +1,8 @@
+---
+search:
+  exclude: true
+---
+
 # Genomics Pipeline: Detailed Technical Overview
 
 ## Executive Summary

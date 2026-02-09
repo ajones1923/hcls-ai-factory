@@ -1,3 +1,11 @@
+---
+tags:
+  - Licensing
+  - Apache 2.0
+  - Cost
+  - API Keys
+---
+
 # Licensing and Cost Guide
 
 > What's free, what requires API keys, and what changes at enterprise scale.

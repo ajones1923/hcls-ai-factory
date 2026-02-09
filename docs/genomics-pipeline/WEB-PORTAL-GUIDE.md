@@ -1,3 +1,10 @@
+---
+tags:
+  - Web Portal
+  - Genomics
+  - Flask
+---
+
 # Web Portal Quick Start Guide
 
 ## 🎯 Launch the Portal (30 seconds)

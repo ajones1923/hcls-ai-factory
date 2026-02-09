@@ -1,3 +1,12 @@
+---
+tags:
+  - Drug Discovery
+  - BioNeMo
+  - MolMIM
+  - DiffDock
+  - RDKit
+---
+
 # Drug Discovery Pipeline
 
 [![NVIDIA BioNeMo](https://img.shields.io/badge/NVIDIA-BioNeMo-76B900?style=flat&logo=nvidia)](https://www.nvidia.com/en-us/clara/bionemo/)

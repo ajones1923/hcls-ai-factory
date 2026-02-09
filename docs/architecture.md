@@ -2,6 +2,14 @@
 title: Architecture
 hide:
   - toc
+search:
+  boost: 2
+tags:
+  - Architecture
+  - DGX Spark
+  - GB10
+  - NVLink
+  - Pipeline
 ---
 
 # Architecture Guide

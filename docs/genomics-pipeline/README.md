@@ -1,3 +1,12 @@
+---
+tags:
+  - Genomics
+  - Parabricks
+  - DeepVariant
+  - Docker
+  - VCF
+---
+
 # Genomics Pipeline
 
 [![NVIDIA Parabricks](https://img.shields.io/badge/NVIDIA-Parabricks%204.6-76B900?style=flat&logo=nvidia)](https://docs.nvidia.com/clara/parabricks/)

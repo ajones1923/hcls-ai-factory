@@ -1,3 +1,11 @@
+---
+tags:
+  - White Paper
+  - Architecture
+  - DGX Spark
+  - Precision Medicine
+---
+
 # HCLS AI Factory White Paper — Open Architecture on NVIDIA DGX Spark
 
 > **From Patient DNA to Novel Drug Candidates in Under Five Hours**

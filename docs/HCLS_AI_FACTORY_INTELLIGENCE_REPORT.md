@@ -1,3 +1,11 @@
+---
+tags:
+  - Intelligence Report
+  - VCP
+  - Pipeline Results
+  - Analysis
+---
+
 # HCLS AI Factory — Intelligence Report
 
 > **Patient:** GEN-2026-0087 | **Pipeline Run:** HCLS-VCP-2026-0087 | **Mode:** Full (Stages 1→2→3)

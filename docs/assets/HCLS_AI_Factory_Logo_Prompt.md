@@ -1,3 +1,8 @@
+---
+search:
+  exclude: true
+---
+
 # HCLS AI Factory Logo — Napkin AI Pro Prompt
 
 > **Output:** Custom logo for website header (upper-left corner)

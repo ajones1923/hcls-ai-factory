@@ -1,3 +1,11 @@
+---
+tags:
+  - Project Bible
+  - Implementation
+  - Reference
+  - Configuration
+---
+
 # HCLS AI Factory — Project Bible
 
 > **Purpose:** Complete implementation reference for building the HCLS AI Factory on NVIDIA DGX Spark. This platform transforms patient DNA into novel drug candidates in under 5 hours across three GPU-accelerated stages: Secondary Genomics, RAG-Grounded Target Identification, and AI-Driven Drug Discovery. Import this document into a Claude Code session as context for implementation.

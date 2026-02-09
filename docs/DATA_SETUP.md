@@ -1,3 +1,8 @@
+---
+search:
+  exclude: true
+---
+
 # Stage 0: Data Acquisition
 
 **The foundation step before any pipeline can run.**

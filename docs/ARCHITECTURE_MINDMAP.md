@@ -1,3 +1,8 @@
+---
+search:
+  exclude: true
+---
+
 # HCLS AI Factory - Precision Medicine to Drug Discovery
 
 ## Patient Data Source

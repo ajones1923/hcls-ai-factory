@@ -1,5 +1,14 @@
 ---
 title: "Stage 3: Drug Discovery"
+search:
+  boost: 2
+tags:
+  - Drug Discovery
+  - MolMIM
+  - DiffDock
+  - BioNeMo
+  - RDKit
+  - Molecular Docking
 ---
 
 # Stage 3: Drug Discovery

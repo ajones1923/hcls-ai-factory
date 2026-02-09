@@ -1,5 +1,9 @@
 ---
 title: Resources
+tags:
+  - Resources
+  - Downloads
+  - Diagrams
 ---
 
 # Resources

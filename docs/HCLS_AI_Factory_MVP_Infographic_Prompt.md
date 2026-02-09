@@ -1,3 +1,8 @@
+---
+search:
+  exclude: true
+---
+
 # Napkin AI Pro — HCLS AI Factory MVP on NVIDIA DGX Spark
 
 ## IMPORTANT: Read this entire prompt before generating. This describes a single, dense, technical architecture infographic — NOT a slide deck. Every element described below appears on ONE canvas. This diagram represents the MVP proof build running on a single NVIDIA DGX Spark. This is what runs on the desk during the proof build — a complete genomics-to-drug-discovery pipeline.

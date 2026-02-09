@@ -1,3 +1,10 @@
+---
+tags:
+  - Quick Start
+  - Genomics
+  - Docker
+---
+
 # Quick Start Guide
 
 ## One-Line Commands

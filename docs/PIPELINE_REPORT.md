@@ -1,3 +1,11 @@
+---
+tags:
+  - Pipeline Report
+  - Metrics
+  - Performance
+  - Results
+---
+
 ## Executive Summary
 
 The **HCLS AI Factory** represents a breakthrough in precision medicine, delivering an end-to-end platform that transforms raw patient DNA sequencing data into novel drug candidates in under **5 hours**. Built on NVIDIA's accelerated computing stack and powered by advanced AI, this platform reduces what traditionally takes months of manual analysis to a streamlined, GPU-accelerated workflow.

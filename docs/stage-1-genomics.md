@@ -1,5 +1,14 @@
 ---
 title: "Stage 1: GPU Genomics"
+search:
+  boost: 2
+tags:
+  - Genomics
+  - Parabricks
+  - DeepVariant
+  - BWA-MEM2
+  - VCF
+  - FASTQ
 ---
 
 # Stage 1: GPU Genomics

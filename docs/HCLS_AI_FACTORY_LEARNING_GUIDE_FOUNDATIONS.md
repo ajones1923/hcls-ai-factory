@@ -1,3 +1,11 @@
+---
+tags:
+  - Learning
+  - Foundations
+  - Introduction
+  - Education
+---
+
 # HCLS AI Factory — Learning Guide: Foundations
 
 > **Level:** Introduction — No prior biology or computer science required

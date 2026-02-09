@@ -1,3 +1,8 @@
+---
+search:
+  exclude: true
+---
+
 # HCLS AI Factory — Final Comprehensive Audit Report
 
 > **Pre-Handoff Verification for VAST R&D**

@@ -1,3 +1,11 @@
+---
+tags:
+  - Learning
+  - Advanced
+  - Professional
+  - Bioinformatics
+---
+
 # HCLS AI Factory — Learning Guide: Advanced
 
 > **Level:** Professional — Assumes familiarity with molecular biology, bioinformatics, and machine learning concepts.

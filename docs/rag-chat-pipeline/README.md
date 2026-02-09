@@ -1,3 +1,12 @@
+---
+tags:
+  - RAG
+  - Milvus
+  - Claude
+  - Streamlit
+  - ClinVar
+---
+
 # RAG/Chat Pipeline
 
 [![NVIDIA](https://img.shields.io/badge/NVIDIA-DGX%20Spark-76B900?style=flat&logo=nvidia)](https://www.nvidia.com/en-us/data-center/dgx-spark/)

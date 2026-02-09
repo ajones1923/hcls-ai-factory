@@ -1,3 +1,8 @@
+---
+search:
+  exclude: true
+---
+
 # GitHub to Netlify Deployment Flow
 
 This document explains how content moves from your local development environment through GitHub to the live Netlify-hosted website.

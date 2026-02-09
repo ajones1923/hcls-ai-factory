@@ -1,5 +1,14 @@
 ---
 title: "Stage 2: Evidence RAG"
+search:
+  boost: 2
+tags:
+  - RAG
+  - Milvus
+  - ClinVar
+  - AlphaMissense
+  - Claude
+  - Vector Database
 ---
 
 # Stage 2: Evidence RAG

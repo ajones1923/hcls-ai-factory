@@ -1,3 +1,8 @@
+---
+search:
+  exclude: true
+---
+
 # HCLS AI Factory — Architecture Mindmap (Open)
 
 > **Purpose:** Comprehensive reference map of the HCLS AI Factory platform for Secondary Genomics to Novel Drug Discovery. Covers every component, data flow, technology, and integration point.

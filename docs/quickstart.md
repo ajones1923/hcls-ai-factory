@@ -1,3 +1,13 @@
+---
+search:
+  boost: 2
+tags:
+  - Quick Start
+  - Setup
+  - Docker
+  - Deployment
+---
+
 # Quick-Start Checklist
 
 Deploy the HCLS AI Factory in 30 minutes. This checklist extracts the critical steps from the full [Deployment Guide](HCLS_AI_FACTORY_DGX_SPARK_DEPLOYMENT_GUIDE.md).

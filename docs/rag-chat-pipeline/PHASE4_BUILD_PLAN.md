@@ -1,3 +1,8 @@
+---
+search:
+  exclude: true
+---
+
 # Phase 4: RAG Chat Pipeline - Build & Test Plan
 
 ## Overview

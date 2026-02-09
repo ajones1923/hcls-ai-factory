@@ -1,3 +1,11 @@
+---
+tags:
+  - Pipeline Phases
+  - Genomics
+  - RAG
+  - Drug Discovery
+---
+
 # Genomics to Drug Discovery Pipeline - Complete Phases Overview
 
 ## Pipeline Architecture

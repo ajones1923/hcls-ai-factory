@@ -1,3 +1,13 @@
+---
+search:
+  boost: 2
+tags:
+  - Demo
+  - Walkthrough
+  - VCP
+  - Frontotemporal Dementia
+---
+
 # HCLS AI Factory — Demo Guide
 
 > **Step-by-step walkthrough for demonstrating the HCLS AI Factory on DGX Spark.**

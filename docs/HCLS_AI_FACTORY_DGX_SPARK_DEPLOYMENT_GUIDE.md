@@ -1,3 +1,14 @@
+---
+search:
+  boost: 2
+tags:
+  - Deployment
+  - Configuration
+  - Docker
+  - DGX Spark
+  - Installation
+---
+
 # HCLS AI Factory — Deployment and Configuration Guide for NVIDIA DGX Spark
 
 > **Precision Medicine Accelerator on NVIDIA DGX Spark**

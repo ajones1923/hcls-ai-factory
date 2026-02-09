@@ -1,3 +1,8 @@
+---
+search:
+  exclude: true
+---
+
 # HCLS AI Factory — Executive Bullets
 
 > **One-page reference for executives, stakeholders, and demo audiences.**
