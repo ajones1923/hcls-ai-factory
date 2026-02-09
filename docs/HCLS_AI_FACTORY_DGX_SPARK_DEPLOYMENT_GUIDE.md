@@ -553,9 +553,9 @@ mkdir -p monitoring/data/{grafana,prometheus}
 
 ---
 
-## 6. Reference Data Preparation
+## 6. Stage 0: Data Acquisition
 
-> **Automated setup**: The `setup-data.sh` script handles all data downloads with automatic retry, checksum verification, and progress tracking. Run `./setup-data.sh --all` from the repository root to download everything. See [DATA_SETUP.md](DATA_SETUP.md) for complete troubleshooting.
+> **Automated setup**: The `setup-data.sh` script handles all data downloads with automatic retry, checksum verification, and progress tracking. Run `./setup-data.sh --all` from the repository root to download everything. This is a one-time step (~500 GB total). See [Stage 0: Data Acquisition](DATA_SETUP.md) for complete troubleshooting.
 
 ```bash
 # Recommended: Automated download of all data (~500 GB)

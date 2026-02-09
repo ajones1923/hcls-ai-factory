@@ -30,7 +30,7 @@
 
 ## Pre-Demo Setup
 
-### Step 0: Download Required Data
+### Stage 0: Data Acquisition
 
 Before running the demo, all pipeline data must be downloaded. This is a one-time step (~500 GB).
 
@@ -43,7 +43,7 @@ Before running the demo, all pipeline data must be downloaded. This is a one-tim
 # All 7 components should show [OK]
 ```
 
-> If data was previously downloaded, `setup-data.sh` will detect existing files and skip them. See [DATA_SETUP.md](DATA_SETUP.md) for troubleshooting.
+> If data was previously downloaded, `setup-data.sh` will detect existing files and skip them. See [Stage 0: Data Acquisition](DATA_SETUP.md) for troubleshooting.
 
 ### Step 1: Verify Hardware
 
@@ -116,7 +116,7 @@ ls genomics-pipeline/data/input/HG002_R2.fastq.gz    # ~100 GB read 2
 ls rag-chat-pipeline/data/annotations/                # ClinVar + AlphaMissense
 ```
 
-> If any files are missing, run `./setup-data.sh --all` to download them. See Step 0 above.
+> If any files are missing, run `./setup-data.sh --all` to download them. See Stage 0 above.
 
 ---
 
