@@ -111,4 +111,3 @@ All three stages run on the DGX Spark's GB10 Grace Blackwell Superchip with 128 
 
 - [**Project Bible**](HCLS_AI_FACTORY_PROJECT_BIBLE.md) — Complete technical reference with scoring formulas, thresholds, and configurations
 - [**White Paper**](HCLS_AI_FACTORY_WHITE_PAPER_DGX_SPARK.md) — Architecture overview and design rationale
-- [**Architecture Mindmap**](HCLS_AI_Factory_Mindmap_Open.md) — Visual system map
