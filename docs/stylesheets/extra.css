@@ -94,6 +94,11 @@ html {
   background-color: #3b82f6;
 }
 
+/* Hide logo icon in mobile drawer */
+.md-nav--primary > .md-nav__title .md-logo {
+  display: none;
+}
+
 /* Two-line site name in mobile drawer */
 .md-nav--primary > .md-nav__title .md-nav__button ~ .md-ellipsis,
 .md-nav--primary > .md-nav__title > .md-ellipsis {
