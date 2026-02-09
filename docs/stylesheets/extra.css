@@ -59,6 +59,22 @@ html {
   backdrop-filter: blur(20px);
 }
 
+/* Move logo icon to the right of site name */
+.md-header__inner {
+  display: flex;
+  align-items: center;
+}
+
+.md-header .md-logo {
+  order: 2;
+  margin-left: 0.5rem;
+  margin-right: 0;
+}
+
+.md-header .md-header__title {
+  order: 3;
+}
+
 /* Two-line site name in header */
 .md-header__topic:first-child .md-ellipsis {
   font-size: 0;
@@ -68,7 +84,7 @@ html {
 .md-header__topic:first-child .md-ellipsis::before {
   content: "HCLS AI Factory";
   display: block;
-  font-size: 1.05rem;
+  font-size: 0.9rem;
   font-weight: 700;
   color: #fff;
   letter-spacing: 0.01em;
@@ -77,7 +93,7 @@ html {
 .md-header__topic:first-child .md-ellipsis::after {
   content: "Open Project";
   display: block;
-  font-size: 0.7rem;
+  font-size: 0.6rem;
   font-weight: 400;
   color: rgba(255, 255, 255, 0.8);
   letter-spacing: 0.02em;
@@ -85,7 +101,7 @@ html {
 
 /* Logo icon sizing */
 .md-header .md-logo img {
-  height: 1.8rem;
+  height: 1.6rem;
   width: auto;
 }
 
@@ -1556,13 +1572,16 @@ html {
 /* Scale header for small screens */
 @media (max-width: 600px) {
   .md-header__topic:first-child .md-ellipsis::before {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
   }
   .md-header__topic:first-child .md-ellipsis::after {
-    font-size: 0.6rem;
+    font-size: 0.55rem;
   }
   .md-header .md-logo img {
-    height: 1.5rem;
+    height: 1.3rem;
+  }
+  .md-header .md-logo {
+    margin-left: 0.3rem;
   }
 }
 
