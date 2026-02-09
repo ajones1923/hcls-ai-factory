@@ -4,7 +4,7 @@ hide:
   - toc
 ---
 
-# Architecture
+# Architecture Guide
 
 The HCLS AI Factory runs three GPU-accelerated AI pipelines on a single NVIDIA DGX Spark workstation — from raw FASTQ sequencing data to ranked drug candidates in under 5 hours.
 

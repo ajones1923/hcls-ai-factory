@@ -164,14 +164,3 @@ The RAG pipeline delivers:
 - **Unified view** — All annotations in one place
 - **Natural language** — No bioinformatics expertise required
 
----
-
-## Learn More
-
-<div class="next-steps">
-
-- [**Technical Documentation →**](rag-chat-pipeline/README.md) — Full pipeline details, API reference, and configuration
-- [**Continue to Stage 3 →**](stage-3-drug-discovery.md) — Drug Discovery: Designing new medicines
-- [**Back to Stage 1 →**](stage-1-genomics.md) — GPU Genomics
-
-</div>

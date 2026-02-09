@@ -126,14 +126,3 @@ GPU acceleration changes the equation:
 - **Lower cost** — One DGX Spark vs. a CPU cluster
 - **Real-time capability** — Results while the patient is still in clinic
 
----
-
-## Learn More
-
-<div class="next-steps">
-
-- [**Technical Documentation →**](genomics-pipeline/README.md) — Full pipeline details, parameters, and configuration
-- [**Continue to Stage 2 →**](stage-2-rag.md) — Evidence RAG: Finding what matters
-- [**Back to Overview →**](index.md) — Return to homepage
-
-</div>

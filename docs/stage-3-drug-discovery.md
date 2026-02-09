@@ -219,15 +219,3 @@ flowchart LR
 
 **Total time:** Under 5 hours from raw DNA to drug candidates (plus one-time Stage 0 data acquisition).
 
----
-
-## Learn More
-
-<div class="next-steps">
-
-- [**Technical Documentation →**](drug-discovery-pipeline/README.md) — Full pipeline details, parameters, and API reference
-- [**Back to Stage 2 →**](stage-2-rag.md) — Evidence RAG
-- [**Back to Stage 1 →**](stage-1-genomics.md) — GPU Genomics
-- [**Return to Overview →**](index.md) — Homepage
-
-</div>
