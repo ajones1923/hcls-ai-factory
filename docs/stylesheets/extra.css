@@ -557,6 +557,14 @@ html {
   padding: 6rem 0;
 }
 
+.hcls-architecture .section-title {
+  color: #fff;
+}
+
+.hcls-architecture .section-subtitle {
+  color: rgba(255, 255, 255, 0.7);
+}
+
 [data-md-color-scheme="slate"] .hcls-architecture {
   background: var(--md-default-bg-color);
 }
