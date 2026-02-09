@@ -43,6 +43,7 @@ theme:
     - content.tabs.link
     - toc.follow
     - announce.dismiss
+  logo: assets/HCLS Icon.png
   icon:
     repo: fontawesome/brands/github
 
