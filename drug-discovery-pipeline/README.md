@@ -636,7 +636,7 @@ generator.generate()
 
 ```bash
 # Clone the repository
-git clone https://github.com/NVIDIA/hcls-ai-factory.git
+git clone https://github.com/ajones1923/hcls-ai-factory.git
 cd drug-discovery-pipeline
 
 # Create virtual environment
@@ -670,7 +670,7 @@ Access the UI at: **http://localhost:8505**
 ### Step 1: Clone the Repository
 
 ```bash
-git clone https://github.com/NVIDIA/hcls-ai-factory.git
+git clone https://github.com/ajones1923/hcls-ai-factory.git
 cd drug-discovery-pipeline
 ```
 
@@ -1010,8 +1010,8 @@ cd monitoring && docker-compose down && docker-compose up -d
 
 | Stage | Pipeline | Description |
 |-------|----------|-------------|
-| **1** | [Genomics Pipeline](https://github.com/NVIDIA/hcls-ai-factory/tree/main/genomics-pipeline) | FASTQ → VCF with Parabricks |
-| **2** | [RAG/Chat Pipeline](https://github.com/NVIDIA/hcls-ai-factory/tree/main/rag-chat-pipeline) | VCF → Target Hypothesis |
+| **1** | [Genomics Pipeline](https://github.com/ajones1923/hcls-ai-factory/tree/main/genomics-pipeline) | FASTQ → VCF with Parabricks |
+| **2** | [RAG/Chat Pipeline](https://github.com/ajones1923/hcls-ai-factory/tree/main/rag-chat-pipeline) | VCF → Target Hypothesis |
 | **3** | **Drug Discovery Pipeline** (This repo) | Target → Molecule Candidates |
 
 ### Integration Flow

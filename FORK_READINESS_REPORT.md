@@ -3,7 +3,7 @@
 **Prepared for:** VAST Data R&D Team
 **Date:** 2026-02-08
 **Auditor:** Comprehensive automated audit with manual verification
-**Repo:** `NVIDIA/hcls-ai-factory` (public)
+**Repo:** `ajones1923/hcls-ai-factory` (public)
 
 ---
 
@@ -294,7 +294,7 @@ The platform is designed to be adapted at these layers without modifying core lo
 
 | Layer | Location | What to Customize |
 |-------|----------|-------------------|
-| **Repository URLs** | 30+ locations (grep `NVIDIA/hcls-ai-factory`) | Replace with VAST fork URL |
+| **Repository URLs** | 30+ locations (grep `ajones1923/hcls-ai-factory`) | Replace with VAST fork URL |
 | **Configuration** | `.env.example`, `pipeline.env` | Hostnames, ports, API keys, storage paths |
 | **Knowledge base** | `rag-chat-pipeline/src/knowledge.py` | Add genes/diseases relevant to VAST's research focus |
 | **Scoring weights** | `drug-discovery-pipeline/src/pipeline.py` (lines 458-461) | Tune generation, docking, QED weights |

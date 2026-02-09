@@ -17,7 +17,7 @@ Deploy the HCLS AI Factory in 30 minutes. This checklist extracts the critical s
 ## Step 1: Clone the Repository
 
 ```bash
-git clone https://github.com/NVIDIA/hcls-ai-factory.git
+git clone https://github.com/ajones1923/hcls-ai-factory.git
 cd hcls-ai-factory
 ```
 
@@ -169,4 +169,4 @@ You're ready when:
 
 ---
 
-*Need help? Open an issue on [GitHub](https://github.com/NVIDIA/hcls-ai-factory/issues).*
+*Need help? Open an issue on [GitHub](https://github.com/ajones1923/hcls-ai-factory/issues).*

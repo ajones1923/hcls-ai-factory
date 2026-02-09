@@ -323,7 +323,7 @@ preflight_checks() {
         log_error "Pre-flight checks failed. Fix the issues above and re-run."
         echo ""
         echo -e "  ${CYAN}For help: See docs/DATA_SETUP.md${NC}"
-        echo -e "  ${CYAN}Report issues: https://github.com/NVIDIA/hcls-ai-factory/issues${NC}"
+        echo -e "  ${CYAN}Report issues: https://github.com/ajones1923/hcls-ai-factory/issues${NC}"
         exit 1
     fi
 
@@ -1253,7 +1253,7 @@ diagnose_failure() {
 
     echo ""
     echo "  For more help: See docs/DATA_SETUP.md"
-    echo "  Report issues: https://github.com/NVIDIA/hcls-ai-factory/issues"
+    echo "  Report issues: https://github.com/ajones1923/hcls-ai-factory/issues"
     echo -e "${RED}================================================================================${NC}"
     echo ""
 }

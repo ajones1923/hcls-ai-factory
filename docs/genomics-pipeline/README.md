@@ -380,7 +380,7 @@ An NVIDIA NGC account is required to pull the Parabricks container:
 
 ```bash
 # Clone the repository
-git clone https://github.com/NVIDIA/hcls-ai-factory.git
+git clone https://github.com/ajones1923/hcls-ai-factory.git
 cd genomics-pipeline
 
 # Run the complete workflow
@@ -424,7 +424,7 @@ cp your_sample_R2.fastq.gz data/input/HG002_R2.fastq.gz
 ### Step 1: Clone the Repository
 
 ```bash
-git clone https://github.com/NVIDIA/hcls-ai-factory.git
+git clone https://github.com/ajones1923/hcls-ai-factory.git
 cd genomics-pipeline
 ```
 
@@ -991,9 +991,9 @@ This pipeline is **Stage 1** of the Precision Medicine to Drug Discovery AI Fact
 
 | Stage | Pipeline | Repository | Description |
 |-------|----------|------------|-------------|
-| **1** | **Genomics Pipeline** | [genomics-pipeline](https://github.com/NVIDIA/hcls-ai-factory/tree/main/genomics-pipeline) | FASTQ → VCF (This component) |
-| **2** | RAG/Chat Pipeline | [rag-chat-pipeline](https://github.com/NVIDIA/hcls-ai-factory/tree/main/rag-chat-pipeline) | VCF → Target Hypothesis |
-| **3** | Drug Discovery Pipeline | [drug-discovery-pipeline](https://github.com/NVIDIA/hcls-ai-factory/tree/main/drug-discovery-pipeline) | Target → Molecule Candidates |
+| **1** | **Genomics Pipeline** | [genomics-pipeline](https://github.com/ajones1923/hcls-ai-factory/tree/main/genomics-pipeline) | FASTQ → VCF (This component) |
+| **2** | RAG/Chat Pipeline | [rag-chat-pipeline](https://github.com/ajones1923/hcls-ai-factory/tree/main/rag-chat-pipeline) | VCF → Target Hypothesis |
+| **3** | Drug Discovery Pipeline | [drug-discovery-pipeline](https://github.com/ajones1923/hcls-ai-factory/tree/main/drug-discovery-pipeline) | Target → Molecule Candidates |
 
 ### Complete Demo Flow
 

@@ -332,8 +332,8 @@ Please review our [Code of Conduct](CODE_OF_CONDUCT.md) before contributing. Thi
 
 ## Questions?
 
-- Open a [GitHub Discussion](https://github.com/NVIDIA/hcls-ai-factory/discussions) for questions or ideas.
-- Open an [Issue](https://github.com/NVIDIA/hcls-ai-factory/issues) for bugs or feature requests.
+- Open a [GitHub Discussion](https://github.com/ajones1923/hcls-ai-factory/discussions) for questions or ideas.
+- Open an [Issue](https://github.com/ajones1923/hcls-ai-factory/issues) for bugs or feature requests.
 
 ---
 

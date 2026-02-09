@@ -53,7 +53,7 @@ git push origin main
 ```
 
 Your changes go to:
-- **Repository:** `github.com/NVIDIA/hcls-ai-factory`
+- **Repository:** `github.com/ajones1923/hcls-ai-factory`
 - **Branch:** `main`
 
 ---

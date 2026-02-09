@@ -2390,7 +2390,7 @@ FASTQ DOWNLOAD TROUBLESHOOTING:
 --------------------------------------------------------------------------------
 
 STEP 1: CLONE REPOSITORY
-    git clone https://github.com/NVIDIA/hcls-ai-factory.git
+    git clone https://github.com/ajones1923/hcls-ai-factory.git
     cd hcls-ai-factory
 
 STEP 2: CONFIGURE ENVIRONMENT
@@ -3144,7 +3144,7 @@ DOCUMENTATION:
 COMMUNITY:
 - NVIDIA Developer Forums: https://forums.developer.nvidia.com/
 - Milvus Discord: https://discord.gg/milvus
-- GitHub Issues: https://github.com/NVIDIA/hcls-ai-factory/issues
+- GitHub Issues: https://github.com/ajones1923/hcls-ai-factory/issues
 
 ENTERPRISE SUPPORT:
 - NVIDIA Enterprise: https://www.nvidia.com/en-us/data-center/dgx-spark/

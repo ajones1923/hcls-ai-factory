@@ -360,14 +360,14 @@ Stage 0 references were audited across all files. Before today's updates, Stage 
 
 ### What VAST R&D Gets
 
-1. **Public repo** (`NVIDIA/hcls-ai-factory`) — Complete open-source platform with Stage 0 through Stage 3, all tests, all documentation
+1. **Public repo** (`ajones1923/hcls-ai-factory`) — Complete open-source platform with Stage 0 through Stage 3, all tests, all documentation
 2. **Private repo** (`ajones1923/hcls-ai-factory-vast`) — Password-protected deployment guide, architecture reference, pipeline stages, executive materials, presentation scripts
 
 ### Fork Instructions
 
 ```bash
 # Fork the public repo
-gh repo fork NVIDIA/hcls-ai-factory --org vast-data
+gh repo fork ajones1923/hcls-ai-factory --org vast-data
 
 # Clone locally
 git clone https://github.com/vast-data/hcls-ai-factory
