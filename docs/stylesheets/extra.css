@@ -60,6 +60,12 @@ html {
 }
 
 /* Two-line site name in header */
+.md-header__title {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
 .md-header__topic:first-child .md-ellipsis {
   font-size: 0;
   line-height: 1.2;
