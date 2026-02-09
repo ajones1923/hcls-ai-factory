@@ -58,6 +58,7 @@ plugins:
       lang: en
       separator: "[\\s\\-\\.,;:!?()/_#@&*+=~]+"
   - tags
+  - privacy
 
 markdown_extensions:
   - admonition
