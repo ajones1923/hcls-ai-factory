@@ -96,6 +96,8 @@ html {
   flex-wrap: wrap;
   align-items: center;
   gap: 0.6rem;
+  font-size: 0;
+  color: transparent;
 }
 
 /* Drawer logo icon */
