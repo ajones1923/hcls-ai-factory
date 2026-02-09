@@ -584,6 +584,12 @@ html {
 .architecture-img:hover {
   transform: scale(1.015);
   box-shadow: 0 16px 60px rgba(0, 0, 0, 0.28);
+  cursor: zoom-in;
+}
+
+.lightbox-link {
+  display: block;
+  text-decoration: none;
 }
 
 .architecture-caption {

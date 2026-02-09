@@ -8,7 +8,7 @@ hide:
 
 The HCLS AI Factory runs three GPU-accelerated AI pipelines on a single NVIDIA DGX Spark workstation — from raw FASTQ sequencing data to ranked drug candidates in under 5 hours.
 
-### Stage 0 + Three Processing Stages
+### Processing Stages
 
 **Stage 0 — Data Acquisition (one-time):** Before the pipeline can run, all required data must be downloaded: HG002 FASTQ sequencing files (~200 GB), the GRCh38 reference genome with BWA-MEM2 index (~11 GB), ClinVar clinical annotations (4.1M variants), and AlphaMissense pathogenicity predictions (71M variants). The [`setup-data.sh`](DATA_SETUP.md) script automates this entire process with checksum verification, parallel downloads, and idempotent resumption. This is a one-time step (~500 GB total).
 
@@ -22,42 +22,46 @@ All three stages run on the DGX Spark's GB10 Grace Blackwell Superchip with 128 
 
 ---
 
-## System Architecture
+## Architectural Infographic
 
-<div class="architecture-showcase" markdown="1">
-
-![HCLS AI Factory on NVIDIA DGX Spark — Architectural Infographic](../diagrams/dgx_spark/HCLS%20AI%20Factory%20on%20NVIDIA%20DGX%20Spark%20Architectural%20Infographic%20v1.0.png){ loading=lazy }
-
+<div class="architecture-showcase">
+  <a href="../diagrams/dgx_spark/HCLS%20AI%20Factory%20on%20NVIDIA%20DGX%20Spark%20Architectural%20Infographic%20v1.0.png" class="lightbox-link" target="_blank">
+    <img src="../diagrams/dgx_spark/HCLS%20AI%20Factory%20on%20NVIDIA%20DGX%20Spark%20Architectural%20Infographic%20v1.0.png" alt="HCLS AI Factory on NVIDIA DGX Spark — Architectural Infographic" class="architecture-img" loading="lazy">
+  </a>
+  <p class="architecture-caption">Click image to expand</p>
 </div>
 
 ---
 
 ## Architectural Infographic (Alt View)
 
-<div class="architecture-showcase" markdown="1">
-
-![HCLS AI Factory on NVIDIA DGX Spark — Architectural Infographic Alt View](../diagrams/dgx_spark/HCLS%20AI%20Factory%20on%20NVIDIA%20DGX%20Spark%20Architectural%20Infographic%20v1.0%20%28Alt%20View%29.png){ loading=lazy }
-
+<div class="architecture-showcase">
+  <a href="../diagrams/dgx_spark/HCLS%20AI%20Factory%20on%20NVIDIA%20DGX%20Spark%20Architectural%20Infographic%20v1.0%20%28Alt%20View%29.png" class="lightbox-link" target="_blank">
+    <img src="../diagrams/dgx_spark/HCLS%20AI%20Factory%20on%20NVIDIA%20DGX%20Spark%20Architectural%20Infographic%20v1.0%20%28Alt%20View%29.png" alt="HCLS AI Factory on NVIDIA DGX Spark — Architectural Infographic Alt View" class="architecture-img" loading="lazy">
+  </a>
+  <p class="architecture-caption">Click image to expand</p>
 </div>
 
 ---
 
 ## From Patient DNA to New Medicine
 
-<div class="architecture-showcase" markdown="1">
-
-![From Patient DNA to New Medicine Infographic](../diagrams/dgx_spark/From%20Patient%20DNA%20to%20New%20Medicine%20Infographic.png){ loading=lazy }
-
+<div class="architecture-showcase">
+  <a href="../diagrams/dgx_spark/From%20Patient%20DNA%20to%20New%20Medicine%20Infographic.png" class="lightbox-link" target="_blank">
+    <img src="../diagrams/dgx_spark/From%20Patient%20DNA%20to%20New%20Medicine%20Infographic.png" alt="From Patient DNA to New Medicine Infographic" class="architecture-img" loading="lazy">
+  </a>
+  <p class="architecture-caption">Click image to expand</p>
 </div>
 
 ---
 
 ## Pipeline Logical Diagram
 
-<div class="architecture-showcase" markdown="1">
-
-![HCLS AI Factory on NVIDIA DGX Spark — Pipeline Logical Diagram](../diagrams/dgx_spark/HCLS%20AI%20Factory%20on%20NVIDIA%20DGX%20Spark%20Pipeline%20Logical%20Diagram%20v1.0.png){ loading=lazy }
-
+<div class="architecture-showcase">
+  <a href="../diagrams/dgx_spark/HCLS%20AI%20Factory%20on%20NVIDIA%20DGX%20Spark%20Pipeline%20Logical%20Diagram%20v1.0.png" class="lightbox-link" target="_blank">
+    <img src="../diagrams/dgx_spark/HCLS%20AI%20Factory%20on%20NVIDIA%20DGX%20Spark%20Pipeline%20Logical%20Diagram%20v1.0.png" alt="HCLS AI Factory on NVIDIA DGX Spark — Pipeline Logical Diagram" class="architecture-img" loading="lazy">
+  </a>
+  <p class="architecture-caption">Click image to expand</p>
 </div>
 
 ---
@@ -66,28 +70,21 @@ All three stages run on the DGX Spark's GB10 Grace Blackwell Superchip with 128 
 
 ### High Level
 
-<div class="architecture-showcase" markdown="1">
-
-![HCLS AI Factory — draw.io High Level](../diagrams/dgx_spark/HCLS%20AI%20Factory%20on%20NVIDIA%20DGX%20Spark%20drawio%20Diagram-High%20Level%20v1.0.png){ loading=lazy }
-
+<div class="architecture-showcase">
+  <a href="../diagrams/dgx_spark/HCLS%20AI%20Factory%20on%20NVIDIA%20DGX%20Spark%20drawio%20Diagram-High%20Level%20v1.0.png" class="lightbox-link" target="_blank">
+    <img src="../diagrams/dgx_spark/HCLS%20AI%20Factory%20on%20NVIDIA%20DGX%20Spark%20drawio%20Diagram-High%20Level%20v1.0.png" alt="HCLS AI Factory — draw.io High Level" class="architecture-img" loading="lazy">
+  </a>
+  <p class="architecture-caption">Click image to expand</p>
 </div>
 
 ### Medium Level
 
-<div class="architecture-showcase" markdown="1">
-
-![HCLS AI Factory — draw.io Medium Level](../diagrams/dgx_spark/HCLS%20AI%20Factory%20on%20NVIDIA%20DGX%20Spark%20drawio%20Diagram-Medium%20Level%20v1.0.png){ loading=lazy }
-
+<div class="architecture-showcase">
+  <a href="../diagrams/dgx_spark/HCLS%20AI%20Factory%20on%20NVIDIA%20DGX%20Spark%20drawio%20Diagram-Medium%20Level%20v1.0.png" class="lightbox-link" target="_blank">
+    <img src="../diagrams/dgx_spark/HCLS%20AI%20Factory%20on%20NVIDIA%20DGX%20Spark%20drawio%20Diagram-Medium%20Level%20v1.0.png" alt="HCLS AI Factory — draw.io Medium Level" class="architecture-img" loading="lazy">
+  </a>
+  <p class="architecture-caption">Click image to expand</p>
 </div>
-
----
-
-## Interactive Diagrams
-
-Explore the architecture in detail with interactive draw.io diagrams:
-
-- [**Detailed Architecture** — DGX Spark](../diagrams/dgx_spark/HCLS_AI_Factory_DGX_Spark.drawio.html) — Full component-level view
-- [**High-Level Architecture** — DGX Spark](../diagrams/dgx_spark/HCLS_AI_Factory_DGX_Spark_HighLevel.drawio.html) — Simplified pipeline overview
 
 ---
 
