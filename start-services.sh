@@ -18,7 +18,6 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-TRANSFER_DIR="$(dirname "$SCRIPT_DIR")"
 
 # Colors for output
 GREEN='\033[0;32m'
@@ -109,7 +108,7 @@ wait_for_service() {
 start_milvus() {
     print_header "Starting Milvus Vector Database"
 
-    cd "$TRANSFER_DIR/rag-chat-pipeline"
+    cd "$SCRIPT_DIR/rag-chat-pipeline"
 
     if docker ps | grep -q "milvus-standalone"; then
         print_success "Milvus is already running"
@@ -130,7 +129,7 @@ start_milvus() {
 start_landing_page() {
     print_header "Starting Landing Page"
 
-    cd "$TRANSFER_DIR/landing-page"
+    cd "$SCRIPT_DIR/landing-page"
 
     if check_port $LANDING_PORT; then
         print_success "Landing page is already running on port $LANDING_PORT"
@@ -148,7 +147,7 @@ start_landing_page() {
 start_rag_chat() {
     print_header "Starting RAG/Chat Pipeline"
 
-    cd "$TRANSFER_DIR/rag-chat-pipeline"
+    cd "$SCRIPT_DIR/rag-chat-pipeline"
 
     # Start Milvus first
     start_milvus
@@ -173,7 +172,7 @@ start_rag_chat() {
 start_drug_discovery() {
     print_header "Starting Drug Discovery Pipeline"
 
-    cd "$TRANSFER_DIR/drug-discovery-pipeline"
+    cd "$SCRIPT_DIR/drug-discovery-pipeline"
 
     # Start main Discovery UI (port 8505)
     if check_port $DRUG_DISCOVERY_PORT; then
@@ -197,8 +196,8 @@ start_drug_discovery() {
     else
         print_info "Starting Drug Discovery Portal..."
 
-        cd "$TRANSFER_DIR/hls-orchestrator"
-        source "$TRANSFER_DIR/drug-discovery-pipeline/venv/bin/activate"
+        cd "$SCRIPT_DIR/hls-orchestrator"
+        source "$SCRIPT_DIR/drug-discovery-pipeline/venv/bin/activate"
 
         nohup streamlit run portal/app.py \
             --server.port $DRUG_PORTAL_PORT \
@@ -207,7 +206,7 @@ start_drug_discovery() {
             > /tmp/drug-portal.log 2>&1 &
 
         wait_for_service "Drug Discovery Portal" $DRUG_PORTAL_PORT 20
-        cd "$TRANSFER_DIR/drug-discovery-pipeline"
+        cd "$SCRIPT_DIR/drug-discovery-pipeline"
     fi
 }
 
@@ -279,7 +278,7 @@ stop_services() {
 
     # Optionally stop Milvus (commented out to preserve data)
     # print_info "Stopping Milvus..."
-    # cd "$TRANSFER_DIR/rag-chat-pipeline" && docker-compose down
+    # cd "$SCRIPT_DIR/rag-chat-pipeline" && docker-compose down
 
     print_success "Services stopped (Milvus kept running to preserve data)"
 }
