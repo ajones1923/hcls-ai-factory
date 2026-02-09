@@ -317,7 +317,7 @@ The Drug Discovery Pipeline leverages NVIDIA BioNeMo NIM microservices to genera
 |:----------|:--------------|
 | **GPU** | NVIDIA GB10 (Blackwell) |
 | **Unified Memory** | 128 GB LPDDR5x (shared CPU/GPU) |
-| **CPU** | 144 Cores (ARM) |
+| **CPU** | ARM64 Cores |
 | **Storage** | 2+ TB NVMe |
 | **Network** | 100 GbE |
 

@@ -81,7 +81,7 @@ Patient DNA → Illumina Sequencer → FASTQ (~200 GB)
 
 | Parameter | Value |
 |---|---|
-| CPU | NVIDIA Grace (ARM64 / aarch64), 144 cores |
+| CPU | NVIDIA Grace (ARM64 / aarch64), ARM64 cores |
 | GPU | NVIDIA GB10, 1 GPU |
 | Memory | 128 GB unified LPDDR5x (CPU + GPU shared pool) |
 | Storage | NVMe, high-throughput I/O |

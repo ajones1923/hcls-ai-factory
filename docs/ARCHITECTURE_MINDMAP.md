@@ -435,7 +435,7 @@
 
 ### System Resources
 #### CPU
-- 144 Cores
+- ARM64 Cores
 - ARM Architecture
 - Parallel Processing
 

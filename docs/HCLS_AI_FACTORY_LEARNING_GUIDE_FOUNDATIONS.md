@@ -221,7 +221,7 @@ The entire pipeline runs on the **NVIDIA DGX Spark** — a desktop computer that
 
 - **GB10 GPU** — the chip that makes everything fast
 - **128 GB unified memory** — shared between CPU and GPU (no data copying needed)
-- **144 ARM64 CPU cores** — for tasks that don't need the GPU
+- **ARM64 CPU cores** — for tasks that don't need the GPU
 - **NVMe storage** — very fast storage for the ~200 GB of genomic data
 - **NVLink-C2C** — direct CPU-GPU connection for fast data movement
 

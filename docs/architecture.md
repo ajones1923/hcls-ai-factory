@@ -104,7 +104,7 @@ Explore the architecture in detail with interactive draw.io diagrams:
 | **System** | NVIDIA DGX Spark |
 | **GPU** | GB10 Grace Blackwell Superchip |
 | **Memory** | 128 GB unified LPDDR5x |
-| **CPU** | 144 ARM64 cores (Grace) |
+| **CPU** | ARM64 cores (Grace) |
 | **Storage** | NVMe SSD |
 | **Price** | $3,999 |
 

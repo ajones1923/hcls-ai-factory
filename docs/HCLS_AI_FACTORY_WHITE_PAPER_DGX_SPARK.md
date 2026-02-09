@@ -54,7 +54,7 @@ The HCLS AI Factory processes data through three sequential stages:
 
 | Layer | Components |
 |---|---|
-| Compute | NVIDIA DGX Spark (GB10 GPU, 128 GB unified memory, 144 ARM64 cores) |
+| Compute | NVIDIA DGX Spark (GB10 GPU, 128 GB unified memory, ARM64 cores) |
 | Genomics | NVIDIA Parabricks 4.6.0-1, GRCh38 reference genome |
 | Annotation | ClinVar (4.1M variants), AlphaMissense (71M predictions), Ensembl VEP |
 | Vector DB | Milvus 2.4, BGE-small-en-v1.5 (384-dim), IVF_FLAT index |

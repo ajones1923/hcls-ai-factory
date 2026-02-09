@@ -2274,7 +2274,7 @@ HARDWARE REQUIREMENTS:
 | GPU Architecture | Volta (V100)+    | Ampere (A100)     | Blackwell (GB10)  |
 | System RAM       | 32 GB            | 128 GB            | 128 GB (unified)  |
 | Storage          | 500 GB SSD       | 1 TB NVMe         | 8 TB NVMe         |
-| CPU              | 8 cores          | 32 cores          | 144 cores         |
+| CPU              | 8 cores          | 32 cores          | ARM64 cores         |
 | Network          | 1 Gbps           | 10 Gbps           | 100 Gbps          |
 +------------------+------------------+-------------------+-------------------+
 

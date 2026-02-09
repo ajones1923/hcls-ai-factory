@@ -140,7 +140,7 @@ The HCLS AI Factory comprises three application pipeline stages running on a sin
 
 | Layer | Technology | Version / Details |
 |---|---|---|
-| Hardware | NVIDIA DGX Spark | GB10 GPU, 128 GB unified LPDDR5x, 144 ARM64 cores |
+| Hardware | NVIDIA DGX Spark | GB10 GPU, 128 GB unified LPDDR5x, ARM64 cores |
 | OS | DGX OS | Ubuntu-based, ARM64 (aarch64) |
 | Container Runtime | Docker + NVIDIA Container Toolkit | nvidia-docker runtime |
 | Orchestration | Docker Compose | Multi-service deployment |
@@ -219,7 +219,7 @@ The platform deploys 14 services across 14 ports:
 | System | NVIDIA DGX Spark |
 | GPU | GB10 Grace Blackwell Superchip |
 | Memory | 128 GB unified LPDDR5x |
-| CPU | 144 ARM64 cores |
+| CPU | ARM64 cores |
 | Architecture | aarch64 (ARM64) |
 | Price | $3,999 |
 
@@ -1732,7 +1732,7 @@ Recommended Grafana dashboard panels:
 |---|---|---|
 | GPU Utilization | DCGM | Track fq2bam and DeepVariant GPU usage |
 | GPU Memory | DCGM | Monitor peak memory during genomics |
-| CPU Utilization | Node Exporter | ARM64 core usage across 144 cores |
+| CPU Utilization | Node Exporter | ARM64 core usage across all ARM64 cores |
 | Memory Usage | Node Exporter | Unified 128 GB LPDDR5x utilization |
 | Disk I/O | Node Exporter | NVMe throughput for FASTQ/BAM processing |
 | Network I/O | Node Exporter | API call throughput |

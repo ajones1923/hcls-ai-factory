@@ -264,7 +264,7 @@
 ### NVIDIA DGX Spark
 - **GPU:** GB10 (Blackwell generation)
 - **Memory:** 128 GB unified LPDDR5x (shared CPU/GPU)
-- **CPU:** 144 ARM64 (Grace) cores
+- **CPU:** ARM64 (Grace) cores
 - **Interconnect:** NVLink-C2C (~900 GB/s)
 - **Storage:** NVMe SSD
 - **CUDA:** 12.x

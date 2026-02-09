@@ -351,7 +351,7 @@ This pipeline processes whole-genome sequencing (WGS) data through a complete bi
 | **GPU Architecture** | Volta (V100)+ | Blackwell (GB10) | Newer = better DeepVariant perf |
 | **System RAM** | 32 GB | 512 GB | BAM sorting is memory-intensive |
 | **Storage** | 500 GB SSD | 1 TB NVMe | Fast I/O critical for BAM files |
-| **CPU** | 8 cores | 144 cores | Parallel I/O and preprocessing |
+| **CPU** | 8 cores | ARM64 cores | Parallel I/O and preprocessing |
 
 ### Software Requirements
 
