@@ -42,7 +42,7 @@ nano .env
 
 ---
 
-## Step 3: Download Required Data
+## Step 3: Stage 0 — Download Required Data
 
 ```bash
 # Download all data (~500 GB, one-time)
@@ -56,7 +56,7 @@ nano .env
 ./setup-data.sh --status
 ```
 
-> **Note**: This is the most time-consuming step. See [DATA_SETUP.md](DATA_SETUP.md) for troubleshooting FASTQ checksum failures, disk space issues, and resuming interrupted downloads.
+> **Note**: Stage 0 (data acquisition) is a one-time step and the most time-consuming part of setup. See [Stage 0: Data Acquisition](DATA_SETUP.md) for troubleshooting FASTQ checksum failures, disk space issues, and resuming interrupted downloads.
 
 ---
 

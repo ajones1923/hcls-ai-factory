@@ -1,6 +1,10 @@
-# Data Setup Guide
+# Stage 0: Data Acquisition
 
-This guide covers downloading and verifying all data required to run the HCLS AI Factory end-to-end. The `setup-data.sh` script automates this process, but this document provides context, troubleshooting, and manual procedures for when things go wrong.
+**The foundation step before any pipeline can run.**
+
+This guide covers downloading and verifying all data required to run the HCLS AI Factory end-to-end (~500 GB). The `setup-data.sh` script automates this process, but this document provides context, troubleshooting, and manual procedures for when things go wrong.
+
+Stage 0 is a one-time setup step that acquires all reference data, sequencing data, and annotation databases needed by the three processing stages. Once complete, the pipeline can run repeatedly without re-downloading.
 
 ---
 

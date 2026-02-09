@@ -8,7 +8,9 @@ hide:
 
 The HCLS AI Factory runs three GPU-accelerated AI pipelines on a single NVIDIA DGX Spark workstation — from raw FASTQ sequencing data to ranked drug candidates in under 5 hours.
 
-### Three Stages, One System
+### Stage 0 + Three Processing Stages
+
+**Stage 0 — Data Acquisition (one-time):** Before the pipeline can run, all required data must be downloaded: HG002 FASTQ sequencing files (~200 GB), the GRCh38 reference genome with BWA-MEM2 index (~11 GB), ClinVar clinical annotations (4.1M variants), and AlphaMissense pathogenicity predictions (71M variants). The [`setup-data.sh`](DATA_SETUP.md) script automates this entire process with checksum verification, parallel downloads, and idempotent resumption. This is a one-time step (~500 GB total).
 
 **Stage 1 — GPU Genomics (120–240 min):** Raw FASTQ sequencing files are aligned to the human reference genome using BWA-MEM2, then variant-called with Google DeepVariant — both accelerated through NVIDIA Parabricks. The output is a clinical-grade VCF containing 11.7 million variants at >99% accuracy.
 

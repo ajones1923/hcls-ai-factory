@@ -318,6 +318,32 @@ html {
   background: var(--md-default-bg-color);
 }
 
+.pipeline-stage0 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+.pipeline-stage0 .pipeline-card {
+  max-width: 460px;
+  text-align: center;
+}
+.pipeline-stage0 .pipeline-card code {
+  background: rgba(118, 185, 0, 0.15);
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+@media (max-width: 76.1875em) {
+  .pipeline-stage0 {
+    flex-direction: column;
+  }
+  .pipeline-stage0 .pipeline-arrow {
+    transform: rotate(90deg);
+  }
+}
+
 .pipeline-cards {
   display: flex;
   align-items: stretch;

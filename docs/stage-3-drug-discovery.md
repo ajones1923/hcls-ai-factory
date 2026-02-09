@@ -196,6 +196,7 @@ Each candidate includes:
 
 ```mermaid
 flowchart LR
+    S0["Stage 0\nData Acquisition\nOne-time"]
     DNA["Patient DNA\n200 GB FASTQ"]
     S1["Stage 1\nGPU Genomics\n2–4 hours"]
     VCF["11.7M\nVariants"]
@@ -204,8 +205,9 @@ flowchart LR
     S3["Stage 3\nDrug Discovery\n8–16 min"]
     OUT["100 Ranked\nCandidates"]
 
-    DNA --> S1 --> VCF --> S2 --> TGT --> S3 --> OUT
+    S0 -.->|"~500 GB downloaded"| DNA --> S1 --> VCF --> S2 --> TGT --> S3 --> OUT
 
+    style S0 fill:#374151,stroke:#6B7280,color:#d1d5db
     style DNA fill:#B3E5FC,stroke:#0288D1
     style S1 fill:#76B900,stroke:#5a8f00,color:#fff
     style VCF fill:#FFE082,stroke:#FFA000
@@ -215,7 +217,7 @@ flowchart LR
     style OUT fill:#76B900,stroke:#5a8f00,color:#fff
 ```
 
-**Total time:** Under 5 hours from raw DNA to drug candidates.
+**Total time:** Under 5 hours from raw DNA to drug candidates (plus one-time Stage 0 data acquisition).
 
 ---
 

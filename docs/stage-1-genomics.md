@@ -14,6 +14,9 @@ title: "Stage 1: GPU Genomics"
 
 ---
 
+!!! info "Prerequisite: Stage 0 — Data Acquisition"
+    Before running Stage 1, all required data must be downloaded via [`setup-data.sh`](DATA_SETUP.md). This includes HG002 FASTQ files (~200 GB), the GRCh38 reference genome, and BWA-MEM2 index. Stage 0 is a one-time step.
+
 ## What This Stage Does
 
 When a patient's DNA is sequenced, the machine produces **raw data** — billions of short DNA fragments stored in FASTQ files, typically around 200 GB per patient.
