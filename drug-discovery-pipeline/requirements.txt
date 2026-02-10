@@ -12,7 +12,7 @@ typer==0.21.1
 rich==14.2.0
 
 # Chemistry
-rdkit==2025.9.3
+rdkit==2025.9.4
 
 # Web UI
 streamlit==1.54.0
