@@ -245,7 +245,7 @@ class TestGPUUtilization:
     def test_get_gpu_utilization_with_nvml(self, mock_pynvml):
         """Test GPU utilization with pynvml mocked."""
         with patch('server.NVML_AVAILABLE', True):
-            with patch('server.pynvml', mock_pynvml):
+            with patch('server.pynvml', mock_pynvml, create=True):
                 from server import get_gpu_utilization
                 result = get_gpu_utilization()
                 assert result['available'] == True
