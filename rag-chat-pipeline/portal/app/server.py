@@ -12,6 +12,7 @@ import time
 import urllib.request
 from pathlib import Path
 from datetime import datetime
+from functools import wraps
 from flask import Flask, render_template, jsonify, request, Response, stream_with_context
 from flask_cors import CORS
 import psutil
@@ -29,6 +30,19 @@ app = Flask(__name__,
             template_folder='../templates',
             static_folder='../static')
 CORS(app)
+
+
+def require_api_key(f):
+    """Require X-API-Key header for dangerous endpoints.
+    When PORTAL_API_KEY is not set, auth is disabled (local dev mode)."""
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        api_key = os.environ.get('PORTAL_API_KEY')
+        if api_key and request.headers.get('X-API-Key') != api_key:
+            return jsonify({'error': 'Unauthorized — set X-API-Key header'}), 401
+        return f(*args, **kwargs)
+    return decorated
+
 
 # Configuration
 PROJECT_ROOT = Path(__file__).parent.parent.parent.absolute()
@@ -257,7 +271,7 @@ def run_script(script_name, step_name):
 
 
 def run_command(command, step_name, cwd=None):
-    """Run a shell command"""
+    """Run a shell command via explicit bash invocation (no shell=True)."""
     global pipeline_state, running_processes
 
     pipeline_state['current_step'] = step_name
@@ -267,14 +281,13 @@ def run_command(command, step_name, cwd=None):
 
     try:
         process = subprocess.Popen(
-            command,
+            ['bash', '-c', command],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
             bufsize=0,
             cwd=cwd or str(PROJECT_ROOT),
             env={**os.environ, 'PYTHONUNBUFFERED': '1'},
-            shell=True
         )
 
         running_processes[step_name] = process
@@ -326,8 +339,8 @@ def get_status():
     # Check service status
     # Milvus health on port 9091, Ollama on 11434 (replaces vLLM for ARM64)
     services = {
-        'milvus': check_service_health('milvus', 'localhost', 9091),
-        'ollama': check_service_health('ollama', 'localhost', 11434),
+        'milvus': check_service_health('milvus', os.environ.get('MILVUS_HOST', 'localhost'), 9091),
+        'ollama': check_service_health('ollama', os.environ.get('OLLAMA_HOST', 'http://localhost:11434').replace('http://', '').split(':')[0], 11434),
     }
 
     # Check data files
@@ -380,17 +393,33 @@ def vcf_preview():
 
 
 @app.route('/api/config', methods=['GET', 'POST'])
+@require_api_key
 def config():
     """Get or update configuration"""
     if request.method == 'GET':
         return jsonify(load_config())
     else:
         config_data = request.json
+        if not config_data or not isinstance(config_data, dict):
+            return jsonify({'error': 'Request body must be a JSON object'}), 400
+
+        # Whitelist of allowed config keys
+        allowed_keys = {
+            'LLM_PROVIDER', 'LLM_MODEL', 'OLLAMA_HOST', 'VLLM_MODEL',
+            'MILVUS_HOST', 'MILVUS_PORT', 'VCF_INPUT_PATH',
+            'RAG_TOP_K', 'RAG_SCORE_THRESHOLD',
+            'LLM_MAX_TOKENS', 'LLM_TEMPERATURE', 'HF_TOKEN',
+        }
+        invalid_keys = set(config_data.keys()) - allowed_keys
+        if invalid_keys:
+            return jsonify({'error': f'Invalid config keys: {", ".join(sorted(invalid_keys))}'}), 400
+
         save_config(config_data)
         return jsonify({'success': True})
 
 
 @app.route('/api/run/<step>')
+@require_api_key
 def run_step(step):
     """Run a specific workflow step"""
     global pipeline_state
@@ -427,6 +456,7 @@ def run_step(step):
 
 
 @app.route('/api/stop')
+@require_api_key
 def stop():
     """Stop running process"""
     global pipeline_state, running_processes
@@ -525,6 +555,7 @@ def export_targets():
 
 
 @app.route('/api/model', methods=['GET', 'POST'])
+@require_api_key
 def model_api():
     """Get or set the current LLM model"""
     model_file = DATA_DIR / 'current_model.json'
@@ -647,7 +678,8 @@ def get_ollama_stats():
     """Get Ollama server statistics"""
     try:
         # Check Ollama health and get model info
-        with urllib.request.urlopen('http://localhost:11434/api/tags', timeout=2) as response:
+        ollama_host = os.environ.get('OLLAMA_HOST', 'http://localhost:11434')
+        with urllib.request.urlopen(f'{ollama_host}/api/tags', timeout=2) as response:
             data = json.loads(response.read().decode('utf-8'))
             models = data.get('models', [])
 
@@ -686,7 +718,7 @@ def check_milvus_collection():
     """Check Milvus collection status"""
     try:
         from pymilvus import connections, utility
-        connections.connect('default', host='localhost', port=19530, timeout=5)
+        connections.connect('default', host=os.environ.get('MILVUS_HOST', 'localhost'), port=int(os.environ.get('MILVUS_PORT', '19530')), timeout=5)
         collections = utility.list_collections()
         genomic_exists = 'genomic_evidence' in collections
 

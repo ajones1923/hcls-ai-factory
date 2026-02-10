@@ -24,8 +24,11 @@ COPY data/ /app/data/
 COPY generate_vcp_report.py /app/
 COPY generate_vcp_report_enhanced.py /app/
 
-# Create output directories
-RUN mkdir -p /app/outputs /app/outputs/molecules
+# Create output directories and non-root user
+RUN mkdir -p /app/outputs /app/outputs/molecules \
+    && useradd --create-home --shell /bin/bash appuser \
+    && chown -R appuser:appuser /app
+USER appuser
 
 # Expose Streamlit port
 EXPOSE 8501

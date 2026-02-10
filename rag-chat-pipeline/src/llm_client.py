@@ -168,7 +168,7 @@ class OllamaClient(BaseLLMClient):
 
     def __init__(
         self,
-        host: str = "http://localhost:11434",
+        host: str = None,
         model: str = "llama3.1:70b",
     ):
         try:
@@ -176,6 +176,7 @@ class OllamaClient(BaseLLMClient):
         except ImportError:
             raise ImportError("openai package required. Install with: pip install openai")
 
+        host = host or os.getenv("OLLAMA_HOST", "http://localhost:11434")
         # Ollama uses /v1 endpoint for OpenAI compatibility
         self.base_url = f"{host}/v1"
         self.model = model
@@ -235,8 +236,8 @@ class VLLMClient(BaseLLMClient):
 
     def __init__(
         self,
-        host: str = "localhost",
-        port: int = 8080,
+        host: str = None,
+        port: int = None,
         model: str = "meta-llama/Llama-3.1-8B-Instruct",
     ):
         try:
@@ -244,6 +245,8 @@ class VLLMClient(BaseLLMClient):
         except ImportError:
             raise ImportError("openai package required. Install with: pip install openai")
 
+        host = host or os.getenv("VLLM_HOST", "localhost")
+        port = port or int(os.getenv("VLLM_PORT", "8080"))
         self.base_url = f"http://{host}:{port}/v1"
         self.model = model
         self.client = openai.OpenAI(
@@ -335,13 +338,13 @@ class LLMClient:
             )
         elif provider == "ollama":
             return OllamaClient(
-                host=kwargs.get("host", os.getenv("OLLAMA_HOST", "http://localhost:11434")),
+                host=kwargs.get("host"),
                 model=model or os.getenv("LLM_MODEL", "llama3.1:70b"),
             )
         elif provider == "vllm":
             return VLLMClient(
-                host=kwargs.get("host", "localhost"),
-                port=kwargs.get("port", 8080),
+                host=kwargs.get("host"),
+                port=kwargs.get("port"),
                 model=model or "meta-llama/Llama-3.1-8B-Instruct",
             )
         else:

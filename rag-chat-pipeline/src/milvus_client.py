@@ -1,6 +1,7 @@
 """
 Milvus Client - Vector database operations for genomic evidence.
 """
+import os
 from typing import List, Optional, Dict, Any
 import re
 import numpy as np
@@ -29,13 +30,13 @@ class MilvusClient:
 
     def __init__(
         self,
-        host: str = "localhost",
-        port: int = 19530,
+        host: str = None,
+        port: int = None,
         collection_name: str = "genomic_evidence",
         embedding_dim: int = 384,
     ):
-        self.host = host
-        self.port = port
+        self.host = host or os.environ.get("MILVUS_HOST", "localhost")
+        self.port = port or int(os.environ.get("MILVUS_PORT", "19530"))
         self.collection_name = collection_name
         self.embedding_dim = embedding_dim
         self._collection: Optional[Collection] = None

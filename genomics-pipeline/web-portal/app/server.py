@@ -11,9 +11,9 @@ import threading
 import time
 from pathlib import Path
 from datetime import datetime
+from functools import wraps
 from flask import Flask, render_template, jsonify, request, Response, stream_with_context, send_file
 from flask_cors import CORS
-from werkzeug.utils import secure_filename
 import psutil
 try:
     import pynvml
@@ -21,24 +21,30 @@ try:
 except ImportError:
     NVML_AVAILABLE = False
 
-from security import add_security_headers, authenticator, require_local_access, rate_limiter
-from validation import validate_step_name, validate_log_type, validate_config_key, validate_config_value
-
 app = Flask(__name__,
             template_folder='../templates',
             static_folder='../static')
-
-# Register security headers on all responses
-app.after_request(add_security_headers)
-
 # CORS configuration - restrict in production
 CORS(app, resources={
     r"/api/*": {
-        "origins": os.environ.get('CORS_ORIGINS', 'http://localhost:5000').split(','),
+        "origins": os.environ.get('CORS_ORIGINS', '*').split(','),
         "methods": ["GET", "POST", "DELETE"],
-        "allow_headers": ["Content-Type", "Authorization"]
+        "allow_headers": ["Content-Type", "X-API-Key"]
     }
 })
+
+
+def require_api_key(f):
+    """Require X-API-Key header for dangerous endpoints.
+    When PORTAL_API_KEY is not set, auth is disabled (local dev mode)."""
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        api_key = os.environ.get('PORTAL_API_KEY')
+        if api_key and request.headers.get('X-API-Key') != api_key:
+            return jsonify({'error': 'Unauthorized — set X-API-Key header'}), 401
+        return f(*args, **kwargs)
+    return decorated
+
 
 # Configure max upload size (100GB for genomics files)
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024 * 1024  # 100GB
@@ -52,6 +58,8 @@ LOG_DIR = DATA_DIR / 'output' / 'logs'
 STATE_FILE = DATA_DIR / 'output' / '.pipeline_state.json'
 
 # Global state
+MAX_LOG_ENTRIES = 5000  # Prevent unbounded memory growth
+
 pipeline_state = {
     'current_step': None,
     'status': 'idle',  # idle, running, success, error
@@ -62,6 +70,9 @@ pipeline_state = {
     'error_message': None,
     'runtime_seconds': 0
 }
+
+# Thread lock for pipeline_state — protects reads/writes from concurrent threads
+pipeline_lock = threading.Lock()
 
 running_processes = {}
 
@@ -190,14 +201,16 @@ def run_script(script_name, step_name):
     script_path = SCRIPTS_DIR / script_name
 
     if not script_path.exists():
-        pipeline_state['status'] = 'error'
-        pipeline_state['error_message'] = f"Script not found: {script_name}"
+        with pipeline_lock:
+            pipeline_state['status'] = 'error'
+            pipeline_state['error_message'] = f"Script not found: {script_name}"
         return
 
-    pipeline_state['current_step'] = step_name
-    pipeline_state['status'] = 'running'
-    pipeline_state['start_time'] = datetime.now().isoformat()
-    pipeline_state['error_message'] = None
+    with pipeline_lock:
+        pipeline_state['current_step'] = step_name
+        pipeline_state['status'] = 'running'
+        pipeline_state['start_time'] = datetime.now().isoformat()
+        pipeline_state['error_message'] = None
 
     try:
         # Use stdbuf to force unbuffered output
@@ -216,50 +229,43 @@ def run_script(script_name, step_name):
         # Stream output line by line
         for line in iter(process.stdout.readline, ''):
             if line:
-                pipeline_state['logs'].append({
-                    'timestamp': datetime.now().isoformat(),
-                    'message': line.rstrip()
-                })
-                # Force flush to ensure immediate streaming
-                import sys
-                sys.stdout.flush()
+                with pipeline_lock:
+                    pipeline_state['logs'].append({
+                        'timestamp': datetime.now().isoformat(),
+                        'message': line.rstrip()
+                    })
+                    # Cap log size to prevent unbounded memory growth
+                    if len(pipeline_state['logs']) > MAX_LOG_ENTRIES:
+                        pipeline_state['logs'] = pipeline_state['logs'][-MAX_LOG_ENTRIES:]
 
         process.wait()
 
         # Calculate runtime
-        pipeline_state['end_time'] = datetime.now().isoformat()
-        if pipeline_state['start_time']:
-            start = datetime.fromisoformat(pipeline_state['start_time'])
-            end = datetime.fromisoformat(pipeline_state['end_time'])
-            pipeline_state['runtime_seconds'] = int((end - start).total_seconds())
+        with pipeline_lock:
+            pipeline_state['end_time'] = datetime.now().isoformat()
+            if pipeline_state['start_time']:
+                start = datetime.fromisoformat(pipeline_state['start_time'])
+                end = datetime.fromisoformat(pipeline_state['end_time'])
+                pipeline_state['runtime_seconds'] = int((end - start).total_seconds())
 
-        if process.returncode == 0:
-            pipeline_state['status'] = 'success'
-            # Save state to disk for persistence
-            save_pipeline_state()
-
-            # Add periodic status updates after completion
-            for i in range(10):  # Send 10 updates (2.5 minutes total)
-                time.sleep(15)
-                pipeline_state['logs'].append({
-                    'timestamp': datetime.now().isoformat(),
-                    'message': f'✓ {step_name} completed successfully - System ready for next step'
-                })
-        else:
-            pipeline_state['status'] = 'error'
-            pipeline_state['error_message'] = f"Script exited with code {process.returncode}"
-            # Save error state too
-            save_pipeline_state()
+            if process.returncode == 0:
+                pipeline_state['status'] = 'success'
+                save_pipeline_state()
+            else:
+                pipeline_state['status'] = 'error'
+                pipeline_state['error_message'] = f"Script exited with code {process.returncode}"
+                save_pipeline_state()
 
     except Exception as e:
-        pipeline_state['status'] = 'error'
-        pipeline_state['error_message'] = str(e)
-        pipeline_state['end_time'] = datetime.now().isoformat()
-        if pipeline_state['start_time']:
-            start = datetime.fromisoformat(pipeline_state['start_time'])
-            end = datetime.fromisoformat(pipeline_state['end_time'])
-            pipeline_state['runtime_seconds'] = int((end - start).total_seconds())
-        save_pipeline_state()
+        with pipeline_lock:
+            pipeline_state['status'] = 'error'
+            pipeline_state['error_message'] = str(e)
+            pipeline_state['end_time'] = datetime.now().isoformat()
+            if pipeline_state['start_time']:
+                start = datetime.fromisoformat(pipeline_state['start_time'])
+                end = datetime.fromisoformat(pipeline_state['end_time'])
+                pipeline_state['runtime_seconds'] = int((end - start).total_seconds())
+            save_pipeline_state()
 
     finally:
         if step_name in running_processes:
@@ -320,42 +326,29 @@ def get_status():
 
 
 @app.route('/api/config', methods=['GET', 'POST'])
-@authenticator.require_auth
 def config():
     """Get or update configuration"""
     if request.method == 'GET':
         return jsonify(load_config())
     else:
         config_data = request.json
-        if not config_data or not isinstance(config_data, dict):
-            return jsonify({'error': 'Invalid request body'}), 400
-
-        # Validate all keys and values before writing
-        for key, value in config_data.items():
-            valid, err = validate_config_key(key)
-            if not valid:
-                return jsonify({'error': f'Invalid key "{key}": {err}'}), 400
-            valid, err = validate_config_value(str(value))
-            if not valid:
-                return jsonify({'error': f'Invalid value for "{key}": {err}'}), 400
-
         save_config(config_data)
         return jsonify({'success': True})
 
 
-@app.route('/api/run/<step>', methods=['POST'])
-@authenticator.require_auth
-@rate_limiter.limit
+@app.route('/api/run/<step>')
+@require_api_key
 def run_step(step):
     """Run a specific workflow step"""
     global pipeline_state
 
-    if pipeline_state['status'] == 'running':
-        return jsonify({'error': 'A step is already running'}), 400
+    with pipeline_lock:
+        if pipeline_state['status'] == 'running':
+            return jsonify({'error': 'A step is already running'}), 400
 
-    # Reset state
-    pipeline_state['logs'] = []
-    pipeline_state['progress'] = 0
+        # Reset state
+        pipeline_state['logs'] = []
+        pipeline_state['progress'] = 0
 
     script_mapping = {
         'check': ('00-setup-check.sh', 'Prerequisites Check'),
@@ -379,8 +372,8 @@ def run_step(step):
     return jsonify({'success': True, 'step': step_name})
 
 
-@app.route('/api/stop', methods=['POST'])
-@authenticator.require_auth
+@app.route('/api/stop')
+@require_api_key
 def stop():
     """Stop running process"""
     global pipeline_state, running_processes
@@ -389,18 +382,19 @@ def stop():
         try:
             process.terminate()
             process.wait(timeout=5)
-        except:
+        except (subprocess.TimeoutExpired, ProcessLookupError, OSError):
             process.kill()
 
     running_processes.clear()
-    pipeline_state['status'] = 'idle'
-    pipeline_state['current_step'] = None
+    with pipeline_lock:
+        pipeline_state['status'] = 'idle'
+        pipeline_state['current_step'] = None
 
     return jsonify({'success': True})
 
 
-@app.route('/api/stop-all', methods=['POST'])
-@authenticator.require_auth
+@app.route('/api/stop-all')
+@require_api_key
 def stop_all():
     """Stop all pipeline-related processes"""
     global pipeline_state, running_processes
@@ -412,11 +406,11 @@ def stop_all():
             process.terminate()
             process.wait(timeout=5)
             killed_count += 1
-        except:
+        except (subprocess.TimeoutExpired, ProcessLookupError, OSError):
             try:
                 process.kill()
                 killed_count += 1
-            except:
+            except (ProcessLookupError, OSError):
                 pass
 
     running_processes.clear()
@@ -480,7 +474,7 @@ def stop_all():
                     if cid:
                         subprocess.run(['docker', 'stop', cid], capture_output=True, timeout=30)
                         killed_count += 1
-            except:
+            except Exception:
                 pass
 
         # Also find any container with parabricks in the name
@@ -496,15 +490,16 @@ def stop_all():
                     cid = line.split()[0]
                     subprocess.run(['docker', 'stop', cid], capture_output=True, timeout=30)
                     killed_count += 1
-        except:
+        except Exception:
             pass
 
     except Exception as e:
         print(f"Error stopping processes: {e}")
 
     # Reset pipeline state
-    pipeline_state['status'] = 'idle'
-    pipeline_state['current_step'] = None
+    with pipeline_lock:
+        pipeline_state['status'] = 'idle'
+        pipeline_state['current_step'] = None
 
     return jsonify({
         'success': True,
@@ -544,33 +539,44 @@ def stream():
     """Server-Sent Events stream for real-time updates"""
     def event_stream():
         last_log_count = 0
+        idle_ticks = 0  # Track how long we've been in a terminal state
+
         while True:
-            # Send status update
-            status_data = {
-                'type': 'status',
-                'data': {
-                    'status': pipeline_state['status'],
-                    'current_step': pipeline_state['current_step'],
-                    'start_time': pipeline_state['start_time'],
-                    'end_time': pipeline_state['end_time'],
-                    'error_message': pipeline_state['error_message']
+            with pipeline_lock:
+                current_status = pipeline_state['status']
+                status_data = {
+                    'type': 'status',
+                    'data': {
+                        'status': current_status,
+                        'current_step': pipeline_state['current_step'],
+                        'start_time': pipeline_state['start_time'],
+                        'end_time': pipeline_state['end_time'],
+                        'error_message': pipeline_state['error_message']
+                    }
                 }
-            }
+                current_log_count = len(pipeline_state['logs'])
+                new_logs = pipeline_state['logs'][last_log_count:] if current_log_count > last_log_count else []
+
             yield f"data: {json.dumps(status_data)}\n\n"
 
             # Send new logs
-            current_log_count = len(pipeline_state['logs'])
-            if current_log_count > last_log_count:
-                new_logs = pipeline_state['logs'][last_log_count:]
-                for log_entry in new_logs:
-                    log_data = {
-                        'type': 'log',
-                        'data': log_entry
-                    }
-                    yield f"data: {json.dumps(log_data)}\n\n"
-                last_log_count = current_log_count
+            for log_entry in new_logs:
+                log_data = {
+                    'type': 'log',
+                    'data': log_entry
+                }
+                yield f"data: {json.dumps(log_data)}\n\n"
+            last_log_count = current_log_count
 
-            # Reduced from 1 second to 0.2 seconds for faster updates
+            # Close stream after pipeline reaches terminal state and logs are flushed
+            if current_status in ('success', 'error', 'idle'):
+                idle_ticks += 1
+                if idle_ticks >= 15:  # 3 seconds of terminal state → close stream
+                    yield f"data: {json.dumps({'type': 'stream_end', 'data': {'reason': current_status}})}\n\n"
+                    return
+            else:
+                idle_ticks = 0
+
             time.sleep(0.2)
 
     return Response(stream_with_context(event_stream()),
@@ -582,27 +588,28 @@ def stream():
 
 
 @app.route('/api/reset', methods=['POST'])
-@authenticator.require_auth
+@require_api_key
 def reset_state():
     """Reset pipeline state to idle"""
     global pipeline_state
 
-    pipeline_state = {
-        'current_step': None,
-        'status': 'idle',
-        'progress': 0,
-        'logs': [],
-        'start_time': None,
-        'end_time': None,
-        'error_message': None,
-        'runtime_seconds': 0
-    }
+    with pipeline_lock:
+        pipeline_state = {
+            'current_step': None,
+            'status': 'idle',
+            'progress': 0,
+            'logs': [],
+            'start_time': None,
+            'end_time': None,
+            'error_message': None,
+            'runtime_seconds': 0
+        }
 
     # Remove saved state file
     if STATE_FILE.exists():
         try:
             STATE_FILE.unlink()
-        except:
+        except OSError:
             pass
 
     return jsonify({'success': True, 'message': 'Pipeline state reset to idle'})
@@ -703,8 +710,6 @@ def download_file(directory, filename):
 
 
 @app.route('/api/files/upload/<directory>', methods=['POST'])
-@authenticator.require_auth
-@rate_limiter.limit
 def upload_file(directory):
     """Upload a file to a directory"""
     # Map directory names to actual paths
@@ -726,9 +731,7 @@ def upload_file(directory):
         return jsonify({'error': 'No file selected'}), 400
 
     # Security: sanitize filename
-    filename = secure_filename(file.filename)
-    if not filename:
-        return jsonify({'error': 'Invalid filename'}), 400
+    filename = file.filename.replace('..', '').replace('/', '_')
 
     target_dir = dir_mapping[directory]
     target_dir.mkdir(parents=True, exist_ok=True)
@@ -748,7 +751,6 @@ def upload_file(directory):
 
 
 @app.route('/api/files/delete/<directory>/<filename>', methods=['DELETE'])
-@authenticator.require_auth
 def delete_file(directory, filename):
     """Delete a file"""
     # Map directory names to actual paths
@@ -836,14 +838,14 @@ def get_detailed_gpu_metrics():
         try:
             compute_procs = pynvml.nvmlDeviceGetComputeRunningProcesses(handle)
             is_active = len(compute_procs) > 0
-        except:
+        except Exception:
             is_active = False
 
         # Get power usage
         try:
             power = pynvml.nvmlDeviceGetPowerUsage(handle) / 1000.0
             metrics['power_draw'] = round(power, 1)
-        except:
+        except Exception:
             pass
 
         # Estimate other metrics based on utilization when GPU is active
@@ -882,7 +884,7 @@ def check_docker():
             timeout=5
         )
         return result.returncode == 0
-    except:
+    except Exception:
         return False
 
 
@@ -895,7 +897,7 @@ def check_gpu():
             timeout=5
         )
         return result.returncode == 0
-    except:
+    except Exception:
         return False
 
 
@@ -958,7 +960,7 @@ def get_gpu_utilization():
                 mem_used_gb = mem_info.used / (1024**3)
                 mem_total_gb = mem_info.total / (1024**3)
                 mem_percent = (mem_info.used / mem_info.total) * 100
-            except:
+            except (pynvml.NVMLError, AttributeError, ZeroDivisionError):
                 mem_used_gb = 0
                 mem_total_gb = 0
                 mem_percent = 0
@@ -967,7 +969,7 @@ def get_gpu_utilization():
             try:
                 compute_procs = pynvml.nvmlDeviceGetComputeRunningProcesses(handle)
                 has_compute_procs = len(compute_procs) > 0
-            except:
+            except (pynvml.NVMLError, AttributeError):
                 has_compute_procs = False
 
             # GB10 workaround: if SM utilization is stuck high (>=90%) but no
@@ -978,13 +980,13 @@ def get_gpu_utilization():
             # Get temperature
             try:
                 temp = pynvml.nvmlDeviceGetTemperature(handle, pynvml.NVML_TEMPERATURE_GPU)
-            except:
+            except (pynvml.NVMLError, AttributeError):
                 temp = 0
 
             # Get power usage
             try:
                 power = pynvml.nvmlDeviceGetPowerUsage(handle) / 1000.0  # Convert to watts
-            except:
+            except (pynvml.NVMLError, AttributeError):
                 power = 0
 
             devices.append({

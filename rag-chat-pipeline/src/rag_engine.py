@@ -1,6 +1,7 @@
 """
 RAG Engine - Retrieval-Augmented Generation for genomic evidence.
 """
+import os
 from typing import List, Dict, Any, Optional, Generator
 from loguru import logger
 
@@ -582,8 +583,8 @@ Please provide:
 
 
 def create_rag_engine(
-    milvus_host: str = "localhost",
-    milvus_port: int = 19530,
+    milvus_host: str = None,
+    milvus_port: int = None,
     collection_name: str = "genomic_evidence",
     embedding_model: str = "BAAI/bge-small-en-v1.5",
     llm_provider: str = "anthropic",

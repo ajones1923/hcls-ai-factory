@@ -20,6 +20,7 @@ process GENERATE_REPORT {
     """
     #!/usr/bin/env python3
     import json
+    import html
     from datetime import datetime
 
     # Load data
@@ -59,11 +60,14 @@ process GENERATE_REPORT {
     with open(f'{sample_id}.report.json', 'w') as f:
         json.dump(report, f, indent=2)
 
+    # HTML-escape helper for safe output
+    esc = html.escape
+
     # Generate HTML report
-    html = f'''<!DOCTYPE html>
+    html_out = f'''<!DOCTYPE html>
 <html>
 <head>
-    <title>HLS Pipeline Report - {sample_id}</title>
+    <title>HLS Pipeline Report - {esc(sample_id)}</title>
     <style>
         body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 40px; background: #f5f5f5; }}
         .container {{ max-width: 1200px; margin: 0 auto; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }}
@@ -88,12 +92,12 @@ process GENERATE_REPORT {
 <body>
     <div class="container">
         <h1>Healthcare & Life Sciences Pipeline Report</h1>
-        <p><strong>Sample:</strong> {sample_id} | <strong>Generated:</strong> {report["generated_at"]}</p>
+        <p><strong>Sample:</strong> {esc(sample_id)} | <strong>Generated:</strong> {esc(report["generated_at"])}</p>
 
         <div class="summary">
             <div class="card nvidia">
                 <h3>Target Gene</h3>
-                <div class="value">{report["summary"]["target_gene"]}</div>
+                <div class="value">{esc(str(report["summary"]["target_gene"]))}</div>
             </div>
             <div class="card">
                 <h3>Molecules Generated</h3>
@@ -108,11 +112,11 @@ process GENERATE_REPORT {
         <h2>Target Information</h2>
         <table>
             <tr><th>Property</th><th>Value</th></tr>
-            <tr><td>Gene</td><td>{report["target"].get("gene", "N/A")}</td></tr>
-            <tr><td>Protein</td><td>{report["target"].get("protein", "N/A")}</td></tr>
-            <tr><td>UniProt ID</td><td>{report["target"].get("uniprot_id", "N/A")}</td></tr>
-            <tr><td>Mechanism</td><td>{report["target"].get("mechanism", "N/A")}</td></tr>
-            <tr><td>PDB Structures</td><td>{", ".join(report["target"].get("pdb_ids", []))}</td></tr>
+            <tr><td>Gene</td><td>{esc(str(report["target"].get("gene", "N/A")))}</td></tr>
+            <tr><td>Protein</td><td>{esc(str(report["target"].get("protein", "N/A")))}</td></tr>
+            <tr><td>UniProt ID</td><td>{esc(str(report["target"].get("uniprot_id", "N/A")))}</td></tr>
+            <tr><td>Mechanism</td><td>{esc(str(report["target"].get("mechanism", "N/A")))}</td></tr>
+            <tr><td>PDB Structures</td><td>{esc(", ".join(report["target"].get("pdb_ids", [])))}</td></tr>
         </table>
 
         <h2>Top Drug Candidates</h2>
@@ -128,17 +132,17 @@ process GENERATE_REPORT {
 
     for candidate in report['top_candidates']:
         score_class = 'high' if candidate['composite_score'] > 0.4 else 'medium'
-        html += f'''
+        html_out += f'''
             <tr>
-                <td><span class="badge">{candidate["rank"]}</span></td>
-                <td>{candidate["molecule_id"]}</td>
-                <td class="smiles">{candidate["smiles"][:50]}...</td>
-                <td>{candidate["docking_score"]:.2f}</td>
-                <td>{candidate["qed_score"]:.3f}</td>
-                <td class="score {score_class}">{candidate["composite_score"]:.4f}</td>
+                <td><span class="badge">{int(candidate["rank"])}</span></td>
+                <td>{esc(str(candidate["molecule_id"]))}</td>
+                <td class="smiles">{esc(candidate["smiles"][:50])}...</td>
+                <td>{float(candidate["docking_score"]):.2f}</td>
+                <td>{float(candidate["qed_score"]):.3f}</td>
+                <td class="score {score_class}">{float(candidate["composite_score"]):.4f}</td>
             </tr>'''
 
-    html += '''
+    html_out += '''
         </table>
 
         <h2>Pipeline Parameters</h2>
@@ -146,9 +150,9 @@ process GENERATE_REPORT {
             <tr><th>Parameter</th><th>Value</th></tr>'''
 
     for key, value in report['parameters'].items():
-        html += f'<tr><td>{key}</td><td>{value}</td></tr>'
+        html_out += f'<tr><td>{esc(str(key))}</td><td>{esc(str(value))}</td></tr>'
 
-    html += '''
+    html_out += '''
         </table>
 
         <p style="margin-top: 40px; color: #666; font-size: 12px;">
@@ -159,7 +163,7 @@ process GENERATE_REPORT {
 </html>'''
 
     with open(f'{sample_id}.report.html', 'w') as f:
-        f.write(html)
+        f.write(html_out)
 
     with open('versions.yml', 'w') as f:
         f.write('"${task.process}":\\n  reporting: 1.0\\n')

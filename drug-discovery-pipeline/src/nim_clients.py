@@ -78,6 +78,9 @@ class MolMIMClient:
 
         Returns:
             List of generated molecule dictionaries
+
+        Raises:
+            RuntimeError: If generation fails after all retries
         """
         if not self.health_checked:
             self.check_health()
@@ -90,19 +93,34 @@ class MolMIMClient:
             "masked_ratio": masked_ratio,
         }
 
-        try:
-            response = requests.post(
-                f"{self.config.base_url}/generate",
-                json=payload,
-                timeout=self.config.timeout,
-            )
-            response.raise_for_status()
-            return response.json().get("molecules", [])
+        last_error = None
+        for attempt in range(1, self.config.max_retries + 1):
+            try:
+                response = requests.post(
+                    f"{self.config.base_url}/generate",
+                    json=payload,
+                    timeout=self.config.timeout,
+                )
+                response.raise_for_status()
+                molecules = response.json().get("molecules", [])
+                if not molecules:
+                    logger.warning(f"MolMIM returned 0 molecules (attempt {attempt}/{self.config.max_retries})")
+                return molecules
 
-        except requests.RequestException as e:
-            logger.error(f"MolMIM generation failed: {e}")
-            # Return empty list on failure - pipeline will use fallback
-            return []
+            except requests.RequestException as e:
+                last_error = e
+                if attempt < self.config.max_retries:
+                    wait = 2 ** attempt  # Exponential backoff: 2s, 4s, 8s
+                    logger.warning(f"MolMIM generation failed (attempt {attempt}/{self.config.max_retries}), retrying in {wait}s: {e}")
+                    time.sleep(wait)
+                else:
+                    logger.error(f"MolMIM generation failed after {self.config.max_retries} attempts: {e}")
+
+        raise RuntimeError(
+            f"MolMIM generation failed after {self.config.max_retries} attempts. "
+            f"Last error: {last_error}. "
+            f"Check that MolMIM is running at {self.config.base_url}"
+        )
 
     def generate_batch(
         self,
@@ -184,25 +202,38 @@ class DiffDockClient:
             "num_poses": num_poses,
         }
 
-        try:
-            response = requests.post(
-                f"{self.config.base_url}/dock",
-                json=payload,
-                timeout=self.config.timeout,
-            )
-            response.raise_for_status()
+        last_error = None
+        for attempt in range(1, self.config.max_retries + 1):
+            try:
+                response = requests.post(
+                    f"{self.config.base_url}/dock",
+                    json=payload,
+                    timeout=self.config.timeout,
+                )
+                response.raise_for_status()
 
-            poses = response.json().get("poses", [])
+                poses = response.json().get("poses", [])
 
-            # Filter by confidence
-            if confidence_threshold > 0:
-                poses = [p for p in poses if p.get("confidence", 0) >= confidence_threshold]
+                # Filter by confidence
+                if confidence_threshold > 0:
+                    poses = [p for p in poses if p.get("confidence", 0) >= confidence_threshold]
 
-            return poses
+                return poses
 
-        except requests.RequestException as e:
-            logger.error(f"DiffDock docking failed: {e}")
-            return []
+            except requests.RequestException as e:
+                last_error = e
+                if attempt < self.config.max_retries:
+                    wait = 2 ** attempt
+                    logger.warning(f"DiffDock docking failed (attempt {attempt}/{self.config.max_retries}), retrying in {wait}s: {e}")
+                    time.sleep(wait)
+                else:
+                    logger.error(f"DiffDock docking failed after {self.config.max_retries} attempts: {e}")
+
+        raise RuntimeError(
+            f"DiffDock docking failed after {self.config.max_retries} attempts. "
+            f"Last error: {last_error}. "
+            f"Check that DiffDock is running at {self.config.base_url}"
+        )
 
     def dock_batch(
         self,

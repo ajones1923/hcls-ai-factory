@@ -2,6 +2,7 @@
 Streamlit Chat Interface for Genomic Evidence RAG.
 Includes VCF preview, LLM performance metrics, and Target Hypothesis management.
 """
+import os
 import streamlit as st
 import time
 import json
@@ -33,7 +34,7 @@ def get_variant_stats() -> Dict[str, int]:
     """Get variant counts from Milvus database."""
     try:
         from pymilvus import connections, Collection
-        connections.connect("default", host="localhost", port="19530")
+        connections.connect("default", host=os.environ.get("MILVUS_HOST", "localhost"), port=os.environ.get("MILVUS_PORT", "19530"))
         collection = Collection("genomic_variants")
         collection.load()
 

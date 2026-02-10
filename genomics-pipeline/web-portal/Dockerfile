@@ -20,6 +20,11 @@ COPY app/ ./app/
 COPY templates/ ./templates/
 COPY static/ ./static/
 
+# Create non-root user
+RUN useradd --create-home --shell /bin/bash appuser \
+    && chown -R appuser:appuser /app
+USER appuser
+
 # Expose port
 EXPOSE 5000
 

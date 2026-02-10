@@ -5,12 +5,17 @@ services:
     build: .
     container_name: genomics-portal
     ports:
-      - "5000:5000"
+      - "127.0.0.1:5000:5000"
     volumes:
-      - ../data:/workspace/genome-pipeline/data
-      - ../scripts:/workspace/genome-pipeline/scripts
-      - ../config:/workspace/genome-pipeline/config
+      - ../data:/workspace/genome-pipeline/data:rw
+      - ../scripts:/workspace/genome-pipeline/scripts:ro
+      - ../config:/workspace/genome-pipeline/config:ro
+      # Docker socket required for Parabricks container management (docker ps/stop).
+      # SECURITY: This grants container-level Docker access. Bind portal to
+      # localhost only (above) and use API_KEY auth to mitigate.
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - FLASK_ENV=production
+    security_opt:
+      - no-new-privileges:true
     restart: unless-stopped

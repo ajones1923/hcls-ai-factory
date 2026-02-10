@@ -71,12 +71,7 @@ class DrugDiscoveryPipeline:
 
         # Pipeline state
         self.run_id = str(uuid.uuid4())[:8]
-        self.run = PipelineRun(
-            run_id=self.run_id,
-            target_gene=config.target_gene,
-            started_at=datetime.now(),
-            config=config.dict(),
-        )
+        self.run: Optional[PipelineRun] = None
 
         # Intermediate results
         self.target: Optional[TargetHypothesis] = None
@@ -178,15 +173,9 @@ class DrugDiscoveryPipeline:
         gene = self.target.gene.upper()
         self.target.gene = gene
 
-        # Add UniProt ID if missing
+        # Log if UniProt ID is missing (not required for pipeline to run)
         if not self.target.uniprot_id:
-            uniprot_map = {
-                "VCP": "P55072",
-                "EGFR": "P00533",
-                "BRAF": "P15056",
-                "KRAS": "P01116",
-            }
-            self.target.uniprot_id = uniprot_map.get(gene)
+            logger.warning(f"No UniProt ID available for {gene}. Continuing without it.")
 
         self.run.current_stage = 1
         self.run.stages_completed.append(1)
@@ -204,7 +193,7 @@ class DrugDiscoveryPipeline:
                 method="Unknown",
             ))
 
-        # Load from local structure cache
+        # Load from local structure cache or auto-fetch from RCSB
         cache_file = Path(self.config.structure_cache) / f"{self.target.gene.lower()}_structures.json"
         if cache_file.exists():
             with open(cache_file) as f:
@@ -217,6 +206,27 @@ class DrugDiscoveryPipeline:
                             resolution=item.get("resolution"),
                             ligand_smiles=item.get("inhibitor_smiles"),
                         ))
+        elif self.target.pdb_ids:
+            # No cache — auto-fetch from RCSB and cache for future runs
+            try:
+                from .cryoem_evidence import CryoEMEvidenceManager
+                em_manager = CryoEMEvidenceManager(
+                    structures_dir=Path(self.config.structure_cache)
+                )
+                fetched = em_manager.auto_load_structures(
+                    self.target.gene, self.target.pdb_ids
+                )
+                for entry in fetched:
+                    pdb_id = entry.structure_id.replace("PDB:", "").strip()
+                    if not any(s.pdb_id == pdb_id for s in structures):
+                        structures.append(StructureInfo(
+                            pdb_id=pdb_id,
+                            method=entry.method,
+                            resolution=entry.resolution,
+                            ligand_smiles=entry.inhibitor_smiles,
+                        ))
+            except Exception as e:
+                logger.warning(f"Auto-fetch from RCSB failed: {e}")
 
         self.structures = StructureManifest(
             target_gene=self.target.gene,
@@ -261,11 +271,6 @@ class DrugDiscoveryPipeline:
                 if struct.ligand_smiles:
                     seed = struct.ligand_smiles
                     break
-
-        # Default seed for VCP
-        if not seed and self.target.gene == "VCP":
-            # CB-5083 SMILES
-            seed = "CC(C)C1=C(C=C(C=C1)NC2=NC3=C(C=N2)N(C=C3)C)C(=O)NC4=CC=C(C=C4)CN5CCOCC5"
 
         if not seed:
             seed = "c1ccccc1"  # Benzene as last resort
@@ -411,13 +416,25 @@ class DrugDiscoveryPipeline:
         primary = self.structures.primary_structure or self.structures.structures[0].pdb_id
 
         # Dock each molecule
+        dock_failures = 0
         for mol in self.molecules:
-            poses = self.nim.diffdock.dock(
-                protein_pdb=primary,  # Would be actual PDB path
-                ligand_smiles=mol.smiles,
-                num_poses=self.config.num_poses,
-            )
+            try:
+                poses = self.nim.diffdock.dock(
+                    protein_pdb=primary,
+                    ligand_smiles=mol.smiles,
+                    num_poses=self.config.num_poses,
+                )
+            except RuntimeError as e:
+                dock_failures += 1
+                if dock_failures >= 3:
+                    raise RuntimeError(
+                        f"DiffDock service appears down — {dock_failures} consecutive failures. "
+                        f"Last error: {e}"
+                    )
+                logger.warning(f"Docking failed for {mol.id}: {e}")
+                continue
 
+            dock_failures = 0  # Reset on success
             if poses:
                 best_pose = poses[0]
                 self.docking_results.append(DockingResult(
@@ -452,8 +469,12 @@ class DrugDiscoveryPipeline:
             dock_score = dock_result.docking_score if dock_result else 0
             qed_score = mol.properties.qed if mol.properties else 0.5
 
-            # Normalize docking score (lower is better, invert)
-            dock_normalized = max(0, min(1, (10 + dock_score) / 20)) if dock_score else 0.5
+            # Normalize docking score (lower/more negative is better binding)
+            # Range: -12 kcal/mol (excellent) → 1.0, 0 kcal/mol (no binding) → 0.0
+            if dock_result is not None:
+                dock_normalized = max(0.0, min(1.0, -dock_score / 12.0))
+            else:
+                dock_normalized = 0.0  # No docking data = worst score
 
             composite = (
                 self.config.generation_weight * gen_score +

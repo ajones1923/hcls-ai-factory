@@ -28,11 +28,12 @@ process DRUG_DISCOVERY_PREP_TARGET {
 
     prepared = {
         'sample': '${sample_id}',
-        'gene': primary_target.get('gene', 'VCP'),
+        'gene': primary_target.get('gene', 'UNKNOWN'),
         'protein': primary_target.get('protein', 'Unknown'),
         'uniprot_id': primary_target.get('uniprot_id'),
-        'pdb_ids': primary_target.get('pdb_ids', ['5FTK']),
-        'reference_smiles': 'CC(C)C1=C(C=C(C=C1)NC2=NC3=C(C=N2)N(C=C3)C)C(=O)NC4=CC=C(C=C4)CN5CCOCC5',  # CB-5083
+        'pdb_ids': primary_target.get('pdb_ids', []),
+        'reference_smiles': primary_target.get('reference_smiles', ''),
+        'reference_drug': primary_target.get('reference_drug', ''),
         'config': {
             'num_molecules': ${params.num_molecules},
             'diversity': ${params.diversity},
@@ -71,32 +72,65 @@ process DRUG_DISCOVERY_GENERATE_MOLECULES {
     with open('${prepared}') as f:
         data = json.load(f)
 
-    seed_smiles = data.get('reference_smiles', 'CCO')
+    seed_smiles = data.get('reference_smiles', '')
     num_molecules = data.get('config', {}).get('num_molecules', 20)
-    gene = data.get('gene', 'VCP')
+    gene = data.get('gene', 'UNKNOWN')
 
     # In production, call MolMIM NIM service
-    # For now, generate mock molecules based on CB-5083 scaffold
+    # For now, generate mock molecules from the seed compound
+    # If no seed provided, use a generic drug-like scaffold
+    if not seed_smiles:
+        seed_smiles = 'c1ccc2c(c1)cc(cn2)NC(=O)c1ccccc1'  # Generic quinoline amide scaffold
 
-    scaffold_variants = [
-        seed_smiles,  # Original CB-5083
-        'CC(C)c1ccc(Nc2ncc3c(ccn3C)n2)cc1C(=O)Nc1ccc(CN2CCOCC2)cc1',
-        'CC(N)c1ccc(Nc2ncc3c(ccn3C)n2)cc1C(=O)Nc1ccc(CN2CCOCC2)cc1',
-        'Cc1ccc(NC2=NC3=C(C=N2)N(C=C3)C)c(C(=O)Nc4ccc(CN5CCOCC5)cc4)c1',
-        'CCc1ccc(Nc2ncc3c(ccn3C)n2)cc1C(=O)Nc1ccc(CN2CCOCC2)cc1',
-        'CC(C)c1ccc(Nc2ncc3c(ccn3C)n2)c(F)c1C(=O)Nc1ccc(CN2CCOCC2)cc1',
+    # Simple atom-swap diversification for mock data
+    # Each swap produces a structurally distinct analogue
+    atom_swaps = [
+        ('F', 'Cl'), ('Cl', 'F'), ('C(=O)', 'C(=S)'), ('O', 'S'),
+        ('N', 'C'), ('c1ccc', 'c1cnc'), ('CC', 'CCC'), ('NH', 'N(C)'),
+        ('F', 'Br'), ('OC', 'OCC'), ('(C)', '(CC)'), ('NC', 'NCC'),
     ]
 
     molecules = []
-    for i in range(min(num_molecules, len(scaffold_variants) * 3)):
-        smiles = scaffold_variants[i % len(scaffold_variants)]
+    seen_smiles = set()
+
+    # First molecule is always the seed
+    seen_smiles.add(seed_smiles)
+    mol_id = hashlib.md5(f'{sample_id}-0-{seed_smiles}'.encode()).hexdigest()[:8]
+    molecules.append({
+        'id': f'{sample_id}-mol-{mol_id}',
+        'smiles': seed_smiles,
+        'target_gene': gene,
+        'generation_score': 1.0,
+        'method': 'MolMIM-seed',
+        'properties': {
+            'molecular_weight': round(random.uniform(420, 520), 1),
+            'logP': round(random.uniform(3.0, 5.0), 2),
+            'hbd': random.randint(1, 3),
+            'hba': random.randint(5, 8),
+            'tpsa': round(random.uniform(70, 110), 1),
+            'rotatable_bonds': random.randint(5, 9),
+            'qed': round(random.uniform(0.35, 0.55), 3)
+        },
+        'generated_at': datetime.now().isoformat()
+    })
+
+    # Generate analogues via atom swaps
+    for i in range(1, num_molecules):
+        swap = atom_swaps[i % len(atom_swaps)]
+        smiles = seed_smiles.replace(swap[0], swap[1], 1)
+        # If swap produced no change, try a different approach
+        if smiles == seed_smiles or smiles in seen_smiles:
+            # Insert a methyl group at a random bond position
+            insert_pos = min(i * 3, len(seed_smiles) - 1)
+            smiles = seed_smiles[:insert_pos] + 'C' + seed_smiles[insert_pos:]
+        seen_smiles.add(smiles)
         mol_id = hashlib.md5(f'{sample_id}-{i}-{smiles}'.encode()).hexdigest()[:8]
 
         molecules.append({
             'id': f'{sample_id}-mol-{mol_id}',
             'smiles': smiles,
             'target_gene': gene,
-            'generation_score': round(random.uniform(0.7, 1.0), 3),
+            'generation_score': round(random.uniform(0.7, 0.95), 3),
             'method': 'MolMIM',
             'properties': {
                 'molecular_weight': round(random.uniform(420, 520), 1),
@@ -114,7 +148,7 @@ process DRUG_DISCOVERY_GENERATE_MOLECULES {
         'sample': '${sample_id}',
         'target_gene': gene,
         'molecules': molecules,
-        'generation_config': data.get('config', {})
+        'generation_config': {**data.get('config', {}), 'pdb_ids': data.get('pdb_ids', [])}
     }
 
     with open('${sample_id}.molecules.json', 'w') as f:
@@ -147,7 +181,12 @@ process DRUG_DISCOVERY_DOCKING {
         data = json.load(f)
 
     molecules = data.get('molecules', [])
-    target_gene = data.get('target_gene', 'VCP')
+    target_gene = data.get('target_gene', 'UNKNOWN')
+
+    # Determine structure ID from generation config or first available PDB
+    gen_config = data.get('generation_config', {})
+    pdb_ids = gen_config.get('pdb_ids', [])
+    structure_id = pdb_ids[0] if pdb_ids else 'NONE'
 
     # In production, call DiffDock NIM service
     # For now, generate mock docking scores
@@ -160,7 +199,7 @@ process DRUG_DISCOVERY_DOCKING {
         docking_results.append({
             'molecule_id': mol['id'],
             'smiles': mol['smiles'],
-            'structure_id': '5FTK',
+            'structure_id': structure_id,
             'docking_score': docking_score,
             'confidence': confidence,
             'poses': ${params.docking_poses},
@@ -174,7 +213,7 @@ process DRUG_DISCOVERY_DOCKING {
     output = {
         'sample': '${sample_id}',
         'target_gene': target_gene,
-        'structure': '5FTK',
+        'structure': structure_id,
         'docking_results': docking_results
     }
 
@@ -220,8 +259,9 @@ process DRUG_DISCOVERY_RANK {
         dock_score = dock.get('docking_score', -5)
         qed = mol.get('properties', {}).get('qed', 0.4)
 
-        # Normalize docking score
-        dock_norm = max(0, min(1, (10 + dock_score) / 20))
+        # Normalize docking score (lower/more negative is better binding)
+        # Range: -12 kcal/mol (excellent) -> 1.0, 0 kcal/mol (no binding) -> 0.0
+        dock_norm = max(0, min(1, -dock_score / 12.0))
 
         # Composite score
         composite = 0.3 * gen_score + 0.4 * dock_norm + 0.3 * qed
