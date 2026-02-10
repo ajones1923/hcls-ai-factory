@@ -1,5 +1,9 @@
 # HCLS AI Factory
 
+[![CI](https://github.com/ajones1923/hcls-ai-factory/actions/workflows/ci.yml/badge.svg)](https://github.com/ajones1923/hcls-ai-factory/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/ajones1923/hcls-ai-factory/graph/badge.svg)](https://codecov.io/gh/ajones1923/hcls-ai-factory)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+
 **Transform patient DNA into therapeutic candidates in hours, not months.**
 
 <p align="center">

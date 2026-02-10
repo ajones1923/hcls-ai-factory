@@ -185,6 +185,9 @@ class PipelineRun(BaseModel):
     molecules_docked: int = 0
     top_candidates: List[str] = Field(default_factory=list)
 
+    # Performance
+    stage_timings: Dict[int, float] = Field(default_factory=dict, description="Stage durations in seconds")
+
 
 class PipelineConfig(BaseModel):
     """

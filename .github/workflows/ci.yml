@@ -84,7 +84,16 @@ jobs:
             -m '${{ matrix.markers }}' \
             --cov=. --cov-report=xml:coverage.xml --cov-report=term-missing
 
-      - name: Upload coverage
+      - name: Upload coverage to Codecov
+        if: always()
+        uses: codecov/codecov-action@v4
+        with:
+          files: coverage.xml
+          flags: ${{ matrix.service }}
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+
+      - name: Upload coverage artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:

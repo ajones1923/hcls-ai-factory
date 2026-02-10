@@ -1,0 +1,23 @@
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 2%
+    patch:
+      default:
+        target: 80%
+
+flags:
+  drug-discovery:
+    paths:
+      - drug-discovery-pipeline/
+  genomics:
+    paths:
+      - genomics-pipeline/
+  rag-chat:
+    paths:
+      - rag-chat-pipeline/
+  landing-page:
+    paths:
+      - landing-page/

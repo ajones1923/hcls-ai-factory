@@ -17,6 +17,7 @@ Based on phase-5-6.pdf specification.
 """
 import os
 import json
+import time
 import uuid
 from pathlib import Path
 from typing import List, Dict, Any, Optional, Callable
@@ -82,6 +83,9 @@ class DrugDiscoveryPipeline:
         # Checkpoint manager
         self.checkpoint_manager = CheckpointManager(self.output_dir)
 
+        # Stage timing
+        self.stage_timings: Dict[int, float] = {}
+
         # Intermediate results
         self.target: Optional[TargetHypothesis] = None
         self.structures: Optional[StructureManifest] = None
@@ -144,36 +148,26 @@ class DrugDiscoveryPipeline:
             )
 
         try:
-            if resume_stage < 0:
-                self.stage_0_initialize(target)
+            stages = [
+                (0, lambda: self.stage_0_initialize(target)),
+                (1, self.stage_1_normalize_target),
+                (2, self.stage_2_structure_discovery),
+                (3, self.stage_3_structure_prep),
+                (4, self.stage_4_molecule_generation),
+                (5, self.stage_5_chemistry_qc),
+                (6, self.stage_6_conformers),
+                (7, self.stage_7_docking),
+                (8, self.stage_8_ranking),
+                (9, self.stage_9_reporting),
+            ]
 
-            if resume_stage < 1:
-                self.stage_1_normalize_target()
+            for stage_num, stage_fn in stages:
+                if resume_stage < stage_num:
+                    t0 = time.time()
+                    stage_fn()
+                    self.stage_timings[stage_num] = round(time.time() - t0, 3)
 
-            if resume_stage < 2:
-                self.stage_2_structure_discovery()
-
-            if resume_stage < 3:
-                self.stage_3_structure_prep()
-
-            if resume_stage < 4:
-                self.stage_4_molecule_generation()
-
-            if resume_stage < 5:
-                self.stage_5_chemistry_qc()
-
-            if resume_stage < 6:
-                self.stage_6_conformers()
-
-            if resume_stage < 7:
-                self.stage_7_docking()
-
-            if resume_stage < 8:
-                self.stage_8_ranking()
-
-            if resume_stage < 9:
-                self.stage_9_reporting()
-
+            self.run.stage_timings = self.stage_timings
             self.run.status = "completed"
             self.run.completed_at = datetime.now()
 
@@ -574,6 +568,7 @@ class DrugDiscoveryPipeline:
             },
             "top_candidates": [c.dict() for c in self.ranked_candidates],
             "structures_used": [s.dict() for s in (self.structures.structures if self.structures else [])],
+            "stage_timings": self.stage_timings,
             "completed_at": datetime.now().isoformat(),
         }
 

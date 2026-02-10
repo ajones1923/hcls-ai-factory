@@ -1,0 +1,48 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate release notes
+        id: notes
+        run: |
+          # Extract version from tag
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+          # Get commits since last tag
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -n "$PREV_TAG" ]; then
+            COMMITS=$(git log "$PREV_TAG"..HEAD --pretty=format:"- %s" --no-merges)
+          else
+            COMMITS=$(git log --pretty=format:"- %s" --no-merges -20)
+          fi
+
+          # Write to file for gh release
+          {
+            echo "## HCLS AI Factory v${VERSION}"
+            echo ""
+            echo "End-to-end precision medicine platform: Patient DNA to Drug Candidates"
+            echo "in under 5 hours on a single NVIDIA DGX Spark."
+            echo ""
+            echo "## What's Changed"
+            echo "$COMMITS"
+          } > release_notes.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: release_notes.md
+          generate_release_notes: true

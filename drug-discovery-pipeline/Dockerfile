@@ -1,11 +1,12 @@
 # Drug Discovery Pipeline UI
 # Streamlit-based interface for VCP/FTD drug discovery demo
 
-FROM python:3.11-slim@sha256:0b23cfb36dbe81e1cfaabab14e0a0d19e8c1d0c543a2900cbc1b8a0a12e7a8f5
+# ---- Stage 1: Builder ----
+FROM python:3.11-slim@sha256:0b23cfb36dbe81e1cfaabab14e0a0d19e8c1d0c543a2900cbc1b8a0a12e7a8f5 AS builder
 
-WORKDIR /app
+WORKDIR /build
 
-# Install system dependencies for RDKit
+# Install system dependencies needed for building Python packages
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         libxrender1 \
@@ -13,9 +14,29 @@ RUN apt-get update && \
         curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
 COPY requirements.txt .
+
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
 RUN pip install --no-cache-dir -r requirements.txt
+
+# ---- Stage 2: Runtime ----
+FROM python:3.11-slim@sha256:0b23cfb36dbe81e1cfaabab14e0a0d19e8c1d0c543a2900cbc1b8a0a12e7a8f5
+
+WORKDIR /app
+
+# Install only runtime system dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        libxrender1 \
+        libxext6 \
+        curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy virtual environment from builder
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
 # Copy application code
 COPY src/ /app/src/
