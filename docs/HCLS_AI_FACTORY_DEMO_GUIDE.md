@@ -194,7 +194,7 @@ python run_pipeline.py --mode demo
 - "3.5 million variant embeddings, each 384 dimensions, searchable in milliseconds."
 - "This is what makes natural language queries possible over genomic data."
 
-**Show:** Attu UI at http://localhost:8000 — show the genomic_evidence collection with 17 fields and 3.5M records.
+**Show:** Milvus genomic_evidence collection with 17 fields and 3.5M records via the RAG API at http://localhost:5001/api/collections or the Streamlit Chat UI.
 
 #### Interactive Chat Demo
 
@@ -362,7 +362,7 @@ watch -n 1 nvidia-smi
 | Landing page | http://localhost:8080 |
 | Genomics portal | http://localhost:5000 |
 | Chat interface | http://localhost:8501 |
-| Milvus UI | http://localhost:8000 |
+| RAG API | http://localhost:5001 |
 | Discovery UI | http://localhost:8505 |
 | Grafana | http://localhost:3000 |
 | GPU monitoring | `nvidia-smi` or http://localhost:3000 |
