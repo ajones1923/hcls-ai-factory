@@ -6,6 +6,7 @@ End-to-end flow: Target Hypothesis → Structural Evidence → Molecule Generati
 """
 import streamlit as st
 import json
+import os
 import sys
 from pathlib import Path
 from typing import List, Dict, Any, Optional
@@ -19,7 +20,10 @@ from molecule_generator import MoleculeGenerator, GeneratedMolecule
 from structure_viewer import StructureViewer, HAS_STMOL
 
 # Default paths for Stage 2 export
-RAG_EXPORT_PATH = Path("/home/adam/transfer/rag-chat-pipeline/data/targets/targets_for_phase5.json")
+RAG_EXPORT_PATH = Path(os.environ.get(
+    "RAG_EXPORT_PATH",
+    str(Path(__file__).parent.parent.parent / "rag-chat-pipeline" / "data" / "targets" / "targets_for_phase5.json")
+))
 
 
 def load_targets_from_export() -> List[Dict[str, Any]]:

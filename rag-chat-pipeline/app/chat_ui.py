@@ -35,7 +35,7 @@ def get_variant_stats() -> Dict[str, int]:
     try:
         from pymilvus import connections, Collection
         connections.connect("default", host=os.environ.get("MILVUS_HOST", "localhost"), port=os.environ.get("MILVUS_PORT", "19530"))
-        collection = Collection("genomic_variants")
+        collection = Collection("genomic_evidence")
         collection.load()
 
         # Get VCP variant count

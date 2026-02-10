@@ -41,8 +41,10 @@ WORKDIR /app
 COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Copy portal application code
+# Copy application code
 COPY portal/ /app/portal/
+COPY src/ /app/src/
+COPY config/ /app/config/
 
 # Create non-root user
 RUN useradd -r -s /bin/false appuser && chown -R appuser:appuser /app

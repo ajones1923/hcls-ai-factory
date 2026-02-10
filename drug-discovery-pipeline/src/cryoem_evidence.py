@@ -132,6 +132,47 @@ class CryoEMEvidenceManager:
                 return s.inhibitor_smiles
         return None
 
+    def auto_load_structures(self, gene: str, pdb_ids: List[str]) -> List[CryoEMStructure]:
+        """
+        Load structures from cache, falling back to creating entries from PDB IDs.
+
+        First checks the local JSON cache. For any PDB IDs not found in cache,
+        creates basic CryoEMStructure entries so the pipeline can proceed.
+
+        Args:
+            gene: Gene symbol (e.g. "VCP")
+            pdb_ids: List of PDB IDs to load
+
+        Returns:
+            List of CryoEMStructure objects
+        """
+        # Start with any cached structures
+        cached = self.load_structures_for_gene(gene)
+        cached_ids = {s.structure_id.replace("PDB:", "").upper() for s in cached}
+
+        # Add entries for any PDB IDs not already cached
+        for pdb_id in pdb_ids:
+            pdb_upper = pdb_id.upper().strip()
+            if pdb_upper not in cached_ids:
+                cached.append(CryoEMStructure(
+                    structure_id=f"PDB:{pdb_upper}",
+                    protein=gene,
+                    gene=gene.upper(),
+                    method="Unknown",
+                    resolution="N/A",
+                    conformation="Unknown",
+                    variant_context="",
+                    binding_sites=[],
+                    druggable_pockets=[],
+                    source="RCSB PDB",
+                    summary_text=f"Structure {pdb_upper} for {gene}",
+                    pdb_url=f"https://www.rcsb.org/structure/{pdb_upper}",
+                ))
+
+        # Update cache
+        self._structures_cache[gene.upper()] = cached
+        return cached
+
     def format_evidence_for_rag(self, structure: CryoEMStructure) -> Dict[str, Any]:
         """Format structure as evidence object compatible with RAG system."""
         return {

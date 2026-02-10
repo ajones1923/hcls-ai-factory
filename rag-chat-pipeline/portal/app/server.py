@@ -38,7 +38,7 @@ app = Flask(__name__,
             static_folder='../static')
 CORS(app, resources={
     r"/api/*": {
-        "origins": os.environ.get('CORS_ORIGINS', 'http://localhost:5001,http://localhost:8501').split(','),
+        "origins": os.environ.get('CORS_ORIGINS', '*').split(','),
         "methods": ["GET", "POST"],
         "allow_headers": ["Content-Type", "X-API-Key"]
     }
@@ -990,4 +990,4 @@ if __name__ == '__main__':
     logger.info(f"Opening portal at: http://localhost:5001")
     logger.info("=" * 60)
 
-    app.run(host='0.0.0.0', port=5001, debug=True, threaded=True)
+    app.run(host='0.0.0.0', port=5001, debug=os.environ.get('FLASK_DEBUG', 'false').lower() == 'true', threaded=True)
