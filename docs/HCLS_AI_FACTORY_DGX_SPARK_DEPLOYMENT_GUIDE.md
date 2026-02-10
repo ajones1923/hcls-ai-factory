@@ -163,13 +163,13 @@ The HCLS AI Factory comprises three application pipeline stages running on a sin
 | Molecule Generation | BioNeMo MolMIM NIM | 1.0 |
 | Molecular Docking | BioNeMo DiffDock NIM | 1.0 |
 | Cheminformatics | RDKit | Python library |
-| Monitoring | Grafana + Prometheus | 10.2.2 / v2.48.0 |
+| Monitoring | Grafana + Prometheus | 11.0.0 / v2.52.0 |
 | GPU Monitoring | DCGM Exporter | Port 9400 |
 | Language | Python | 3.10+ |
 
 ### 2.3 Service Architecture
 
-The platform deploys 14 services across 14 ports:
+The platform deploys 13 services across 13 ports:
 
 | # | Service | Port | Protocol | Description |
 |---|---|---|---|---|
@@ -177,16 +177,15 @@ The platform deploys 14 services across 14 ports:
 | 2 | Genomics Portal | 5000 | HTTP | Genomics pipeline UI and results viewer |
 | 3 | RAG API | 5001 | HTTP | REST API for variant queries and RAG |
 | 4 | Milvus | 19530 | gRPC | Vector database for genomic evidence |
-| 5 | Attu | 8000 | HTTP | Milvus administration UI |
-| 6 | Streamlit Chat | 8501 | HTTP | Conversational AI interface for variant analysis |
-| 7 | MolMIM NIM | 8001 | HTTP | BioNeMo molecule generation microservice |
-| 8 | DiffDock NIM | 8002 | HTTP | BioNeMo molecular docking microservice |
-| 9 | Discovery UI | 8505 | HTTP | Drug discovery pipeline interface |
-| 10 | Discovery Portal | 8510 | HTTP | Drug discovery results and reporting portal |
-| 11 | Grafana | 3000 | HTTP | Monitoring dashboards |
-| 12 | Prometheus | 9099 | HTTP | Metrics collection and storage |
-| 13 | Node Exporter | 9100 | HTTP | Host system metrics |
-| 14 | DCGM Exporter | 9400 | HTTP | NVIDIA GPU metrics |
+| 5 | Streamlit Chat | 8501 | HTTP | Conversational AI interface for variant analysis |
+| 6 | MolMIM NIM | 8001 | HTTP | BioNeMo molecule generation microservice |
+| 7 | DiffDock NIM | 8002 | HTTP | BioNeMo molecular docking microservice |
+| 8 | Discovery UI | 8505 | HTTP | Drug discovery pipeline interface |
+| 9 | Discovery Portal | 8510 | HTTP | Drug discovery results and reporting portal |
+| 10 | Grafana | 3000 | HTTP | Monitoring dashboards |
+| 11 | Prometheus | 9099 | HTTP | Metrics collection and storage |
+| 12 | Node Exporter | 9100 | HTTP | Host system metrics |
+| 13 | DCGM Exporter | 9400 | HTTP | NVIDIA GPU metrics |
 
 **Infrastructure services** (not externally exposed):
 
@@ -194,6 +193,8 @@ The platform deploys 14 services across 14 ports:
 |---|---|---|
 | etcd | 2379 | Milvus metadata store |
 | MinIO | 9000 | Milvus object storage |
+
+> **Note:** Services 1–4 and 6–13 are launched via `docker compose up`. The Streamlit UIs (Chat on 8501, Discovery UI on 8505, Discovery Portal on 8510) and RAG API (5001) are started via `./start-services.sh`, which handles both Docker and non-Docker services. For the simplest deployment, run `./start-services.sh start` which orchestrates everything.
 
 ### 2.4 Data Flow
 
@@ -433,7 +434,7 @@ ls -la
 
 ```
 hcls-ai-factory/
-├── docker-compose.yml              # All 14 services + infrastructure
+├── docker-compose.yml              # All 13 services + infrastructure
 ├── .env.example                    # Template environment configuration
 ├── nextflow.config                 # Nextflow pipeline configuration
 ├── main.nf                         # Nextflow DSL2 pipeline definition
@@ -831,7 +832,7 @@ services:
 
   # ─── Monitoring ─────────────────────────────────────────
   prometheus:
-    image: prom/prometheus:v2.48.0
+    image: prom/prometheus:v2.52.0
     ports:
       - "9099:9090"
     volumes:
@@ -840,7 +841,7 @@ services:
     restart: unless-stopped
 
   grafana:
-    image: grafana/grafana:10.2.2
+    image: grafana/grafana-oss:11.0.0
     ports:
       - "3000:3000"
     environment:
@@ -2559,13 +2560,12 @@ class PipelineRun(BaseModel):
 | Milvus | milvusdb/milvus | v2.4-latest | ARM64 |
 | MolMIM | nvcr.io/nvidia/clara/bionemo-molmim | 1.0 | ARM64 |
 | DiffDock | nvcr.io/nvidia/clara/diffdock | 1.0 | ARM64 |
-| Grafana | grafana/grafana | 10.2.2 | ARM64 |
-| Prometheus | prom/prometheus | v2.48.0 | ARM64 |
-| Node Exporter | prom/node-exporter | latest | ARM64 |
+| Grafana | grafana/grafana-oss | 11.0.0 | ARM64 |
+| Prometheus | prom/prometheus | v2.52.0 | ARM64 |
+| Node Exporter | prom/node-exporter | v1.8.0 | ARM64 |
 | DCGM Exporter | nvcr.io/nvidia/k8s/dcgm-exporter | latest | ARM64 |
 | etcd | quay.io/coreos/etcd | v3.5.5 | ARM64 |
 | MinIO | minio/minio | latest | ARM64 |
-| Attu | zilliz/attu | latest | ARM64 |
 
 ### 23.2 ARM64 Compatibility Notes
 

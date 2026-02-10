@@ -11,7 +11,8 @@ COPY requirements.txt .
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Install dependencies, skipping GPU/large packages that are pre-installed on DGX
+# Install lightweight dependencies (skip GPU/large packages pre-installed on DGX)
+# Versions kept in sync with requirements.txt
 RUN pip install --no-cache-dir \
     python-dotenv==1.2.1 \
     pydantic==2.12.5 \
@@ -19,13 +20,13 @@ RUN pip install --no-cache-dir \
     loguru==0.7.3 \
     pymilvus==2.6.6 \
     openai==2.15.0 \
-    anthropic==0.75.0 \
+    anthropic==0.79.0 \
     streamlit==1.52.2 \
     streamlit-chat==0.1.1 \
     pandas==2.3.3 \
-    numpy==2.4.0 \
+    numpy==2.4.2 \
     tqdm==4.67.1 \
-    fastapi==0.128.0 \
+    fastapi==0.128.5 \
     uvicorn==0.40.0 \
     flask==3.1.2 \
     flask-cors==6.0.2 \
