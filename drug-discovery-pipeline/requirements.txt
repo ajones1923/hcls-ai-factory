@@ -15,7 +15,7 @@ rich==14.2.0
 rdkit==2025.9.3
 
 # Web UI
-streamlit==1.52.2
+streamlit==1.54.0
 pillow==12.1.0
 
 # 3D Molecular Visualization
