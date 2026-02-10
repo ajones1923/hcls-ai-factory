@@ -1,0 +1,45 @@
+# HCLS AI Factory — Caddy reverse proxy
+# Provides automatic HTTPS via Let's Encrypt (production) or self-signed (localhost).
+#
+# Usage:
+#   DOMAIN=yourdomain.com docker compose up -d   # production with real TLS
+#   docker compose up -d                          # localhost with self-signed cert
+
+{$DOMAIN:localhost} {
+    # Landing page (default)
+    handle /* {
+        reverse_proxy localhost:8080
+    }
+
+    # Genomics Pipeline portal
+    handle /genomics/* {
+        reverse_proxy localhost:5000
+    }
+
+    # RAG/Chat API
+    handle /rag/* {
+        reverse_proxy localhost:5001
+    }
+
+    # RAG Chat UI (Streamlit)
+    handle /chat/* {
+        reverse_proxy localhost:8501
+    }
+
+    # Drug Discovery UI (Streamlit)
+    handle /discovery/* {
+        reverse_proxy localhost:8505
+    }
+
+    # Grafana monitoring
+    handle /grafana/* {
+        reverse_proxy localhost:3000
+    }
+
+    # Security headers
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options SAMEORIGIN
+        Referrer-Policy strict-origin-when-cross-origin
+    }
+}

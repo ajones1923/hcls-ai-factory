@@ -5,7 +5,10 @@ Flask backend server for managing the FASTQ → VCF workflow
 """
 
 import os
+import sys
 import json
+import signal
+import atexit
 import subprocess
 import threading
 import time
@@ -15,12 +18,17 @@ from functools import wraps
 from flask import Flask, render_template, jsonify, request, Response, stream_with_context, send_file
 from werkzeug.utils import secure_filename
 from flask_cors import CORS
+from loguru import logger
 import psutil
 try:
     import pynvml
     NVML_AVAILABLE = True
 except ImportError:
     NVML_AVAILABLE = False
+
+# Configure structured logging
+logger.remove()
+logger.add(sys.stderr, format="{time:YYYY-MM-DD HH:mm:ss} | {level:<7} | {message}", level="INFO")
 
 app = Flask(__name__,
             template_folder='../templates',
@@ -33,6 +41,20 @@ CORS(app, resources={
         "allow_headers": ["Content-Type", "X-API-Key"]
     }
 })
+
+
+try:
+    from security import RateLimiter
+    api_limiter = RateLimiter(max_requests=60, window_seconds=60)
+except ImportError:
+    api_limiter = None
+
+
+def rate_limit(f):
+    """Apply rate limiting if available, otherwise pass through."""
+    if api_limiter:
+        return api_limiter.limit(f)
+    return f
 
 
 def require_api_key(f):
@@ -92,7 +114,7 @@ def save_pipeline_state():
         with open(STATE_FILE, 'w') as f:
             json.dump(state_to_save, f)
     except Exception as e:
-        print(f"Error saving pipeline state: {e}")
+        logger.error(f"Error saving pipeline state: {e}")
 
 
 def load_pipeline_state():
@@ -110,9 +132,9 @@ def load_pipeline_state():
                     pipeline_state['end_time'] = saved_state.get('end_time')
                     pipeline_state['error_message'] = saved_state.get('error_message')
                     pipeline_state['runtime_seconds'] = saved_state.get('runtime_seconds', 0)
-                    print(f"Restored pipeline state: {saved_state.get('status')} - {saved_state.get('current_step')}")
+                    logger.info(f"Restored pipeline state: {saved_state.get('status')} - {saved_state.get('current_step')}")
     except Exception as e:
-        print(f"Error loading pipeline state: {e}")
+        logger.error(f"Error loading pipeline state: {e}")
 
 
 def load_config():
@@ -190,7 +212,7 @@ def get_disk_space():
                 'use_percent': parts[4]
             }
     except Exception as e:
-        print(f"Error getting disk space: {e}")
+        logger.error(f"Error getting disk space: {e}")
 
     return {'total': 'N/A', 'used': 'N/A', 'available': 'N/A', 'use_percent': 'N/A'}
 
@@ -288,6 +310,7 @@ def index():
 
 
 @app.route('/api/status')
+@rate_limit
 def get_status():
     """Get current pipeline status"""
     # Check system status
@@ -495,7 +518,7 @@ def stop_all():
             pass
 
     except Exception as e:
-        print(f"Error stopping processes: {e}")
+        logger.error(f"Error stopping processes: {e}")
 
     # Reset pipeline state
     with pipeline_lock:
@@ -714,6 +737,7 @@ def download_file(directory, filename):
 
 
 @app.route('/api/files/upload/<directory>', methods=['POST'])
+@rate_limit
 def upload_file(directory):
     """Upload a file to a directory"""
     # Map directory names to actual paths
@@ -789,6 +813,7 @@ def delete_file(directory, filename):
 
 
 @app.route('/api/metrics')
+@rate_limit
 def get_metrics():
     """Get real-time processing metrics for the executive dashboard"""
     gpu_util = get_gpu_utilization()
@@ -879,7 +904,7 @@ def get_detailed_gpu_metrics():
         pynvml.nvmlShutdown()
 
     except Exception as e:
-        print(f"Error getting detailed GPU metrics: {e}")
+        logger.error(f"Error getting detailed GPU metrics: {e}")
 
     return metrics
 
@@ -929,7 +954,7 @@ def get_cpu_utilization():
             'count': cpu_count
         }
     except Exception as e:
-        print(f"Error getting CPU utilization: {e}")
+        logger.error(f"Error getting CPU utilization: {e}")
         return {
             'percent': 0,
             'per_core': [],
@@ -1018,7 +1043,7 @@ def get_gpu_utilization():
         }
 
     except Exception as e:
-        print(f"Error getting GPU utilization: {e}")
+        logger.error(f"Error getting GPU utilization: {e}")
         return {
             'available': False,
             'devices': [],
@@ -1040,7 +1065,7 @@ def get_memory_utilization():
             'swap_percent': round(swap.percent, 1) if swap else 0
         }
     except Exception as e:
-        print(f"Error getting memory utilization: {e}")
+        logger.error(f"Error getting memory utilization: {e}")
         return {
             'percent': 0,
             'used_gb': 0,
@@ -1048,6 +1073,40 @@ def get_memory_utilization():
             'available_gb': 0,
             'swap_percent': 0
         }
+
+
+@app.route('/api/ready')
+def readiness():
+    """Readiness probe — verifies all dependencies are available."""
+    checks = {
+        'docker': check_docker(),
+        'gpu': check_gpu(),
+        'scripts_dir': SCRIPTS_DIR.exists(),
+    }
+    all_ready = all(checks.values())
+    return jsonify({'ready': all_ready, 'checks': checks}), 200 if all_ready else 503
+
+
+# --- Graceful shutdown ---
+def graceful_shutdown(signum=None, frame=None):
+    """Terminate all child processes on shutdown."""
+    for step_name, process in list(running_processes.items()):
+        try:
+            process.terminate()
+            process.wait(timeout=5)
+        except Exception:
+            try:
+                process.kill()
+            except Exception:
+                pass
+    running_processes.clear()
+    if signum:
+        sys.exit(0)
+
+
+signal.signal(signal.SIGTERM, graceful_shutdown)
+signal.signal(signal.SIGINT, graceful_shutdown)
+atexit.register(graceful_shutdown)
 
 
 if __name__ == '__main__':
@@ -1058,12 +1117,12 @@ if __name__ == '__main__':
     load_pipeline_state()
 
     # Run server
-    print("=" * 60)
-    print("Genomics Pipeline Web Portal")
-    print("=" * 60)
-    print(f"Project Root: {PROJECT_ROOT}")
-    print(f"Opening portal at: http://localhost:5000")
-    print("=" * 60)
+    logger.info("=" * 60)
+    logger.info("Genomics Pipeline Web Portal")
+    logger.info("=" * 60)
+    logger.info(f"Project Root: {PROJECT_ROOT}")
+    logger.info(f"Opening portal at: http://localhost:5000")
+    logger.info("=" * 60)
 
     # Security: Debug mode disabled by default. Set FLASK_DEBUG=true to enable.
     debug_mode = os.environ.get('FLASK_DEBUG', 'false').lower() == 'true'
@@ -1071,6 +1130,6 @@ if __name__ == '__main__':
     port = int(os.environ.get('FLASK_PORT', '5000'))
 
     if debug_mode:
-        print("WARNING: Debug mode is ENABLED. Do not use in production!")
+        logger.warning("Debug mode is ENABLED. Do not use in production!")
 
     app.run(host=host, port=port, debug=debug_mode, threaded=True)

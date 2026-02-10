@@ -17,6 +17,13 @@ from flask import Flask, render_template, jsonify, request, Response, stream_wit
 from flask_cors import CORS
 import psutil
 import sys
+import signal
+import atexit
+from loguru import logger
+
+# Configure structured logging
+logger.remove()
+logger.add(sys.stderr, format="{time:YYYY-MM-DD HH:mm:ss} | {level:<7} | {message}", level="INFO")
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
@@ -30,6 +37,42 @@ app = Flask(__name__,
             template_folder='../templates',
             static_folder='../static')
 CORS(app)
+
+
+class RateLimiter:
+    """Simple in-memory rate limiter."""
+
+    def __init__(self, max_requests=60, window_seconds=60):
+        self.max_requests = max_requests
+        self.window_seconds = window_seconds
+        self.requests = {}
+
+    def is_allowed(self, client_ip):
+        current_time = time.time()
+        window_start = current_time - self.window_seconds
+        if client_ip in self.requests:
+            self.requests[client_ip] = [
+                (ts, c) for ts, c in self.requests[client_ip] if ts > window_start
+            ]
+        else:
+            self.requests[client_ip] = []
+        total = sum(c for _, c in self.requests[client_ip])
+        if total >= self.max_requests:
+            return False
+        self.requests[client_ip].append((current_time, 1))
+        return True
+
+    def limit(self, f):
+        @wraps(f)
+        def decorated(*args, **kwargs):
+            client_ip = request.remote_addr
+            if not self.is_allowed(client_ip):
+                return jsonify({'error': 'Rate limit exceeded', 'retry_after': self.window_seconds}), 429
+            return f(*args, **kwargs)
+        return decorated
+
+
+api_limiter = RateLimiter(max_requests=60, window_seconds=60)
 
 
 def require_api_key(f):
@@ -154,7 +197,7 @@ def get_disk_space():
                 'use_percent': parts[4]
             }
     except Exception as e:
-        print(f"Error getting disk space: {e}")
+        logger.error(f"Error getting disk space: {e}")
 
     return {'total': 'N/A', 'used': 'N/A', 'available': 'N/A', 'use_percent': 'N/A'}
 
@@ -208,7 +251,7 @@ def get_vcf_preview(vcf_path: str, limit: int = 100):
 
         VCF_PREVIEW_CACHE[cache_key] = variants
     except Exception as e:
-        print(f"Error reading VCF: {e}")
+        logger.error(f"Error reading VCF: {e}")
         return []
 
     return variants
@@ -332,6 +375,7 @@ def index():
 
 
 @app.route('/api/status')
+@api_limiter.limit
 def get_status():
     """Get current pipeline status"""
     config = load_config()
@@ -375,6 +419,7 @@ def get_status():
 
 
 @app.route('/api/vcf-preview')
+@api_limiter.limit
 def vcf_preview():
     """Get VCF file preview"""
     config = load_config()
@@ -650,6 +695,7 @@ def model_api():
 
 
 @app.route('/api/llm-metrics')
+@api_limiter.limit
 def get_llm_metrics():
     """Get LLM performance metrics"""
     # Try to get metrics from Ollama
@@ -798,7 +844,7 @@ def get_cpu_utilization():
             'count': cpu_count
         }
     except Exception as e:
-        print(f"Error getting CPU utilization: {e}")
+        logger.error(f"Error getting CPU utilization: {e}")
         return {'percent': 0, 'per_core': [], 'frequency': 0, 'count': 0}
 
 
@@ -859,7 +905,7 @@ def get_gpu_utilization():
         return {'available': True, 'devices': devices}
 
     except Exception as e:
-        print(f"Error getting GPU utilization: {e}")
+        logger.error(f"Error getting GPU utilization: {e}")
         return {'available': False, 'devices': [], 'error': str(e)}
 
 
@@ -877,7 +923,7 @@ def get_memory_utilization():
             'swap_percent': round(swap.percent, 1) if swap else 0
         }
     except Exception as e:
-        print(f"Error getting memory utilization: {e}")
+        logger.error(f"Error getting memory utilization: {e}")
         return {
             'percent': 0,
             'used_gb': 0,
@@ -887,16 +933,55 @@ def get_memory_utilization():
         }
 
 
+@app.route('/api/ready')
+def readiness():
+    """Readiness probe — verifies all dependencies are available."""
+    config = load_config()
+    milvus_host = config.get('MILVUS_HOST', 'localhost')
+    milvus_port = int(config.get('MILVUS_PORT', '19530'))
+    ollama_port = int(config.get('OLLAMA_PORT', '11434'))
+
+    checks = {
+        'milvus': check_service_health('milvus', milvus_host, milvus_port),
+        'collection_loaded': check_milvus_collection().get('exists', False),
+        'ollama': check_service_health('ollama', 'localhost', ollama_port),
+    }
+    all_ready = all(checks.values())
+    return jsonify({'ready': all_ready, 'checks': checks}), 200 if all_ready else 503
+
+
+# --- Graceful shutdown ---
+def graceful_shutdown(signum=None, frame=None):
+    """Terminate all child processes on shutdown."""
+    for step_name, process in list(running_processes.items()):
+        try:
+            process.terminate()
+            process.wait(timeout=5)
+        except Exception:
+            try:
+                process.kill()
+            except Exception:
+                pass
+    running_processes.clear()
+    if signum:
+        sys.exit(0)
+
+
+signal.signal(signal.SIGTERM, graceful_shutdown)
+signal.signal(signal.SIGINT, graceful_shutdown)
+atexit.register(graceful_shutdown)
+
+
 if __name__ == '__main__':
     # Create required directories
     LOG_DIR.mkdir(parents=True, exist_ok=True)
 
     # Run server
-    print("=" * 60)
-    print("RAG Chat Pipeline Web Portal")
-    print("=" * 60)
-    print(f"Project Root: {PROJECT_ROOT}")
-    print(f"Opening portal at: http://localhost:5001")
-    print("=" * 60)
+    logger.info("=" * 60)
+    logger.info("RAG Chat Pipeline Web Portal")
+    logger.info("=" * 60)
+    logger.info(f"Project Root: {PROJECT_ROOT}")
+    logger.info(f"Opening portal at: http://localhost:5001")
+    logger.info("=" * 60)
 
     app.run(host='0.0.0.0', port=5001, debug=True, threaded=True)

@@ -8,8 +8,11 @@ to Drug Discovery AI Factory.
 
 import json
 import os
+import signal
+import atexit
 import socket
 import subprocess
+import sys
 import time
 import requests
 from datetime import datetime
@@ -17,6 +20,11 @@ from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from flask import Flask, render_template, send_from_directory, jsonify
 from flask_cors import CORS
+from loguru import logger
+
+# Configure structured logging
+logger.remove()
+logger.add(sys.stderr, format="{time:YYYY-MM-DD HH:mm:ss} | {level:<7} | {message}", level="INFO")
 
 app = Flask(__name__)
 CORS(app)
@@ -74,7 +82,7 @@ def auto_start_services():
     """Auto-start dependent services if they're not running."""
     for service in AUTO_START_SERVICES:
         if not is_port_open(service['port']):
-            print(f"[AUTO-START] Starting {service['name']} (port {service['port']})...")
+            logger.info(f"[AUTO-START] Starting {service['name']} (port {service['port']})...")
             try:
                 subprocess.Popen(
                     service['cmd'],
@@ -86,13 +94,13 @@ def auto_start_services():
                 # Wait a moment for service to start
                 time.sleep(2)
                 if is_port_open(service['port']):
-                    print(f"[AUTO-START] {service['name']} started successfully")
+                    logger.info(f"[AUTO-START] {service['name']} started successfully")
                 else:
-                    print(f"[AUTO-START] {service['name']} may still be starting...")
+                    logger.warning(f"[AUTO-START] {service['name']} may still be starting...")
             except Exception as e:
-                print(f"[AUTO-START] Failed to start {service['name']}: {e}")
+                logger.error(f"[AUTO-START] Failed to start {service['name']}: {e}")
         else:
-            print(f"[OK] {service['name']} (port {service['port']}) already running")
+            logger.info(f"[OK] {service['name']} (port {service['port']}) already running")
 
 
 def get_host_ip():
@@ -241,21 +249,35 @@ def check_all_services():
     })
 
 
+@app.route('/api/ready')
+def readiness():
+    """Readiness probe — verifies critical pipeline services are available."""
+    critical_services = ['genomics', 'rag-portal', 'drug-main']
+    checks = {}
+    for svc_id in critical_services:
+        svc_info = SERVICES.get(svc_id, {})
+        checks[svc_id] = is_port_open(svc_info.get('port', 0))
+    all_ready = all(checks.values())
+    return jsonify({'ready': all_ready, 'checks': checks}), 200 if all_ready else 503
+
+
+# --- Graceful shutdown ---
+def graceful_shutdown(signum=None, frame=None):
+    """Clean shutdown handler."""
+    if signum:
+        sys.exit(0)
+
+
+signal.signal(signal.SIGTERM, graceful_shutdown)
+signal.signal(signal.SIGINT, graceful_shutdown)
+atexit.register(graceful_shutdown)
+
+
 if __name__ == '__main__':
     host_ip = get_host_ip()
-    print(f"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║                                                                              ║
-║    HCLS AI FACTORY LANDING PAGE                                              ║
-║                                                                              ║
-║    Local:    http://localhost:{PORT}                                          ║
-║    Network:  http://{host_ip}:{PORT}                                       ║
-║                                                                              ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-""")
+    logger.info(f"HCLS AI FACTORY LANDING PAGE | Local: http://localhost:{PORT} | Network: http://{host_ip}:{PORT}")
     # Auto-start dependent services
-    print("Checking dependent services...")
+    logger.info("Checking dependent services...")
     auto_start_services()
-    print("")
 
     app.run(host='0.0.0.0', port=PORT, debug=False)
