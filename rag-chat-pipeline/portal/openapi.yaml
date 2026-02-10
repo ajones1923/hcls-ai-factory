@@ -1,0 +1,509 @@
+openapi: "3.0.3"
+info:
+  title: RAG Chat Pipeline Web Portal API
+  description: |
+    REST API for the RAG Chat Pipeline Web Portal. Provides pipeline orchestration,
+    configuration management, real-time streaming output, and target hypothesis
+    retrieval for the HCLS AI Factory precision medicine platform.
+  version: "1.0.0"
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+
+servers:
+  - url: http://localhost:5001
+    description: Local development server
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: >
+        Required when the PORTAL_API_KEY environment variable is set.
+        Pass the matching key in the X-API-Key header.
+
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: ok
+      required: [status]
+
+    ServiceHealth:
+      type: object
+      properties:
+        milvus:
+          type: boolean
+        ollama:
+          type: boolean
+
+    CollectionStats:
+      type: object
+      properties:
+        name:
+          type: string
+        num_entities:
+          type: integer
+      additionalProperties: true
+
+    StatusResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        system:
+          type: object
+          additionalProperties: true
+        services:
+          $ref: "#/components/schemas/ServiceHealth"
+        collections:
+          type: array
+          items:
+            $ref: "#/components/schemas/CollectionStats"
+
+    ConfigResponse:
+      type: object
+      properties:
+        LLM_PROVIDER:
+          type: string
+        LLM_MODEL:
+          type: string
+        OLLAMA_HOST:
+          type: string
+        VLLM_MODEL:
+          type: string
+        MILVUS_HOST:
+          type: string
+        MILVUS_PORT:
+          type: integer
+        VCF_INPUT_PATH:
+          type: string
+        RAG_TOP_K:
+          type: integer
+        RAG_SCORE_THRESHOLD:
+          type: number
+        LLM_MAX_TOKENS:
+          type: integer
+        LLM_TEMPERATURE:
+          type: number
+        HF_TOKEN:
+          type: string
+      additionalProperties: true
+
+    ConfigUpdate:
+      type: object
+      description: >
+        Only whitelisted keys are accepted. Unknown keys are ignored.
+      properties:
+        LLM_PROVIDER:
+          type: string
+        LLM_MODEL:
+          type: string
+        OLLAMA_HOST:
+          type: string
+        VLLM_MODEL:
+          type: string
+        MILVUS_HOST:
+          type: string
+        MILVUS_PORT:
+          type: integer
+          minimum: 1
+          maximum: 65535
+        VCF_INPUT_PATH:
+          type: string
+        RAG_TOP_K:
+          type: integer
+          minimum: 1
+          maximum: 1000
+        RAG_SCORE_THRESHOLD:
+          type: number
+          minimum: 0
+          maximum: 1
+        LLM_MAX_TOKENS:
+          type: integer
+          minimum: 1
+          maximum: 100000
+        LLM_TEMPERATURE:
+          type: number
+          minimum: 0
+          maximum: 2
+        HF_TOKEN:
+          type: string
+
+    RunResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: started
+        step:
+          type: string
+          enum: [ingest, chat, targets]
+
+    StopResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: stopped
+
+    TargetHypothesis:
+      type: object
+      additionalProperties: true
+
+    ModelInfo:
+      type: object
+      properties:
+        provider:
+          type: string
+        model:
+          type: string
+      additionalProperties: true
+
+    LlmMetrics:
+      type: object
+      additionalProperties: true
+
+    ReadinessResponse:
+      type: object
+      properties:
+        ready:
+          type: boolean
+        checks:
+          type: object
+          properties:
+            milvus:
+              type: boolean
+            collection_loaded:
+              type: boolean
+            ollama:
+              type: boolean
+          required: [milvus, collection_loaded, ollama]
+      required: [ready, checks]
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+
+  responses:
+    Unauthorized:
+      description: Missing or invalid API key.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    RateLimited:
+      description: Rate limit exceeded.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      operationId: getHealth
+      tags: [Health]
+      responses:
+        "200":
+          description: Service is healthy.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+
+  /healthz:
+    get:
+      summary: Health check (alias)
+      operationId: getHealthz
+      tags: [Health]
+      responses:
+        "200":
+          description: Service is healthy.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+
+  /api/status:
+    get:
+      summary: Pipeline status
+      operationId: getStatus
+      tags: [Status]
+      description: >
+        Returns pipeline status including system info, service health, and
+        Milvus collection statistics. Rate limited.
+      responses:
+        "200":
+          description: Current pipeline status.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusResponse"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+  /api/vcf-preview:
+    get:
+      summary: VCF file preview
+      operationId: getVcfPreview
+      tags: [Data]
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+            minimum: 1
+            maximum: 10000
+          description: Maximum number of VCF records to return.
+      responses:
+        "200":
+          description: VCF preview data.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+  /api/config:
+    get:
+      summary: Get configuration
+      operationId: getConfig
+      tags: [Configuration]
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "200":
+          description: Current configuration.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConfigResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      summary: Update configuration
+      operationId: updateConfig
+      tags: [Configuration]
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConfigUpdate"
+      responses:
+        "200":
+          description: Configuration updated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConfigResponse"
+        "400":
+          description: Validation error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/run/{step}:
+    post:
+      summary: Run pipeline step
+      operationId: runStep
+      tags: [Pipeline]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: step
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [ingest, chat, targets]
+          description: |
+            Pipeline step to execute:
+            - ingest: VCF Ingest
+            - chat: Chat Setup
+            - targets: Target Analysis
+      responses:
+        "200":
+          description: Step started.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RunResponse"
+        "400":
+          description: Invalid step or step already running.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/stop:
+    post:
+      summary: Stop running process
+      operationId: stopProcess
+      tags: [Pipeline]
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "200":
+          description: Process stopped.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StopResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/stream:
+    get:
+      summary: Real-time pipeline output (SSE)
+      operationId: streamOutput
+      tags: [Pipeline]
+      description: >
+        Server-Sent Events endpoint that streams real-time pipeline output.
+        Connect with an EventSource client.
+      responses:
+        "200":
+          description: SSE stream of pipeline output.
+          content:
+            text/event-stream:
+              schema:
+                type: string
+
+  /api/targets:
+    get:
+      summary: List target hypotheses
+      operationId: getTargets
+      tags: [Targets]
+      responses:
+        "200":
+          description: Target hypotheses from targets.json.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TargetHypothesis"
+
+  /api/targets/export:
+    get:
+      summary: Export targets as JSON download
+      operationId: exportTargets
+      tags: [Targets]
+      responses:
+        "200":
+          description: Downloadable JSON file of target hypotheses.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TargetHypothesis"
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+                example: attachment; filename="targets.json"
+
+  /api/model:
+    get:
+      summary: Get current LLM model info
+      operationId: getModel
+      tags: [Model]
+      responses:
+        "200":
+          description: Current LLM model information.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ModelInfo"
+    post:
+      summary: Update LLM model configuration
+      operationId: updateModel
+      tags: [Model]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ModelInfo"
+      responses:
+        "200":
+          description: Model configuration updated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ModelInfo"
+        "400":
+          description: Invalid model configuration.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/llm-metrics:
+    get:
+      summary: LLM performance metrics
+      operationId: getLlmMetrics
+      tags: [Model]
+      description: Returns LLM performance metrics. Rate limited.
+      responses:
+        "200":
+          description: LLM metrics.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LlmMetrics"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+  /api/ready:
+    get:
+      summary: Readiness probe
+      operationId: getReadiness
+      tags: [Health]
+      description: >
+        Returns readiness status with individual dependency checks. Returns
+        200 when all checks pass, 503 when any check fails.
+      responses:
+        "200":
+          description: All dependencies ready.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadinessResponse"
+              example:
+                ready: true
+                checks:
+                  milvus: true
+                  collection_loaded: true
+                  ollama: true
+        "503":
+          description: One or more dependencies not ready.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadinessResponse"
+              example:
+                ready: false
+                checks:
+                  milvus: true
+                  collection_loaded: false
+                  ollama: false

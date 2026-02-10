@@ -64,11 +64,11 @@ class TestConfigEndpoint:
         """Test updating configuration."""
         with patch('server.CONFIG_FILE', tmp_path / 'test.env'):
             # Create the config file
-            (tmp_path / 'test.env').write_text("# Test config\nKEY=value\n")
+            (tmp_path / 'test.env').write_text("# Test config\nPATIENT_ID=HG002\n")
 
             response = client.post(
                 '/api/config',
-                data=json.dumps({'KEY': 'new_value'}),
+                data=json.dumps({'PATIENT_ID': 'HG003'}),
                 content_type='application/json'
             )
 
@@ -345,7 +345,7 @@ class TestApiKeyAuth:
         """Test that /api/run requires API key when PORTAL_API_KEY is set."""
         with patch.dict('os.environ', {'PORTAL_API_KEY': 'test-secret-key'}):
             with patch('server.pipeline_state', {'status': 'idle', 'logs': [], 'progress': 0}):
-                response = client.get('/api/run/check')
+                response = client.post('/api/run/check')
                 assert response.status_code == 401
                 data = json.loads(response.data)
                 assert 'Unauthorized' in data.get('error', '')
@@ -356,7 +356,7 @@ class TestApiKeyAuth:
             with patch('server.pipeline_state', {'status': 'idle', 'logs': [], 'progress': 0}):
                 with patch('server.threading.Thread') as mock_thread:
                     mock_thread.return_value = Mock()
-                    response = client.get(
+                    response = client.post(
                         '/api/run/check',
                         headers={'X-API-Key': 'test-secret-key'}
                     )
@@ -373,7 +373,7 @@ class TestApiKeyAuth:
                 with patch('server.pipeline_state', {'status': 'idle', 'logs': [], 'progress': 0}):
                     with patch('server.threading.Thread') as mock_thread:
                         mock_thread.return_value = Mock()
-                        response = client.get('/api/run/check')
+                        response = client.post('/api/run/check')
                         assert response.status_code == 200
 
     def test_stop_requires_api_key(self, client):
@@ -381,7 +381,7 @@ class TestApiKeyAuth:
         with patch.dict('os.environ', {'PORTAL_API_KEY': 'test-secret-key'}):
             with patch('server.running_processes', {}):
                 with patch('server.pipeline_state', {'status': 'running'}):
-                    response = client.get('/api/stop')
+                    response = client.post('/api/stop')
                     assert response.status_code == 401
 
     def test_reset_requires_api_key(self, client, tmp_path):

@@ -1,0 +1,59 @@
+# HCLS AI Factory — Full Stack Orchestrator
+# Brings up all services with a single command.
+#
+# Usage:
+#   docker compose up -d                    # Start all services
+#   docker compose up -d landing-page milvus  # Start specific services
+#   docker compose --profile nims up -d     # Include GPU NIM services
+#
+# Requirements:
+#   - Docker Compose v2.20+ (for 'include' support)
+#   - NVIDIA GPU + drivers (for NIM services)
+#   - NGC_API_KEY env var (for NIM services)
+
+include:
+  - genomics-pipeline/web-portal/docker-compose.yml
+  - rag-chat-pipeline/docker-compose.yml
+  - drug-discovery-pipeline/docker-compose.yml
+
+services:
+  # Landing page — service health dashboard
+  landing-page:
+    build: ./landing-page
+    container_name: ai-factory-landing
+    ports:
+      - "8080:8080"
+    environment:
+      - LANDING_PORT=8080
+    restart: unless-stopped
+
+  # Monitoring — Grafana dashboards
+  grafana:
+    image: grafana/grafana-oss:11.0.0
+    container_name: ai-factory-grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+    restart: unless-stopped
+
+  # Monitoring — Prometheus metrics
+  prometheus:
+    image: prom/prometheus:v2.52.0
+    container_name: ai-factory-prometheus
+    ports:
+      - "9099:9090"
+    restart: unless-stopped
+
+  # Monitoring — Node Exporter (host metrics)
+  node-exporter:
+    image: prom/node-exporter:v1.8.0
+    container_name: ai-factory-node-exporter
+    ports:
+      - "9100:9100"
+    restart: unless-stopped
+
+volumes:
+  grafana_data:

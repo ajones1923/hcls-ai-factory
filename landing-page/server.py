@@ -27,7 +27,13 @@ logger.remove()
 logger.add(sys.stderr, format="{time:YYYY-MM-DD HH:mm:ss} | {level:<7} | {message}", level="INFO")
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={
+    r"/api/*": {
+        "origins": os.environ.get('CORS_ORIGINS', 'http://localhost:8080').split(','),
+        "methods": ["GET"],
+        "allow_headers": ["Content-Type"]
+    }
+})
 
 # Base directory for all pipelines
 TRANSFER_DIR = Path(__file__).parent.parent

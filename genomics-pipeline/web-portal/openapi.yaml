@@ -1,0 +1,913 @@
+openapi: "3.0.3"
+info:
+  title: Genomics Pipeline Web Portal API
+  description: |
+    REST API for the HCLS AI Factory Genomics Pipeline Web Portal.
+    Manages the FASTQ to VCF workflow powered by NVIDIA Clara Parabricks
+    on DGX Spark hardware. Provides pipeline execution, monitoring,
+    file management, and real-time system metrics.
+  version: "1.0.0"
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+
+servers:
+  - url: http://localhost:5000
+    description: Local development server
+
+security: []
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: |
+        Required for mutating endpoints when the PORTAL_API_KEY environment
+        variable is set. When PORTAL_API_KEY is unset, authentication is
+        disabled (local dev mode).
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+      required: [error]
+
+    Success:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+      required: [success]
+
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: healthy
+        service:
+          type: string
+          example: genomics-portal
+        port:
+          type: integer
+          example: 5000
+      required: [status, service, port]
+
+    PipelineState:
+      type: object
+      properties:
+        current_step:
+          type: string
+          nullable: true
+          example: "Chr20 Test"
+        status:
+          type: string
+          enum: [idle, running, success, error]
+        progress:
+          type: integer
+        logs:
+          type: array
+          items:
+            $ref: "#/components/schemas/LogEntry"
+        start_time:
+          type: string
+          format: date-time
+          nullable: true
+        end_time:
+          type: string
+          format: date-time
+          nullable: true
+        error_message:
+          type: string
+          nullable: true
+        runtime_seconds:
+          type: integer
+
+    LogEntry:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        message:
+          type: string
+
+    DiskSpace:
+      type: object
+      properties:
+        total:
+          type: string
+          example: "1.8T"
+        used:
+          type: string
+          example: "856G"
+        available:
+          type: string
+          example: "900G"
+        use_percent:
+          type: string
+          example: "49%"
+
+    CpuUtilization:
+      type: object
+      properties:
+        percent:
+          type: number
+          format: float
+        per_core:
+          type: array
+          items:
+            type: number
+            format: float
+        frequency:
+          type: number
+        count:
+          type: integer
+
+    GpuDevice:
+      type: object
+      properties:
+        index:
+          type: integer
+        name:
+          type: string
+          example: "NVIDIA GB10"
+        utilization:
+          type: integer
+        memory_utilization:
+          type: integer
+        memory_used_gb:
+          type: number
+          format: float
+        memory_total_gb:
+          type: number
+          format: float
+        memory_percent:
+          type: number
+          format: float
+        temperature:
+          type: integer
+        power_watts:
+          type: number
+          format: float
+
+    GpuUtilization:
+      type: object
+      properties:
+        available:
+          type: boolean
+        devices:
+          type: array
+          items:
+            $ref: "#/components/schemas/GpuDevice"
+        error:
+          type: string
+
+    MemoryUtilization:
+      type: object
+      properties:
+        percent:
+          type: number
+          format: float
+        used_gb:
+          type: number
+          format: float
+        total_gb:
+          type: number
+          format: float
+        available_gb:
+          type: number
+          format: float
+        swap_percent:
+          type: number
+          format: float
+
+    StatusResponse:
+      type: object
+      properties:
+        pipeline:
+          $ref: "#/components/schemas/PipelineState"
+        system:
+          type: object
+          properties:
+            docker_installed:
+              type: boolean
+            gpu_available:
+              type: boolean
+            disk_space:
+              $ref: "#/components/schemas/DiskSpace"
+            cpu_utilization:
+              $ref: "#/components/schemas/CpuUtilization"
+            gpu_utilization:
+              $ref: "#/components/schemas/GpuUtilization"
+            memory_utilization:
+              $ref: "#/components/schemas/MemoryUtilization"
+        data:
+          type: object
+          properties:
+            fastq_r1:
+              type: boolean
+            fastq_r2:
+              type: boolean
+            reference:
+              type: boolean
+            chr20_vcf:
+              type: boolean
+            genome_vcf:
+              type: boolean
+        file_sizes:
+          type: object
+          properties:
+            fastq_r1:
+              type: string
+            fastq_r2:
+              type: string
+            reference:
+              type: string
+            chr20_vcf:
+              type: string
+            genome_vcf:
+              type: string
+
+    ConfigMap:
+      type: object
+      description: Key-value configuration pairs from pipeline.env.
+      additionalProperties:
+        type: string
+      example:
+        GP: /home/user/genomics-pipeline
+        PATIENT_ID: HG002
+        NUM_GPUS: "1"
+
+    ConfigUpdate:
+      type: object
+      description: |
+        Subset of whitelisted configuration keys to update. Values must
+        not contain shell metacharacters ($, backtick, |, ;, &).
+      properties:
+        GP:
+          type: string
+        IN:
+          type: string
+        REF:
+          type: string
+        OUT:
+          type: string
+        LOG:
+          type: string
+        PB_IMG:
+          type: string
+        PATIENT_ID:
+          type: string
+        REF_BUILD:
+          type: string
+        GIAB_INDEX_URL:
+          type: string
+        PARABRICKS_SAMPLE_URL:
+          type: string
+        NUM_GPUS:
+          type: string
+        LOW_MEMORY:
+          type: string
+
+    RunStepResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        step:
+          type: string
+          example: "Chr20 Test"
+
+    StopAllResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        killed_count:
+          type: integer
+        message:
+          type: string
+
+    LogResponse:
+      type: object
+      properties:
+        content:
+          type: string
+
+    FileInfo:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "HG002_R1.fastq.gz"
+        size:
+          type: integer
+          format: int64
+        size_human:
+          type: string
+          example: "45.20 GB"
+        modified:
+          type: string
+          format: date-time
+        type:
+          type: string
+          enum: [fastq, compressed, bam, index, vcf, fasta, bed, text, json, file]
+
+    FileListResponse:
+      type: object
+      properties:
+        files:
+          type: array
+          items:
+            $ref: "#/components/schemas/FileInfo"
+        directory:
+          type: string
+        path:
+          type: string
+
+    UploadResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        filename:
+          type: string
+        size:
+          type: integer
+          format: int64
+        size_human:
+          type: string
+
+    DeleteResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        filename:
+          type: string
+
+    GpuDetailedMetrics:
+      type: object
+      properties:
+        iops:
+          type: number
+        memory_bandwidth:
+          type: number
+        sm_efficiency:
+          type: number
+        tensor_usage:
+          type: number
+        pcie_throughput:
+          type: number
+        power_draw:
+          type: number
+
+    MetricsResponse:
+      type: object
+      properties:
+        throughput_gb_hr:
+          type: number
+          format: float
+        runtime_seconds:
+          type: integer
+        gpu_utilization:
+          type: integer
+        status:
+          type: string
+          enum: [idle, running, success, error]
+        current_step:
+          type: string
+          nullable: true
+        gpu_metrics:
+          $ref: "#/components/schemas/GpuDetailedMetrics"
+        start_time:
+          type: string
+          format: date-time
+          nullable: true
+        end_time:
+          type: string
+          format: date-time
+          nullable: true
+
+    ReadinessResponse:
+      type: object
+      properties:
+        ready:
+          type: boolean
+        checks:
+          type: object
+          properties:
+            docker:
+              type: boolean
+            gpu:
+              type: boolean
+            scripts_dir:
+              type: boolean
+
+    SSEEvent:
+      type: object
+      description: Server-Sent Event payload (type + data).
+      properties:
+        type:
+          type: string
+          enum: [status, log, stream_end]
+        data:
+          type: object
+
+  responses:
+    Unauthorized:
+      description: Missing or invalid X-API-Key header.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            error: "Unauthorized \u2014 set X-API-Key header"
+    RateLimited:
+      description: Rate limit exceeded.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              retry_after:
+                type: integer
+          example:
+            error: Rate limit exceeded
+            retry_after: 60
+    BadRequest:
+      description: Invalid request parameters.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    NotFound:
+      description: Resource not found.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+  parameters:
+    DirectoryParam:
+      name: directory
+      in: path
+      required: true
+      schema:
+        type: string
+        enum: [input, output, ref]
+      description: Data subdirectory name.
+    FilenameParam:
+      name: filename
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Name of the file (sanitized via secure_filename).
+
+paths:
+  /health:
+    get:
+      operationId: healthCheck
+      summary: Health check
+      description: Liveness probe for monitoring systems.
+      tags: [Health]
+      responses:
+        "200":
+          description: Service is healthy.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+
+  /healthz:
+    get:
+      operationId: healthCheckZ
+      summary: Health check (alias)
+      description: Kubernetes-style liveness probe. Identical to /health.
+      tags: [Health]
+      responses:
+        "200":
+          description: Service is healthy.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+
+  /api/status:
+    get:
+      operationId: getStatus
+      summary: Get pipeline status
+      description: |
+        Returns the current pipeline execution state, system information
+        (Docker, GPU, disk, CPU, memory), data file existence flags,
+        and human-readable file sizes.
+      tags: [Pipeline]
+      responses:
+        "200":
+          description: Current status.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusResponse"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+  /api/config:
+    get:
+      operationId: getConfig
+      summary: Get pipeline configuration
+      description: Returns all key-value pairs from pipeline.env.
+      tags: [Configuration]
+      responses:
+        "200":
+          description: Configuration map.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConfigMap"
+    post:
+      operationId: updateConfig
+      summary: Update pipeline configuration
+      description: |
+        Merges supplied key-value pairs into pipeline.env. Only
+        whitelisted keys are accepted. Values containing shell
+        metacharacters ($, backtick, |, ;, &) are rejected.
+      tags: [Configuration]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConfigUpdate"
+      responses:
+        "200":
+          description: Configuration updated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /api/run/{step}:
+    post:
+      operationId: runStep
+      summary: Start a pipeline step
+      description: |
+        Launches the specified pipeline step in a background thread.
+        Only one step can run at a time.
+      tags: [Pipeline]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: step
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [check, login, download, reference, test, full]
+          description: |
+            Pipeline step identifier. Maps to shell scripts:
+            check = 00-setup-check.sh,
+            login = 01-ngc-login.sh,
+            download = 02-download-data.sh,
+            reference = 03-setup-reference.sh,
+            test = 04-run-chr20-test.sh,
+            full = 05-run-full-genome.sh.
+      responses:
+        "200":
+          description: Step started.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RunStepResponse"
+        "400":
+          description: Invalid step or a step is already running.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/stop:
+    post:
+      operationId: stopProcess
+      summary: Stop the running process
+      description: Terminates all portal-managed child processes and resets state to idle.
+      tags: [Pipeline]
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "200":
+          description: Process stopped.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/stop-all:
+    post:
+      operationId: stopAllProcesses
+      summary: Stop all pipeline processes
+      description: |
+        Aggressively stops all pipeline-related processes including
+        portal-managed subprocesses, system processes matching pipeline
+        patterns, and Docker containers running Parabricks images.
+      tags: [Pipeline]
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "200":
+          description: Processes stopped.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StopAllResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/logs/{log_type}:
+    get:
+      operationId: getLogs
+      summary: Get log file content
+      description: Returns the full content of a pipeline log file.
+      tags: [Logs]
+      parameters:
+        - name: log_type
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [chr20_fq2bam, chr20_deepvariant, genome_fq2bam, genome_deepvariant]
+          description: Log file identifier.
+      responses:
+        "200":
+          description: Log content (may contain "Log file not found" if file is absent).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LogResponse"
+        "400":
+          description: Invalid log type.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Error reading log file.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/stream:
+    get:
+      operationId: streamEvents
+      summary: Real-time pipeline event stream
+      description: |
+        Server-Sent Events (SSE) endpoint. Emits status updates every
+        200 ms and new log lines as they appear. The stream closes
+        automatically ~3 seconds after the pipeline reaches a terminal
+        state (idle, success, or error) by sending a stream_end event.
+      tags: [Pipeline]
+      responses:
+        "200":
+          description: SSE event stream.
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                description: |
+                  Newline-delimited SSE frames. Each frame is
+                  `data: <JSON>\n\n` where JSON matches SSEEvent schema.
+
+  /api/reset:
+    post:
+      operationId: resetState
+      summary: Reset pipeline state
+      description: Resets pipeline state to idle and removes the persisted state file.
+      tags: [Pipeline]
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "200":
+          description: State reset.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/files/{directory}:
+    get:
+      operationId: listFiles
+      summary: List files in a data directory
+      description: |
+        Lists non-hidden files in the specified data subdirectory.
+        Subdirectories are excluded.
+      tags: [Files]
+      parameters:
+        - $ref: "#/components/parameters/DirectoryParam"
+      responses:
+        "200":
+          description: File listing.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileListResponse"
+        "400":
+          description: Invalid directory name.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Filesystem error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/files/download/{directory}/{filename}:
+    get:
+      operationId: downloadFile
+      summary: Download a file
+      description: |
+        Downloads a file as an attachment. Filenames are sanitized and
+        path traversal is prevented.
+      tags: [Files]
+      parameters:
+        - $ref: "#/components/parameters/DirectoryParam"
+        - $ref: "#/components/parameters/FilenameParam"
+      responses:
+        "200":
+          description: File content.
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: Invalid directory or filename.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          description: Error sending file.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/files/upload/{directory}:
+    post:
+      operationId: uploadFile
+      summary: Upload a file
+      description: |
+        Uploads a file to the specified data directory. Rate limited.
+        Maximum upload size is 100 GB.
+      tags: [Files]
+      parameters:
+        - $ref: "#/components/parameters/DirectoryParam"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: File uploaded.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadResponse"
+        "400":
+          description: Invalid directory, missing file, or invalid filename.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          description: Error saving file.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/files/delete/{directory}/{filename}:
+    delete:
+      operationId: deleteFile
+      summary: Delete a file
+      description: |
+        Deletes a file from the specified data directory. Filenames are
+        sanitized and path traversal is prevented.
+      tags: [Files]
+      parameters:
+        - $ref: "#/components/parameters/DirectoryParam"
+        - $ref: "#/components/parameters/FilenameParam"
+      responses:
+        "200":
+          description: File deleted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResponse"
+        "400":
+          description: Invalid directory or filename.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          description: Error deleting file.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/metrics:
+    get:
+      operationId: getMetrics
+      summary: Get system and pipeline metrics
+      description: |
+        Returns real-time processing metrics including GPU utilization,
+        estimated throughput, pipeline runtime, and detailed GPU
+        performance counters. Rate limited.
+      tags: [Metrics]
+      responses:
+        "200":
+          description: Current metrics.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MetricsResponse"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+  /api/ready:
+    get:
+      operationId: readinessProbe
+      summary: Readiness probe
+      description: |
+        Verifies that all runtime dependencies (Docker, GPU, scripts
+        directory) are available. Returns 200 when all checks pass,
+        503 otherwise.
+      tags: [Health]
+      responses:
+        "200":
+          description: All checks passed; service is ready.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadinessResponse"
+        "503":
+          description: One or more checks failed; service is not ready.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadinessResponse"
+
+tags:
+  - name: Health
+    description: Liveness and readiness probes.
+  - name: Pipeline
+    description: Pipeline execution, control, and streaming.
+  - name: Configuration
+    description: Pipeline configuration management.
+  - name: Logs
+    description: Pipeline log file retrieval.
+  - name: Files
+    description: Data file browsing, upload, download, and deletion.
+  - name: Metrics
+    description: Real-time system and GPU performance metrics.

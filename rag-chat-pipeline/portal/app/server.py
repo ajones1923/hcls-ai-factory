@@ -36,7 +36,13 @@ except ImportError:
 app = Flask(__name__,
             template_folder='../templates',
             static_folder='../static')
-CORS(app)
+CORS(app, resources={
+    r"/api/*": {
+        "origins": os.environ.get('CORS_ORIGINS', 'http://localhost:5001,http://localhost:8501').split(','),
+        "methods": ["GET", "POST"],
+        "allow_headers": ["Content-Type", "X-API-Key"]
+    }
+})
 
 
 class RateLimiter:

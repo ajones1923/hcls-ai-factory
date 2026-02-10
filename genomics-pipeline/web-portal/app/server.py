@@ -356,11 +356,32 @@ def config():
         return jsonify(load_config())
     else:
         config_data = request.json
+        if not config_data or not isinstance(config_data, dict):
+            return jsonify({'error': 'Request body must be a JSON object'}), 400
+
+        # Whitelist of allowed config keys
+        allowed_keys = {
+            'GP', 'IN', 'REF', 'OUT', 'LOG',
+            'PB_IMG', 'PATIENT_ID', 'REF_BUILD',
+            'GIAB_INDEX_URL', 'PARABRICKS_SAMPLE_URL',
+            'NUM_GPUS', 'LOW_MEMORY',
+        }
+        invalid_keys = set(config_data.keys()) - allowed_keys
+        if invalid_keys:
+            return jsonify({'error': f'Invalid config keys: {", ".join(sorted(invalid_keys))}'}), 400
+
+        # Reject shell metacharacters in values
+        import re
+        shell_pattern = re.compile(r'[$`|;&]')
+        for key, value in config_data.items():
+            if shell_pattern.search(str(value)):
+                return jsonify({'error': f'Invalid characters in value for {key}'}), 400
+
         save_config(config_data)
         return jsonify({'success': True})
 
 
-@app.route('/api/run/<step>')
+@app.route('/api/run/<step>', methods=['POST'])
 @require_api_key
 def run_step(step):
     """Run a specific workflow step"""
@@ -396,7 +417,7 @@ def run_step(step):
     return jsonify({'success': True, 'step': step_name})
 
 
-@app.route('/api/stop')
+@app.route('/api/stop', methods=['POST'])
 @require_api_key
 def stop():
     """Stop running process"""
@@ -417,7 +438,7 @@ def stop():
     return jsonify({'success': True})
 
 
-@app.route('/api/stop-all')
+@app.route('/api/stop-all', methods=['POST'])
 @require_api_key
 def stop_all():
     """Stop all pipeline-related processes"""

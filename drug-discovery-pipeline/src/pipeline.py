@@ -71,7 +71,12 @@ class DrugDiscoveryPipeline:
 
         # Pipeline state
         self.run_id = str(uuid.uuid4())[:8]
-        self.run: Optional[PipelineRun] = None
+        self.run = PipelineRun(
+            run_id=self.run_id,
+            target_gene=self.config.target_gene,
+            started_at=datetime.now(),
+            config=self.config.dict(),
+        )
 
         # Intermediate results
         self.target: Optional[TargetHypothesis] = None
