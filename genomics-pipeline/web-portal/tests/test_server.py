@@ -336,3 +336,98 @@ class TestInputValidation:
                 content_type='application/json'
             )
             assert response.status_code == 400
+
+
+class TestApiKeyAuth:
+    """Tests for require_api_key decorator."""
+
+    def test_run_requires_api_key(self, client):
+        """Test that /api/run requires API key when PORTAL_API_KEY is set."""
+        with patch.dict('os.environ', {'PORTAL_API_KEY': 'test-secret-key'}):
+            with patch('server.pipeline_state', {'status': 'idle', 'logs': [], 'progress': 0}):
+                response = client.get('/api/run/check')
+                assert response.status_code == 401
+                data = json.loads(response.data)
+                assert 'Unauthorized' in data.get('error', '')
+
+    def test_run_accepts_valid_key(self, client, mock_subprocess):
+        """Test that /api/run works with correct API key."""
+        with patch.dict('os.environ', {'PORTAL_API_KEY': 'test-secret-key'}):
+            with patch('server.pipeline_state', {'status': 'idle', 'logs': [], 'progress': 0}):
+                with patch('server.threading.Thread') as mock_thread:
+                    mock_thread.return_value = Mock()
+                    response = client.get(
+                        '/api/run/check',
+                        headers={'X-API-Key': 'test-secret-key'}
+                    )
+                    assert response.status_code == 200
+
+    def test_run_allows_without_key_set(self, client, mock_subprocess):
+        """Test that /api/run works when PORTAL_API_KEY is not set (dev mode)."""
+        with patch.dict('os.environ', {}, clear=False):
+            # Ensure PORTAL_API_KEY is not set
+            import os
+            env = os.environ.copy()
+            env.pop('PORTAL_API_KEY', None)
+            with patch.dict('os.environ', env, clear=True):
+                with patch('server.pipeline_state', {'status': 'idle', 'logs': [], 'progress': 0}):
+                    with patch('server.threading.Thread') as mock_thread:
+                        mock_thread.return_value = Mock()
+                        response = client.get('/api/run/check')
+                        assert response.status_code == 200
+
+    def test_stop_requires_api_key(self, client):
+        """Test that /api/stop requires API key."""
+        with patch.dict('os.environ', {'PORTAL_API_KEY': 'test-secret-key'}):
+            with patch('server.running_processes', {}):
+                with patch('server.pipeline_state', {'status': 'running'}):
+                    response = client.get('/api/stop')
+                    assert response.status_code == 401
+
+    def test_reset_requires_api_key(self, client, tmp_path):
+        """Test that /api/reset requires API key."""
+        with patch.dict('os.environ', {'PORTAL_API_KEY': 'test-secret-key'}):
+            with patch('server.STATE_FILE', tmp_path / 'state.json'):
+                response = client.post('/api/reset')
+                assert response.status_code == 401
+
+
+class TestPathTraversal:
+    """Tests for path traversal prevention in file operations."""
+
+    def test_download_rejects_dotdot(self, client):
+        """Test that download rejects path traversal via '..'."""
+        response = client.get('/api/files/download/output/..%2F..%2Fetc%2Fpasswd')
+        assert response.status_code in (400, 404)
+
+    def test_download_sanitizes_filename(self, client, tmp_path):
+        """Test that download uses secure_filename."""
+        with patch('server.DATA_DIR', tmp_path):
+            (tmp_path / 'output').mkdir(exist_ok=True)
+            response = client.get('/api/files/download/output/..%2Fsecret.txt')
+            assert response.status_code in (400, 404)
+
+    def test_delete_rejects_dotdot(self, client):
+        """Test that delete rejects path traversal via '..'."""
+        response = client.delete('/api/files/delete/output/..%2F..%2Fetc%2Fpasswd')
+        assert response.status_code in (400, 404)
+
+    def test_upload_sanitizes_filename(self, client, tmp_path):
+        """Test that upload sanitizes filenames using secure_filename."""
+        with patch('server.DATA_DIR', tmp_path):
+            (tmp_path / 'input').mkdir(exist_ok=True)
+            import io
+            data = {'file': (io.BytesIO(b'test data'), '../../evil.sh')}
+            response = client.post(
+                '/api/files/upload/input',
+                data=data,
+                content_type='multipart/form-data'
+            )
+            # Should either sanitize the name or reject it
+            if response.status_code == 200:
+                result = json.loads(response.data)
+                # secure_filename strips traversal chars
+                assert '..' not in result.get('filename', '')
+                assert '/' not in result.get('filename', '')
+            else:
+                assert response.status_code == 400

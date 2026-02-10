@@ -69,53 +69,67 @@ class TestLipinskiViolations:
 class TestDockNormalization:
     """Test docking score normalization formula.
 
-    Formula: max(0, min(1, (10 + dock_score) / 20))
+    Formula: max(0.0, min(1.0, -dock_score / 12.0))
     Lower docking scores are better (more negative = stronger binding).
+    Range: -12 kcal/mol (excellent) → 1.0, 0 kcal/mol (no binding) → 0.0
+    When dock_result is None → 0.0 (no docking data = worst score).
     """
 
     @staticmethod
-    def _normalize_dock(dock_score):
-        if dock_score:
-            return max(0, min(1, (10 + dock_score) / 20))
-        return 0.5
+    def _normalize_dock(dock_score, has_result=True):
+        """Mirror the normalization logic from pipeline.py stage_8_ranking."""
+        if has_result:
+            return max(0.0, min(1.0, -dock_score / 12.0))
+        return 0.0
 
-    def test_zero_dock_uses_sentinel(self):
-        assert self._normalize_dock(0) == 0.5
+    def test_zero_dock_no_binding(self):
+        # dock=0 with a result → -0/12 = 0.0 (no binding energy)
+        assert self._normalize_dock(0) == 0.0
 
-    def test_none_dock_uses_sentinel(self):
-        assert self._normalize_dock(None) == 0.5
+    def test_none_dock_no_result(self):
+        # No docking result → 0.0 (worst score)
+        assert self._normalize_dock(0, has_result=False) == 0.0
+
+    def test_excellent_binding(self):
+        # dock=-12 -> -(-12)/12 = 1.0
+        assert self._normalize_dock(-12) == 1.0
 
     def test_strong_binding(self):
-        # dock=-10 -> (10-10)/20 = 0
-        assert self._normalize_dock(-10) == 0.0
+        # dock=-8 -> -(-8)/12 = 0.6667
+        assert self._normalize_dock(-8) == pytest.approx(2 / 3)
 
     def test_moderate_binding(self):
-        # dock=-8 -> (10-8)/20 = 0.1
-        assert self._normalize_dock(-8) == pytest.approx(0.1)
+        # dock=-6 -> -(-6)/12 = 0.5
+        assert self._normalize_dock(-6) == pytest.approx(0.5)
 
     def test_weak_binding(self):
-        # dock=-2 -> (10-2)/20 = 0.4
-        assert self._normalize_dock(-2) == pytest.approx(0.4)
+        # dock=-2 -> -(-2)/12 = 0.1667
+        assert self._normalize_dock(-2) == pytest.approx(1 / 6)
 
-    def test_positive_dock_clamps_to_one(self):
-        # dock=10 -> (10+10)/20 = 1.0
-        assert self._normalize_dock(10) == 1.0
+    def test_positive_dock_clamps_to_zero(self):
+        # dock=+2 -> -(+2)/12 = -0.167 -> clamped to 0
+        assert self._normalize_dock(2) == 0.0
 
-    def test_very_negative_dock_clamps_to_zero(self):
-        # dock=-15 -> (10-15)/20 = -0.25 -> clamped to 0
-        assert self._normalize_dock(-15) == 0.0
+    def test_very_negative_dock_clamps_to_one(self):
+        # dock=-15 -> -(-15)/12 = 1.25 -> clamped to 1.0
+        assert self._normalize_dock(-15) == 1.0
 
 
 class TestCompositeScoring:
-    """Test the composite scoring formula from stage_8_ranking."""
+    """Test the composite scoring formula from stage_8_ranking.
+
+    composite = gen_w * gen_score + dock_w * dock_normalized + qed_w * qed_score
+    dock_normalized = max(0.0, min(1.0, -dock_score / 12.0)) when has result, else 0.0
+    """
 
     @staticmethod
     def _compute_composite(gen_score, dock_score, qed_score,
+                            has_dock_result=True,
                             gen_w=0.3, dock_w=0.4, qed_w=0.3):
-        if dock_score:
-            dock_normalized = max(0, min(1, (10 + dock_score) / 20))
+        if has_dock_result:
+            dock_normalized = max(0.0, min(1.0, -dock_score / 12.0))
         else:
-            dock_normalized = 0.5
+            dock_normalized = 0.0
         return gen_w * gen_score + dock_w * dock_normalized + qed_w * qed_score
 
     def test_default_weights_sum_to_one(self):
@@ -124,19 +138,31 @@ class TestCompositeScoring:
         assert abs(total - 1.0) < 0.001
 
     def test_all_perfect_scores(self):
-        # gen=1.0, dock=10 (normalized=1.0), qed=1.0
-        composite = self._compute_composite(1.0, 10.0, 1.0)
-        assert composite == pytest.approx(0.3 + 0.4 + 0.3)  # = 1.0
+        # gen=1.0, dock=-12 (normalized=1.0), qed=1.0
+        composite = self._compute_composite(1.0, -12.0, 1.0)
+        assert composite == pytest.approx(1.0)
 
-    def test_all_zero_scores(self):
-        # gen=0, dock=0 (sentinel=0.5), qed=0
-        composite = self._compute_composite(0.0, 0, 0.0)
-        assert composite == pytest.approx(0.4 * 0.5)  # = 0.2
+    def test_all_zero_scores_no_dock(self):
+        # gen=0, no dock result (normalized=0.0), qed=0
+        composite = self._compute_composite(0.0, 0, 0.0, has_dock_result=False)
+        assert composite == pytest.approx(0.0)
+
+    def test_zero_dock_with_result(self):
+        # gen=0, dock=0 with result (normalized=0.0), qed=0
+        composite = self._compute_composite(0.0, 0, 0.0, has_dock_result=True)
+        assert composite == pytest.approx(0.0)
 
     def test_balanced_mid_scores(self):
-        composite = self._compute_composite(0.5, -5, 0.5)
-        # dock: (10-5)/20 = 0.25
-        expected = 0.3 * 0.5 + 0.4 * 0.25 + 0.3 * 0.5
+        composite = self._compute_composite(0.5, -6, 0.5)
+        # dock: -(-6)/12 = 0.5
+        expected = 0.3 * 0.5 + 0.4 * 0.5 + 0.3 * 0.5
+        assert composite == pytest.approx(expected)
+
+    def test_strong_docking_dominates(self):
+        # Strong docking (-10) should produce high dock component
+        composite = self._compute_composite(0.5, -10, 0.5)
+        dock_norm = 10 / 12.0  # 0.8333
+        expected = 0.3 * 0.5 + 0.4 * dock_norm + 0.3 * 0.5
         assert composite == pytest.approx(expected)
 
 

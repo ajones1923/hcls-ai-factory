@@ -13,6 +13,7 @@ from pathlib import Path
 from datetime import datetime
 from functools import wraps
 from flask import Flask, render_template, jsonify, request, Response, stream_with_context, send_file
+from werkzeug.utils import secure_filename
 from flask_cors import CORS
 import psutil
 try:
@@ -690,11 +691,14 @@ def download_file(directory, filename):
     if directory not in dir_mapping:
         return jsonify({'error': 'Invalid directory'}), 400
 
-    # Security: prevent path traversal
-    if '..' in filename or '/' in filename:
+    # Security: prevent path traversal using secure_filename + resolve check
+    safe = secure_filename(filename)
+    if not safe:
         return jsonify({'error': 'Invalid filename'}), 400
-
-    file_path = dir_mapping[directory] / filename
+    target_dir = dir_mapping[directory]
+    file_path = target_dir / safe
+    if not file_path.resolve().is_relative_to(target_dir.resolve()):
+        return jsonify({'error': 'Invalid filename'}), 400
 
     if not file_path.exists():
         return jsonify({'error': 'File not found'}), 404
@@ -703,7 +707,7 @@ def download_file(directory, filename):
         return send_file(
             file_path,
             as_attachment=True,
-            download_name=filename
+            download_name=safe
         )
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -730,8 +734,10 @@ def upload_file(directory):
     if file.filename == '':
         return jsonify({'error': 'No file selected'}), 400
 
-    # Security: sanitize filename
-    filename = file.filename.replace('..', '').replace('/', '_')
+    # Security: sanitize filename using Werkzeug's secure_filename
+    filename = secure_filename(file.filename)
+    if not filename:
+        return jsonify({'error': 'Invalid filename'}), 400
 
     target_dir = dir_mapping[directory]
     target_dir.mkdir(parents=True, exist_ok=True)
@@ -763,11 +769,14 @@ def delete_file(directory, filename):
     if directory not in dir_mapping:
         return jsonify({'error': 'Invalid directory'}), 400
 
-    # Security: prevent path traversal
-    if '..' in filename or '/' in filename:
+    # Security: prevent path traversal using secure_filename + resolve check
+    safe = secure_filename(filename)
+    if not safe:
         return jsonify({'error': 'Invalid filename'}), 400
-
-    file_path = dir_mapping[directory] / filename
+    target_dir = dir_mapping[directory]
+    file_path = target_dir / safe
+    if not file_path.resolve().is_relative_to(target_dir.resolve()):
+        return jsonify({'error': 'Invalid filename'}), 400
 
     if not file_path.exists():
         return jsonify({'error': 'File not found'}), 404

@@ -82,6 +82,14 @@ class MolMIMClient:
         Raises:
             RuntimeError: If generation fails after all retries
         """
+        # Validate SMILES before sending to NIM service
+        try:
+            from rdkit import Chem
+            if Chem.MolFromSmiles(seed_smiles) is None:
+                raise ValueError(f"Invalid SMILES: {seed_smiles!r}")
+        except ImportError:
+            pass  # RDKit optional — skip validation if not installed
+
         if not self.health_checked:
             self.check_health()
 
@@ -188,6 +196,14 @@ class DiffDockClient:
         Returns:
             List of docking pose dictionaries
         """
+        # Validate SMILES before sending to NIM service
+        try:
+            from rdkit import Chem
+            if Chem.MolFromSmiles(ligand_smiles) is None:
+                raise ValueError(f"Invalid SMILES: {ligand_smiles!r}")
+        except ImportError:
+            pass  # RDKit optional — skip validation if not installed
+
         if not self.health_checked:
             self.check_health()
 

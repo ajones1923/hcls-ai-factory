@@ -380,6 +380,7 @@ def vcf_preview():
     config = load_config()
     vcf_path = config.get('VCF_INPUT_PATH', str(PROJECT_ROOT.parent / 'genomics-pipeline' / 'data' / 'output' / 'HG002.genome.vcf.gz'))
     limit = request.args.get('limit', 100, type=int)
+    limit = max(1, min(limit, 10000))  # Clamp to [1, 10000]
 
     if not check_file_exists(vcf_path):
         return jsonify({'error': 'VCF file not found', 'path': vcf_path}), 404
@@ -413,6 +414,22 @@ def config():
         invalid_keys = set(config_data.keys()) - allowed_keys
         if invalid_keys:
             return jsonify({'error': f'Invalid config keys: {", ".join(sorted(invalid_keys))}'}), 400
+
+        # Validate config values for keys with known constraints
+        validators = {
+            'LLM_TEMPERATURE': lambda v: 0 <= float(v) <= 2.0,
+            'LLM_MAX_TOKENS': lambda v: 1 <= int(v) <= 100000,
+            'RAG_TOP_K': lambda v: 1 <= int(v) <= 1000,
+            'RAG_SCORE_THRESHOLD': lambda v: 0 <= float(v) <= 1.0,
+            'MILVUS_PORT': lambda v: 1 <= int(v) <= 65535,
+        }
+        for key, value in config_data.items():
+            if key in validators:
+                try:
+                    if not validators[key](str(value)):
+                        return jsonify({'error': f'Value out of range for {key}: {value}'}), 400
+                except (ValueError, TypeError):
+                    return jsonify({'error': f'Invalid value for {key}: {value}'}), 400
 
         save_config(config_data)
         return jsonify({'success': True})
