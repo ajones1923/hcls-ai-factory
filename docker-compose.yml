@@ -27,7 +27,7 @@ services:
       - LANDING_PORT=8080
     restart: unless-stopped
 
-  # Monitoring — Grafana dashboards
+  # Monitoring — Grafana dashboards (auto-provisioned)
   grafana:
     image: grafana/grafana-oss:11.0.0
     container_name: ai-factory-grafana
@@ -35,16 +35,25 @@ services:
       - "3000:3000"
     volumes:
       - grafana_data:/var/lib/grafana
+      - ./drug-discovery-pipeline/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./drug-discovery-pipeline/monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
     restart: unless-stopped
 
-  # Monitoring — Prometheus metrics
+  # Monitoring — Prometheus metrics (with alert rules)
   prometheus:
     image: prom/prometheus:v2.52.0
     container_name: ai-factory-prometheus
     ports:
       - "9099:9090"
+    volumes:
+      - ./drug-discovery-pipeline/monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./drug-discovery-pipeline/monitoring/prometheus/alerts:/etc/prometheus/alerts:ro
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
     restart: unless-stopped
 
   # Monitoring — Node Exporter (host metrics)

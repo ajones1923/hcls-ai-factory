@@ -35,6 +35,7 @@ from .models import (
     PipelineConfig,
 )
 from .nim_clients import create_nim_clients, NIMServiceManager
+from .checkpoint import CheckpointManager
 
 
 class DrugDiscoveryPipeline:
@@ -78,6 +79,9 @@ class DrugDiscoveryPipeline:
             config=self.config.dict(),
         )
 
+        # Checkpoint manager
+        self.checkpoint_manager = CheckpointManager(self.output_dir)
+
         # Intermediate results
         self.target: Optional[TargetHypothesis] = None
         self.structures: Optional[StructureManifest] = None
@@ -91,53 +95,84 @@ class DrugDiscoveryPipeline:
             self.progress_callback(stage, message)
         logger.info(f"[Stage {stage}] {message}")
 
-    def run_pipeline(self, target: TargetHypothesis = None) -> PipelineRun:
+    def _save_checkpoint(self, stage: int):
+        """Save checkpoint after stage completes."""
+        try:
+            self.checkpoint_manager.save(self, stage)
+        except Exception as e:
+            logger.warning(f"Checkpoint save failed for stage {stage}: {e}")
+
+    def run_pipeline(
+        self,
+        target: TargetHypothesis = None,
+        resume_from_run_id: str = None,
+    ) -> PipelineRun:
         """
         Run the complete pipeline.
 
         Args:
             target: Target hypothesis (uses config.target_gene if not provided)
+            resume_from_run_id: If set, resume from the latest checkpoint of this run
 
         Returns:
             PipelineRun with results
         """
-        self.run = PipelineRun(
-            run_id=self.run_id,
-            target_gene=self.config.target_gene,
-            started_at=datetime.now(),
-            config=self.config.dict(),
-        )
+        resume_stage = -1
+        if resume_from_run_id:
+            latest = self.checkpoint_manager.find_latest_checkpoint(resume_from_run_id)
+            if latest is not None:
+                checkpoint = self.checkpoint_manager.load(resume_from_run_id, latest)
+                if checkpoint:
+                    self.checkpoint_manager.restore_pipeline_state(self, checkpoint)
+                    self.run_id = resume_from_run_id
+                    resume_stage = latest
+                    self._report_progress(
+                        latest,
+                        f"Resuming from checkpoint (stage {latest}: {self.STAGES[latest]})",
+                    )
+            else:
+                logger.warning(
+                    f"No checkpoint found for run {resume_from_run_id}, starting fresh"
+                )
+
+        if resume_stage < 0:
+            self.run = PipelineRun(
+                run_id=self.run_id,
+                target_gene=self.config.target_gene,
+                started_at=datetime.now(),
+                config=self.config.dict(),
+            )
 
         try:
-            # Stage 0: Initialize
-            self.stage_0_initialize(target)
+            if resume_stage < 0:
+                self.stage_0_initialize(target)
 
-            # Stage 1: Normalize Target
-            self.stage_1_normalize_target()
+            if resume_stage < 1:
+                self.stage_1_normalize_target()
 
-            # Stage 2: Structure Discovery
-            self.stage_2_structure_discovery()
+            if resume_stage < 2:
+                self.stage_2_structure_discovery()
 
-            # Stage 3: Structure Prep
-            self.stage_3_structure_prep()
+            if resume_stage < 3:
+                self.stage_3_structure_prep()
 
-            # Stage 4: Molecule Generation
-            self.stage_4_molecule_generation()
+            if resume_stage < 4:
+                self.stage_4_molecule_generation()
 
-            # Stage 5: Chemistry QC
-            self.stage_5_chemistry_qc()
+            if resume_stage < 5:
+                self.stage_5_chemistry_qc()
 
-            # Stage 6: Conformers
-            self.stage_6_conformers()
+            if resume_stage < 6:
+                self.stage_6_conformers()
 
-            # Stage 7: Docking
-            self.stage_7_docking()
+            if resume_stage < 7:
+                self.stage_7_docking()
 
-            # Stage 8: Ranking
-            self.stage_8_ranking()
+            if resume_stage < 8:
+                self.stage_8_ranking()
 
-            # Stage 9: Reporting
-            self.stage_9_reporting()
+            if resume_stage < 9:
+                self.stage_9_reporting()
 
             self.run.status = "completed"
             self.run.completed_at = datetime.now()
@@ -169,6 +204,7 @@ class DrugDiscoveryPipeline:
 
         self.run.current_stage = 0
         self.run.stages_completed.append(0)
+        self._save_checkpoint(0)
 
     def stage_1_normalize_target(self):
         """Stage 1: Normalize and validate target."""
@@ -184,6 +220,7 @@ class DrugDiscoveryPipeline:
 
         self.run.current_stage = 1
         self.run.stages_completed.append(1)
+        self._save_checkpoint(1)
 
     def stage_2_structure_discovery(self):
         """Stage 2: Discover protein structures."""
@@ -246,6 +283,7 @@ class DrugDiscoveryPipeline:
         self._report_progress(2, f"Found {len(structures)} structures")
         self.run.current_stage = 2
         self.run.stages_completed.append(2)
+        self._save_checkpoint(2)
 
     def stage_3_structure_prep(self):
         """Stage 3: Prepare structures for docking."""
@@ -262,6 +300,7 @@ class DrugDiscoveryPipeline:
 
         self.run.current_stage = 3
         self.run.stages_completed.append(3)
+        self._save_checkpoint(3)
 
     def stage_4_molecule_generation(self):
         """Stage 4: Generate candidate molecules."""
@@ -301,6 +340,7 @@ class DrugDiscoveryPipeline:
         self._report_progress(4, f"Generated {len(self.molecules)} molecules")
         self.run.current_stage = 4
         self.run.stages_completed.append(4)
+        self._save_checkpoint(4)
 
     def stage_5_chemistry_qc(self):
         """Stage 5: Filter molecules by drug-likeness."""
@@ -366,6 +406,7 @@ class DrugDiscoveryPipeline:
         self._report_progress(5, f"{len(passed)} molecules passed QC")
         self.run.current_stage = 5
         self.run.stages_completed.append(5)
+        self._save_checkpoint(5)
 
     def stage_6_conformers(self):
         """Stage 6: Generate 3D conformers."""
@@ -406,6 +447,7 @@ class DrugDiscoveryPipeline:
         self._report_progress(6, f"Generated conformers for {len([m for m in self.molecules if m.conformer_file])} molecules")
         self.run.current_stage = 6
         self.run.stages_completed.append(6)
+        self._save_checkpoint(6)
 
     def stage_7_docking(self):
         """Stage 7: Dock molecules to protein."""
@@ -456,6 +498,7 @@ class DrugDiscoveryPipeline:
         self._report_progress(7, f"Docked {len(self.docking_results)} molecules")
         self.run.current_stage = 7
         self.run.stages_completed.append(7)
+        self._save_checkpoint(7)
 
     def stage_8_ranking(self):
         """Stage 8: Score and rank candidates."""
@@ -514,6 +557,7 @@ class DrugDiscoveryPipeline:
         self._report_progress(8, f"Top {len(self.ranked_candidates)} candidates ranked")
         self.run.current_stage = 8
         self.run.stages_completed.append(8)
+        self._save_checkpoint(8)
 
     def stage_9_reporting(self):
         """Stage 9: Generate final report."""
@@ -541,15 +585,23 @@ class DrugDiscoveryPipeline:
         self._report_progress(9, f"Report saved to {report_file}")
         self.run.current_stage = 9
         self.run.stages_completed.append(9)
+        self._save_checkpoint(9)
 
         return report
 
 
-def run_vcp_demo_pipeline(output_dir: str = "outputs") -> PipelineRun:
+def run_vcp_demo_pipeline(
+    output_dir: str = "outputs",
+    resume_from: str = None,
+) -> PipelineRun:
     """
     Run the VCP FTD demo pipeline.
 
     Convenience function for the demo narrative.
+
+    Args:
+        output_dir: Directory for pipeline outputs
+        resume_from: Run ID to resume from (uses latest checkpoint)
     """
     config = PipelineConfig(
         target_gene="VCP",
@@ -573,4 +625,4 @@ def run_vcp_demo_pipeline(output_dir: str = "outputs") -> PipelineRun:
     )
 
     pipeline = DrugDiscoveryPipeline(config)
-    return pipeline.run_pipeline(target)
+    return pipeline.run_pipeline(target, resume_from_run_id=resume_from)

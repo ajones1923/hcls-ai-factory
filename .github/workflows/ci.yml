@@ -91,6 +91,63 @@ jobs:
           name: coverage-${{ matrix.service }}
           path: ${{ matrix.workdir }}/coverage.xml
 
+  security:
+    name: Security Scan ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: rag-chat-pipeline
+            workdir: rag-chat-pipeline
+            reqfile: requirements.txt
+            exclude_deps: "torch sentence-transformers cyvcf2 pysam pynvml"
+          - service: drug-discovery-pipeline
+            workdir: drug-discovery-pipeline
+            reqfile: requirements.txt
+            exclude_deps: "rdkit stmol py3Dmol streamlit"
+          - service: genomics-portal
+            workdir: genomics-pipeline/web-portal
+            reqfile: requirements.txt
+            exclude_deps: "pynvml"
+          - service: landing-page
+            workdir: landing-page
+            reqfile: requirements.txt
+            exclude_deps: ""
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: 'pip'
+
+      - name: Install pip-audit
+        run: pip install pip-audit
+
+      - name: Install auditable dependencies
+        working-directory: ${{ matrix.workdir }}
+        run: |
+          if [ -n "${{ matrix.exclude_deps }}" ]; then
+            grep -ivE "$(echo '${{ matrix.exclude_deps }}' | tr ' ' '|')" ${{ matrix.reqfile }} | pip install -r /dev/stdin || true
+          else
+            pip install -r ${{ matrix.reqfile }}
+          fi
+
+      - name: Run pip-audit
+        working-directory: ${{ matrix.workdir }}
+        run: |
+          pip-audit --format json --output audit-results.json || true
+          pip-audit --format columns || true
+
+      - name: Upload audit results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-audit-${{ matrix.service }}
+          path: ${{ matrix.workdir }}/audit-results.json
+
   docs:
     name: Build Docs
     runs-on: ubuntu-latest

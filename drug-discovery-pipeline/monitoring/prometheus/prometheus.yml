@@ -1,4 +1,4 @@
-# Prometheus Configuration for DGX Spark GPU Monitoring
+# Prometheus Configuration for HCLS AI Factory
 
 global:
   scrape_interval: 15s
@@ -6,15 +6,15 @@ global:
   external_labels:
     monitor: 'dgx-spark-monitor'
 
-# Alerting (optional - can add Alertmanager later)
+# Alerting (optional — add Alertmanager for notification routing)
 # alerting:
 #   alertmanagers:
 #     - static_configs:
 #         - targets: ['alertmanager:9093']
 
-# Rule files (optional - can add alert rules later)
-# rule_files:
-#   - "alerts/*.yml"
+# Rule files — alert rules evaluated at evaluation_interval
+rule_files:
+  - "alerts/*.yml"
 
 scrape_configs:
   # Prometheus self-monitoring
@@ -39,7 +39,32 @@ scrape_configs:
         labels:
           instance: 'dgx-spark'
 
-  # Optional: Scrape metrics from host directly if containers can reach host
-  # - job_name: 'dcgm-host'
-  #   static_configs:
-  #     - targets: ['host.docker.internal:9400']
+  # Pipeline Services — health probes for availability tracking
+  # The `up` metric (0/1) drives ServiceDown alerts and dashboard panels.
+  - job_name: 'landing-page'
+    metrics_path: /health
+    static_configs:
+      - targets: ['host.docker.internal:8080']
+    scrape_interval: 30s
+    scrape_timeout: 5s
+
+  - job_name: 'genomics-portal'
+    metrics_path: /health
+    static_configs:
+      - targets: ['host.docker.internal:5000']
+    scrape_interval: 30s
+    scrape_timeout: 5s
+
+  - job_name: 'rag-api'
+    metrics_path: /health
+    static_configs:
+      - targets: ['host.docker.internal:5001']
+    scrape_interval: 30s
+    scrape_timeout: 5s
+
+  - job_name: 'drug-discovery'
+    metrics_path: /healthz
+    static_configs:
+      - targets: ['host.docker.internal:8505']
+    scrape_interval: 30s
+    scrape_timeout: 5s

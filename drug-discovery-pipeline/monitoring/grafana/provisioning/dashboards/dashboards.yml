@@ -2,10 +2,10 @@
 apiVersion: 1
 
 providers:
-  - name: 'DGX Spark Dashboards'
+  - name: 'HCLS AI Factory'
     orgId: 1
-    folder: 'GPU Monitoring'
-    folderUid: 'gpu-monitoring'
+    folder: 'HCLS AI Factory'
+    folderUid: 'hcls-ai-factory'
     type: file
     disableDeletion: false
     updateIntervalSeconds: 30
