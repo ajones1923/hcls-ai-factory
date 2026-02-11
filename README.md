@@ -12,6 +12,22 @@
 
 ---
 
+## See It in Action
+
+> **From Patient DNA to New Medicines** — a 9-minute walkthrough of the complete pipeline.
+
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=ccS3g1Wt9g0">
+    <img src="https://img.youtube.com/vi/ccS3g1Wt9g0/maxresdefault.jpg" alt="HCLS AI Factory — From Patient DNA to New Medicines" width="800">
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=ccS3g1Wt9g0">▶ Watch on YouTube</a>
+</p>
+
+---
+
 ## Origin
 
 In 2012, I set out to use my high-performance computing background for something that mattered. I started with one conviction: no parent should ever have to lose a child to disease.
