@@ -1002,6 +1002,18 @@ html {
   background: linear-gradient(180deg, var(--hcls-navy) 0%, #1e2a3a 100%);
 }
 
+.hcls-video .section-title {
+  display: inline-block;
+  width: 100%;
+}
+
+.video-subtitle {
+  background: var(--gradient-text);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
 .video-wrapper {
   position: relative;
   width: 100%;
