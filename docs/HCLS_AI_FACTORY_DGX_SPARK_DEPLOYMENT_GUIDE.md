@@ -679,7 +679,7 @@ ls -lh *.fastq.gz
 
 ### 7.1 Service Definition Overview
 
-The `docker-compose.yml` defines all 14 application services plus 2 infrastructure services (etcd, MinIO) for Milvus. Services are organized into three groups matching the pipeline stages, plus monitoring.
+The `docker-compose.yml` defines all 13 application services plus 2 infrastructure services (etcd, MinIO) for Milvus. Services are organized into three groups matching the pipeline stages, plus monitoring.
 
 ### 7.2 docker-compose.yml Structure
 
@@ -724,16 +724,6 @@ services:
       - minio
     volumes:
       - milvus_data:/var/lib/milvus
-    restart: unless-stopped
-
-  attu:
-    image: zilliz/attu:latest
-    ports:
-      - "8000:3000"
-    environment:
-      MILVUS_URL: milvus:19530
-    depends_on:
-      - milvus
     restart: unless-stopped
 
   # ─── Stage 1: Genomics ──────────────────────────────────
@@ -1036,7 +1026,7 @@ Access the Genomics Portal at `http://<dgx-spark-ip>:5000` to browse VCF results
 
 ```bash
 # Start Milvus and its dependencies
-docker compose up -d etcd minio milvus attu
+docker compose up -d etcd minio milvus
 
 # Wait for Milvus to be ready (30-60 seconds)
 sleep 30
@@ -1044,10 +1034,6 @@ sleep 30
 # Verify Milvus is running
 curl -s http://localhost:19530/v1/health/ready
 # Expected: {"status":"ok"}
-
-# Verify Attu UI
-curl -s -o /dev/null -w "%{http_code}" http://localhost:8000
-# Expected: 200
 ```
 
 ### 9.2 Collection Schema
@@ -1596,7 +1582,7 @@ docker compose up -d etcd minio
 sleep 10
 
 echo "Starting Milvus..."
-docker compose up -d milvus attu
+docker compose up -d milvus
 sleep 30
 
 echo "Starting BioNeMo NIM services..."
@@ -1625,7 +1611,6 @@ The landing page at `http://<dgx-spark-ip>:8080` provides a directory of all ser
 | Genomics Portal | 5000 | `/health` | `{"status": "healthy"}` |
 | RAG API | 5001 | `/health` | `{"status": "healthy"}` |
 | Milvus | 19530 | `/v1/health/ready` | `{"status": "ok"}` |
-| Attu | 8000 | `/api/health` | HTTP 200 |
 | Streamlit Chat | 8501 | `/healthz` | HTTP 200 |
 | MolMIM NIM | 8001 | `/v1/health/ready` | `{"status": "ready"}` |
 | DiffDock NIM | 8002 | `/v1/health/ready` | `{"status": "ready"}` |
@@ -1647,7 +1632,6 @@ declare -A SERVICES=(
   ["Genomics Portal"]="http://localhost:5000/health"
   ["RAG API"]="http://localhost:5001/health"
   ["Milvus"]="http://localhost:19530/v1/health/ready"
-  ["Attu"]="http://localhost:8000"
   ["Streamlit Chat"]="http://localhost:8501/healthz"
   ["MolMIM"]="http://localhost:8001/v1/health/ready"
   ["DiffDock"]="http://localhost:8002/v1/health/ready"
@@ -2404,7 +2388,6 @@ Response: {"status": "ready"}
 | Genomics Portal | `/health` | GET |
 | RAG API | `/health` | GET |
 | Milvus | `/v1/health/ready` | GET |
-| Attu | `/api/health` | GET |
 | Streamlit Chat | `/healthz` | GET |
 | MolMIM | `/v1/health/ready` | GET |
 | DiffDock | `/v1/health/ready` | GET |
@@ -2617,8 +2600,7 @@ docker build --platform linux/arm64 -t my-service:latest ./my-service/
 | 3 | Genomics Portal | `curl http://localhost:5000/health` | `{"status":"healthy"}` |
 | 4 | RAG API | `curl http://localhost:5001/health` | `{"status":"healthy"}` |
 | 5 | Milvus ready | `curl http://localhost:19530/v1/health/ready` | `{"status":"ok"}` |
-| 6 | Attu UI | `curl -o /dev/null -w "%{http_code}" http://localhost:8000` | 200 |
-| 7 | Streamlit Chat | `curl -o /dev/null -w "%{http_code}" http://localhost:8501` | 200 |
+| 6 | Streamlit Chat | `curl -o /dev/null -w "%{http_code}" http://localhost:8501` | 200 |
 | 8 | MolMIM ready | `curl http://localhost:8001/v1/health/ready` | `{"status":"ready"}` |
 | 9 | DiffDock ready | `curl http://localhost:8002/v1/health/ready` | `{"status":"ready"}` |
 | 10 | Discovery UI | `curl http://localhost:8505/health` | `{"status":"healthy"}` |
