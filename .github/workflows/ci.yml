@@ -23,7 +23,7 @@ jobs:
         run: pip install ruff
 
       - name: Run ruff check
-        run: ruff check --select E9,F63,F7,F82 --output-format github .
+        run: ruff check --select E9,F63,F7,F82,W,I,UP,B,SIM --output-format github .
 
   test:
     name: Test ${{ matrix.service }}

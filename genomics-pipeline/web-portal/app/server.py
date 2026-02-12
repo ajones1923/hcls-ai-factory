@@ -36,7 +36,7 @@ app = Flask(__name__,
 # CORS configuration - restrict in production
 CORS(app, resources={
     r"/api/*": {
-        "origins": os.environ.get('CORS_ORIGINS', '*').split(','),
+        "origins": os.environ.get('CORS_ORIGINS', 'http://localhost:8080,http://localhost:5000').split(','),
         "methods": ["GET", "POST", "DELETE"],
         "allow_headers": ["Content-Type", "X-API-Key"]
     }
