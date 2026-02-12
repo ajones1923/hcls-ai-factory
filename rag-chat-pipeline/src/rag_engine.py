@@ -379,7 +379,7 @@ class RAGEngine:
         logger.info(f"Semantic search retrieved {len(results)} evidence items")
 
         # Pharmacogenomic query expansion
-        pgx_genes = self._get_pharmacogenomic_genes(query)
+        pgx_genes = self._get_expanded_genes(query)
         if pgx_genes:
             # Get variants from relevant pharmacogenomic genes
             pgx_results = self._retrieve_by_genes(pgx_genes, limit_per_gene=3)
