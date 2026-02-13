@@ -78,7 +78,7 @@ search:
 - Total variants: ~11.7 million
 - SNPs: ~4.2 million
 - Indels: ~1.0 million
-- High-quality (QUAL > 30): ~3.5 million
+- High-quality (QUAL > 30): ~3.56 million
 - In coding regions: ~35,000
 
 ### Performance
@@ -113,7 +113,7 @@ search:
 
 ### Annotation Funnel
 - 11.7M total variants (from Stage 1)
-- 3.5M high-quality variants (QUAL > 30)
+- 3.56M high-quality variants (QUAL > 30)
 - 35,616 ClinVar-annotated variants (0.3%)
 - 6,831 AlphaMissense-annotated variants (0.2%)
 
@@ -125,7 +125,7 @@ search:
 - **Index Type:** IVF_FLAT (nlist = 1024)
 - **Distance Metric:** Cosine similarity
 - **Collection:** `genomic_evidence`
-- **Indexed Records:** 3.5 million variant embeddings
+- **Indexed Records:** 3.56 million variant embeddings
 - **Search Latency:** < 100 ms
 - **Schema (17 fields):**
   - id (PK), embedding (384-dim), chrom, pos, ref, alt, qual
@@ -385,7 +385,7 @@ Illumina Sequencer → FASTQ (~200 GB, 30× WGS)
     ↓
 [Stage 2: RAG/Chat Pipeline — Interactive]
     ClinVar (4.1M) + AlphaMissense (71M) annotation
-    → 3.5M high-quality variants embedded in Milvus
+    → 3.56M high-quality variants embedded in Milvus
     → 35,616 ClinVar + 6,831 AlphaMissense annotated
     Claude RAG chat → Target hypothesis
     ↓

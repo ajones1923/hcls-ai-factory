@@ -30,7 +30,7 @@ Parabricks to transform raw sequencing files into analysis-ready variant calls
 in just 30 to 90 minutes, achieving a 10 to 50x speedup over conventional
 methods while maintaining clinical-grade accuracy through Google's DeepVariant
 deep learning model. The second stage introduces a Retrieval-Augmented
-Generation system that enables researchers to query 3.5 million variants using
+Generation system that enables researchers to query 3.56 million variants using
 natural language. Rather than manually searching databases, scientists can
 simply ask questions like "What pathogenic variants are associated with
 frontotemporal dementia?" and receive AI-synthesized answers grounded in

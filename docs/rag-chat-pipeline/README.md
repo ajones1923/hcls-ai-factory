@@ -99,7 +99,7 @@ This pipeline is the **intelligence layer** of the Precision Medicine to Drug Di
 │   ┌──────────────────────────────────────────────────────────────┐        │
 │   │                    VECTOR DATABASE                            │        │
 │   │                                                               │        │
-│   │   Milvus: 3.5M variant embeddings (BGE-small-en-v1.5)       │        │
+│   │   Milvus: 3.56M variant embeddings (BGE-small-en-v1.5)       │        │
 │   │   Hybrid search: semantic + metadata filtering               │        │
 │   │                                                               │        │
 │   └──────────────────────────────────────────────────────────────┘        │
@@ -148,7 +148,7 @@ This process allows us to quickly separate normal human variation from the small
 11.7M variants (raw from VCF)
       │
       ▼ Quality filter (QUAL > 30)
-3.5M high-quality variants
+3.56M high-quality variants
       │
       ▼ ClinVar annotation
 35,616 clinically annotated variants
@@ -191,7 +191,7 @@ This pipeline demonstrates how these annotation layers work together:
 - **VEP**: Functional consequence annotation (missense, frameshift, splice, etc.)
 
 ### Semantic Search at Scale
-- **Milvus Vector Database**: Millisecond search across 3.5M variant embeddings
+- **Milvus Vector Database**: Millisecond search across 3.56M variant embeddings
 - **Hybrid Search**: Combine semantic similarity with metadata filtering
 - **BGE Embeddings**: State-of-the-art text embeddings (384 dimensions)
 
@@ -263,7 +263,7 @@ This pipeline demonstrates how these annotation layers work together:
 │   │      MILVUS       │   │     CLINKER       │   │      CLAUDE       │       │
 │   │   Vector Store    │   │  Knowledge Base   │   │    LLM Client     │       │
 │   │                   │   │                   │   │                   │       │
-│   │  3.5M embeddings  │   │   201 genes       │   │  Anthropic API    │       │
+│   │  3.56M embeddings  │   │   201 genes       │   │  Anthropic API    │       │
 │   │  COSINE similarity│   │   100+ diseases   │   │  Streaming SSE    │       │
 │   │  IVF_FLAT index   │   │  171 drug targets │   │  RAG grounding    │       │
 │   │                   │   │                   │   │                   │       │
@@ -303,7 +303,7 @@ This pipeline demonstrates how these annotation layers work together:
 │   ┌──────────────────────────────────────────────────────────────┐        │
 │   │ 2. SEMANTIC SEARCH (Milvus)                                   │        │
 │   │    • Embed query using BGE-small-en-v1.5                     │        │
-│   │    • Search 3.5M variants by cosine similarity               │        │
+│   │    • Search 3.56M variants by cosine similarity               │        │
 │   │    • Apply metadata filter: gene IN (BRCA1, BRCA2)           │        │
 │   │    • Return top-k results with scores                        │        │
 │   └──────────────────────────────────────────────────────────────┘        │
@@ -465,7 +465,7 @@ class MilvusClient:
 - **Embedding Model**: BGE-small-en-v1.5 (384 dimensions)
 - **Index Type**: IVF_FLAT (nlist=1024)
 - **Metric**: Cosine similarity
-- **Collection Size**: 3.5 million variant embeddings
+- **Collection Size**: 3.56 million variant embeddings
 - **Search Latency**: <100ms
 
 ---
@@ -624,7 +624,7 @@ nano .env  # Add your ANTHROPIC_API_KEY
 # 2. Ingest variants (first time only)
 ./run.sh ingest --annotated-only  # Fast: ~35K ClinVar variants
 # OR
-./run.sh ingest                   # Full: ~3.5M high-quality variants
+./run.sh ingest                   # Full: ~3.56M high-quality variants
 
 # 3. Start chat interface
 ./run.sh chat

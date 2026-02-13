@@ -216,7 +216,7 @@ class VCPReportGenerator:
 
         elements.append(Paragraph(
             "The RAG/Chat Pipeline analyzed the VCP variant using semantic search across "
-            "3.5 million genomic evidence embeddings in Milvus vector database, combined with "
+            "3.56 million genomic evidence embeddings in Milvus vector database, combined with "
             "LLM-powered reasoning to generate a therapeutic target hypothesis.",
             self.styles['BodyJustified']
         ))

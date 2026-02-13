@@ -698,7 +698,7 @@ A VCF (Variant Call Format) file is a structured summary of how one genome diffe
 | **Total Variants** | ~11.7 million | All chromosomes |
 | **SNPs** | ~4.2 million | Single nucleotide changes |
 | **Indels** | ~1.0 million | Insertions/deletions |
-| **High Quality (QUAL>30)** | ~3.5 million | Confident calls |
+| **High Quality (QUAL>30)** | ~3.56 million | Confident calls |
 | **In Coding Regions** | ~35,000 | Potentially functional |
 
 ### VCF Format Example
@@ -896,7 +896,7 @@ bcftools view -H data/output/HG002.genome.vcf.gz | wc -l
 
 # Filter high-quality variants (QUAL > 30)
 bcftools filter -i 'QUAL>30' data/output/HG002.genome.vcf.gz | wc -l
-# Output: ~3,500,000
+# Output: ~3,561,170
 
 # Extract specific gene region (TP53)
 bcftools view -r chr17:7668402-7687550 data/output/HG002.genome.vcf.gz

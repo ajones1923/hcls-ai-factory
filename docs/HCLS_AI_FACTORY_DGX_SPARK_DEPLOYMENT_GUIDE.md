@@ -977,7 +977,7 @@ zcat genomics/data/vcf/HG002.vcf.gz | grep -v '^#' | wc -l
 # Count PASS variants with QUAL > 30
 zcat genomics/data/vcf/HG002.vcf.gz | grep -v '^#' | \
   awk '$7 == "PASS" && $6 > 30' | wc -l
-# Expected: ~3,500,000 (3.5M)
+# Expected: ~3,561,170 (3.56M)
 
 # Count SNPs vs Indels
 zcat genomics/data/vcf/HG002.vcf.gz | grep -v '^#' | \
@@ -991,7 +991,7 @@ zcat genomics/data/vcf/HG002.vcf.gz | grep -v '^#' | \
 | Metric | Expected Value |
 |---|---|
 | Total variants | ~11.7M |
-| PASS variants (QUAL > 30) | ~3.5M |
+| PASS variants (QUAL > 30) | ~3.56M |
 | SNPs | ~4.2M |
 | Indels | ~1.0M |
 | Coding region variants | ~35,000 |

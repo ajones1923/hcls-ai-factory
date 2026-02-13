@@ -165,7 +165,7 @@ python run_pipeline.py --mode demo
 **Key numbers to mention:**
 - ~200 GB FASTQ input (30× whole-genome sequencing)
 - ~11.7 million variants called
-- ~3.5 million pass quality filter (QUAL>30)
+- ~3.56 million pass quality filter (QUAL>30)
 - GRCh38 reference genome (3.1 GB)
 
 **Show:** Grafana dashboard at http://localhost:3000 — GPU utilization spiking during alignment and variant calling.
@@ -178,23 +178,23 @@ python run_pipeline.py --mode demo
 
 **Talking points:**
 
-- "The 3.5 million high-quality variants are annotated with three databases."
+- "The 3.56 million high-quality variants are annotated with three databases."
 - "ClinVar — 4.1 million clinical variants from NCBI. Tells us if a variant is pathogenic."
 - "AlphaMissense — 71 million AI-predicted pathogenicity scores from DeepMind."
 - "VEP — Ensembl Variant Effect Predictor for functional consequences."
 
 **Annotation funnel to walk through:**
-- 11.7M variants → 3.5M (quality filter) → 35,616 (ClinVar match) → 6,831 (AlphaMissense match) → 2,412 (actionable)
+- 11.7M variants → 3.56M (quality filter) → 35,616 (ClinVar match) → 6,831 (AlphaMissense match) → 2,412 (actionable)
 
 #### Show Vector Database
 
 **Talking points:**
 
 - "Every variant is embedded using BGE-small-en-v1.5 and indexed in Milvus."
-- "3.5 million variant embeddings, each 384 dimensions, searchable in milliseconds."
+- "3.56 million variant embeddings, each 384 dimensions, searchable in milliseconds."
 - "This is what makes natural language queries possible over genomic data."
 
-**Show:** Milvus genomic_evidence collection with 17 fields and 3.5M records via the RAG API at http://localhost:5001/api/collections or the Streamlit Chat UI.
+**Show:** Milvus genomic_evidence collection with 17 fields and 3.56M records via the RAG API at http://localhost:5001/api/collections or the Streamlit Chat UI.
 
 #### Interactive Chat Demo
 

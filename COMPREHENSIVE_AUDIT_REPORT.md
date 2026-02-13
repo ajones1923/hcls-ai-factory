@@ -113,7 +113,7 @@ The HCLS AI Factory has been audited across all four pipeline stages (Stage 0 th
 | Test suite | 157 passed | Yes |
 
 **Key Capabilities:**
-- 3.5M variant embeddings indexed in Milvus
+- 3.56M variant embeddings indexed in Milvus
 - 4.1M ClinVar clinical annotations
 - 71M AlphaMissense pathogenicity predictions
 - 201 genes across 13 therapeutic areas

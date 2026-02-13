@@ -401,7 +401,7 @@ class VCPReportGeneratorEnhanced:
 
         elements.append(Paragraph(
             "The RAG/Chat Pipeline analyzed the VCP variant using semantic search across "
-            "3.5 million genomic evidence embeddings combined with Claude AI reasoning, "
+            "3.56 million genomic evidence embeddings combined with Claude AI reasoning, "
             "generating a validated therapeutic target hypothesis.",
             self.styles['BodyJustified']
         ))

@@ -258,7 +258,7 @@ Mathematically verified against output data:
 | DGX Spark $3,999 | Yes (15+ references) |
 | Under 5 hours end-to-end | Yes |
 | 11.7M variants | Yes |
-| 3.5M pass quality filter | Yes |
+| 3.56M pass quality filter | Yes |
 | Parabricks 4.6 | Yes (10+ references) |
 | `claude-sonnet-4-20250514` | Yes (15+ references) |
 | Stage 0 data acquisition | Yes (added to all relevant pages) |
