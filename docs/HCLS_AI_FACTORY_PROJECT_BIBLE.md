@@ -64,7 +64,7 @@ Patient DNA → Illumina Sequencer → FASTQ (~200 GB)
   → Parabricks fq2bam → BAM
   → DeepVariant → VCF (11.7M variants)
   → ClinVar + AlphaMissense + VEP annotation
-  → Milvus vector indexing (3.5M embeddings)
+  → Milvus vector indexing (3.56M embeddings)
   → Claude RAG reasoning → Target hypothesis (gene + evidence)
   → RCSB PDB structure retrieval
   → MolMIM molecule generation
@@ -122,7 +122,7 @@ The 128 GB LPDDR5x is **shared** between CPU and GPU — there is no separate GP
 | BAM intermediate | ~100 GB | Temporary, deleted after VCF |
 | ClinVar database | ~1.2 GB | 4.1M clinical variants |
 | AlphaMissense database | ~4 GB | 71M predictions |
-| Milvus index | ~2 GB | 3.5M × 384-dim vectors |
+| Milvus index | ~2 GB | 3.56M × 384-dim vectors |
 | BioNeMo model cache | ~10 GB | MolMIM + DiffDock weights |
 | **Total minimum** | **~320 GB** | Plus OS and Docker layers |
 
@@ -331,7 +331,7 @@ pbrun deepvariant \
 | Metric | Count |
 |---|---|
 | Total Variants | ~11.7M |
-| High-Quality (QUAL>30) | ~3.5M |
+| High-Quality (QUAL>30) | ~3.56M |
 | SNPs | ~4.2M |
 | Indels | ~1.0M |
 | Coding Region Variants | ~35,000 |
@@ -366,12 +366,12 @@ Stage 2 annotates the VCF variants with clinical and functional databases, index
 
 ```
 VCF (11.7M variants)
-  → Quality filter (QUAL>30) → 3.5M variants
+  → Quality filter (QUAL>30) → 3.56M variants
   → ClinVar annotation → clinical significance
   → AlphaMissense annotation → pathogenicity prediction
   → VEP annotation → functional consequences
   → BGE-small-en-v1.5 embedding → 384-dim vectors
-  → Milvus IVF_FLAT indexing → 3.5M searchable embeddings
+  → Milvus IVF_FLAT indexing → 3.56M searchable embeddings
   → Claude RAG query → target hypothesis with evidence chain
 ```
 
@@ -380,7 +380,7 @@ VCF (11.7M variants)
 | Stage | Variant Count | Filter |
 |---|---|---|
 | Raw VCF | ~11.7M | — |
-| Quality filter | ~3.5M | QUAL > 30 |
+| Quality filter | ~3.56M | QUAL > 30 |
 | ClinVar match | ~35,616 | Clinical significance annotated |
 | AlphaMissense match | ~6,831 | AI pathogenicity predicted |
 | Coding + pathogenic | ~2,400 | Actionable subset |
@@ -396,7 +396,7 @@ VCF (11.7M variants)
 | Index Params | nlist=1024 |
 | Search Params | nprobe=16 |
 | Distance Metric | COSINE |
-| Total Embeddings | ~3.5M |
+| Total Embeddings | ~3.56M |
 
 ### Query Flow
 
@@ -470,7 +470,7 @@ search_params = {
 |---|---|
 | Database | ClinVar (NCBI) |
 | Total Variants | 4.1M clinical variants |
-| Match Rate | ~35,616 / 3.5M variants (1.0%) |
+| Match Rate | ~35,616 / 3.56M variants (1.0%) |
 | Classifications | Pathogenic, Likely pathogenic, VUS, Likely benign, Benign |
 | Update Frequency | Monthly releases |
 | Key Fields | Clinical significance, disease associations, review status |
@@ -511,7 +511,7 @@ def annotate_variants(vcf_path: str) -> List[AnnotatedVariant]:
     """
     Pipeline: VCF → ClinVar → AlphaMissense → VEP → Annotated variants
     """
-    variants = parse_vcf(vcf_path, min_qual=30)        # ~3.5M pass filter
+    variants = parse_vcf(vcf_path, min_qual=30)        # ~3.56M pass filter
     variants = annotate_clinvar(variants)                # Clinical significance
     variants = annotate_alphamissense(variants)          # AI pathogenicity
     variants = annotate_vep(variants)                    # Functional consequences
@@ -910,7 +910,7 @@ def score_structure(structure: StructureInfo) -> float:
 **Stage 2 — RAG/Chat (Interactive):**
 1. VCF annotated: ClinVar flags rs188935092 as pathogenic in VCP
 2. AlphaMissense scores the missense variant at 0.87 (pathogenic)
-3. 3.5M variants embedded and indexed in Milvus
+3. 3.56M variants embedded and indexed in Milvus
 4. User queries: "What are the most promising drug targets in this patient's genome?"
 5. Claude identifies VCP with full evidence chain
 6. Target hypothesis: VCP → FTD → druggable D2 ATPase domain

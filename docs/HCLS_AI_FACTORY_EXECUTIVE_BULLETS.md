@@ -37,7 +37,7 @@ The HCLS AI Factory transforms patient DNA into ranked novel drug candidates in 
 
 ### Stage 2: RAG-Grounded Target Identification (Interactive)
 - **3 annotation databases:** ClinVar (4.1M), AlphaMissense (71M), Ensembl VEP
-- **3.5 million** high-quality variant embeddings in Milvus vector database
+- **3.56 million** high-quality variant embeddings in Milvus vector database
 - **Anthropic Claude** (RAG-grounded reasoning) identifies druggable gene targets
 - **201 genes** across **13 therapeutic areas**, **171 druggable targets** (85%)
 - Output: Target gene with full evidence chain
@@ -58,7 +58,7 @@ The HCLS AI Factory transforms patient DNA into ranked novel drug candidates in 
 | Total Pipeline Time | < 5 hours |
 | Input Data | ~200 GB FASTQ (30× WGS) |
 | Variants Called | ~11.7 million |
-| High-Quality Variants | ~3.5 million |
+| High-Quality Variants | ~3.56 million |
 | Genes in Knowledge Base | 201 (13 therapeutic areas) |
 | Druggable Targets | 171 (85%) |
 | Drug Candidates Generated | 100 (ranked by composite score) |

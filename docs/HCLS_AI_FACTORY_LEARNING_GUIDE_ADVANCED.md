@@ -73,7 +73,7 @@ Google DeepVariant reframes variant calling as an image classification problem. 
 | SNP F1 | >99.7% on HG002 |
 | Indel F1 | >99.4% on HG002 |
 | Total variants | ~11.7M (unfiltered) |
-| QUAL>30 variants | ~3.5M |
+| QUAL>30 variants | ~3.56M |
 
 ### 1.4 VCF Quality Metrics
 
@@ -102,7 +102,7 @@ ClinVar (NCBI) is a freely accessible archive of relationships between human var
 
 **Review status tiers:** ClinVar classifies assertion confidence using star ratings (0-4 stars). The pipeline weights variants with ≥2 stars (multiple submitters with concordant interpretations) more heavily.
 
-**Annotation performance:** Of ~3.5M QUAL>30 variants, approximately 35,616 (1.0%) match ClinVar entries. The low match rate reflects that most variants in a healthy individual are common polymorphisms not represented in a clinical database focused on rare disease.
+**Annotation performance:** Of ~3.56M QUAL>30 variants, approximately 35,616 (1.0%) match ClinVar entries. The low match rate reflects that most variants in a healthy individual are common polymorphisms not represented in a clinical database focused on rare disease.
 
 ### 2.2 AlphaMissense: AI Pathogenicity Prediction
 
@@ -139,7 +139,7 @@ The three annotation databases are applied sequentially in `annotator.py` (23 KB
 
 ```
 VCF (11.7M variants)
-  → parse_vcf(min_qual=30)     → 3.5M variants
+  → parse_vcf(min_qual=30)     → 3.56M variants
   → annotate_clinvar()          → Clinical significance
   → annotate_alphamissense()    → AI pathogenicity scores
   → annotate_vep()              → Functional consequences
@@ -178,7 +178,7 @@ The `genomic_evidence` collection in Milvus 2.4 uses a 17-field schema designed 
 ### 3.2 Index Configuration and Performance
 
 **Index type:** IVF_FLAT (Inverted File with Flat vectors)
-- **Why IVF_FLAT?** At 3.5M vectors with 384 dimensions, IVF_FLAT provides the best recall-latency tradeoff. HNSW would use more memory; IVF_PQ would sacrifice recall.
+- **Why IVF_FLAT?** At 3.56M vectors with 384 dimensions, IVF_FLAT provides the best recall-latency tradeoff. HNSW would use more memory; IVF_PQ would sacrifice recall.
 - **nlist=1024:** Partitions vectors into 1024 clusters. Query searches ~16 clusters (nprobe=16), examining ~55K vectors per query.
 - **Metric:** COSINE similarity (normalized dot product)
 
@@ -186,7 +186,7 @@ The `genomic_evidence` collection in Milvus 2.4 uses a 17-field schema designed 
 
 | Metric | Value |
 |---|---|
-| Index build time | ~8 minutes (3.5M × 384-dim) |
+| Index build time | ~8 minutes (3.56M × 384-dim) |
 | Index memory | ~2 GB |
 | Search latency (nprobe=16) | 8-15 ms |
 | Recall@20 | >95% |
@@ -387,7 +387,7 @@ The HCLS AI Factory generates computational drug candidates — not approved med
 |---|---|---|
 | Parabricks (fq2bam) | GPU compute | 20-45 min, acceptable |
 | DeepVariant | GPU memory (60 GB peak) | Leaves 68 GB for other tasks |
-| Milvus indexing | CPU + I/O | 24 min for 3.5M vectors |
+| Milvus indexing | CPU + I/O | 24 min for 3.56M vectors |
 | MolMIM inference | GPU compute | 2 min for 100 molecules |
 | DiffDock inference | GPU compute + memory | 8 min for 98 candidates |
 | **Sequential total** | **GPU time-sharing** | **~4 hours end-to-end** |

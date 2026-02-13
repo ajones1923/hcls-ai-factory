@@ -18,7 +18,7 @@ tags:
 
 The HCLS AI Factory follows a reusable pattern: identify a canonical artifact, build a persistent data model around it, and let agentic workflows operate continuously on that model. In genomics, the canonical artifact is the VCF — a structured record of every genomic variant identified in a patient's DNA. This white paper describes an end-to-end platform that processes raw DNA sequencing data through GPU-accelerated variant calling, RAG-grounded clinical reasoning, and AI-driven drug discovery — all on a single NVIDIA DGX Spark desktop workstation.
 
-The platform transforms patient FASTQ files (~200 GB of raw sequencing data from a 30× whole-genome study) into 100 ranked novel drug candidates in under 5 hours. Three stages execute sequentially: NVIDIA Parabricks performs GPU-accelerated alignment and variant calling (120-240 min), producing ~11.7 million variants. A RAG pipeline annotates variants with ClinVar, AlphaMissense, and VEP, indexes 3.5 million high-quality variants in a Milvus vector database, and uses Anthropic Claude to identify druggable gene targets. Finally, BioNeMo NIM services (MolMIM and DiffDock) generate novel molecules, predict binding affinities, and rank candidates by a composite drug-likeness score.
+The platform transforms patient FASTQ files (~200 GB of raw sequencing data from a 30× whole-genome study) into 100 ranked novel drug candidates in under 5 hours. Three stages execute sequentially: NVIDIA Parabricks performs GPU-accelerated alignment and variant calling (120-240 min), producing ~11.7 million variants. A RAG pipeline annotates variants with ClinVar, AlphaMissense, and VEP, indexes 3.56 million high-quality variants in a Milvus vector database, and uses Anthropic Claude to identify druggable gene targets. Finally, BioNeMo NIM services (MolMIM and DiffDock) generate novel molecules, predict binding affinities, and rank candidates by a composite drug-likeness score.
 
 The architecture is designed to run end-to-end on a $3,999 DGX Spark for proof builds and scale to DGX SuperPOD for enterprise deployments. All HCLS AI Factory code is released under Apache 2.0. The platform integrates open-source tools (Milvus, RDKit, DeepVariant), NVIDIA software (Parabricks, BioNeMo NIMs — free for development on DGX Spark), and the Anthropic Claude API. See the [Licensing & Cost Guide](licensing.md) for details.
 
@@ -104,7 +104,7 @@ The platform uses HG002 from the Genome in a Bottle (GIAB) Consortium — an Ash
 
 ### Output: Variant Call Format (VCF)
 
-The VCF contains ~11.7 million variants: ~4.2 million SNPs, ~1.0 million indels, and ~150,000 multi-allelic sites. Of these, ~3.5 million pass the quality filter (QUAL>30), with ~35,000 in coding regions.
+The VCF contains ~11.7 million variants: ~4.2 million SNPs, ~1.0 million indels, and ~150,000 multi-allelic sites. Of these, ~3.56 million pass the quality filter (QUAL>30), with ~35,000 in coding regions.
 
 ---
 
@@ -112,7 +112,7 @@ The VCF contains ~11.7 million variants: ~4.2 million SNPs, ~1.0 million indels,
 
 ### Variant Annotation
 
-Stage 2 begins by annotating the 3.5 million high-quality variants with three complementary databases:
+Stage 2 begins by annotating the 3.56 million high-quality variants with three complementary databases:
 
 **ClinVar (NCBI):** 4.1 million clinical variant records mapping genomic positions to clinical significance classifications (Pathogenic, Likely pathogenic, VUS, Likely benign, Benign). Approximately 35,616 patient variants match ClinVar entries.
 
@@ -122,7 +122,7 @@ Stage 2 begins by annotating the 3.5 million high-quality variants with three co
 
 ### Vector Embedding and Indexing
 
-Each annotated variant is transformed into a text summary and embedded using BGE-small-en-v1.5 (384 dimensions). The 3.5 million embeddings are indexed in Milvus 2.4 using IVF_FLAT (nlist=1024, COSINE metric) with 17 structured fields per record.
+Each annotated variant is transformed into a text summary and embedded using BGE-small-en-v1.5 (384 dimensions). The 3.56 million embeddings are indexed in Milvus 2.4 using IVF_FLAT (nlist=1024, COSINE metric) with 17 structured fields per record.
 
 ### RAG-Grounded Reasoning with Claude
 

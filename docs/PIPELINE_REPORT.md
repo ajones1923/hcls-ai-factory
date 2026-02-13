@@ -16,7 +16,7 @@ The **HCLS AI Factory** represents a breakthrough in precision medicine, deliver
 |:-------|:-----:|:-------|
 | **Processing Time** | ~5 hours | 99% reduction from traditional methods |
 | **Lines of Code** | 36,000+ | Production-grade implementation |
-| **Variant Coverage** | 3.5M | Comprehensive genomic database |
+| **Variant Coverage** | 3.56M | Comprehensive genomic database |
 | **Target Genes** | 201 | Clinically validated targets |
 | **Druggability Rate** | 85% | High therapeutic potential |
 
@@ -119,7 +119,7 @@ The RAG (Retrieval-Augmented Generation) Pipeline enables natural language queri
 
 | Component | Technology | Capacity |
 |:----------|:-----------|:---------|
-| **Vector Database** | Milvus | 3.5M embeddings |
+| **Vector Database** | Milvus | 3.56M embeddings |
 | **Embedding Model** | BGE-small-en-v1.5 | 384 dimensions |
 | **Knowledge Base** | Clinker | 201 genes, 150+ diseases |
 | **LLM** | Claude (Anthropic) | claude-sonnet-4 |
@@ -363,7 +363,7 @@ The Drug Discovery Pipeline leverages NVIDIA BioNeMo NIM microservices to genera
 
 | Asset | Count | Source |
 |:------|------:|:-------|
-| Variant Embeddings | 3,500,000 | VCF + Annotations |
+| Variant Embeddings | 3,561,170 | VCF + Annotations |
 | ClinVar Variants | 4,100,000 | NCBI ClinVar |
 | AlphaMissense Predictions | 71,000,000 | DeepMind |
 | Target Genes | 201 | Clinker Knowledge Base |

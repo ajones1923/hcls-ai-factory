@@ -349,7 +349,7 @@ This pipeline processes whole-genome sequencing (WGS) data through a complete bi
 |-----------|---------|-------------------------|-------|
 | **GPU** | 8GB VRAM | 128GB (GB10) | More VRAM = faster processing |
 | **GPU Architecture** | Volta (V100)+ | Blackwell (GB10) | Newer = better DeepVariant perf |
-| **System RAM** | 32 GB | 512 GB | BAM sorting is memory-intensive |
+| **System RAM** | 32 GB | 128 GB | BAM sorting is memory-intensive |
 | **Storage** | 500 GB SSD | 1 TB NVMe | Fast I/O critical for BAM files |
 | **CPU** | 8 cores | ARM64 cores | Parallel I/O and preprocessing |
 
@@ -713,7 +713,7 @@ A VCF (Variant Call Format) file is a structured summary of how one genome diffe
 | **Total Variants** | ~11.7 million | All chromosomes |
 | **SNPs** | ~4.2 million | Single nucleotide changes |
 | **Indels** | ~1.0 million | Insertions/deletions |
-| **High Quality (QUAL>30)** | ~3.5 million | Confident calls |
+| **High Quality (QUAL>30)** | ~3.56 million | Confident calls |
 | **In Coding Regions** | ~35,000 | Potentially functional |
 
 ### VCF Format Example
@@ -911,7 +911,7 @@ bcftools view -H data/output/HG002.genome.vcf.gz | wc -l
 
 # Filter high-quality variants (QUAL > 30)
 bcftools filter -i 'QUAL>30' data/output/HG002.genome.vcf.gz | wc -l
-# Output: ~3,500,000
+# Output: ~3,561,170
 
 # Extract specific gene region (TP53)
 bcftools view -r chr17:7668402-7687550 data/output/HG002.genome.vcf.gz

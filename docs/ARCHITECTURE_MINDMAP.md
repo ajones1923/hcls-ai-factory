@@ -172,7 +172,7 @@ search:
 - Fast inference
 
 #### Variant Embeddings
-- 3.5M Vectors
+- 3.56M Vectors
 - Semantic Representation
 - Query-Ready index
 
@@ -526,7 +526,7 @@ search:
 ### Key Metrics
 - Lines of Code: 36,000
 - Target Genes: 201
-- Variant Embeddings: 3.5M
+- Variant Embeddings: 3.56M
 - ClinVar Variants: 4.1M
 - AlphaMissense Predictions: 71M
 - End-to-End Time: ~5 hours

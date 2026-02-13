@@ -47,7 +47,7 @@ Stage 1 transforms this raw data into **actionable genetic information**:
 | Input size | ~200 GB FASTQ |
 | Reads aligned | 800M – 1.2B |
 | Variants discovered | 11.7 million |
-| High-quality variants | 3.5 million |
+| High-quality variants | 3.56 million |
 | Accuracy | >99% (DeepVariant) |
 | Runtime | 120 – 240 minutes |
 

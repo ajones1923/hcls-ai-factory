@@ -89,7 +89,7 @@ A **GPU** (Graphics Processing Unit) is a special computer chip originally desig
 
 ### The VCF File
 
-The output is a **VCF** (Variant Call Format) file containing every variant found. For a typical human genome, this includes about **11.7 million variants**. After filtering for quality, about **3.5 million** high-confidence variants remain.
+The output is a **VCF** (Variant Call Format) file containing every variant found. For a typical human genome, this includes about **11.7 million variants**. After filtering for quality, about **3.56 million** high-confidence variants remain.
 
 **Key concepts:**
 - **GPU** — a computer chip that's very fast at parallel processing
@@ -123,15 +123,15 @@ The platform checks each variant against three databases:
 ### The Annotation Funnel
 
 Starting with 11.7 million variants, the platform narrows down to the most important ones:
-- 11.7M → 3.5M (quality filter)
-- 3.5M → 35,616 (match ClinVar)
+- 11.7M → 3.56M (quality filter)
+- 3.56M → 35,616 (match ClinVar)
 - 35,616 → 6,831 (have AlphaMissense scores)
 - 6,831 → ~2,400 (high impact + pathogenic)
 - ~2,400 → 847 (in druggable genes)
 
 ### Vector Database: Milvus
 
-To search through 3.5 million annotated variants quickly, the platform uses a **vector database** called **Milvus**. Each variant is converted into a list of 384 numbers (called an "embedding") using a model called BGE-small-en-v1.5. These embeddings capture the meaning of each variant, so you can search for similar variants using natural language questions.
+To search through 3.56 million annotated variants quickly, the platform uses a **vector database** called **Milvus**. Each variant is converted into a list of 384 numbers (called an "embedding") using a model called BGE-small-en-v1.5. These embeddings capture the meaning of each variant, so you can search for similar variants using natural language questions.
 
 ### Claude: AI-Powered Reasoning
 

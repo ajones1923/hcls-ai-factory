@@ -118,7 +118,7 @@ Take it. Use it. Make it better.
 ### Performance
 
 - **Genome analysis**: 120-240 minutes (vs. 24-48 hours on CPU)
-- **Variant database**: 3.5 million searchable with semantic search
+- **Variant database**: 3.56 million searchable with semantic search
 - **Query response**: <5 seconds for complex natural language
 - **Molecule generation**: 10-100 candidates in seconds
 
@@ -186,7 +186,7 @@ The platform includes a complete demonstration using VCP (Valosin-containing pro
 | Component | Recommended | Minimum |
 |-----------|-------------|---------|
 | GPU | NVIDIA DGX Spark (128GB) | NVIDIA GPU with 24GB+ VRAM |
-| RAM | 512GB | 64GB |
+| RAM | 128GB | 64GB |
 | Storage | High-performance NVMe | 2TB SSD |
 
 ### Software

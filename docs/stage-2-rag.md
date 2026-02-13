@@ -42,7 +42,7 @@ This is the heart of what the platform does — narrowing millions of variants t
 ```mermaid
 flowchart TD
     A["11,700,000 variants discovered"]
-    B["3,500,000 pass quality filters"]
+    B["3,561,170 pass quality filters"]
     C["35,616 match ClinVar records"]
     D["6,831 have pathogenicity predictions"]
     E["2,400 high-impact, disease-causing"]
@@ -91,7 +91,7 @@ Neurology · Oncology · Cardiovascular · Metabolic · Immunology · Rare Disea
 flowchart LR
     Q["Natural Language\nQuery"]
     E["BGE Embedding\n384 dimensions"]
-    M["Milvus Vector Search\n3.5M variants"]
+    M["Milvus Vector Search\n3.56M variants"]
     R["Retrieved Evidence\nClinVar + AlphaMissense"]
     C["Claude AI\nGrounded Reasoning"]
     A["Grounded Answer\nwith citations"]
@@ -134,7 +134,7 @@ This variant becomes the input for [Stage 3: Drug Discovery](stage-3-drug-discov
 
 <div class="tech-pills">
 
-- **Milvus 2.4** — Vector database for 3.5M variant embeddings
+- **Milvus 2.4** — Vector database for 3.56M variant embeddings
 - **Anthropic Claude** — AI reasoning over retrieved evidence
 - **ClinVar** — NIH clinical variant database
 - **AlphaMissense** — DeepMind pathogenicity predictions
@@ -149,7 +149,7 @@ This variant becomes the input for [Stage 3: Drug Discovery](stage-3-drug-discov
 
 | Metric | Value |
 |--------|-------|
-| Variants indexed | 3.5 million |
+| Variants indexed | 3.56 million |
 | Embedding dimensions | 384 |
 | Query latency | < 2 seconds |
 | Knowledge sources | 4 (ClinVar, AlphaMissense, Gene Panel, PDB) |

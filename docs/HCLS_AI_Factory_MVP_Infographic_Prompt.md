@@ -126,7 +126,7 @@ Use small colored dots: NVIDIA green for Stage 1, teal for Stage 2, orange for S
 
 4. **VCF Output** [file output icon]
    Metric badge: "~11.7M variants" (green pill)
-   Sub-metrics: "3.5M QUAL>30 | 4.2M SNPs | 1.0M indels | 35K coding"
+   Sub-metrics: "3.56M QUAL>30 | 4.2M SNPs | 1.0M indels | 35K coding"
 
 5. **Genomics Portal** [dashboard icon, small card]
    Flask :5000
@@ -171,7 +171,7 @@ Use small colored dots: NVIDIA green for Stage 1, teal for Stage 2, orange for S
 
 5. **Milvus 2.4** [vector database icon, teal badge]
    Port 19530 | IVF_FLAT | nlist=1024
-   Metric badge: "3.5M embeddings" (teal pill)
+   Metric badge: "3.56M embeddings" (teal pill)
    17-field schema | COSINE metric
 
 6. **Knowledge Base** [book icon, emerald badge]
