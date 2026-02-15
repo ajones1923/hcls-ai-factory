@@ -16,7 +16,7 @@ rdkit==2025.9.4
 
 # Web UI
 streamlit==1.54.0
-pillow==12.1.0
+pillow==12.1.1
 
 # 3D Molecular Visualization
 stmol==0.0.9
