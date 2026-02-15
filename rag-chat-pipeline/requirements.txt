@@ -25,7 +25,7 @@ streamlit==1.52.2
 streamlit-chat==0.1.1
 
 # Data Processing
-pandas==2.3.3
+pandas==3.0.0
 numpy==2.4.2
 tqdm==4.67.1
 
