@@ -607,7 +607,7 @@ class RAGEngine:
 
 ```bash
 # Clone and setup
-cd ~/transfer/rag-chat-pipeline
+cd ~/projects/hcls-ai-factory/rag-chat-pipeline
 ./run.sh setup
 
 # Configure environment
