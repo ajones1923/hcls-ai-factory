@@ -35,8 +35,8 @@ jobs:
           - service: rag-chat-pipeline
             workdir: rag-chat-pipeline
             reqfile: requirements.txt
-            extra_deps: "pytest pytest-cov numpy"
-            exclude_deps: "torch sentence-transformers"
+            extra_deps: "pytest pytest-cov numpy loguru"
+            exclude_deps: "torch sentence-transformers cyvcf2 pysam pynvml"
             markers: "not slow and not integration"
           - service: drug-discovery-pipeline
             workdir: drug-discovery-pipeline
