@@ -1,21 +1,22 @@
 """Tests for genomics pipeline input validation."""
-import pytest
-from pathlib import Path
 import sys
+from pathlib import Path
+
+import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent / 'app'))
 
 from validation import (
-    validate_step_name,
-    validate_log_type,
+    VALID_LOG_TYPES,
+    VALID_STEPS,
+    sanitize_path,
     validate_config_key,
     validate_config_value,
-    sanitize_path,
-    validate_patient_id,
     validate_fastq_file,
+    validate_log_type,
+    validate_patient_id,
     validate_reference_file,
-    VALID_STEPS,
-    VALID_LOG_TYPES,
+    validate_step_name,
 )
 
 
@@ -51,7 +52,7 @@ class TestValidateStepName:
         assert valid is False
 
     def test_valid_steps_constant(self):
-        assert VALID_STEPS == {'check', 'login', 'download', 'reference', 'test', 'full'}
+        assert {'check', 'login', 'download', 'reference', 'test', 'full'} == VALID_STEPS
 
 
 class TestValidateLogType:
@@ -79,7 +80,7 @@ class TestValidateLogType:
         assert valid is False
 
     def test_valid_log_types_constant(self):
-        assert VALID_LOG_TYPES == {'chr20_fq2bam', 'chr20_deepvariant', 'genome_fq2bam', 'genome_deepvariant'}
+        assert {'chr20_fq2bam', 'chr20_deepvariant', 'genome_fq2bam', 'genome_deepvariant'} == VALID_LOG_TYPES
 
 
 class TestValidateConfigKey:

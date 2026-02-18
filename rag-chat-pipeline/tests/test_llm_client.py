@@ -1,21 +1,22 @@
 """
 Tests for LLM Client module.
 """
-import pytest
-from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
 import os
 import sys
+from pathlib import Path
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.llm_client import (
-    BaseLLMClient,
     AnthropicClient,
-    OpenAIClient,
-    OllamaClient,
-    VLLMClient,
+    BaseLLMClient,
     LLMClient,
+    OllamaClient,
+    OpenAIClient,
+    VLLMClient,
 )
 
 
@@ -34,14 +35,14 @@ class TestLLMClientFactory:
 
     def test_create_anthropic_client(self):
         """Test creating Anthropic client via factory."""
-        with patch.dict(os.environ, {"ANTHROPIC_API_KEY": "test-key"}):
+        with patch.dict(os.environ, {"ANTHROPIC_API_KEY": "test-key"}):  # noqa: SIM117
             with _mock_anthropic():
                 client = LLMClient.create(provider="anthropic")
                 assert isinstance(client, AnthropicClient)
 
     def test_create_openai_client(self):
         """Test creating OpenAI client via factory."""
-        with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}):
+        with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}):  # noqa: SIM117
             with _mock_openai():
                 client = LLMClient.create(provider="openai")
                 assert isinstance(client, OpenAIClient)
@@ -65,7 +66,7 @@ class TestLLMClientFactory:
 
     def test_create_with_custom_model(self):
         """Test creating client with custom model."""
-        with patch.dict(os.environ, {"ANTHROPIC_API_KEY": "test-key"}):
+        with patch.dict(os.environ, {"ANTHROPIC_API_KEY": "test-key"}):  # noqa: SIM117
             with _mock_anthropic():
                 client = LLMClient.create(
                     provider="anthropic",
@@ -87,7 +88,7 @@ class TestAnthropicClient:
 
     def test_init_from_env(self):
         """Test initialization from environment variable."""
-        with patch.dict(os.environ, {"ANTHROPIC_API_KEY": "env-key"}):
+        with patch.dict(os.environ, {"ANTHROPIC_API_KEY": "env-key"}):  # noqa: SIM117
             with _mock_anthropic():
                 client = AnthropicClient()
                 assert client.api_key == "env-key"
@@ -97,7 +98,7 @@ class TestAnthropicClient:
         with patch.dict(os.environ, {}, clear=True):
             # Remove ANTHROPIC_API_KEY if it exists
             os.environ.pop("ANTHROPIC_API_KEY", None)
-            with _mock_anthropic():
+            with _mock_anthropic():  # noqa: SIM117
                 with pytest.raises(ValueError, match="ANTHROPIC_API_KEY"):
                     AnthropicClient()
 

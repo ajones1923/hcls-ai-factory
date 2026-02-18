@@ -1,10 +1,11 @@
 """Tests for genomics pipeline security utilities."""
-import pytest
-import time
 import os
+import sys
+import time
 from pathlib import Path
 from unittest.mock import patch
-import sys
+
+import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent / 'app'))
 
@@ -183,8 +184,8 @@ class TestRequireLocalAccess:
     """Tests for require_local_access decorator."""
 
     def test_allows_localhost(self, app):
-        from security import require_local_access
         from flask import jsonify
+        from security import require_local_access
 
         @app.route('/test-local')
         @require_local_access

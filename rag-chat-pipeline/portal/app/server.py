@@ -4,21 +4,30 @@ RAG Chat Pipeline Web Portal
 Flask backend server for managing the RAG chat workflow
 """
 
-import os
+import atexit
+import contextlib
 import json
+import os
+import signal
 import subprocess
+import sys
 import threading
 import time
 import urllib.request
-from pathlib import Path
 from datetime import datetime
 from functools import wraps
-from flask import Flask, render_template, jsonify, request, Response, stream_with_context
-from flask_cors import CORS
+from pathlib import Path
+
 import psutil
-import sys
-import signal
-import atexit
+from flask import (
+    Flask,
+    Response,
+    jsonify,
+    render_template,
+    request,
+    stream_with_context,
+)
+from flask_cors import CORS
 from loguru import logger
 
 # Configure structured logging
@@ -129,7 +138,7 @@ def load_config():
     """Load pipeline configuration from .env"""
     config = {}
     if CONFIG_FILE.exists():
-        with open(CONFIG_FILE, 'r') as f:
+        with open(CONFIG_FILE) as f:
             for line in f:
                 line = line.strip()
                 if line and not line.startswith('#') and '=' in line:
@@ -144,7 +153,7 @@ def save_config(config):
     existing_keys = set()
 
     if CONFIG_FILE.exists():
-        with open(CONFIG_FILE, 'r') as f:
+        with open(CONFIG_FILE) as f:
             for line in f:
                 stripped = line.strip()
                 if not stripped or stripped.startswith('#'):
@@ -529,7 +538,7 @@ def stop():
     """Stop running process"""
     global pipeline_state, running_processes
 
-    for step_name, process in running_processes.items():
+    for _step_name, process in running_processes.items():
         try:
             process.terminate()
             process.wait(timeout=5)
@@ -610,7 +619,7 @@ def export_targets():
         manager = TargetHypothesisManager(storage_dir=DATA_DIR / "targets")
         output_file = manager.export_for_phase5()
 
-        with open(output_file, 'r') as f:
+        with open(output_file) as f:
             data = json.load(f)
 
         return jsonify({
@@ -642,7 +651,7 @@ def model_api():
         # Return current model
         try:
             if model_file.exists():
-                with open(model_file, 'r') as f:
+                with open(model_file) as f:
                     data = json.load(f)
                     return jsonify({
                         'success': True,
@@ -736,9 +745,9 @@ def load_shared_metrics():
     metrics_file = DATA_DIR / 'llm_metrics.json'
     try:
         if metrics_file.exists():
-            with open(metrics_file, 'r') as f:
+            with open(metrics_file) as f:
                 return json.load(f)
-    except (json.JSONDecodeError, OSError, IOError):
+    except (json.JSONDecodeError, OSError):
         pass
     return {}
 
@@ -779,7 +788,7 @@ def check_service_health(service_name, host, port):
         result = sock.connect_ex((host, port))
         sock.close()
         return result == 0
-    except (OSError, socket.error, socket.timeout):
+    except (TimeoutError, OSError):
         return False
 
 
@@ -959,15 +968,13 @@ def readiness():
 # --- Graceful shutdown ---
 def graceful_shutdown(signum=None, frame=None):
     """Terminate all child processes on shutdown."""
-    for step_name, process in list(running_processes.items()):
+    for _step_name, process in list(running_processes.items()):
         try:
             process.terminate()
             process.wait(timeout=5)
         except Exception:
-            try:
+            with contextlib.suppress(Exception):
                 process.kill()
-            except Exception:
-                pass
     running_processes.clear()
     if signum:
         sys.exit(0)

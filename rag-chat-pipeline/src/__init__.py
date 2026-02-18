@@ -1,12 +1,12 @@
 """
 RAG Chat Pipeline - Source Modules
 """
-from .vcf_parser import VCFParser
 from .annotator import VariantAnnotator
 from .embedder import EvidenceEmbedder
-from .milvus_client import MilvusClient
 from .llm_client import LLMClient
+from .milvus_client import MilvusClient
 from .rag_engine import RAGEngine
+from .vcf_parser import VCFParser
 
 __all__ = [
     "VCFParser",

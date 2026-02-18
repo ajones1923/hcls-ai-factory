@@ -1,20 +1,21 @@
 """
 Shared pytest fixtures for Drug Discovery Pipeline tests.
 """
-import pytest
+import sys
+import tempfile
 from pathlib import Path
 from unittest.mock import Mock, patch
-import tempfile
-import sys
+
+import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.models import (
-    TargetHypothesis,
-    StructureInfo,
     GeneratedMolecule,
     MoleculeProperties,
     PipelineConfig,
+    StructureInfo,
+    TargetHypothesis,
 )
 
 

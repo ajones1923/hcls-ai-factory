@@ -4,10 +4,11 @@ Data contracts for the Drug Discovery Pipeline.
 Pydantic models defining the data structures passed between pipeline stages.
 Based on phase-5-6.pdf specification.
 """
-from pydantic import BaseModel, Field, validator
-from typing import List, Dict, Any, Optional
 from datetime import datetime
 from enum import Enum
+from typing import Any
+
+from pydantic import BaseModel, Field, validator
 
 
 class TargetStatus(str, Enum):
@@ -31,14 +32,14 @@ class TargetHypothesis(BaseModel):
     Stage 0 input.
     """
     gene: str = Field(..., description="Gene symbol (e.g., VCP)")
-    protein: Optional[str] = Field(None, description="Protein name")
-    uniprot_id: Optional[str] = Field(None, description="UniProt accession")
+    protein: str | None = Field(None, description="Protein name")
+    uniprot_id: str | None = Field(None, description="UniProt accession")
     rationale: str = Field("", description="Scientific rationale for targeting")
-    therapeutic_area: Optional[str] = Field(None, description="Disease area")
-    mechanism: Optional[str] = Field(None, description="Proposed mechanism of action")
+    therapeutic_area: str | None = Field(None, description="Disease area")
+    mechanism: str | None = Field(None, description="Proposed mechanism of action")
     confidence: Confidence = Field(Confidence.MEDIUM)
     priority: int = Field(3, ge=1, le=5, description="Priority 1-5")
-    pdb_ids: List[str] = Field(default_factory=list, description="Known PDB structures")
+    pdb_ids: list[str] = Field(default_factory=list, description="Known PDB structures")
     variant_count: int = Field(0)
     status: TargetStatus = Field(TargetStatus.HYPOTHESIS)
 
@@ -53,12 +54,12 @@ class StructureInfo(BaseModel):
     """
     pdb_id: str = Field(..., description="PDB identifier")
     method: str = Field("X-ray", description="Experimental method (X-ray, Cryo-EM, NMR)")
-    resolution: Optional[float] = Field(None, description="Resolution in Angstroms")
+    resolution: float | None = Field(None, description="Resolution in Angstroms")
     chain: str = Field("A", description="Chain identifier")
-    binding_site_residues: List[str] = Field(default_factory=list)
-    ligand_id: Optional[str] = Field(None, description="Co-crystallized ligand")
-    ligand_smiles: Optional[str] = Field(None)
-    structure_file: Optional[str] = Field(None, description="Path to structure file")
+    binding_site_residues: list[str] = Field(default_factory=list)
+    ligand_id: str | None = Field(None, description="Co-crystallized ligand")
+    ligand_smiles: str | None = Field(None)
+    structure_file: str | None = Field(None, description="Path to structure file")
     prepared: bool = Field(False, description="Whether structure has been prepared")
 
     @validator("resolution", pre=True)
@@ -75,11 +76,11 @@ class StructureManifest(BaseModel):
     Stage 3 output.
     """
     target_gene: str
-    structures: List[StructureInfo]
-    primary_structure: Optional[str] = Field(None, description="Preferred PDB ID for docking")
+    structures: list[StructureInfo]
+    primary_structure: str | None = Field(None, description="Preferred PDB ID for docking")
     created_at: datetime = Field(default_factory=datetime.now)
 
-    def get_best_structure(self) -> Optional[StructureInfo]:
+    def get_best_structure(self) -> StructureInfo | None:
         """Get the best resolution structure."""
         valid = [s for s in self.structures if s.resolution is not None]
         if not valid:
@@ -98,8 +99,8 @@ class MoleculeProperties(BaseModel):
     tpsa: float = Field(..., ge=0, description="Topological polar surface area")
     rotatable_bonds: int = Field(..., ge=0)
     lipinski_violations: int = Field(0, ge=0, le=4)
-    qed: Optional[float] = Field(None, ge=0, le=1, description="Quantitative Estimate of Drug-likeness")
-    sa_score: Optional[float] = Field(None, description="Synthetic accessibility score")
+    qed: float | None = Field(None, ge=0, le=1, description="Quantitative Estimate of Drug-likeness")
+    sa_score: float | None = Field(None, description="Synthetic accessibility score")
 
 
 class GeneratedMolecule(BaseModel):
@@ -109,14 +110,14 @@ class GeneratedMolecule(BaseModel):
     """
     id: str = Field(..., description="Unique molecule identifier")
     smiles: str = Field(..., description="SMILES string")
-    name: Optional[str] = Field(None)
-    source_seed: Optional[str] = Field(None, description="Seed SMILES if applicable")
+    name: str | None = Field(None)
+    source_seed: str | None = Field(None, description="Seed SMILES if applicable")
     generation_method: str = Field("MolMIM", description="Generation method used")
     target_gene: str
-    properties: Optional[MoleculeProperties] = None
+    properties: MoleculeProperties | None = None
     generation_score: float = Field(0.0, ge=0, le=1)
     passed_qc: bool = Field(False)
-    conformer_file: Optional[str] = Field(None, description="Path to 3D conformer")
+    conformer_file: str | None = Field(None, description="Path to 3D conformer")
     generated_at: datetime = Field(default_factory=datetime.now)
 
 
@@ -128,10 +129,10 @@ class DockingResult(BaseModel):
     molecule_id: str
     structure_id: str
     docking_score: float = Field(..., description="Docking score (lower is better)")
-    binding_energy: Optional[float] = Field(None, description="Binding energy kcal/mol")
-    pose_file: Optional[str] = Field(None, description="Path to docked pose")
-    rmsd: Optional[float] = Field(None, description="RMSD to reference pose")
-    contacts: List[str] = Field(default_factory=list, description="Residues in contact")
+    binding_energy: float | None = Field(None, description="Binding energy kcal/mol")
+    pose_file: str | None = Field(None, description="Path to docked pose")
+    rmsd: float | None = Field(None, description="RMSD to reference pose")
+    contacts: list[str] = Field(default_factory=list, description="Residues in contact")
     hydrogen_bonds: int = Field(0)
     method: str = Field("DiffDock", description="Docking method used")
     confidence: float = Field(0.0, ge=0, le=1)
@@ -145,25 +146,25 @@ class RankedCandidate(BaseModel):
     rank: int = Field(..., ge=1)
     molecule_id: str
     smiles: str
-    name: Optional[str] = None
+    name: str | None = None
     target_gene: str
 
     # Scores
     docking_score: float
     generation_score: float
-    qed_score: Optional[float] = None
+    qed_score: float | None = None
     composite_score: float = Field(..., description="Weighted composite score")
 
     # Properties
-    properties: Optional[MoleculeProperties] = None
+    properties: MoleculeProperties | None = None
 
     # Docking details
-    best_pose_file: Optional[str] = None
-    binding_residues: List[str] = Field(default_factory=list)
+    best_pose_file: str | None = None
+    binding_residues: list[str] = Field(default_factory=list)
 
     # Flags
     passes_filters: bool = Field(True)
-    alerts: List[str] = Field(default_factory=list, description="Any warnings")
+    alerts: list[str] = Field(default_factory=list, description="Any warnings")
 
 
 class PipelineRun(BaseModel):
@@ -173,20 +174,20 @@ class PipelineRun(BaseModel):
     run_id: str
     target_gene: str
     started_at: datetime
-    completed_at: Optional[datetime] = None
+    completed_at: datetime | None = None
     status: str = "running"  # running, completed, failed
     current_stage: int = 0
-    stages_completed: List[int] = Field(default_factory=list)
-    config: Dict[str, Any] = Field(default_factory=dict)
-    error_message: Optional[str] = None
+    stages_completed: list[int] = Field(default_factory=list)
+    config: dict[str, Any] = Field(default_factory=dict)
+    error_message: str | None = None
 
     # Results summary
     molecules_generated: int = 0
     molecules_docked: int = 0
-    top_candidates: List[str] = Field(default_factory=list)
+    top_candidates: list[str] = Field(default_factory=list)
 
     # Performance
-    stage_timings: Dict[int, float] = Field(default_factory=dict, description="Stage durations in seconds")
+    stage_timings: dict[int, float] = Field(default_factory=dict, description="Stage durations in seconds")
 
 
 class PipelineConfig(BaseModel):
@@ -195,7 +196,7 @@ class PipelineConfig(BaseModel):
     """
     # Target settings
     target_gene: str
-    reference_compound_smiles: Optional[str] = None
+    reference_compound_smiles: str | None = None
 
     # Generation settings
     num_molecules: int = Field(50, ge=1, le=1000)
@@ -222,5 +223,5 @@ class PipelineConfig(BaseModel):
     structure_cache: str = Field("data/structures")
 
     # Service endpoints
-    molmim_url: Optional[str] = Field(None)
-    diffdock_url: Optional[str] = Field(None)
+    molmim_url: str | None = Field(None)
+    diffdock_url: str | None = Field(None)

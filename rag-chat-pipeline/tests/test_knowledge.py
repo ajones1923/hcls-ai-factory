@@ -1,22 +1,23 @@
 """Tests for RAG Chat knowledge base data integrity."""
-import pytest
 import re
-from pathlib import Path
 import sys
+from pathlib import Path
+
+import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.knowledge import (
-    KNOWLEDGE_CONNECTIONS,
     GENE_REFERENCE_DATA,
-    get_gene_reference_data,
-    get_knowledge_for_genes,
-    get_knowledge_for_evidence,
+    KNOWLEDGE_CONNECTIONS,
     format_knowledge_for_prompt,
     get_druggable_genes,
     get_gene_drugs,
+    get_gene_reference_data,
     get_genes_by_disease,
     get_genes_by_pathway,
+    get_knowledge_for_evidence,
+    get_knowledge_for_genes,
     get_knowledge_stats,
 )
 

@@ -2,26 +2,26 @@
 Streamlit Chat Interface for Genomic Evidence RAG.
 Includes VCF preview, LLM performance metrics, and Target Hypothesis management.
 """
-import os
-import streamlit as st
-import time
 import json
-from typing import Optional, List, Dict, Any
+import os
 import sys
+import time
 from pathlib import Path
+from typing import Any, Optional
+
+import streamlit as st
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.rag_engine import create_rag_engine, RAGEngine
+from config.settings import settings
+from src.knowledge import KNOWLEDGE_CONNECTIONS, get_gene_reference_data
+from src.rag_engine import RAGEngine, create_rag_engine
 from src.target_hypothesis import (
     TargetHypothesis,
     TargetHypothesisManager,
-    create_hypothesis_from_chat
+    create_hypothesis_from_chat,
 )
-from src.knowledge import KNOWLEDGE_CONNECTIONS, get_gene_reference_data
-from config.settings import settings
-
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # KNOWLEDGE CONNECTION DATABASE now imported from src/knowledge.py
@@ -30,10 +30,10 @@ from config.settings import settings
 
 
 @st.cache_data(ttl=300)  # Cache for 5 minutes
-def get_variant_stats() -> Dict[str, int]:
+def get_variant_stats() -> dict[str, int]:
     """Get variant counts from Milvus database."""
     try:
-        from pymilvus import connections, Collection
+        from pymilvus import Collection, connections
         connections.connect("default", host=os.environ.get("MILVUS_HOST", "localhost"), port=os.environ.get("MILVUS_PORT", "19530"))
         collection = Collection("genomic_evidence")
         collection.load()
@@ -440,12 +440,12 @@ def load_shared_model() -> tuple:
     model_file = settings.DATA_DIR / 'current_model.json'
     try:
         if model_file.exists():
-            with open(model_file, 'r') as f:
+            with open(model_file) as f:
                 data = json.load(f)
                 model = data.get('model', settings.LLM_MODEL)
                 provider = data.get('provider', settings.LLM_PROVIDER)
                 return model, provider
-    except (json.JSONDecodeError, OSError, IOError):
+    except (json.JSONDecodeError, OSError):
         pass
     return settings.LLM_MODEL, settings.LLM_PROVIDER
 
@@ -736,19 +736,18 @@ def render_targets_sidebar():
     st.markdown("---")
 
     # Export button
-    if targets:
-        if st.button("📤 Export for Phase 5"):
-            output_file = manager.export_for_phase5()
-            st.success(f"Exported to {output_file}")
+    if targets and st.button("📤 Export for Phase 5"):
+        output_file = manager.export_for_phase5()
+        st.success(f"Exported to {output_file}")
 
-            # Show download link
-            with open(output_file, 'r') as f:
-                st.download_button(
-                    "Download JSON",
-                    f.read(),
-                    file_name="targets_for_phase5.json",
-                    mime="application/json"
-                )
+        # Show download link
+        with open(output_file) as f:
+            st.download_button(
+                "Download JSON",
+                f.read(),
+                file_name="targets_for_phase5.json",
+                mime="application/json"
+            )
 
 
 def render_vcf_preview_sidebar():
@@ -779,8 +778,8 @@ def render_vcf_preview_sidebar():
 
 def render_file_manager():
     """Render file manager for browsing and uploading VCF files."""
-    import os
     import datetime
+    import os
 
     st.subheader("File Manager")
 
@@ -877,7 +876,7 @@ def render_file_manager():
                     # Action buttons
                     btn_col1, btn_col2 = st.columns(2)
 
-                    with btn_col1:
+                    with btn_col1:  # noqa: SIM117
                         # Download button
                         with open(file_info['path'], 'rb') as f:
                             st.download_button(
@@ -1341,7 +1340,7 @@ def render_target_panel():
                 output_file = manager.export_for_phase5()
                 st.success(f"Exported {len([t for t in targets if t.status in ('validated', 'selected') or t.priority >= 4])} targets")
 
-                with open(output_file, 'r') as f:
+                with open(output_file) as f:
                     export_data = f.read()
 
                 st.download_button(
@@ -1480,7 +1479,7 @@ def save_shared_metrics(metrics: dict):
         }
         with open(metrics_file, 'w') as f:
             json.dump(shared_data, f)
-    except (OSError, IOError) as e:
+    except OSError as e:
         # Silently fail - metrics storage is optional
         pass
 

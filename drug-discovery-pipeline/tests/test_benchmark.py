@@ -2,8 +2,8 @@
 Tests for pipeline performance timing.
 """
 import pytest
-from src.pipeline import DrugDiscoveryPipeline
 from src.models import PipelineConfig, TargetHypothesis
+from src.pipeline import DrugDiscoveryPipeline
 
 
 class TestStageTimings:

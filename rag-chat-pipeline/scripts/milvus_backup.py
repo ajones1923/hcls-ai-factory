@@ -34,7 +34,7 @@ COLLECTION_NAME = "genomic_evidence"
 
 def backup_collection(output_path: str, batch_size: int = 10000):
     """Export all entities from genomic_evidence collection to JSON."""
-    from pymilvus import connections, Collection, utility
+    from pymilvus import Collection, connections, utility
 
     host = os.environ.get("MILVUS_HOST", "localhost")
     port = int(os.environ.get("MILVUS_PORT", "19530"))

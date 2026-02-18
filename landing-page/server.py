@@ -6,19 +6,20 @@ A Flask server that serves the landing page for the Precision Medicine
 to Drug Discovery AI Factory.
 """
 
+import atexit
 import json
 import os
 import signal
-import atexit
 import socket
 import subprocess
 import sys
 import time
-import requests
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from pathlib import Path
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from flask import Flask, render_template, send_from_directory, jsonify
+
+import requests
+from flask import Flask, jsonify, render_template, send_from_directory
 from flask_cors import CORS
 from loguru import logger
 
@@ -90,13 +91,15 @@ def auto_start_services():
         if not is_port_open(service['port']):
             logger.info(f"[AUTO-START] Starting {service['name']} (port {service['port']})...")
             try:
-                subprocess.Popen(
-                    service['cmd'],
-                    cwd=service['dir'],
-                    stdout=open(f"/tmp/{service['name'].lower().replace('/', '-').replace(' ', '-')}.log", 'w'),
-                    stderr=subprocess.STDOUT,
-                    start_new_session=True
-                )
+                log_path = f"/tmp/{service['name'].lower().replace('/', '-').replace(' ', '-')}.log"
+                with open(log_path, 'w') as log_file:
+                    subprocess.Popen(
+                        service['cmd'],
+                        cwd=service['dir'],
+                        stdout=log_file,
+                        stderr=subprocess.STDOUT,
+                        start_new_session=True
+                    )
                 # Wait a moment for service to start
                 time.sleep(2)
                 if is_port_open(service['port']):

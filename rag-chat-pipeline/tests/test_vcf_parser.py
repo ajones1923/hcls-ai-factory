@@ -1,13 +1,14 @@
 """
 Tests for VCF Parser module.
 """
-import pytest
+import sys
 from pathlib import Path
 
-import sys
+import pytest
+
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.vcf_parser import VCFParser, VariantEvidence
+from src.vcf_parser import VariantEvidence, VCFParser
 
 
 class TestVariantEvidence:

@@ -4,20 +4,21 @@ Drug Discovery Pipeline UI - Streamlit interface for target-driven drug discover
 Supports any target gene from Stage 2 RAG/Chat export, with VCP/FTD as default demo.
 End-to-end flow: Target Hypothesis → Structural Evidence → Molecule Generation
 """
-import streamlit as st
 import json
 import os
 import sys
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import Any
+
+import streamlit as st
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from target_import import TargetImporter, ImportedTarget, get_vcp_target
 from cryoem_evidence import CryoEMEvidenceManager, CryoEMStructure
-from molecule_generator import MoleculeGenerator, GeneratedMolecule
-from structure_viewer import StructureViewer, HAS_STMOL
+from molecule_generator import GeneratedMolecule, MoleculeGenerator
+from structure_viewer import HAS_STMOL, StructureViewer
+from target_import import ImportedTarget, TargetImporter, get_vcp_target
 
 # Default paths for Stage 2 export
 RAG_EXPORT_PATH = Path(os.environ.get(
@@ -26,7 +27,7 @@ RAG_EXPORT_PATH = Path(os.environ.get(
 ))
 
 
-def load_targets_from_export() -> List[Dict[str, Any]]:
+def load_targets_from_export() -> list[dict[str, Any]]:
     """Load targets from Stage 2 RAG/Chat export file."""
     if RAG_EXPORT_PATH.exists():
         with open(RAG_EXPORT_PATH) as f:

@@ -1,11 +1,12 @@
 """
 Tests for Genomics Pipeline Web Portal server.
 """
-import pytest
 import json
-from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
 import sys
+from pathlib import Path
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
 
 # Add the app directory to the path
 sys.path.insert(0, str(Path(__file__).parent.parent / 'app'))
@@ -89,7 +90,7 @@ class TestRunEndpoint:
 
     def test_run_valid_step(self, client, mock_subprocess):
         """Test running valid step starts execution."""
-        with patch('server.pipeline_state', {'status': 'idle', 'logs': [], 'progress': 0}):
+        with patch('server.pipeline_state', {'status': 'idle', 'logs': [], 'progress': 0}):  # noqa: SIM117
             with patch('server.threading.Thread') as mock_thread:
                 mock_thread.return_value = Mock()
                 response = client.post('/api/run/check')
@@ -113,7 +114,7 @@ class TestStopEndpoint:
 
     def test_stop_success(self, client):
         """Test stopping running process."""
-        with patch('server.running_processes', {}):
+        with patch('server.running_processes', {}):  # noqa: SIM117
             with patch('server.pipeline_state', {'status': 'running'}):
                 response = client.post('/api/stop')
                 assert response.status_code == 200
@@ -127,7 +128,7 @@ class TestStopAllEndpoint:
     def test_stop_all_success(self, client, mock_subprocess, mock_psutil):
         """Test stopping all processes."""
         mock_psutil.process_iter.return_value = []
-        with patch('server.running_processes', {}):
+        with patch('server.running_processes', {}):  # noqa: SIM117
             with patch('server.pipeline_state', {'status': 'running'}):
                 response = client.post('/api/stop-all')
                 assert response.status_code == 200
@@ -157,7 +158,7 @@ class TestMetricsEndpoint:
 
     def test_metrics_returns_json(self, client, mock_psutil):
         """Test metrics endpoint returns JSON."""
-        with patch('server.NVML_AVAILABLE', False):
+        with patch('server.NVML_AVAILABLE', False):  # noqa: SIM117
             with patch('server.pipeline_state', {
                 'status': 'idle',
                 'start_time': None,
@@ -171,7 +172,7 @@ class TestMetricsEndpoint:
 
     def test_metrics_contains_throughput(self, client, mock_psutil):
         """Test metrics includes throughput."""
-        with patch('server.NVML_AVAILABLE', False):
+        with patch('server.NVML_AVAILABLE', False):  # noqa: SIM117
             with patch('server.pipeline_state', {
                 'status': 'idle',
                 'start_time': None,
@@ -244,7 +245,7 @@ class TestGPUUtilization:
 
     def test_get_gpu_utilization_with_nvml(self, mock_pynvml):
         """Test GPU utilization with pynvml mocked."""
-        with patch('server.NVML_AVAILABLE', True):
+        with patch('server.NVML_AVAILABLE', True):  # noqa: SIM117
             with patch('server.pynvml', mock_pynvml, create=True):
                 from server import get_gpu_utilization
                 result = get_gpu_utilization()
@@ -343,7 +344,7 @@ class TestApiKeyAuth:
 
     def test_run_requires_api_key(self, client):
         """Test that /api/run requires API key when PORTAL_API_KEY is set."""
-        with patch.dict('os.environ', {'PORTAL_API_KEY': 'test-secret-key'}):
+        with patch.dict('os.environ', {'PORTAL_API_KEY': 'test-secret-key'}):  # noqa: SIM117
             with patch('server.pipeline_state', {'status': 'idle', 'logs': [], 'progress': 0}):
                 response = client.post('/api/run/check')
                 assert response.status_code == 401
@@ -352,8 +353,8 @@ class TestApiKeyAuth:
 
     def test_run_accepts_valid_key(self, client, mock_subprocess):
         """Test that /api/run works with correct API key."""
-        with patch.dict('os.environ', {'PORTAL_API_KEY': 'test-secret-key'}):
-            with patch('server.pipeline_state', {'status': 'idle', 'logs': [], 'progress': 0}):
+        with patch.dict('os.environ', {'PORTAL_API_KEY': 'test-secret-key'}):  # noqa: SIM117
+            with patch('server.pipeline_state', {'status': 'idle', 'logs': [], 'progress': 0}):  # noqa: SIM117
                 with patch('server.threading.Thread') as mock_thread:
                     mock_thread.return_value = Mock()
                     response = client.post(
@@ -369,8 +370,8 @@ class TestApiKeyAuth:
             import os
             env = os.environ.copy()
             env.pop('PORTAL_API_KEY', None)
-            with patch.dict('os.environ', env, clear=True):
-                with patch('server.pipeline_state', {'status': 'idle', 'logs': [], 'progress': 0}):
+            with patch.dict('os.environ', env, clear=True):  # noqa: SIM117
+                with patch('server.pipeline_state', {'status': 'idle', 'logs': [], 'progress': 0}):  # noqa: SIM117
                     with patch('server.threading.Thread') as mock_thread:
                         mock_thread.return_value = Mock()
                         response = client.post('/api/run/check')
@@ -378,15 +379,15 @@ class TestApiKeyAuth:
 
     def test_stop_requires_api_key(self, client):
         """Test that /api/stop requires API key."""
-        with patch.dict('os.environ', {'PORTAL_API_KEY': 'test-secret-key'}):
-            with patch('server.running_processes', {}):
+        with patch.dict('os.environ', {'PORTAL_API_KEY': 'test-secret-key'}):  # noqa: SIM117
+            with patch('server.running_processes', {}):  # noqa: SIM117
                 with patch('server.pipeline_state', {'status': 'running'}):
                     response = client.post('/api/stop')
                     assert response.status_code == 401
 
     def test_reset_requires_api_key(self, client, tmp_path):
         """Test that /api/reset requires API key."""
-        with patch.dict('os.environ', {'PORTAL_API_KEY': 'test-secret-key'}):
+        with patch.dict('os.environ', {'PORTAL_API_KEY': 'test-secret-key'}):  # noqa: SIM117
             with patch('server.STATE_FILE', tmp_path / 'state.json'):
                 response = client.post('/api/reset')
                 assert response.status_code == 401

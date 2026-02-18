@@ -1,12 +1,13 @@
 """
 Tests for RAG Chat Pipeline Portal server.
 """
-import pytest
 import json
 import os
-from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
 import sys
+from pathlib import Path
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent / 'app'))
 
@@ -37,7 +38,7 @@ class TestApiKeyAuth:
 
     def test_config_post_requires_api_key(self, client, tmp_path):
         """Test that POST /api/config requires API key when set."""
-        with patch.dict(os.environ, {'PORTAL_API_KEY': 'test-secret'}):
+        with patch.dict(os.environ, {'PORTAL_API_KEY': 'test-secret'}):  # noqa: SIM117
             with patch('server.CONFIG_FILE', tmp_path / '.env'):
                 (tmp_path / '.env').write_text("# Config\n")
                 response = client.post(
@@ -51,7 +52,7 @@ class TestApiKeyAuth:
 
     def test_config_post_accepts_valid_key(self, client, tmp_path):
         """Test that POST /api/config works with correct API key."""
-        with patch.dict(os.environ, {'PORTAL_API_KEY': 'test-secret'}):
+        with patch.dict(os.environ, {'PORTAL_API_KEY': 'test-secret'}):  # noqa: SIM117
             with patch('server.CONFIG_FILE', tmp_path / '.env'):
                 (tmp_path / '.env').write_text("# Config\n")
                 response = client.post(
@@ -64,7 +65,7 @@ class TestApiKeyAuth:
 
     def test_config_get_does_not_require_key(self, client, tmp_path):
         """Test that GET /api/config works without API key (read-only)."""
-        with patch.dict(os.environ, {'PORTAL_API_KEY': 'test-secret'}):
+        with patch.dict(os.environ, {'PORTAL_API_KEY': 'test-secret'}):  # noqa: SIM117
             with patch('server.CONFIG_FILE', tmp_path / '.env'):
                 (tmp_path / '.env').write_text("LLM_MODEL=test\n")
                 response = client.get('/api/config')
@@ -74,15 +75,15 @@ class TestApiKeyAuth:
 
     def test_run_requires_api_key(self, client):
         """Test that /api/run requires API key."""
-        with patch.dict(os.environ, {'PORTAL_API_KEY': 'test-secret'}):
+        with patch.dict(os.environ, {'PORTAL_API_KEY': 'test-secret'}):  # noqa: SIM117
             with patch('server.pipeline_state', {'status': 'idle', 'logs': [], 'progress': 0}):
                 response = client.get('/api/run/setup')
                 assert response.status_code == 401
 
     def test_stop_requires_api_key(self, client):
         """Test that /api/stop requires API key."""
-        with patch.dict(os.environ, {'PORTAL_API_KEY': 'test-secret'}):
-            with patch('server.running_processes', {}):
+        with patch.dict(os.environ, {'PORTAL_API_KEY': 'test-secret'}):  # noqa: SIM117
+            with patch('server.running_processes', {}):  # noqa: SIM117
                 with patch('server.pipeline_state', {'status': 'running', 'current_step': None}):
                     response = client.get('/api/stop')
                     assert response.status_code == 401
@@ -101,7 +102,7 @@ class TestApiKeyAuth:
         """Test endpoints work when PORTAL_API_KEY is not set (dev mode)."""
         env = os.environ.copy()
         env.pop('PORTAL_API_KEY', None)
-        with patch.dict(os.environ, env, clear=True):
+        with patch.dict(os.environ, env, clear=True):  # noqa: SIM117
             with patch('server.CONFIG_FILE', tmp_path / '.env'):
                 (tmp_path / '.env').write_text("# Config\n")
                 with patch('server.pipeline_state', {'status': 'idle', 'logs': [], 'progress': 0}):
@@ -315,7 +316,7 @@ class TestVcfPreviewLimit:
 
     def test_default_limit(self, client, tmp_path):
         """Test that default limit is 100."""
-        with patch('server.load_config', return_value={'VCF_INPUT_PATH': str(tmp_path / 'test.vcf')}):
+        with patch('server.load_config', return_value={'VCF_INPUT_PATH': str(tmp_path / 'test.vcf')}):  # noqa: SIM117
             with patch('server.check_file_exists', return_value=False):
                 response = client.get('/api/vcf-preview')
                 assert response.status_code == 404  # File doesn't exist, but limit was parsed
@@ -326,8 +327,8 @@ class TestVcfPreviewLimit:
         vcf_file = tmp_path / 'test.vcf'
         vcf_file.write_text('#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n')
 
-        with patch('server.load_config', return_value={'VCF_INPUT_PATH': str(vcf_file)}):
-            with patch('server.check_file_exists', return_value=True):
+        with patch('server.load_config', return_value={'VCF_INPUT_PATH': str(vcf_file)}):  # noqa: SIM117
+            with patch('server.check_file_exists', return_value=True):  # noqa: SIM117
                 with patch('server.get_vcf_preview', return_value=[]) as mock_preview:
                     response = client.get('/api/vcf-preview?limit=999999')
                     if mock_preview.called:

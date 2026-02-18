@@ -5,23 +5,23 @@ Uses MolMIM or similar models to generate candidate molecules
 from seed SMILES strings derived from known inhibitors.
 """
 import json
-from pathlib import Path
-from typing import List, Dict, Any, Optional, Tuple
-from dataclasses import dataclass, asdict
-from datetime import datetime
-import subprocess
 import os
+import subprocess
+from dataclasses import asdict, dataclass
+from datetime import datetime
+from pathlib import Path
+from typing import Any
 
 
 @dataclass
 class GeneratedMolecule:
     """A generated drug candidate molecule."""
     smiles: str
-    name: Optional[str]
+    name: str | None
     source_seed: str
     generation_method: str
     target_gene: str
-    properties: Dict[str, Any]
+    properties: dict[str, Any]
     score: float  # Overall druglikeness/relevance score
     generated_at: str = None
 
@@ -29,7 +29,7 @@ class GeneratedMolecule:
         if self.generated_at is None:
             self.generated_at = datetime.now().isoformat()
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -84,7 +84,7 @@ class MoleculeGenerator:
         target_gene: str,
         num_molecules: int = 10,
         diversity: float = 0.3,
-    ) -> List[GeneratedMolecule]:
+    ) -> list[GeneratedMolecule]:
         """
         Generate molecules from a seed SMILES string.
 
@@ -108,7 +108,7 @@ class MoleculeGenerator:
         target_gene: str,
         num_molecules: int,
         diversity: float,
-    ) -> List[GeneratedMolecule]:
+    ) -> list[GeneratedMolecule]:
         """Generate molecules using BioNeMo MolMIM."""
         molecules = []
 
@@ -125,7 +125,7 @@ class MoleculeGenerator:
         target_gene: str,
         num_molecules: int,
         diversity: float,
-    ) -> List[GeneratedMolecule]:
+    ) -> list[GeneratedMolecule]:
         """Generate molecules using RDKit or pre-computed analogues."""
         molecules = []
 
@@ -149,7 +149,7 @@ class MoleculeGenerator:
         seed_smiles: str,
         target_gene: str,
         num_molecules: int,
-    ) -> List[GeneratedMolecule]:
+    ) -> list[GeneratedMolecule]:
         """Generate simple analogues using RDKit."""
         from rdkit import Chem
         from rdkit.Chem import AllChem, Descriptors
@@ -199,7 +199,7 @@ class MoleculeGenerator:
 
         return molecules[:num_molecules]
 
-    def _calculate_properties(self, mol) -> Dict[str, Any]:
+    def _calculate_properties(self, mol) -> dict[str, Any]:
         """Calculate molecular properties using RDKit."""
         from rdkit.Chem import Descriptors, Lipinski
 
@@ -228,7 +228,7 @@ class MoleculeGenerator:
             violations += 1
         return violations
 
-    def _get_vcp_inhibitor_analogues(self) -> List[Tuple[str, str]]:
+    def _get_vcp_inhibitor_analogues(self) -> list[tuple[str, str]]:
         """Pre-designed VCP inhibitor analogues for demo."""
         return [
             # CB-5083 analogues and related VCP inhibitors
@@ -244,7 +244,7 @@ class MoleculeGenerator:
             ("CC(C)c1cc(F)c(NC2=NC3=C(C=N2)N(C=C3)C)c(C(=O)Nc4ccc(CN5CCOCC5)cc4)c1", "VCP-Inh-H1"),
         ]
 
-    def _get_demo_molecules(self, target_gene: str, num_molecules: int) -> List[GeneratedMolecule]:
+    def _get_demo_molecules(self, target_gene: str, num_molecules: int) -> list[GeneratedMolecule]:
         """Get pre-computed demo molecules."""
         if target_gene.upper() == "VCP":
             analogues = self._get_vcp_inhibitor_analogues()
@@ -270,7 +270,7 @@ class MoleculeGenerator:
             # Generic demo molecules
             return []
 
-    def save_molecules(self, molecules: List[GeneratedMolecule], filename: str = None) -> Path:
+    def save_molecules(self, molecules: list[GeneratedMolecule], filename: str = None) -> Path:
         """Save generated molecules to JSON."""
         if filename is None:
             filename = f"generated_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
@@ -284,7 +284,7 @@ class MoleculeGenerator:
         return output_file
 
 
-def generate_vcp_molecules(num_molecules: int = 10) -> List[GeneratedMolecule]:
+def generate_vcp_molecules(num_molecules: int = 10) -> list[GeneratedMolecule]:
     """Convenience function to generate VCP inhibitor candidates."""
     try:
         from .cryoem_evidence import get_vcp_inhibitor_seed

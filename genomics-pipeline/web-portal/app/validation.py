@@ -3,8 +3,6 @@ Input validation utilities for Genomics Pipeline Web Portal.
 """
 import re
 from pathlib import Path
-from typing import Optional, Tuple
-
 
 # Valid step names for the pipeline
 VALID_STEPS = {'check', 'login', 'download', 'reference', 'test', 'full'}
@@ -16,7 +14,7 @@ VALID_LOG_TYPES = {'chr20_fq2bam', 'chr20_deepvariant', 'genome_fq2bam', 'genome
 SAFE_PATH_PATTERN = re.compile(r'^[a-zA-Z0-9_\-\.]+$')
 
 
-def validate_step_name(step: str) -> Tuple[bool, Optional[str]]:
+def validate_step_name(step: str) -> tuple[bool, str | None]:
     """
     Validate pipeline step name.
 
@@ -35,7 +33,7 @@ def validate_step_name(step: str) -> Tuple[bool, Optional[str]]:
     return True, None
 
 
-def validate_log_type(log_type: str) -> Tuple[bool, Optional[str]]:
+def validate_log_type(log_type: str) -> tuple[bool, str | None]:
     """
     Validate log type name.
 
@@ -54,7 +52,7 @@ def validate_log_type(log_type: str) -> Tuple[bool, Optional[str]]:
     return True, None
 
 
-def validate_config_key(key: str) -> Tuple[bool, Optional[str]]:
+def validate_config_key(key: str) -> tuple[bool, str | None]:
     """
     Validate configuration key name.
 
@@ -74,7 +72,7 @@ def validate_config_key(key: str) -> Tuple[bool, Optional[str]]:
     return True, None
 
 
-def validate_config_value(value: str) -> Tuple[bool, Optional[str]]:
+def validate_config_value(value: str) -> tuple[bool, str | None]:
     """
     Validate configuration value.
 
@@ -100,7 +98,7 @@ def validate_config_value(value: str) -> Tuple[bool, Optional[str]]:
     return True, None
 
 
-def sanitize_path(path: str, base_dir: Path) -> Optional[Path]:
+def sanitize_path(path: str, base_dir: Path) -> Path | None:
     """
     Sanitize and validate a file path.
 
@@ -124,7 +122,7 @@ def sanitize_path(path: str, base_dir: Path) -> Optional[Path]:
         return None
 
 
-def validate_patient_id(patient_id: str) -> Tuple[bool, Optional[str]]:
+def validate_patient_id(patient_id: str) -> tuple[bool, str | None]:
     """
     Validate patient/sample ID.
 
@@ -147,7 +145,7 @@ def validate_patient_id(patient_id: str) -> Tuple[bool, Optional[str]]:
     return True, None
 
 
-def validate_fastq_file(filepath: Path) -> Tuple[bool, Optional[str]]:
+def validate_fastq_file(filepath: Path) -> tuple[bool, str | None]:
     """
     Validate FASTQ file.
 
@@ -173,7 +171,7 @@ def validate_fastq_file(filepath: Path) -> Tuple[bool, Optional[str]]:
     return True, None
 
 
-def validate_reference_file(filepath: Path) -> Tuple[bool, Optional[str]]:
+def validate_reference_file(filepath: Path) -> tuple[bool, str | None]:
     """
     Validate reference genome file.
 

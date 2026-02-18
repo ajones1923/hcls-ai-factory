@@ -5,18 +5,19 @@ Saves and restores pipeline state between stages to enable
 resume-after-failure capability.
 """
 import json
-from pathlib import Path
-from typing import Optional, List, TYPE_CHECKING
 from datetime import datetime
+from pathlib import Path
+from typing import TYPE_CHECKING
+
 from loguru import logger
 
 from .models import (
-    TargetHypothesis,
-    StructureManifest,
-    GeneratedMolecule,
     DockingResult,
-    RankedCandidate,
+    GeneratedMolecule,
     PipelineRun,
+    RankedCandidate,
+    StructureManifest,
+    TargetHypothesis,
 )
 
 if TYPE_CHECKING:
@@ -55,7 +56,7 @@ class CheckpointManager:
         logger.info(f"Checkpoint saved: stage {stage} -> {path.name}")
         return path
 
-    def load(self, run_id: str, stage: int) -> Optional[dict]:
+    def load(self, run_id: str, stage: int) -> dict | None:
         """Load a checkpoint file, returning raw dict."""
         path = self._checkpoint_path(run_id, stage)
         if not path.exists():
@@ -64,7 +65,7 @@ class CheckpointManager:
         with open(path) as f:
             return json.load(f)
 
-    def find_latest_checkpoint(self, run_id: str) -> Optional[int]:
+    def find_latest_checkpoint(self, run_id: str) -> int | None:
         """Find the highest completed stage for a run_id."""
         latest = -1
         for f in self.checkpoint_dir.glob(f"checkpoint_{run_id}_stage*.json"):

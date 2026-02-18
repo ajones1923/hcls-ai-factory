@@ -2,9 +2,11 @@
 VCF Parser - Extract variants from VCF files into evidence objects.
 """
 import gzip
-from pathlib import Path
-from typing import Generator, Optional
+from collections.abc import Generator
 from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Optional
+
 from loguru import logger
 
 try:
@@ -33,20 +35,20 @@ class VariantEvidence:
     depth: int = 0
 
     # Annotation (populated by annotator)
-    gene: Optional[str] = None
-    consequence: Optional[str] = None
-    impact: Optional[str] = None
-    hgvs_c: Optional[str] = None
-    hgvs_p: Optional[str] = None
+    gene: str | None = None
+    consequence: str | None = None
+    impact: str | None = None
+    hgvs_c: str | None = None
+    hgvs_p: str | None = None
 
     # Clinical information
-    clinical_significance: Optional[str] = None
-    rsid: Optional[str] = None
-    disease_associations: Optional[str] = None
+    clinical_significance: str | None = None
+    rsid: str | None = None
+    disease_associations: str | None = None
 
     # AlphaMissense predictions
-    am_pathogenicity: Optional[float] = None  # Score 0-1
-    am_class: Optional[str] = None  # likely_benign, ambiguous, likely_pathogenic
+    am_pathogenicity: float | None = None  # Score 0-1
+    am_class: str | None = None  # likely_benign, ambiguous, likely_pathogenic
 
     # Metadata
     source: str = "VCF"
@@ -136,8 +138,8 @@ class VCFParser:
         self,
         vcf_path: Path,
         min_qual: float = 20.0,
-        include_chromosomes: Optional[list] = None,
-        max_variants: Optional[int] = None,
+        include_chromosomes: list | None = None,
+        max_variants: int | None = None,
         exclude_ref_calls: bool = True,
     ):
         self.vcf_path = Path(vcf_path)
@@ -170,7 +172,7 @@ class VCFParser:
             if self.max_variants and count >= self.max_variants:
                 break
 
-            if variant.QUAL and variant.QUAL < self.min_qual:
+            if variant.QUAL and self.min_qual > variant.QUAL:
                 continue
 
             chrom = variant.CHROM
@@ -178,7 +180,7 @@ class VCFParser:
                 continue
 
             # Handle multi-allelic variants
-            for i, alt in enumerate(variant.ALT):
+            for _i, alt in enumerate(variant.ALT):
                 if alt is None:
                     continue
 

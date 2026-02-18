@@ -1,11 +1,12 @@
 """
 Shared pytest fixtures for Genomics Pipeline Web Portal tests.
 """
-import pytest
+import sys
 import tempfile
 from pathlib import Path
 from unittest.mock import Mock, patch
-import sys
+
+import pytest
 
 # Add the app directory to the path
 sys.path.insert(0, str(Path(__file__).parent.parent / 'app'))

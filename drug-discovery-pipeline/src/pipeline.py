@@ -15,28 +15,30 @@ Implements the 10-stage pipeline:
 
 Based on phase-5-6.pdf specification.
 """
-import os
 import json
+import os
 import time
 import uuid
-from pathlib import Path
-from typing import List, Dict, Any, Optional, Callable
+from collections.abc import Callable
 from datetime import datetime
+from pathlib import Path
+from typing import Any
+
 from loguru import logger
 
+from .checkpoint import CheckpointManager
 from .models import (
-    TargetHypothesis,
-    StructureInfo,
-    StructureManifest,
+    DockingResult,
     GeneratedMolecule,
     MoleculeProperties,
-    DockingResult,
-    RankedCandidate,
-    PipelineRun,
     PipelineConfig,
+    PipelineRun,
+    RankedCandidate,
+    StructureInfo,
+    StructureManifest,
+    TargetHypothesis,
 )
-from .nim_clients import create_nim_clients, NIMServiceManager
-from .checkpoint import CheckpointManager
+from .nim_clients import NIMServiceManager, create_nim_clients
 
 
 class DrugDiscoveryPipeline:
@@ -84,14 +86,14 @@ class DrugDiscoveryPipeline:
         self.checkpoint_manager = CheckpointManager(self.output_dir)
 
         # Stage timing
-        self.stage_timings: Dict[int, float] = {}
+        self.stage_timings: dict[int, float] = {}
 
         # Intermediate results
-        self.target: Optional[TargetHypothesis] = None
-        self.structures: Optional[StructureManifest] = None
-        self.molecules: List[GeneratedMolecule] = []
-        self.docking_results: List[DockingResult] = []
-        self.ranked_candidates: List[RankedCandidate] = []
+        self.target: TargetHypothesis | None = None
+        self.structures: StructureManifest | None = None
+        self.molecules: list[GeneratedMolecule] = []
+        self.docking_results: list[DockingResult] = []
+        self.ranked_candidates: list[RankedCandidate] = []
 
     def _report_progress(self, stage: int, message: str):
         """Report progress to callback if available."""
@@ -342,7 +344,7 @@ class DrugDiscoveryPipeline:
 
         try:
             from rdkit import Chem
-            from rdkit.Chem import Descriptors, Lipinski, QED
+            from rdkit.Chem import QED, Descriptors, Lipinski
             HAS_RDKIT = True
         except ImportError:
             HAS_RDKIT = False
@@ -471,7 +473,7 @@ class DrugDiscoveryPipeline:
                     raise RuntimeError(
                         f"DiffDock service appears down — {dock_failures} consecutive failures. "
                         f"Last error: {e}"
-                    )
+                    ) from e
                 logger.warning(f"Docking failed for {mol.id}: {e}")
                 continue
 

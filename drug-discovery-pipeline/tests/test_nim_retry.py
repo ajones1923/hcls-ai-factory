@@ -1,13 +1,14 @@
 """Tests for NIM client retry logic and SMILES validation."""
-import pytest
-from pathlib import Path
-from unittest.mock import patch, Mock, MagicMock
 import sys
+from pathlib import Path
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.nim_clients import MolMIMClient, DiffDockClient, NIMServiceConfig
 import requests
+from src.nim_clients import DiffDockClient, MolMIMClient, NIMServiceConfig
 
 
 @pytest.fixture

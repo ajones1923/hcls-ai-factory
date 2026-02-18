@@ -6,9 +6,10 @@ Supports multiple providers:
 - OpenAI (GPT)
 - vLLM (local models)
 """
-from typing import List, Dict, Optional, Generator
-from abc import ABC, abstractmethod
 import os
+from abc import ABC, abstractmethod
+from collections.abc import Generator
+
 from loguru import logger
 
 
@@ -19,7 +20,7 @@ class BaseLLMClient(ABC):
     def generate(
         self,
         prompt: str,
-        system_prompt: Optional[str] = None,
+        system_prompt: str | None = None,
         max_tokens: int = 1024,
         temperature: float = 0.7,
     ) -> str:
@@ -30,7 +31,7 @@ class BaseLLMClient(ABC):
     def generate_stream(
         self,
         prompt: str,
-        system_prompt: Optional[str] = None,
+        system_prompt: str | None = None,
         max_tokens: int = 1024,
         temperature: float = 0.7,
     ) -> Generator[str, None, None]:
@@ -43,13 +44,13 @@ class AnthropicClient(BaseLLMClient):
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
+        api_key: str | None = None,
         model: str = "claude-sonnet-4-20250514",
     ):
         try:
             import anthropic
-        except ImportError:
-            raise ImportError("anthropic package required. Install with: pip install anthropic")
+        except ImportError as e:
+            raise ImportError("anthropic package required. Install with: pip install anthropic") from e
 
         self.api_key = api_key or os.getenv("ANTHROPIC_API_KEY")
         if not self.api_key:
@@ -62,7 +63,7 @@ class AnthropicClient(BaseLLMClient):
     def generate(
         self,
         prompt: str,
-        system_prompt: Optional[str] = None,
+        system_prompt: str | None = None,
         max_tokens: int = 1024,
         temperature: float = 0.7,
     ) -> str:
@@ -80,7 +81,7 @@ class AnthropicClient(BaseLLMClient):
     def generate_stream(
         self,
         prompt: str,
-        system_prompt: Optional[str] = None,
+        system_prompt: str | None = None,
         max_tokens: int = 1024,
         temperature: float = 0.7,
     ) -> Generator[str, None, None]:
@@ -93,8 +94,7 @@ class AnthropicClient(BaseLLMClient):
                 {"role": "user", "content": prompt}
             ]
         ) as stream:
-            for text in stream.text_stream:
-                yield text
+            yield from stream.text_stream
 
 
 class OpenAIClient(BaseLLMClient):
@@ -102,13 +102,13 @@ class OpenAIClient(BaseLLMClient):
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
+        api_key: str | None = None,
         model: str = "gpt-4-turbo-preview",
     ):
         try:
             import openai
-        except ImportError:
-            raise ImportError("openai package required. Install with: pip install openai")
+        except ImportError as e:
+            raise ImportError("openai package required. Install with: pip install openai") from e
 
         self.api_key = api_key or os.getenv("OPENAI_API_KEY")
         if not self.api_key:
@@ -121,7 +121,7 @@ class OpenAIClient(BaseLLMClient):
     def generate(
         self,
         prompt: str,
-        system_prompt: Optional[str] = None,
+        system_prompt: str | None = None,
         max_tokens: int = 1024,
         temperature: float = 0.7,
     ) -> str:
@@ -141,7 +141,7 @@ class OpenAIClient(BaseLLMClient):
     def generate_stream(
         self,
         prompt: str,
-        system_prompt: Optional[str] = None,
+        system_prompt: str | None = None,
         max_tokens: int = 1024,
         temperature: float = 0.7,
     ) -> Generator[str, None, None]:
@@ -173,8 +173,8 @@ class OllamaClient(BaseLLMClient):
     ):
         try:
             import openai
-        except ImportError:
-            raise ImportError("openai package required. Install with: pip install openai")
+        except ImportError as e:
+            raise ImportError("openai package required. Install with: pip install openai") from e
 
         host = host or os.getenv("OLLAMA_HOST", "http://localhost:11434")
         # Ollama uses /v1 endpoint for OpenAI compatibility
@@ -189,7 +189,7 @@ class OllamaClient(BaseLLMClient):
     def generate(
         self,
         prompt: str,
-        system_prompt: Optional[str] = None,
+        system_prompt: str | None = None,
         max_tokens: int = 1024,
         temperature: float = 0.7,
     ) -> str:
@@ -209,7 +209,7 @@ class OllamaClient(BaseLLMClient):
     def generate_stream(
         self,
         prompt: str,
-        system_prompt: Optional[str] = None,
+        system_prompt: str | None = None,
         max_tokens: int = 1024,
         temperature: float = 0.7,
     ) -> Generator[str, None, None]:
@@ -242,8 +242,8 @@ class VLLMClient(BaseLLMClient):
     ):
         try:
             import openai
-        except ImportError:
-            raise ImportError("openai package required. Install with: pip install openai")
+        except ImportError as e:
+            raise ImportError("openai package required. Install with: pip install openai") from e
 
         host = host or os.getenv("VLLM_HOST", "localhost")
         port = port or int(os.getenv("VLLM_PORT", "8080"))
@@ -258,7 +258,7 @@ class VLLMClient(BaseLLMClient):
     def generate(
         self,
         prompt: str,
-        system_prompt: Optional[str] = None,
+        system_prompt: str | None = None,
         max_tokens: int = 1024,
         temperature: float = 0.7,
     ) -> str:
@@ -278,7 +278,7 @@ class VLLMClient(BaseLLMClient):
     def generate_stream(
         self,
         prompt: str,
-        system_prompt: Optional[str] = None,
+        system_prompt: str | None = None,
         max_tokens: int = 1024,
         temperature: float = 0.7,
     ) -> Generator[str, None, None]:
@@ -308,8 +308,8 @@ class LLMClient:
     @staticmethod
     def create(
         provider: str = "anthropic",
-        model: Optional[str] = None,
-        api_key: Optional[str] = None,
+        model: str | None = None,
+        api_key: str | None = None,
         **kwargs
     ) -> BaseLLMClient:
         """
