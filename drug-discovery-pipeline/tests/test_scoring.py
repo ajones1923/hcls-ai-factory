@@ -1,14 +1,15 @@
 """Tests for drug discovery scoring and Lipinski filter logic."""
-import pytest
-from pathlib import Path
 import sys
+from pathlib import Path
+
+import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.models import (
+    DockingResult,
     GeneratedMolecule,
     MoleculeProperties,
-    DockingResult,
     PipelineConfig,
     RankedCandidate,
 )
@@ -183,11 +184,11 @@ class TestPipelineConfigWeights:
         assert config.num_molecules == 1000
 
     def test_num_molecules_too_low(self):
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             PipelineConfig(target_gene="VCP", num_molecules=0)
 
     def test_num_molecules_too_high(self):
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             PipelineConfig(target_gene="VCP", num_molecules=1001)
 
     def test_max_mw_default(self):

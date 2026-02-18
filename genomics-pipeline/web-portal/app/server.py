@@ -4,22 +4,33 @@ Genomics Pipeline Web Portal
 Flask backend server for managing the FASTQ → VCF workflow
 """
 
-import os
-import sys
-import json
-import signal
 import atexit
+import contextlib
+import json
+import os
+import signal
 import subprocess
+import sys
 import threading
 import time
-from pathlib import Path
 from datetime import datetime
 from functools import wraps
-from flask import Flask, render_template, jsonify, request, Response, stream_with_context, send_file
-from werkzeug.utils import secure_filename
+from pathlib import Path
+
+import psutil
+from flask import (
+    Flask,
+    Response,
+    jsonify,
+    render_template,
+    request,
+    send_file,
+    stream_with_context,
+)
 from flask_cors import CORS
 from loguru import logger
-import psutil
+from werkzeug.utils import secure_filename
+
 try:
     import pynvml
     NVML_AVAILABLE = True
@@ -122,7 +133,7 @@ def load_pipeline_state():
     global pipeline_state
     try:
         if STATE_FILE.exists():
-            with open(STATE_FILE, 'r') as f:
+            with open(STATE_FILE) as f:
                 saved_state = json.load(f)
                 # Only restore if it was a completed or error state (not running)
                 if saved_state.get('status') in ['success', 'error']:
@@ -141,7 +152,7 @@ def load_config():
     """Load pipeline configuration"""
     config = {}
     if CONFIG_FILE.exists():
-        with open(CONFIG_FILE, 'r') as f:
+        with open(CONFIG_FILE) as f:
             for line in f:
                 line = line.strip()
                 if line and not line.startswith('#') and '=' in line:
@@ -154,7 +165,7 @@ def save_config(config):
     """Save pipeline configuration"""
     lines = []
     if CONFIG_FILE.exists():
-        with open(CONFIG_FILE, 'r') as f:
+        with open(CONFIG_FILE) as f:
             for line in f:
                 stripped = line.strip()
                 if not stripped or stripped.startswith('#'):
@@ -423,7 +434,7 @@ def stop():
     """Stop running process"""
     global pipeline_state, running_processes
 
-    for step_name, process in running_processes.items():
+    for _step_name, process in running_processes.items():
         try:
             process.terminate()
             process.wait(timeout=5)
@@ -446,7 +457,7 @@ def stop_all():
     killed_count = 0
 
     # First, stop any processes managed by the portal
-    for step_name, process in running_processes.items():
+    for _step_name, process in running_processes.items():
         try:
             process.terminate()
             process.wait(timeout=5)
@@ -572,7 +583,7 @@ def get_logs(log_type):
         return jsonify({'content': 'Log file not found'})
 
     try:
-        with open(log_file, 'r') as f:
+        with open(log_file) as f:
             content = f.read()
         return jsonify({'content': content})
     except Exception as e:
@@ -652,10 +663,8 @@ def reset_state():
 
     # Remove saved state file
     if STATE_FILE.exists():
-        try:
+        with contextlib.suppress(OSError):
             STATE_FILE.unlink()
-        except OSError:
-            pass
 
     return jsonify({'success': True, 'message': 'Pipeline state reset to idle'})
 
@@ -1111,15 +1120,13 @@ def readiness():
 # --- Graceful shutdown ---
 def graceful_shutdown(signum=None, frame=None):
     """Terminate all child processes on shutdown."""
-    for step_name, process in list(running_processes.items()):
+    for _step_name, process in list(running_processes.items()):
         try:
             process.terminate()
             process.wait(timeout=5)
         except Exception:
-            try:
+            with contextlib.suppress(Exception):
                 process.kill()
-            except Exception:
-                pass
     running_processes.clear()
     if signum:
         sys.exit(0)

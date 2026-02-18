@@ -7,16 +7,18 @@ Provides clients for:
 
 Based on NVIDIA NIM API specifications from phase-5-6.pdf.
 """
-import os
 import json
+import os
 import time
-import requests
-from pathlib import Path
-from typing import List, Dict, Any, Optional, Generator
+from collections.abc import Generator
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
+
+import requests
 from loguru import logger
 
-from .models import GeneratedMolecule, DockingResult, MoleculeProperties
+from .models import DockingResult, GeneratedMolecule, MoleculeProperties
 
 
 @dataclass
@@ -65,7 +67,7 @@ class MolMIMClient:
         temperature: float = 1.0,
         num_samples_per_token: int = 10,
         masked_ratio: float = 0.1,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Generate molecules using MolMIM.
 
@@ -132,10 +134,10 @@ class MolMIMClient:
 
     def generate_batch(
         self,
-        seed_smiles_list: List[str],
+        seed_smiles_list: list[str],
         num_molecules_per_seed: int = 5,
         **kwargs
-    ) -> Dict[str, List[Dict[str, Any]]]:
+    ) -> dict[str, list[dict[str, Any]]]:
         """
         Generate molecules from multiple seeds.
 
@@ -183,7 +185,7 @@ class DiffDockClient:
         ligand_smiles: str,
         num_poses: int = 10,
         confidence_threshold: float = 0.0,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Dock a ligand to a protein structure.
 
@@ -209,7 +211,7 @@ class DiffDockClient:
 
         # Read PDB if path provided
         if Path(protein_pdb).exists():
-            with open(protein_pdb, 'r') as f:
+            with open(protein_pdb) as f:
                 protein_pdb = f.read()
 
         payload = {
@@ -254,9 +256,9 @@ class DiffDockClient:
     def dock_batch(
         self,
         protein_pdb: str,
-        ligand_smiles_list: List[str],
+        ligand_smiles_list: list[str],
         **kwargs
-    ) -> Dict[str, List[Dict[str, Any]]]:
+    ) -> dict[str, list[dict[str, Any]]]:
         """
         Dock multiple ligands to a protein.
 
@@ -286,8 +288,8 @@ class NIMServiceManager:
         self.molmim_config = molmim_config or NIMServiceConfig(port=8001)
         self.diffdock_config = diffdock_config or NIMServiceConfig(port=8002)
 
-        self._molmim: Optional[MolMIMClient] = None
-        self._diffdock: Optional[DiffDockClient] = None
+        self._molmim: MolMIMClient | None = None
+        self._diffdock: DiffDockClient | None = None
 
     @property
     def molmim(self) -> MolMIMClient:
@@ -303,14 +305,14 @@ class NIMServiceManager:
             self._diffdock = DiffDockClient(self.diffdock_config)
         return self._diffdock
 
-    def check_services(self) -> Dict[str, bool]:
+    def check_services(self) -> dict[str, bool]:
         """Check health of all NIM services."""
         return {
             "molmim": self.molmim.check_health(),
             "diffdock": self.diffdock.check_health(),
         }
 
-    def get_available_services(self) -> List[str]:
+    def get_available_services(self) -> list[str]:
         """Get list of available services."""
         status = self.check_services()
         return [name for name, available in status.items() if available]
@@ -332,7 +334,7 @@ class MockMolMIMClient(MolMIMClient):
         seed_smiles: str,
         num_molecules: int = 10,
         **kwargs
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Generate molecules using RDKit fallback."""
         try:
             from rdkit import Chem
@@ -415,10 +417,10 @@ class MockDiffDockClient(DiffDockClient):
         ligand_smiles: str,
         num_poses: int = 10,
         **kwargs
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Generate simulated docking results."""
-        import random
         import hashlib
+        import random
 
         # Use hash of inputs for reproducible "random" scores
         seed = int(hashlib.md5(f"{protein_pdb[:100]}{ligand_smiles}".encode()).hexdigest()[:8], 16)

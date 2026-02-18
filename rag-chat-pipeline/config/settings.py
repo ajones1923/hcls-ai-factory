@@ -4,6 +4,7 @@ RAG Chat Pipeline Configuration
 import os
 from pathlib import Path
 from typing import Optional
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -50,12 +51,12 @@ class Settings(BaseSettings):
     USE_VEP_ANNOTATION: bool = True
 
     # Gene Annotation (fallback if VEP not available)
-    GENE_BED_FILE: Optional[Path] = None  # Path to gene regions BED file
+    GENE_BED_FILE: Path | None = None  # Path to gene regions BED file
 
     # LLM Configuration
     LLM_PROVIDER: str = "ollama"  # "openai", "anthropic", "vllm", or "ollama"
     LLM_MODEL: str = "llama3.1:70b"  # 70B for DGX Spark
-    LLM_API_KEY: Optional[str] = None  # Set via ANTHROPIC_API_KEY or OPENAI_API_KEY env var
+    LLM_API_KEY: str | None = None  # Set via ANTHROPIC_API_KEY or OPENAI_API_KEY env var
     LLM_MAX_TOKENS: int = 4096
     LLM_TEMPERATURE: float = 0.7
 
@@ -77,7 +78,7 @@ class Settings(BaseSettings):
 
     # Ingestion Configuration
     INGESTION_BATCH_SIZE: int = 1000
-    MAX_VARIANTS_TO_INGEST: Optional[int] = None  # None = all variants
+    MAX_VARIANTS_TO_INGEST: int | None = None  # None = all variants
 
     # Quality Filters
     MIN_VARIANT_QUAL: float = 20.0

@@ -2,18 +2,18 @@
 Milvus Client - Vector database operations for genomic evidence.
 """
 import os
-from typing import List, Optional, Dict, Any
 import re
+from typing import Any, Optional
+
 import numpy as np
 from loguru import logger
-
 from pymilvus import (
-    connections,
-    utility,
     Collection,
     CollectionSchema,
-    FieldSchema,
     DataType,
+    FieldSchema,
+    connections,
+    utility,
 )
 
 from .vcf_parser import VariantEvidence
@@ -39,7 +39,7 @@ class MilvusClient:
         self.port = port or int(os.environ.get("MILVUS_PORT", "19530"))
         self.collection_name = collection_name
         self.embedding_dim = embedding_dim
-        self._collection: Optional[Collection] = None
+        self._collection: Collection | None = None
 
     @staticmethod
     def _sanitize_gene(gene: str) -> str:
@@ -227,7 +227,7 @@ class MilvusClient:
 
     def insert(
         self,
-        evidence_list: List[VariantEvidence],
+        evidence_list: list[VariantEvidence],
         embeddings: np.ndarray,
     ) -> int:
         """Insert evidence with embeddings into collection."""
@@ -274,8 +274,8 @@ class MilvusClient:
         query_embedding: np.ndarray,
         top_k: int = 10,
         score_threshold: float = 0.0,
-        filter_expr: Optional[str] = None,
-    ) -> List[Dict[str, Any]]:
+        filter_expr: str | None = None,
+    ) -> list[dict[str, Any]]:
         """
         Search for similar evidence.
 
@@ -349,7 +349,7 @@ class MilvusClient:
         self,
         gene: str,
         top_k: int = 100,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Search for all variants in a specific gene."""
         gene = self._sanitize_gene(gene)
         collection = self.get_collection()
@@ -372,7 +372,7 @@ class MilvusClient:
         start: int,
         end: int,
         top_k: int = 100,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Search for variants in a genomic region."""
         chrom = self._sanitize_chrom(chrom)
         start = int(start)
@@ -393,7 +393,7 @@ class MilvusClient:
 
         return results
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get collection statistics."""
         collection = self.get_collection()
         return {

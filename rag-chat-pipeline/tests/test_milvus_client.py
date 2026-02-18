@@ -1,9 +1,10 @@
 """Tests for Milvus client input sanitization and query safety."""
-import pytest
 import re
-from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
 import sys
+from pathlib import Path
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 

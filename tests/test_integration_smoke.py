@@ -7,8 +7,9 @@ to health/readiness probes. They use Flask test clients (no network needed).
 Run with: python -m pytest tests/test_integration_smoke.py -v
 """
 import json
-import pytest
 from unittest.mock import patch
+
+import pytest
 
 
 @pytest.mark.integration

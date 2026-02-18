@@ -1,12 +1,13 @@
 """
 Tests for Target Hypothesis module.
 """
-import pytest
 import json
-from pathlib import Path
-from datetime import datetime
-
 import sys
+from datetime import datetime
+from pathlib import Path
+
+import pytest
+
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.target_hypothesis import (

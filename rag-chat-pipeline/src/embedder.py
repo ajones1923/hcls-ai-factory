@@ -1,9 +1,9 @@
 """
 Evidence Embedder - Generate vector embeddings for variant evidence.
 """
-from typing import List, Optional
-import numpy as np
 from pathlib import Path
+
+import numpy as np
 from loguru import logger
 
 try:
@@ -30,8 +30,8 @@ class EvidenceEmbedder:
     def __init__(
         self,
         model_name: str = "BAAI/bge-small-en-v1.5",
-        cache_dir: Optional[Path] = None,
-        device: Optional[str] = None,
+        cache_dir: Path | None = None,
+        device: str | None = None,
         batch_size: int = 32,
     ):
         self.model_name = model_name
@@ -67,7 +67,7 @@ class EvidenceEmbedder:
         )
         return embedding
 
-    def embed_texts(self, texts: List[str]) -> np.ndarray:
+    def embed_texts(self, texts: list[str]) -> np.ndarray:
         """Embed multiple text strings."""
         embeddings = self.model.encode(
             texts,
@@ -81,7 +81,7 @@ class EvidenceEmbedder:
         """Embed a single variant evidence object."""
         return self.embed_text(evidence.text_summary)
 
-    def embed_evidence_batch(self, evidence_list: List[VariantEvidence]) -> np.ndarray:
+    def embed_evidence_batch(self, evidence_list: list[VariantEvidence]) -> np.ndarray:
         """Embed a batch of variant evidence objects."""
         texts = [e.text_summary for e in evidence_list]
         return self.embed_texts(texts)
@@ -159,7 +159,7 @@ class CachedEmbedder(EvidenceEmbedder):
         self._memory_cache[cache_key] = embedding
         return embedding
 
-    def embed_evidence_batch(self, evidence_list: List[VariantEvidence]) -> np.ndarray:
+    def embed_evidence_batch(self, evidence_list: list[VariantEvidence]) -> np.ndarray:
         """Embed batch with caching."""
         embeddings = []
         to_compute = []
@@ -179,7 +179,7 @@ class CachedEmbedder(EvidenceEmbedder):
             texts = [e.text_summary for e in to_compute]
             new_embeddings = self.embed_texts(texts)
 
-            for evidence, embedding, idx in zip(to_compute, new_embeddings, to_compute_idx):
+            for evidence, embedding, idx in zip(to_compute, new_embeddings, to_compute_idx, strict=False):
                 self._memory_cache[evidence.variant_id] = embedding
                 embeddings.append((idx, embedding))
 

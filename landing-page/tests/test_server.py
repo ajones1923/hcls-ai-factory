@@ -1,13 +1,14 @@
 """Tests for AI Factory landing page server."""
-import pytest
 import json
-from pathlib import Path
-from unittest.mock import patch, Mock
 import sys
+from pathlib import Path
+from unittest.mock import Mock, patch
+
+import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from server import app, is_port_open, check_service_health, SERVICES
+from server import SERVICES, app, check_service_health, is_port_open
 
 
 @pytest.fixture
@@ -121,6 +122,6 @@ class TestHelperFunctions:
         assert 'genomics' in SERVICES
         assert 'milvus' in SERVICES
         assert 'grafana' in SERVICES
-        for sid, sinfo in SERVICES.items():
+        for _sid, sinfo in SERVICES.items():
             assert 'port' in sinfo
             assert 'name' in sinfo

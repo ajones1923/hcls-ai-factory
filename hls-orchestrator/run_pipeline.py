@@ -8,12 +8,12 @@ Alternative to Nextflow for environments with cgroup issues.
 
 import argparse
 import json
-import sys
 import os
-from pathlib import Path
-from datetime import datetime
-import subprocess
 import shutil
+import subprocess
+import sys
+from datetime import datetime
+from pathlib import Path
 
 # Add paths
 sys.path.insert(0, str(Path(__file__).parent.parent / "drug-discovery-pipeline" / "src"))

@@ -12,26 +12,25 @@ Usage:
     ddpipe report --run-id abc123
     ddpipe export --run-id abc123 --format sdf
 """
+import json
 import os
 import sys
-import json
-from pathlib import Path
-from typing import Optional, List
 from datetime import datetime
+from pathlib import Path
 
 import typer
-from rich.console import Console
-from rich.table import Table
-from rich.progress import Progress, SpinnerColumn, TextColumn
-from rich.panel import Panel
 from loguru import logger
+from rich.console import Console
+from rich.panel import Panel
+from rich.progress import Progress, SpinnerColumn, TextColumn
+from rich.table import Table
 
 # Add parent to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.models import PipelineConfig, TargetHypothesis
-from src.pipeline import DrugDiscoveryPipeline, run_vcp_demo_pipeline
 from src.nim_clients import create_nim_clients
+from src.pipeline import DrugDiscoveryPipeline, run_vcp_demo_pipeline
 
 app = typer.Typer(
     name="ddpipe",
@@ -54,13 +53,13 @@ def setup_logging(verbose: bool = False):
 
 @app.command()
 def run(
-    target: str = typer.Option(..., "--target", "-t", help="Target gene symbol (e.g., VCP)"),
-    config_file: Optional[Path] = typer.Option(None, "--config", "-c", help="Config YAML file"),
-    output_dir: str = typer.Option("outputs", "--output", "-o", help="Output directory"),
-    num_molecules: int = typer.Option(20, "--num-molecules", "-n", help="Number of molecules to generate"),
-    seed_smiles: Optional[str] = typer.Option(None, "--seed", "-s", help="Seed SMILES for generation"),
-    use_mock: bool = typer.Option(False, "--mock", help="Use mock NIM services"),
-    verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output"),
+    target: str = typer.Option(..., "--target", "-t", help="Target gene symbol (e.g., VCP)"),  # noqa: B008
+    config_file: Path | None = typer.Option(None, "--config", "-c", help="Config YAML file"),  # noqa: B008
+    output_dir: str = typer.Option("outputs", "--output", "-o", help="Output directory"),  # noqa: B008
+    num_molecules: int = typer.Option(20, "--num-molecules", "-n", help="Number of molecules to generate"),  # noqa: B008
+    seed_smiles: str | None = typer.Option(None, "--seed", "-s", help="Seed SMILES for generation"),  # noqa: B008
+    use_mock: bool = typer.Option(False, "--mock", help="Use mock NIM services"),  # noqa: B008
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output"),  # noqa: B008
 ):
     """
     Run the drug discovery pipeline for a target.
@@ -104,12 +103,12 @@ def run(
         try:
             result = pipeline.run_pipeline()
 
-            for i in range(10):
+            for _i in range(10):
                 progress.update(task, advance=1)
 
         except Exception as e:
             console.print(f"[red]Pipeline failed: {e}[/red]")
-            raise typer.Exit(1)
+            raise typer.Exit(1) from None
 
     # Show results
     console.print("\n[bold green]Pipeline Complete![/bold green]\n")
@@ -140,8 +139,8 @@ def run(
 
 @app.command()
 def validate(
-    input_file: Path = typer.Argument(..., help="Target hypothesis JSON file"),
-    verbose: bool = typer.Option(False, "--verbose", "-v"),
+    input_file: Path = typer.Argument(..., help="Target hypothesis JSON file"),  # noqa: B008
+    verbose: bool = typer.Option(False, "--verbose", "-v"),  # noqa: B008
 ):
     """
     Validate a target hypothesis file.
@@ -171,12 +170,12 @@ def validate(
 
     except Exception as e:
         console.print(f"[red]✗ Validation failed: {e}[/red]")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from None
 
 
 @app.command()
 def services(
-    check: bool = typer.Option(True, "--check", help="Check service availability"),
+    check: bool = typer.Option(True, "--check", help="Check service availability"),  # noqa: B008
 ):
     """
     Check NIM service status.
@@ -211,9 +210,9 @@ def services(
 
 @app.command()
 def stage(
-    stage_num: int = typer.Argument(..., help="Stage number (0-9)"),
-    run_id: str = typer.Option(..., "--run-id", "-r", help="Pipeline run ID"),
-    output_dir: str = typer.Option("outputs", "--output", "-o"),
+    stage_num: int = typer.Argument(..., help="Stage number (0-9)"),  # noqa: B008
+    run_id: str = typer.Option(..., "--run-id", "-r", help="Pipeline run ID"),  # noqa: B008
+    output_dir: str = typer.Option("outputs", "--output", "-o"),  # noqa: B008
 ):
     """
     Run a specific pipeline stage.
@@ -247,9 +246,9 @@ def stage(
 
 @app.command()
 def report(
-    run_id: str = typer.Option(..., "--run-id", "-r", help="Pipeline run ID"),
-    format: str = typer.Option("json", "--format", "-f", help="Output format (json, html, csv)"),
-    output_dir: str = typer.Option("outputs", "--output", "-o"),
+    run_id: str = typer.Option(..., "--run-id", "-r", help="Pipeline run ID"),  # noqa: B008
+    format: str = typer.Option("json", "--format", "-f", help="Output format (json, html, csv)"),  # noqa: B008
+    output_dir: str = typer.Option("outputs", "--output", "-o"),  # noqa: B008
 ):
     """
     Generate or view a pipeline report.
@@ -281,10 +280,10 @@ def report(
 
 @app.command("export")
 def export_results(
-    run_id: str = typer.Option(..., "--run-id", "-r", help="Pipeline run ID"),
-    format: str = typer.Option("sdf", "--format", "-f", help="Export format (sdf, csv, smiles)"),
-    output_dir: str = typer.Option("outputs", "--output", "-o"),
-    top_n: int = typer.Option(10, "--top", "-n", help="Number of candidates to export"),
+    run_id: str = typer.Option(..., "--run-id", "-r", help="Pipeline run ID"),  # noqa: B008
+    format: str = typer.Option("sdf", "--format", "-f", help="Export format (sdf, csv, smiles)"),  # noqa: B008
+    output_dir: str = typer.Option("outputs", "--output", "-o"),  # noqa: B008
+    top_n: int = typer.Option(10, "--top", "-n", help="Number of candidates to export"),  # noqa: B008
 ):
     """
     Export pipeline results.
@@ -345,7 +344,7 @@ def export_results(
 
         except ImportError:
             console.print("[red]RDKit required for SDF export[/red]")
-            raise typer.Exit(1)
+            raise typer.Exit(1) from None
 
 
 @app.command()
@@ -381,7 +380,7 @@ def demo():
 
         except Exception as e:
             console.print(f"[red]Demo failed: {e}[/red]")
-            raise typer.Exit(1)
+            raise typer.Exit(1) from None
 
 
 @app.callback()

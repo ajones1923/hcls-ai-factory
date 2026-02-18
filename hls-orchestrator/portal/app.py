@@ -5,14 +5,15 @@ Unified interface for Genomics → RAG Chat → Drug Discovery
 A comprehensive dashboard for end-to-end drug discovery workflows.
 """
 
-import streamlit as st
 import json
-import subprocess
 import os
-from pathlib import Path
+import subprocess
 from datetime import datetime
+from pathlib import Path
+from typing import Any, Optional
+
 import requests
-from typing import Dict, List, Any, Optional
+import streamlit as st
 
 # Configuration
 ORCHESTRATOR_DIR = Path(__file__).parent.parent
@@ -205,7 +206,7 @@ def get_service_status(url: str, timeout: float = 2.0) -> bool:
         return False
 
 
-def get_gpu_metrics() -> Dict[str, Any]:
+def get_gpu_metrics() -> dict[str, Any]:
     """Fetch GPU metrics from DCGM exporter."""
     try:
         response = requests.get("http://localhost:9400/metrics", timeout=2)
@@ -601,7 +602,7 @@ def render_drug_discovery():
                 ("DiffDock", "localhost:8002", False),
             ]
 
-            for name, url, status in services:
+            for name, _url, status in services:
                 icon = "🟢" if status else "🟡"
                 mode = "Online" if status else "Mock Mode"
                 st.markdown(f"{icon} **{name}** - {mode}")

@@ -24,14 +24,13 @@ Coverage: 201 high-value genes across 13 therapeutic areas:
 85% of genes (171/201) are druggable with FDA-approved drugs or clinical candidates.
 """
 
-from typing import Dict, List, Any, Optional
-
+from typing import Any, Optional
 
 # =============================================================================
 # KNOWLEDGE CONNECTION DATABASE
 # =============================================================================
 
-KNOWLEDGE_CONNECTIONS: Dict[str, Dict[str, Any]] = {
+KNOWLEDGE_CONNECTIONS: dict[str, dict[str, Any]] = {
 
     # =========================================================================
     # NEURODEGENERATION / FTD / ALS (Original + Expanded)
@@ -2119,7 +2118,7 @@ KNOWLEDGE_CONNECTIONS: Dict[str, Dict[str, Any]] = {
 # Used for Stage 2 → Stage 3 handoff (target export with drug discovery data)
 # =============================================================================
 
-GENE_REFERENCE_DATA: Dict[str, Dict[str, Any]] = {
+GENE_REFERENCE_DATA: dict[str, dict[str, Any]] = {
     # --- Neurodegeneration ---
     'VCP': {
         'uniprot_id': 'P55072',
@@ -2503,7 +2502,7 @@ GENE_REFERENCE_DATA: Dict[str, Dict[str, Any]] = {
 }
 
 
-def get_gene_reference_data(gene: str) -> Dict[str, Any]:
+def get_gene_reference_data(gene: str) -> dict[str, Any]:
     """
     Get reference data for a gene including UniProt ID, seed compound SMILES,
     PDB IDs, drugs, and druggability.
@@ -2547,7 +2546,7 @@ def get_gene_reference_data(gene: str) -> Dict[str, Any]:
     return result
 
 
-def get_knowledge_for_genes(genes: List[str]) -> List[Dict[str, Any]]:
+def get_knowledge_for_genes(genes: list[str]) -> list[dict[str, Any]]:
     """
     Get knowledge connections for a list of genes.
 
@@ -2570,7 +2569,7 @@ def get_knowledge_for_genes(genes: List[str]) -> List[Dict[str, Any]]:
     return connections
 
 
-def get_knowledge_for_evidence(evidence_list: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def get_knowledge_for_evidence(evidence_list: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """
     Extract genes from evidence and return their knowledge connections.
 
@@ -2589,7 +2588,7 @@ def get_knowledge_for_evidence(evidence_list: List[Dict[str, Any]]) -> List[Dict
     return get_knowledge_for_genes(genes)
 
 
-def format_knowledge_for_prompt(evidence_list: List[Dict[str, Any]]) -> str:
+def format_knowledge_for_prompt(evidence_list: list[dict[str, Any]]) -> str:
     """
     Format knowledge connections as context for Claude's prompt.
 
@@ -2625,12 +2624,12 @@ def format_knowledge_for_prompt(evidence_list: List[Dict[str, Any]]) -> str:
     return "\n".join(lines)
 
 
-def get_druggable_genes() -> List[str]:
+def get_druggable_genes() -> list[str]:
     """Return list of genes marked as druggable targets."""
     return [gene for gene, data in KNOWLEDGE_CONNECTIONS.items() if data['druggable']]
 
 
-def get_gene_drugs(gene: str) -> Optional[List[str]]:
+def get_gene_drugs(gene: str) -> list[str] | None:
     """Get list of drugs/therapeutics for a specific gene."""
     gene_upper = gene.upper()
     if gene_upper in KNOWLEDGE_CONNECTIONS:
@@ -2638,7 +2637,7 @@ def get_gene_drugs(gene: str) -> Optional[List[str]]:
     return None
 
 
-def get_genes_by_disease(disease_keyword: str) -> List[str]:
+def get_genes_by_disease(disease_keyword: str) -> list[str]:
     """Find genes associated with a disease keyword."""
     matches = []
     keyword_lower = disease_keyword.lower()
@@ -2650,7 +2649,7 @@ def get_genes_by_disease(disease_keyword: str) -> List[str]:
     return matches
 
 
-def get_genes_by_pathway(pathway_keyword: str) -> List[str]:
+def get_genes_by_pathway(pathway_keyword: str) -> list[str]:
     """Find genes in a specific pathway."""
     matches = []
     keyword_lower = pathway_keyword.lower()
@@ -2660,7 +2659,7 @@ def get_genes_by_pathway(pathway_keyword: str) -> List[str]:
     return matches
 
 
-def get_knowledge_stats() -> Dict[str, Any]:
+def get_knowledge_stats() -> dict[str, Any]:
     """Get statistics about the knowledge base."""
     total = len(KNOWLEDGE_CONNECTIONS)
     druggable = sum(1 for data in KNOWLEDGE_CONNECTIONS.values() if data['druggable'])

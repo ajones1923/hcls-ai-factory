@@ -2,14 +2,15 @@
 RAG Engine - Retrieval-Augmented Generation for genomic evidence.
 """
 import os
-from typing import List, Dict, Any, Optional, Generator
+from collections.abc import Generator
+from typing import Any, Optional
+
 from loguru import logger
 
 from .embedder import EvidenceEmbedder
-from .milvus_client import MilvusClient
-from .llm_client import LLMClient, BaseLLMClient
 from .knowledge import format_knowledge_for_prompt, get_knowledge_for_evidence
-
+from .llm_client import BaseLLMClient, LLMClient
+from .milvus_client import MilvusClient
 
 # System prompt for the RAG assistant
 GENOMICS_RAG_SYSTEM_PROMPT = """You are a genomics expert assistant with access to variant evidence from whole genome sequencing data.
@@ -273,7 +274,7 @@ class RAGEngine:
         llm_client: BaseLLMClient,
         top_k: int = 10,
         score_threshold: float = 0.5,
-        system_prompt: Optional[str] = None,
+        system_prompt: str | None = None,
     ):
         self.milvus = milvus_client
         self.embedder = embedder
@@ -284,7 +285,7 @@ class RAGEngine:
 
         logger.info("RAG Engine initialized")
 
-    def _get_expanded_genes(self, query: str) -> List[str]:
+    def _get_expanded_genes(self, query: str) -> list[str]:
         """
         Extract relevant genes based on disease/drug keywords in the query.
 
@@ -316,11 +317,11 @@ class RAGEngine:
 
         return list(relevant_genes)
 
-    def _get_pharmacogenomic_genes(self, query: str) -> List[str]:
+    def _get_pharmacogenomic_genes(self, query: str) -> list[str]:
         """Deprecated: Use _get_expanded_genes instead. Kept for compatibility."""
         return self._get_expanded_genes(query)
 
-    def _retrieve_by_genes(self, genes: List[str], limit_per_gene: int = 3) -> List[Dict[str, Any]]:
+    def _retrieve_by_genes(self, genes: list[str], limit_per_gene: int = 3) -> list[dict[str, Any]]:
         """
         Retrieve variants for specific genes by direct query.
         """
@@ -349,9 +350,9 @@ class RAGEngine:
     def retrieve(
         self,
         query: str,
-        top_k: Optional[int] = None,
-        filter_expr: Optional[str] = None,
-    ) -> List[Dict[str, Any]]:
+        top_k: int | None = None,
+        filter_expr: str | None = None,
+    ) -> list[dict[str, Any]]:
         """
         Retrieve relevant evidence for a query.
 
@@ -399,7 +400,7 @@ class RAGEngine:
         logger.info(f"Retrieved {len(results)} evidence items for query")
         return results
 
-    def _format_evidence_context(self, evidence_list: List[Dict[str, Any]]) -> str:
+    def _format_evidence_context(self, evidence_list: list[dict[str, Any]]) -> str:
         """Format evidence for inclusion in LLM prompt."""
         if not evidence_list:
             return "No relevant evidence found in the database."
@@ -428,7 +429,7 @@ class RAGEngine:
 
         return "\n".join(context_parts)
 
-    def _build_prompt(self, query: str, context: str, evidence: List[Dict[str, Any]] = None) -> str:
+    def _build_prompt(self, query: str, context: str, evidence: list[dict[str, Any]] = None) -> str:
         """Build the full prompt for the LLM, including Clinker knowledge connections."""
         # Get Clinker knowledge context for genes in the evidence
         knowledge_context = ""
@@ -466,9 +467,9 @@ class RAGEngine:
     def query(
         self,
         question: str,
-        filter_expr: Optional[str] = None,
+        filter_expr: str | None = None,
         include_evidence: bool = True,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Answer a question using RAG.
 
@@ -509,8 +510,8 @@ class RAGEngine:
     def query_stream(
         self,
         question: str,
-        filter_expr: Optional[str] = None,
-    ) -> Generator[Dict[str, Any], None, None]:
+        filter_expr: str | None = None,
+    ) -> Generator[dict[str, Any], None, None]:
         """
         Stream answer to a question using RAG.
 
@@ -543,7 +544,7 @@ class RAGEngine:
 
         yield {"type": "done", "content": full_answer}
 
-    def search_gene(self, gene: str) -> List[Dict[str, Any]]:
+    def search_gene(self, gene: str) -> list[dict[str, Any]]:
         """Search for all variants in a specific gene."""
         return self.milvus.search_by_gene(gene)
 
@@ -552,7 +553,7 @@ class RAGEngine:
         chrom: str,
         start: int,
         end: int,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Search for variants in a genomic region."""
         return self.milvus.search_by_region(chrom, start, end)
 
@@ -588,7 +589,7 @@ def create_rag_engine(
     collection_name: str = "genomic_evidence",
     embedding_model: str = "BAAI/bge-small-en-v1.5",
     llm_provider: str = "anthropic",
-    llm_model: Optional[str] = None,
+    llm_model: str | None = None,
     **kwargs
 ) -> RAGEngine:
     """

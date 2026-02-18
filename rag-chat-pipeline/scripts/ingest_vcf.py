@@ -8,17 +8,18 @@ Usage:
 import argparse
 import sys
 from pathlib import Path
-from tqdm import tqdm
+
 from loguru import logger
+from tqdm import tqdm
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from config.settings import settings
-from src.vcf_parser import VCFParser
-from src.annotator import VariantAnnotator, ClinVarAnnotator, AlphaMissenseAnnotator
-from src.embedder import EvidenceEmbedder, CachedEmbedder
+from src.annotator import AlphaMissenseAnnotator, ClinVarAnnotator, VariantAnnotator
+from src.embedder import CachedEmbedder, EvidenceEmbedder
 from src.milvus_client import MilvusClient
+from src.vcf_parser import VCFParser
 
 
 def parse_args():

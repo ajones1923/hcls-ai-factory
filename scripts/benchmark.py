@@ -12,8 +12,8 @@ Usage:
 import argparse
 import json
 import sys
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 from unittest.mock import MagicMock
 
 # Add drug-discovery-pipeline to path

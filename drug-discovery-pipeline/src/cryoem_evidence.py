@@ -5,9 +5,9 @@ Cryo-EM Evidence Module - Structural ground truth for drug discovery.
 and generative AI helps us design what could fix it."
 """
 import json
+from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import List, Dict, Any, Optional
-from dataclasses import dataclass, asdict
+from typing import Any
 
 
 @dataclass
@@ -20,20 +20,20 @@ class CryoEMStructure:
     resolution: str
     conformation: str
     variant_context: str
-    binding_sites: List[str]
-    druggable_pockets: List[str]
+    binding_sites: list[str]
+    druggable_pockets: list[str]
     source: str
     summary_text: str
-    pdb_url: Optional[str] = None
-    full_name: Optional[str] = None
-    organism: Optional[str] = "Homo sapiens"
-    inhibitor: Optional[str] = None
-    inhibitor_smiles: Optional[str] = None
-    image_url: Optional[str] = None
-    emdb_id: Optional[str] = None
-    emdb_image_url: Optional[str] = None
+    pdb_url: str | None = None
+    full_name: str | None = None
+    organism: str | None = "Homo sapiens"
+    inhibitor: str | None = None
+    inhibitor_smiles: str | None = None
+    image_url: str | None = None
+    emdb_id: str | None = None
+    emdb_image_url: str | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
     def get_display_name(self) -> str:
@@ -46,9 +46,9 @@ class CryoEMEvidenceManager:
 
     def __init__(self, structures_dir: Path = None):
         self.structures_dir = structures_dir or Path(__file__).parent.parent / "data" / "structures"
-        self._structures_cache: Dict[str, List[CryoEMStructure]] = {}
+        self._structures_cache: dict[str, list[CryoEMStructure]] = {}
 
-    def load_structures_for_gene(self, gene: str) -> List[CryoEMStructure]:
+    def load_structures_for_gene(self, gene: str) -> list[CryoEMStructure]:
         """Load Cryo-EM structures for a specific gene."""
         gene_upper = gene.upper()
 
@@ -60,7 +60,7 @@ class CryoEMEvidenceManager:
         # Look for gene-specific structure file
         structure_file = self.structures_dir / f"{gene.lower()}_structures.json"
         if structure_file.exists():
-            with open(structure_file, 'r') as f:
+            with open(structure_file) as f:
                 data = json.load(f)
             for item in data:
                 structure = CryoEMStructure(
@@ -89,7 +89,7 @@ class CryoEMEvidenceManager:
         self._structures_cache[gene_upper] = structures
         return structures
 
-    def get_best_structure_for_drug_design(self, gene: str) -> Optional[CryoEMStructure]:
+    def get_best_structure_for_drug_design(self, gene: str) -> CryoEMStructure | None:
         """
         Get the best structure for drug design purposes.
         Prefers: highest resolution, inhibitor-bound, druggable pockets defined.
@@ -124,7 +124,7 @@ class CryoEMEvidenceManager:
 
         return max(structures, key=score_structure)
 
-    def get_inhibitor_template(self, gene: str) -> Optional[str]:
+    def get_inhibitor_template(self, gene: str) -> str | None:
         """Get a known inhibitor SMILES to use as a seed for molecule generation."""
         structures = self.load_structures_for_gene(gene)
         for s in structures:
@@ -132,7 +132,7 @@ class CryoEMEvidenceManager:
                 return s.inhibitor_smiles
         return None
 
-    def auto_load_structures(self, gene: str, pdb_ids: List[str]) -> List[CryoEMStructure]:
+    def auto_load_structures(self, gene: str, pdb_ids: list[str]) -> list[CryoEMStructure]:
         """
         Load structures from cache, falling back to creating entries from PDB IDs.
 
@@ -173,7 +173,7 @@ class CryoEMEvidenceManager:
         self._structures_cache[gene.upper()] = cached
         return cached
 
-    def format_evidence_for_rag(self, structure: CryoEMStructure) -> Dict[str, Any]:
+    def format_evidence_for_rag(self, structure: CryoEMStructure) -> dict[str, Any]:
         """Format structure as evidence object compatible with RAG system."""
         return {
             "type": "cryo_em_structure",
@@ -192,13 +192,13 @@ class CryoEMEvidenceManager:
         }
 
 
-def get_vcp_structures() -> List[CryoEMStructure]:
+def get_vcp_structures() -> list[CryoEMStructure]:
     """Convenience function to get VCP structures for the FTD demo."""
     manager = CryoEMEvidenceManager()
     return manager.load_structures_for_gene("VCP")
 
 
-def get_vcp_inhibitor_seed() -> Optional[str]:
+def get_vcp_inhibitor_seed() -> str | None:
     """Get the CB-5083 inhibitor SMILES for VCP molecule generation."""
     manager = CryoEMEvidenceManager()
     return manager.get_inhibitor_template("VCP")

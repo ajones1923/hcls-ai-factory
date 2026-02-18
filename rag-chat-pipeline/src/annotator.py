@@ -1,13 +1,11 @@
 """
 Variant Annotator - Add gene names, consequences, and clinical information to variants.
 """
-import subprocess
-import tempfile
-import json
 import gzip
-from pathlib import Path
-from typing import Optional, Dict, List, Tuple
+import subprocess
 from dataclasses import dataclass
+from pathlib import Path
+
 from loguru import logger
 
 from .vcf_parser import VariantEvidence
@@ -16,15 +14,15 @@ from .vcf_parser import VariantEvidence
 @dataclass
 class AnnotationResult:
     """Result of variant annotation."""
-    gene: Optional[str] = None
-    consequence: Optional[str] = None
-    impact: Optional[str] = None
-    hgvs_c: Optional[str] = None
-    hgvs_p: Optional[str] = None
-    clinical_significance: Optional[str] = None
-    biotype: Optional[str] = None
-    sift: Optional[str] = None
-    polyphen: Optional[str] = None
+    gene: str | None = None
+    consequence: str | None = None
+    impact: str | None = None
+    hgvs_c: str | None = None
+    hgvs_p: str | None = None
+    clinical_significance: str | None = None
+    biotype: str | None = None
+    sift: str | None = None
+    polyphen: str | None = None
 
 
 class VariantAnnotator:
@@ -40,8 +38,8 @@ class VariantAnnotator:
     def __init__(
         self,
         use_vep: bool = True,
-        vep_cache_dir: Optional[Path] = None,
-        gene_bed_file: Optional[Path] = None,
+        vep_cache_dir: Path | None = None,
+        gene_bed_file: Path | None = None,
         species: str = "homo_sapiens",
         assembly: str = "GRCh38",
     ):
@@ -52,8 +50,8 @@ class VariantAnnotator:
         self.assembly = assembly
 
         # Cache for gene lookups
-        self._gene_cache: Dict[str, str] = {}
-        self._gene_intervals: Optional[List] = None
+        self._gene_cache: dict[str, str] = {}
+        self._gene_intervals: list | None = None
 
         if gene_bed_file and Path(gene_bed_file).exists():
             self._load_gene_bed(gene_bed_file)
@@ -63,7 +61,7 @@ class VariantAnnotator:
         logger.info(f"Loading gene regions from: {bed_file}")
         self._gene_intervals = []
 
-        with open(bed_file, 'r') as f:
+        with open(bed_file) as f:
             for line in f:
                 if line.startswith('#'):
                     continue
@@ -97,14 +95,14 @@ class VariantAnnotator:
 
         return variant
 
-    def annotate_batch(self, variants: List[VariantEvidence]) -> List[VariantEvidence]:
+    def annotate_batch(self, variants: list[VariantEvidence]) -> list[VariantEvidence]:
         """Annotate a batch of variants (more efficient for VEP)."""
         if self.use_vep and len(variants) > 1:
             return self._annotate_batch_vep(variants)
         else:
             return [self.annotate(v) for v in variants]
 
-    def _annotate_with_vep_api(self, variant: VariantEvidence) -> Optional[AnnotationResult]:
+    def _annotate_with_vep_api(self, variant: VariantEvidence) -> AnnotationResult | None:
         """
         Annotate using Ensembl VEP REST API.
         Note: For production, use local VEP installation for speed.
@@ -138,7 +136,7 @@ class VariantAnnotator:
 
         return None
 
-    def _annotate_batch_vep(self, variants: List[VariantEvidence]) -> List[VariantEvidence]:
+    def _annotate_batch_vep(self, variants: list[VariantEvidence]) -> list[VariantEvidence]:
         """Annotate batch using VEP REST API POST endpoint."""
         try:
             import requests
@@ -223,7 +221,7 @@ class VariantAnnotator:
         variant.clinical_significance = annotation.clinical_significance
         return variant
 
-    def _lookup_gene_bed(self, chrom: str, pos: int) -> Optional[str]:
+    def _lookup_gene_bed(self, chrom: str, pos: int) -> str | None:
         """Look up gene name from BED intervals."""
         # Check cache first
         cache_key = f"{chrom}:{pos}"
@@ -261,7 +259,7 @@ class LocalVEPAnnotator(VariantAnnotator):
         self,
         input_vcf: Path,
         output_vcf: Path,
-        extra_args: Optional[List[str]] = None,
+        extra_args: list[str] | None = None,
     ) -> Path:
         """
         Annotate entire VCF file using local VEP.
@@ -305,8 +303,8 @@ class LocalVEPAnnotator(VariantAnnotator):
                 raise RuntimeError(f"VEP annotation failed: {result.stderr}")
             logger.info("VEP annotation complete")
             return output_vcf
-        except subprocess.TimeoutExpired:
-            raise RuntimeError("VEP annotation timed out after 1 hour")
+        except subprocess.TimeoutExpired as e:
+            raise RuntimeError("VEP annotation timed out after 1 hour") from e
 
 
 class ClinVarAnnotator:
@@ -322,7 +320,7 @@ class ClinVarAnnotator:
     ):
         self.clinvar_file = Path(clinvar_file)
         self.assembly = assembly
-        self._variant_db: Dict[str, dict] = {}
+        self._variant_db: dict[str, dict] = {}
         self._loaded = False
 
         if not self.clinvar_file.exists():
@@ -461,7 +459,7 @@ class ClinVarAnnotator:
 
         return variant
 
-    def annotate_batch(self, variants: List[VariantEvidence]) -> List[VariantEvidence]:
+    def annotate_batch(self, variants: list[VariantEvidence]) -> list[VariantEvidence]:
         """Annotate a batch of variants."""
         if not self._loaded:
             self.load()
@@ -503,7 +501,7 @@ class AlphaMissenseAnnotator:
         alphamissense_file: Path,
     ):
         self.alphamissense_file = Path(alphamissense_file)
-        self._variant_db: Dict[str, dict] = {}
+        self._variant_db: dict[str, dict] = {}
         self._loaded = False
 
         if not self.alphamissense_file.exists():
@@ -525,7 +523,7 @@ class AlphaMissenseAnnotator:
         open_func = gzip.open if str(self.alphamissense_file).endswith('.gz') else open
 
         with open_func(self.alphamissense_file, 'rt') as f:
-            for line_num, line in enumerate(f):
+            for _line_num, line in enumerate(f):
                 # Skip header/comment lines
                 if line.startswith('#'):
                     continue
@@ -585,7 +583,7 @@ class AlphaMissenseAnnotator:
 
         return variant
 
-    def annotate_batch(self, variants: List[VariantEvidence]) -> List[VariantEvidence]:
+    def annotate_batch(self, variants: list[VariantEvidence]) -> list[VariantEvidence]:
         """Annotate a batch of variants."""
         if not self._loaded:
             self.load()

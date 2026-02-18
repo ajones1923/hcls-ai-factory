@@ -2,23 +2,23 @@
 Tests for pipeline checkpoint/resume functionality.
 """
 import json
-import pytest
 from pathlib import Path
-from unittest.mock import Mock, patch, call
+from unittest.mock import Mock, call, patch
 
+import pytest
 from src.checkpoint import CheckpointManager
-from src.pipeline import DrugDiscoveryPipeline
 from src.models import (
-    TargetHypothesis,
-    StructureInfo,
-    StructureManifest,
+    DockingResult,
     GeneratedMolecule,
     MoleculeProperties,
-    DockingResult,
-    RankedCandidate,
     PipelineConfig,
     PipelineRun,
+    RankedCandidate,
+    StructureInfo,
+    StructureManifest,
+    TargetHypothesis,
 )
+from src.pipeline import DrugDiscoveryPipeline
 
 
 class TestCheckpointManager:
@@ -224,21 +224,21 @@ class TestPipelineResume:
         )
         pipeline = DrugDiscoveryPipeline(config, nim_manager=mock_nim_manager)
 
-        with patch.object(pipeline, 'stage_0_initialize') as s0:
-            with patch.object(pipeline, 'stage_1_normalize_target'), \
-                 patch.object(pipeline, 'stage_2_structure_discovery'), \
-                 patch.object(pipeline, 'stage_3_structure_prep'), \
-                 patch.object(pipeline, 'stage_4_molecule_generation'), \
-                 patch.object(pipeline, 'stage_5_chemistry_qc'), \
-                 patch.object(pipeline, 'stage_6_conformers'), \
-                 patch.object(pipeline, 'stage_7_docking'), \
-                 patch.object(pipeline, 'stage_8_ranking'), \
-                 patch.object(pipeline, 'stage_9_reporting'):
+        with patch.object(pipeline, 'stage_0_initialize') as s0, \
+             patch.object(pipeline, 'stage_1_normalize_target'), \
+             patch.object(pipeline, 'stage_2_structure_discovery'), \
+             patch.object(pipeline, 'stage_3_structure_prep'), \
+             patch.object(pipeline, 'stage_4_molecule_generation'), \
+             patch.object(pipeline, 'stage_5_chemistry_qc'), \
+             patch.object(pipeline, 'stage_6_conformers'), \
+             patch.object(pipeline, 'stage_7_docking'), \
+             patch.object(pipeline, 'stage_8_ranking'), \
+             patch.object(pipeline, 'stage_9_reporting'):
 
-                pipeline.run_pipeline(
-                    target=sample_target,
-                    resume_from_run_id="nonexistent-id",
-                )
+            pipeline.run_pipeline(
+                target=sample_target,
+                resume_from_run_id="nonexistent-id",
+            )
 
-                # Stage 0 should be called (fresh start)
-                s0.assert_called_once()
+            # Stage 0 should be called (fresh start)
+            s0.assert_called_once()

@@ -9,9 +9,8 @@ from pathlib import Path
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.target_hypothesis import TargetHypothesis, TargetHypothesisManager
 from config.settings import settings
-
+from src.target_hypothesis import TargetHypothesis, TargetHypothesisManager
 
 # Demo targets - well-known druggable targets with PDB structures
 DEMO_TARGETS = [

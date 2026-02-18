@@ -3,11 +3,12 @@
 Uses stmol/py3Dmol for interactive molecular visualization in Streamlit
 """
 
-import streamlit as st
-from pathlib import Path
-import requests
-from typing import Optional
 import os
+from pathlib import Path
+from typing import Optional
+
+import requests
+import streamlit as st
 
 # Try to import 3D visualization libraries
 try:
@@ -24,7 +25,7 @@ class StructureViewer:
     Handles fetching, caching, and displaying protein structures.
     """
 
-    def __init__(self, cache_dir: Optional[Path] = None):
+    def __init__(self, cache_dir: Path | None = None):
         """
         Initialize the structure viewer.
 
@@ -36,7 +37,7 @@ class StructureViewer:
         self.cache_dir = Path(cache_dir)
         self.cache_dir.mkdir(parents=True, exist_ok=True)
 
-    def get_pdb(self, pdb_id: str) -> Optional[str]:
+    def get_pdb(self, pdb_id: str) -> str | None:
         """
         Fetch PDB file content, using cache if available.
 
@@ -67,7 +68,7 @@ class StructureViewer:
             print(f"Failed to fetch PDB {pdb_id}: {e}")
             return None
 
-    def get_cif(self, pdb_id: str) -> Optional[str]:
+    def get_cif(self, pdb_id: str) -> str | None:
         """
         Fetch mmCIF file content (alternative to PDB format).
 
@@ -101,7 +102,7 @@ class StructureViewer:
         color_scheme: str = "spectrum",
         width: int = 700,
         height: int = 500,
-        highlight_residues: Optional[list] = None,
+        highlight_residues: list | None = None,
         show_surface: bool = False,
         background_color: str = "white",
     ):
@@ -244,7 +245,7 @@ def render_vcp_structure_gallery():
     # Create tabs for each structure
     tabs = st.tabs([s["title"] for s in structures])
 
-    for tab, struct in zip(tabs, structures):
+    for tab, struct in zip(tabs, structures, strict=False):
         with tab:
             col1, col2 = st.columns([2, 1])
 

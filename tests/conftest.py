@@ -4,11 +4,12 @@ Shared fixtures for cross-service integration smoke tests.
 Each portal has a server.py, so we use importlib.util to load them
 under unique module names to avoid conflicts.
 """
-import pytest
-import sys
 import importlib.util
+import sys
 from pathlib import Path
 from unittest.mock import patch
+
+import pytest
 
 REPO_ROOT = Path(__file__).parent.parent
 

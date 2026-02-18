@@ -1,15 +1,15 @@
 """
 Shared pytest fixtures for RAG Chat Pipeline tests.
 """
-import pytest
-import tempfile
 import json
-from pathlib import Path
-from typing import List
-from unittest.mock import Mock, MagicMock
-import numpy as np
-
 import sys
+import tempfile
+from pathlib import Path
+from unittest.mock import MagicMock, Mock
+
+import numpy as np
+import pytest
+
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.vcf_parser import VariantEvidence
@@ -42,7 +42,7 @@ def sample_variant() -> VariantEvidence:
 
 
 @pytest.fixture
-def sample_variants() -> List[VariantEvidence]:
+def sample_variants() -> list[VariantEvidence]:
     """Create a list of sample variants for testing."""
     return [
         VariantEvidence(
@@ -159,8 +159,7 @@ def mock_llm_client():
 
     def mock_stream(*args, **kwargs):
         tokens = ["This ", "is ", "a ", "streaming ", "response."]
-        for token in tokens:
-            yield token
+        yield from tokens
 
     client.generate_stream.side_effect = mock_stream
     return client
