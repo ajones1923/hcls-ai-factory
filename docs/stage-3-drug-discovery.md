@@ -46,7 +46,7 @@ flowchart TD
     S3["3. Molecule Generation\nBioNeMo MolMIM × 100"]
     S4["4. Binding Prediction\nBioNeMo DiffDock"]
     S5["5. Drug-Likeness Scoring\nRDKit + Lipinski + QED"]
-    OUT["100 Ranked Candidates\nTop: 0.89 composite score"]
+    OUT["27 Ranked Candidates\nTop: 0.88 composite score"]
 
     S1 --> S2 --> S3 --> S4 --> S5 --> OUT
 
@@ -109,25 +109,25 @@ The existing drug **CB-5083** serves as our starting point:
 
 ## Results
 
-From 100 generated molecules:
+From a real Cloud NIM inference run (30 generated, 27 passed chemistry QC, 27 docked against PDB 5FTK):
 
 | Metric | Value |
 |--------|-------|
-| Valid structures | 98 |
-| Pass Lipinski's rules | 87 (89%) |
-| QED > 0.67 | 72 (73%) |
-| Docking score < -8.0 | 45 (46%) |
-| **Top candidate QED** | **0.81** |
-| **Top candidate docking** | **-11.4 kcal/mol** |
+| Generated molecules | 30 |
+| Pass chemistry QC | 27 (90%) |
+| Successfully docked | 27 (100%) |
+| **Top candidate QED** | **0.906** |
+| **Top candidate docking** | **-5.113** |
+| **Top composite score** | **0.8846** |
 
 ### Top Candidate vs. Original Drug
 
-| Metric | CB-5083 (Original) | AI Candidate |
-|--------|-------------------|--------------|
-| Binding strength | -8.1 kcal/mol | -11.4 kcal/mol |
-| Drug-likeness (QED) | 0.62 | 0.81 |
-| Composite score | 0.64 | 0.89 |
-| **Improvement** | — | **+39%** |
+| Metric | CB-5083 (Original) | AI Candidate (VCP-NIM-021) |
+|--------|-------------------|---------------------------|
+| Drug-likeness (QED) | 0.62 | 0.906 |
+| Docking score | -8.1 | -5.113 |
+| Composite score | 0.64 | 0.8846 |
+| **Improvement** | — | **+38%** |
 
 ---
 
@@ -142,6 +142,20 @@ From 100 generated molecules:
 - **RCSB API** — Programmatic structure retrieval
 
 </div>
+
+---
+
+## Deployment Modes
+
+Stage 3 supports three NIM deployment strategies:
+
+| Mode | Config | Best For |
+|------|--------|----------|
+| **Cloud** | `NIM_MODE=cloud` | DGX Spark (ARM64), no local GPU needed |
+| **Local** | `NIM_MODE=local` | x86_64 systems with NVIDIA GPU |
+| **Mock** | `NIM_ALLOW_MOCK_FALLBACK=true` | Development and demos |
+
+**Cloud mode** uses NVIDIA's hosted BioNeMo APIs at `health.api.nvidia.com`, enabling the full pipeline on ARM64 platforms like DGX Spark where the x86-only NIM containers cannot run natively. Set `NIM_MODE=cloud` and provide your `NVIDIA_API_KEY` from [build.nvidia.com](https://build.nvidia.com/).
 
 ---
 
