@@ -118,7 +118,6 @@ nav:
     - CAR-T Intelligence Agent:
       - Overview: cart-intelligence-agent/index.md
       - Design Document: cart-intelligence-agent/design.md
-      - Infographic Prompt: cart-intelligence-agent/infographic-prompt.md
   - Reports:
     - Intelligence Report: HCLS_AI_FACTORY_INTELLIGENCE_REPORT.md
     - Pipeline Report: PIPELINE_REPORT.md
