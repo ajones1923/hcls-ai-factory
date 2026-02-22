@@ -118,6 +118,9 @@ nav:
     - CAR-T Intelligence Agent:
       - Overview: cart-intelligence-agent/index.md
       - Design Document: cart-intelligence-agent/design.md
+    - Imaging Intelligence Agent:
+      - Overview: imaging-intelligence-agent/index.md
+      - Project Bible: imaging-intelligence-agent/project-bible.md
   - Reports:
     - Intelligence Report: HCLS_AI_FACTORY_INTELLIGENCE_REPORT.md
     - Pipeline Report: PIPELINE_REPORT.md
