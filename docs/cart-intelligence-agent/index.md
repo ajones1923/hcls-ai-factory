@@ -2,6 +2,8 @@
 
 Cross-functional intelligence across the CAR-T cell therapy development lifecycle. Part of the [HCLS AI Factory](https://github.com/ajones1923/hcls-ai-factory).
 
+![CAR-T Intelligence Agent on NVIDIA DGX Spark](CAR-T%20Intelligence%20Agent%20DGX%20Spark%20Infographic.png)
+
 ## Overview
 
 The CAR-T Intelligence Agent breaks down data silos across the 5 stages of CAR-T development. It searches across **all data sources simultaneously** and synthesizes cross-functional insights powered by Claude.
@@ -263,5 +265,5 @@ Measured on NVIDIA DGX Spark (GB10 GPU, 128GB unified memory):
 
 ## Credits
 
-- **Adam Jones** -- HCLS AI Factory, 14+ years genomic research
+- **Adam Jones**
 - **Apache 2.0 License**
