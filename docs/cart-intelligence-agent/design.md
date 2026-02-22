@@ -671,12 +671,12 @@ cart_intelligence_agent/
 | **Phase 3: RAG Integration** | Complete | Multi-collection search, knowledge augmentation, Claude Sonnet 4.6 streaming, 5 demo queries validated |
 | **Phase 4: UI + Demo** | Complete | Streamlit UI on port 8521, NVIDIA theme, sidebar filters, demo query buttons, streaming responses |
 | **Phase 5: UI + Analysis** | Complete | Clickable PubMed/ClinicalTrials.gov citation links, collapsible evidence panel with collection badges, **Comparative Analysis Mode** with auto-detection, entity resolution (39+ aliases), dual retrieval (~365ms), entity-grouped evidence panel, and structured markdown comparison tables |
+| **Phase 6: Report Export** | Complete | PDF, Markdown, and JSON export via `src/export.py` (904 lines). NVIDIA-themed PDF with reportlab Platypus: collection-specific evidence tables, clickable PubMed/ClinicalTrials.gov citations, markdown-to-PDF conversion, comparative report support. Download buttons in Streamlit UI after every query response. |
 
 ### Remaining Work
 
 | Item | Priority | Effort |
 |---|---|---|
-| Export to report (PDF/markdown summary generation) | Medium | 2-3 hours |
 | Agent reasoning loop testing (`agent.py` plan→search→synthesize) | Medium | 1-2 hours |
 | Genomic evidence bridge (connect to existing `genomic_evidence` collection) | Low | 2-3 hours |
 | Nextflow orchestrator integration | Low | 1-2 hours |
