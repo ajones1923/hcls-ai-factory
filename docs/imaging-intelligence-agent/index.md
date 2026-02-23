@@ -97,10 +97,6 @@ The Imaging Agent connects into the broader HCLS AI Factory:
 | 4242 | Orthanc DIMSE |
 | 8042 | Orthanc REST |
 
-## Status
-
-- **Phase 1 (Proof Build)** — In active development. Architecture defined, all 4 reference workflow implementations complete, documentation comprehensive.
-
 ## Credits
 
 - **Adam Jones**
