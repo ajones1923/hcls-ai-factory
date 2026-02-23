@@ -255,14 +255,6 @@ Measured on NVIDIA DGX Spark (GB10 GPU, 128GB unified memory):
 | Comparative RAG query (dual search + Claude) | ~30 sec |
 | Cosine similarity scores | 0.74 - 0.90 |
 
-## Status
-
-- **Week 1 (Scaffold)** -- Complete. Architecture, data models, collection schemas, knowledge graph, ingest pipelines, RAG engine, agent, and Streamlit UI.
-- **Week 2 Days 1-3 (Data)** -- Complete. PubMed (5,047) + ClinicalTrials.gov (973) + FDA constructs (6) ingested. End-to-end validation passing.
-- **Week 2 Days 4-5 (Integration)** -- Complete. Full RAG pipeline with Claude LLM generating grounded cross-functional answers. Streamlit UI working.
-- **Week 2 Day 5+ (Assay + Manufacturing Data)** -- Complete. 45 curated assay records + 30 manufacturing/CMC records seeded. All 11 collections populated (10 owned + 1 read-only). Total: 6,266 owned vectors.
-- **Week 3 (UI + Analysis)** -- Complete. Clickable PubMed/ClinicalTrials.gov citation links, collapsible evidence panel with collection badges, and **Comparative Analysis Mode** with auto-detection, dual retrieval, entity-grouped evidence, and structured markdown tables.
-
 ## Credits
 
 - **Adam Jones**
