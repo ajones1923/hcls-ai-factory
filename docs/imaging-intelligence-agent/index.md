@@ -2,6 +2,8 @@
 
 Automated detection, segmentation, longitudinal tracking, and clinical triage of CT, MRI, and chest X-ray studies on NVIDIA DGX Spark. Part of the [HCLS AI Factory](https://github.com/ajones1923/hcls-ai-factory).
 
+![HCLS AI Factory Imaging AI Agent on NVIDIA DGX Spark](HCLS%20AI%20Factory%20Imaging%20AI%20Agent%20on%20NVIDIA%20DGX%20Spark%20Infographic.png)
+
 ## Overview
 
 The Imaging Intelligence Agent processes medical imaging studies using NVIDIA MONAI models on DGX Spark hardware. It automates the full pipeline from DICOM ingestion through AI inference to structured clinical output—DICOM SR, FHIR DiagnosticReport, and priority-routed worklist entries that push directly back to PACS and EHR systems.
