@@ -59,6 +59,7 @@ plugins:
       separator: "[\\s\\-\\.,;:!?()/_#@&*+=~]+"
   - tags
   - privacy
+  - glightbox
 
 markdown_extensions:
   - admonition
