@@ -5,7 +5,7 @@ site_url: https://hcls-ai-factory.org
 repo_name: ajones1923/hcls-ai-factory
 repo_url: https://github.com/ajones1923/hcls-ai-factory
 
-copyright: Copyright &copy; 2026 Adam Jones - HCLS AI Factory Open Project - Licensed under Apache 2.0 - v1.0.3
+copyright: Copyright &copy; 2026 Adam Jones - HCLS AI Factory Open Project - Licensed under Apache 2.0
 
 theme:
   name: material
@@ -127,10 +127,8 @@ nav:
     - Intelligence Report: HCLS_AI_FACTORY_INTELLIGENCE_REPORT.md
     - Pipeline Report: PIPELINE_REPORT.md
   - Resources: downloads.md
-  - Changelog: changelog.md
 
 extra:
-  version: 1.0.3
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/ajones1923/hcls-ai-factory
