@@ -240,7 +240,7 @@ precision_oncology_agent/agent/
 └── LICENSE                        # Apache 2.0
 ```
 
-**39 Python files | ~12,301 lines of code | Apache 2.0**
+**63 Python files | ~17,855 lines of code | Apache 2.0**
 
 ## Knowledge Graph
 
