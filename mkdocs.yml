@@ -126,6 +126,11 @@ nav:
       - Demo Guide: imaging-intelligence-agent/demo-guide.md
       - Design Document: imaging-intelligence-agent/design.md
       - Project Bible: imaging-intelligence-agent/project-bible.md
+    - Precision Oncology Agent:
+      - Overview: precision-oncology-agent/index.md
+      - Demo Guide: precision-oncology-agent/demo-guide.md
+      - Design Document: precision-oncology-agent/design.md
+      - Project Bible: precision-oncology-agent/project-bible.md
   - Reports:
     - Intelligence Report: HCLS_AI_FACTORY_INTELLIGENCE_REPORT.md
     - Pipeline Report: PIPELINE_REPORT.md
