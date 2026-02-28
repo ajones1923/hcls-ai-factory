@@ -28,6 +28,7 @@ tags:
 | **Knowledge Graph** | 25 target antigens, 6 FDA products, 8 toxicity profiles |
 | **LLM** | Claude Sonnet 4.6 (Anthropic) |
 | **Export Formats** | Markdown, JSON, PDF |
+| **Primary UI** | Streamlit at http://localhost:8521 |
 
 ### What the Audience Will See
 
@@ -40,7 +41,7 @@ tags:
 7. Clickable PubMed and ClinicalTrials.gov citations grounding every answer
 8. Professional reports exported as Markdown, JSON, and NVIDIA-themed PDF
 9. *(Route B)* Cross-pipeline data sharing — CAR-T intelligence layered on 3.56 million genomic variant vectors
-10. *(Route B)* The complete loop: Patient DNA → Variant Analysis → CAR-T Intelligence → Drug Candidates
+10. *(Route B)* The complete loop: Patient DNA -> Variant Analysis -> CAR-T Intelligence -> Drug Candidates
 
 ---
 
@@ -117,11 +118,17 @@ curl -s http://localhost:8522/knowledge/stats | python3 -m json.tool
 
 Expected: 25 target antigens, 6 FDA-approved products, 8 toxicity profiles, 10 manufacturing processes, 15+ biomarkers.
 
+### Step 6: Open Streamlit UI
+
+Open http://localhost:8521 in a browser. Confirm the Chat tab loads with the sidebar showing all 10 collection checkboxes checked by default.
+
 ---
 
 ## Route A: Standalone Agent Demo (15 minutes)
 
 ### Opening (1 minute)
+
+**Show:** Landing page at http://localhost:8080 — confirm the CAR-T Intelligence service shows green in the health grid.
 
 **Talking points:**
 
@@ -129,41 +136,29 @@ Expected: 25 target antigens, 6 FDA-approved products, 8 toxicity profiles, 10 m
 - "11 Milvus collections covering literature, clinical trials, FDA-approved constructs, assays, manufacturing, safety, biomarkers, regulatory, sequences, real-world evidence, and genomic variants."
 - "Every query searches all data sources simultaneously and Claude synthesizes cross-functional insights with citations."
 
-**Show:** Health endpoint — highlight 11 collections, 6,266+ owned vectors, 3.56M genomic vectors.
+**Show:** CAR-T Agent UI at http://localhost:8521. Point out the sidebar with 10 collection checkboxes, target filter, stage filter, and demo query buttons.
 
 ---
 
 ### RAG Knowledge Query (3 minutes)
 
-```bash
-curl -s -X POST http://localhost:8522/api/ask \
-  -H "Content-Type: application/json" \
-  -d '{
-    "question": "Why do CD19 CAR-T therapies fail in relapsed B-ALL?",
-    "target_gene": "CD19"
-  }' | python3 -m json.tool
-```
+**Show:** Chat tab at http://localhost:8521
 
-Expected response highlights:
+**Select:** In the sidebar, verify all 10 collection checkboxes are checked.
 
-```json
-{
-  "answer": "CD19 CAR-T therapy failure in relapsed B-ALL occurs through several mechanisms...",
-  "sources": [
-    {"collection": "cart_literature", "score": 0.89, "text_snippet": "Antigen loss observed in 28% of relapses..."},
-    {"collection": "cart_assays", "score": 0.85, "text_snippet": "CD19-negative relapses via trogocytosis..."},
-    {"collection": "cart_trials", "score": 0.82, "text_snippet": "ELIANA trial: 12-month EFS 73%..."},
-    {"collection": "cart_constructs", "score": 0.80, "text_snippet": "Kymriah tisagenlecleucel 4-1BB..."}
-  ],
-  "follow_up_questions": [
-    "What strategies address CD19 antigen loss?",
-    "How do dual-targeting constructs reduce relapse rates?",
-    "What biomarkers predict CD19 CAR-T failure?"
-  ],
-  "confidence": 0.87,
-  "processing_time_ms": 24100
-}
-```
+**Select:** Target filter = `CD19`
+
+**Type this query:**
+
+> Why do CD19 CAR-T therapies fail in relapsed B-ALL?
+
+**Expected result:** Claude returns a multi-paragraph answer with evidence cards from four or more collections. Look for:
+
+- **cart_literature** evidence card (green indicator, score ~0.89) — "Antigen loss observed in 28% of relapses..."
+- **cart_assays** evidence card (green indicator, score ~0.85) — "CD19-negative relapses via trogocytosis..."
+- **cart_trials** evidence card (green indicator, score ~0.82) — "ELIANA trial: 12-month EFS 73%..."
+- **cart_constructs** evidence card (green indicator, score ~0.80) — "Kymriah tisagenlecleucel 4-1BB..."
+- Three follow-up question suggestions below the answer
 
 **Talking points:**
 
@@ -174,24 +169,33 @@ Expected response highlights:
 
 ---
 
-### Comparative Analysis (4 minutes)
+### Sidebar Filters and Demo Queries (1 minute)
 
-```bash
-curl -s -X POST http://localhost:8522/query \
-  -H "Content-Type: application/json" \
-  -d '{
-    "question": "Compare 4-1BB vs CD28 costimulatory domains for DLBCL"
-  }' | python3 -m json.tool
-```
+**Show:** The sidebar at http://localhost:8521
+
+- Point out the 10 collection checkboxes — each one maps to a Milvus collection.
+- Point out the Target Filter selectbox (CD19, BCMA, GPRC5D, etc.).
+- Point out the Stage Filter selectbox (Preclinical, IND, Phase I, II, III).
+- Point out the Date Range year slider.
+
+**Click:** One of the pre-built Demo Query buttons in the sidebar.
+
+**Expected result:** The demo query auto-populates the chat input and executes, returning a fully cited answer.
 
 **Talking points:**
 
-- "Watch what happens when I say 'compare'. The engine automatically detects this is a comparative query."
-- "It parses two entities — 4-1BB and CD28 — and resolves each against the knowledge graph."
-- "Dual retrieval runs: entity A and entity B are searched separately, then results are merged into a structured prompt."
-- "Claude produces a comparison table with advantages, limitations, and clinical context."
+- "The sidebar gives full control over which evidence sources are queried. Uncheck collections to narrow the scope."
+- "Pre-built demo queries let clinicians start with validated questions — no prompt engineering required."
 
-**Expected output structure:**
+---
+
+### Comparative Analysis (3 minutes)
+
+**Type this query:**
+
+> Compare 4-1BB vs CD28 costimulatory domains for DLBCL
+
+**Expected result:** The engine detects "Compare" and triggers dual-entity retrieval. Claude produces a structured comparison table:
 
 ```
 ## Comparison: 4-1BB vs CD28
@@ -210,6 +214,12 @@ curl -s -X POST http://localhost:8522/query \
 **CD28:** Faster clinical response, stronger initial expansion
 ```
 
+**Talking points:**
+
+- "Watch what happens when I say 'compare'. The engine automatically detects this is a comparative query."
+- "It parses two entities — 4-1BB and CD28 — and resolves each against the knowledge graph."
+- "Dual retrieval runs: entity A and entity B are searched separately, then results are merged into a structured prompt."
+- "Claude produces a comparison table with advantages, limitations, and clinical context."
 - "This comparison was auto-generated from dual retrieval across 11 collections. The engine found evidence for both domains across literature, trials, constructs, and assays."
 - "Five of six FDA-approved CAR-T products use 4-1BB. Only Yescarta uses CD28. That's a clear trend."
 
@@ -218,50 +228,29 @@ curl -s -X POST http://localhost:8522/query \
 | Query | Entities Resolved |
 |---|---|
 | "Compare CD19 vs BCMA" | Target antigen vs target antigen |
-| "Kymriah versus Carvykti" | Product → CD19 vs BCMA |
+| "Kymriah versus Carvykti" | Product -> CD19 vs BCMA |
 | "Compare CRS and ICANS" | Toxicity vs toxicity |
 | "4-1BB vs CD28 for persistence" | Costimulatory domain comparison |
 | "Lentiviral vs transposon vectors" | Manufacturing comparison |
 
 ---
 
-### Evidence-Only Search (2 minutes)
+### Knowledge Graph Exploration (2 minutes)
 
-```bash
-curl -s -X POST http://localhost:8522/search \
-  -H "Content-Type: application/json" \
-  -d '{
-    "question": "BCMA CAR-T resistance mechanisms in multiple myeloma",
-    "target_antigen": "BCMA",
-    "top_k": 5
-  }' | python3 -m json.tool
-```
+**Click:** The "Knowledge Graph" tab at http://localhost:8521
 
-**Talking points:**
+**Type:** `CD19` in the entity search input.
 
-- "This is raw retrieval — no LLM synthesis. Just the vector search results."
-- "11 collections searched in parallel. Total retrieval time: 12-16 milliseconds."
-- "Each hit shows collection, relevance score, and text snippet. This is what grounds the LLM."
-- "Query expansion kicked in: 'BCMA' expanded to include 'B-cell maturation antigen', 'RRMM', 'plasma cell neoplasm', and related terms."
-- "The top hit from cart_assays describes biallelic BCMA loss in 29% of relapses — that's sBCMA decoy signaling."
+**Select:** Entity type filter = `Gene` (or leave as "All").
 
-**Key performance metric:**
+**Expected result:** An interactive graph visualization (pyvis) renders showing CD19 as the central node, with edges connecting to:
 
-| Operation | Latency |
-|---|---|
-| Embedding | < 5 ms |
-| 11-collection parallel search | 12-16 ms |
-| Query expansion + re-search | 8-12 ms |
-| Merge + deduplicate + rank | < 1 ms |
-| **Total retrieval** | **~25 ms** |
+- FDA-approved products (Kymriah, Yescarta, Tecartus, Breyanzi)
+- Associated diseases (B-ALL, DLBCL, FL, MCL)
+- Toxicity profiles (CRS, ICANS, B-cell aplasia)
+- Costimulatory domains (4-1BB, CD28)
 
----
-
-### Knowledge Graph Stats (1 minute)
-
-```bash
-curl -s http://localhost:8522/knowledge/stats | python3 -m json.tool
-```
+Click on individual nodes to see detail panels with entity attributes.
 
 **Talking points:**
 
@@ -274,50 +263,33 @@ curl -s http://localhost:8522/knowledge/stats | python3 -m json.tool
 
 ### Deep Research Mode (2 minutes)
 
-**Show:** Streamlit UI at http://localhost:8521
-
-**Toggle:** Enable "Deep Research Mode" in the sidebar.
+**Click:** The "Deep Research Mode" toggle in the sidebar to enable it.
 
 **Type this query:**
-> "What are the key challenges in developing solid tumor CAR-T therapies and what strategies are being explored?"
+
+> What are the key challenges in developing solid tumor CAR-T therapies and what strategies are being explored?
+
+**Expected result:** The UI shows the agent reasoning pipeline in real-time:
+
+1. **Plan** — the agent identifies this as a broad, multi-faceted question requiring decomposition.
+2. **Decompose** — it breaks the question into sub-queries: tumor microenvironment, antigen heterogeneity, trafficking, exhaustion, safety.
+3. **Search** — each sub-query gets its own retrieval pass across 11 collections.
+4. **Evaluate** — the agent checks evidence quality. If insufficient, it runs supplementary searches.
+5. **Synthesize** — Claude produces a comprehensive, multi-section answer with citations from every sub-query.
 
 **Talking points:**
 
 - "Deep Research Mode activates the full agent reasoning pipeline."
-- "Step 1: Plan — the agent identifies this as a broad, multi-faceted question requiring decomposition."
-- "Step 2: Decompose — it breaks the question into sub-queries: tumor microenvironment, antigen heterogeneity, trafficking, exhaustion, safety."
-- "Step 3: Search — each sub-query gets its own retrieval pass across 11 collections."
-- "Step 4: Evaluate — the agent checks evidence quality. If insufficient, it runs supplementary searches."
-- "Step 5: Synthesize — Claude produces a comprehensive, multi-section answer with citations from every sub-query."
+- "Watch the step-by-step progress — Plan, Decompose, Search, Evaluate, Synthesize."
 - "This is autonomous reasoning — the agent decides what to search for and how to structure the answer."
 
 ---
 
-### Report Export (2 minutes)
+### Report Export (1 minute)
 
-```bash
-# Markdown report
-curl -s -X POST http://localhost:8522/api/report/markdown \
-  -H "Content-Type: application/json" \
-  -d '{
-    "question": "What manufacturing parameters predict CAR-T clinical response?",
-    "target_gene": "CD19"
-  }' | head -50
+**Click:** The "Export as PDF" download button below the chat response.
 
-# JSON report
-curl -s -X POST http://localhost:8522/api/report/json \
-  -H "Content-Type: application/json" \
-  -d '{
-    "question": "What manufacturing parameters predict CAR-T clinical response?"
-  }' | python3 -m json.tool | head -30
-
-# PDF report
-curl -s -X POST http://localhost:8522/api/report/pdf \
-  -H "Content-Type: application/json" \
-  -d '{
-    "question": "What manufacturing parameters predict CAR-T clinical response?"
-  }' --output cart_manufacturing_report.pdf
-```
+**Expected result:** The browser downloads a professionally styled PDF report. Also show the Markdown and JSON export buttons.
 
 **Talking points:**
 
@@ -328,13 +300,14 @@ curl -s -X POST http://localhost:8522/api/report/pdf \
 
 ---
 
-### Closing Route A (1 minute)
+### Closing Route A (2 minutes)
 
 **Talking points:**
 
 - "11 collections, 6,266 curated vectors, 25 target antigens, 12-16ms retrieval, automatic comparative analysis."
 - "This is a complete CAR-T cell therapy intelligence platform — from target discovery through manufacturing to clinical safety."
 - "Every answer is grounded in published evidence with clickable citations. No hallucination."
+- "And the entire demo was done through a Streamlit interface — no command line, no API calls, no JSON payloads."
 
 ---
 
@@ -358,23 +331,22 @@ curl -s -X POST http://localhost:8522/api/report/pdf \
 
 ```
 Stage 1: GPU Genomics (Parabricks)
-    ↓ 11.7M variants → 3.56M quality-filtered
+    | 11.7M variants -> 3.56M quality-filtered
 Stage 2: RAG Target Identification (Claude + Milvus)
-    ↓ genomic_evidence: 3.56M vectors (shared)
+    | genomic_evidence: 3.56M vectors (shared)
 CAR-T Intelligence Agent (11 collections)
-    ↓ Target validation + construct intelligence
+    | Target validation + construct intelligence
 Stage 3: Drug Discovery (BioNeMo)
-    ↓ 100 ranked drug candidates
+    | 100 ranked drug candidates
 ```
 
 ---
 
 ### Shared Genomic Data Layer (3 minutes)
 
-```bash
-# Show the CAR-T agent's view of all collections
-curl -s http://localhost:8522/collections | python3 -m json.tool
-```
+**Show:** Chat tab at http://localhost:8521
+
+**Click:** Open the sidebar. Point out all 10 collection checkboxes. Note that these are the CAR-T agent's own collections.
 
 **Talking points:**
 
@@ -386,13 +358,13 @@ curl -s http://localhost:8522/collections | python3 -m json.tool
 
 ### Patient Variant Context (4 minutes)
 
-```bash
-curl -s -X POST http://localhost:8522/api/ask \
-  -H "Content-Type: application/json" \
-  -d '{
-    "question": "What genomic variants in this patient affect CAR-T therapy response and toxicity prediction?"
-  }' | python3 -m json.tool
-```
+**Show:** Chat tab at http://localhost:8521
+
+**Type this query:**
+
+> What genomic variants in this patient affect CAR-T therapy response and toxicity prediction?
+
+**Expected result:** Claude searches both the CAR-T therapy collections and the genomic evidence collection. The response includes evidence cards from `cart_safety`, `cart_biomarkers`, and `genomic_evidence` with relevance scores.
 
 **Talking points:**
 
@@ -405,10 +377,13 @@ curl -s -X POST http://localhost:8522/api/ask \
 
 ### CAR-T + Genomics Bridge (4 minutes)
 
-**Show:** Streamlit chat at http://localhost:8521
+**Show:** Chat tab at http://localhost:8521
 
 **Type this query:**
-> "If the genomics pipeline identified VCP as a drug target for frontotemporal dementia, how would CAR-T approaches compare to small molecule inhibitors for this target?"
+
+> If the genomics pipeline identified VCP as a drug target for frontotemporal dementia, how would CAR-T approaches compare to small molecule inhibitors for this target?
+
+**Expected result:** Claude pulls from literature on CAR-T for neurodegeneration, constructs targeting intracellular proteins, and manufacturing considerations. Evidence cards show hits from `cart_literature`, `cart_constructs`, and `genomic_evidence`.
 
 **Talking points:**
 
@@ -421,13 +396,13 @@ curl -s -X POST http://localhost:8522/api/ask \
 
 ### Cross-Functional Comparative Query (3 minutes)
 
-```bash
-curl -s -X POST http://localhost:8522/query \
-  -H "Content-Type: application/json" \
-  -d '{
-    "question": "Compare manufacturing parameters and clinical outcomes for CD19 vs BCMA CAR-T products"
-  }' | python3 -m json.tool
-```
+**Show:** Chat tab at http://localhost:8521
+
+**Type this query:**
+
+> Compare manufacturing parameters and clinical outcomes for CD19 vs BCMA CAR-T products
+
+**Expected result:** Claude triggers comparative mode (detecting "Compare") and performs dual retrieval for CD19 and BCMA across manufacturing and clinical collections. The output includes a structured comparison table.
 
 **Talking points:**
 
@@ -438,7 +413,25 @@ curl -s -X POST http://localhost:8522/query \
 
 ---
 
-### Stage 3 Integration (3 minutes)
+### Bridge to Stage 2: RAG Chat (3 minutes)
+
+**Show:** Stage 2 RAG Chat UI at http://localhost:8501
+
+**Type this query:**
+
+> The CAR-T intelligence analysis identified CD19 antigen loss as a primary resistance mechanism. What genomic variants in this patient could predict antigen loss risk?
+
+**Expected result:** The Stage 2 RAG system searches the same `genomic_evidence` collection (3.56M vectors) and returns variant-level evidence for CD19 locus variants, immune checkpoint polymorphisms, and lineage plasticity markers.
+
+**Talking points:**
+
+- "We've transitioned from the CAR-T agent to the Stage 2 RAG pipeline. Same genomic evidence, different analytical lens."
+- "Claude is now reasoning over 3.56 million variant annotations — ClinVar pathogenicity, AlphaMissense predictions, and clinical evidence."
+- "The CAR-T agent identified the resistance mechanism. Stage 2 RAG identifies the patient-specific genomic risk factors."
+
+---
+
+### Bridge to Stage 3: Drug Discovery (3 minutes)
 
 **Show:** Drug Discovery UI at http://localhost:8505
 
@@ -457,7 +450,7 @@ curl -s -X POST http://localhost:8522/query \
 
 - "The Imaging Intelligence Agent runs on the same platform. When it detects a high-risk lung nodule, cross-modal triggers query the genomic evidence."
 - "If the genomic analysis identifies a target relevant to both solid tumor CAR-T and small molecule inhibition, both agents contribute intelligence."
-- "Example: Imaging finds lung mass → genomics identifies EGFR → CAR-T agent evaluates EGFR-targeted cell therapy → Drug Discovery generates EGFR inhibitors."
+- "Example: Imaging finds lung mass -> genomics identifies EGFR -> CAR-T agent evaluates EGFR-targeted cell therapy -> Drug Discovery generates EGFR inhibitors."
 - "Multi-agent collaboration, all sharing the same 3.56 million variant truth."
 
 ---
@@ -470,27 +463,27 @@ Walk through the full precision medicine loop:
 
 ```
 Patient DNA (Illumina Sequencing)
-    ↓
+    |
 Stage 1: GPU Genomics (Parabricks)
-    ↓ 11.7M variants called
+    | 11.7M variants called
 Stage 2: RAG Target Identification (Claude + Milvus)
-    ↓ VCP identified as drug target
-    ↓ genomic_evidence: 3.56M vectors (shared)
-    ├─→ CAR-T Intelligence Agent
-    │   └─ Evaluates cell therapy approaches for target
-    │   └─ Cross-references 6,266 therapy-specific vectors
-    │   └─ Identifies optimal construct design + manufacturing
-    ├─→ Imaging Intelligence Agent
-    │   └─ Cross-modal triggers from imaging findings
-    │   └─ Connects phenotype to genotype
-    └─→ Stage 3: Drug Discovery (BioNeMo)
-        └─ 100 novel drug candidates generated
-        └─ Docking + drug-likeness scoring
+    | VCP identified as drug target
+    | genomic_evidence: 3.56M vectors (shared)
+    |---> CAR-T Intelligence Agent
+    |     - Evaluates cell therapy approaches for target
+    |     - Cross-references 6,266 therapy-specific vectors
+    |     - Identifies optimal construct design + manufacturing
+    |---> Imaging Intelligence Agent
+    |     - Cross-modal triggers from imaging findings
+    |     - Connects phenotype to genotype
+    +---> Stage 3: Drug Discovery (BioNeMo)
+          - 100 novel drug candidates generated
+          - Docking + drug-likeness scoring
 
 Combined Clinical Output:
-    → FHIR R4 Reports (imaging)
-    → PDF Reports (CAR-T + drug discovery)
-    → JSON data for dashboards
+    -> FHIR R4 Reports (imaging)
+    -> PDF Reports (CAR-T + drug discovery)
+    -> JSON data for dashboards
 ```
 
 - "Patient DNA to therapeutic strategy. Genomics, cell therapy intelligence, imaging AI, and drug discovery — all on one platform."
@@ -567,6 +560,21 @@ curl -s http://localhost:8522/health | python3 -m json.tool
 
 If counts are zero, re-run ingestion scripts (see Pre-Demo Setup).
 
+### Streamlit UI Not Loading
+
+```bash
+# Check container status
+docker compose ps | grep streamlit
+
+# Check Streamlit logs
+docker compose logs cart-streamlit
+
+# Restart the UI container
+docker compose restart cart-streamlit
+```
+
+Confirm the UI is accessible at http://localhost:8521. If port 8521 is occupied, check for conflicting services.
+
 ### PDF Export Issues
 
 PDF generation requires ReportLab. If PDF export fails:
@@ -579,25 +587,132 @@ pip install reportlab
 
 ## Quick Reference
 
-| Action | Command / URL |
+| Resource | URL |
 |---|---|
-| Health check | `curl http://localhost:8522/health` |
-| Knowledge graph | `curl http://localhost:8522/knowledge/stats` |
-| List collections | `curl http://localhost:8522/collections` |
-| RAG query | `curl -X POST http://localhost:8522/api/ask` |
-| Full RAG query | `curl -X POST http://localhost:8522/query` |
-| Evidence search | `curl -X POST http://localhost:8522/search` |
-| Find related | `curl -X POST http://localhost:8522/find-related` |
-| Markdown report | `curl -X POST http://localhost:8522/api/report/markdown` |
-| JSON report | `curl -X POST http://localhost:8522/api/report/json` |
-| PDF report | `curl -X POST http://localhost:8522/api/report/pdf` |
 | CAR-T Agent UI | http://localhost:8521 |
 | CAR-T Agent API docs | http://localhost:8522/docs |
 | RAG Chat (Stage 2) | http://localhost:8501 |
 | Drug Discovery UI | http://localhost:8505 |
 | Landing Page | http://localhost:8080 |
 | Grafana Monitoring | http://localhost:3000 |
-| Prometheus Metrics | `curl http://localhost:8522/metrics` |
+| Milvus | http://localhost:19530 |
+| Attu (Milvus UI) | http://localhost:8000 |
+
+---
+
+## Appendix: API Reference
+
+All CAR-T Intelligence Agent endpoints are documented at http://localhost:8522/docs (FastAPI auto-generated Swagger UI). The following curl commands are provided for scripting, automated testing, and integration development.
+
+### Health and Status
+
+```bash
+# Health check — returns collection counts and total vectors
+curl -s http://localhost:8522/health | python3 -m json.tool
+
+# Knowledge graph statistics
+curl -s http://localhost:8522/knowledge/stats | python3 -m json.tool
+
+# List all collections with vector counts
+curl -s http://localhost:8522/collections | python3 -m json.tool
+
+# Prometheus metrics
+curl -s http://localhost:8522/metrics
+```
+
+### RAG Query
+
+```bash
+# Full RAG query with Claude synthesis
+curl -s -X POST http://localhost:8522/api/ask \
+  -H "Content-Type: application/json" \
+  -d '{
+    "question": "Why do CD19 CAR-T therapies fail in relapsed B-ALL?",
+    "target_gene": "CD19"
+  }' | python3 -m json.tool
+```
+
+Response fields:
+
+| Field | Description |
+|---|---|
+| `answer` | Claude-synthesized response with citations |
+| `sources` | Array of evidence hits with collection, score, and text snippet |
+| `follow_up_questions` | Suggested next queries |
+| `confidence` | Overall confidence score (0-1) |
+| `processing_time_ms` | End-to-end latency |
+
+### Full Query (with comparative detection)
+
+```bash
+# Triggers automatic comparative analysis when "compare", "vs", "versus" detected
+curl -s -X POST http://localhost:8522/query \
+  -H "Content-Type: application/json" \
+  -d '{
+    "question": "Compare 4-1BB vs CD28 costimulatory domains for DLBCL"
+  }' | python3 -m json.tool
+```
+
+### Evidence-Only Search (no LLM synthesis)
+
+```bash
+# Raw vector search — returns ranked evidence without Claude synthesis
+curl -s -X POST http://localhost:8522/search \
+  -H "Content-Type: application/json" \
+  -d '{
+    "question": "BCMA CAR-T resistance mechanisms in multiple myeloma",
+    "target_antigen": "BCMA",
+    "top_k": 5
+  }' | python3 -m json.tool
+```
+
+### Find Related Entities
+
+```bash
+curl -s -X POST http://localhost:8522/find-related \
+  -H "Content-Type: application/json" \
+  -d '{
+    "entity": "CD19",
+    "entity_type": "gene"
+  }' | python3 -m json.tool
+```
+
+### Report Generation
+
+```bash
+# Markdown report
+curl -s -X POST http://localhost:8522/api/report/markdown \
+  -H "Content-Type: application/json" \
+  -d '{
+    "question": "What manufacturing parameters predict CAR-T clinical response?",
+    "target_gene": "CD19"
+  }' | head -50
+
+# JSON report
+curl -s -X POST http://localhost:8522/api/report/json \
+  -H "Content-Type: application/json" \
+  -d '{
+    "question": "What manufacturing parameters predict CAR-T clinical response?"
+  }' | python3 -m json.tool | head -30
+
+# PDF report (binary download)
+curl -s -X POST http://localhost:8522/api/report/pdf \
+  -H "Content-Type: application/json" \
+  -d '{
+    "question": "What manufacturing parameters predict CAR-T clinical response?"
+  }' --output cart_manufacturing_report.pdf
+```
+
+### Performance Benchmarks
+
+| Operation | Typical Latency |
+|---|---|
+| Embedding (BGE-small-en-v1.5) | < 5 ms |
+| 11-collection parallel search | 12-16 ms |
+| Query expansion + re-search | 8-12 ms |
+| Merge + deduplicate + rank | < 1 ms |
+| **Total retrieval (no LLM)** | **~25 ms** |
+| Full RAG with Claude synthesis | ~24 sec |
 
 ---
 
