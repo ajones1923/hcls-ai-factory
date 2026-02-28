@@ -1,5 +1,5 @@
 [build]
-  command = "pip install 'mkdocs-material>=9.5' && mkdocs build"
+  command = "pip install -r requirements-docs.txt && mkdocs build"
   publish = "site"
 
 [build.environment]
