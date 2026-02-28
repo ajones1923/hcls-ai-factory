@@ -4,98 +4,104 @@ Automated detection, segmentation, longitudinal tracking, and clinical triage of
 
 ![HCLS AI Factory Imaging AI Agent on NVIDIA DGX Spark](HCLS%20AI%20Factory%20Imaging%20AI%20Agent%20on%20NVIDIA%20DGX%20Spark%20Infographic.png)
 
+**Source:** [github.com/ajones1923/imaging-intelligence-agent](https://github.com/ajones1923/imaging-intelligence-agent)
+
 ## Overview
 
-The Imaging Intelligence Agent processes medical imaging studies using NVIDIA MONAI models on DGX Spark hardware. It automates the full pipeline from DICOM ingestion through AI inference to structured clinical output—DICOM SR, FHIR DiagnosticReport, and priority-routed worklist entries that push directly back to PACS and EHR systems.
+The Imaging Intelligence Agent processes medical imaging studies using MONAI models and NVIDIA NIM microservices on DGX Spark hardware. A multi-collection RAG engine backed by 11 Milvus vector collections (3.56M vectors) provides evidence-grounded clinical reasoning, while four reference workflows run real pretrained model weights for inference. Cross-modal triggers connect imaging findings to 3.5M genomic variant vectors for precision medicine enrichment. Output is exported as Markdown, JSON, PDF, or FHIR R4 DiagnosticReport Bundles with SNOMED CT, LOINC, and DICOM coding.
 
 ## Four Reference Workflows
 
-| Workflow | Modality | Target Latency | Key Metric |
+| Workflow | Modality | Model (Pretrained Weights) | Key Output |
 |---|---|---|---|
-| **Hemorrhage Triage** | CT Head | < 90 seconds | > 95% sensitivity for bleeds > 5 mL |
-| **Lung Nodule Tracking** | CT Chest | < 5 minutes | > 90% detection for nodules >= 4 mm |
-| **Rapid Findings** | CXR | < 30 seconds | > 95% pneumothorax sensitivity |
-| **MS Lesion Tracking** | MRI Brain | < 5 minutes | Longitudinal lesion matching + disease activity |
+| **Hemorrhage Triage** | CT Head | SegResNet (MONAI `wholeBody_ct_segmentation`) | Volume (mL), midline shift (mm), urgency routing |
+| **Lung Nodule Tracking** | CT Chest | RetinaNet + SegResNet (MONAI `lung_nodule_ct_detection`) | Lung-RADS 1--4B classification |
+| **Rapid Findings** | CXR | DenseNet-121 (torchxrayvision `densenet121-res224-all`, CheXpert) | Multi-label classification + GradCAM heatmaps |
+| **MS Lesion Tracking** | MRI Brain | UNEST (MONAI `wholeBrainSeg_Large_UNEST_segmentation`) | Lesion count, disease activity (Stable/Active/Highly Active) |
 
 ## Architecture
 
 ```
-DICOM Study Arrives (Orthanc)
+DICOM Study Arrives (Orthanc 8042/4242)
     |
     v
-[Workflow Router] ──── CT Head? / CT Chest? / CXR? / MRI Brain?
+[Webhook Router] ── CT+head / CT+chest / CR+chest / MR+brain
     |
     v
-[MONAI Deploy MAP]
-(3D U-Net / RetinaNet / SegResNet / DenseNet-121)
+[Clinical Workflow]
+(SegResNet / RetinaNet / DenseNet-121 / UNEST)
     |
     v
-[Post-Processing]
-Volume estimation, midline shift, Lung-RADS, GradCAM heatmaps
+[Post-Processing + Cross-Modal Trigger]
+Volume, midline shift, Lung-RADS, GradCAM
+Lung-RADS 4A+ → genomic variant queries (3.5M vectors)
     |
     v
-[PostgreSQL + pgvector]
-Structured findings + 384-dim BiomedCLIP embeddings
-    |
-    v
-[LangGraph Reasoning Agent + NIM LLM]
-Evidence-grounded interpretation, longitudinal comparison
+[RAG Engine + NIM LLM]
+11 Milvus collections (3.56M vectors) + Claude/Llama-3 synthesis
     |
     v
 [Clinical Output]
-DICOM SR (TID 1500) | FHIR DiagnosticReport R4 | Priority Worklist
+Markdown | JSON | PDF | FHIR R4 DiagnosticReport Bundle
 ```
 
 Built on the HCLS AI Factory platform:
 
-- **Inference:** MONAI Deploy Application Packages (MAPs) on GB10 GPU
-- **Embeddings:** BiomedCLIP-PubMedBERT (384-dim)
-- **Database:** PostgreSQL + pgvector (16 tables, HNSW indexes)
-- **DICOM Server:** Orthanc (DICOMweb + DIMSE)
-- **LLM:** Meta-Llama3-8B-Instruct via NIM
-- **Orchestration:** Nextflow DSL2
-- **UI:** Streamlit portal (port 8525)
+- **RAG Engine:** Multi-collection Milvus vector search + Claude/Llama-3 LLM synthesis
+- **Embeddings:** BGE-small-en-v1.5 (384-dim, IVF_FLAT, COSINE)
+- **Database:** Milvus 2.4 (11 collections -- 10 imaging-specific + `genomic_evidence` read-only)
+- **NIM Services:** VISTA-3D (segmentation), MAISI (synthetic CT), VILA-M3 (VLM), Llama-3 8B (LLM)
+- **Cloud NIMs:** `meta/llama-3.1-8b-instruct` + `meta/llama-3.2-11b-vision-instruct` via `integrate.api.nvidia.com`
+- **DICOM Server:** Orthanc (webhook auto-routing to workflows)
+- **UI:** Streamlit (port 8525)
+- **API:** FastAPI (port 8524)
+- **Export:** Markdown, JSON, PDF, FHIR R4 DiagnosticReport Bundle
+- **Federated Learning:** NVIDIA FLARE (3 job configs)
 - **Hardware target:** NVIDIA DGX Spark ($3,999)
 
-## Key Capabilities
+## Knowledge Base
 
-| Capability | Detail |
+| Source | Records |
 |---|---|
-| **CT Head Hemorrhage** | 3D U-Net segmentation, volume estimation, midline shift measurement, urgency routing (Critical/Urgent/Routine) |
-| **CT Chest Lung Nodule** | RetinaNet detection + SegResNet segmentation, volume doubling time, Lung-RADS 1–4B classification |
-| **CXR Rapid Findings** | DenseNet-121 multi-label classification, GradCAM heatmaps, pneumothorax/effusion/consolidation/cardiomegaly |
-| **MRI Brain MS Lesion** | 3D U-Net on FLAIR, SyN diffeomorphic registration, lesion matching, disease activity (Stable/Active/Highly Active) |
+| PubMed imaging literature | 2,678 papers |
+| ClinicalTrials.gov | 12 trials |
+| Seed reference records | 124 records |
+| Genomic evidence vectors (read-only) | 3,561,170 vectors |
+| **Total vectors** | **3,563,984** |
+
+539 unit tests, 9/9 end-to-end checks.
 
 ## Cross-Modal Integration
 
-The Imaging Agent connects into the broader HCLS AI Factory:
+The Imaging Agent connects into the broader HCLS AI Factory genomics pipeline:
 
-- **Lung-RADS 4B+** triggers Parabricks genomics pipeline for tumor profiling
-- **Imaging phenotypes** feed into the Precision Biomarker Agent for cross-modal risk stratification
-- **Quantitative imaging endpoints** support Drug Discovery pipeline for treatment-response tracking
+- **Lung-RADS 4A+** triggers EGFR/ALK/ROS1/KRAS genomic variant queries against 3.5M genomic vectors
+- **CXR urgent findings** (consolidation, critical severity) trigger infection genomics queries
+- **Brain lesion high activity** triggers neurological genomics queries (HLA-DRB1, demyelination markers)
+- All cross-modal results are included in FHIR R4 export with SNOMED CT, LOINC, and DICOM coding
 
-## Clinical Output Standards
+## Clinical Output
 
 | Output | Format | Usage |
 |---|---|---|
-| Structured Report | DICOM SR (TID 1500) | PACS viewing, radiologist review |
-| Segmentation Masks | DICOM SEG | Overlay on source images |
-| Heatmaps | GSPS + Secondary Capture | GradCAM localization |
-| Clinical Report | FHIR DiagnosticReport R4 | EHR integration (SNOMED CT + LOINC coded) |
-| Worklist | Priority-routed entries | P1 Stat → P4 Routine triage |
+| Clinical Report | Markdown | Human-readable structured report |
+| Structured Data | JSON | Programmatic consumption, dashboards |
+| Printable Report | PDF | Clinical documentation, patient records |
+| Interoperability | FHIR R4 DiagnosticReport Bundle | EHR integration (SNOMED CT + LOINC + DICOM coded) |
 
 ## Services
 
 | Port | Service |
 |---|---|
-| 8520 | NIM LLM (Llama3-8B-Instruct) |
-| 8521 | Embedding Service (BiomedCLIP) |
-| 8522 | DICOM Listener |
-| 8523 | FHIR Publisher |
-| 8524 | Agent API (LangGraph) |
-| 8525 | Streamlit Portal |
-| 4242 | Orthanc DIMSE |
-| 8042 | Orthanc REST |
+| 8524 | FastAPI REST Server |
+| 8525 | Streamlit Chat UI |
+| 8520 | NIM LLM (Llama-3 8B) |
+| 8530 | NIM VISTA-3D |
+| 8531 | NIM MAISI |
+| 8532 | NIM VILA-M3 |
+| 19530 | Milvus (gRPC) |
+| 8042 | Orthanc REST API |
+| 4242 | Orthanc DICOM C-STORE |
 
 ## Credits
 
