@@ -118,10 +118,12 @@ nav:
   - Agents:
     - CAR-T Intelligence Agent:
       - Overview: cart-intelligence-agent/index.md
+      - Demo Guide: cart-intelligence-agent/demo-guide.md
       - Design Document: cart-intelligence-agent/design.md
       - Project Bible: cart-intelligence-agent/project-bible.md
     - Imaging Intelligence Agent:
       - Overview: imaging-intelligence-agent/index.md
+      - Demo Guide: imaging-intelligence-agent/demo-guide.md
       - Design Document: imaging-intelligence-agent/design.md
       - Project Bible: imaging-intelligence-agent/project-bible.md
   - Reports:
