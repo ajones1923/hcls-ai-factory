@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Documentation
+    url: https://hcls-ai-factory.org
+    about: Check the documentation site for guides and troubleshooting
+  - name: Security Vulnerabilities
+    url: https://github.com/ajones1923/hcls-ai-factory/security/policy
+    about: Report security issues through the security policy

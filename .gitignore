@@ -138,6 +138,8 @@ logs/
 htmlcov/
 .tox/
 .nox/
+.ruff_cache/
+.mypy_cache/
 
 # ================================================================
 # Jupyter

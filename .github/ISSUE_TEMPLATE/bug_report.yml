@@ -1,0 +1,63 @@
+name: Bug Report
+description: Report a bug or unexpected behavior
+labels: ["bug"]
+body:
+  - type: dropdown
+    id: pipeline
+    attributes:
+      label: Affected Component
+      options:
+        - Genomics Pipeline
+        - RAG Chat Pipeline
+        - Drug Discovery Pipeline
+        - Landing Page
+        - CAR-T Intelligence Agent
+        - Imaging Intelligence Agent
+        - Precision Oncology Agent
+        - Orchestrator
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What happened? What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: How can we reproduce this issue?
+      placeholder: |
+        1. Start services with `./start-services.sh`
+        2. Navigate to http://localhost:8501
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Hardware and software details
+      placeholder: |
+        - OS: Ubuntu 22.04
+        - GPU: NVIDIA DGX Spark / RTX 4090 / etc.
+        - Python: 3.12
+        - Docker: 27.x
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant Logs
+      description: Paste any error messages or logs
+      render: shell
+    validations:
+      required: false
