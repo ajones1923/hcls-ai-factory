@@ -1,0 +1,14 @@
+# Gitleaks configuration for HCLS AI Factory
+# https://github.com/gitleaks/gitleaks
+
+title = "HCLS AI Factory Secrets Scan"
+
+[allowlist]
+description = "Global allowlist"
+paths = [
+    '''\.env\.example$''',
+    '''\.github/''',
+    '''docs/''',
+    '''\.md$''',
+    '''requirements.*\.txt$''',
+]

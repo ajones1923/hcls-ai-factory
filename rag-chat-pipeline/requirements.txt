@@ -21,7 +21,7 @@ anthropic==0.79.0
 # vllm>=0.3.0  # Uncomment for local LLM
 
 # Web Interface
-streamlit==1.52.2
+streamlit==1.54.0
 streamlit-chat==0.1.1
 
 # Data Processing

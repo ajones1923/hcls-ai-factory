@@ -97,11 +97,14 @@ nav:
     - Quick-Start Checklist: quickstart.md
     - Demo Guide: HCLS_AI_FACTORY_DEMO_GUIDE.md
     - Deployment Guide: HCLS_AI_FACTORY_DGX_SPARK_DEPLOYMENT_GUIDE.md
+    - Data Setup: DATA_SETUP.md
     - Troubleshooting: TROUBLESHOOTING.md
+    - Deployment Flow: DEPLOYMENT_FLOW.md
     - Licensing & Cost: licensing.md
   - Design:
     - Project Bible: HCLS_AI_FACTORY_PROJECT_BIBLE.md
     - White Paper: HCLS_AI_FACTORY_WHITE_PAPER_DGX_SPARK.md
+    - Architecture Mindmap: ARCHITECTURE_MINDMAP.md
   - Learning:
     - Foundations: HCLS_AI_FACTORY_LEARNING_GUIDE_FOUNDATIONS.md
     - Advanced: HCLS_AI_FACTORY_LEARNING_GUIDE_ADVANCED.md
@@ -111,6 +114,7 @@ nav:
     - Drug Discovery: stage-3-drug-discovery.md
     - Technical Docs:
       - Genomics Pipeline: genomics-pipeline/README.md
+      - Genomics Pipeline Overview: genomics-pipeline/PIPELINE_OVERVIEW.md
       - Genomics Quick Start: genomics-pipeline/QUICKSTART.md
       - Genomics Web Portal: genomics-pipeline/WEB-PORTAL-GUIDE.md
       - Genomics Phases: genomics-pipeline/PHASES_OVERVIEW.md
@@ -136,6 +140,8 @@ nav:
     - Intelligence Report: HCLS_AI_FACTORY_INTELLIGENCE_REPORT.md
     - Pipeline Report: PIPELINE_REPORT.md
     - Performance Benchmarks: PERFORMANCE.md
+    - Audit Report: FINAL_AUDIT_REPORT.md
+    - Executive Summary: HCLS_AI_FACTORY_EXECUTIVE_BULLETS.md
   - Resources: downloads.md
 
 extra:

@@ -25,6 +25,11 @@ services:
       - "8080:8080"
     environment:
       - LANDING_PORT=8080
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
     restart: unless-stopped
 
   # Monitoring — Grafana dashboards (auto-provisioned)
@@ -32,13 +37,18 @@ services:
     image: grafana/grafana-oss:11.0.0
     container_name: ai-factory-grafana
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     volumes:
       - grafana_data:/var/lib/grafana
       - ./drug-discovery-pipeline/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
       - ./drug-discovery-pipeline/monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '1.0'
     restart: unless-stopped
 
   # Monitoring — Prometheus metrics (with alert rules)
@@ -46,7 +56,7 @@ services:
     image: prom/prometheus:v2.52.0
     container_name: ai-factory-prometheus
     ports:
-      - "9099:9090"
+      - "127.0.0.1:9099:9090"
     volumes:
       - ./drug-discovery-pipeline/monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - ./drug-discovery-pipeline/monitoring/prometheus/alerts:/etc/prometheus/alerts:ro
@@ -54,6 +64,11 @@ services:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.retention.time=30d'
       - '--web.enable-lifecycle'
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '1.0'
     restart: unless-stopped
 
   # Intelligence Agents
@@ -66,6 +81,11 @@ services:
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
       - MILVUS_HOST=milvus
       - MILVUS_PORT=19530
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2.0'
     depends_on:
       - landing-page
     restart: unless-stopped
@@ -80,6 +100,11 @@ services:
       - MILVUS_HOST=milvus
       - MILVUS_PORT=19530
       - NGC_API_KEY=${NGC_API_KEY}
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2.0'
     depends_on:
       - landing-page
     restart: unless-stopped
@@ -93,6 +118,11 @@ services:
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
       - MILVUS_HOST=milvus
       - MILVUS_PORT=19530
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2.0'
     depends_on:
       - landing-page
     restart: unless-stopped
@@ -102,7 +132,12 @@ services:
     image: prom/node-exporter:v1.8.0
     container_name: ai-factory-node-exporter
     ports:
-      - "9100:9100"
+      - "127.0.0.1:9100:9100"
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.25'
     restart: unless-stopped
 
 volumes:
