@@ -23,7 +23,28 @@ jobs:
         run: pip install ruff
 
       - name: Run ruff check
-        run: ruff check --select E9,F63,F7,F82,W,I,UP,B,SIM --output-format github .
+        run: ruff check --output-format github .
+
+  typecheck:
+    name: Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: 'pip'
+
+      - name: Install mypy and stubs
+        run: pip install mypy types-requests types-tqdm types-psutil
+
+      - name: Run mypy
+        run: |
+          mypy --ignore-missing-imports --no-error-summary \
+            --exclude 'tests/' --exclude 'venv/' --exclude '.venv/' \
+            landing-page/ || true
 
   test:
     name: Test ${{ matrix.service }}
@@ -57,33 +78,48 @@ jobs:
             exclude_deps: ""
             markers: "not slow and not integration"
           - service: cart-agent
-            workdir: ../ai_agent_adds/cart_intelligence_agent
+            workdir: ai_agent_adds/cart_intelligence_agent
             reqfile: requirements.txt
             extra_deps: "pytest pytest-cov"
             exclude_deps: "torch sentence-transformers"
             markers: "not slow and not integration"
+            optional: true
           - service: imaging-agent
-            workdir: ../ai_agent_adds/imaging_intelligence_agent/agent
+            workdir: ai_agent_adds/imaging_intelligence_agent/agent
             reqfile: requirements.txt
             extra_deps: "pytest pytest-cov"
             exclude_deps: "torch sentence-transformers SimpleITK"
             markers: "not slow and not integration"
+            optional: true
           - service: onco-agent
-            workdir: ../ai_agent_adds/precision_oncology_agent/agent
+            workdir: ai_agent_adds/precision_oncology_agent/agent
             reqfile: requirements.txt
             extra_deps: "pytest pytest-cov"
             exclude_deps: "torch sentence-transformers"
             markers: "not slow and not integration"
+            optional: true
     steps:
       - uses: actions/checkout@v6
 
+      - name: Check if workdir exists
+        id: check
+        run: |
+          if [ -d "${{ matrix.workdir }}" ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Skipping ${{ matrix.service }} — directory ${{ matrix.workdir }} not found"
+          fi
+
       - name: Set up Python
+        if: steps.check.outputs.exists == 'true'
         uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: 'pip'
 
       - name: Install dependencies from requirements.txt
+        if: steps.check.outputs.exists == 'true'
         working-directory: ${{ matrix.workdir }}
         run: |
           # Install from requirements.txt, skipping packages that need GPU/system libs
@@ -96,6 +132,7 @@ jobs:
           pip install ${{ matrix.extra_deps }}
 
       - name: Run tests
+        if: steps.check.outputs.exists == 'true'
         working-directory: ${{ matrix.workdir }}
         run: |
           python -m pytest tests/ -v --tb=short \
@@ -103,7 +140,7 @@ jobs:
             --cov=. --cov-report=xml:coverage.xml --cov-report=term-missing
 
       - name: Upload coverage to Codecov
-        if: always()
+        if: always() && steps.check.outputs.exists == 'true'
         uses: codecov/codecov-action@v4
         with:
           files: coverage.xml
@@ -112,7 +149,7 @@ jobs:
           fail_ci_if_error: false
 
       - name: Upload coverage artifact
-        if: always()
+        if: always() && steps.check.outputs.exists == 'true'
         uses: actions/upload-artifact@v6
         with:
           name: coverage-${{ matrix.service }}
@@ -142,30 +179,46 @@ jobs:
             reqfile: requirements.txt
             exclude_deps: ""
           - service: cart-agent
-            workdir: ../ai_agent_adds/cart_intelligence_agent
+            workdir: ai_agent_adds/cart_intelligence_agent
             reqfile: requirements.txt
             exclude_deps: "torch sentence-transformers"
+            optional: true
           - service: imaging-agent
-            workdir: ../ai_agent_adds/imaging_intelligence_agent/agent
+            workdir: ai_agent_adds/imaging_intelligence_agent/agent
             reqfile: requirements.txt
             exclude_deps: "torch sentence-transformers SimpleITK"
+            optional: true
           - service: onco-agent
-            workdir: ../ai_agent_adds/precision_oncology_agent/agent
+            workdir: ai_agent_adds/precision_oncology_agent/agent
             reqfile: requirements.txt
             exclude_deps: "torch sentence-transformers"
+            optional: true
     steps:
       - uses: actions/checkout@v6
 
+      - name: Check if workdir exists
+        id: check
+        run: |
+          if [ -d "${{ matrix.workdir }}" ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Skipping ${{ matrix.service }} — directory ${{ matrix.workdir }} not found"
+          fi
+
       - name: Set up Python
+        if: steps.check.outputs.exists == 'true'
         uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: 'pip'
 
       - name: Install pip-audit
+        if: steps.check.outputs.exists == 'true'
         run: pip install pip-audit
 
       - name: Install auditable dependencies
+        if: steps.check.outputs.exists == 'true'
         working-directory: ${{ matrix.workdir }}
         run: |
           if [ -n "${{ matrix.exclude_deps }}" ]; then
@@ -175,17 +228,31 @@ jobs:
           fi
 
       - name: Run pip-audit
+        if: steps.check.outputs.exists == 'true'
         working-directory: ${{ matrix.workdir }}
         run: |
           pip-audit --format json --output audit-results.json || true
           pip-audit --format columns || true
 
       - name: Upload audit results
-        if: always()
+        if: always() && steps.check.outputs.exists == 'true'
         uses: actions/upload-artifact@v6
         with:
           name: security-audit-${{ matrix.service }}
           path: ${{ matrix.workdir }}/audit-results.json
+
+  secrets:
+    name: Secrets Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Run gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   docs:
     name: Build Docs

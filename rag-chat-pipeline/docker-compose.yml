@@ -8,8 +8,8 @@ services:
     container_name: milvus-standalone
     command: ["milvus", "run", "standalone"]
     ports:
-      - "19530:19530"   # gRPC
-      - "9091:9091"     # Metrics
+      - "127.0.0.1:19530:19530"   # gRPC (localhost only)
+      - "127.0.0.1:9091:9091"     # Metrics (localhost only)
     volumes:
       - milvus_data:/var/lib/milvus
     environment:

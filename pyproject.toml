@@ -1,0 +1,73 @@
+[project]
+name = "hcls-ai-factory"
+version = "1.1.0"
+description = "End-to-end precision medicine platform: Patient DNA to Drug Candidates"
+license = "Apache-2.0"
+requires-python = ">=3.10"
+
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "B",    # flake8-bugbear
+    "SIM",  # flake8-simplify
+    "UP",   # pyupgrade
+    "N",    # pep8-naming
+    "A",    # flake8-builtins
+    "C90",  # mccabe complexity
+]
+ignore = [
+    "E501",   # line too long (handled by formatter)
+    "E741",   # ambiguous variable name (common in bioinformatics: l, I)
+    "N802",   # function name should be lowercase (bioinformatics conventions)
+    "N803",   # argument name should be lowercase
+    "N806",   # variable in function should be lowercase
+    "A003",   # class attribute shadows builtin
+]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 15
+
+[tool.ruff.lint.isort]
+known-first-party = ["src", "app", "api", "config"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.mypy]
+python_version = "3.10"
+ignore_missing_imports = true
+warn_return_any = true
+warn_unused_configs = true
+exclude = ["tests/", "venv/", ".venv/", "build/"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests requiring external services",
+    "rdkit: marks tests requiring RDKit",
+]
+
+[tool.coverage.run]
+branch = true
+omit = ["tests/*", "*/test_*", "venv/*", ".venv/*"]
+
+[tool.coverage.report]
+fail_under = 50
+show_missing = true

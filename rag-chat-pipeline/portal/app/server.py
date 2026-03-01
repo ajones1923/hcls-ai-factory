@@ -47,7 +47,7 @@ app = Flask(__name__,
             static_folder='../static')
 CORS(app, resources={
     r"/api/*": {
-        "origins": os.environ.get('CORS_ORIGINS', '*').split(','),
+        "origins": os.environ.get('CORS_ORIGINS', 'http://localhost:8501,http://localhost:8505,http://localhost:8510').split(','),
         "methods": ["GET", "POST"],
         "allow_headers": ["Content-Type", "X-API-Key"]
     }
