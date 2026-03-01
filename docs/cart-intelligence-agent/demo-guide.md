@@ -22,13 +22,15 @@ tags:
 | Parameter | Value |
 |---|---|
 | **Route A Duration** | 15 minutes (standalone agent) |
-| **Route B Duration** | 25-30 minutes (cross-platform integration) |
+| **Route B Duration** | 25 minutes (cross-platform integration) |
 | **Hardware** | NVIDIA DGX Spark (GB10, 128 GB unified) |
 | **Knowledge Base** | 6,266+ vectors across 10 owned collections + 3.56M genomic vectors |
 | **Knowledge Graph** | 25 target antigens, 6 FDA products, 8 toxicity profiles |
 | **LLM** | Claude Sonnet 4.6 (Anthropic) |
 | **Export Formats** | Markdown, JSON, PDF |
 | **Primary UI** | Streamlit at http://localhost:8521 |
+| **API** | FastAPI at http://localhost:8522 |
+| **Tests** | 241 tests |
 
 ### What the Audience Will See
 
@@ -126,9 +128,24 @@ Open http://localhost:8521 in a browser. Confirm the Chat tab loads with the sid
 
 ## Route A: Standalone Agent Demo (15 minutes)
 
-### Opening (1 minute)
+> **All interaction through the Streamlit UI at http://localhost:8521. Zero curl commands, zero terminal windows.**
 
-**Show:** Landing page at http://localhost:8080 — confirm the CAR-T Intelligence service shows green in the health grid.
+| Step | Tab / UI | Action | Time |
+|------|----------|--------|------|
+| 1 — Opening | Landing page `:8080` | Show health grid, CAR-T service green | 1 min |
+| 2 — Evidence Query | Chat tab `:8521` | Type query about CD19 CAR-T failure | 3 min |
+| 3 — Sidebar Filters | Chat tab sidebar | Show 10 collection checkboxes, select target, demo query buttons | 1 min |
+| 4 — Comparative | Chat tab `:8521` | Type "Compare 4-1BB vs CD28 costimulatory domains for DLBCL" | 3 min |
+| 5 — Knowledge Graph | Knowledge Graph tab | Select entity type, explore graph visualization | 2 min |
+| 6 — Deep Research | Chat tab (toggle) | Enable "Deep Research Mode" in sidebar, type deep research query | 2 min |
+| 7 — Export | Chat tab | Click "Download PDF" button after query results appear | 1 min |
+| 8 — Closing | -- | Talking points: 10 collections, 6,266+ vectors, grounded citations | 2 min |
+
+---
+
+### Step 1: Opening (1 minute)
+
+**Show:** Landing page at http://localhost:8080 -- confirm the CAR-T Intelligence service shows green in the health grid.
 
 **Talking points:**
 
@@ -136,66 +153,85 @@ Open http://localhost:8521 in a browser. Confirm the Chat tab loads with the sid
 - "11 Milvus collections covering literature, clinical trials, FDA-approved constructs, assays, manufacturing, safety, biomarkers, regulatory, sequences, real-world evidence, and genomic variants."
 - "Every query searches all data sources simultaneously and Claude synthesizes cross-functional insights with citations."
 
-**Show:** CAR-T Agent UI at http://localhost:8521. Point out the sidebar with 10 collection checkboxes, target filter, stage filter, and demo query buttons.
+**Show:** CAR-T Agent UI at http://localhost:8521. Point out:
+
+- The header: "CAR-T Intelligence Agent" in NVIDIA green with the subtitle "Cross-Functional Intelligence Across the CAR-T Development Lifecycle"
+- Three tabs across the top: **Chat**, **Knowledge Graph**, **Image Analysis**
+- The sidebar with Configuration section, collection checkboxes with live vector counts, and Demo Queries section
 
 ---
 
-### RAG Knowledge Query (3 minutes)
+### Step 2: RAG Knowledge Query (3 minutes)
 
 **Show:** Chat tab at http://localhost:8521
 
-**Select:** In the sidebar, verify all 10 collection checkboxes are checked.
+**Select:** In the sidebar, verify all 10 collection checkboxes are checked. Each checkbox shows the collection name and live record count (e.g., "Literature (5,047)", "Clinical Trials (973)").
 
-**Select:** Target filter = `CD19`
+**Select:** Target Antigen Filter = `CD19`
 
 **Type this query:**
 
 > Why do CD19 CAR-T therapies fail in relapsed B-ALL?
 
-**Expected result:** Claude returns a multi-paragraph answer with evidence cards from four or more collections. Look for:
+**Expected result:** A status indicator appears: "Searching across CAR-T data sources..." with real-time progress. Claude returns a multi-paragraph answer streamed token-by-token. Look for:
 
-- **cart_literature** evidence card (green indicator, score ~0.89) — "Antigen loss observed in 28% of relapses..."
-- **cart_assays** evidence card (green indicator, score ~0.85) — "CD19-negative relapses via trogocytosis..."
-- **cart_trials** evidence card (green indicator, score ~0.82) — "ELIANA trial: 12-month EFS 73%..."
-- **cart_constructs** evidence card (green indicator, score ~0.80) — "Kymriah tisagenlecleucel 4-1BB..."
+- An expandable **"Evidence Sources"** panel showing hit count and search time (e.g., "Evidence Sources (24 results, 14ms)")
+- Inside the evidence panel: color-coded evidence cards from multiple collections:
+  - **cart_literature** evidence card (blue badge, score ~0.89) — "Antigen loss observed in 28% of relapses..."
+  - **cart_assays** evidence card (yellow badge, score ~0.85) — "CD19-negative relapses via trogocytosis..."
+  - **cart_trials** evidence card (purple badge, score ~0.82) — "ELIANA trial: 12-month EFS 73%..."
+  - **cart_constructs** evidence card (green badge, score ~0.80) — "Kymriah tisagenlecleucel 4-1BB..."
+- Clickable PubMed and ClinicalTrials.gov links on relevant evidence cards
 - Three follow-up question suggestions below the answer
+- Three export buttons below the response: **"Download Markdown"**, **"Download JSON"**, **"Download PDF"**
 
 **Talking points:**
 
 - "One question, four collections hit simultaneously — literature, assays, trials, and constructs."
 - "The answer identifies specific failure mechanisms: antigen loss in 28% of relapses, lineage switch in 10% with KMT2A rearrangements, trogocytosis, and T-cell exhaustion."
 - "Every claim is backed by a citation with cosine similarity scores. The top hit scored 0.89 — very high relevance."
+- "Evidence cards are color-coded by collection — blue for literature, purple for trials, green for constructs, yellow for assays."
 - "Claude suggests three follow-up questions, each targeting a different aspect of the problem."
 
 ---
 
-### Sidebar Filters and Demo Queries (1 minute)
+### Step 3: Sidebar Filters and Demo Queries (1 minute)
 
 **Show:** The sidebar at http://localhost:8521
 
-- Point out the 10 collection checkboxes — each one maps to a Milvus collection.
-- Point out the Target Filter selectbox (CD19, BCMA, GPRC5D, etc.).
-- Point out the Stage Filter selectbox (Preclinical, IND, Phase I, II, III).
-- Point out the Date Range year slider.
+- Point out the **10 collection checkboxes** — each one maps to a Milvus collection with a live record count displayed.
+- Point out the **Target Antigen Filter** selectbox (All Targets, CD19, BCMA, CD22, CD20, CD30, CD33, CD38, CD123, GD2, HER2, GPC3, EGFR, Mesothelin, PSMA, ROR1).
+- Point out the **Development Stage** selectbox (All Stages, Target Identification, CAR Design, Vector Engineering, Testing, Clinical).
+- Point out the **Date Range** section — two year inputs (From Year / To Year) and an "Apply date filter" checkbox.
+- Point out the **Total** line at the bottom of the collections section showing total vector count across selected collections.
 
-**Click:** One of the pre-built Demo Query buttons in the sidebar.
+**Click:** One of the 13 pre-built **Demo Query** buttons in the sidebar (e.g., "BCMA CAR-T resistance mechanisms in myeloma").
 
-**Expected result:** The demo query auto-populates the chat input and executes, returning a fully cited answer.
+**Expected result:** The demo query auto-populates the chat input and executes. A fully cited RAG answer appears with evidence cards and export buttons.
 
 **Talking points:**
 
 - "The sidebar gives full control over which evidence sources are queried. Uncheck collections to narrow the scope."
 - "Pre-built demo queries let clinicians start with validated questions — no prompt engineering required."
+- "13 demo queries cover the full development lifecycle — from construct binding affinity to real-world outcomes to regulatory pathways."
 
 ---
 
-### Comparative Analysis (3 minutes)
+### Step 4: Comparative Analysis (3 minutes)
+
+**Show:** Chat tab at http://localhost:8521
 
 **Type this query:**
 
 > Compare 4-1BB vs CD28 costimulatory domains for DLBCL
 
-**Expected result:** The engine detects "Compare" and triggers dual-entity retrieval. Claude produces a structured comparison table:
+**Expected result:** The engine detects "Compare" and triggers dual-entity retrieval. The status indicator updates: "Comparative analysis: **4-1BB** vs **CD28**" with hit count and search time. Claude produces a structured comparison:
+
+- An expandable **"Comparative Evidence"** panel with two sections:
+  - Entity A header (blue): **4-1BB** — evidence cards for 4-1BB
+  - A "-- VS --" divider in NVIDIA green
+  - Entity B header (purple): **CD28** — evidence cards for CD28
+- Claude's synthesized comparison table:
 
 ```
 ## Comparison: 4-1BB vs CD28
@@ -219,8 +255,8 @@ Open http://localhost:8521 in a browser. Confirm the Chat tab loads with the sid
 - "Watch what happens when I say 'compare'. The engine automatically detects this is a comparative query."
 - "It parses two entities — 4-1BB and CD28 — and resolves each against the knowledge graph."
 - "Dual retrieval runs: entity A and entity B are searched separately, then results are merged into a structured prompt."
+- "The evidence panel shows both sides — 4-1BB hits in blue, CD28 hits in purple, separated by a VS divider."
 - "Claude produces a comparison table with advantages, limitations, and clinical context."
-- "This comparison was auto-generated from dual retrieval across 11 collections. The engine found evidence for both domains across literature, trials, constructs, and assays."
 - "Five of six FDA-approved CAR-T products use 4-1BB. Only Yescarta uses CD28. That's a clear trend."
 
 **Comparison types you can demo:**
@@ -235,61 +271,86 @@ Open http://localhost:8521 in a browser. Confirm the Chat tab loads with the sid
 
 ---
 
-### Knowledge Graph Exploration (2 minutes)
+### Step 5: Knowledge Graph Exploration (2 minutes)
 
-**Click:** The "Knowledge Graph" tab at http://localhost:8521
+**Click:** The **"Knowledge Graph"** tab at the top of the page at http://localhost:8521.
 
-**Type:** `CD19` in the entity search input.
+**Select:** Entity Type = `Target Antigens` from the selectbox on the left.
 
-**Select:** Entity type filter = `Gene` (or leave as "All").
+**Expected result:** An interactive pyvis graph visualization renders showing:
 
-**Expected result:** An interactive graph visualization (pyvis) renders showing CD19 as the central node, with edges connecting to:
+- Target antigen nodes in NVIDIA green (CD19, BCMA, CD22, etc.)
+- Disease nodes in blue (B-ALL, DLBCL, FL, MCL, Multiple Myeloma)
+- FDA-approved product nodes in purple (Kymriah, Yescarta, Tecartus, Breyanzi, Abecma, Carvykti)
+- Resistance mechanism nodes in red (antigen loss, trogocytosis, etc.)
+- Edges connecting each antigen to its associated diseases, products, and resistance mechanisms
+- A stats line: "Knowledge Graph: 25 targets, 8 toxicities, 10 manufacturing processes, 15+ biomarkers, 6 regulatory products"
 
-- FDA-approved products (Kymriah, Yescarta, Tecartus, Breyanzi)
-- Associated diseases (B-ALL, DLBCL, FL, MCL)
-- Toxicity profiles (CRS, ICANS, B-cell aplasia)
-- Costimulatory domains (4-1BB, CD28)
+**Select:** Entity Type = `Toxicities` to show a different graph view with toxicity nodes linked to biomarkers and management drugs.
 
-Click on individual nodes to see detail panels with entity attributes.
+**Show:** Scroll down to the **"Cross-Collection Entity Search"** section below the graph.
+
+**Type:** `CD19` in the entity search input (placeholder: "e.g., Yescarta, CD19, FMC63").
+
+**Expected result:** Results grouped by collection — Literature, Trials, Constructs, Assays, etc. — each showing the top hits with relevance scores and text snippets.
 
 **Talking points:**
 
 - "The knowledge graph contains 25 CAR-T target antigens — from well-established CD19 and BCMA to emerging targets like GPRC5D and Claudin18.2."
 - "All 6 FDA-approved products are modeled with their complete specifications: target antigen, scFv origin, costimulatory domain, vector type, and approval timeline."
 - "8 toxicity profiles cover CRS, ICANS, B-cell aplasia, HLH/MAS, cytopenias, TLS, GvHD, and on-target/off-tumor toxicity."
+- "The entity search finds all evidence related to any concept across all 10 collections — a cross-functional lookup."
 - "This structured knowledge is automatically injected into every query prompt — Claude knows the entire landscape."
 
 ---
 
-### Deep Research Mode (2 minutes)
+### Step 6: Deep Research Mode (2 minutes)
 
-**Click:** The "Deep Research Mode" toggle in the sidebar to enable it.
+**Click:** The **"Chat"** tab to return to the chat interface.
+
+**Click:** The **"Deep Research Mode"** toggle in the sidebar to enable it. Confirm the badge changes from "QUICK RAG" (blue) to "DEEP RESEARCH" (purple).
 
 **Type this query:**
 
 > What are the key challenges in developing solid tumor CAR-T therapies and what strategies are being explored?
 
-**Expected result:** The UI shows the agent reasoning pipeline in real-time:
+**Expected result:** The UI shows the agent reasoning pipeline in real-time via the status indicator:
 
-1. **Plan** — the agent identifies this as a broad, multi-faceted question requiring decomposition.
-2. **Decompose** — it breaks the question into sub-queries: tumor microenvironment, antigen heterogeneity, trafficking, exhaustion, safety.
-3. **Search** — each sub-query gets its own retrieval pass across 11 collections.
-4. **Evaluate** — the agent checks evidence quality. If insufficient, it runs supplementary searches.
-5. **Synthesize** — Claude produces a comprehensive, multi-section answer with citations from every sub-query.
+1. **"Deep Research: planning search strategy..."** — the agent identifies this as a broad, multi-faceted question. The status area shows:
+   - **Strategy:** the search approach the agent chose
+   - **Targets:** relevant target antigens identified
+   - **Stages:** development stages to search
+   - **Sub-questions:** count of decomposed sub-queries
+2. **"Deep Research: retrieving evidence..."** — each sub-query gets its own retrieval pass across 11 collections.
+3. **Evidence quality** evaluation — the agent checks if evidence is sufficient. If insufficient, it automatically runs supplementary searches with sub-questions and reports "Augmented to: N hits".
+4. **"Generating response..."** — Claude produces a comprehensive, multi-section answer streamed token-by-token with citations from every sub-query.
 
 **Talking points:**
 
-- "Deep Research Mode activates the full agent reasoning pipeline."
-- "Watch the step-by-step progress — Plan, Decompose, Search, Evaluate, Synthesize."
-- "This is autonomous reasoning — the agent decides what to search for and how to structure the answer."
+- "Deep Research Mode activates the full agent reasoning pipeline — Plan, Decompose, Search, Evaluate, Synthesize."
+- "Watch the step-by-step progress in real-time — the agent decides what to search for and how to structure the answer."
+- "If the initial search returns insufficient evidence, the agent autonomously expands its search using decomposed sub-questions."
+- "This is autonomous reasoning, not a static prompt template."
+
+**Click:** The **"Deep Research Mode"** toggle to disable it (return to Quick RAG mode for the remaining steps).
 
 ---
 
-### Report Export (1 minute)
+### Step 7: Report Export (1 minute)
 
-**Click:** The "Export as PDF" download button below the chat response.
+**Show:** The export buttons that appear below the most recent chat response.
 
-**Expected result:** The browser downloads a professionally styled PDF report. Also show the Markdown and JSON export buttons.
+**Click:** The **"Download PDF"** button.
+
+**Expected result:** The browser downloads a professionally styled PDF report with NVIDIA theming via ReportLab.
+
+**Click:** The **"Download Markdown"** button.
+
+**Expected result:** A `.md` file downloads with the full query, response, evidence sources, and citations.
+
+**Click:** The **"Download JSON"** button.
+
+**Expected result:** A `.json` file downloads with structured data including query metadata, response text, evidence hits, and filter settings.
 
 **Talking points:**
 
@@ -297,27 +358,45 @@ Click on individual nodes to see detail panels with entity attributes.
 - "The PDF is NVIDIA-themed with professional styling via ReportLab."
 - "Every report includes: query metadata, RAG-synthesized analysis, evidence sources by collection, knowledge graph context, and citation links."
 - "Download the PDF — open it and you'll see a publication-ready report with clickable PubMed links."
+- "All three buttons appear after every query — export any answer at any time."
 
 ---
 
-### Closing Route A (2 minutes)
+### Step 8: Closing Route A (2 minutes)
 
 **Talking points:**
 
-- "11 collections, 6,266 curated vectors, 25 target antigens, 12-16ms retrieval, automatic comparative analysis."
+- "10 owned collections, 6,266+ curated vectors, 1 shared genomic evidence collection with 3.56 million vectors."
+- "25 target antigens, 6 FDA-approved products, 8 toxicity profiles — all in the knowledge graph."
+- "12-16ms retrieval across 11 collections. Full RAG with Claude synthesis in ~24 seconds."
+- "Automatic comparative analysis — just say 'compare' and the engine does the rest."
+- "Deep Research Mode for complex questions — autonomous agent decomposition and evidence evaluation."
 - "This is a complete CAR-T cell therapy intelligence platform — from target discovery through manufacturing to clinical safety."
 - "Every answer is grounded in published evidence with clickable citations. No hallucination."
 - "And the entire demo was done through a Streamlit interface — no command line, no API calls, no JSON payloads."
 
 ---
 
-## Route B: Cross-Platform Integration Demo (25-30 minutes)
+## Route B: Cross-Platform Integration Demo (25 minutes)
 
 > **Prerequisite:** Complete Route A first, or start from a fresh session with all services running.
 >
 > This route demonstrates how the CAR-T Intelligence Agent connects to the full HCLS AI Factory — bridging cell therapy intelligence with genomic variant analysis and AI-driven drug discovery.
 
-### Platform Overview (2 minutes)
+| Step | UI | Action | Time |
+|------|-----|--------|------|
+| 1 — Platform Overview | Landing page `:8080` | Show full platform health, architecture | 2 min |
+| 2 — Shared Data Layer | Chat tab sidebar `:8521` | Show 10+1 collections, explain shared genomic_evidence | 3 min |
+| 3 — Patient Variant Context | Chat tab `:8521` | Query bridging genomic variants and CAR-T therapy | 4 min |
+| 4 — CAR-T + Genomics Bridge | Chat tab `:8521` | Query about VCP target and CAR-T vs small molecules | 4 min |
+| 5 — Cross-Functional Compare | Chat tab `:8521` | Compare CD19 vs BCMA manufacturing and outcomes | 3 min |
+| 6 — Bridge to Stage 2 | RAG Chat `:8501` | Query genomic evidence for antigen loss prediction | 3 min |
+| 7 — Bridge to Stage 3 | Drug Discovery UI `:8505` | Show target-to-molecule pipeline | 3 min |
+| 8 — The Complete Loop | -- | Walk through full precision medicine pipeline | 3 min |
+
+---
+
+### Step 1: Platform Overview (2 minutes)
 
 **Show:** HCLS AI Factory landing page at http://localhost:8080
 
@@ -342,11 +421,27 @@ Stage 3: Drug Discovery (BioNeMo)
 
 ---
 
-### Shared Genomic Data Layer (3 minutes)
+### Step 2: Shared Genomic Data Layer (3 minutes)
 
-**Show:** Chat tab at http://localhost:8521
+**Show:** Chat tab sidebar at http://localhost:8521
 
-**Click:** Open the sidebar. Point out all 10 collection checkboxes. Note that these are the CAR-T agent's own collections.
+**Click:** Scroll through the sidebar **Collections** section. Point out all 10 collection checkboxes with their live record counts:
+
+| Collection | Checkbox Label | Vectors |
+|---|---|---|
+| cart_literature | Literature (5,047) | 5,047 |
+| cart_trials | Clinical Trials (973) | 973 |
+| cart_constructs | CAR Constructs (6) | 6 |
+| cart_assays | Assay Data (45) | 45 |
+| cart_manufacturing | Manufacturing (30) | 30 |
+| cart_safety | Safety (40) | 40 |
+| cart_biomarkers | Biomarkers (43) | 43 |
+| cart_regulatory | Regulatory (25) | 25 |
+| cart_sequences | Sequences (27) | 27 |
+| cart_realworld | Real-World Evidence (30) | 30 |
+| genomic_evidence | Genomic Evidence (3,561,170) | 3,561,170 |
+
+**Show:** The **Total** line at the bottom of the collections: "Total: 3,567,436 vectors across 11 collections"
 
 **Talking points:**
 
@@ -356,15 +451,20 @@ Stage 3: Drug Discovery (BioNeMo)
 
 ---
 
-### Patient Variant Context (4 minutes)
+### Step 3: Patient Variant Context (4 minutes)
 
 **Show:** Chat tab at http://localhost:8521
+
+**Select:** Verify all 11 collection checkboxes are checked (including Genomic Evidence).
 
 **Type this query:**
 
 > What genomic variants in this patient affect CAR-T therapy response and toxicity prediction?
 
-**Expected result:** Claude searches both the CAR-T therapy collections and the genomic evidence collection. The response includes evidence cards from `cart_safety`, `cart_biomarkers`, and `genomic_evidence` with relevance scores.
+**Expected result:** The status indicator shows retrieval across multiple collections. Claude searches both the CAR-T therapy collections and the genomic evidence collection. The response includes:
+
+- Evidence cards from `cart_safety` (red badge), `cart_biomarkers` (teal badge), and `genomic_evidence` (cyan badge) with relevance scores
+- Cross-functional synthesis connecting variants to CAR-T outcomes
 
 **Talking points:**
 
@@ -375,7 +475,7 @@ Stage 3: Drug Discovery (BioNeMo)
 
 ---
 
-### CAR-T + Genomics Bridge (4 minutes)
+### Step 4: CAR-T + Genomics Bridge (4 minutes)
 
 **Show:** Chat tab at http://localhost:8521
 
@@ -383,7 +483,7 @@ Stage 3: Drug Discovery (BioNeMo)
 
 > If the genomics pipeline identified VCP as a drug target for frontotemporal dementia, how would CAR-T approaches compare to small molecule inhibitors for this target?
 
-**Expected result:** Claude pulls from literature on CAR-T for neurodegeneration, constructs targeting intracellular proteins, and manufacturing considerations. Evidence cards show hits from `cart_literature`, `cart_constructs`, and `genomic_evidence`.
+**Expected result:** Claude pulls from literature on CAR-T for neurodegeneration, constructs targeting intracellular proteins, and manufacturing considerations. Evidence cards show hits from `cart_literature` (blue badge), `cart_constructs` (green badge), and `genomic_evidence` (cyan badge).
 
 **Talking points:**
 
@@ -394,7 +494,7 @@ Stage 3: Drug Discovery (BioNeMo)
 
 ---
 
-### Cross-Functional Comparative Query (3 minutes)
+### Step 5: Cross-Functional Comparative Query (3 minutes)
 
 **Show:** Chat tab at http://localhost:8521
 
@@ -402,7 +502,12 @@ Stage 3: Drug Discovery (BioNeMo)
 
 > Compare manufacturing parameters and clinical outcomes for CD19 vs BCMA CAR-T products
 
-**Expected result:** Claude triggers comparative mode (detecting "Compare") and performs dual retrieval for CD19 and BCMA across manufacturing and clinical collections. The output includes a structured comparison table.
+**Expected result:** Claude triggers comparative mode (detecting "Compare") and performs dual retrieval for CD19 and BCMA across manufacturing and clinical collections. The expandable "Comparative Evidence" panel shows:
+
+- **CD19** entity header (blue) with evidence cards
+- **"-- VS --"** divider in NVIDIA green
+- **BCMA** entity header (purple) with evidence cards
+- Claude's synthesized comparison table
 
 **Talking points:**
 
@@ -413,7 +518,7 @@ Stage 3: Drug Discovery (BioNeMo)
 
 ---
 
-### Bridge to Stage 2: RAG Chat (3 minutes)
+### Step 6: Bridge to Stage 2 — RAG Chat (3 minutes)
 
 **Show:** Stage 2 RAG Chat UI at http://localhost:8501
 
@@ -431,7 +536,7 @@ Stage 3: Drug Discovery (BioNeMo)
 
 ---
 
-### Bridge to Stage 3: Drug Discovery (3 minutes)
+### Step 7: Bridge to Stage 3 — Drug Discovery (3 minutes)
 
 **Show:** Drug Discovery UI at http://localhost:8505
 
@@ -444,18 +549,7 @@ Stage 3: Drug Discovery (BioNeMo)
 
 ---
 
-### Imaging Agent Connection (3 minutes)
-
-**Talking points:**
-
-- "The Imaging Intelligence Agent runs on the same platform. When it detects a high-risk lung nodule, cross-modal triggers query the genomic evidence."
-- "If the genomic analysis identifies a target relevant to both solid tumor CAR-T and small molecule inhibition, both agents contribute intelligence."
-- "Example: Imaging finds lung mass -> genomics identifies EGFR -> CAR-T agent evaluates EGFR-targeted cell therapy -> Drug Discovery generates EGFR inhibitors."
-- "Multi-agent collaboration, all sharing the same 3.56 million variant truth."
-
----
-
-### The Complete Loop (3 minutes)
+### Step 8: The Complete Loop (3 minutes)
 
 **Talking points:**
 
@@ -490,11 +584,7 @@ Combined Clinical Output:
 - "Every agent sees the same genomic truth. Every answer is grounded in evidence."
 - "This is the future of precision medicine — multi-modal, multi-agent, evidence-grounded."
 
----
-
-### Closing Route B (2 minutes)
-
-**Talking points:**
+**Closing Route B:**
 
 - "The CAR-T Intelligence Agent isn't standalone — it's part of a precision medicine ecosystem."
 - "Shared infrastructure means shared intelligence. 3.56 million genomic vectors inform every agent."
@@ -600,9 +690,9 @@ pip install reportlab
 
 ---
 
-## Appendix: API Reference
+## Appendix: API Reference (Developer Use)
 
-All CAR-T Intelligence Agent endpoints are documented at http://localhost:8522/docs (FastAPI auto-generated Swagger UI). The following curl commands are provided for scripting, automated testing, and integration development.
+> All CAR-T Intelligence Agent endpoints are documented at http://localhost:8522/docs (FastAPI auto-generated Swagger UI). The following curl commands are provided for scripting, automated testing, and integration development. These are **not** part of the live demo — all demo interaction uses the Streamlit UI.
 
 ### Health and Status
 
