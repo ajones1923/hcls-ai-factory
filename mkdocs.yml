@@ -97,6 +97,7 @@ nav:
     - Quick-Start Checklist: quickstart.md
     - Demo Guide: HCLS_AI_FACTORY_DEMO_GUIDE.md
     - Deployment Guide: HCLS_AI_FACTORY_DGX_SPARK_DEPLOYMENT_GUIDE.md
+    - Troubleshooting: TROUBLESHOOTING.md
     - Licensing & Cost: licensing.md
   - Design:
     - Project Bible: HCLS_AI_FACTORY_PROJECT_BIBLE.md
@@ -134,6 +135,7 @@ nav:
   - Reports:
     - Intelligence Report: HCLS_AI_FACTORY_INTELLIGENCE_REPORT.md
     - Pipeline Report: PIPELINE_REPORT.md
+    - Performance Benchmarks: PERFORMANCE.md
   - Resources: downloads.md
 
 extra:

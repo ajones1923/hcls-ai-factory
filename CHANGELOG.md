@@ -5,6 +5,31 @@ All notable changes to the HCLS AI Factory will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-02-28
+
+### Added
+- **CAR-T Intelligence Agent** — Cross-functional intelligence across the CAR-T cell therapy development lifecycle (10 collections, 6,266+ vectors, comparative analysis, deep research mode, PDF export, 241 tests)
+- **Imaging Intelligence Agent** — AI-powered medical imaging analysis with NVIDIA NIM microservices: VISTA-3D, MAISI, VILA-M3, Llama-3 (10 collections, 4 workflow demos, FHIR R4 export, 539 tests)
+- **Precision Oncology Agent** — Clinical decision support for molecular tumor boards (11 collections, case management, MTB packet generation, trial matching, therapy ranking, FHIR R4 bundle export, 516 tests)
+- Cross-modal triggers connecting agents to shared genomic evidence (3.5M vectors)
+- Agent Streamlit UIs on ports 8521 (CAR-T), 8525 (Imaging), 8526 (Precision Oncology)
+- UI-driven demo guides for all three agents with pre-demo setup and live demo scripts
+- Agent design documents and project bibles
+- ROADMAP.md — Development trajectory and planned features
+- TROUBLESHOOTING.md — Centralized troubleshooting guide for all components
+- PERFORMANCE.md — Benchmark data for all pipeline stages and agents on DGX Spark
+- HLS Orchestrator README.md — Pipeline orchestrator documentation
+- Combined test suite: 1,296 tests across all agents (all passing)
+
+### Fixed
+- Milvus filter expression injection prevention across all agents
+- Async/sync method call correctness in FastAPI route handlers
+- UTC ISO-8601 timestamp standardization (replacing naive datetime.utcnow)
+- Missing RAG engine methods (cross_collection_search, search, synthesize)
+- AgentQuery/AgentResponse model completeness for agent-RAG integration
+- FHIR R4 export parameter handling
+- Bare exception blocks replaced with specific error handling and logging
+
 ## [1.0.3] - 2026-02-18
 
 ### Added

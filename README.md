@@ -246,6 +246,9 @@ open http://localhost:8080
 - [RAG/Chat Pipeline](docs/rag-chat-pipeline/README.md) — Stage 2: VCF → Target Hypothesis
 - [Drug Discovery Pipeline](docs/drug-discovery-pipeline/README.md) — Stage 3: Target → Molecules
 - [Architecture Diagrams](docs/diagrams/) — Mermaid workflow diagrams
+- [Performance Benchmarks](docs/PERFORMANCE.md) — DGX Spark benchmark data for all stages
+- [Troubleshooting](docs/TROUBLESHOOTING.md) — Common issues and solutions
+- [Roadmap](ROADMAP.md) — Development trajectory and planned features
 
 ---
 
