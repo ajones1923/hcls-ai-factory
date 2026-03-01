@@ -56,6 +56,24 @@ jobs:
             extra_deps: "pytest pytest-cov"
             exclude_deps: ""
             markers: "not slow and not integration"
+          - service: cart-agent
+            workdir: ../ai_agent_adds/cart_intelligence_agent
+            reqfile: requirements.txt
+            extra_deps: "pytest pytest-cov"
+            exclude_deps: "torch sentence-transformers"
+            markers: "not slow and not integration"
+          - service: imaging-agent
+            workdir: ../ai_agent_adds/imaging_intelligence_agent/agent
+            reqfile: requirements.txt
+            extra_deps: "pytest pytest-cov"
+            exclude_deps: "torch sentence-transformers SimpleITK"
+            markers: "not slow and not integration"
+          - service: onco-agent
+            workdir: ../ai_agent_adds/precision_oncology_agent/agent
+            reqfile: requirements.txt
+            extra_deps: "pytest pytest-cov"
+            exclude_deps: "torch sentence-transformers"
+            markers: "not slow and not integration"
     steps:
       - uses: actions/checkout@v6
 
@@ -123,6 +141,18 @@ jobs:
             workdir: landing-page
             reqfile: requirements.txt
             exclude_deps: ""
+          - service: cart-agent
+            workdir: ../ai_agent_adds/cart_intelligence_agent
+            reqfile: requirements.txt
+            exclude_deps: "torch sentence-transformers"
+          - service: imaging-agent
+            workdir: ../ai_agent_adds/imaging_intelligence_agent/agent
+            reqfile: requirements.txt
+            exclude_deps: "torch sentence-transformers SimpleITK"
+          - service: onco-agent
+            workdir: ../ai_agent_adds/precision_oncology_agent/agent
+            reqfile: requirements.txt
+            exclude_deps: "torch sentence-transformers"
     steps:
       - uses: actions/checkout@v6
 

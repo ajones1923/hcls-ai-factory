@@ -34,6 +34,14 @@ DRUG_DISCOVERY_PORT=8505
 DRUG_PORTAL_PORT=8510
 MILVUS_PORT=19530
 
+# Intelligence Agent ports
+CART_AGENT_PORT=8521
+IMAGING_AGENT_PORT=8525
+ONCO_AGENT_PORT=8526
+
+# Agent directories
+AGENTS_DIR="$SCRIPT_DIR/../ai_agent_adds"
+
 print_banner() {
     echo -e "${CYAN}"
     echo "╔══════════════════════════════════════════════════════════════════════════════╗"
@@ -211,6 +219,97 @@ start_drug_discovery() {
 }
 
 # ============================================================================
+# INTELLIGENCE AGENT START FUNCTIONS
+# ============================================================================
+
+start_cart_agent() {
+    print_header "Starting CAR-T Intelligence Agent"
+
+    local AGENT_DIR="$AGENTS_DIR/cart_intelligence_agent"
+
+    if [ ! -d "$AGENT_DIR" ]; then
+        print_info "CAR-T agent directory not found at $AGENT_DIR — skipping"
+        return 0
+    fi
+
+    if check_port $CART_AGENT_PORT; then
+        print_success "CAR-T Agent is already running on port $CART_AGENT_PORT"
+    else
+        print_info "Starting CAR-T Agent Streamlit UI..."
+        cd "$AGENT_DIR"
+        source venv/bin/activate 2>/dev/null || python3 -m venv venv && source venv/bin/activate
+
+        nohup streamlit run app/cart_ui.py \
+            --server.port $CART_AGENT_PORT \
+            --server.address 0.0.0.0 \
+            --server.headless true \
+            > /tmp/cart-agent.log 2>&1 &
+
+        wait_for_service "CAR-T Agent" $CART_AGENT_PORT 20
+    fi
+}
+
+start_imaging_agent() {
+    print_header "Starting Imaging Intelligence Agent"
+
+    local AGENT_DIR="$AGENTS_DIR/imaging_intelligence_agent/agent"
+
+    if [ ! -d "$AGENT_DIR" ]; then
+        print_info "Imaging agent directory not found at $AGENT_DIR — skipping"
+        return 0
+    fi
+
+    if check_port $IMAGING_AGENT_PORT; then
+        print_success "Imaging Agent is already running on port $IMAGING_AGENT_PORT"
+    else
+        print_info "Starting Imaging Agent Streamlit UI..."
+        cd "$AGENT_DIR"
+        source venv/bin/activate 2>/dev/null || python3 -m venv venv && source venv/bin/activate
+
+        nohup streamlit run app/imaging_ui.py \
+            --server.port $IMAGING_AGENT_PORT \
+            --server.address 0.0.0.0 \
+            --server.headless true \
+            > /tmp/imaging-agent.log 2>&1 &
+
+        wait_for_service "Imaging Agent" $IMAGING_AGENT_PORT 20
+    fi
+}
+
+start_onco_agent() {
+    print_header "Starting Precision Oncology Agent"
+
+    local AGENT_DIR="$AGENTS_DIR/precision_oncology_agent/agent"
+
+    if [ ! -d "$AGENT_DIR" ]; then
+        print_info "Precision Oncology agent directory not found at $AGENT_DIR — skipping"
+        return 0
+    fi
+
+    if check_port $ONCO_AGENT_PORT; then
+        print_success "Precision Oncology Agent is already running on port $ONCO_AGENT_PORT"
+    else
+        print_info "Starting Precision Oncology Agent Streamlit UI..."
+        cd "$AGENT_DIR"
+        source venv/bin/activate 2>/dev/null || python3 -m venv venv && source venv/bin/activate
+
+        nohup streamlit run app/oncology_ui.py \
+            --server.port $ONCO_AGENT_PORT \
+            --server.address 0.0.0.0 \
+            --server.headless true \
+            > /tmp/onco-agent.log 2>&1 &
+
+        wait_for_service "Precision Oncology Agent" $ONCO_AGENT_PORT 20
+    fi
+}
+
+start_agents() {
+    start_cart_agent
+    start_imaging_agent
+    start_onco_agent
+}
+
+# ============================================================================
 # STATUS AND STOP FUNCTIONS
 # ============================================================================
 
@@ -255,11 +354,34 @@ show_status() {
     fi
 
     echo ""
+    echo -e "  ${BOLD}INTELLIGENCE AGENTS${NC}"
+    if check_port $CART_AGENT_PORT; then
+        print_status "CAR-T Intelligence" $CART_AGENT_PORT "running"
+    else
+        print_status "CAR-T Intelligence" $CART_AGENT_PORT "stopped"
+    fi
+
+    if check_port $IMAGING_AGENT_PORT; then
+        print_status "Imaging Intelligence" $IMAGING_AGENT_PORT "running"
+    else
+        print_status "Imaging Intelligence" $IMAGING_AGENT_PORT "stopped"
+    fi
+
+    if check_port $ONCO_AGENT_PORT; then
+        print_status "Precision Oncology" $ONCO_AGENT_PORT "running"
+    else
+        print_status "Precision Oncology" $ONCO_AGENT_PORT "stopped"
+    fi
+
+    echo ""
     echo -e "  ${BOLD}ACCESS URLS${NC}"
     echo -e "  Landing Page:          ${CYAN}http://$HOST_IP:$LANDING_PORT${NC}"
     echo -e "  RAG Chat:              ${CYAN}http://$HOST_IP:$RAG_CHAT_PORT${NC}"
     echo -e "  Drug Discovery:        ${CYAN}http://$HOST_IP:$DRUG_DISCOVERY_PORT${NC}"
     echo -e "  Drug Discovery Portal: ${CYAN}http://$HOST_IP:$DRUG_PORTAL_PORT${NC}"
+    echo -e "  CAR-T Agent:           ${CYAN}http://$HOST_IP:$CART_AGENT_PORT${NC}"
+    echo -e "  Imaging Agent:         ${CYAN}http://$HOST_IP:$IMAGING_AGENT_PORT${NC}"
+    echo -e "  Oncology Agent:        ${CYAN}http://$HOST_IP:$ONCO_AGENT_PORT${NC}"
     echo ""
 }
 
@@ -271,6 +393,12 @@ stop_services() {
     pkill -f "streamlit run app/chat_ui.py" 2>/dev/null || true
     pkill -f "streamlit run app/discovery_ui.py" 2>/dev/null || true
     pkill -f "streamlit run portal/app.py" 2>/dev/null || true
+
+    # Stop Intelligence Agent processes
+    print_info "Stopping Intelligence Agents..."
+    pkill -f "streamlit run app/cart_ui.py" 2>/dev/null || true
+    pkill -f "streamlit run app/imaging_ui.py" 2>/dev/null || true
+    pkill -f "streamlit run app/oncology_ui.py" 2>/dev/null || true
 
     # Stop Landing Page
     print_info "Stopping Landing Page..."
@@ -291,6 +419,7 @@ start_all() {
     start_landing_page
     start_rag_chat
     start_drug_discovery
+    start_agents
 
     print_header "All Services Started!"
 
@@ -301,6 +430,9 @@ start_all() {
     echo -e "  ${GREEN}RAG Chat${NC}              http://$HOST_IP:$RAG_CHAT_PORT"
     echo -e "  ${GREEN}Drug Discovery${NC}        http://$HOST_IP:$DRUG_DISCOVERY_PORT"
     echo -e "  ${GREEN}Drug Discovery Portal${NC} http://$HOST_IP:$DRUG_PORTAL_PORT"
+    echo -e "  ${GREEN}CAR-T Agent${NC}           http://$HOST_IP:$CART_AGENT_PORT"
+    echo -e "  ${GREEN}Imaging Agent${NC}         http://$HOST_IP:$IMAGING_AGENT_PORT"
+    echo -e "  ${GREEN}Oncology Agent${NC}        http://$HOST_IP:$ONCO_AGENT_PORT"
     echo ""
     echo -e "  ${CYAN}Ready for demo!${NC}"
     echo ""
@@ -321,6 +453,7 @@ show_help() {
     echo "  --landing Start only landing page"
     echo "  --rag     Start only RAG/Chat pipeline"
     echo "  --drug    Start only Drug Discovery pipeline"
+    echo "  --agents  Start only Intelligence Agents"
     echo "  --status  Show status of all services"
     echo "  --stop    Stop all services"
     echo "  --help    Show this help message"
@@ -342,6 +475,10 @@ case "${1:---all}" in
     --drug)
         print_banner
         start_drug_discovery
+        ;;
+    --agents)
+        print_banner
+        start_agents
         ;;
     --status)
         show_status

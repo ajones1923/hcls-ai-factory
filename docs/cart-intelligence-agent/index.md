@@ -4,6 +4,8 @@ Cross-functional intelligence across the CAR-T cell therapy development lifecycl
 
 ![CAR-T Intelligence Agent on NVIDIA DGX Spark](CAR-T%20Intelligence%20Agent%20DGX%20Spark%20Infographic.png)
 
+**Source:** [github.com/ajones1923/cart-intelligence-agent](https://github.com/ajones1923/cart-intelligence-agent)
+
 ## Overview
 
 The CAR-T Intelligence Agent breaks down data silos across the 5 stages of CAR-T development. It searches across **all data sources simultaneously** and synthesizes cross-functional insights powered by Claude.

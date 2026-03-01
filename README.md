@@ -115,6 +115,16 @@ Take it. Use it. Make it better.
 | 2 | **RAG/Chat** | VCF + natural language query | Target hypothesis | Milvus, Claude AI, ClinVar |
 | 3 | **Drug Discovery** | Protein target | Ranked drug candidates | BioNeMo MolMIM, DiffDock |
 
+### Intelligence Agents
+
+| Agent | Domain | Key Capabilities | Port |
+|-------|--------|-----------------|------|
+| **[CAR-T Intelligence](https://github.com/ajones1923/cart-intelligence-agent)** | Cell Therapy | Cross-collection evidence, comparative analysis, deep research mode | 8521 |
+| **[Imaging Intelligence](https://github.com/ajones1923/imaging-intelligence-agent)** | Medical Imaging | NVIDIA NIM workflows (VISTA-3D, MAISI, VILA-M3), FHIR R4 export | 8525 |
+| **[Precision Oncology](https://github.com/ajones1923/precision-oncology-agent)** | Oncology | MTB packet generation, trial matching, therapy ranking, FHIR R4 | 8526 |
+
+Each agent extends the core platform with domain-specific RAG, cross-modal triggers linking to the shared genomic evidence base (3.5M vectors), and Streamlit UIs for interactive exploration.
+
 ### Performance
 
 - **Genome analysis**: 120-240 minutes (vs. 24-48 hours on CPU)
@@ -144,6 +154,22 @@ Take it. Use it. Make it better.
          │                 │                           │
          ▼                 ▼                           ▼
    Web Portal:8080   Chat UI:8501              Discovery UI:8505
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                       INTELLIGENCE AGENTS                                   │
+├──────────────────┬──────────────────────┬───────────────────────────────────┤
+│                  │                      │                                   │
+│   CAR-T          │   IMAGING            │   PRECISION ONCOLOGY              │
+│   AGENT :8521    │   AGENT :8525        │   AGENT :8526                     │
+│                  │                      │                                   │
+│  • Cell therapy  │  • VISTA-3D, MAISI   │  • MTB packets                    │
+│  • Comparative   │  • VILA-M3, Llama-3  │  • Trial matching                 │
+│  • Deep research │  • FHIR R4 export    │  • Therapy ranking                │
+│                  │                      │                                   │
+└──────────────────┴──────────────────────┴───────────────────────────────────┘
+         ▲                 ▲                           ▲
+         └─────────────────┴───────────────────────────┘
+                  Shared Genomic Evidence (3.5M vectors)
 ```
 
 <p align="center">
@@ -230,10 +256,13 @@ open http://localhost:8080
 
 | Service | Port | Description |
 |---------|------|-------------|
-| Landing Page | 8080 | Main entry point |
+| Landing Page | 8080 | Main entry point and health dashboard |
 | Chat UI | 8501 | RAG-powered variant queries |
 | Discovery UI | 8505 | Drug candidate generation |
 | Portal | 8510 | Pipeline orchestration |
+| CAR-T Agent | 8521 | CAR-T cell therapy intelligence |
+| Imaging Agent | 8525 | Medical imaging analysis |
+| Oncology Agent | 8526 | Precision oncology decision support |
 | Grafana | 3000 | Monitoring dashboards |
 
 ---

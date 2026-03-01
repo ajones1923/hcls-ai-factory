@@ -25,6 +25,7 @@
         </div>
         <div class="nav-links">
             <a href="#pipelines" class="nav-link">Pipelines</a>
+            <a href="#agents" class="nav-link">Agents</a>
             <a href="#workflow" class="nav-link">Workflow</a>
             <a href="#monitoring" class="nav-link">Monitoring</a>
             <a href="#stats" class="nav-link">Statistics</a>
@@ -307,6 +308,109 @@
                 </div>
                 <div class="card-footer">
                     <span class="port-label">Port 8510</span>
+                    <span class="launch-text">Launch →</span>
+                </div>
+            </a>
+        </div>
+    </section>
+
+    <!-- Intelligence Agents Section -->
+    <section id="agents" class="pipelines-section">
+        <div class="section-header">
+            <h2>Intelligence Agents</h2>
+            <p>Domain-specific AI agents powered by RAG and cross-modal evidence</p>
+        </div>
+        <div class="pipeline-grid">
+            <!-- CAR-T Intelligence Agent -->
+            <a href="http://{{ host }}:8521" target="_blank" class="pipeline-card cart-agent featured">
+                <div class="card-glow"></div>
+                <div class="card-badge">AI Agent</div>
+                <div class="card-header">
+                    <div class="card-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M12 2a5 5 0 0 1 5 5v3a5 5 0 0 1-10 0V7a5 5 0 0 1 5-5z"/>
+                            <path d="M7 14l-2 6h14l-2-6"/>
+                            <path d="M9 7h6"/>
+                        </svg>
+                    </div>
+                    <div class="card-status online">
+                        <span class="status-indicator"></span>
+                        <span>Online</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h3>CAR-T Intelligence</h3>
+                    <p>Cross-functional intelligence across the CAR-T cell therapy development lifecycle</p>
+                    <div class="card-tech">
+                        <span class="tech-badge">Claude AI</span>
+                        <span class="tech-badge">10 Collections</span>
+                        <span class="tech-badge">Streamlit</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="port-label">Port 8521</span>
+                    <span class="launch-text">Launch →</span>
+                </div>
+            </a>
+
+            <!-- Imaging Intelligence Agent -->
+            <a href="http://{{ host }}:8525" target="_blank" class="pipeline-card imaging-agent featured">
+                <div class="card-glow"></div>
+                <div class="card-badge">AI Agent</div>
+                <div class="card-header">
+                    <div class="card-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <rect x="2" y="2" width="20" height="20" rx="2"/>
+                            <circle cx="12" cy="12" r="4"/>
+                            <path d="M2 12h4M18 12h4M12 2v4M12 18v4"/>
+                        </svg>
+                    </div>
+                    <div class="card-status online">
+                        <span class="status-indicator"></span>
+                        <span>Online</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h3>Imaging Intelligence</h3>
+                    <p>AI-powered medical imaging analysis with NVIDIA NIM microservices and FHIR R4 export</p>
+                    <div class="card-tech">
+                        <span class="tech-badge">VISTA-3D</span>
+                        <span class="tech-badge">VILA-M3</span>
+                        <span class="tech-badge">Streamlit</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="port-label">Port 8525</span>
+                    <span class="launch-text">Launch →</span>
+                </div>
+            </a>
+
+            <!-- Precision Oncology Agent -->
+            <a href="http://{{ host }}:8526" target="_blank" class="pipeline-card onco-agent featured">
+                <div class="card-glow"></div>
+                <div class="card-badge">AI Agent</div>
+                <div class="card-header">
+                    <div class="card-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                        </svg>
+                    </div>
+                    <div class="card-status online">
+                        <span class="status-indicator"></span>
+                        <span>Online</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h3>Precision Oncology</h3>
+                    <p>Clinical decision support for molecular tumor boards with trial matching and therapy ranking</p>
+                    <div class="card-tech">
+                        <span class="tech-badge">MTB Packets</span>
+                        <span class="tech-badge">FHIR R4</span>
+                        <span class="tech-badge">Streamlit</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="port-label">Port 8526</span>
                     <span class="launch-text">Launch →</span>
                 </div>
             </a>

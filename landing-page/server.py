@@ -55,6 +55,10 @@ SERVICES = {
     'prometheus': {'port': 9099, 'name': 'Prometheus', 'path': '/-/healthy'},
     'node-exporter': {'port': 9100, 'name': 'Node Exporter', 'path': '/metrics'},
     'dcgm': {'port': 9400, 'name': 'DCGM Exporter', 'path': '/metrics'},
+    # Intelligence Agents
+    'cart-agent': {'port': 8521, 'name': 'CAR-T Intelligence Agent', 'path': '/healthz'},
+    'imaging-agent': {'port': 8525, 'name': 'Imaging Intelligence Agent', 'path': '/healthz'},
+    'onco-agent': {'port': 8526, 'name': 'Precision Oncology Agent', 'path': '/healthz'},
     # Vector Database
     'milvus': {'port': 19530, 'name': 'Milvus', 'path': None},  # TCP check only
 }
