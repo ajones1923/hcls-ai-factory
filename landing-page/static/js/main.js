@@ -26,6 +26,10 @@ const SERVICE_MAP = {
     'rag-chat': 'rag-chat',
     'drug-main': 'drug-main',
     'drug-portal': 'drug-portal',
+    // Intelligence Agent cards
+    'cart-agent': 'cart-agent',
+    'imaging-agent': 'imaging-agent',
+    'onco-agent': 'onco-agent',
     // Monitor cards
     'grafana': 'grafana',
     'prometheus': 'prometheus',
@@ -732,12 +736,18 @@ console.log(`
  💬 RAG/Chat Pipeline    → Port 5001, 8501
  💊 Drug Discovery       → Port 8505, 8510
 
+ 🤖 Intelligence Agents
+    CAR-T Agent          → Port 8521
+    Imaging Agent        → Port 8525
+    Oncology Agent       → Port 8526
+
  📊 Monitoring
     Grafana              → Port 3000
     Prometheus           → Port 9099
 
  ⌨️  Keyboard Shortcuts:
     1-5     Launch pipeline interfaces
+    6-8     Launch intelligence agents
     g       Open Grafana
     r       Refresh service status
 

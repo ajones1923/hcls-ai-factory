@@ -2,6 +2,8 @@
 
 Closed-loop precision oncology clinical decision support -- from paired tumor-normal genomics to Molecular Tumor Board packets. Part of the [HCLS AI Factory](https://github.com/ajones1923/hcls-ai-factory).
 
+**Source:** [github.com/ajones1923/precision-oncology-agent](https://github.com/ajones1923/precision-oncology-agent)
+
 ## Overview
 
 The Precision Oncology Agent transforms raw genomic data (VCF files) into actionable clinical intelligence. It combines variant annotation, evidence retrieval, therapy ranking, trial matching, and outcomes learning into a closed-loop system that generates Molecular Tumor Board (MTB) packets for precision cancer treatment decisions.

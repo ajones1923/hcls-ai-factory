@@ -56,6 +56,47 @@ services:
       - '--web.enable-lifecycle'
     restart: unless-stopped
 
+  # Intelligence Agents
+  cart-agent:
+    build: ../ai_agent_adds/cart_intelligence_agent
+    container_name: ai-factory-cart-agent
+    ports:
+      - "8521:8521"
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - MILVUS_HOST=milvus
+      - MILVUS_PORT=19530
+    depends_on:
+      - landing-page
+    restart: unless-stopped
+
+  imaging-agent:
+    build: ../ai_agent_adds/imaging_intelligence_agent/agent
+    container_name: ai-factory-imaging-agent
+    ports:
+      - "8525:8525"
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - MILVUS_HOST=milvus
+      - MILVUS_PORT=19530
+      - NGC_API_KEY=${NGC_API_KEY}
+    depends_on:
+      - landing-page
+    restart: unless-stopped
+
+  onco-agent:
+    build: ../ai_agent_adds/precision_oncology_agent/agent
+    container_name: ai-factory-onco-agent
+    ports:
+      - "8526:8526"
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - MILVUS_HOST=milvus
+      - MILVUS_PORT=19530
+    depends_on:
+      - landing-page
+    restart: unless-stopped
+
   # Monitoring — Node Exporter (host metrics)
   node-exporter:
     image: prom/node-exporter:v1.8.0

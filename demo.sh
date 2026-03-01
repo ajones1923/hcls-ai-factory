@@ -35,6 +35,14 @@ DRUG_DISCOVERY_PORTAL_PORT=8510
 MILVUS_PORT=19530
 OLLAMA_PORT=11434
 
+# Intelligence Agent Ports
+CART_AGENT_PORT=8521
+IMAGING_AGENT_PORT=8525
+ONCO_AGENT_PORT=8526
+
+# Agent directories
+AGENTS_DIR="$SCRIPT_DIR/../ai_agent_adds"
+
 # Directories
 LANDING_PAGE_DIR="$SCRIPT_DIR/landing-page"
 
@@ -168,6 +176,9 @@ stop_services() {
     echo -e "  ${YELLOW}Stopping Streamlit processes...${NC}"
     pkill -f "streamlit run.*chat_ui" 2>/dev/null && echo -e "  ${GREEN}✓${NC} RAG Chat UI stopped" || echo -e "  ${CYAN}○${NC} RAG Chat UI was not running"
     pkill -f "streamlit run.*discovery_ui" 2>/dev/null && echo -e "  ${GREEN}✓${NC} Drug Discovery UI stopped" || echo -e "  ${CYAN}○${NC} Drug Discovery UI was not running"
+    pkill -f "streamlit run.*cart_ui" 2>/dev/null && echo -e "  ${GREEN}✓${NC} CAR-T Agent stopped" || echo -e "  ${CYAN}○${NC} CAR-T Agent was not running"
+    pkill -f "streamlit run.*imaging_ui" 2>/dev/null && echo -e "  ${GREEN}✓${NC} Imaging Agent stopped" || echo -e "  ${CYAN}○${NC} Imaging Agent was not running"
+    pkill -f "streamlit run.*oncology_ui" 2>/dev/null && echo -e "  ${GREEN}✓${NC} Oncology Agent stopped" || echo -e "  ${CYAN}○${NC} Oncology Agent was not running"
 
     echo -e "  ${YELLOW}Stopping Portal servers...${NC}"
     pkill -f "python.*server.py.*5000" 2>/dev/null && echo -e "  ${GREEN}✓${NC} Genomics Portal stopped" || echo -e "  ${CYAN}○${NC} Genomics Portal was not running"
@@ -411,6 +422,62 @@ launch_demo() {
     cd "$SCRIPT_DIR"
 
     # -------------------------------------------------------------------------
+    # Intelligence Agents
+    # -------------------------------------------------------------------------
+    print_section "STARTING INTELLIGENCE AGENTS"
+
+    # CAR-T Agent
+    if [ -d "$AGENTS_DIR/cart_intelligence_agent" ]; then
+        if check_port $CART_AGENT_PORT; then
+            echo -e "  ${GREEN}✓${NC} CAR-T Agent already running"
+        else
+            echo -e "  ${CYAN}Launching CAR-T Agent...${NC}"
+            cd "$AGENTS_DIR/cart_intelligence_agent"
+            source venv/bin/activate 2>/dev/null || true
+            nohup streamlit run app/cart_ui.py --server.port $CART_AGENT_PORT --server.headless true > /tmp/cart-agent.log 2>&1 &
+            wait_for_port $CART_AGENT_PORT "CAR-T Agent"
+            deactivate 2>/dev/null || true
+            cd "$SCRIPT_DIR"
+        fi
+    else
+        echo -e "  ${YELLOW}○${NC} CAR-T Agent directory not found — skipping"
+    fi
+
+    # Imaging Agent
+    if [ -d "$AGENTS_DIR/imaging_intelligence_agent/agent" ]; then
+        if check_port $IMAGING_AGENT_PORT; then
+            echo -e "  ${GREEN}✓${NC} Imaging Agent already running"
+        else
+            echo -e "  ${CYAN}Launching Imaging Agent...${NC}"
+            cd "$AGENTS_DIR/imaging_intelligence_agent/agent"
+            source venv/bin/activate 2>/dev/null || true
+            nohup streamlit run app/imaging_ui.py --server.port $IMAGING_AGENT_PORT --server.headless true > /tmp/imaging-agent.log 2>&1 &
+            wait_for_port $IMAGING_AGENT_PORT "Imaging Agent"
+            deactivate 2>/dev/null || true
+            cd "$SCRIPT_DIR"
+        fi
+    else
+        echo -e "  ${YELLOW}○${NC} Imaging Agent directory not found — skipping"
+    fi
+
+    # Precision Oncology Agent
+    if [ -d "$AGENTS_DIR/precision_oncology_agent/agent" ]; then
+        if check_port $ONCO_AGENT_PORT; then
+            echo -e "  ${GREEN}✓${NC} Precision Oncology Agent already running"
+        else
+            echo -e "  ${CYAN}Launching Precision Oncology Agent...${NC}"
+            cd "$AGENTS_DIR/precision_oncology_agent/agent"
+            source venv/bin/activate 2>/dev/null || true
+            nohup streamlit run app/oncology_ui.py --server.port $ONCO_AGENT_PORT --server.headless true > /tmp/onco-agent.log 2>&1 &
+            wait_for_port $ONCO_AGENT_PORT "Precision Oncology Agent"
+            deactivate 2>/dev/null || true
+            cd "$SCRIPT_DIR"
+        fi
+    else
+        echo -e "  ${YELLOW}○${NC} Precision Oncology Agent directory not found — skipping"
+    fi
+
+    # -------------------------------------------------------------------------
     # Open Browser
     # -------------------------------------------------------------------------
     print_section "OPENING BROWSER"
@@ -460,6 +527,10 @@ launch_demo() {
     echo -e "  │ RAG Chat UI             │ http://$HOST_IP:$RAG_STREAMLIT_PORT     │ ${GREEN}Running${NC}   │"
     echo -e "  │ Drug Discovery (Main)   │ http://$HOST_IP:$DRUG_DISCOVERY_PORT     │ ${GREEN}Running${NC}   │"
     echo -e "  │ Drug Discovery (Portal) │ http://$HOST_IP:$DRUG_DISCOVERY_PORTAL_PORT     │ ${GREEN}Running${NC}   │"
+    echo -e "  ├─────────────────────────┼──────────────────────────────┼───────────┤"
+    echo -e "  │ CAR-T Agent             │ http://$HOST_IP:$CART_AGENT_PORT     │ ${GREEN}Running${NC}   │"
+    echo -e "  │ Imaging Agent           │ http://$HOST_IP:$IMAGING_AGENT_PORT     │ ${GREEN}Running${NC}   │"
+    echo -e "  │ Oncology Agent          │ http://$HOST_IP:$ONCO_AGENT_PORT     │ ${GREEN}Running${NC}   │"
     echo -e "  └─────────────────────────┴──────────────────────────────┴───────────┘"
     echo ""
     echo -e "  ${WHITE}${BOLD}Demo Workflow:${NC}"
