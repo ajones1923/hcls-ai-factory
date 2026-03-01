@@ -20,6 +20,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PERFORMANCE.md — Benchmark data for all pipeline stages and agents on DGX Spark
 - HLS Orchestrator README.md — Pipeline orchestrator documentation
 - Combined test suite: 1,296 tests across all agents (all passing)
+- Agents integrated into platform infrastructure (landing page, docker-compose, CI/CD, startup scripts, .env.example)
+- `pyproject.toml` with ruff, mypy, pytest, and coverage configuration
+- `Makefile` with standard targets (lint, test, format, security, docs, clean)
+- `.pre-commit-config.yaml` with ruff, gitleaks, and pre-commit-hooks
+- `.gitleaks.toml` for automated secrets scanning in CI
+- `.editorconfig` for cross-editor formatting consistency
+- GitHub issue templates (bug report, feature request) with agent options
+- Gitleaks secrets scanning and mypy type checking jobs in CI
+- CODEOWNERS for automated PR review assignment
+
+### Changed
+- Codecov project coverage threshold raised from 2% to 50%
+- CORS default restricted from wildcard to explicit localhost origins
+- Milvus and monitoring ports bound to localhost only
+- Docker Compose services given memory and CPU resource limits
+- Streamlit version aligned across services (1.54.0)
+- Pytest markers consolidated across all service pytest.ini files
+- CI agent paths updated with graceful skip when directories not present
+- Orphaned documentation pages added to MkDocs nav
+- PR template updated with agent and CI/CD checkboxes
 
 ### Fixed
 - Milvus filter expression injection prevention across all agents

@@ -1,0 +1,22 @@
+# HCLS AI Factory — Code Owners
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner for everything
+* @ajones1923
+
+# Pipeline-specific ownership
+/genomics-pipeline/          @ajones1923
+/rag-chat-pipeline/          @ajones1923
+/drug-discovery-pipeline/    @ajones1923
+/landing-page/               @ajones1923
+/hls-orchestrator/           @ajones1923
+
+# Documentation
+/docs/                       @ajones1923
+mkdocs.yml                   @ajones1923
+
+# CI/CD and infrastructure
+/.github/                    @ajones1923
+docker-compose.yml           @ajones1923
+Makefile                     @ajones1923
+pyproject.toml               @ajones1923
