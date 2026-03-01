@@ -125,3 +125,12 @@ class TestHelperFunctions:
         for _sid, sinfo in SERVICES.items():
             assert 'port' in sinfo
             assert 'name' in sinfo
+
+    def test_agent_services_defined(self):
+        """Verify all three intelligence agent services are registered."""
+        assert 'cart-agent' in SERVICES
+        assert SERVICES['cart-agent']['port'] == 8521
+        assert 'imaging-agent' in SERVICES
+        assert SERVICES['imaging-agent']['port'] == 8525
+        assert 'onco-agent' in SERVICES
+        assert SERVICES['onco-agent']['port'] == 8526
