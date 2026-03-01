@@ -10,9 +10,11 @@ tags:
   - Clinical Decision Support
 ---
 
-# Precision Oncology Agent — Demo Guide
+# Precision Oncology Agent -- Demo Guide
 
-> **Step-by-step walkthrough for demonstrating the Precision Oncology Agent on DGX Spark.**
+> **UI-driven walkthrough for demonstrating the Precision Oncology Agent on DGX Spark.**
+>
+> All live demo interaction uses the Streamlit MTB Workbench -- no terminal commands during the presentation.
 >
 > License: Apache 2.0 | Date: February 2026
 
@@ -25,11 +27,14 @@ tags:
 | **Route A Duration** | 20 minutes (standalone agent) |
 | **Route B Duration** | 30 minutes (cross-platform integration) |
 | **Hardware** | NVIDIA DGX Spark (GB10, 128 GB unified) |
-| **Knowledge Base** | ~1,490 vectors across 10 owned collections + 3.5M genomic vectors |
+| **Knowledge Base** | ~1,490 vectors across 10 owned collections + 3.5M shared genomic vectors |
 | **Knowledge Graph** | ~40 actionable targets, ~30 therapies, ~20 resistance mechanisms |
 | **LLM** | Claude Sonnet 4.6 (Anthropic) |
 | **Export Formats** | Markdown, JSON, PDF, FHIR R4 |
-| **Primary UI** | Streamlit MTB Workbench at `http://localhost:8526` |
+| **UI Port** | Streamlit MTB Workbench at `http://localhost:8526` |
+| **API Port** | FastAPI at `http://localhost:8527` (developer use only -- see Appendix) |
+| **Collections** | 11 total (10 owned + 1 shared `genomic_evidence`) |
+| **Test Coverage** | 516 tests |
 
 ### What the Audience Will See
 
@@ -129,19 +134,30 @@ curl -s http://localhost:8527/knowledge/stats | python3 -m json.tool
 
 Expected: ~40 actionable targets, ~120 therapies, ~80 resistance mechanisms, ~50 pathways, ~80 biomarkers.
 
+### Step 6: Open Browser Tabs
+
+Before starting the live demo, open the following tabs in your browser so you can switch between them without typing URLs:
+
+| Tab | URL | Used In |
+|---|---|---|
+| Landing Page | http://localhost:8080 | Route A Step 1, Route B Step 1 |
+| Oncology Agent | http://localhost:8526 | Route A all steps, Route B all steps |
+| RAG Chat (Stage 2) | http://localhost:8501 | Route B Step 5 |
+| Drug Discovery | http://localhost:8505 | Route B Step 6 |
+
 ---
 
 ## Route A: Standalone Agent Demo (20 minutes)
 
 ### Step 1: Opening (1 minute)
 
-**Show:** HCLS AI Factory landing page at http://localhost:8080
+**Show:** Landing page at `http://localhost:8080`
 
-Point out the service health grid. The Precision Oncology Agent should show green status.
+Point out the service health grid. The Precision Oncology Agent should show green status alongside the three core pipeline stages.
 
-**Show:** Streamlit MTB Workbench at http://localhost:8526
+**Show:** Streamlit MTB Workbench at `http://localhost:8526`
 
-Point out the sidebar **Service Status** panel -- it displays API health, sub-service readiness (Milvus, embedder, RAG engine, intelligence agent, case manager, trial matcher, therapy ranker), and the total vector count.
+Point out the sidebar **Service Status** panel -- it displays API health (green/red indicator), sub-service readiness for all 7 components (Milvus, Embedder, RAG Engine, Intelligence Agent, Case Manager, Trial Matcher, Therapy Ranker), and the total vector count metric.
 
 **Talking points:**
 
@@ -153,14 +169,13 @@ Point out the sidebar **Service Status** panel -- it displays API health, sub-se
 
 ### Step 2: Outcomes Dashboard (1 minute)
 
-**Click:** the **Outcomes Dashboard** tab in the Streamlit UI.
+**Click:** the **Outcomes Dashboard** tab in the Streamlit UI (the fifth tab).
 
-**Expected result:** The dashboard displays two sections:
+**Expected result:** The dashboard displays three sections:
 
-- **Knowledge Base metrics** -- counts for actionable targets, therapies, resistance mechanisms, pathways, and biomarkers.
-- **Collection sizes** -- a horizontal bar chart showing vector counts across all 11 collections, with `genomic_evidence` (3.5M vectors) dominating the chart.
-
-Below the charts, a **Recent Events** list shows ingestion and query activity with expandable details.
+- **Knowledge Base Statistics** -- five metric cards in a row: Targets (~40), Therapies (~120), Resistance (~80), Pathways (~50), Biomarkers (~80).
+- **Collection Sizes** -- a horizontal bar chart showing vector counts across all 11 collections, with `genomic_evidence` (3.5M vectors) dominating the chart and the 10 curated oncology collections visible at much smaller scale.
+- **Recent Events** -- a chronological list of ingestion and query activity with expandable JSON details for each event.
 
 **Talking points:**
 
@@ -169,19 +184,19 @@ Below the charts, a **Recent Events** list shows ingestion and query activity wi
 
 ---
 
-### Step 3: RAG Knowledge Query (3 minutes)
+### Step 3: Evidence Query (3 minutes)
 
-**Click:** the **Evidence Explorer** tab.
+**Click:** the **Evidence Explorer** tab (the second tab).
 
 **Click:** the **Filters** expander to open filter options.
 
 **Select:** Cancer Type Filter = `Melanoma`
 
-**Enter:** Gene Filter:
+**Type this value** in the Gene Filter text input:
 
 > BRAF
 
-**Type this query** in the Question text input:
+**Type this query** in the "Ask a question" text input:
 
 > What therapies target BRAF V600E in melanoma?
 
@@ -189,10 +204,16 @@ Below the charts, a **Recent Events** list shows ingestion and query activity wi
 
 **Expected result:**
 
-- A markdown answer appears identifying specific drugs: vemurafenib, dabrafenib+trametinib combination, and encorafenib+binimetinib.
-- A **Confidence** progress bar shows ~0.89.
-- **Evidence sources** appear below, each tagged with a colored collection badge (e.g., green for `onco_therapies`, blue for `onco_variants`, purple for `onco_guidelines`, orange for `onco_resistance`).
-- Three **follow-up question buttons** appear at the bottom:
+- A markdown answer appears under the "Answer" heading, identifying specific drugs: vemurafenib, dabrafenib+trametinib combination, and encorafenib+binimetinib.
+- A **Confidence** progress bar shows ~0.89 (89%).
+- **Evidence Sources** appear below with a count header, each tagged with a colored collection badge:
+    - Green badge for `onco_therapies`
+    - Blue badge for `onco_targets`
+    - Red badge for `onco_resistance`
+    - Gray badge for `onco_trials`
+    - Each source shows its cosine similarity score and a text excerpt.
+- A processing time caption appears at the bottom.
+- Three **follow-up question buttons** appear:
     - "What resistance mechanisms emerge after BRAF inhibitor therapy?"
     - "Should BRAF+MEK combination be used over BRAF monotherapy?"
     - "What is the role of immunotherapy in BRAF-mutant melanoma?"
@@ -208,9 +229,11 @@ Below the charts, a **Recent Events** list shows ingestion and query activity wi
 
 ### Step 4: Create a Patient Case (3 minutes)
 
-**Click:** the **Case Workbench** tab.
+**Click:** the **Case Workbench** tab (the first tab).
 
-**Enter:** Patient ID:
+In the left column:
+
+**Type this value** in the Patient ID text input:
 
 > ONCO-DEMO-001
 
@@ -218,27 +241,31 @@ Below the charts, a **Recent Events** list shows ingestion and query activity wi
 
 **Select:** Stage = `IIIC`
 
-**Enter:** TMB (mut/Mb):
+In the right column (Biomarkers):
+
+**Type this value** in the TMB (mut/Mb) number input:
 
 > 12
 
 **Select:** MSI Status = `MSS`
 
-**Enter:** PD-L1 TPS (%):
+**Type this value** in the PD-L1 TPS (%) number input:
 
 > 45
 
-**Select:** Input Mode = `Manual Entry`
+In the Variants section:
+
+**Select:** Input Mode = `Manual Entry` (radio button, should be default)
 
 Add variants using the dynamic variant entry rows:
 
-1. **Enter:** Gene = `BRAF`, Variant = `V600E`, Type = `SNV`
+1. **Type:** Gene = `BRAF`, Variant = `V600E`, Type = `SNV`
 2. **Click:** the **+ Add Variant** button.
-3. **Enter:** Gene = `NRAS`, Variant = `Q61R`, Type = `SNV`
+3. **Type:** Gene = `NRAS`, Variant = `Q61R`, Type = `SNV`
 
-**Click:** the **Create Case** button.
+**Click:** the **Create Case** button (green primary button).
 
-**Expected result:** A confirmation message appears with the generated case ID, patient ID, cancer type, stage, variant count (2), biomarker values, and creation timestamp.
+**Expected result:** A success banner appears with the generated case ID (e.g., "Case created: **case-abc123**"). Below it, a JSON viewer shows the full case payload: patient ID, cancer type, stage, variant count (2), biomarker values, and creation timestamp.
 
 **Talking points:**
 
@@ -250,15 +277,15 @@ Add variants using the dynamic variant entry rows:
 
 ### Step 5: Generate MTB Packet (4 minutes)
 
-**Click:** the **Generate MTB Packet** button (appears after case creation in the Case Workbench tab).
+**Click:** the **Generate MTB Packet** button (the second button, now enabled after case creation).
 
-**Expected result:** The MTB Packet renders in-line with five sections:
+**Expected result:** A success banner reads "MTB Packet generated successfully." The packet renders inline with five structured sections:
 
-1. **Variant Table** -- BRAF V600E (Level A, actionable) and NRAS Q61R (Level B) with evidence classifications.
-2. **Evidence Summary** -- key citations from `onco_therapies`, `onco_variants`, `onco_guidelines`, and `onco_literature`.
-3. **Therapy Ranking** -- ranked list of therapies. Dabrafenib+trametinib at #1 (Level A evidence, NCCN Category 1). Encorafenib+binimetinib at #2.
-4. **Trial Matches** -- recruiting trials matched by cancer type, stage, and biomarker criteria with NCT IDs.
-5. **Open Questions** -- flags the NRAS Q61R co-mutation and its potential impact on BRAF inhibitor resistance, suggesting MEK inhibitor combination consideration.
+1. **Actionable Variants** -- a dataframe table showing BRAF V600E (Level A, actionable) and NRAS Q61R (Level B) with evidence classifications.
+2. **Evidence Summary** -- a dataframe of key citations from `onco_therapies`, `onco_variants`, `onco_guidelines`, and `onco_literature` with similarity scores.
+3. **Therapy Ranking** -- a numbered list of therapies. Dabrafenib+trametinib at #1 (Level A evidence, NCCN Category 1, highest score). Encorafenib+binimetinib at #2.
+4. **Matched Clinical Trials** -- recruiting trials matched by cancer type, stage, and biomarker criteria. Each shows NCT ID, title, and match score.
+5. **Open Questions for Discussion** -- bullet points flagging the NRAS Q61R co-mutation and its potential impact on BRAF inhibitor resistance, suggesting MEK inhibitor combination consideration.
 
 **Talking points:**
 
@@ -273,65 +300,75 @@ Add variants using the dynamic variant entry rows:
 
 ### Step 6: Trial Matching (2 minutes)
 
-**Click:** the **Trial Finder** tab.
+**Click:** the **Trial Finder** tab (the third tab).
+
+In the left column:
 
 **Select:** Cancer Type = `Melanoma`
 
 **Select:** Stage = `III`
 
-**Enter:** Patient Age:
+**Type this value** in the Patient Age number input:
 
 > 55
 
-**Check:** the `BRAF V600E` biomarker checkbox.
+In the right column (Biomarkers):
 
-**Click:** the **Find Trials** button.
+**Check:** the `BRAF V600E` checkbox.
 
-**Expected result:** A list of matched clinical trials appears, each showing:
+**Click:** the **Find Trials** button (green primary button).
 
-- **NCT ID** (e.g., NCT05012345) -- clickable link to ClinicalTrials.gov
-- **Phase** (e.g., Phase 3)
-- **Status** (e.g., Recruiting)
+**Expected result:** A "Matched Trials" heading appears with the count. Each trial is displayed in a bordered container showing:
+
+- **NCT ID** (e.g., NCT05012345) with phase and recruitment status
+- **Trial title** in bold
 - **Match Score** (e.g., 0.87) -- composite of biomarker match (40%), semantic similarity (25%), phase weight (20%), status weight (15%)
-- **Eligibility summary** with matched and unmatched criteria
+- **Eligibility status** -- color-coded: green for "Eligible", orange for "Potentially Eligible", red for "Not Eligible"
+- **Explanation** text in italics describing why this trial matched
+- A processing time caption at the bottom
 
 **Talking points:**
 
 - "Hybrid trial matching: deterministic filter on cancer type + recruiting status, plus semantic search on the full patient profile."
 - "Composite scoring: 40% biomarker match, 25% semantic similarity, 20% phase weight, 15% status weight."
-- "Each match includes: trial ID, phase, match score, matched criteria, unmatched criteria, and explanation."
+- "Each match includes: trial ID, phase, match score, eligibility status, and explanation."
 - "The top match is a Phase 3 BRAF-mutant melanoma trial with 0.87 composite score -- all biomarkers matched."
 
 ---
 
 ### Step 7: Therapy Ranking (2 minutes)
 
-**Click:** the **Therapy Ranker** tab.
+**Click:** the **Therapy Ranker** tab (the fourth tab).
 
 **Select:** Cancer Type = `Melanoma`
 
-Add a variant using the dynamic variant entry:
+In the Variants section, add a variant using the dynamic entry row:
 
-1. **Enter:** Gene = `BRAF`, Variant = `V600E`, Type = `SNV`
+1. **Type:** Gene = `BRAF`, Variant = `V600E`, Type = `SNV`
 
-**Enter:** TMB:
+In the biomarkers section:
+
+**Type this value** in the TMB (mut/Mb) number input:
 
 > 12
 
-**Select:** MSI = `MSS`
+**Select:** MSI Status = `MSS`
 
-**Enter:** PD-L1 (%):
+**Type this value** in the PD-L1 TPS (%) number input:
 
 > 45
 
-**Click:** the **Rank Therapies** button.
+**Click:** the **Rank Therapies** button (green primary button).
 
-**Expected result:** A ranked list of therapies appears, each with:
+**Expected result:** A "Ranked Therapies" heading appears with the count. Each therapy is displayed in a bordered container showing:
 
-- **Evidence level badge** -- color-coded: green (Level A), blue (Level B), orange (Level C), red (Level D).
-- **Mechanism of action** summary.
-- **Guideline references** (e.g., NCCN Melanoma v2.2025).
-- **Resistance warnings** where applicable.
+- **Therapy name** in bold with rank number
+- **Evidence level badge** -- color-coded: green (Level 1/1A/1B), blue (Level 2/2A/2B), orange (Level 3/3A/3B), red (Level 4/R1/R2)
+- **Score** -- numerical ranking score
+- **Mechanism of action** description
+- **Guideline reference** caption (e.g., NCCN Melanoma v2.2025)
+- **Resistance warnings** -- orange warning banners where applicable (e.g., "Resistance: NRAS reactivation reported in 15-20% of patients")
+- A processing time caption at the bottom
 
 **Talking points:**
 
@@ -344,9 +381,9 @@ Add a variant using the dynamic variant entry:
 
 ### Step 8: Comparative Analysis (2 minutes)
 
-**Click:** the **Evidence Explorer** tab.
+**Click:** the **Evidence Explorer** tab (the second tab).
 
-**Type this query:**
+**Type this query** in the "Ask a question" text input:
 
 > Compare BRAF+MEK inhibition vs immunotherapy for melanoma
 
@@ -361,6 +398,8 @@ Add a variant using the dynamic variant entry:
 - Resistance mechanisms for each modality
 - Guideline recommendations (NCCN, ESMO)
 - Sequencing considerations
+
+Evidence sources show badges from multiple collections. Confidence bar and processing time appear below.
 
 **Comparison types you can demo:**
 
@@ -398,7 +437,7 @@ Osimertinib is preferred first-line for EGFR-mutant NSCLC (Category 1).
 
 ---
 
-### Step 9: Closing Route A (1 minute)
+### Step 9: Closing Route A (2 minutes)
 
 **Talking points:**
 
@@ -414,11 +453,11 @@ Osimertinib is preferred first-line for EGFR-mutant NSCLC (Category 1).
 
 > **Prerequisite:** Complete Route A first, or start from a fresh session with all services running.
 >
-> This route demonstrates how the Precision Oncology Agent connects to the full HCLS AI Factory -- bridging genomic variant analysis, clinical decision support, imaging intelligence, and AI-driven drug discovery.
+> This route demonstrates how the Precision Oncology Agent connects to the full HCLS AI Factory -- bridging genomic variant analysis, clinical decision support, and AI-driven drug discovery.
 
 ### Step 1: Platform Overview (2 minutes)
 
-**Show:** HCLS AI Factory landing page at http://localhost:8080
+**Show:** HCLS AI Factory landing page at `http://localhost:8080`
 
 Point out the service health grid -- all three stages plus the Precision Oncology Agent should show green.
 
@@ -445,11 +484,11 @@ Stage 3: Drug Discovery (BioNeMo)
 
 ### Step 2: Shared Genomic Data Layer (3 minutes)
 
-**Show:** Streamlit MTB Workbench at http://localhost:8526
+**Show:** Streamlit MTB Workbench at `http://localhost:8526`
 
-**Click:** the **Outcomes Dashboard** tab.
+**Click:** the **Outcomes Dashboard** tab (the fifth tab).
 
-**Expected result:** The Knowledge Base metrics and collection sizes bar chart are displayed. Point out the `genomic_evidence` collection at 3,561,170 vectors -- this is the shared data layer from Stage 1.
+**Expected result:** The Knowledge Base Statistics metric cards and Collection Sizes bar chart are displayed. Point out the `genomic_evidence` collection at 3,561,170 vectors -- this is the shared data layer from Stage 1.
 
 **Talking points:**
 
@@ -465,13 +504,13 @@ Stage 3: Drug Discovery (BioNeMo)
 
 **Click:** the **Filters** expander.
 
-**Select:** Cancer Type Filter = `NSCLC`
+**Select:** Cancer Type Filter = `Non-Small Cell Lung Cancer (NSCLC)`
 
-**Enter:** Gene Filter:
+**Type this value** in the Gene Filter text input:
 
 > EGFR
 
-**Type this query:**
+**Type this query** in the "Ask a question" text input:
 
 > What genomic variants in this patient affect targeted therapy selection and resistance prediction?
 
@@ -497,67 +536,73 @@ Stage 3: Drug Discovery (BioNeMo)
 
 **Click:** the **Case Workbench** tab.
 
-**Enter:** Patient ID:
+In the left column:
+
+**Type this value** in the Patient ID text input:
 
 > ONCO-DEMO-002
 
-**Select:** Cancer Type = `NSCLC`
+**Select:** Cancer Type = `Non-Small Cell Lung Cancer (NSCLC)`
 
 **Select:** Stage = `IV`
 
-**Enter:** TMB (mut/Mb):
+In the right column (Biomarkers):
+
+**Type this value** in the TMB (mut/Mb) number input:
 
 > 14.2
 
 **Select:** MSI Status = `MSS`
 
-**Enter:** PD-L1 TPS (%):
+**Type this value** in the PD-L1 TPS (%) number input:
 
 > 80
 
-**Select:** Prior Therapies (multiselect): `Carboplatin`, `Pemetrexed`
+**Select:** Prior Therapies (multiselect) = `Platinum-based chemotherapy` (representing carboplatin + pemetrexed)
+
+In the Variants section:
 
 **Select:** Input Mode = `Manual Entry`
 
 Add variants using the dynamic variant entry rows:
 
-1. **Enter:** Gene = `EGFR`, Variant = `L858R`, Type = `SNV`
+1. **Type:** Gene = `EGFR`, Variant = `L858R`, Type = `SNV`
 2. **Click:** the **+ Add Variant** button.
-3. **Enter:** Gene = `TP53`, Variant = `R273H`, Type = `SNV`
+3. **Type:** Gene = `TP53`, Variant = `R273H`, Type = `SNV`
 4. **Click:** the **+ Add Variant** button.
-5. **Enter:** Gene = `KRAS`, Variant = `G12C`, Type = `SNV`
+5. **Type:** Gene = `KRAS`, Variant = `G12C`, Type = `SNV`
 
 **Click:** the **Create Case** button.
 
-**Expected result:** Confirmation with case ID, patient ID `ONCO-DEMO-002`, cancer type NSCLC, stage IV, 3 variants, biomarkers (TMB 14.2, MSI MSS, PD-L1 80%), prior therapies listed.
+**Expected result:** Success banner with case ID. JSON viewer shows patient ID `ONCO-DEMO-002`, cancer type NSCLC, stage IV, 3 variants, biomarkers (TMB 14.2, MSI MSS, PD-L1 80%), prior therapies listed.
 
 **Click:** the **Generate MTB Packet** button.
 
 **Expected result:** The full MTB packet renders with five sections:
 
-1. **Variant Table:**
+1. **Actionable Variants:**
     - EGFR L858R: Level A -- FDA-approved companion diagnostic. Drugs: osimertinib, erlotinib, gefitinib.
     - KRAS G12C: Level A -- sotorasib (Lumakras) and adagrasib (Krazati) are FDA-approved.
     - TP53 R273H: VUS -- no direct actionable therapy, but flags tumor suppressor loss.
 2. **Evidence Summary** -- cross-collection citations with similarity scores.
 3. **Therapy Ranking** -- osimertinib at #1 (Level A, NCCN Category 1), sotorasib at #2.
-4. **Trial Matches** -- 10 recruiting trials matched by cancer type, biomarker criteria, and stage.
-5. **Open Questions** -- flags the TP53 VUS, suggests functional assay consideration, notes EGFR/KRAS co-mutation rarity.
+4. **Matched Clinical Trials** -- recruiting trials matched by cancer type, biomarker criteria, and stage.
+5. **Open Questions for Discussion** -- flags the TP53 VUS, suggests functional assay consideration, notes EGFR/KRAS co-mutation rarity.
 
 **Talking points:**
 
 - "This is a cross-modal MTB packet. The genomic_evidence collection provides variant-level context that enriches the clinical analysis."
 - "The therapy ranking places osimertinib at #1 (Level A evidence, NCCN Category 1) and sotorasib at #2."
-- "Resistance check: carboplatin and pemetrexed in prior therapies -- the agent flags no cross-resistance with osimertinib."
+- "Resistance check: platinum-based chemotherapy in prior therapies -- the agent flags no cross-resistance with osimertinib."
 - "Open questions flag the TP53 VUS and the rare EGFR/KRAS co-mutation pattern -- this is the kind of insight that changes tumor board discussions."
 
 ---
 
 ### Step 5: Stage 2 RAG Chat Bridge (3 minutes)
 
-**Show:** Stage 2 RAG Chat UI at http://localhost:8501
+**Show:** Stage 2 RAG Chat UI at `http://localhost:8501` (switch to the pre-opened browser tab).
 
-**Type this query:**
+**Type this query** in the chat input:
 
 > What is the clinical significance of EGFR L858R in lung adenocarcinoma and what targeted therapies are FDA-approved?
 
@@ -573,7 +618,7 @@ Add variants using the dynamic variant entry rows:
 
 ### Step 6: Drug Discovery Pipeline Connection (3 minutes)
 
-**Show:** Drug Discovery UI at http://localhost:8505
+**Show:** Drug Discovery UI at `http://localhost:8505` (switch to the pre-opened browser tab).
 
 **Talking points:**
 
@@ -587,17 +632,17 @@ Add variants using the dynamic variant entry rows:
 
 ### Step 7: Cross-Agent Query (3 minutes)
 
-**Show:** Streamlit MTB Workbench at http://localhost:8526
+**Show:** Streamlit MTB Workbench at `http://localhost:8526` (switch back to the Oncology Agent browser tab).
 
 **Click:** the **Evidence Explorer** tab.
 
-**Type this query:**
+**Type this query** in the "Ask a question" text input:
 
 > If imaging detects a new lung lesion in a patient with EGFR-mutant NSCLC on osimertinib, what resistance mechanisms should be evaluated and what treatment options exist?
 
 **Click:** the **Ask** button.
 
-**Expected result:** Claude synthesizes a multi-domain answer spanning imaging findings, resistance biology, and treatment options. Evidence sources show badges from `onco_resistance`, `onco_therapies`, `onco_variants`, and `genomic_evidence`.
+**Expected result:** Claude synthesizes a multi-domain answer spanning imaging findings, resistance biology, and treatment options. Evidence sources show badges from `onco_resistance`, `onco_therapies`, `onco_targets`, and `genomic_evidence`.
 
 **Talking points:**
 
@@ -711,7 +756,9 @@ Comparative mode requires keywords: "compare", "vs", "versus", "difference betwe
 
 ### Empty Search Results
 
-If searches return no results, verify collection data:
+If searches return no results, verify collection data via the **Outcomes Dashboard** tab -- check that the Knowledge Base Statistics show non-zero counts and the Collection Sizes chart shows data in all 11 collections.
+
+Alternatively, from the terminal:
 
 ```bash
 curl -s http://localhost:8527/health | python3 -m json.tool
@@ -755,11 +802,29 @@ docker compose restart streamlit-oncology
 | Attu (Milvus UI) | http://localhost:8000 |
 | Grafana Monitoring | http://localhost:3000 |
 
+### Collections Reference
+
+| Collection | Purpose | Approx. Vectors |
+|---|---|---|
+| `onco_variants` | Actionable variant annotations | 300 |
+| `onco_literature` | PubMed oncology literature | 500 |
+| `onco_therapies` | FDA-approved and emerging therapies | 120 |
+| `onco_guidelines` | NCCN, ESMO, ASCO guidelines | 100 |
+| `onco_trials` | Clinical trial eligibility data | 200 |
+| `onco_biomarkers` | Predictive and prognostic biomarkers | 80 |
+| `onco_resistance` | Resistance mechanisms and pathways | 80 |
+| `onco_pathways` | Signaling pathway biology | 50 |
+| `onco_outcomes` | Treatment outcome data | 50 |
+| `onco_cases` | Patient case records | 10 |
+| `genomic_evidence` | Shared genomic variants (Stage 1) | 3,561,170 |
+
 ---
 
-## Appendix: API Reference
+## Appendix: API Reference (Developer Use)
 
-All endpoints below are served by the FastAPI server at `http://localhost:8527`. These are provided for programmatic integration, automated testing, and scripting -- not for live demo use (use the Streamlit UI at port 8526 for demos).
+All endpoints below are served by the FastAPI server at `http://localhost:8527`. These are provided for programmatic integration, automated testing, and scripting -- **not for live demo use**. Use the Streamlit UI at port 8526 for demos.
+
+Interactive API documentation is available at `http://localhost:8527/docs` (Swagger UI).
 
 ### Health and Status
 

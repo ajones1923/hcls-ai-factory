@@ -3,6 +3,9 @@
 [![CI](https://github.com/ajones1923/hcls-ai-factory/actions/workflows/ci.yml/badge.svg)](https://github.com/ajones1923/hcls-ai-factory/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/ajones1923/hcls-ai-factory/graph/badge.svg)](https://codecov.io/gh/ajones1923/hcls-ai-factory)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Python](https://img.shields.io/badge/Python-3.10+-3776ab.svg?logo=python&logoColor=white)](https://www.python.org/downloads/)
+[![Docs](https://img.shields.io/badge/Docs-MkDocs-526cfe.svg?logo=materialformkdocs&logoColor=white)](https://hcls-ai-factory.org)
+[![NVIDIA DGX Spark](https://img.shields.io/badge/NVIDIA-DGX_Spark-76b900.svg?logo=nvidia&logoColor=white)](https://www.nvidia.com/en-us/data-center/dgx-spark/)
 
 **Transform patient DNA into therapeutic candidates in hours, not months.**
 

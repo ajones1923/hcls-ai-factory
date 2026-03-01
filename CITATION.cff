@@ -1,0 +1,34 @@
+cff-version: 1.2.0
+message: "If you use HCLS AI Factory in academic work, please cite it using the metadata below."
+title: "HCLS AI Factory: End-to-End Precision Medicine on a Desktop GPU Workstation"
+type: software
+authors:
+  - given-names: Adam
+    family-names: Jones
+repository-code: "https://github.com/ajones1923/hcls-ai-factory"
+url: "https://hcls-ai-factory.org"
+license: Apache-2.0
+version: 1.2.0
+date-released: "2026-02-28"
+keywords:
+  - precision-medicine
+  - genomics
+  - drug-discovery
+  - RAG
+  - NVIDIA
+  - DGX-Spark
+  - Parabricks
+  - BioNeMo
+  - Milvus
+  - vector-database
+  - CAR-T
+  - oncology
+  - medical-imaging
+abstract: >-
+  The HCLS AI Factory transforms patient DNA into ranked novel drug candidates
+  in under 5 hours on a single NVIDIA DGX Spark ($3,999). Three GPU-accelerated
+  stages — genomics (Parabricks), RAG-grounded target identification (Milvus +
+  Claude), and AI-driven drug discovery (BioNeMo MolMIM + DiffDock) — run
+  end-to-end on a desktop workstation. The platform includes three domain-specific
+  intelligence agents (CAR-T, Imaging, Precision Oncology) and is released under
+  Apache 2.0.
