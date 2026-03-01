@@ -1,4 +1,4 @@
-.PHONY: help lint format typecheck test test-rag test-drug test-genomics test-landing security docs clean
+.PHONY: help lint format typecheck test test-rag test-drug test-genomics test-landing security docs clean quickstart
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -60,3 +60,6 @@ clean: ## Remove build artifacts and caches
 
 preflight: ## Run preflight checks
 	./scripts/preflight-check.sh
+
+quickstart: ## One-command quickstart: setup envs, install deps, start all services
+	./quickstart.sh
