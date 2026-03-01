@@ -5,6 +5,46 @@ All notable changes to the HCLS AI Factory will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-03-01
+
+### Added
+
+- `quickstart.sh` — One-command setup (prerequisites, venvs, deps, Milvus, all services)
+- `make quickstart` Makefile target
+- `data/demo/demo_variants.vcf` — 90 synthetic variants across 13 therapeutic areas for Stage 2 demos
+- `docs/HCLS_AI_FACTORY_ARXIV_PAPER.md` — 10-section academic paper with 23 references
+- `docs/GTC_2026_SUBMISSION.md` — NVIDIA GTC 2026 talk submission (50-min session outline)
+- `docs/QUICKSTART_VIDEO_SCRIPT.md` — 5-minute video storyboard with 29 shots
+- `docs/LAUNCH_ANNOUNCEMENT.md` — LinkedIn, Twitter/X, Hacker News, and Reddit launch drafts
+- `CITATION.cff` — GitHub "Cite this repository" metadata
+- README badges: Python 3.10+, MkDocs Docs, NVIDIA DGX Spark
+- MkDocs "Publications" navigation section
+
+### Changed
+
+- All 3 agent demo guides rewritten to UI-driven flow (zero curl in live demo sections, curl preserved in API Reference appendix)
+
+### Fixed
+
+- CAR-T: double retrieval in `agent.py` — `run()` called `rag.retrieve()` then `rag.query()` which internally called `retrieve()` again
+- CAR-T: `identified_topics` never populated in `search_plan()`
+- CAR-T: stale docstrings ("5 collections" hardcoded instead of dynamic count)
+- Imaging: `SyntheticCTResult` missing `volume_path`, `segmentation_mask_path`, `voxel_spacing_mm`, `model_name` fields
+- Imaging: `knowledge_used` logic checked same boolean for all 3 categories
+- Imaging: `body_region` filter accepted but never passed through to query
+- Imaging: typo "solitiary" → "solitary"
+- Imaging: deleted 140-line dead code `metrics.py` (never imported)
+- Oncology: `target_collections` NameError in `retrieve()` method
+- Oncology: monkey-patched attributes on `SearchHit` — added `label`, `citation`, `relevance` fields and `record_id` property
+- Oncology: `variants` vs `key_variants` structure mismatch in `therapy_ranker.py`
+
+### Security
+
+- CORS origins restricted from wildcard to explicit localhost origins in all 3 agents
+- All agents migrated from deprecated `class Config:` to `model_config = SettingsConfigDict(...)`
+- Cleared hardcoded Orthanc default password in Imaging agent settings
+- Imaging Dockerfile: removed unnecessary `curl` from builder stage
+
 ## [1.1.0] - 2026-02-28
 
 ### Added
