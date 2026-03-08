@@ -1408,6 +1408,21 @@ onco_collection_vectors{collection}     # Vectors per collection (gauge)
 
 Test fixtures provide mock collection managers, embedders, knowledge stores, and sample data for unit testing without Milvus or LLM dependencies.
 
+### Unit Tests (556 tests passing — 388 test functions across 10 files, parametrized)
+
+| Test File | Count | Coverage |
+|---|---|---|
+| test_knowledge.py | 84 | ACTIONABLE_TARGETS, THERAPY_MAP, RESISTANCE_MAP, PATHWAY_MAP, BIOMARKER_PANELS, aliases, context helpers |
+| test_models.py | 63 | Pydantic enums (11), domain models (8), search/agent I/O models |
+| test_export.py | 53 | Markdown, JSON, FHIR R4 export, constants |
+| test_rag_engine.py | 41 | COLLECTION_CONFIG, system prompt, engine init, prompt building, scoring, citations |
+| test_integration.py | 33 | Full pipeline, plan/evidence consistency, export round-trip, model construction |
+| test_agent.py | 28 | SearchPlan, gene/cancer vocabularies, evidence evaluation, fallback logic |
+| test_therapy_ranker.py | 25 | Therapy ranking, evidence level sorting, resistance checking, biomarker-driven therapy |
+| test_case_manager.py | 24 | Variant actionability, case creation, VCF parsing, MTB packet structure |
+| test_trial_matcher.py | 20 | Trial matching, biomarker scoring, cancer type filtering, composite scoring |
+| test_collections.py | 17 | Collection schemas (11 collections), field validation, embedding dimensions |
+
 ---
 
 ## 23. HCLS AI Factory Integration

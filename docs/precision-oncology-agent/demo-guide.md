@@ -34,7 +34,7 @@ tags:
 | **UI Port** | Streamlit MTB Workbench at `http://localhost:8526` |
 | **API Port** | FastAPI at `http://localhost:8527` (developer use only -- see Appendix) |
 | **Collections** | 11 total (10 owned + 1 shared `genomic_evidence`) |
-| **Test Coverage** | 516 tests |
+| **Test Coverage** | 556 tests passing (388 test functions, parametrized) |
 
 ### What the Audience Will See
 
