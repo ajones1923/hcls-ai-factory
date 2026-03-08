@@ -136,6 +136,11 @@ nav:
       - Demo Guide: precision-oncology-agent/demo-guide.md
       - Design Document: precision-oncology-agent/design.md
       - Project Bible: precision-oncology-agent/project-bible.md
+    - Precision Biomarker Agent:
+      - Overview: precision-biomarker-agent/index.md
+      - Demo Guide: precision-biomarker-agent/demo-guide.md
+      - Design Document: precision-biomarker-agent/design.md
+      - Project Bible: precision-biomarker-agent/project-bible.md
   - Reports:
     - Intelligence Report: HCLS_AI_FACTORY_INTELLIGENCE_REPORT.md
     - Pipeline Report: PIPELINE_REPORT.md
