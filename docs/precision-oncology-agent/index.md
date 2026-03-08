@@ -198,17 +198,17 @@ uvicorn api.main:app --host 0.0.0.0 --port 8527
 ```
 precision_oncology_agent/agent/
 ├── src/
-│   ├── models.py                  # Pydantic data models (497 lines)
+│   ├── models.py                  # Pydantic data models (538 lines)
 │   ├── collections.py             # 11 Milvus collection schemas + manager (606 lines)
-│   ├── knowledge.py               # Knowledge graph: targets, therapies, resistance (1,194 lines)
-│   ├── query_expansion.py         # 12 expansion maps (676 lines)
-│   ├── rag_engine.py              # Multi-collection RAG + comparative analysis (780 lines)
-│   ├── agent.py                   # Plan-search-synthesize pipeline (489 lines)
+│   ├── knowledge.py               # Knowledge graph: targets, therapies, resistance (1,662 lines)
+│   ├── query_expansion.py         # 12 expansion maps (812 lines)
+│   ├── rag_engine.py              # Multi-collection RAG + comparative analysis (899 lines)
+│   ├── agent.py                   # Plan-search-synthesize pipeline (553 lines)
 │   ├── case_manager.py            # VCF parsing + MTB packet generation (509 lines)
-│   ├── trial_matcher.py           # Hybrid deterministic + semantic matching (393 lines)
-│   ├── therapy_ranker.py          # Evidence-based therapy ranking (552 lines)
-│   ├── cross_modal.py             # Cross-modal triggers to imaging + drug discovery (395 lines)
-│   ├── export.py                  # Markdown, JSON, PDF, FHIR R4 export (876 lines)
+│   ├── trial_matcher.py           # Hybrid deterministic + semantic matching (513 lines)
+│   ├── therapy_ranker.py          # Evidence-based therapy ranking (748 lines)
+│   ├── cross_modal.py             # Cross-modal triggers to imaging + drug discovery (383 lines)
+│   ├── export.py                  # Markdown, JSON, PDF, FHIR R4 export (1,055 lines)
 │   ├── metrics.py                 # Prometheus metrics (362 lines)
 │   ├── scheduler.py               # Data ingestion scheduler (263 lines)
 │   ├── ingest/
@@ -225,9 +225,9 @@ precision_oncology_agent/agent/
 │       ├── vcf_parser.py          # VCF file parsing utilities (361 lines)
 │       └── pubmed_client.py       # NCBI E-utilities HTTP client (296 lines)
 ├── app/
-│   └── oncology_ui.py             # Streamlit MTB Workbench (703 lines)
+│   └── oncology_ui.py             # Streamlit MTB Workbench (758 lines)
 ├── api/
-│   ├── main.py                    # FastAPI REST server (347 lines)
+│   ├── main.py                    # FastAPI REST server (393 lines)
 │   └── routes/
 │       ├── meta_agent.py          # /api/ask, /api/deep-research (169 lines)
 │       ├── cases.py               # /api/cases, /api/cases/{id}/mtb (234 lines)
@@ -235,14 +235,14 @@ precision_oncology_agent/agent/
 │       ├── reports.py             # /api/reports/{format} (236 lines)
 │       └── events.py              # /api/events, cross-modal triggers (89 lines)
 ├── config/
-│   └── settings.py                # Pydantic BaseSettings (109 lines)
+│   └── settings.py                # Pydantic BaseSettings (134 lines)
 ├── tests/
 │   └── conftest.py                # Test fixtures (214 lines)
 ├── requirements.txt
 └── LICENSE                        # Apache 2.0
 ```
 
-**63 Python files | ~17,855 lines of code | Apache 2.0**
+**64 Python files | ~20,000 lines of code | Apache 2.0**
 
 ## Knowledge Graph
 
