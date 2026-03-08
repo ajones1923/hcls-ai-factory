@@ -981,12 +981,12 @@ def validate_fhir_bundle(bundle: dict) -> List[str]:
 |---|---|
 | 1. Biomarker Analysis | Main analysis with critical alerts, discordance, lab ranges |
 | 2. Biological Age | PhenoAge + GrimAge visualization with aging drivers |
-| 3. Disease Trajectories | 9-domain risk cards with risk levels and recommendations |
-| 4. Pharmacogenomics | Star allele + genotype input, drug recommendations |
+| 3. Disease Risk | 9-domain risk cards with risk levels and recommendations |
+| 4. PGx Profile | Star allele + genotype input, drug recommendations |
 | 5. Evidence Explorer | RAG search across 14 collections with source filtering |
-| 6. Export | FHIR R4, PDF, Markdown, CSV download |
-| 7. Genotype Adjustments | Genotype-aware ranges + age-stratified comparisons |
-| 8. Patient Data | Sample patient browser with full clinical context |
+| 6. Reports | FHIR R4, PDF, Markdown, CSV export with validation |
+| 7. Patient 360 | Unified cross-agent dashboard (genomics + biomarkers + drugs) |
+| 8. Longitudinal | Multi-visit biomarker trending and trajectory analysis |
 
 ### Sample Patient Auto-Load
 
