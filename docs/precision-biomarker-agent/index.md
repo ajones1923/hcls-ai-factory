@@ -90,8 +90,21 @@ Built on the HCLS AI Factory platform:
 - **Vector DB:** Milvus 2.4 with IVF_FLAT/COSINE indexes (nlist=1024, nprobe=16)
 - **Embeddings:** BGE-small-en-v1.5 (384-dim)
 - **LLM:** Claude Sonnet 4.6 (Anthropic API)
-- **UI:** Streamlit (port 8528) | **API:** FastAPI (port 8529)
+- **UI:** Streamlit 8 tabs (port 8528) | **API:** FastAPI (port 8529)
 - **Hardware target:** NVIDIA DGX Spark ($3,999)
+
+### UI Tabs
+
+| # | Tab | Content |
+|---|---|---|
+| 1 | Biomarker Analysis | Critical alerts, discordance, lab range comparison, full analysis |
+| 2 | Biological Age | PhenoAge + GrimAge with aging drivers and confidence intervals |
+| 3 | Disease Risk | 9-domain risk cards with genotype integration |
+| 4 | PGx Profile | Star allele and genotype-to-drug mapping (13 genes) |
+| 5 | Evidence Explorer | RAG search across 14 collections with collection filtering |
+| 6 | Reports | FHIR R4, PDF, Markdown, CSV export with validation |
+| 7 | Patient 360 | Unified cross-agent dashboard (genomics + biomarkers + drugs) |
+| 8 | Longitudinal | Multi-visit biomarker trending and trajectory analysis |
 
 ## Setup
 

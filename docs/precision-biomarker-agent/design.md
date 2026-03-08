@@ -46,8 +46,8 @@ The agent combines **9 deterministic clinical analysis engines** with a **14-col
                         ┌─────────────────────────────────┐
                         │    Streamlit UI (8528)            │
                         │    8 tabs: Analysis | Bio Age |   │
-                        │    Trajectories | PGx | Evidence  │
-                        │    | Export | Adjustments | Data   │
+                        │    Disease Risk | PGx | Evidence  │
+                        │    | Reports | Patient 360 | Long  │
                         └──────────────┬──────────────────┘
                                        │
                         ┌──────────────▼──────────────────┐
