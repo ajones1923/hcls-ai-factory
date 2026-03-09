@@ -8,20 +8,22 @@ Closed-loop precision oncology clinical decision support -- from paired tumor-no
 
 The Precision Oncology Agent transforms raw genomic data (VCF files) into actionable clinical intelligence. It combines variant annotation, evidence retrieval, therapy ranking, trial matching, and outcomes learning into a closed-loop system that generates Molecular Tumor Board (MTB) packets for precision cancer treatment decisions.
 
-| Collection | Records | Source |
+| Collection | Seed Records | Source |
 |---|---|---|
-| **Variants** | ~300 | CIViC, curated actionable variants |
-| **Literature** | ~500 | PubMed oncology research |
-| **Therapies** | ~120 | FDA-approved targeted/immuno/chemo |
-| **Guidelines** | ~100 | NCCN, ASCO, ESMO guidelines |
-| **Trials** | ~200 | ClinicalTrials.gov oncology trials |
-| **Biomarkers** | ~80 | TMB, MSI-H, PD-L1, HRD, fusion panels |
-| **Resistance** | ~80 | Resistance mechanisms and bypasses |
-| **Pathways** | ~50 | Oncogenic signaling pathways |
-| **Outcomes** | ~50 | Treatment outcomes (synthetic) |
-| **Cases** | ~10 | Case snapshots (synthetic) |
+| **Variants** | 130 | CIViC, curated actionable variants |
+| **Literature** | 60 | PubMed oncology research |
+| **Therapies** | 94 | FDA-approved targeted/immuno/chemo |
+| **Guidelines** | 45 | NCCN, ASCO, ESMO guidelines |
+| **Trials** | 55 | ClinicalTrials.gov oncology trials |
+| **Biomarkers** | 50 | TMB, MSI-H, PD-L1, HRD, fusion panels |
+| **Resistance** | 50 | Resistance mechanisms and bypasses |
+| **Pathways** | 45 | Oncogenic signaling pathways |
+| **Outcomes** | 40 | Treatment outcomes (synthetic) |
+| **Cases** | 40 | Case snapshots (synthetic) |
 | **Genomic Evidence** | *(read-only)* | Shared from Stage 2 RAG (3.5M vectors) |
-| **Total** | **~1,490+ vectors** | **11 collections (10 owned + 1 shared)** |
+| **Total** | **609 vectors** | **11 collections (10 owned + 1 shared)** |
+
+> **Note:** Seed data provides 609 demo-ready vectors. Running the full ingest pipelines (PubMed, ClinicalTrials.gov, CIViC) expands the knowledge base to ~1,700+ vectors.
 
 ### Example Queries
 
@@ -88,10 +90,10 @@ VCF / Patient Data
     |               |              |           |           |
     v               v              v           v           v
  Variants      Literature     Therapies   Guidelines    Trials
-  ~300           ~500           ~120         ~100        ~200
+  130            60             94           45          55
     |               |              |           |           |
  Biomarkers    Resistance     Pathways    Outcomes      Cases
-   ~80            ~80           ~50          ~50          ~10
+   50             50            45           40          40
     |                                                      |
     +-------------- genomic_evidence (3.5M, read-only) ----+
     |

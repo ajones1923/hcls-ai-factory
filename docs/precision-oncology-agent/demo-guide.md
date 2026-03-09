@@ -27,7 +27,7 @@ tags:
 | **Route A Duration** | 20 minutes (standalone agent) |
 | **Route B Duration** | 30 minutes (cross-platform integration) |
 | **Hardware** | NVIDIA DGX Spark (GB10, 128 GB unified) |
-| **Knowledge Base** | ~1,490 vectors across 10 owned collections + 3.5M shared genomic vectors |
+| **Knowledge Base** | 609 seed vectors across 10 owned collections + 3.5M shared genomic vectors |
 | **Knowledge Graph** | ~40 actionable targets, ~30 therapies, ~20 resistance mechanisms |
 | **LLM** | Claude Sonnet 4.6 (Anthropic) |
 | **Export Formats** | Markdown, JSON, PDF, FHIR R4 |
@@ -98,19 +98,19 @@ Expected response:
 {
   "status": "healthy",
   "collections": {
-    "onco_variants": 300,
-    "onco_literature": 500,
-    "onco_therapies": 120,
-    "onco_guidelines": 100,
-    "onco_trials": 200,
-    "onco_biomarkers": 80,
-    "onco_resistance": 80,
-    "onco_pathways": 50,
-    "onco_outcomes": 50,
-    "onco_cases": 10,
+    "onco_variants": 130,
+    "onco_literature": 60,
+    "onco_therapies": 94,
+    "onco_guidelines": 45,
+    "onco_trials": 55,
+    "onco_biomarkers": 50,
+    "onco_resistance": 50,
+    "onco_pathways": 45,
+    "onco_outcomes": 40,
+    "onco_cases": 40,
     "genomic_evidence": 3561170
   },
-  "total_vectors": 3562660,
+  "total_vectors": 3561779,
   "version": "0.1.0",
   "services": {
     "milvus": true,
@@ -132,7 +132,7 @@ All 11 collections should have non-zero counts. All 7 services should be `true`.
 curl -s http://localhost:8527/knowledge/stats | python3 -m json.tool
 ```
 
-Expected: ~40 actionable targets, ~120 therapies, ~80 resistance mechanisms, ~50 pathways, ~80 biomarkers.
+Expected: ~40 actionable targets, ~94 therapies, ~50 resistance mechanisms, ~45 pathways, ~50 biomarkers.
 
 ### Step 6: Open Browser Tabs
 
@@ -173,13 +173,13 @@ Point out the sidebar **Service Status** panel -- it displays API health (green/
 
 **Expected result:** The dashboard displays three sections:
 
-- **Knowledge Base Statistics** -- five metric cards in a row: Targets (~40), Therapies (~120), Resistance (~80), Pathways (~50), Biomarkers (~80).
+- **Knowledge Base Statistics** -- five metric cards in a row: Targets (~40), Therapies (94), Resistance (50), Pathways (45), Biomarkers (50).
 - **Collection Sizes** -- a horizontal bar chart showing vector counts across all 11 collections, with `genomic_evidence` (3.5M vectors) dominating the chart and the 10 curated oncology collections visible at much smaller scale.
 - **Recent Events** -- a chronological list of ingestion and query activity with expandable JSON details for each event.
 
 **Talking points:**
 
-- "~1,490 curated oncology vectors across 10 specialized collections, plus 3.5 million genomic variant vectors shared from Stage 1."
+- "609 curated oncology vectors across 10 specialized collections, plus 3.5 million genomic variant vectors shared from Stage 1."
 - "The bar chart makes the scale clear -- genomic evidence dwarfs the curated collections, but those curated vectors carry the clinical intelligence."
 
 ---
@@ -441,7 +441,7 @@ Osimertinib is preferred first-line for EGFR-mutant NSCLC (Category 1).
 
 **Talking points:**
 
-- "11 collections, ~1,490 curated vectors, ~40 actionable targets, 6-step therapy ranking, 4-step trial matching."
+- "11 collections, 609 curated vectors, ~40 actionable targets, 6-step therapy ranking, 4-step trial matching."
 - "This is a complete precision oncology clinical decision support system -- from VCF to MTB packet."
 - "Every answer is grounded in published evidence with clickable citations. No hallucination."
 - "AMP/ASCO/CAP evidence tiers ensure clinicians know the strength of each recommendation."
@@ -492,7 +492,7 @@ Stage 3: Drug Discovery (BioNeMo)
 
 **Talking points:**
 
-- "The Oncology agent has 10 specialized collections -- ~1,490 curated vectors covering variants, literature, therapies, guidelines, trials, biomarkers, resistance, pathways, outcomes, and cases."
+- "The Oncology agent has 10 specialized collections -- 609 curated vectors covering variants, literature, therapies, guidelines, trials, biomarkers, resistance, pathways, outcomes, and cases."
 - "It also reads from `genomic_evidence` -- 3,561,170 vectors from the genomics pipeline. These are the same variant annotations Stage 2 uses."
 - "This is the key integration point. The same patient variants that Stage 2 analyzes for drug targets are available to inform oncology treatment decisions."
 
@@ -762,7 +762,7 @@ Alternatively, from the terminal:
 
 ```bash
 curl -s http://localhost:8527/health | python3 -m json.tool
-# Check that onco_variants shows ~300, onco_literature shows ~500
+# Check that onco_variants shows 130, onco_therapies shows 94, etc.
 ```
 
 If counts are zero, re-run ingestion scripts (see Pre-Demo Setup).

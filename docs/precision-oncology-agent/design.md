@@ -12,7 +12,7 @@
 The Precision Oncology Agent extends the HCLS AI Factory platform to support closed-loop clinical decision support for molecular tumor boards. It transforms raw genomic data (VCF files from Stage 1 Parabricks) into structured treatment recommendations by combining:
 
 1. **Variant Annotation** -- Classifying somatic and germline variants against ~40 actionable targets using AMP/ASCO/CAP evidence tiers
-2. **Evidence Retrieval** -- Multi-collection RAG across 11 Milvus collections (~1,490+ owned vectors + 3.5M shared genomic vectors)
+2. **Evidence Retrieval** -- Multi-collection RAG across 11 Milvus collections (609 seed vectors + 3.5M shared genomic vectors)
 3. **Therapy Ranking** -- Evidence-level-sorted treatment recommendations with resistance awareness and contraindication flags
 4. **Trial Matching** -- Hybrid deterministic + semantic clinical trial matching with composite scoring
 5. **MTB Packet Generation** -- Structured Molecular Tumor Board packets exported as Markdown, JSON, PDF, or FHIR R4
@@ -21,7 +21,7 @@ The Precision Oncology Agent extends the HCLS AI Factory platform to support clo
 
 | Metric | Value |
 |---|---|
-| Total vectors indexed | **~1,490+** across 10 owned collections + **3.5M** genomic vectors (read-only) |
+| Total vectors indexed | **609** seed vectors across 10 owned collections + **3.5M** genomic vectors (read-only) |
 | Multi-collection search latency | **< 200 ms** (11 collections, top-5 each) |
 | Comparative dual retrieval | **~400 ms** (2 x 11 collections, entity-filtered) |
 | Full RAG query (search + Claude) | **~24 sec** end-to-end |
@@ -97,8 +97,8 @@ The Precision Oncology Agent extends the HCLS AI Factory platform to support clo
     | onco_ | |onco_||onco_||onco|| onco_||onco_ | |genomic_  |
     | vari- | |lite-||ther-||guid|| trial||biom- | |evidence  |
     | ants  | |ratu-||apie-||elin||  s   ||arker | |(read-    |
-    | ~300  | |re   ||s    ||es  || ~200 ||s ~80 | | only)    |
-    |       | |~500 ||~120 ||~100||      ||      | | 3.5M     |
+    | 130   | |re   ||s    ||es  || 55   ||s 50  | | only)    |
+    |       | |60   ||94   ||45  ||      ||      | | 3.5M     |
     +-------+ +-----++-----++----+ +-----++------+ +----------+
         ^        ^       ^      ^       ^      ^       ^
     +---+----+ +-+--+ +-+-+ +--+-+ +--+-+ +--+-+ +---+----+
@@ -114,7 +114,7 @@ The Precision Oncology Agent extends the HCLS AI Factory platform to support clo
 
 All 11 collections (10 owned + 1 read-only) use BGE-small-en-v1.5 embeddings (dim=384) with IVF_FLAT/COSINE indexing.
 
-### 3.1 `onco_variants` -- ~300 records
+### 3.1 `onco_variants` -- 130 records
 
 | Attribute | Value |
 |---|---|
@@ -125,7 +125,7 @@ All 11 collections (10 owned + 1 read-only) use BGE-small-en-v1.5 embeddings (di
 | **Evidence levels** | AMP/ASCO/CAP Tier A through D |
 | **Variant types** | SNV, indel, CNV amplification, CNV deletion, fusion, rearrangement, structural variant |
 
-### 3.2 `onco_literature` -- ~500 records
+### 3.2 `onco_literature` -- 60 records
 
 | Attribute | Value |
 |---|---|
@@ -134,7 +134,7 @@ All 11 collections (10 owned + 1 read-only) use BGE-small-en-v1.5 embeddings (di
 | **Cancer type tagging** | Automated classification across 20+ cancer types |
 | **Gene extraction** | Automated from title and abstract |
 
-### 3.3 `onco_therapies` -- ~120 records
+### 3.3 `onco_therapies` -- 94 records
 
 | Attribute | Value |
 |---|---|
@@ -142,7 +142,7 @@ All 11 collections (10 owned + 1 read-only) use BGE-small-en-v1.5 embeddings (di
 | **Fields** | id, drug_name, category, targets, approved_indications, resistance_mechanisms, evidence_level, text_summary, mechanism_of_action |
 | **Categories** | Targeted, immunotherapy, chemotherapy, hormonal, combination, radiotherapy, cell therapy |
 
-### 3.4 `onco_guidelines` -- ~100 records
+### 3.4 `onco_guidelines` -- 45 records
 
 | Attribute | Value |
 |---|---|
@@ -150,7 +150,7 @@ All 11 collections (10 owned + 1 read-only) use BGE-small-en-v1.5 embeddings (di
 | **Fields** | id, org, cancer_type, version, year, key_recommendations, text_summary, evidence_level |
 | **Organizations** | NCCN, ESMO, ASCO, WHO, CAP/AMP |
 
-### 3.5 `onco_trials` -- ~200 records
+### 3.5 `onco_trials` -- 55 records
 
 | Attribute | Value |
 |---|---|
@@ -159,7 +159,7 @@ All 11 collections (10 owned + 1 read-only) use BGE-small-en-v1.5 embeddings (di
 | **Phase distribution** | Early Phase 1 through Phase 4 |
 | **Status** | Recruiting, completed, active, terminated, withdrawn |
 
-### 3.6 `onco_biomarkers` -- ~80 records
+### 3.6 `onco_biomarkers` -- 50 records
 
 | Attribute | Value |
 |---|---|
@@ -167,7 +167,7 @@ All 11 collections (10 owned + 1 read-only) use BGE-small-en-v1.5 embeddings (di
 | **Fields** | id, name, biomarker_type, cancer_types, predictive_value, testing_method, clinical_cutoff, text_summary, evidence_level |
 | **Types** | Predictive, prognostic, diagnostic, monitoring, resistance, pharmacodynamic |
 
-### 3.7 `onco_resistance` -- ~80 records
+### 3.7 `onco_resistance` -- 50 records
 
 | Attribute | Value |
 |---|---|
@@ -175,7 +175,7 @@ All 11 collections (10 owned + 1 read-only) use BGE-small-en-v1.5 embeddings (di
 | **Fields** | id, primary_therapy, gene, mechanism, bypass_pathway, alternative_therapies, text_summary |
 | **Coverage** | EGFR TKI resistance (T790M, C797S, MET bypass), BRAF resistance (MAPK reactivation), immunotherapy resistance (antigen loss, beta-2-microglobulin), PARP inhibitor resistance (BRCA reversion), endocrine resistance (ESR1 mutations) |
 
-### 3.8 `onco_pathways` -- ~50 records
+### 3.8 `onco_pathways` -- 45 records
 
 | Attribute | Value |
 |---|---|
@@ -183,7 +183,7 @@ All 11 collections (10 owned + 1 read-only) use BGE-small-en-v1.5 embeddings (di
 | **Fields** | id, name, key_genes, therapeutic_targets, cross_talk, text_summary |
 | **Pathways** | MAPK, PI3K/AKT/mTOR, DDR, cell cycle, apoptosis, Wnt, Notch, Hedgehog, JAK/STAT, angiogenesis |
 
-### 3.9 `onco_outcomes` -- ~50 records
+### 3.9 `onco_outcomes` -- 40 records
 
 | Attribute | Value |
 |---|---|
@@ -191,7 +191,7 @@ All 11 collections (10 owned + 1 read-only) use BGE-small-en-v1.5 embeddings (di
 | **Fields** | id, case_id, therapy, cancer_type, response (RECIST), duration_months, toxicities, biomarkers_at_baseline, text_summary |
 | **Response categories** | Complete response, partial response, stable disease, progressive disease, not evaluable |
 
-### 3.10 `onco_cases` -- ~10 records
+### 3.10 `onco_cases` -- 40 records
 
 | Attribute | Value |
 |---|---|
