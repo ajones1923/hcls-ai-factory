@@ -8,16 +8,18 @@ Automated detection, segmentation, longitudinal tracking, and clinical triage of
 
 ## Overview
 
-The Imaging Intelligence Agent processes medical imaging studies using MONAI models and NVIDIA NIM microservices on DGX Spark hardware. A multi-collection RAG engine backed by 11 Milvus vector collections (3.56M vectors) provides evidence-grounded clinical reasoning, while four reference workflows run real pretrained model weights for inference. Cross-modal triggers connect imaging findings to 3.5M genomic variant vectors for precision medicine enrichment. Output is exported as Markdown, JSON, PDF, or FHIR R4 DiagnosticReport Bundles with SNOMED CT, LOINC, and DICOM coding.
+The Imaging Intelligence Agent processes medical imaging studies using MONAI models and NVIDIA NIM microservices on DGX Spark hardware. A 9-tab Streamlit interface backed by 876 seed vectors across 10 Milvus collections provides evidence-grounded clinical reasoning, while six reference workflows run real pretrained model weights across 4 demo cases (DEMO-001 through DEMO-004). The Image Gallery showcases 9 AI-annotated medical images with a 3D Volume Slice Viewer and Before/After AI toggle. Cross-modal triggers connect imaging findings to 3.5M genomic variant vectors for precision medicine enrichment. Output is exported as Markdown, JSON, NVIDIA-branded PDF, or FHIR R4 DiagnosticReport Bundles with SNOMED CT, LOINC, and DICOM coding.
 
-## Four Reference Workflows
+## Six Reference Workflows
 
 | Workflow | Modality | Model (Pretrained Weights) | Key Output |
 |---|---|---|---|
 | **Hemorrhage Triage** | CT Head | SegResNet (MONAI `wholeBody_ct_segmentation`) | Volume (mL), midline shift (mm), urgency routing |
 | **Lung Nodule Tracking** | CT Chest | RetinaNet + SegResNet (MONAI `lung_nodule_ct_detection`) | Lung-RADS 1--4B classification |
+| **Coronary Angiography** | CT Heart | Calcium scoring + stenosis grading | Agatston score, stenosis severity |
 | **Rapid Findings** | CXR | DenseNet-121 (torchxrayvision `densenet121-res224-all`, CheXpert) | Multi-label classification + GradCAM heatmaps |
 | **MS Lesion Tracking** | MRI Brain | UNEST (MONAI `wholeBrainSeg_Large_UNEST_segmentation`) | Lesion count, disease activity (Stable/Active/Highly Active) |
+| **Prostate PI-RADS** | MRI Prostate | Prostate lesion detection + PI-RADS v2.1 | PI-RADS 1--5 scoring |
 
 ## Architecture
 
@@ -25,37 +27,44 @@ The Imaging Intelligence Agent processes medical imaging studies using MONAI mod
 DICOM Study Arrives (Orthanc 8042/4242)
     |
     v
-[Webhook Router] ── CT+head / CT+chest / CR+chest / MR+brain
+[Webhook Router] ── CT+head / CT+chest / CT+heart / CR+chest / MR+brain / MR+prostate
     |
     v
-[Clinical Workflow]
-(SegResNet / RetinaNet / DenseNet-121 / UNEST)
+[Clinical Workflow] (6 workflows)
+(SegResNet / RetinaNet / DenseNet-121 / UNEST / Calcium Scoring / PI-RADS)
     |
     v
 [Post-Processing + Cross-Modal Trigger]
-Volume, midline shift, Lung-RADS, GradCAM
+Volume, midline shift, Lung-RADS, GradCAM, Agatston, PI-RADS
 Lung-RADS 4A+ → genomic variant queries (3.5M vectors)
     |
     v
-[RAG Engine + NIM LLM]
-11 Milvus collections (3.56M vectors) + Claude/Llama-3 synthesis
+[RAG Engine + Claude Sonnet 4.6 / Llama-3 NIM]
+10 imaging collections (876 seed vectors) + genomic_evidence (read-only)
+    |
+    v
+[9-Tab Streamlit UI]
+Evidence Explorer | Workflow Runner | Image Gallery | Protocol Advisor
+Device & AI Ecosystem | Dose Intelligence | Reports & Export | Patient 360
+Benchmarks & Validation
     |
     v
 [Clinical Output]
-Markdown | JSON | PDF | FHIR R4 DiagnosticReport Bundle
+Markdown | JSON | NVIDIA-branded PDF | FHIR R4 DiagnosticReport Bundle
 ```
 
 Built on the HCLS AI Factory platform:
 
-- **RAG Engine:** Multi-collection Milvus vector search + Claude/Llama-3 LLM synthesis
+- **LLM:** Claude Sonnet 4.6 (Anthropic) primary, Llama-3 NIM fallback
+- **RAG Engine:** Multi-collection Milvus vector search + LLM synthesis
 - **Embeddings:** BGE-small-en-v1.5 (384-dim, IVF_FLAT, COSINE)
-- **Database:** Milvus 2.4 (11 collections -- 10 imaging-specific + `genomic_evidence` read-only)
+- **Database:** Milvus 2.4 (10 imaging collections + `genomic_evidence` read-only)
 - **NIM Services:** VISTA-3D (segmentation), MAISI (synthetic CT), VILA-M3 (VLM), Llama-3 8B (LLM)
 - **Cloud NIMs:** `meta/llama-3.1-8b-instruct` + `meta/llama-3.2-11b-vision-instruct` via `integrate.api.nvidia.com`
-- **DICOM Server:** Orthanc (webhook auto-routing to workflows)
-- **UI:** Streamlit (port 8525)
+- **DICOM Server:** Orthanc (webhook auto-routing to 6 workflows)
+- **UI:** Streamlit 9-tab interface (port 8525)
 - **API:** FastAPI (port 8524)
-- **Export:** Markdown, JSON, PDF, FHIR R4 DiagnosticReport Bundle
+- **Export:** Markdown, JSON, NVIDIA-branded PDF, FHIR R4 DiagnosticReport Bundle
 - **Federated Learning:** NVIDIA FLARE (3 job configs)
 - **Hardware target:** NVIDIA DGX Spark ($3,999)
 
@@ -63,13 +72,20 @@ Built on the HCLS AI Factory platform:
 
 | Source | Records |
 |---|---|
-| PubMed imaging literature | 2,678 papers |
-| ClinicalTrials.gov | 12 trials |
-| Seed reference records | 124 records |
+| Seed imaging vectors | 876 across 10 owned collections |
 | Genomic evidence vectors (read-only) | 3,561,170 vectors |
-| **Total vectors** | **3,563,984** |
 
-539 unit tests, 9/9 end-to-end checks.
+539 unit tests, 9/9 end-to-end checks. 6 workflows, 4 demo cases, 9 Streamlit tabs.
+
+## Demo Highlights (March 2026)
+
+- **Image Gallery:** 5 CXR pathology showcase (Normal, Consolidation, Effusion, Cardiomegaly, Pneumothorax), cross-modality gallery, 3D Volume Slice Viewer with HU windowing, Before/After AI toggle
+- **Workflow Runner:** Annotated AI images in 55/45 layout with 6-step pipeline animation (3.2s total) and 4 download formats
+- **Patient 360:** Interactive Plotly network graph (3-layer: Case green, Findings orange, Genes cyan) with live Milvus genomic query
+- **Evidence Explorer:** 4 pre-filled example query buttons and Plotly donut chart showing collection contribution
+- **Protocol Advisor:** 4 pre-filled example indication buttons
+- **Sidebar:** Guided tour expander (9-step demo flow), OHIF Viewer link, Demo Mode button
+- **9 AI-annotated medical images:** 5 CXR (1024x1024) + 3 CT (512x512) + 1 bilateral pneumonia CXR
 
 ## Cross-Modal Integration
 
