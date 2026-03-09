@@ -15,7 +15,7 @@ tags:
 > **Step-by-step walkthrough for demonstrating the Imaging Intelligence Agent on DGX Spark.**
 > All live-demo interaction uses the Streamlit UI at `http://localhost:8525` — no terminal commands during the presentation.
 >
-> License: Apache 2.0 | Date: February 2026
+> License: Apache 2.0 | Date: March 2026
 
 ---
 
@@ -26,27 +26,29 @@ tags:
 | **Route A Duration** | 20 minutes (standalone agent) |
 | **Route B Duration** | 30-35 minutes (cross-platform integration) |
 | **Hardware** | NVIDIA DGX Spark (GB10, 128 GB unified) |
-| **Clinical Workflows** | 4 (CT hemorrhage, CT lung nodule, CXR findings, MRI MS lesion) |
+| **Clinical Workflows** | 6 (CT hemorrhage, CT lung nodule, CT coronary angiography, CXR findings, MRI MS lesion, MRI prostate PI-RADS) |
 | **NIM Services** | 4 (VISTA-3D, MAISI, VILA-M3, Llama-3 8B) |
-| **Knowledge Base** | 3.56M vectors across 11 Milvus collections |
+| **Knowledge Base** | 876 seed imaging vectors across 10 owned collections + shared genomic_evidence (read-only) |
 | **Collections** | imaging_literature, imaging_trials, imaging_findings, imaging_protocols, imaging_devices, imaging_anatomy, imaging_benchmarks, imaging_guidelines, imaging_report_templates, imaging_datasets + shared genomic_evidence (read-only) |
 | **Export Formats** | Markdown, JSON, PDF, FHIR R4 DiagnosticReport |
 | **Tests** | 539 |
 
 ### What the Audience Will See
 
-1. A health dashboard showing 11 vector collections with 3.56 million indexed vectors
+1. A 9-tab Streamlit interface with 876 seed vectors across 10 imaging collections
 2. Four NVIDIA NIM microservices running on-device with automatic fallback logic
-3. A CT head scan triaged in seconds — hemorrhage volume, midline shift, and urgency routing
-4. A chest CT with lung nodules classified by ACR Lung-RADS with automated follow-up scheduling
-5. A chest X-ray analyzed by DenseNet-121 with multi-label findings and GradCAM heatmaps
-6. An MRI brain scan with MS lesion tracking and disease activity classification
-7. RAG-grounded clinical answers from 2,678 PubMed papers with clickable citations
-8. VISTA-3D zero-shot segmentation across 132 anatomical classes
-9. Reports exported as Markdown, JSON, PDF, and FHIR R4 DiagnosticReport Bundles with SNOMED CT, LOINC, and DICOM coding
-10. A DICOM study arriving via Orthanc and automatically routed to the correct clinical workflow
-11. *(Route B)* A lung nodule triggering cross-modal genomic queries against 3.5 million variant vectors
-12. *(Route B)* The complete pipeline: DICOM study -> imaging AI -> genomic trigger -> target identification -> drug candidates
+3. **Image Gallery** with 5 CXR pathology showcase, cross-modality gallery, 3D Volume Slice Viewer with HU windowing, and Before/After AI toggle
+4. A CT head scan triaged in seconds -- hemorrhage volume, midline shift, and urgency routing (DEMO-001)
+5. A chest CT with lung nodules classified by ACR Lung-RADS with automated follow-up scheduling (DEMO-002)
+6. CT coronary angiography with calcium scoring and stenosis grading (DEMO-003)
+7. A chest X-ray with bilateral pneumonia -- AI-annotated images alongside clinical metrics (DEMO-004)
+8. **Evidence Explorer** with 4 pre-filled example query buttons and Plotly donut chart showing collection contribution
+9. **Patient 360** with interactive Plotly network graph (3-layer: Case green, Findings orange, Genes cyan) and live Milvus genomic query
+10. **Workflow Runner** with 6-step pipeline animation (3.2s total), annotated AI images in 55/45 layout, and 4 download buttons (Markdown, JSON, PDF, FHIR R4)
+11. Reports exported as Markdown, JSON, PDF (NVIDIA-branded), and FHIR R4 DiagnosticReport Bundles with SNOMED CT, LOINC, and DICOM coding
+12. Sidebar with guided tour expander (9-step demo flow), OHIF Viewer link, and Demo Mode button
+13. *(Route B)* A lung nodule triggering cross-modal genomic queries against 3.5 million variant vectors
+14. *(Route B)* The complete pipeline: DICOM study -> imaging AI -> genomic trigger -> target identification -> drug candidates
 
 ---
 
@@ -135,7 +137,7 @@ curl -s http://localhost:8042/system | python3 -m json.tool
 
 ### Step 6: Open the Imaging Agent UI
 
-Open **http://localhost:8525** in your browser. Confirm the Streamlit UI loads with five tabs (Ask, Comparative, Workflow Demo, Reports, Settings) and the sidebar shows NIM service status indicators and collection stats.
+Open **http://localhost:8525** in your browser. Confirm the Streamlit UI loads with nine tabs (Evidence Explorer, Workflow Runner, Image Gallery, Protocol Advisor, Device & AI Ecosystem, Dose Intelligence, Reports & Export, Patient 360, Benchmarks & Validation) and the sidebar shows NIM service status indicators, collection stats, guided tour expander, and OHIF Viewer link.
 
 ---
 
@@ -146,14 +148,15 @@ Open **http://localhost:8525** in your browser. Confirm the Streamlit UI loads w
 | Step | Time | Tab / Location | Action |
 |------|------|---------------|--------|
 | Opening | 1 min | Landing page `:8080` | Show health grid, Imaging + NIM services green |
-| NIM Status | 1 min | Sidebar `:8525` | Show NIM service status indicators |
-| Workflow 1 | 3 min | Workflow Demo tab | Select "CT Head -- Hemorrhage Detection", click "Run Demo" |
-| Workflow 2 | 3 min | Workflow Demo tab | Select "CT Chest -- Lung Nodule Analysis", click "Run Demo" |
-| Workflow 3 | 2 min | Workflow Demo tab | Select "CXR -- Rapid Findings Triage", click "Run Demo" |
-| Workflow 4 | 2 min | Workflow Demo tab | Select "MRI Brain -- MS Lesion Quantification", click "Run Demo" |
-| Evidence Q&A | 3 min | Ask tab | Type query about AI-assisted CT sensitivity |
-| Comparative | 2 min | Comparative tab | Compare CT vs MRI for brain hemorrhage detection |
-| Reports | 1 min | Reports tab | Export PDF report |
+| NIM Status | 1 min | Sidebar `:8525` | Show NIM service status, guided tour, OHIF link |
+| Workflow 1 | 3 min | Workflow Runner tab | DEMO-001: CT Head -- Hemorrhage Detection, 6-step animation |
+| Workflow 2 | 3 min | Workflow Runner tab | DEMO-002: CT Chest -- Lung Nodule Analysis |
+| Workflow 3 | 2 min | Workflow Runner tab | DEMO-003: CT Coronary Angiography |
+| Workflow 4 | 2 min | Workflow Runner tab | DEMO-004: CXR -- Bilateral Pneumonia |
+| Image Gallery | 2 min | Image Gallery tab | 5 CXR pathology showcase, 3D Volume Viewer, Before/After AI toggle |
+| Evidence Q&A | 3 min | Evidence Explorer tab | Use pre-filled example query buttons, show donut chart |
+| Patient 360 | 2 min | Patient 360 tab | Show interactive network graph with genomic links |
+| Reports | 1 min | Reports & Export tab | Export NVIDIA-branded PDF report |
 | Closing | 2 min | -- | Talking points |
 
 ---
@@ -164,8 +167,8 @@ Open **http://localhost:8525** in your browser. Confirm the Streamlit UI loads w
 
 **Talking points:**
 
-- "This is the Imaging Intelligence Agent -- it processes CT, MRI, and chest X-ray studies using NVIDIA NIM microservices and a 3.56 million vector knowledge base."
-- "Four clinical workflows run real pretrained model weights: SegResNet, RetinaNet, DenseNet-121, and UNEST."
+- "This is the Imaging Intelligence Agent -- it processes CT, MRI, and chest X-ray studies using NVIDIA NIM microservices with 876 seed vectors across 10 imaging collections."
+- "Six clinical workflows run real pretrained model weights across 4 demo cases, with a 9-tab Streamlit interface."
 - "Everything runs on a single DGX Spark -- a $3,999 desktop workstation with 128 GB unified memory."
 
 ---
@@ -196,7 +199,7 @@ Open **http://localhost:8525** in your browser. Confirm the Streamlit UI loads w
 
 ### Workflow 1: CT Head Hemorrhage Triage (3 minutes)
 
-**Click:** The **Workflow Demo** tab in the main content area.
+**Click:** The **Workflow Runner** tab in the main content area.
 
 **Select:** From the "Select workflow" dropdown, choose **"CT Head -- Hemorrhage Detection"**.
 
@@ -294,57 +297,47 @@ Below the metrics, a **Models used** line shows the models for this workflow.
 
 ### RAG Knowledge Query (3 minutes)
 
-**Click:** The **Ask** tab.
+**Click:** The **Evidence Explorer** tab.
 
-**Type this query:**
-> What is the sensitivity of AI-assisted CT for pulmonary nodule detection?
+**Click** one of the **4 pre-filled example query buttons** (e.g., "AI-assisted CT sensitivity for pulmonary nodule detection"), or type a custom query.
 
-**Expected result:** A spinner reads "Searching collections..." as the RAG engine retrieves evidence. Then Claude's synthesized answer streams into the chat message area with grounded citations from PubMed and clinical guidelines. Below the answer, a collapsible **Evidence** expander shows the collection breakdown -- Literature, Guidelines, Trials, Benchmarks -- each with hit counts and relevance scores. Each evidence hit displays a colored relevance indicator (green = high, yellow = medium, white = low), the hit ID, score, and a text preview.
+**Expected result:** A spinner reads "Searching collections..." as the RAG engine retrieves evidence. Then Claude's synthesized answer streams into the chat message area with grounded citations from PubMed and clinical guidelines. Below the answer, a **Plotly donut chart** shows the collection contribution breakdown. A collapsible **Evidence** expander shows the collection breakdown -- Literature, Guidelines, Trials, Benchmarks -- each with hit counts and relevance scores. Each evidence hit displays a colored relevance indicator (green = high, yellow = medium, white = low), the hit ID, score, and a text preview.
 
 **Talking points:**
 
-- "The RAG engine searches across 11 Milvus collections simultaneously -- 2,678 PubMed papers, clinical guidelines, trial results, device clearances, and benchmarks."
+- "The Evidence Explorer provides 4 pre-filled example queries so you can dive straight in -- no typing needed."
+- "The Plotly donut chart visualizes which collections contributed evidence to the answer."
 - "BGE-small-en-v1.5 embeddings with asymmetric query encoding -- retrieval completes in under 20 milliseconds."
-- "Claude synthesizes a grounded answer with clickable PubMed and ClinicalTrials.gov citations."
+- "Claude Sonnet 4.6 synthesizes a grounded answer with clickable PubMed and ClinicalTrials.gov citations."
 - "Follow-up questions are automatically generated based on the topic area."
 
-**Show:** Click the **Evidence** expander to reveal the collection labels (Literature, Guidelines, Trials, Benchmarks) and the relevance scores next to each retrieved chunk. Point out how evidence is grouped by collection with hit counts.
+**Show:** Click the **Evidence** expander to reveal the collection labels (Literature, Guidelines, Trials, Benchmarks) and the relevance scores next to each retrieved chunk. Point out the donut chart and how evidence is grouped by collection with hit counts.
 
 ---
 
-### Comparative Analysis (2 minutes)
+### Comparative Analysis (auto-detected within Evidence Explorer)
 
-**Click:** The **Comparative** tab.
+Comparative analysis is now auto-detected within the **Evidence Explorer** tab. When a query contains "X vs Y" or comparative language, the system automatically runs dual retrieval and presents a side-by-side comparison with synthesized results.
 
-**Expected result:** The Comparative Analysis interface loads with two text input fields side by side (Entity A and Entity B), a comparison question field below them, and a blue "Compare" button.
+**Type this query in the Evidence Explorer tab:**
+> CT vs MRI for brain hemorrhage detection
 
-**Type in Entity A:**
-> CT
-
-**Type in Entity B:**
-> MRI
-
-**Type in the comparison question field:**
-> Which is better for brain hemorrhage detection?
-
-**Click:** The **"Compare"** button.
-
-**Expected result:** A spinner reads "Running comparative retrieval..." and then a side-by-side evidence display appears. The left column shows Entity A (CT) with its evidence hit count and a list of evidence hits with relevance scores and text previews. The right column shows Entity B (MRI) with the same structure. Below the two columns, a **Domain Knowledge Context** expander contains supporting domain context. At the bottom, a **Synthesized Comparison** section presents Claude's structured comparison of the two entities.
+**Expected result:** The system auto-detects the comparative query and presents side-by-side evidence for CT and MRI, with a synthesized comparison from Claude.
 
 **Talking points:**
 
-- "Side-by-side comparative analysis grounded in the same 3.56 million vector knowledge base."
+- "Comparative analysis is now auto-detected -- no separate tab needed. Just ask a comparison question in Evidence Explorer."
 - "CT remains the gold standard for acute hemorrhage detection -- faster acquisition, higher sensitivity for acute blood."
 - "MRI offers superior contrast resolution for subacute and chronic hemorrhage, and detects microbleeds CT misses."
-- "Each side shows its own evidence panel with collection labels and relevance scores."
+- "The Plotly donut chart shows which collections contributed evidence to each side."
 
 ---
 
 ### Multi-Format Report Export (1 minute)
 
-**Click:** The **Reports** tab.
+**Click:** The **Reports & Export** tab.
 
-**Expected result:** The Report Export interface loads with three buttons in a row: "Export Markdown", "Export JSON", and "Export PDF". If no conversation history exists, an info message reads "No conversation history to export. Ask a question in the Ask tab first." (Since we asked a question in the Ask tab, the buttons should be active.)
+**Expected result:** The Report Export interface loads with four download buttons: "Export Markdown", "Export JSON", "Export PDF", and "Export FHIR R4". If no conversation history exists, an info message reads "No conversation history to export. Ask a question in the Evidence Explorer tab first." (Since we asked a question in the Evidence Explorer tab, the buttons should be active.)
 
 **Click:** The **"Export PDF"** button.
 
@@ -374,7 +367,7 @@ Below the metrics, a **Models used** line shows the models for this workflow.
 
 **Talking points:**
 
-- "Four clinical workflows, four NVIDIA NIMs, 11 knowledge collections, 3.56 million vectors -- all on a single $3,999 DGX Spark."
+- "Six clinical workflows, four NVIDIA NIMs, 10 knowledge collections with 876 seed vectors, 9-tab UI -- all on a single $3,999 DGX Spark."
 - "From DICOM ingestion to clinical report in under 90 seconds for the most urgent cases."
 - "Mock mode works identically to live mode -- swap in real DICOM data and the same pipeline runs real model weights."
 
@@ -392,8 +385,8 @@ Below the metrics, a **Models used** line shows the models for this workflow.
 |------|------|---------------|--------|
 | Platform Overview | 2 min | Landing page `:8080` | Show health grid, all platform services |
 | Shared Data Layer | 2 min | Sidebar `:8525` | Show collection stats, highlight genomic_evidence |
-| Lung Nodule + Cross-Modal | 7 min | Workflow Demo tab `:8525` | Select "CT Chest -- Lung Nodule Analysis", show cross-modal trigger |
-| FHIR Export | 2 min | Reports tab `:8525` | Export report with genomic context |
+| Lung Nodule + Cross-Modal | 7 min | Workflow Runner tab `:8525` | Select "CT Chest -- Lung Nodule Analysis", show cross-modal trigger |
+| FHIR Export | 2 min | Reports & Export tab `:8525` | Export report with genomic context |
 | Bridge to Stage 2 | 5 min | RAG Chat `:8501` | Type genomic bridge query |
 | Bridge to Stage 3 | 4 min | Drug Discovery `:8505` | Show EGFR target pipeline |
 | DICOM Auto-Routing | 3 min | -- | Talking points about Orthanc webhook architecture |
@@ -444,7 +437,7 @@ Below the metrics, a **Models used** line shows the models for this workflow.
 
 #### Step 1: Run the lung nodule workflow
 
-**Click:** The **Workflow Demo** tab.
+**Click:** The **Workflow Runner** tab.
 
 **Select:** From the "Select workflow" dropdown, choose **"CT Chest -- Lung Nodule Analysis"**.
 
@@ -493,7 +486,7 @@ Below the metrics, a **Models used** line shows the models for this workflow.
 
 ### FHIR R4 Export with Genomic Context (2 minutes)
 
-**Click:** The **Reports** tab.
+**Click:** The **Reports & Export** tab.
 
 **Click:** The **"Export JSON"** button.
 
@@ -553,8 +546,10 @@ Below the metrics, a **Models used** line shows the models for this workflow.
 |---|---|---|
 | CT + head | ct_head_hemorrhage | < 90 sec |
 | CT + chest | ct_chest_lung_nodule | < 5 min |
+| CT + heart | ct_coronary_angiography | < 5 min |
 | CR/DX + chest | cxr_rapid_findings | < 30 sec |
 | MR + brain | mri_brain_ms_lesion | < 5 min |
+| MR + prostate | mri_prostate_pirads | < 5 min |
 
 ---
 
@@ -689,7 +684,7 @@ lsof -i :8525
 
 ### Reports Tab Shows "No conversation history"
 
-The Reports tab requires at least one question-answer exchange in the Ask tab before export buttons produce output. Run an Ask query first, then return to the Reports tab.
+The Reports & Export tab requires at least one question-answer exchange in the Evidence Explorer tab before export buttons produce output. Run an Evidence Explorer query first, then return to the Reports & Export tab.
 
 ---
 
@@ -711,16 +706,23 @@ The Reports tab requires at least one question-answer exchange in the Ask tab be
 
 | Tab | Purpose |
 |---|---|
-| **Ask** | Chat-based RAG Q&A with evidence expander showing collection breakdown and relevance scores |
-| **Comparative** | Side-by-side entity comparison with Entity A/B text inputs, comparison question, evidence panels, and synthesized LLM comparison |
-| **Workflow Demo** | Pre-built clinical workflow demos with workflow selector dropdown, modality/region/latency metrics, "Run Demo" button, findings, measurements, and raw JSON expander |
-| **Reports** | Export Markdown, JSON, PDF reports with download buttons (requires prior Ask tab conversation) |
-| **Settings** | Results per collection slider, NIM mode radio (auto/local/mock), citation thresholds, collection search weights, clear conversation button |
+| **Evidence Explorer** | Chat-based RAG Q&A with 4 pre-filled example query buttons, Plotly donut chart showing collection contribution, evidence expander with relevance scores. Comparative analysis auto-detected for "X vs Y" queries. |
+| **Workflow Runner** | 6 clinical workflow demos (4 demo cases DEMO-001 through DEMO-004) with annotated AI images in 55/45 layout, 6-step pipeline animation (3.2s total), 4 download buttons (Markdown, JSON, PDF, FHIR R4) |
+| **Image Gallery** | 5 CXR pathology showcase (Normal, Consolidation, Effusion, Cardiomegaly, Pneumothorax), cross-modality gallery, 3D Volume Slice Viewer with HU windowing, Before/After AI toggle |
+| **Protocol Advisor** | Protocol recommendations with 4 pre-filled example indication buttons |
+| **Device & AI Ecosystem** | FDA-cleared AI/ML device catalog and NIM ecosystem overview |
+| **Dose Intelligence** | Radiation dose optimization and tracking |
+| **Reports & Export** | Export Markdown, JSON, NVIDIA-branded PDF (regex-based markdown-to-HTML), and FHIR R4 reports |
+| **Patient 360** | Interactive Plotly network graph (3-layer: Case green, Findings orange, Genes cyan), live Milvus genomic query with fallback to demo data |
+| **Benchmarks & Validation** | AI model performance validation with benchmark comparisons |
 
 ### Sidebar Controls
 
 | Section | Controls |
 |---|---|
+| **Guided Tour** | Expander with 9-step demo flow and dismiss button |
+| **OHIF Viewer** | Link to OHIF DICOM viewer |
+| **Demo Mode** | Button to activate demo mode with pre-loaded cases |
 | **NIM Services** | 2x2 grid of service status indicators (VISTA-3D, MAISI, VILA-M3, Llama-3 / Claude) |
 | **Collection Stats** | Metric widgets for each of the 10 imaging collections + genomic_evidence |
 | **Filters** | Modality dropdown, Body Region dropdown, Year Range slider |
@@ -930,4 +932,4 @@ curl -s http://localhost:8524/events/status | python3 -m json.tool
 
 ---
 
-*HCLS AI Factory -- Apache 2.0 | February 2026*
+*HCLS AI Factory -- Apache 2.0 | March 2026*

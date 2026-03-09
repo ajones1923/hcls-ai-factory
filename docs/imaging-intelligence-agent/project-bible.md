@@ -1,8 +1,8 @@
 # Imaging Intelligence Agent -- Project Bible
 
 **Author:** Adam Jones
-**Date:** February 2026
-**Version:** 1.1.0
+**Date:** March 2026
+**Version:** 1.2.0
 **License:** Apache 2.0
 
 ---
@@ -44,7 +44,7 @@ All clients inherit from `BaseNIMClient` (ABC):
 
 ### 2.3 Workflow Engine (`src/workflows/`)
 
-Four reference clinical workflows following `BaseImagingWorkflow` ABC:
+Six reference clinical workflows following `BaseImagingWorkflow` ABC:
 - Pipeline pattern: `preprocess -> infer -> postprocess`
 - Full mock mode with clinically realistic synthetic results
 - Registered in `WORKFLOW_REGISTRY` for dynamic dispatch
@@ -108,14 +108,19 @@ Core endpoints on root: `/health`, `/collections`, `/query`, `/search`, `/find-r
 
 ### 2.10 UI Layer (`app/imaging_ui.py`)
 
-Streamlit chat interface on port 8525:
-- NVIDIA-themed styling
-- Multi-turn conversation with context memory
-- Evidence panel with collection badges and relevance scores
-- Comparative analysis auto-detection
-- Workflow runner sidebar
-- NIM service status indicators
-- Report export (PDF download)
+Streamlit 9-tab interface on port 8525 with NVIDIA dark/green styling:
+
+1. **Evidence Explorer** -- Chat-based RAG Q&A with 4 pre-filled example query buttons, Plotly donut chart showing collection contribution, comparative analysis auto-detection
+2. **Workflow Runner** -- 6 clinical workflows with annotated AI images in 55/45 layout, 6-step pipeline animation (3.2s total), 4 download buttons (Markdown, JSON, PDF, FHIR R4)
+3. **Image Gallery** -- 5 CXR pathology showcase (Normal, Consolidation, Effusion, Cardiomegaly, Pneumothorax), cross-modality gallery, 3D Volume Slice Viewer with HU windowing, Before/After AI toggle
+4. **Protocol Advisor** -- Protocol recommendations with 4 pre-filled example indication buttons
+5. **Device & AI Ecosystem** -- FDA-cleared AI/ML device catalog and NIM ecosystem overview
+6. **Dose Intelligence** -- Radiation dose optimization and tracking
+7. **Reports & Export** -- NVIDIA-branded PDF with regex-based markdown-to-HTML conversion, plus Markdown, JSON, and FHIR R4 export
+8. **Patient 360** -- Interactive Plotly network graph (3-layer: Case green, Findings orange, Genes cyan), live Milvus genomic query with fallback to demo data
+9. **Benchmarks & Validation** -- AI model performance validation tab
+
+Sidebar: Guided tour expander (9-step demo flow with dismiss button), OHIF Viewer link, Demo Mode button, NIM service status indicators, collection statistics, search filters. 9 AI-annotated medical images: 5 CXR (1024x1024) + 3 CT (512x512) + 1 bilateral pneumonia CXR.
 
 ---
 
@@ -244,6 +249,22 @@ Configurable in `config/settings.py` (must sum to ~1.0):
 | Longitudinal | Lesion matching, new/enlarged/resolved classification |
 | Metrics | Total lesion volume, lesion count, lesion change rate |
 
+### 5.5 CT Coronary Angiography
+
+| Attribute | Value |
+|---|---|
+| Target latency | < 5 minutes |
+| Capability | Calcium scoring, stenosis grading, coronary artery analysis |
+| Classification | Agatston score categories, stenosis severity grading |
+
+### 5.6 MRI Prostate PI-RADS
+
+| Attribute | Value |
+|---|---|
+| Target latency | < 5 minutes |
+| Capability | Prostate lesion detection and PI-RADS v2.1 classification |
+| Classification | PI-RADS 1-5 scoring |
+
 ---
 
 ## 6. API Endpoints Catalog
@@ -301,15 +322,29 @@ Configurable in `config/settings.py` (must sum to ~1.0):
 
 ## 7. UI Features
 
-### Streamlit Chat Interface (port 8525)
+### Streamlit 9-Tab Interface (port 8525)
 
-- **Chat panel:** Multi-turn conversation with streaming responses
-- **Evidence panel:** Expandable results grouped by collection with relevance badges
-- **Comparative mode:** Auto-detected for "X vs Y" queries, dual-panel evidence display
-- **Workflow runner:** Sidebar widget to execute reference workflows in mock or live mode
-- **NIM status:** Real-time service availability indicators
-- **Report export:** Generate and download PDF reports from any query
-- **NVIDIA theme:** Dark/green NVIDIA-branded styling
+| Tab | Key Features |
+|---|---|
+| **Evidence Explorer** | 4 pre-filled example query buttons, Plotly donut chart (collection contribution), multi-turn conversation with context memory, evidence expander with relevance badges, comparative analysis auto-detected for "X vs Y" queries |
+| **Workflow Runner** | 6 workflows across 4 demo cases (DEMO-001 through DEMO-004), annotated AI images displayed alongside clinical metrics (55/45 layout), 6-step pipeline animation (3.2s total), 4 download buttons (Markdown, JSON, PDF, FHIR R4) |
+| **Image Gallery** | 5 CXR pathology showcase (Normal, Consolidation, Effusion, Cardiomegaly, Pneumothorax), cross-modality gallery, 3D Volume Slice Viewer with HU windowing, Before/After AI toggle |
+| **Protocol Advisor** | 4 pre-filled example indication buttons, protocol recommendations with acquisition parameters |
+| **Device & AI Ecosystem** | FDA-cleared AI/ML medical device catalog, NIM ecosystem overview |
+| **Dose Intelligence** | Radiation dose optimization and tracking |
+| **Reports & Export** | NVIDIA-branded PDF with regex-based markdown-to-HTML conversion, Markdown, JSON, and FHIR R4 DiagnosticReport export |
+| **Patient 360** | Interactive Plotly network graph (3-layer: Case green, Findings orange, Genes cyan), live Milvus genomic query with fallback to demo data |
+| **Benchmarks & Validation** | AI model performance validation with benchmark comparisons |
+
+### Sidebar
+
+- **Guided Tour:** Expander with 9-step demo flow and dismiss button
+- **OHIF Viewer:** Link to OHIF DICOM viewer
+- **Demo Mode:** Button to activate demo mode with pre-loaded cases
+- **NIM Status:** Real-time service availability indicators (2x2 grid)
+- **Collection Stats:** Metric widgets for each collection
+- **Filters:** Modality, Body Region dropdowns, Year Range slider
+- **NVIDIA Theme:** Dark/green branded styling
 
 ---
 
@@ -374,11 +409,12 @@ All configuration via Pydantic `BaseSettings` in `config/settings.py`. Environme
 
 | Metric | Count |
 |---|---|
-| Total vectors | 3,563,984 |
-| PubMed papers | 2,678 |
-| Clinical trials | 12 |
-| Seed reference records | 124 |
-| Genomic evidence vectors | 3,561,170 |
+| Seed imaging vectors | 876 (across 10 owned collections) |
+| Genomic evidence vectors | 3,561,170 (read-only) |
+| Reference workflows | 6 |
+| Demo cases | 4 (DEMO-001 through DEMO-004) |
+| Streamlit tabs | 9 |
+| AI-annotated images | 9 (5 CXR + 3 CT + 1 bilateral pneumonia) |
 | Unit tests | 539 |
 | E2E validation checks | 9/9 |
 | Docker services (full) | 13 |
@@ -388,7 +424,7 @@ All configuration via Pydantic `BaseSettings` in `config/settings.py`. Environme
 
 ## 11. Phase 2 Roadmap
 
-### Implemented (Phase 1.1)
+### Implemented (Phase 1.2)
 
 | Feature | Description | Status |
 |---|---|---|

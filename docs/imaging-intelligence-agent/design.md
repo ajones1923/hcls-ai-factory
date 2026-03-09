@@ -1,22 +1,24 @@
 # Imaging Intelligence Agent -- Architecture Design Document
 
 **Author:** Adam Jones
-**Date:** February 2026
-**Version:** 1.1.0
+**Date:** March 2026
+**Version:** 1.2.0
 **License:** Apache 2.0
 
 ---
 
 ## 1. Executive Summary
 
-The Imaging Intelligence Agent extends the HCLS AI Factory platform to support automated detection, segmentation, longitudinal tracking, and clinical triage of medical imaging studies. The agent processes CT, MRI, and chest X-ray studies on DGX Spark hardware using a multi-collection RAG engine backed by Milvus 2.4, four NVIDIA NIM microservices, and four reference clinical workflows -- from DICOM ingestion through agentic inference to structured clinical output.
+The Imaging Intelligence Agent extends the HCLS AI Factory platform to support automated detection, segmentation, longitudinal tracking, and clinical triage of medical imaging studies. The agent processes CT, MRI, and chest X-ray studies on DGX Spark hardware using a multi-collection RAG engine backed by Milvus 2.4, four NVIDIA NIM microservices, and six reference clinical workflows -- from DICOM ingestion through agentic inference to structured clinical output.
 
-Four reference workflows cover the highest-impact radiology use cases:
+Six reference workflows cover the highest-impact radiology use cases:
 
 1. **CT Head Hemorrhage Triage** -- SegResNet segmentation, volume estimation, midline shift, urgency routing
 2. **CT Chest Lung Nodule Tracking** -- RetinaNet detection + SegResNet segmentation, volume doubling time, Lung-RADS
-3. **CXR Rapid Findings** -- DenseNet-121 multi-label classification (CheXpert pretrained weights)
-4. **MRI Brain MS Lesion Tracking** -- UNEST segmentation, longitudinal lesion matching
+3. **CT Coronary Angiography** -- Calcium scoring, stenosis grading, coronary artery analysis
+4. **CXR Rapid Findings** -- DenseNet-121 multi-label classification (CheXpert pretrained weights)
+5. **MRI Brain MS Lesion Tracking** -- UNEST segmentation, longitudinal lesion matching
+6. **MRI Prostate PI-RADS** -- Prostate lesion detection and PI-RADS classification
 
 Cross-modal triggers link imaging to genomics: Lung-RADS 4A+ findings automatically query the shared genomic_evidence collection (3.5M vectors from Stage 2) for relevant genetic variants (EGFR, ALK, ROS1, KRAS).
 
@@ -24,11 +26,13 @@ Cross-modal triggers link imaging to genomics: Lung-RADS 4A+ findings automatica
 
 | Metric | Value |
 |---|---|
-| Reference workflows | **4** (CT head, CT chest, CXR, MRI brain) |
+| Reference workflows | **6** (CT head, CT chest, CT coronary, CXR, MRI brain, MRI prostate) |
+| Demo cases | **4** (DEMO-001 through DEMO-004) |
 | Milvus collections | **11** (10 imaging + 1 read-only genomic_evidence) |
-| Total vectors | **3,563,984** (2,814 imaging + 3,561,170 genomic) |
+| Seed imaging vectors | **876** across 10 owned collections |
 | Embedding model | **BAAI/bge-small-en-v1.5** (384-dim, IVF_FLAT, COSINE) |
-| LLM | **Claude API** primary, **Llama-3 8B NIM** fallback |
+| LLM | **Claude Sonnet 4.6** (Anthropic) primary, **Llama-3 NIM** fallback |
+| Streamlit tabs | **9** |
 | Docker Compose services | **13** full mode, **6** lite mode |
 | Unit tests | **539**, E2E checks **9/9** |
 | Output formats | **4** (Markdown, JSON, PDF, FHIR R4 DiagnosticReport) |
@@ -72,7 +76,7 @@ Cross-modal triggers link imaging to genomics: Lung-RADS 4A+ findings automatica
 |                  Llama-3 8B (8520) -- all via BaseNIMClient ABC         |
 |                                                                          |
 |                  Workflow Engine (src/workflows/)                        |
-|                  CTHead | CTChest | CXR | MRIBrain                      |
+|                  CTHead | CTChest | CTCoronary | CXR | MRIBrain | MRIProstate |
 |                  All via BaseImagingWorkflow: preprocess->infer->post    |
 +=========================================================================+
                     |                            |
@@ -142,7 +146,7 @@ POST /workflow/{name}/run
 | `imaging_datasets` | 12 | Public imaging datasets (TCIA, PhysioNet) |
 | `genomic_evidence` | 3,561,170 | *(read-only)* Shared from Stage 2 RAG pipeline |
 
-**Total: 3,563,984 vectors across 11 collections.**
+**Total: 876 seed imaging vectors across 10 owned collections + 3,561,170 genomic evidence vectors (read-only).**
 
 ### 4.3 Search Strategy
 
@@ -188,8 +192,10 @@ The `NIMServiceManager` coordinates all four clients and exposes `check_all_serv
 |---|---|---|---|
 | CT Head Hemorrhage Triage | CT | < 90 sec | SegResNet (MONAI wholeBody_ct_segmentation) |
 | CT Chest Lung Nodule Tracking | CT | < 5 min | RetinaNet + SegResNet (MONAI lung_nodule_ct_detection) |
+| CT Coronary Angiography | CT | < 5 min | Calcium scoring + stenosis grading |
 | CXR Rapid Findings | X-ray | < 30 sec | DenseNet-121 (torchxrayvision CheXpert) |
 | MRI Brain MS Lesion Tracking | MRI | < 5 min | UNEST (MONAI wholeBrainSeg_Large_UNEST_segmentation) |
+| MRI Prostate PI-RADS | MRI | < 5 min | Prostate lesion detection + PI-RADS classification |
 
 ### 6.2 BaseImagingWorkflow (ABC)
 
@@ -197,10 +203,12 @@ All workflows implement `preprocess() -> infer() -> postprocess() -> WorkflowRes
 
 ```python
 WORKFLOW_REGISTRY = {
-    "ct_head_hemorrhage":   CTHeadHemorrhageWorkflow,
-    "ct_chest_lung_nodule": CTChestLungNoduleWorkflow,
-    "cxr_rapid_findings":   CXRRapidFindingsWorkflow,
-    "mri_brain_ms_lesion":  MRIBrainMSLesionWorkflow,
+    "ct_head_hemorrhage":      CTHeadHemorrhageWorkflow,
+    "ct_chest_lung_nodule":    CTChestLungNoduleWorkflow,
+    "ct_coronary_angiography": CTCoronaryAngiographyWorkflow,
+    "cxr_rapid_findings":      CXRRapidFindingsWorkflow,
+    "mri_brain_ms_lesion":     MRIBrainMSLesionWorkflow,
+    "mri_prostate_pirads":     MRIProstatePIRADSWorkflow,
 }
 ```
 
@@ -255,7 +263,19 @@ Core endpoints: `/health`, `/collections`, `/query`, `/search`, `/find-related`,
 
 ### 8.2 Streamlit UI (port 8525)
 
-Chat interface with multi-turn memory, evidence panel grouped by collection, comparative analysis auto-detection, workflow runner sidebar, NIM status indicators, report export (PDF), collection statistics, and NVIDIA dark/green styling.
+Nine-tab interface with NVIDIA dark/green styling:
+
+1. **Evidence Explorer** -- Chat-based RAG Q&A with 4 pre-filled example query buttons, Plotly donut chart showing collection contribution, comparative analysis auto-detection
+2. **Workflow Runner** -- 6 clinical workflows with annotated AI images in 55/45 layout, 6-step pipeline animation (3.2s total), 4 download buttons (Markdown, JSON, PDF, FHIR R4)
+3. **Image Gallery** -- 5 CXR pathology showcase (Normal, Consolidation, Effusion, Cardiomegaly, Pneumothorax), cross-modality gallery, 3D Volume Slice Viewer with HU windowing, Before/After AI toggle
+4. **Protocol Advisor** -- Protocol recommendations with 4 pre-filled example indication buttons
+5. **Device & AI Ecosystem** -- FDA-cleared AI/ML device catalog and NIM ecosystem overview
+6. **Dose Intelligence** -- Radiation dose optimization and tracking
+7. **Reports & Export** -- NVIDIA-branded PDF with regex-based markdown-to-HTML conversion, plus Markdown, JSON, and FHIR R4 export
+8. **Patient 360** -- Interactive Plotly network graph (3-layer: Case green, Findings orange, Genes cyan), live Milvus genomic query with fallback to demo data
+9. **Benchmarks & Validation** -- AI model performance validation tab
+
+Sidebar includes guided tour expander (9-step demo flow with dismiss button), OHIF Viewer link, Demo Mode button, NIM service status indicators, collection statistics, and search filters. 9 AI-annotated medical images: 5 CXR (1024x1024) + 3 CT (512x512) + 1 bilateral pneumonia CXR.
 
 ---
 
@@ -372,7 +392,7 @@ agent/
 |   +-- rag_engine.py                   # Multi-collection RAG engine
 |   +-- scheduler.py                    # APScheduler periodic ingest
 |   +-- nim/{base,vista3d_client,maisi_client,vilam3_client,llm_client,service_manager}.py
-|   +-- workflows/{base,ct_head_hemorrhage,ct_chest_lung_nodule,cxr_rapid_findings,mri_brain_ms_lesion}.py
+|   +-- workflows/{base,ct_head_hemorrhage,ct_chest_lung_nodule,ct_coronary_angiography,cxr_rapid_findings,mri_brain_ms_lesion,mri_prostate_pirads}.py
 |   +-- ingest/{base,literature_parser,clinical_trials_parser,finding_parser,...,dicom_watcher}.py
 +-- tests/                              # 539 unit tests
 +-- scripts/                            # Setup, seeding, validation
@@ -389,7 +409,7 @@ agent/
 
 | Phase | Hardware | Price | Scope |
 |---|---|---|---|
-| **1 -- Proof Build** | DGX Spark | $3,999 | All 4 workflows, mock/cloud NIM fallback |
+| **1 -- Proof Build** | DGX Spark | $3,999 | All 6 workflows, mock/cloud NIM fallback |
 | **2 -- Departmental** | 1-2x DGX B200 | $500K-$1M | Full NIM stack, PACS integration |
 | **3 -- Multi-Site** | 4-8x DGX B200 | $2M-$4M | NVIDIA FLARE federated learning |
 | **4 -- AI Factory** | DGX SuperPOD | $7M-$60M+ | Thousands of concurrent studies |
