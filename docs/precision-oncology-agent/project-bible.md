@@ -56,7 +56,7 @@ The Precision Oncology Agent is a closed-loop clinical decision support system t
 
 | Metric | Value |
 |---|---|
-| Total vectors indexed | **~1,490** across 10 owned collections + **3.5M** genomic (read-only) |
+| Total vectors indexed | **609** seed vectors across 10 owned collections + **3.5M** genomic (read-only) |
 | Multi-collection search latency | **< 200 ms** (11 collections, top-5 each) |
 | Comparative dual retrieval | **~400 ms** (2 x 11 collections, entity-filtered) |
 | Full RAG query (search + Claude) | **~24 sec** end-to-end |
@@ -202,7 +202,7 @@ docker compose logs -f onco-setup
 
 # 4. Verify
 curl http://localhost:8527/health
-# -> {"status": "healthy", "collections": {...}, "total_vectors": 1490}
+# -> {"status": "healthy", "collections": {...}, "total_vectors": 609}
 ```
 
 ### Dockerfile (Multi-Stage)
@@ -227,16 +227,16 @@ curl http://localhost:8527/health
 
 | Collection | Records | Primary Fields | Source |
 |---|---|---|---|
-| `onco_variants` | ~300 | gene, variant_name, variant_type, evidence_level, drugs | CIViC, OncoKB |
-| `onco_literature` | ~500 | PMID, title, text_chunk, year, cancer_type, gene | PubMed E-utilities |
-| `onco_therapies` | ~120 | drug_name, category, targets, approved_indications, MoA | FDA-approved therapies |
-| `onco_guidelines` | ~100 | org, cancer_type, version, year, key_recommendations | NCCN, ASCO, ESMO |
-| `onco_trials` | ~200 | NCT ID, title, phase, status, biomarker_criteria | ClinicalTrials.gov API v2 |
-| `onco_biomarkers` | ~80 | name, biomarker_type, testing_method, clinical_cutoff | TMB, MSI-H, PD-L1, HRD |
-| `onco_resistance` | ~80 | primary_therapy, gene, mechanism, bypass_pathway | Resistance mechanisms |
-| `onco_pathways` | ~50 | name, key_genes, therapeutic_targets, cross_talk | Signaling pathways |
-| `onco_outcomes` | ~50 | therapy, cancer_type, response, duration_months | Treatment outcomes |
-| `onco_cases` | ~10 | patient_id, cancer_type, stage, variants, biomarkers | Case snapshots |
+| `onco_variants` | 130 | gene, variant_name, variant_type, evidence_level, drugs | CIViC, OncoKB |
+| `onco_literature` | 60 | PMID, title, text_chunk, year, cancer_type, gene | PubMed E-utilities |
+| `onco_therapies` | 94 | drug_name, category, targets, approved_indications, MoA | FDA-approved therapies |
+| `onco_guidelines` | 45 | org, cancer_type, version, year, key_recommendations | NCCN, ASCO, ESMO |
+| `onco_trials` | 55 | NCT ID, title, phase, status, biomarker_criteria | ClinicalTrials.gov API v2 |
+| `onco_biomarkers` | 50 | name, biomarker_type, testing_method, clinical_cutoff | TMB, MSI-H, PD-L1, HRD |
+| `onco_resistance` | 50 | primary_therapy, gene, mechanism, bypass_pathway | Resistance mechanisms |
+| `onco_pathways` | 45 | name, key_genes, therapeutic_targets, cross_talk | Signaling pathways |
+| `onco_outcomes` | 40 | therapy, cancer_type, response, duration_months | Treatment outcomes |
+| `onco_cases` | 40 | patient_id, cancer_type, stage, variants, biomarkers | Case snapshots |
 | `genomic_evidence` | 3,561,170 | chrom, pos, gene, consequence, clinical_significance | Shared (read-only) |
 
 ### Collection Field Schemas
@@ -1144,7 +1144,7 @@ class BaseIngestPipeline(ABC):
 | PubMed | NCBI E-utilities (esearch + efetch) | ~500 | ~15 min | onco_literature |
 | ClinicalTrials.gov | REST API v2 | ~200 | ~3 min | onco_trials |
 | CIViC Variants | CIViC database API | ~300 | ~2 min | onco_variants |
-| Seed Data | setup_collections.py --seed | ~290 | ~30 sec | therapies, guidelines, biomarkers, resistance, pathways, outcomes, cases |
+| Seed Data | setup_collections.py --seed | ~526 | ~30 sec | therapies, guidelines, biomarkers, resistance, pathways, outcomes, cases |
 
 ### CIViC Variant Ingest
 
@@ -1176,7 +1176,7 @@ Fetches oncology trials via ClinicalTrials.gov API v2, extracts biomarker criter
 python3 scripts/setup_collections.py --seed
 ```
 
-Seeds: `onco_therapies` (~120), `onco_guidelines` (~100), `onco_biomarkers` (~80), `onco_resistance` (~80), `onco_pathways` (~50), `onco_outcomes` (~50), `onco_cases` (~10).
+Seeds: `onco_therapies` (94), `onco_guidelines` (45), `onco_biomarkers` (50), `onco_resistance` (50), `onco_pathways` (45), `onco_outcomes` (40), `onco_cases` (40), plus `onco_variants` (130), `onco_literature` (60), `onco_trials` (55). Total: 609 vectors (526 seed + 83 knowledge graph).
 
 ---
 
