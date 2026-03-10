@@ -47,7 +47,7 @@ The Precision Autoimmune Intelligence Agent transforms fragmented autoimmune cli
 
 - **Autoantibody panels** (24 autoantibodies mapped to 13+ diseases with sensitivity/specificity)
 - **HLA typing** (22 alleles with disease odds ratios and PubMed references)
-- **Disease activity scoring** (18 validated scoring systems across 10 diseases)
+- **Disease activity scoring** (20 validated scoring systems across 13 diseases)
 - **Flare prediction** (13 disease-specific biomarker patterns)
 - **Biologic therapy selection** (22 therapies with pharmacogenomic considerations)
 - **Diagnostic odyssey analysis** (timeline reconstruction, overlap syndrome detection, classification criteria evaluation)
@@ -63,7 +63,7 @@ The Precision Autoimmune Intelligence Agent transforms fragmented autoimmune cli
 | Biologic therapies | 22 with PGx considerations |
 | Autoantibodies mapped | 24 to disease associations |
 | HLA alleles | 22 with disease odds ratios |
-| Disease activity scores | 18 scoring systems |
+| Disease activity scores | 20 scoring systems |
 | Flare patterns | 13 disease-specific |
 | Classification criteria | 10 ACR/EULAR sets |
 | Overlap syndromes | 9 cross-disease patterns |
@@ -79,7 +79,7 @@ Patient Data (Autoantibodies + HLA + Biomarkers + Clinical PDFs)
     |
     ├──> AutoantibodyInterpreter (24 antibodies -> disease associations)
     ├──> HLAAssociationAnalyzer (22 alleles -> odds ratios)
-    ├──> DiseaseActivityScorer (18 scoring systems)
+    ├──> DiseaseActivityScorer (20 scoring systems)
     ├──> FlarePredictor (13 disease patterns)
     ├──> BiologicTherapyAdvisor (22 therapies + PGx)
     └──> DiagnosticOdysseyAnalyzer (criteria + overlap + differential)
@@ -157,15 +157,15 @@ precision_autoimmune_agent/
 │   ├── cache/                       # Embedding cache
 │   └── events/                      # Cross-agent event store
 ├── demo_data/
-│   ├── sarah_mitchell/              # SLE patient (28F) -- 27+ clinical PDFs
-│   ├── linda_chen/                  # MCTD patient -- clinical PDFs
-│   ├── maya_rodriguez/              # IBD patient -- clinical PDFs
-│   ├── david_park/                  # AS patient -- clinical PDFs
-│   ├── rachel_thompson/             # RA patient (52F) -- clinical PDFs
-│   ├── emma_williams/               # MG patient -- clinical PDFs
+│   ├── sarah_mitchell/              # SLE patient (34F) -- 27+ clinical PDFs
+│   ├── maya_rodriguez/              # POTS/hEDS/MCAS patient (28F) -- clinical PDFs
+│   ├── linda_chen/                  # Sjogren's patient (45F) -- clinical PDFs
+│   ├── david_park/                  # AS patient (45M) -- clinical PDFs
+│   ├── rachel_thompson/             # MCTD patient (38F) -- clinical PDFs
+│   ├── emma_williams/               # MS (RRMS) patient (34F) -- clinical PDFs
 │   ├── james_cooper/                # T1D + Celiac (19M) -- clinical PDFs
-│   ├── karen_foster/                # Sjogren's patient -- clinical PDFs
-│   └── michael_torres/              # Psoriasis patient -- clinical PDFs
+│   ├── karen_foster/                # SSc (dcSSc) patient (48F) -- clinical PDFs
+│   └── michael_torres/              # Graves' Disease patient (41M) -- clinical PDFs
 ├── scripts/
 │   ├── setup_collections.py         # Create and seed Milvus collections
 │   ├── generate_demo_patients.py    # Generate demo patient PDF records
@@ -707,7 +707,7 @@ def calculate_disease_activity(
 ) -> List[DiseaseActivityScore]:
 ```
 
-### 18 Scoring Systems
+### 20 Scoring Systems
 
 Defined in `DISEASE_ACTIVITY_THRESHOLDS` knowledge base. Each scoring system includes:
 - Disease applicability
@@ -1117,17 +1117,17 @@ Services (collection manager, embedder, LLM client, RAG engine, agent, diagnosti
 
 ### 9 Patients
 
-| # | Name | Disease | Key Antibodies | Key HLA | Key Biomarkers |
-|---|---|---|---|---|---|
-| 1 | Sarah Mitchell | SLE | ANA 1:640 homogeneous, anti-dsDNA, anti-Smith, anti-SSA/Ro | -- | CRP, C3/C4 low, proteinuria |
-| 2 | Linda Chen | MCTD | anti-RNP, ANA | -- | CRP, CK |
-| 3 | Maya Rodriguez | IBD | -- | -- | Calprotectin, CRP, albumin |
-| 4 | David Park | AS | -- | HLA-B*27 | CRP, ESR |
-| 5 | Rachel Thompson | RA | RF, anti-CCP | HLA-DRB1*04:01 | CRP, ESR |
-| 6 | Emma Williams | MG | AChR antibody | HLA-B*08:01 | FVC |
-| 7 | James Cooper | T1D + Celiac | GAD65, IA-2, anti-tTG IgA | HLA-DQ2, HLA-DQ8 | HbA1c, C-peptide, ferritin |
-| 8 | Karen Foster | Sjogren's | anti-SSA/Ro, anti-SSB/La, RF | -- | ESR, IgG, complement C4 |
-| 9 | Michael Torres | Psoriasis | -- | HLA-C*06:02 | CRP, IL-17 |
+| # | Name | Age/Sex | Disease | Key Antibodies | Key HLA | Key Biomarkers |
+|---|---|---|---|---|---|---|
+| 1 | Sarah Mitchell | 34F | SLE | ANA 1:640 homogeneous, anti-dsDNA, anti-Smith, anti-SSA/Ro | -- | CRP, C3/C4 low, proteinuria |
+| 2 | Maya Rodriguez | 28F | POTS/hEDS/MCAS | -- | -- | Tryptase, catecholamines |
+| 3 | Linda Chen | 45F | Sjogren's | anti-SSA/Ro, anti-SSB/La, RF | -- | ESR, IgG, complement C4 |
+| 4 | David Park | 45M | AS | -- | HLA-B*27 | CRP, ESR |
+| 5 | Rachel Thompson | 38F | MCTD | anti-RNP, ANA | -- | CRP, CK |
+| 6 | Emma Williams | 34F | MS (RRMS) | -- | HLA-DRB1*15:01 | EDSS, MRI lesion count |
+| 7 | James Cooper | 19M | T1D + Celiac | GAD65, IA-2, anti-tTG IgA | HLA-DQ2, HLA-DQ8 | HbA1c, C-peptide, ferritin |
+| 8 | Karen Foster | 48F | SSc (dcSSc) | anti-Scl-70 | -- | mRSS, CRP, FVC |
+| 9 | Michael Torres | 41M | Graves' Disease | TSI, anti-TPO | -- | TSH, free T4 |
 
 Each patient has a directory under `demo_data/` containing realistic clinical PDF documents (progress notes, lab reports, imaging, pathology, referrals, medication lists) generated by the patient scripts in `scripts/`.
 

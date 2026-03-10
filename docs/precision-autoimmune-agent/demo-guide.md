@@ -3,7 +3,7 @@
 **Author:** Adam Jones
 **Date:** March 2026
 
-> Step-by-step walkthrough of all 10 Streamlit UI tabs using three demo patients. Use this guide for live demos.
+> Step-by-step walkthrough of all 10 Streamlit UI tabs using 9 demo patients (all selectable in UI). Use this guide for live demos.
 
 ---
 
@@ -58,7 +58,7 @@ streamlit run app/autoimmune_ui.py --server.port 8531
 
 ### Key Narrative
 
-> A 28-year-old female presenting with a classic SLE serological profile. Her diagnostic odyssey spans multiple years -- from initial complaints of fatigue and joint pain dismissed as "stress" through progressive multi-organ involvement culminating in lupus nephritis. She has 27+ clinical documents spanning PCP visits, rheumatology consultations, nephrology referral, renal biopsy, and longitudinal lab monitoring.
+> A 34-year-old female presenting with a classic SLE serological profile. Her diagnostic odyssey spans multiple years -- from initial complaints of fatigue and joint pain dismissed as "stress" through progressive multi-organ involvement culminating in lupus nephritis. She has 27+ clinical documents spanning PCP visits, rheumatology consultations, nephrology referral, renal biopsy, and longitudinal lab monitoring.
 
 ### Tab 5: Autoantibody Panel
 
@@ -131,59 +131,59 @@ streamlit run app/autoimmune_ui.py --server.port 8531
 
 ---
 
-## Patient 2: Rachel Thompson (Rheumatoid Arthritis) -- HCLS-AUTO-2026-RT002
+## Patient 2: Rachel Thompson (Mixed Connective Tissue Disease) -- HCLS-AUTO-2026-RT002
 
 ### Key Narrative
 
-> A 52-year-old female with seropositive rheumatoid arthritis. RF and anti-CCP positive, HLA-DRB1*04:01 carrier (shared epitope). Her profile demonstrates the convergence of serology, genetics, and disease activity scoring in guiding treatment decisions.
+> A 38-year-old female with Mixed Connective Tissue Disease (MCTD). Anti-RNP positive with overlapping features of SLE, SSc, and myositis. Her profile demonstrates how the agent handles overlap syndromes with multi-system involvement and shared autoantibody signatures.
 
 ### Tab 5: Autoantibody Panel
 
 1. **Load Rachel Thompson's antibody results:**
-   - RF (Rheumatoid Factor): elevated -- **POSITIVE** (sensitivity 0.70, specificity 0.85 for RA)
-   - anti-CCP: elevated -- **POSITIVE** (sensitivity 0.67, specificity 0.95 for RA)
-2. **Discuss dual positivity:** RF + anti-CCP together has higher positive predictive value than either alone. anti-CCP specificity of 0.95 makes this highly diagnostic.
-3. **Show serology scoring:** Per 2010 ACR/EULAR criteria, high-positive RF or anti-CCP = 3 points toward classification threshold of 6
+   - ANA: positive -- **POSITIVE**
+   - anti-RNP: elevated -- **POSITIVE** (sensitivity 0.95, specificity 0.85 for MCTD)
+2. **Discuss anti-RNP significance:** Anti-RNP is the hallmark antibody for MCTD. High-titer anti-RNP with overlapping clinical features of SLE, SSc, and myositis defines the syndrome.
+3. **Show overlap detection:** The agent identifies anti-RNP positivity as the serological bridge connecting multiple autoimmune phenotypes.
 
-**Key talking point:** *"Anti-CCP is the game-changer in RA diagnosis. While RF has been used for decades, it is not specific to RA -- it appears in Sjogren's, hepatitis C, and even healthy elderly. Anti-CCP at 95% specificity targets citrullinated peptides, which are the actual pathogenic target in RA."*
+**Key talking point:** *"Anti-RNP is the defining antibody of MCTD. At sensitivity 0.95 and specificity 0.85, it is both sensitive and specific for the syndrome. What makes MCTD unique is that patients exhibit overlapping features of SLE, SSc, and myositis -- and the agent detects this overlap pattern automatically."*
 
-### Tab 6: HLA Analysis
+### Tab 4: Diagnostic Odyssey
 
-1. Navigate to HLA Analysis tab
-2. **Enter HLA-DRB1*04:01:**
-   - Disease: Rheumatoid Arthritis
-   - Odds Ratio: 4.2
-   - PMID: 20301572
-   - Note: Shared epitope hypothesis -- citrullinated peptide binding
-3. **Explain the shared epitope:** HLA-DRB1*04:01 encodes a specific amino acid sequence in the peptide-binding groove that preferentially presents citrullinated peptides to T cells, driving the anti-CCP response.
+1. Navigate to Diagnostic Odyssey tab
+2. **Load Rachel Thompson's timeline:**
+   - Initial presentation with Raynaud's phenomenon and joint pain
+   - Sequential specialist referrals as different organ systems become involved
+   - Key turning point: anti-RNP positivity connecting disparate symptoms
+3. **Show overlap syndrome detection:**
+   - MCTD overlap syndrome detected
+   - Features spanning SLE (joint pain, serositis), SSc (Raynaud's, skin thickening), and myositis (muscle weakness, elevated CK)
 
-**Key talking point:** *"Shared epitope HLA-DRB1*04:01 means higher risk of erosive disease. This is not just a risk allele -- it is the mechanistic link between genetics and pathology. The shared epitope binds citrullinated peptides, which is why anti-CCP positive patients with this HLA allele have the most aggressive disease course."*
+**Key talking point:** *"MCTD is the quintessential overlap syndrome. Rachel's diagnostic odyssey shows how patients with MCTD often see multiple specialists before the unifying diagnosis is made. The agent reconstructs this timeline and identifies the anti-RNP result as the diagnostic turning point."*
 
-### Tab 7: Disease Activity
+### Tab 8: Flare Prediction
 
-1. Navigate to Disease Activity tab
-2. **Show DAS28-CRP scoring for RA:**
-   - Components: tender joints (28-count), swollen joints (28-count), CRP, patient global VAS
-   - Thresholds: Remission (<2.6), Low (2.6-3.2), Moderate (3.2-5.1), High (>5.1)
-3. **Also show CDAI and SDAI as alternatives** -- note these do not require inflammatory markers
+1. Navigate to Flare Prediction tab
+2. **Show MCTD flare pattern biomarkers:** CRP, CK, complement C3/C4, anti-RNP titer
+3. **Highlight contributing factors:**
+   - Rising CRP and CK suggesting myositis flare component
+   - Falling complement suggesting lupus-like activity
+4. **Cross-system complexity:** MCTD flares can manifest differently depending on which component dominates (lupus-like, SSc-like, or myositis-like)
 
-**Key talking point:** *"DAS28-CRP is the workhorse of RA disease activity monitoring. The treat-to-target strategy aims for remission (DAS28 <2.6) or at minimum low disease activity (<3.2). Every 3-6 month assessment drives treatment escalation decisions."*
+**Key talking point:** *"The challenge with MCTD flare prediction is that flares can present differently each time -- one flare may be lupus-like with falling complement, the next may be myositis-like with rising CK. The agent monitors biomarkers for all three overlap components simultaneously."*
 
 ### Tab 9: Therapy Advisor
 
 1. Navigate to Therapy Advisor tab
-2. **Show multiple TNF inhibitor options:**
-   - Adalimumab: PGx -- HLA-DRB1*03:01 associated with anti-drug antibody formation
-   - Etanercept: PGx -- HLA-DRB1 shared epitope correlates with better TNF-i response
-3. **Show Tocilizumab as alternative:**
-   - IL-6 receptor inhibitor
-   - PGx: IL6R Asp358Ala (rs2228145) affects receptor binding
-   - Key caveat: CRP unreliable for infection monitoring on IL-6R blockade
-4. **Show Tofacitinib (JAK inhibitor):**
-   - PGx: CYP3A4 and CYP2C19 metabolism -- dose adjustment with strong inhibitors
-   - VTE risk in patients >50 with CV risk factors
+2. **Show Rituximab recommendation:**
+   - Drug class: Anti-CD20 B-cell depleter
+   - Mechanism: Targets B cells producing pathogenic anti-RNP antibodies
+   - PGx: FCGR3A V158F affects ADCC efficacy
+3. **Show immunosuppressive options:**
+   - Treatment depends on which organ system is most affected
+   - Myositis-predominant: consider IVIG or rituximab
+   - Lupus-predominant: consider belimumab or mycophenolate
 
-**Key talking point:** *"For seropositive RA with shared epitope, TNF inhibitors are first-line biologics. But the choice between adalimumab, tocilizumab, and tofacitinib depends on PGx factors. Rachel's HLA-DRB1*04:01 actually predicts better response to TNF inhibitors, while IL6R polymorphisms might predict tocilizumab response."*
+**Key talking point:** *"MCTD treatment is guided by which phenotype dominates. Rachel's therapy plan must address Raynaud's, joint disease, and potential myositis. The agent matches therapies to her specific overlap pattern, with PGx considerations for each option."*
 
 ---
 
