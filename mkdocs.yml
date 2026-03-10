@@ -141,6 +141,11 @@ nav:
       - Demo Guide: precision-biomarker-agent/demo-guide.md
       - Design Document: precision-biomarker-agent/design.md
       - Project Bible: precision-biomarker-agent/project-bible.md
+    - Precision Autoimmune Agent:
+      - Overview: precision-autoimmune-agent/index.md
+      - Demo Guide: precision-autoimmune-agent/demo-guide.md
+      - Design Document: precision-autoimmune-agent/design.md
+      - Project Bible: precision-autoimmune-agent/project-bible.md
   - Reports:
     - Intelligence Report: HCLS_AI_FACTORY_INTELLIGENCE_REPORT.md
     - Pipeline Report: PIPELINE_REPORT.md
