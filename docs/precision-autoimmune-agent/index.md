@@ -13,7 +13,7 @@ The Precision Autoimmune Intelligence Agent transforms fragmented autoimmune cli
 | **Autoantibody Panels** | 24 | Autoantibody reference panels with disease associations, sensitivity/specificity |
 | **HLA Associations** | 22 | HLA allele to disease risk mapping with odds ratios and PMIDs |
 | **Disease Criteria** | 10 | ACR/EULAR classification criteria for 10 autoimmune diseases |
-| **Disease Activity** | 18 | Activity scoring systems (DAS28, SLEDAI-2K, PASI, EDSS, etc.) |
+| **Disease Activity** | 20 | Activity scoring systems (DAS28, SLEDAI-2K, PASI, EDSS, etc.) |
 | **Flare Patterns** | 13 | Flare prediction biomarker patterns for 13 diseases |
 | **Biologic Therapies** | 22 | Biologic drug database with PGx considerations |
 | **PGx Rules** | variable | Pharmacogenomic dosing rules for autoimmune therapies |
@@ -30,7 +30,7 @@ The Precision Autoimmune Intelligence Agent transforms fragmented autoimmune cli
 |---|---|
 | **AutoantibodyInterpreter** | 24 autoantibodies mapped to 13 diseases with sensitivity/specificity data |
 | **HLAAssociationAnalyzer** | 22 HLA alleles with disease odds ratios and PMIDs |
-| **DiseaseActivityScorer** | 18 scoring systems (DAS28-CRP, DAS28-ESR, SLEDAI-2K, CDAI, BASDAI, SDAI, PASI, Mayo Score, Harvey-Bradshaw Index, ESSDAI, mRSS, EDSS, QMGS, Marsh Score, Burch-Wartofsky Score, ASDAS, MG-ADL, DAPSA) |
+| **DiseaseActivityScorer** | 20 scoring systems (DAS28-CRP, DAS28-ESR, SLEDAI-2K, CDAI, BASDAI, SDAI, PASI, Mayo Score, Harvey-Bradshaw Index, ESSDAI, mRSS, EDSS, QMGS, Marsh Score, Burch-Wartofsky Score, ASDAS, MG-ADL, DAPSA, HbA1c-T1D, TSH-Hashimoto) |
 | **FlarePredictor** | Biomarker-based flare risk with 13 disease-specific patterns |
 | **BiologicTherapyAdvisor** | 22 biologic therapies with PGx considerations, contraindications, and monitoring |
 | **DiagnosticOdysseyAnalyzer** | Timeline reconstruction, overlap syndrome detection, classification criteria evaluation, differential diagnosis |
@@ -47,7 +47,7 @@ The Precision Autoimmune Intelligence Agent transforms fragmented autoimmune cli
 
 ### Demo Guide
 
-For a complete walkthrough of all 10 UI tabs with three demo patients, see the **[Demo Guide](demo-guide.md)**.
+For a complete walkthrough of all 10 UI tabs with demo patients, see the **[Demo Guide](demo-guide.md)**.
 
 ## Architecture
 
@@ -64,7 +64,7 @@ Patient Data Input (Autoantibodies + HLA + Biomarkers + Clinical PDFs)
 HLA            Disease        Flare          Biologic
 Association    Activity       Predictor      Therapy
 Analyzer       Scorer         (13 disease    Advisor
-(22 alleles)   (18 scores)    patterns)      (22 therapies + PGx)
+(22 alleles)   (20 scores)    patterns)      (22 therapies + PGx)
     |               |              |              |
     +-------+-------+--------------+--------------+
             |
@@ -184,15 +184,15 @@ precision_autoimmune_agent/
 │   ├── cache/                     # Embedding cache
 │   └── events/                    # Cross-agent event store
 ├── demo_data/
-│   ├── sarah_mitchell/            # SLE patient (28F) -- 27+ clinical PDFs
-│   ├── rachel_thompson/           # RA patient (52F) -- clinical PDFs
+│   ├── sarah_mitchell/            # SLE patient (34F) -- 27+ clinical PDFs
+│   ├── maya_rodriguez/            # POTS/hEDS/MCAS patient (28F) -- clinical PDFs
+│   ├── linda_chen/                # Sjogren's patient (45F) -- clinical PDFs
+│   ├── david_park/                # AS patient (45M) -- clinical PDFs
+│   ├── rachel_thompson/           # MCTD patient (38F) -- clinical PDFs
+│   ├── emma_williams/             # MS (RRMS) patient (34F) -- clinical PDFs
 │   ├── james_cooper/              # T1D + Celiac overlap (19M) -- clinical PDFs
-│   ├── linda_chen/                # MCTD patient
-│   ├── maya_rodriguez/            # IBD patient
-│   ├── david_park/                # AS patient
-│   ├── emma_williams/             # MG patient
-│   ├── karen_foster/              # Sjogren's patient
-│   └── michael_torres/            # Psoriasis patient
+│   ├── karen_foster/              # SSc (dcSSc) patient (48F) -- clinical PDFs
+│   └── michael_torres/            # Graves' Disease patient (41M) -- clinical PDFs
 ├── scripts/
 │   ├── setup_collections.py       # Create and seed Milvus collections
 │   ├── generate_demo_patients.py  # Generate demo patient PDFs
@@ -224,7 +224,7 @@ Measured on NVIDIA DGX Spark (GB10 GPU, 128GB unified memory):
 | Vector search (14 collections, top-5 each) | 10-18 ms (cached) |
 | Autoantibody interpretation (24 antibodies) | <50 ms |
 | HLA association analysis (22 alleles) | <50 ms |
-| Disease activity scoring (18 systems) | <100 ms |
+| Disease activity scoring (20 systems) | <100 ms |
 | Flare prediction (13 patterns) | <100 ms |
 | Biologic therapy matching (22 therapies) | <50 ms |
 | Classification criteria evaluation | <50 ms |
@@ -235,7 +235,7 @@ Measured on NVIDIA DGX Spark (GB10 GPU, 128GB unified memory):
 ## Status
 
 - **Phase 1 (Scaffold)** -- Complete. Architecture, data models, 14 collection schemas, 6 clinical engines, RAG engine, agent orchestrator, and Streamlit UI.
-- **Phase 2 (Knowledge)** -- Complete. Knowledge v2.0.0: 22 HLA alleles, 24 autoantibodies, 22 biologic therapies, 18 disease activity scores, 13 flare patterns, 10 classification criteria sets, 9 overlap syndromes.
+- **Phase 2 (Knowledge)** -- Complete. Knowledge v2.0.0: 22 HLA alleles, 24 autoantibodies, 22 biologic therapies, 20 disease activity scores, 13 flare patterns, 10 classification criteria sets, 9 overlap syndromes.
 - **Phase 3 (Data)** -- Complete. 9 demo patients with full clinical PDF records, autoantibody panels, HLA typing, and longitudinal lab data.
 - **Phase 4 (Integration)** -- Complete. Full RAG pipeline with Claude generating grounded, disease-specific interpretations. FHIR R4 export. Cross-agent integration stubs (Biomarker Agent, Imaging Agent).
 - **Phase 5 (Testing)** -- Complete. 455 unit tests passing across 8 test files. Production readiness checks.

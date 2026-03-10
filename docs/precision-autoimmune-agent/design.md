@@ -23,7 +23,7 @@ The agent combines **6 deterministic clinical analysis engines** with a **14-col
 | Biologic therapies | **22** with PGx considerations |
 | Autoantibodies mapped | **24** to disease associations with sensitivity/specificity |
 | HLA alleles | **22** with disease odds ratios and PMIDs |
-| Disease activity scores | **18** scoring systems across 10 diseases |
+| Disease activity scores | **20** scoring systems across 13 diseases |
 | Demo patients | **9** with full clinical PDF records |
 | Flare patterns | **13** disease-specific biomarker patterns |
 | Classification criteria | **10** ACR/EULAR criteria sets |
@@ -182,7 +182,7 @@ ACR/EULAR classification criteria for autoimmune diseases.
 | criteria_items | VARCHAR(3000) | Individual criteria items |
 | sensitivity_specificity | VARCHAR(256) | Validation metrics |
 
-### 3.6 `autoimmune_disease_activity` -- 18 records
+### 3.6 `autoimmune_disease_activity` -- 20 records
 
 Disease activity scoring systems with thresholds and components.
 
@@ -362,9 +362,9 @@ Matches 22 HLA alleles against a curated disease association database with odds 
 
 ### 4.3 DiseaseActivityScorer
 
-Calculates disease activity levels using simplified CRP/ESR-based scoring against 18 validated scoring systems.
+Calculates disease activity levels using simplified CRP/ESR-based scoring against 20 validated scoring systems.
 
-**18 Scoring Systems:**
+**20 Scoring Systems:**
 
 | Score | Disease | Range | Remission | Low | Moderate | High | Reference |
 |---|---|---|---|---|---|---|---|
@@ -386,6 +386,8 @@ Calculates disease activity levels using simplified CRP/ESR-based scoring agains
 | ASDAS | AS | 0-6 | <1.3 | 2.1 | 3.5 | >3.5 | PMID:19139421 |
 | MG-ADL | MG | 0-24 | <1 | 5 | 10 | >10 | PMID:10025780 |
 | DAPSA | Psoriasis | 0-164 | <4 | 14 | 28 | >28 | PMID:22328740 |
+| HbA1c-T1D | T1D | 4-14% | <6.5 | 7.0 | 8.5 | >8.5 | PMID:9742976 |
+| TSH-Hashimoto | Hashimoto's | 0-100 | <2.5 | 5.0 | 10.0 | >10.0 | PMID:12487769 |
 
 **Scoring logic:** Retrieves CRP and/or ESR from patient biomarkers, maps to the applicable scoring system for diagnosed conditions, and classifies activity level against thresholds. Returns level (REMISSION/LOW/MODERATE/HIGH/VERY_HIGH), components, and threshold context.
 
@@ -582,15 +584,15 @@ Structured text format with tables for disease activity, flare predictions, HLA 
 
 | # | Name | Age/Sex | Primary Disease | Key Features |
 |---|---|---|---|---|
-| 1 | Sarah Mitchell | 28F | SLE | ANA 1:640, anti-dsDNA+, anti-Smith+, lupus nephritis, 27+ PDFs |
-| 2 | Linda Chen | -- | MCTD | Anti-RNP+, SSc-myositis overlap |
-| 3 | Maya Rodriguez | -- | IBD | Calprotectin-based monitoring |
-| 4 | David Park | -- | AS | HLA-B*27+, BASDAI scoring |
-| 5 | Rachel Thompson | 52F | RA | RF+, anti-CCP+, HLA-DRB1*04:01, shared epitope |
-| 6 | Emma Williams | -- | MG | AChR antibody+, QMGS scoring |
+| 1 | Sarah Mitchell | 34F | SLE | ANA 1:640, anti-dsDNA+, anti-Smith+, lupus nephritis, 27+ PDFs |
+| 2 | Maya Rodriguez | 28F | POTS/hEDS/MCAS | Dysautonomia diagnostic odyssey |
+| 3 | Linda Chen | 45F | Sjogren's | anti-SSA/Ro+, ESSDAI scoring |
+| 4 | David Park | 45M | AS | HLA-B*27+, BASDAI scoring |
+| 5 | Rachel Thompson | 38F | MCTD | Anti-RNP+, overlap syndrome |
+| 6 | Emma Williams | 34F | MS (RRMS) | EDSS scoring, relapse monitoring |
 | 7 | James Cooper | 19M | T1D + Celiac | Overlap syndrome, HLA-DQ2/DQ8+, GAD65+ |
-| 8 | Karen Foster | -- | Sjogren's | anti-SSA/Ro+, ESSDAI scoring |
-| 9 | Michael Torres | -- | Psoriasis | HLA-C*06:02, PASI scoring |
+| 8 | Karen Foster | 48F | SSc (dcSSc) | anti-Scl-70+, mRSS scoring |
+| 9 | Michael Torres | 41M | Graves' Disease | TSI+, Burch-Wartofsky scoring |
 
 ---
 
