@@ -1128,7 +1128,7 @@ precision_autoimmune_agent/
 |   |-- test_autoimmune.py
 |   |-- test_collections.py
 |   |-- test_diagnostic_engine.py
-|   +-- ...                    (431 tests across 8 files)
+|   +-- ...                    (455 tests across 8 files)
 |-- demo_data/
 |   |-- sarah_mitchell/        (35 PDFs spanning 3.5 years)
 |   |-- maya_rodriguez/        (28 PDFs spanning 4 years)
@@ -1325,7 +1325,7 @@ Now that you understand the foundations, here are paths forward based on your ro
 - Experiment with different TOP_K and SCORE_THRESHOLD values
 - Analyze the collection weight distribution and how it affects result ranking
 - Build custom analysis pipelines using the `/search` API endpoint
-- Review the 431 tests across 8 test files for validation coverage
+- Review the 455 tests across 8 test files for validation coverage
 
 **For software developers:**
 - Read the full API Reference (`docs/API_REFERENCE.md`) for endpoint details

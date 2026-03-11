@@ -460,7 +460,7 @@ The system is designed for local-first operation. Patient clinical documents, la
 | Overlap syndromes | 9 |
 | Lab test patterns | 45 |
 | Demo patients with clinical PDFs | 9 |
-| Automated tests | 431 (across 8 test files) |
+| Automated tests | 455 (across 8 test files) |
 | REST API endpoints | 14 |
 | Streamlit UI tabs | 10 |
 | Embedding dimensions | 384 |
@@ -567,7 +567,7 @@ Several limitations should be acknowledged:
 2. **External LLM dependency:** Evidence synthesis requires an API call to Anthropic's Claude. While only aggregated evidence context is transmitted (not raw patient data), this represents an external dependency that may be unacceptable in certain security environments.
 3. **Classification criteria as approximation:** The programmatic criteria evaluation is a simplification of clinical criteria that often require expert judgment on individual items (e.g., distinguishing "acute cutaneous lupus" from other rashes).
 4. **Temporal reasoning:** While the system tracks longitudinal biomarker trends, its ability to reason about complex temporal patterns (e.g., the significance of a 6-month gap between symptom onset and first specialist visit) is limited by the LLM's general temporal reasoning capabilities.
-5. **Validation scope:** The 431 automated tests validate system functionality but do not constitute clinical validation against gold-standard diagnostic outcomes. Prospective clinical studies would be required to assess diagnostic accuracy in real-world settings.
+5. **Validation scope:** The 455 automated tests validate system functionality but do not constitute clinical validation against gold-standard diagnostic outcomes. Prospective clinical studies would be required to assess diagnostic accuracy in real-world settings.
 6. **Single-language:** The system currently operates in English only, limiting its utility in multilingual clinical environments.
 
 ---
