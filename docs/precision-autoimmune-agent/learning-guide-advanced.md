@@ -17,7 +17,7 @@ Before starting this guide, you should have:
 2. **Python proficiency** -- you are comfortable with Pydantic v2, asyncio, decorators, abstract base classes, and `concurrent.futures`.
 3. **Basic ML/NLP concepts** -- you know what embeddings are, what cosine similarity measures, and how retrieval-augmented generation works at a high level.
 4. **Vector database basics** -- you understand that Milvus stores high-dimensional vectors and retrieves the nearest neighbors for a query vector.
-5. **Development environment** -- you have the repo cloned, dependencies installed, and can run `pytest tests/` successfully (431 tests, all passing).
+5. **Development environment** -- you have the repo cloned, dependencies installed, and can run `pytest tests/` successfully (455 tests, all passing).
 
 **Codebase map for reference:**
 
@@ -39,7 +39,7 @@ precision_autoimmune_agent/
     main.py                  # FastAPI REST API (port 8532)
   config/
     settings.py              # AutoimmuneSettings (Pydantic BaseSettings, AUTO_ prefix)
-  tests/                     # 431 tests across 8 files
+  tests/                     # 455 tests across 8 files
 ```
 
 ---
@@ -601,7 +601,7 @@ def sample_drug_interaction():
 
 ```bash
 pytest tests/ -v --tb=short
-# All 431+ tests should pass, including the new ones
+# All 455+ tests should pass, including the new ones
 ```
 
 ---
@@ -1379,7 +1379,7 @@ This is clinically significant: the average diagnostic delay for SLE is 4.6 year
 
 ## Chapter 10: Testing Strategies
 
-### 10.1 Test Architecture (8 files, 431 tests)
+### 10.1 Test Architecture (8 files, 455 tests)
 
 ```
 tests/
