@@ -146,6 +146,10 @@ nav:
       - Demo Guide: precision-autoimmune-agent/demo-guide.md
       - Design Document: precision-autoimmune-agent/design.md
       - Project Bible: precision-autoimmune-agent/project-bible.md
+      - White Paper: precision-autoimmune-agent/white-paper.md
+      - Deployment Guide: precision-autoimmune-agent/deployment-guide.md
+      - "Learning Guide \u2014 Foundations": precision-autoimmune-agent/learning-guide-foundations.md
+      - "Learning Guide \u2014 Advanced": precision-autoimmune-agent/learning-guide-advanced.md
   - Reports:
     - Intelligence Report: HCLS_AI_FACTORY_INTELLIGENCE_REPORT.md
     - Pipeline Report: PIPELINE_REPORT.md
