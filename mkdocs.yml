@@ -126,6 +126,11 @@ nav:
       - Demo Guide: cart-intelligence-agent/demo-guide.md
       - Design Document: cart-intelligence-agent/design.md
       - Project Bible: cart-intelligence-agent/project-bible.md
+      - White Paper: cart-intelligence-agent/white-paper.md
+      - Architecture Guide: cart-intelligence-agent/architecture-guide.md
+      - Deployment Guide: cart-intelligence-agent/deployment-guide.md
+      - "Learning Guide \u2014 Foundations": cart-intelligence-agent/learning-guide-foundations.md
+      - "Learning Guide \u2014 Advanced": cart-intelligence-agent/learning-guide-advanced.md
     - Imaging Intelligence Agent:
       - Overview: imaging-intelligence-agent/index.md
       - Demo Guide: imaging-intelligence-agent/demo-guide.md
