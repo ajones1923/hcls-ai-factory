@@ -2,7 +2,7 @@
 
 **Audience:** Experienced developers contributing to or extending the agent.
 **Prerequisite reading:** `LEARNING_GUIDE.md` (introductory guide).
-**Codebase snapshot:** February 2026 -- ~14,000 lines across `src/`, `api/`, `app/`, `tests/`, `scripts/`.
+**Codebase snapshot:** March 2026 -- ~14,000 lines across `src/`, `api/`, `app/`, `tests/`, `scripts/`.
 
 ---
 
@@ -2017,7 +2017,7 @@ environment or `.env` file.
 | Parameter       | Default                 | Description             |
 |-----------------|-------------------------|-------------------------|
 | LLM_PROVIDER    | `anthropic`             | LLM provider            |
-| LLM_MODEL       | `claude-sonnet-4-20250514`  | Model identifier        |
+| LLM_MODEL       | `claude-sonnet-4-6`  | Model identifier        |
 | ANTHROPIC_API_KEY| `None`                 | Anthropic API key       |
 
 ## RAG Search
@@ -2102,7 +2102,7 @@ Set any parameter by prefixing with `ONCO_`:
 ONCO_MILVUS_HOST=milvus-server.internal
 ONCO_MILVUS_PORT=19530
 ONCO_EMBEDDING_MODEL=BAAI/bge-small-en-v1.5
-ONCO_LLM_MODEL=claude-sonnet-4-20250514
+ONCO_LLM_MODEL=claude-sonnet-4-6
 ONCO_ANTHROPIC_API_KEY=sk-ant-...
 ONCO_WEIGHT_VARIANTS=0.20
 ONCO_WEIGHT_LITERATURE=0.18
@@ -2115,6 +2115,6 @@ ONCO_CONVERSATION_MEMORY_DEPTH=5
 
 ---
 
-*This guide reflects the codebase as of February 2026. For introductory
+*This guide reflects the codebase as of March 2026. For introductory
 material, see `LEARNING_GUIDE.md`. For deployment instructions, see
 `DEPLOYMENT.md`.*

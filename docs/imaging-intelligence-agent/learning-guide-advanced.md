@@ -1894,7 +1894,7 @@ All environment variables use the `IMAGING_` prefix (controlled by Pydantic `env
 | Variable | Default | Description |
 |---|---|---|
 | `IMAGING_LLM_PROVIDER` | `anthropic` | LLM provider |
-| `IMAGING_LLM_MODEL` | `claude-sonnet-4-20250514` | LLM model name |
+| `IMAGING_LLM_MODEL` | `claude-sonnet-4-6` | LLM model name |
 | `IMAGING_ANTHROPIC_API_KEY` | `None` | Anthropic API key |
 
 ### B.5 NIM Configuration

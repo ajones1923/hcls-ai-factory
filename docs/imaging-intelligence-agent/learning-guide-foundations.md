@@ -1082,7 +1082,7 @@ All configuration is managed through environment variables with the `IMAGING_` p
 | `IMAGING_MILVUS_HOST` | localhost | Milvus server hostname |
 | `IMAGING_MILVUS_PORT` | 19530 | Milvus server port |
 | `IMAGING_EMBEDDING_MODEL` | BAAI/bge-small-en-v1.5 | Embedding model name |
-| `IMAGING_LLM_MODEL` | meta/llama-3-8b-instruct | Default LLM |
+| `IMAGING_LLM_MODEL` | claude-sonnet-4-6 | Default LLM (Claude Sonnet 4.6) |
 | `IMAGING_STREAMLIT_PORT` | 8525 | Streamlit UI port |
 | `IMAGING_API_PORT` | 8524 | FastAPI REST API port |
 
@@ -1420,7 +1420,7 @@ The single source of truth for all configuration. Uses Pydantic `BaseSettings` s
 Key settings:
 - `MILVUS_HOST` / `MILVUS_PORT`: Vector database connection (default: localhost:19530)
 - `EMBEDDING_MODEL`: BGE-small-en-v1.5 (384 dimensions)
-- `LLM_MODEL`: Llama 3 8B (via NIM) or Claude (via API)
+- `LLM_MODEL`: Claude Sonnet 4.6 (via Anthropic API), with Llama 3 8B (NIM) as fallback
 - `TOP_K_PER_COLLECTION`: Maximum results per collection per query (default: 5)
 - `SCORE_THRESHOLD`: Minimum cosine similarity score (default: 0.4)
 - `WEIGHT_*`: Per-collection search weights

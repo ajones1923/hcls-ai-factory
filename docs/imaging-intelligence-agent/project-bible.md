@@ -2,7 +2,7 @@
 
 **Author:** Adam Jones
 **Date:** March 2026
-**Version:** 1.2.0
+**Version:** 2.0.0
 **License:** Apache 2.0
 
 ---
@@ -22,7 +22,7 @@ Multi-collection retrieval-augmented generation engine:
 - Query expansion via domain-specific expansion maps
 - Knowledge graph augmentation (pathologies, modalities, anatomy)
 - Comparative analysis mode: auto-detects "X vs Y" queries and runs dual retrieval
-- LLM synthesis via Claude (Anthropic API) with Llama-3 NIM fallback
+- LLM synthesis via Claude Sonnet 4.6 (Anthropic API) with Llama-3 NIM fallback
 - Conversation memory: injects up to 3 prior exchanges for context
 
 ### 2.2 NIM Client Layer (`src/nim/`)
@@ -49,6 +49,15 @@ Six reference clinical workflows following `BaseImagingWorkflow` ABC:
 - Full mock mode with clinically realistic synthetic results
 - Registered in `WORKFLOW_REGISTRY` for dynamic dispatch
 
+| Workflow | Key | Modality |
+|---|---|---|
+| CT Head Hemorrhage Triage | `ct_head_hemorrhage` | CT |
+| CT Chest Lung Nodule Tracking | `ct_chest_lung_nodule` | CT |
+| CT Coronary Angiography | `ct_coronary_angiography` | CT |
+| CXR Rapid Findings | `cxr_rapid_findings` | X-ray |
+| MRI Brain MS Lesion Tracking | `mri_brain_ms_lesion` | MRI |
+| MRI Prostate PI-RADS | `mri_prostate_pirads` | MRI |
+
 ### 2.4 Ingest Pipelines (`src/ingest/`)
 
 Eight domain-specific parsers following `BaseIngestPipeline`:
@@ -72,6 +81,7 @@ Domain knowledge providing structured context for RAG augmentation:
 CrossModalTrigger enriches clinical findings with genomic context:
 - Lung-RADS 4A+ findings trigger EGFR, ALK, ROS1, KRAS variant queries
 - CXR urgent findings (consolidation) trigger infection genomics queries
+- Brain lesion high activity triggers HLA-DRB1 and demyelination marker queries
 - Queries the shared `genomic_evidence` collection (3.5M vectors)
 - Returns genomic hits with variant details, clinical significance, AlphaMissense scores
 
@@ -89,7 +99,7 @@ Four export formats: Markdown, JSON, PDF, FHIR R4 DiagnosticReport Bundle:
 Orthanc-integrated DICOM auto-ingestion pipeline:
 - DicomWatcher polls Orthanc /changes API for StableStudy events
 - Webhook endpoint receives study.complete events
-- Workflow routing: CT+head→ct_head_hemorrhage, CT+chest→ct_chest_lung_nodule, CR+chest→cxr_rapid_findings, MR+brain→mri_brain_ms_lesion
+- Workflow routing: CT+head->ct_head_hemorrhage, CT+chest->ct_chest_lung_nodule, CT+cardiac->ct_coronary_angiography, CR+chest->cxr_rapid_findings, MR+brain->mri_brain_ms_lesion, MR+prostate->mri_prostate_pirads
 - Event history with pagination (max 200)
 
 ### 2.9 API Layer (`api/`)
@@ -104,23 +114,29 @@ FastAPI server on port 8524 with five route modules:
 | `reports.py` | (root) | `/reports/generate` (markdown, JSON, PDF) |
 | `events.py` | `/events` | `/events/dicom-webhook`, `/events/history`, `/events/status` |
 
-Core endpoints on root: `/health`, `/collections`, `/query`, `/search`, `/find-related`, `/knowledge/stats`, `/metrics`
+Core endpoints on root: `/health`, `/collections`, `/query`, `/search`, `/find-related`, `/knowledge/stats`, `/metrics`, `/demo-cases`, `/demo-cases/{id}/run`, `/protocol/recommend`, `/dose/reference`, `/dose/summary`
 
 ### 2.10 UI Layer (`app/imaging_ui.py`)
 
-Streamlit 9-tab interface on port 8525 with NVIDIA dark/green styling:
+Streamlit Imaging Workbench on port 8525 with 9 tabs:
 
-1. **Evidence Explorer** -- Chat-based RAG Q&A with 4 pre-filled example query buttons, Plotly donut chart showing collection contribution, comparative analysis auto-detection
-2. **Workflow Runner** -- 6 clinical workflows with annotated AI images in 55/45 layout, 6-step pipeline animation (3.2s total), 4 download buttons (Markdown, JSON, PDF, FHIR R4)
-3. **Image Gallery** -- 5 CXR pathology showcase (Normal, Consolidation, Effusion, Cardiomegaly, Pneumothorax), cross-modality gallery, 3D Volume Slice Viewer with HU windowing, Before/After AI toggle
-4. **Protocol Advisor** -- Protocol recommendations with 4 pre-filled example indication buttons
-5. **Device & AI Ecosystem** -- FDA-cleared AI/ML device catalog and NIM ecosystem overview
-6. **Dose Intelligence** -- Radiation dose optimization and tracking
-7. **Reports & Export** -- NVIDIA-branded PDF with regex-based markdown-to-HTML conversion, plus Markdown, JSON, and FHIR R4 export
-8. **Patient 360** -- Interactive Plotly network graph (3-layer: Case green, Findings orange, Genes cyan), live Milvus genomic query with fallback to demo data
-9. **Benchmarks & Validation** -- AI model performance validation tab
+| Tab | Description |
+|---|---|
+| **Evidence Explorer** | Multi-collection RAG queries with pre-filled examples, comparative auto-detection, evidence badges grouped by collection with relevance scores |
+| **Workflow Runner** | 4 pre-loaded demo cases (DEMO-001 through DEMO-004), 6-step pipeline animation, annotated AI images, mock/live execution |
+| **Image Gallery** | 5 CXR pathology showcase images, cross-modality gallery, 3D volume slice viewer |
+| **Protocol Advisor** | Patient-specific imaging protocol recommendations with pre-filled examples, AI dose optimization notes |
+| **Device & AI Ecosystem** | 50 FDA-cleared and research AI devices, filterable by modality and clinical task |
+| **Dose Intelligence** | 20 protocols with standard vs AI-optimized dose comparison, Plotly charts, 36% average reduction |
+| **Reports & Export** | Generate Markdown, JSON, NVIDIA-themed PDF, FHIR R4 DiagnosticReport exports |
+| **Patient 360** | Cross-modal genomic enrichment display, interactive Plotly network graph showing gene-finding relationships |
+| **Benchmarks & Validation** | Plotly donut chart for collection statistics, model performance benchmarks |
 
-Sidebar: Guided tour expander (9-step demo flow with dismiss button), OHIF Viewer link, Demo Mode button, NIM service status indicators, collection statistics, search filters. 9 AI-annotated medical images: 5 CXR (1024x1024) + 3 CT (512x512) + 1 bilateral pneumonia CXR.
+Additional features:
+- Sidebar guided tour with 9-step demo flow
+- NIM service status indicators
+- Multi-turn conversation with context memory
+- NVIDIA dark/green themed styling
 
 ---
 
@@ -133,19 +149,21 @@ Sidebar: Guided tour expander (9-step demo flow with dismiss button), OHIF Viewe
 
 ### Collection Schemas and Seed Counts
 
-| # | Collection | Schema Fields | Seed Source |
-|---|---|---|---|
-| 1 | `imaging_literature` | id, title, text_chunk, source_type, year, modality, body_region, ai_task, disease, keywords, journal | PubMed ingest |
-| 2 | `imaging_trials` | id, title, text_summary, phase, status, sponsor, modality, body_region, ai_task, disease, enrollment, start_year, outcome_summary | ClinicalTrials.gov ingest |
-| 3 | `imaging_findings` | id, text_summary, finding_category, severity, modality, body_region, clinical_significance, differential_diagnosis, recommended_followup, measurement_type, measurement_value, classification_system, classification_score | `seed_findings.py` |
-| 4 | `imaging_protocols` | id, text_summary, protocol_name, modality, body_region, contrast_agent, slice_thickness_mm, radiation_dose, scan_duration, clinical_indication, preprocessing_steps | `seed_protocols.py` |
-| 5 | `imaging_devices` | id, text_summary, device_name, manufacturer, regulatory_status, clearance_date, modality, body_region, ai_task, intended_use, performance_summary, model_architecture | `seed_devices.py` |
-| 6 | `imaging_anatomy` | id, text_summary, structure_name, body_region, system, snomed_code, fma_id, imaging_characteristics, common_pathologies, segmentation_label_id | `seed_anatomy.py` |
-| 7 | `imaging_benchmarks` | id, text_summary, model_name, model_architecture, ai_task, modality, body_region, dataset_name, metric_name, metric_value, training_data_size, inference_time_ms, hardware | `seed_benchmarks.py` |
-| 8 | `imaging_guidelines` | id, text_summary, guideline_name, organization, year, modality, body_region, clinical_indication, classification_system, key_recommendation, evidence_level | `seed_guidelines.py` |
-| 9 | `imaging_report_templates` | id, text_summary, template_name, modality, body_region, finding_type, structured_fields, example_report, coding_system | `seed_report_templates.py` |
-| 10 | `imaging_datasets` | id, text_summary, dataset_name, source, modality, body_region, num_studies, num_images, disease_labels, annotation_type, license_type, download_url | `seed_datasets.py` |
-| 11 | `genomic_evidence` | *(read-only)* Shared from Stage 2 RAG pipeline | Existing |
+| # | Collection | Schema Fields | Seed Source | Seed Count |
+|---|---|---|---|---|
+| 1 | `imaging_literature` | id, title, text_chunk, source_type, year, modality, body_region, ai_task, disease, keywords, journal | PubMed ingest | 50 |
+| 2 | `imaging_trials` | id, title, text_summary, phase, status, sponsor, modality, body_region, ai_task, disease, enrollment, start_year, outcome_summary | ClinicalTrials.gov ingest | 40 |
+| 3 | `imaging_findings` | id, text_summary, finding_category, severity, modality, body_region, clinical_significance, differential_diagnosis, recommended_followup, measurement_type, measurement_value, classification_system, classification_score | `seed_findings.py` | 50 |
+| 4 | `imaging_protocols` | id, text_summary, protocol_name, modality, body_region, contrast_agent, slice_thickness_mm, radiation_dose, scan_duration, clinical_indication, preprocessing_steps | `seed_protocols.py` | 40 |
+| 5 | `imaging_devices` | id, text_summary, device_name, manufacturer, regulatory_status, clearance_date, modality, body_region, ai_task, intended_use, performance_summary, model_architecture | `seed_devices.py` | 50 |
+| 6 | `imaging_anatomy` | id, text_summary, structure_name, body_region, system, snomed_code, fma_id, imaging_characteristics, common_pathologies, segmentation_label_id | `seed_anatomy.py` | 30 |
+| 7 | `imaging_benchmarks` | id, text_summary, model_name, model_architecture, ai_task, modality, body_region, dataset_name, metric_name, metric_value, training_data_size, inference_time_ms, hardware | `seed_benchmarks.py` | 40 |
+| 8 | `imaging_guidelines` | id, text_summary, guideline_name, organization, year, modality, body_region, clinical_indication, classification_system, key_recommendation, evidence_level | `seed_guidelines.py` | 40 |
+| 9 | `imaging_report_templates` | id, text_summary, template_name, modality, body_region, finding_type, structured_fields, example_report, coding_system | `seed_report_templates.py` | 50 |
+| 10 | `imaging_datasets` | id, text_summary, dataset_name, source, modality, body_region, num_studies, num_images, disease_labels, annotation_type, license_type, download_url | `seed_datasets.py` | 50 |
+| 11 | `genomic_evidence` | *(read-only)* Shared from Stage 2 RAG pipeline | Existing | 3,561,170 |
+
+**Total: 876 seed vectors across 10 imaging collections.**
 
 ### Collection Search Weights
 
@@ -201,6 +219,12 @@ Configurable in `config/settings.py` (must sum to ~1.0):
 - **Endpoint:** OpenAI-compatible `/v1/chat/completions`
 - **GPU memory:** ~16 GB
 
+### 4.5 Cloud NIM Fallback
+
+When local NIM containers are unavailable, the agent falls back to NVIDIA Cloud NIMs:
+- `meta/llama-3.1-8b-instruct` via `integrate.api.nvidia.com`
+- `meta/llama-3.2-11b-vision-instruct` via `integrate.api.nvidia.com`
+
 ---
 
 ## 5. Reference Workflows
@@ -211,7 +235,7 @@ Configurable in `config/settings.py` (must sum to ~1.0):
 |---|---|
 | Target latency | < 90 seconds |
 | Sensitivity target | > 95% for hemorrhage > 5 mL |
-| Model | 3D U-Net (MONAI) |
+| Model | SegResNet (MONAI wholeBody_ct_segmentation) |
 | Preprocessing | RAS orientation, 1mm isotropic, blood window (0-80 HU) |
 | Postprocessing | Volume estimation, midline shift, max thickness |
 | Urgency | BTF thresholds: >30mL OR >5mm shift = Critical; >5mL = Urgent |
@@ -227,43 +251,48 @@ Configurable in `config/settings.py` (must sum to ~1.0):
 | Segmentation model | SegResNet (MONAI) |
 | Longitudinal | SyN diffeomorphic registration, volume doubling time |
 | Classification | ACR Lung-RADS v2022 |
-| Cross-modal trigger | Lung-RADS 4B+ triggers Parabricks genomics pipeline |
+| Cross-modal trigger | Lung-RADS 4A+ triggers genomic variant queries (EGFR, ALK, ROS1, KRAS) |
 
-### 5.3 CXR Rapid Findings
+### 5.3 CT Coronary Angiography
+
+| Attribute | Value |
+|---|---|
+| Target latency | < 3 minutes |
+| Measurements | Calcium score (Agatston), stenosis grading per vessel |
+| Classification | CAD-RADS |
+| Plaque analysis | Low-attenuation plaque, positive remodeling detection |
+| Vessel coverage | LAD, LCx, RCA, Left Main |
+| Cross-modal trigger | High-risk findings trigger FH gene queries (LDLR, PCSK9, APOB) |
+
+### 5.4 CXR Rapid Findings
 
 | Attribute | Value |
 |---|---|
 | Target latency | < 30 seconds |
-| Model | DenseNet-121 multi-label classification |
+| Model | DenseNet-121 multi-label classification (CheXpert pretrained) |
 | Findings | Consolidation, effusion, pneumothorax, cardiomegaly, atelectasis, edema, nodule |
 | Localization | GradCAM heatmap overlay |
 | Output | Multi-label findings with confidence scores |
 
-### 5.4 MRI Brain MS Lesion Tracking
+### 5.5 MRI Brain MS Lesion Tracking
 
 | Attribute | Value |
 |---|---|
 | Target latency | < 5 minutes |
-| Model | 3D U-Net on FLAIR sequences |
+| Model | UNEST (MONAI wholeBrainSeg_Large_UNEST_segmentation) |
 | Registration | SyN diffeomorphic (ANTsPy) |
 | Longitudinal | Lesion matching, new/enlarged/resolved classification |
 | Metrics | Total lesion volume, lesion count, lesion change rate |
-
-### 5.5 CT Coronary Angiography
-
-| Attribute | Value |
-|---|---|
-| Target latency | < 5 minutes |
-| Capability | Calcium scoring, stenosis grading, coronary artery analysis |
-| Classification | Agatston score categories, stenosis severity grading |
+| Disease activity | Stable / Active / Highly Active |
 
 ### 5.6 MRI Prostate PI-RADS
 
 | Attribute | Value |
 |---|---|
 | Target latency | < 5 minutes |
-| Capability | Prostate lesion detection and PI-RADS v2.1 classification |
-| Classification | PI-RADS 1-5 scoring |
+| Classification | PI-RADS v2.1 scoring |
+| Assessment | Lesion characterization, zone localization |
+| Output | PI-RADS score, lesion details, biopsy recommendation |
 
 ---
 
@@ -295,6 +324,22 @@ Configurable in `config/settings.py` (must sum to ~1.0):
 | GET | `/workflow/{name}/info` | -- | `WorkflowInfo` (modality, body_region, target_latency, models) |
 | POST | `/workflow/{name}/run` | `WorkflowRunRequest` (input_path, mock_mode) | `WorkflowRunResponse` (findings, measurements, classification, severity) |
 
+### Demo Case Endpoints
+
+| Method | Path | Request Body | Response |
+|---|---|---|---|
+| GET | `/demo-cases` | -- | List of 4 demo case metadata |
+| POST | `/demo-cases/{id}/run` | -- | Workflow result + genomic context + talking points |
+
+### Protocol and Dose Endpoints
+
+| Method | Path | Request Body | Response |
+|---|---|---|---|
+| POST | `/protocol/recommend` | indication, patient_age, patient_weight_kg | Protocol recommendation with AI optimization |
+| GET | `/dose/reference` | -- | All 20 dose comparison protocols |
+| GET | `/dose/summary` | -- | Summary statistics (avg/max/min reduction by modality) |
+| GET | `/dose/comparison/{region}` | -- | Dose comparison for specific body region |
+
 ### Report Endpoints
 
 | Method | Path | Request Body | Response |
@@ -322,29 +367,33 @@ Configurable in `config/settings.py` (must sum to ~1.0):
 
 ## 7. UI Features
 
-### Streamlit 9-Tab Interface (port 8525)
+### Streamlit Imaging Workbench (port 8525)
 
-| Tab | Key Features |
-|---|---|
-| **Evidence Explorer** | 4 pre-filled example query buttons, Plotly donut chart (collection contribution), multi-turn conversation with context memory, evidence expander with relevance badges, comparative analysis auto-detected for "X vs Y" queries |
-| **Workflow Runner** | 6 workflows across 4 demo cases (DEMO-001 through DEMO-004), annotated AI images displayed alongside clinical metrics (55/45 layout), 6-step pipeline animation (3.2s total), 4 download buttons (Markdown, JSON, PDF, FHIR R4) |
-| **Image Gallery** | 5 CXR pathology showcase (Normal, Consolidation, Effusion, Cardiomegaly, Pneumothorax), cross-modality gallery, 3D Volume Slice Viewer with HU windowing, Before/After AI toggle |
-| **Protocol Advisor** | 4 pre-filled example indication buttons, protocol recommendations with acquisition parameters |
-| **Device & AI Ecosystem** | FDA-cleared AI/ML medical device catalog, NIM ecosystem overview |
-| **Dose Intelligence** | Radiation dose optimization and tracking |
-| **Reports & Export** | NVIDIA-branded PDF with regex-based markdown-to-HTML conversion, Markdown, JSON, and FHIR R4 DiagnosticReport export |
-| **Patient 360** | Interactive Plotly network graph (3-layer: Case green, Findings orange, Genes cyan), live Milvus genomic query with fallback to demo data |
-| **Benchmarks & Validation** | AI model performance validation with benchmark comparisons |
+**9-tab interface:**
 
-### Sidebar
+1. **Evidence Explorer** -- Multi-collection RAG queries with pre-filled example queries. Auto-detects comparative queries ("CT vs MRI") and produces structured comparison tables. Evidence sources display collection badges and cosine similarity scores.
 
-- **Guided Tour:** Expander with 9-step demo flow and dismiss button
-- **OHIF Viewer:** Link to OHIF DICOM viewer
-- **Demo Mode:** Button to activate demo mode with pre-loaded cases
-- **NIM Status:** Real-time service availability indicators (2x2 grid)
-- **Collection Stats:** Metric widgets for each collection
-- **Filters:** Modality, Body Region dropdowns, Year Range slider
-- **NVIDIA Theme:** Dark/green branded styling
+2. **Workflow Runner** -- Execute 6 reference workflows via 4 pre-loaded demo cases (DEMO-001 through DEMO-004). Features 6-step pipeline animation showing the processing stages, annotated AI images with overlay results, and mock/live mode toggle.
+
+3. **Image Gallery** -- Showcase of 5 CXR pathology images (cardiomegaly, pleural effusion, pneumothorax, consolidation, atelectasis) with AI annotations. Cross-modality gallery and 3D volume slice viewer for CT/MRI data.
+
+4. **Protocol Advisor** -- Patient-specific imaging protocol recommendations based on clinical indication, age, and weight. Pre-filled example queries. AI dose optimization notes with DLIR recommendations.
+
+5. **Device & AI Ecosystem** -- Searchable catalog of 50 FDA-cleared and research AI devices. Filterable by modality (CT, MRI, X-ray, etc.) and clinical task (detection, segmentation, triage).
+
+6. **Dose Intelligence** -- Dashboard comparing standard vs AI-optimized radiation doses across 20 protocols. Plotly bar charts, 36% average dose reduction, DLIR technique details, ALARA compliance.
+
+7. **Reports & Export** -- Generate clinical reports in 4 formats: Markdown (copy-paste), JSON (programmatic), NVIDIA-themed PDF (documentation), FHIR R4 DiagnosticReport Bundle (EHR interoperability with SNOMED CT and LOINC coding).
+
+8. **Patient 360** -- Cross-modal genomic enrichment results showing gene-finding relationships. Interactive Plotly network graph connecting imaging findings to genetic risk factors. Gene details with clinical significance and AlphaMissense scores.
+
+9. **Benchmarks & Validation** -- Plotly donut chart visualizing collection statistics. Model performance benchmarks across workflows. Validation metrics and quality indicators.
+
+**Additional features:**
+- Sidebar guided tour with 9-step demo flow
+- NIM service status indicators (available / mock / unavailable)
+- Multi-turn conversation with context memory (up to 3 exchanges)
+- NVIDIA dark/green themed styling throughout
 
 ---
 
@@ -356,9 +405,9 @@ Configurable in `config/settings.py` (must sum to ~1.0):
 - `milvus-etcd` -- etcd key-value store for Milvus metadata
 - `milvus-minio` -- MinIO object storage for Milvus data
 - `milvus-standalone` -- Milvus 2.4 vector database
-- `imaging-streamlit` -- Streamlit chat UI
+- `imaging-streamlit` -- Streamlit Imaging Workbench (9 tabs)
 - `imaging-api` -- FastAPI REST server
-- `imaging-setup` -- One-shot collection creation and data seeding
+- `imaging-setup` -- One-shot collection creation and data seeding (876 vectors)
 - `orthanc` -- Orthanc DICOM server (PACS, port 8042 HTTP / 4242 DICOM)
 - `nim-llm` -- Meta Llama-3 8B Instruct
 - `nim-vista3d` -- NVIDIA VISTA-3D segmentation
@@ -396,6 +445,7 @@ All configuration via Pydantic `BaseSettings` in `config/settings.py`. Environme
 | `EMBEDDING_MODEL` | BAAI/bge-small-en-v1.5 | Embedding model name |
 | `EMBEDDING_DIMENSION` | 384 | Embedding vector dimension |
 | `LLM_PROVIDER` | anthropic | LLM provider (anthropic or nim) |
+| `ANTHROPIC_API_KEY` | -- | Claude API key (required for primary LLM) |
 | `NIM_MODE` | local | NIM mode: local (Docker) or mock |
 | `NIM_ALLOW_MOCK_FALLBACK` | true | Fall back to mock when NIM unavailable |
 | `TOP_K_PER_COLLECTION` | 5 | Default results per collection |
@@ -409,22 +459,24 @@ All configuration via Pydantic `BaseSettings` in `config/settings.py`. Environme
 
 | Metric | Count |
 |---|---|
-| Seed imaging vectors | 876 (across 10 owned collections) |
-| Genomic evidence vectors | 3,561,170 (read-only) |
+| Seed vectors (10 collections) | 876 |
+| Genomic evidence vectors | 3,561,170 |
+| Milvus collections (owned) | 10 |
+| Milvus collections (shared) | 1 (genomic_evidence, read-only) |
 | Reference workflows | 6 |
 | Demo cases | 4 (DEMO-001 through DEMO-004) |
-| Streamlit tabs | 9 |
-| AI-annotated images | 9 (5 CXR + 3 CT + 1 bilateral pneumonia) |
-| Unit tests | 620 |
-| E2E validation checks | 9/9 |
+| UI tabs | 9 |
 | Docker services (full) | 13 |
 | Docker services (lite) | 6 |
+| CXR pathology images | 5 |
+| Dose comparison protocols | 20 |
+| AI device catalog entries | 50 |
 
 ---
 
 ## 11. Phase 2 Roadmap
 
-### Implemented (Phase 1.2)
+### Implemented (Phase 1.1 -- March 2026)
 
 | Feature | Description | Status |
 |---|---|---|
@@ -434,6 +486,11 @@ All configuration via Pydantic `BaseSettings` in `config/settings.py`. Environme
 | Federated Learning | NVIDIA FLARE configs: 3 jobs, multi-site, mTLS, HE (see `flare/`) | Implemented |
 | Cloud NIM Inference | NVIDIA Cloud NIMs via integrate.api.nvidia.com (Llama-3.1-8B + Llama-3.2-11B-Vision) | Implemented |
 | Real Pretrained Weights | CheXpert DenseNet-121, MONAI RetinaNet, SegResNet, UNEST | Implemented |
+| 9-Tab Streamlit Workbench | Evidence Explorer, Workflow Runner, Image Gallery, Protocol Advisor, Device & AI Ecosystem, Dose Intelligence, Reports & Export, Patient 360, Benchmarks & Validation | Implemented |
+| Image Gallery | 5 CXR pathology showcase, 3D volume viewer | Implemented |
+| Demo Cases | 4 pre-loaded clinical scenarios (DEMO-001 through DEMO-004) | Implemented |
+| 6 Workflows | Added CT Coronary Angiography and MRI Prostate PI-RADS | Implemented |
+| Guided Tour | Sidebar 9-step demo walkthrough | Implemented |
 
 ### Planned (Phase 2)
 
@@ -443,7 +500,9 @@ All configuration via Pydantic `BaseSettings` in `config/settings.py`. Environme
 | Population Analytics | Cohort-level imaging trends and outcomes | Planned |
 | LangGraph Agent | Multi-step reasoning with human-in-the-loop | Planned |
 | Live Local NIM Inference | Local GPU deployment of VISTA-3D, MAISI, VILA-M3 | NIM clients ready |
+| BI-RADS Mammography | Mammography workflow with BI-RADS classification | Planned |
+| Multi-GPU Scaling | DGX B200 multi-GPU inference | Planned |
 
 ---
 
-*This document serves as the complete implementation specification for the Imaging Intelligence Agent. For architecture details see `ARCHITECTURE_GUIDE.md`. For NIM setup see `NIM_INTEGRATION_GUIDE.md`.*
+*This document serves as the complete implementation specification for the Imaging Intelligence Agent. For architecture details see the Design Document. For demo walkthrough see the Demo Guide.*

@@ -1,7 +1,7 @@
 # Breaking Down Data Silos in CAR-T Cell Therapy Development: A Multi-Collection RAG Architecture for Cross-Functional Intelligence
 
 **Author:** Adam Jones
-**Date:** February 2026
+**Date:** March 2026
 **Version:** 1.2.0
 **License:** Apache 2.0
 

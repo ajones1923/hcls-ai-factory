@@ -2,7 +2,7 @@
 
 **HCLS AI Factory / ai_agent_adds / precision_oncology_agent**
 
-Version 1.0.0 | February 2026 | Author: Adam Jones
+Version 1.0.0 | March 2026 | Author: Adam Jones
 
 ---
 
@@ -328,7 +328,7 @@ ONCO_EMBEDDING_MODEL=BAAI/bge-small-en-v1.5
 ONCO_EMBEDDING_DIM=384
 
 # === LLM ===
-ONCO_LLM_MODEL=claude-sonnet-4-20250514
+ONCO_LLM_MODEL=claude-sonnet-4-6
 
 # === API ===
 ONCO_API_PORT=8527
@@ -511,7 +511,7 @@ which use their standard names).
 |----------|---------|-------------|
 | `ANTHROPIC_API_KEY` | _(none)_ | **Required** for LLM features. Anthropic API key. |
 | `ONCO_LLM_PROVIDER` | `anthropic` | LLM provider identifier. |
-| `ONCO_LLM_MODEL` | `claude-sonnet-4-20250514` | Claude model to use for RAG answer generation. |
+| `ONCO_LLM_MODEL` | `claude-sonnet-4-6` | Claude model to use for RAG answer generation. |
 
 ### 5.4 RAG Search Settings
 
@@ -1703,7 +1703,7 @@ Intelligence Agent, sorted alphabetically within categories.
 | `ONCO_EMBEDDING_BATCH_SIZE` | `32` | Embedding batch size |
 | `ONCO_EMBEDDING_DIM` | `384` | Embedding vector dimension |
 | `ONCO_EMBEDDING_MODEL` | `BAAI/bge-small-en-v1.5` | HuggingFace embedding model |
-| `ONCO_LLM_MODEL` | `claude-sonnet-4-20250514` | Claude model name |
+| `ONCO_LLM_MODEL` | `claude-sonnet-4-6` | Claude model name |
 | `ONCO_LLM_PROVIDER` | `anthropic` | LLM provider |
 
 ### RAG Search

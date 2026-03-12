@@ -4,16 +4,16 @@ search:
 tags:
   - Demo
   - Walkthrough
-  - Imaging
-  - Radiology
-  - DICOM
-  - NIM
+  - Medical Imaging
+  - Radiology AI
+  - Clinical Decision Support
 ---
 
-# Imaging Intelligence Agent — Demo Guide
+# Imaging Intelligence Agent -- Demo Guide
 
-> **Step-by-step walkthrough for demonstrating the Imaging Intelligence Agent on DGX Spark.**
-> All live-demo interaction uses the Streamlit UI at `http://localhost:8525` — no terminal commands during the presentation.
+> **UI-driven walkthrough for demonstrating the Imaging Intelligence Agent on DGX Spark.**
+>
+> All live demo interaction uses the Streamlit Imaging Workbench -- no terminal commands during the presentation.
 >
 > License: Apache 2.0 | Date: March 2026
 
@@ -23,76 +23,50 @@ tags:
 
 | Parameter | Value |
 |---|---|
-| **Route A Duration** | 20 minutes (standalone agent) |
-| **Route B Duration** | 30-35 minutes (cross-platform integration) |
+| **Total Duration** | 25 minutes |
 | **Hardware** | NVIDIA DGX Spark (GB10, 128 GB unified) |
-| **Clinical Workflows** | 6 (CT hemorrhage, CT lung nodule, CT coronary angiography, CXR findings, MRI MS lesion, MRI prostate PI-RADS) |
-| **NIM Services** | 4 (VISTA-3D, MAISI, VILA-M3, Llama-3 8B) |
-| **Knowledge Base** | 876 seed imaging vectors across 10 owned collections + shared genomic_evidence (read-only) |
-| **Collections** | imaging_literature, imaging_trials, imaging_findings, imaging_protocols, imaging_devices, imaging_anatomy, imaging_benchmarks, imaging_guidelines, imaging_report_templates, imaging_datasets + shared genomic_evidence (read-only) |
-| **Export Formats** | Markdown, JSON, PDF, FHIR R4 DiagnosticReport |
-| **Tests** | 620 |
+| **Total Vectors** | 876 seed vectors across 10 owned collections |
+| **Streamlit URL** | `http://localhost:8525` |
+| **API URL** | `http://localhost:8524` |
+| **LLM** | Claude Sonnet 4.6 (Anthropic) |
+| **Milvus** | `http://localhost:19530` |
+| **Collections** | 10 owned + 1 shared `genomic_evidence` |
+| **Workflows** | 6 (CT Head Hemorrhage, CT Chest Lung Nodule, CT Coronary Angiography, CXR Rapid Findings, MRI Brain MS Lesion, MRI Prostate PI-RADS) |
 
 ### What the Audience Will See
 
-1. A 9-tab Streamlit interface with 876 seed vectors across 10 imaging collections
-2. Four NVIDIA NIM microservices running on-device with automatic fallback logic
-3. **Image Gallery** with 5 CXR pathology showcase, cross-modality gallery, 3D Volume Slice Viewer with HU windowing, and Before/After AI toggle
-4. A CT head scan triaged in seconds -- hemorrhage volume, midline shift, and urgency routing (DEMO-001)
-5. A chest CT with lung nodules classified by ACR Lung-RADS with automated follow-up scheduling (DEMO-002)
-6. CT coronary angiography with calcium scoring and stenosis grading (DEMO-003)
-7. A chest X-ray with bilateral pneumonia -- AI-annotated images alongside clinical metrics (DEMO-004)
-8. **Evidence Explorer** with 4 pre-filled example query buttons and Plotly donut chart showing collection contribution
-9. **Patient 360** with interactive Plotly network graph (3-layer: Case green, Findings orange, Genes cyan) and live Milvus genomic query
-10. **Workflow Runner** with 6-step pipeline animation (3.2s total), annotated AI images in 55/45 layout, and 4 download buttons (Markdown, JSON, PDF, FHIR R4)
-11. Reports exported as Markdown, JSON, PDF (NVIDIA-branded), and FHIR R4 DiagnosticReport Bundles with SNOMED CT, LOINC, and DICOM coding
-12. Sidebar with guided tour expander (9-step demo flow), OHIF Viewer link, and Demo Mode button
-13. *(Route B)* A lung nodule triggering cross-modal genomic queries against 3.5 million variant vectors
-14. *(Route B)* The complete pipeline: DICOM study -> imaging AI -> genomic trigger -> target identification -> drug candidates
+1. Four pre-loaded clinical demo cases run through imaging AI workflows with mock-realistic results
+2. Cross-modal genomic enrichment linking imaging findings to genetic risk factors via the shared `genomic_evidence` collection
+3. Image Gallery with AI-annotated CXR showcase, cross-modality gallery, and 3D volume slice viewer
+4. Interactive Plotly network graph in Patient 360 showing gene-finding relationships
+5. Multi-collection RAG queries across 10 imaging-specific knowledge bases with Claude-synthesized answers and citations, with pre-filled example queries in Evidence Explorer and Protocol Advisor
+6. Automatic comparative analysis triggered by natural language -- "CT vs MRI" produces structured comparison tables
+7. Patient-specific imaging protocol recommendations with AI-optimized dose reduction
+8. A landscape of 50 FDA-cleared and research AI devices filterable by modality and clinical task
+9. Dose intelligence showing 36% average radiation dose reduction across 20 protocols via DLIR
+10. 6-step pipeline animation in Workflow Runner with annotated AI images
+11. Sidebar guided tour with 9-step demo flow
+12. Professional reports exported as Markdown, JSON, NVIDIA-themed PDF, and FHIR R4 DiagnosticReport Bundles
 
 ---
 
 ## Pre-Demo Setup
 
-### Step 1: Verify Hardware
+### Step 1: Verify Milvus Running
 
 ```bash
-# Verify DGX Spark GPU
-nvidia-smi
-# Expected: GB10 GPU, 128 GB unified memory
-
-# Verify ARM64 architecture
-uname -m
-# Expected: aarch64
+curl -s http://localhost:19530/v1/vector/collections
+# Expected: JSON response listing imaging collections
 ```
 
-### Step 2: Set Environment Variables
+### Step 2: Verify Docker Containers
 
 ```bash
-cp .env.example .env
-
-# Required variables:
-# ANTHROPIC_API_KEY=sk-ant-...     (for Claude RAG synthesis)
-# IMAGING_NVIDIA_API_KEY=nvapi-... (for NVIDIA Cloud NIM fallback)
-# IMAGING_NGC_API_KEY=...          (for local NIM containers)
+docker ps | grep imaging
+# Expected: imaging-intelligence-agent containers running (API + Streamlit)
 ```
 
-### Step 3: Start Services
-
-```bash
-cd ai_agent_adds/imaging_intelligence_agent/agent
-docker compose up -d
-
-# This starts 13 services:
-# Milvus (etcd + MinIO + standalone)
-# 4 NIM containers (VISTA-3D, MAISI, VILA-M3, Llama-3)
-# FastAPI server (port 8524)
-# Streamlit UI (port 8525)
-# Orthanc DICOM server (ports 8042/4242)
-# Prometheus + Grafana
-```
-
-### Step 4: Verify All Services Healthy
+### Step 3: Health Check
 
 ```bash
 curl -s http://localhost:8524/health | python3 -m json.tool
@@ -104,831 +78,623 @@ Expected response:
 {
   "status": "healthy",
   "collections": {
-    "imaging_literature": 2678,
-    "imaging_trials": 12,
-    "imaging_findings": 25,
-    "imaging_protocols": 15,
-    "imaging_devices": 15,
-    "imaging_anatomy": 20,
-    "imaging_benchmarks": 15,
-    "imaging_guidelines": 12,
-    "imaging_report_templates": 10,
-    "imaging_datasets": 12,
-    "genomic_evidence": 3561170
+    "imaging_literature": 50,
+    "imaging_trials": 40,
+    "imaging_findings": 50,
+    "imaging_protocols": 40,
+    "imaging_devices": 50,
+    "imaging_anatomy": 30,
+    "imaging_benchmarks": 40,
+    "imaging_guidelines": 40,
+    "imaging_report_templates": 50,
+    "imaging_datasets": 50
   },
-  "total_vectors": 3563984,
+  "total_vectors": 440,
   "nim_services": {
-    "vista3d": "available",
+    "vista3d": "mock",
     "maisi": "mock",
-    "vila_m3": "cloud",
+    "vila_m3": "mock",
     "llm": "anthropic"
   }
 }
 ```
 
-All 11 collections should have non-zero counts. Total vectors should be ~3.56M.
+All 10 collections should have non-zero counts. NIM services will show `mock` unless NVIDIA API keys are configured; the LLM should show `anthropic`.
 
-### Step 5: Verify Orthanc DICOM Server
+### Step 4: Verify Streamlit
 
 ```bash
-curl -s http://localhost:8042/system | python3 -m json.tool
-# Expected: Orthanc version, DICOM AET, storage info
+curl -s http://localhost:8525/_stcore/health
+# Expected: "ok"
 ```
 
-### Step 6: Open the Imaging Agent UI
+### Step 5: Verify ANTHROPIC_API_KEY
 
-Open **http://localhost:8525** in your browser. Confirm the Streamlit UI loads with nine tabs (Evidence Explorer, Workflow Runner, Image Gallery, Protocol Advisor, Device & AI Ecosystem, Dose Intelligence, Reports & Export, Patient 360, Benchmarks & Validation) and the sidebar shows NIM service status indicators, collection stats, guided tour expander, and OHIF Viewer link.
+```bash
+echo $ANTHROPIC_API_KEY | head -c 10
+# Expected: sk-ant-api (first 10 characters of your key)
+```
 
----
+### Step 6: Open Browser Tabs
 
-## Demo Script: Route A — Standalone Agent Demo (20 minutes)
+Before starting the live demo, open the following tabs in your browser so you can switch between them without typing URLs:
 
-### Route A Timeline
-
-| Step | Time | Tab / Location | Action |
-|------|------|---------------|--------|
-| Opening | 1 min | Landing page `:8080` | Show health grid, Imaging + NIM services green |
-| NIM Status | 1 min | Sidebar `:8525` | Show NIM service status, guided tour, OHIF link |
-| Workflow 1 | 3 min | Workflow Runner tab | DEMO-001: CT Head -- Hemorrhage Detection, 6-step animation |
-| Workflow 2 | 3 min | Workflow Runner tab | DEMO-002: CT Chest -- Lung Nodule Analysis |
-| Workflow 3 | 2 min | Workflow Runner tab | DEMO-003: CT Coronary Angiography |
-| Workflow 4 | 2 min | Workflow Runner tab | DEMO-004: CXR -- Bilateral Pneumonia |
-| Image Gallery | 2 min | Image Gallery tab | 5 CXR pathology showcase, 3D Volume Viewer, Before/After AI toggle |
-| Evidence Q&A | 3 min | Evidence Explorer tab | Use pre-filled example query buttons, show donut chart |
-| Patient 360 | 2 min | Patient 360 tab | Show interactive network graph with genomic links |
-| Reports | 1 min | Reports & Export tab | Export NVIDIA-branded PDF report |
-| Closing | 2 min | -- | Talking points |
-
----
-
-### Opening (1 minute)
-
-**Show:** Landing page at http://localhost:8080 -- highlight the service health grid with Imaging Agent and NIM services showing green.
-
-**Talking points:**
-
-- "This is the Imaging Intelligence Agent -- it processes CT, MRI, and chest X-ray studies using NVIDIA NIM microservices with 876 seed vectors across 10 imaging collections."
-- "Six clinical workflows run real pretrained model weights across 4 demo cases, with a 9-tab Streamlit interface."
-- "Everything runs on a single DGX Spark -- a $3,999 desktop workstation with 128 GB unified memory."
-
----
-
-### NIM Service Status (1 minute)
-
-**Show:** Imaging Agent UI at http://localhost:8525
-
-**Look at:** The sidebar on the left. The **NIM Services** section displays four services in a 2x2 grid with color-coded indicators:
-
-- **VISTA-3D** -- green (available locally)
-- **MAISI** -- yellow (mock mode)
-- **VILA-M3** -- green (cloud fallback)
-- **Llama-3 / Claude** -- green (Anthropic Claude)
-
-**Expected result:** Four NIM services listed with green/yellow indicators. No red (unavailable) indicators.
-
-**Talking points:**
-
-- "Four NVIDIA NIM microservices: VISTA-3D for 3D segmentation, MAISI for synthetic CT generation, VILA-M3 for vision-language understanding, and Llama-3 for text generation."
-- "The system supports three modes -- local GPU, NVIDIA Cloud, or clinically realistic mock -- with automatic fallback. No single point of failure."
-
-**Look at:** Below the NIM status, the **Collection Stats** section shows all 10 imaging collections plus the shared `genomic_evidence` collection. Each collection displays its vector count as a Streamlit metric widget. Point out the total vector count of ~3.56M.
-
-**Look at:** Below the collection stats, the **Filters** section shows Modality and Body Region dropdowns (both defaulted to "All"), a Year Range slider (2015-2026), and individual collection checkboxes under **Collections to Search** (all checked by default).
-
----
-
-### Workflow 1: CT Head Hemorrhage Triage (3 minutes)
-
-**Click:** The **Workflow Runner** tab in the main content area.
-
-**Select:** From the "Select workflow" dropdown, choose **"CT Head -- Hemorrhage Detection"**.
-
-**Expected result:** Three metric columns appear below the dropdown:
-
-- **Modality:** CT
-- **Body Region:** Head
-- **Target Latency:** 90s
-
-Below the metrics, a **Models used** line shows the models for this workflow.
-
-**Click:** The **"Run Demo"** button (blue primary button).
-
-**Expected result:** A spinner reads "Running CT Head -- Hemorrhage Detection..." and then the result panel appears with:
-
-- A green status icon and workflow name header
-- Completion time in milliseconds with a "(mock)" label
-- **Severity:** orange "URGENT" badge
-- **Classification:** `urgent_hemorrhage`
-- **Findings** section with a finding card: "Intraparenchymal hemorrhage in right basal ganglia, volume 12.5 mL, midline shift 3.2 mm" and a blue info box with the surgical consultation recommendation
-- **Measurements** section with metric widgets for volume, midline shift, max thickness, Hounsfield mean/max, and surrounding edema
-- A collapsible "Raw Result (JSON)" expander at the bottom
-
-**Click:** The **"Raw Result (JSON)"** expander to show the full JSON output for technical audiences.
-
-**Talking points:**
-
-- "A CT head scan is triaged in under 90 seconds. The SegResNet model segments the hemorrhage and measures volume, midline shift, and maximum thickness."
-- "12.5 mL with 3.2 mm midline shift -- this is classified as 'urgent' using Brain Trauma Foundation criteria."
-- "Critical cases (>30 mL or >5 mm shift) get immediate surgical routing. This one gets urgent neurosurgical consultation."
-
-**Key metrics:**
-
-| Measurement | Value | Clinical Significance |
+| Tab | URL | Used In |
 |---|---|---|
-| Hemorrhage volume | 12.5 mL | Above 5 mL threshold --> urgent |
-| Midline shift | 3.2 mm | Below 5 mm critical threshold |
-| Max thickness | 8.1 mm | Localized hemorrhage |
-| Hounsfield (mean) | 62 HU | Consistent with acute blood |
+| Imaging Agent UI | http://localhost:8525 | All steps |
+| Imaging Agent API docs | http://localhost:8524/docs | Reference only |
+| Landing Page | http://localhost:8080 | Opening context |
 
 ---
 
-### Workflow 2: CT Chest Lung Nodule Tracking (3 minutes)
+## Route A: Guided Demo Cases (15 minutes)
 
-**Select:** From the "Select workflow" dropdown, choose **"CT Chest -- Lung Nodule Analysis"**.
-
-**Expected result:** The metric columns update to show CT modality, Chest body region, and the target latency for this workflow.
-
-**Click:** The **"Run Demo"** button.
-
-**Expected result:** The result panel shows nodule detection with Lung-RADS classification, volume measurements, and follow-up scheduling. A severity badge and classification label appear at the top. The Findings section lists each detected nodule with its description and recommendation. The Measurements section shows nodule dimensions and volume.
-
-**Talking points:**
-
-- "RetinaNet detects lung nodules and SegResNet segments each one for precise volume measurement."
-- "ACR Lung-RADS v2022 classification -- the same system radiologists use -- automatically applied."
-- "Lung-RADS 4A or higher triggers cross-modal genomic queries. We'll see that in Route B."
-- "Volume doubling time is calculated for longitudinal tracking using diffeomorphic registration."
-
----
-
-### Workflow 3: CXR Rapid Findings (2 minutes)
-
-**Select:** From the "Select workflow" dropdown, choose **"CXR -- Rapid Findings Triage"**.
-
-**Click:** The **"Run Demo"** button.
-
-**Expected result:** The result panel shows multi-label findings with confidence scores and GradCAM attention regions. Each finding is listed with its severity icon and description. The Measurements section shows confidence scores for each detected pathology.
-
-**Talking points:**
-
-- "DenseNet-121 pretrained on CheXpert -- multi-label classification in under 30 seconds."
-- "Findings include consolidation, effusion, pneumothorax, cardiomegaly, atelectasis, edema, and nodules."
-- "Each finding includes a confidence score. GradCAM heatmaps show exactly where the model is looking."
-- "Critical findings like tension pneumothorax get immediate urgency routing."
-
----
-
-### Workflow 4: MRI Brain MS Lesion Tracking (2 minutes)
-
-**Select:** From the "Select workflow" dropdown, choose **"MRI Brain -- MS Lesion Quantification"**.
-
-**Click:** The **"Run Demo"** button.
-
-**Expected result:** The result panel shows lesion counts, total lesion volume, disease activity classification, and longitudinal comparison. The severity badge reflects the disease activity level. Measurements include lesion count, total volume, and new/enlarging lesion counts.
-
-**Talking points:**
-
-- "UNEST segments white matter lesions from FLAIR MRI sequences."
-- "Longitudinal matching tracks individual lesions across timepoints using ANTsPy diffeomorphic registration."
-- "Disease activity is classified as Stable, Active, or Highly Active based on new and enlarging lesion counts."
-- "Highly Active disease triggers neurological genomics queries -- HLA-DRB1 and demyelination markers."
-
----
-
-### RAG Knowledge Query (3 minutes)
-
-**Click:** The **Evidence Explorer** tab.
-
-**Click** one of the **4 pre-filled example query buttons** (e.g., "AI-assisted CT sensitivity for pulmonary nodule detection"), or type a custom query.
-
-**Expected result:** A spinner reads "Searching collections..." as the RAG engine retrieves evidence. Then Claude's synthesized answer streams into the chat message area with grounded citations from PubMed and clinical guidelines. Below the answer, a **Plotly donut chart** shows the collection contribution breakdown. A collapsible **Evidence** expander shows the collection breakdown -- Literature, Guidelines, Trials, Benchmarks -- each with hit counts and relevance scores. Each evidence hit displays a colored relevance indicator (green = high, yellow = medium, white = low), the hit ID, score, and a text preview.
-
-**Talking points:**
-
-- "The Evidence Explorer provides 4 pre-filled example queries so you can dive straight in -- no typing needed."
-- "The Plotly donut chart visualizes which collections contributed evidence to the answer."
-- "BGE-small-en-v1.5 embeddings with asymmetric query encoding -- retrieval completes in under 20 milliseconds."
-- "Claude Sonnet 4.6 synthesizes a grounded answer with clickable PubMed and ClinicalTrials.gov citations."
-- "Follow-up questions are automatically generated based on the topic area."
-
-**Show:** Click the **Evidence** expander to reveal the collection labels (Literature, Guidelines, Trials, Benchmarks) and the relevance scores next to each retrieved chunk. Point out the donut chart and how evidence is grouped by collection with hit counts.
-
----
-
-### Comparative Analysis (auto-detected within Evidence Explorer)
-
-Comparative analysis is now auto-detected within the **Evidence Explorer** tab. When a query contains "X vs Y" or comparative language, the system automatically runs dual retrieval and presents a side-by-side comparison with synthesized results.
-
-**Type this query in the Evidence Explorer tab:**
-> CT vs MRI for brain hemorrhage detection
-
-**Expected result:** The system auto-detects the comparative query and presents side-by-side evidence for CT and MRI, with a synthesized comparison from Claude.
-
-**Talking points:**
-
-- "Comparative analysis is now auto-detected -- no separate tab needed. Just ask a comparison question in Evidence Explorer."
-- "CT remains the gold standard for acute hemorrhage detection -- faster acquisition, higher sensitivity for acute blood."
-- "MRI offers superior contrast resolution for subacute and chronic hemorrhage, and detects microbleeds CT misses."
-- "The Plotly donut chart shows which collections contributed evidence to each side."
-
----
-
-### Multi-Format Report Export (1 minute)
-
-**Click:** The **Reports & Export** tab.
-
-**Expected result:** The Report Export interface loads with four download buttons: "Export Markdown", "Export JSON", "Export PDF", and "Export FHIR R4". If no conversation history exists, an info message reads "No conversation history to export. Ask a question in the Evidence Explorer tab first." (Since we asked a question in the Evidence Explorer tab, the buttons should be active.)
-
-**Click:** The **"Export PDF"** button.
-
-**Expected result:** A **"Download .pdf"** button appears below the Export PDF button with the filename `imaging_report_YYYYMMDD_HHMMSS.pdf`.
-
-**Click:** The **"Download .pdf"** button to save the PDF locally.
-
-**Talking points:**
-
-- "Four export formats: Markdown for human reading, JSON for dashboards, PDF for clinical documentation, and FHIR R4 for EHR integration."
-- "The FHIR R4 DiagnosticReport Bundle includes Patient, ImagingStudy, Observation, and DiagnosticReport resources."
-- "Every finding is coded with SNOMED CT, LOINC, and DICOM standard terminologies -- ready for Epic, Cerner, or any FHIR-compliant EHR."
-- "Measurements include UCUM units -- milliliters for volume, millimeters for shift."
-
-**Key export formats:**
-
-| Format | Use Case | Standards |
-|---|---|---|
-| Markdown | Human-readable clinical report | -- |
-| JSON | Programmatic consumption, dashboards | -- |
-| PDF | Clinical documentation, patient records | ReportLab styled |
-| FHIR R4 | EHR integration, data exchange | SNOMED CT, LOINC, DICOM, HL7 v3, UCUM |
-
----
-
-### Closing Route A (2 minutes)
-
-**Talking points:**
-
-- "Six clinical workflows, four NVIDIA NIMs, 10 knowledge collections with 876 seed vectors, 9-tab UI -- all on a single $3,999 DGX Spark."
-- "From DICOM ingestion to clinical report in under 90 seconds for the most urgent cases."
-- "Mock mode works identically to live mode -- swap in real DICOM data and the same pipeline runs real model weights."
-
----
-
-## Demo Script: Route B — Cross-Platform Integration Demo (30-35 minutes)
-
-> **Prerequisite:** Complete Route A first, or start from a fresh session with all services running.
+> **These four cases demonstrate the full imaging AI workflow: detection, classification, measurement, and cross-modal genomic enrichment.**
 >
-> This route demonstrates how the Imaging Intelligence Agent connects to the full HCLS AI Factory -- genomics, RAG-grounded target identification, and AI-driven drug discovery -- creating a closed-loop precision medicine workflow.
+> All cases use pre-loaded mock data that runs without live DICOM images or NIM GPU services.
 
-### Route B Timeline
+### Step 1: Emergency Stroke (5 minutes)
 
-| Step | Time | Tab / Location | Action |
-|------|------|---------------|--------|
-| Platform Overview | 2 min | Landing page `:8080` | Show health grid, all platform services |
-| Shared Data Layer | 2 min | Sidebar `:8525` | Show collection stats, highlight genomic_evidence |
-| Lung Nodule + Cross-Modal | 7 min | Workflow Runner tab `:8525` | Select "CT Chest -- Lung Nodule Analysis", show cross-modal trigger |
-| FHIR Export | 2 min | Reports & Export tab `:8525` | Export report with genomic context |
-| Bridge to Stage 2 | 5 min | RAG Chat `:8501` | Type genomic bridge query |
-| Bridge to Stage 3 | 4 min | Drug Discovery `:8505` | Show EGFR target pipeline |
-| DICOM Auto-Routing | 3 min | -- | Talking points about Orthanc webhook architecture |
-| Complete Pipeline | 3 min | -- | Walk through full pipeline diagram |
-| Closing | 2 min | -- | Talking points |
+**Click:** the **Workflow Runner** tab (the second tab) in the Streamlit UI at `http://localhost:8525`.
 
----
+**Select:** "DEMO-001: Emergency Stroke: Acute Intracranial Hemorrhage" from the demo case dropdown.
 
-### Platform Overview (2 minutes)
+**Expected result:** The clinical scenario populates:
 
-**Show:** HCLS AI Factory landing page at http://localhost:8080
+> 62-year-old male presents to ED with sudden onset severe headache, left-sided weakness, and slurred speech. GCS 12. History of uncontrolled hypertension and type 2 diabetes. BP 195/110 on arrival. Non-contrast CT head ordered stat for acute stroke workup.
+
+**Click:** the **Run** button.
+
+**Expected result:** The workflow executes the `ct_head_hemorrhage` pipeline and displays:
+
+- **Hemorrhage Detection:** Intraparenchymal hemorrhage detected
+- **Location:** Right basal ganglia extending to internal capsule
+- **Volume:** 28.5 mL (ABC/2 method)
+- **Midline Shift:** 4.8 mm
+- **Max Thickness:** 42.0 mm
+- **Hounsfield Units:** Mean 65, Max 82
+- **Surrounding Edema:** 12.1 mL
+- **Intraventricular Extension:** Present
+- **Fisher Grade:** 3
+- **Severity Classification:** Critical
+
+**Click:** the **Patient 360** tab (the eighth tab).
+
+**Show:** Cross-modal genomic enrichment results linking the hemorrhage finding to genetic risk factors:
+
+- **APOE** -- e4 allele associated with lobar hemorrhage risk and worse outcomes
+- **COL3A1** -- Variants linked to vascular fragility
+- **ACE** -- Insertion/deletion polymorphism affects cerebrovascular risk
 
 **Talking points:**
 
-- "The HCLS AI Factory is a 3-stage precision medicine platform: GPU-accelerated genomics, RAG-grounded target identification, and AI-driven drug discovery."
-- "The Imaging Intelligence Agent is one of several AI agents that extend this platform."
-- "All agents share the same infrastructure -- Milvus vector database, BGE embeddings, Claude LLM -- creating a unified intelligence layer."
+- "AI detected the hemorrhage in under 90 seconds -- faster than radiologist page response time."
+- "Automatic midline shift measurement eliminates subjective assessment. 4.8 mm shift is clinically significant."
+- "Cross-modal genomic enrichment identifies genetic risk factors for hemorrhage recurrence -- APOE, COL3A1, and ACE polymorphisms."
+- "Structured report with ICH Score automatically generated for neurosurgery consult."
 
-**Service overview:**
+---
 
-| Service | Port | Role |
+### Step 2: Lung Cancer Screening (5 minutes)
+
+**Click:** the **Workflow Runner** tab.
+
+**Select:** "DEMO-002: Lung Cancer Screening: Suspicious Nodule Detection" from the demo case dropdown.
+
+**Expected result:** The clinical scenario populates:
+
+> 58-year-old female, 30 pack-year smoking history, undergoing annual low-dose CT lung cancer screening per USPSTF guidelines. Prior screening CT 12 months ago showed a 6mm ground-glass nodule in the right upper lobe (Lung-RADS 3). Follow-up scan ordered.
+
+**Click:** the **Run** button.
+
+**Expected result:** The workflow executes the `ct_chest_lung_nodule` pipeline and displays two nodules:
+
+- **Nodule 1 (Primary):**
+    - Location: Right upper lobe, posterior segment
+    - Type: Part-solid, spiculated margin
+    - Size: 18 mm (long axis) x 14 mm (short axis)
+    - Solid component: 10 mm
+    - Volume: 1,890 mm3 (prior: 680 mm3)
+    - Volume doubling time: 245 days
+    - Density: -450 HU
+    - **Lung-RADS: 4B** -- Tissue sampling recommended
+
+- **Nodule 2 (Incidental):**
+    - Location: Left lower lobe, superior segment
+    - Type: Ground-glass, smooth margin
+    - Size: 5 mm
+    - Volume: 52 mm3
+    - Density: -650 HU
+    - **Lung-RADS: 2** -- Benign appearance, no intervention
+
+**Show:** Genomic enrichment panel linking to driver mutations:
+
+- **EGFR** -- Mutations found in 15-50% of lung adenocarcinomas
+- **ALK** -- Rearrangements in 3-7% of NSCLC
+- **ROS1, KRAS, BRAF, MET** -- Additional targetable driver mutations
+
+**Talking points:**
+
+- "AI tracked nodule growth from 6 mm to 18 mm over 12 months -- volume doubling time of 245 days is concerning for malignancy."
+- "Automatic Lung-RADS 4B classification triggers tissue sampling recommendation per ACR guidelines."
+- "The second nodule (5 mm GGN, Lung-RADS 2) is appropriately classified as benign -- no intervention needed."
+- "Cross-modal genomic query identifies targetable driver mutations: EGFR, ALK, ROS1, KRAS."
+- "Complete screening-to-genomics pipeline: low-dose CT -> AI detection -> Lung-RADS classification -> molecular profiling -> treatment planning."
+
+---
+
+### Step 3: Cardiac Workup (5 minutes)
+
+**Click:** the **Workflow Runner** tab.
+
+**Select:** "DEMO-003: Cardiac Workup: Coronary Artery Disease Assessment" from the demo case dropdown.
+
+**Expected result:** The clinical scenario populates:
+
+> 55-year-old male presents with exertional chest pain and dyspnea on exertion for 3 weeks. Family history of premature CAD (father MI at age 50). BMI 28, total cholesterol 265 mg/dL, LDL 185 mg/dL. Stress test equivocal. Coronary CT angiography ordered for definitive evaluation.
+
+**Click:** the **Run** button.
+
+**Expected result:** The workflow executes the `ct_coronary_angiography` pipeline and displays:
+
+- **Calcium Score:** 385 Agatston (92nd percentile for age/sex)
+- **CAD-RADS Classification:** 4A
+- **Vessel Assessment:**
+    - LAD (proximal): 72% stenosis, mixed plaque -- **significant**
+    - LAD (mid): 40% stenosis, calcified plaque
+    - LCx (proximal): 30% stenosis, calcified plaque
+    - RCA (proximal): 15% stenosis, no plaque
+    - Left Main: 0% stenosis, no plaque
+- **High-Risk Plaque Features:** Low-attenuation plaque, positive remodeling
+- **Ejection Fraction Estimate:** 55%
+- **Severity Classification:** Urgent
+
+**Show:** Genomic enrichment panel linking to familial hypercholesterolemia genes:
+
+- **LDLR** -- Variants cause 60-80% of familial hypercholesterolemia cases
+- **PCSK9** -- Gain-of-function variants increase LDL cholesterol
+- **APOB** -- Defective ligand binding causes FH
+- **LPA** -- Elevated Lp(a) is an independent cardiovascular risk factor
+- **9p21** -- Strongest common CAD risk variant locus
+
+**Talking points:**
+
+- "Calcium score of 385 (92nd percentile for age and sex) -- high atherosclerotic burden quantified in seconds."
+- "AI detected 72% LAD stenosis with high-risk plaque features: low-attenuation plaque and positive remodeling."
+- "CAD-RADS 4A classification automatically generated with guideline-concordant follow-up recommendations."
+- "Cross-modal genomic enrichment identifies familial hypercholesterolemia genes -- LDLR, PCSK9, APOB -- family cascade screening is indicated."
+- "Complete cardiac loop: CTA -> calcium score -> stenosis grading -> genomics -> risk management."
+
+---
+
+## Route B: Interactive Exploration (10 minutes)
+
+> **This route demonstrates the breadth of the knowledge base, protocol intelligence, dose optimization, and export capabilities.**
+
+### Step 4: Evidence Explorer (3 minutes)
+
+**Click:** the **Evidence Explorer** tab (the first tab).
+
+**Type this query** in the "Ask a question" text input:
+
+> What AI models are used for intracranial hemorrhage detection?
+
+**Click:** the **Ask** button.
+
+**Expected result:**
+
+- A markdown answer appears identifying specific models and approaches: CNN-based classifiers, U-Net segmentation, attention-based architectures, and FDA-cleared commercial solutions.
+- Evidence sources display badges from multiple collections: `imaging_literature`, `imaging_devices`, `imaging_benchmarks`, `imaging_findings`.
+- Each source shows its cosine similarity score and a text excerpt.
+- Processing time caption appears at the bottom.
+
+**Show:** The evidence count -- 20+ sources retrieved across multiple collections in a single query.
+
+**Type this comparative query** in the text input:
+
+> CT vs MRI for stroke detection
+
+**Click:** the **Ask** button.
+
+**Expected result:** Claude detects the comparative keywords ("vs") and produces a structured comparison table:
+
+| Dimension | CT | MRI |
 |---|---|---|
-| Landing Page | 8080 | Platform health dashboard |
-| Imaging Agent API | 8524 | FastAPI backend |
-| Imaging Agent UI | 8525 | Streamlit interface |
-| RAG Chat (Stage 2) | 8501 | Genomic variant analysis |
-| Drug Discovery (Stage 3) | 8505 | Molecule generation + docking |
-| Milvus | 19530 | Shared vector database |
-| Orthanc DICOM | 8042 | Medical image server |
+| Speed | Minutes | 30-60 minutes |
+| Sensitivity (acute hemorrhage) | >95% | Lower for acute blood |
+| Sensitivity (ischemic stroke) | Limited (<6h) | High (DWI within minutes) |
+| Availability | Ubiquitous, 24/7 | Limited off-hours |
+| Cost | Lower | Higher |
+| Guideline Role | First-line for acute stroke | Follow-up and characterization |
+
+**Talking points:**
+
+- "One question searched all 10 collections in parallel -- literature, devices, benchmarks, and findings all contributed evidence."
+- "The comparative query was auto-detected. Claude parsed 'CT' and 'MRI' as two entities and ran dual retrieval."
+- "Every claim is backed by a citation with cosine similarity scores."
 
 ---
 
-### Shared Data Layer (2 minutes)
+### Step 5: Protocol Advisor (2 minutes)
 
-**Show:** Imaging Agent UI at http://localhost:8525
+**Click:** the **Protocol Advisor** tab (the third tab).
 
-**Look at:** The sidebar **Collection Stats** section. Point out each of the 10 imaging collections and the shared `genomic_evidence` collection. Each collection shows its vector count as a metric widget. The genomic_evidence collection will show ~3,561,170 vectors.
+**Type this value** in the clinical indication input:
+
+> acute chest pain, rule out pulmonary embolism
+
+**Enter:** Patient age = `45`, Patient weight = `80` kg.
+
+**Click:** the **Recommend Protocol** button.
+
+**Expected result:** A protocol recommendation card displays:
+
+- **Protocol:** CT Pulmonary Angiography (CTPA)
+- **Modality:** CT
+- **Contrast Agent:** Iodinated IV contrast (100 mL, bolus tracking)
+- **Estimated Dose:** Optimized CTDIvol with AI dose reduction percentage
+- **Duration:** Estimated scan time
+- **AI Optimization Notes:** DLIR (Deep Learning Image Reconstruction) recommendations, kVp optimization for patient weight
+- **Alternatives:** V/Q scan (if contrast allergy), D-dimer follow-up (if low pretest probability)
 
 **Talking points:**
 
-- "Look at the `genomic_evidence` collection -- 3,561,170 vectors. These are real patient variants from the genomics pipeline."
-- "The Imaging Agent reads this collection in read-only mode. The same vectors are used by Stage 2 RAG, the CAR-T Agent, and now imaging."
-- "This is the connective tissue of the platform -- every agent sees the same genomic truth."
+- "Patient-specific dose adjustment based on age and weight -- the protocol adapts to the individual."
+- "AI optimization notes recommend DLIR for noise reduction at lower dose levels."
+- "Alternatives are provided for patients with contrast allergies -- following the ALARA principle."
 
 ---
 
-### CT Chest Lung Nodule with Cross-Modal Trigger (7 minutes)
+### Step 6: Dose Intelligence (2 minutes)
 
-#### Step 1: Run the lung nodule workflow
+**Click:** the **Dose Intelligence** tab (the fifth tab).
 
-**Click:** The **Workflow Runner** tab.
+**Expected result:** The dose comparison dashboard displays:
 
-**Select:** From the "Select workflow" dropdown, choose **"CT Chest -- Lung Nodule Analysis"**.
+- **Summary Statistics:** 20 protocols analyzed, average dose reduction, max/min reduction by modality.
+- **Standard vs AI-Optimized Dose Chart:** Side-by-side bar chart comparing CTDIvol (mGy) for standard protocols vs AI-optimized protocols.
+- **Protocol Table:** All 20 protocols with standard dose, AI-optimized dose, reduction percentage, technique used, and image quality assessment.
 
-**Expected result:** The metric columns show CT modality, Chest body region, and target latency. The Models used line lists the detection and segmentation models.
+**Show:** The average dose reduction metric.
 
-**Click:** The **"Run Demo"** button.
-
-**Expected result:** The result panel shows lung nodule detection with Lung-RADS classification, volume, and follow-up scheduling. The severity badge and classification label appear at the top.
-
-**Talking points:**
-
-- "This CT chest study shows a suspicious lung nodule. RetinaNet detects it, SegResNet segments it."
-- "The Lung-RADS classification comes back as 4A -- that's a high-risk nodule requiring tissue sampling."
-
-#### Step 2: Cross-modal trigger fires automatically
-
-**Click:** The **"Raw Result (JSON)"** expander at the bottom of the result panel.
-
-**Expected result:** The full JSON output includes a `cross_modal` section. Point this out to the audience:
-
-```json
-{
-  "cross_modal": {
-    "trigger_reason": "Lung-RADS 4A -- high-risk lung nodule",
-    "genomic_context": [
-      "EGFR exon 19 deletion (del19) -- sensitive to erlotinib, gefitinib",
-      "KRAS G12C -- sotorasib responsive",
-      "ALK fusion (EML4-ALK) -- alectinib, lorlatinib first-line"
-    ],
-    "genomic_hit_count": 12,
-    "query_count": 3,
-    "enrichment_summary": "Patient variants suggest actionable lung cancer targets with approved targeted therapies"
-  }
-}
-```
+**Expected result:** ~36% average dose reduction across all 20 protocols. Individual protocols range from 15-55% reduction depending on body region and technique.
 
 **Talking points:**
 
-- "Here's where it gets interesting. Lung-RADS 4A or higher automatically triggers genomic queries."
-- "The system queries the `genomic_evidence` collection -- 3.5 million real variant vectors -- for EGFR, ALK, ROS1, and KRAS mutations."
-- "12 genomic hits across 3 queries. The system found EGFR del19, KRAS G12C, and ALK fusion variants."
-- "Each variant is linked to specific targeted therapies -- this isn't generic information, it's precision medicine."
-- "The imaging finding triggered genomic analysis without any human intervention."
+- "DLIR (Deep Learning Image Reconstruction) reduces radiation dose by an average of 36% without sacrificing diagnostic image quality."
+- "The highest reductions are in pediatric protocols and repeat imaging studies."
+- "Image quality is maintained or improved -- AI reconstruction compensates for lower photon counts."
+- "This directly supports the ALARA principle: As Low As Reasonably Achievable."
 
 ---
 
-### FHIR R4 Export with Genomic Context (2 minutes)
+### Step 7: Device & AI Ecosystem (1 minute)
 
-**Click:** The **Reports & Export** tab.
+**Click:** the **Device & AI Ecosystem** tab (the fourth tab).
 
-**Click:** The **"Export JSON"** button.
+**Expected result:** A searchable, filterable catalog of AI devices displays with columns for device name, manufacturer, modality, clinical task, regulatory status, and performance metrics.
 
-**Expected result:** A **"Download .json"** button appears with the filename `imaging_report_YYYYMMDD_HHMMSS.json`. The exported JSON contains both the imaging findings and the genomic enrichment context from the cross-modal trigger.
+**Select:** Modality filter = `CT`, Task filter = `detection`.
 
-**Click:** The **"Download .json"** button to save the file.
+**Expected result:** The table filters to show CT-specific AI detection devices -- triage tools, hemorrhage detectors, pulmonary embolism detectors, nodule detection, and fracture detection solutions.
+
+**Show:** The total device count: 50 FDA-cleared and research AI devices across all modalities.
 
 **Talking points:**
 
-- "The combined imaging + genomic findings are exported as a FHIR R4 DiagnosticReport Bundle."
-- "The report includes SNOMED CT codes for the lung nodule, LOINC codes for the study type, DICOM modality codes, and the genomic enrichment context."
-- "This is ready to send to Epic, Cerner, or any FHIR-compliant EHR."
+- "A landscape of 50+ AI devices spanning CT, MRI, X-ray, ultrasound, mammography, and PET."
+- "Each device is catalogued with regulatory status, clinical task, and published performance benchmarks."
+- "This collection enables evidence-based evaluation of AI tools for clinical deployment."
 
 ---
 
-### Bridge to Stage 2: RAG Target Identification (5 minutes)
+### Step 8: Reports & Export (2 minutes)
 
-**Show:** Open Streamlit chat at http://localhost:8501
+**Click:** the **Reports & Export** tab (the sixth tab).
 
-**Type this query:**
-> The imaging study identified a Lung-RADS 4A nodule. Genomic analysis found EGFR exon 19 deletion and KRAS G12C. What are the most effective targeted therapies and their resistance mechanisms?
+**Click:** the **Generate Report** button to create a report from the last query.
 
-**Expected result:** The Stage 2 RAG Chat interface displays Claude's response grounded in 3.56 million variant annotations -- ClinVar pathogenicity, AlphaMissense predictions, and clinical evidence. Citations reference specific variant records and literature.
+**Expected result:** A formatted clinical report renders inline with sections:
 
-**Talking points:**
+- **Clinical Question** -- the original query
+- **Analysis** -- Claude-synthesized answer with structured findings
+- **Evidence Citations** -- numbered list with collection badges, document IDs, and relevance scores
 
-- "We've transitioned from imaging to the RAG pipeline. Claude is now reasoning over the same genomic vectors the cross-modal trigger queried."
-- "The answer is grounded in 3.56 million variant annotations -- ClinVar pathogenicity, AlphaMissense predictions, and clinical evidence."
-- "Claude identifies EGFR as the primary drug target -- with specific inhibitor recommendations and known resistance mechanisms like T790M."
+**Show:** The four export format buttons:
 
----
+1. **Markdown** -- Copy-paste ready for clinical notes
+2. **JSON** -- Structured data for programmatic consumption
+3. **PDF** -- NVIDIA-themed report with green headers and professional formatting
+4. **FHIR R4** -- DiagnosticReport Bundle with SNOMED CT and LOINC coding
 
-### Bridge to Stage 3: Drug Discovery (4 minutes)
+**Click:** the **PDF** button.
 
-**Show:** Drug Discovery UI at http://localhost:8505
+**Expected result:** A PDF downloads with NVIDIA-branded formatting, clinical question, analysis, evidence citations with relevance scores, and a disclaimer footer.
 
-**Talking points:**
+**Click:** the **FHIR R4** button.
 
-- "Now we take the confirmed EGFR target and feed it into Stage 3."
-- "BioNeMo MolMIM generates 100 novel inhibitor analogs. DiffDock simulates binding to the EGFR kinase domain."
-- "RDKit scores each candidate for drug-likeness. The top candidates outperform the seed compound."
-
----
-
-### DICOM Auto-Routing: Architecture Overview (3 minutes)
+**Expected result:** A FHIR R4 DiagnosticReport Bundle renders as JSON, including `resourceType: "Bundle"`, `DiagnosticReport` resource with LOINC-coded sections, and `Observation` resources for each finding.
 
 **Talking points:**
 
-- "In a live clinical environment, DICOM studies arrive in Orthanc via standard DICOM networking (C-STORE on port 4242)."
-- "When a study completes, an Orthanc webhook fires automatically and the system routes the study to the correct workflow based on modality and body region."
-- "CT + head gets routed to hemorrhage triage. CT + chest goes to lung nodule tracking. CR + chest gets rapid findings. MR + brain gets MS lesion tracking."
-- "No manual intervention. Studies are processed the moment they arrive."
-
-**Routing table:**
-
-| Modality + Region | Workflow | Target Latency |
-|---|---|---|
-| CT + head | ct_head_hemorrhage | < 90 sec |
-| CT + chest | ct_chest_lung_nodule | < 5 min |
-| CT + heart | ct_coronary_angiography | < 5 min |
-| CR/DX + chest | cxr_rapid_findings | < 30 sec |
-| MR + brain | mri_brain_ms_lesion | < 5 min |
-| MR + prostate | mri_prostate_pirads | < 5 min |
-
----
-
-### The Complete Pipeline (3 minutes)
-
-**Talking points:**
-
-Walk through the full precision medicine loop on a whiteboard or slide:
-
-```
-DICOM Study (Orthanc, port 8042)
-    |
-Imaging Intelligence Agent (port 8524/8525)
-    | Lung-RADS 4A detected
-Cross-Modal Trigger --> Genomic Evidence (3.5M vectors, Milvus 19530)
-    | EGFR del19 + KRAS G12C found
-Stage 2: RAG Target Identification (port 8501)
-    | EGFR confirmed as drug target
-Stage 3: Drug Discovery (port 8505)
-    | 100 novel EGFR inhibitors generated
-Clinical Output
-    |
-FHIR R4 DiagnosticReport --> EHR Integration
-PDF Report --> Clinical Documentation
-```
-
-- "From DICOM image to drug candidates. On a $3,999 desktop."
-- "Every step is grounded in evidence -- imaging models, genomic annotations, clinical literature."
-- "This is what precision medicine looks like when you remove the barriers."
-
----
-
-### Closing Route B (2 minutes)
-
-**Talking points:**
-
-- "You've just seen a medical image trigger genomic analysis, target identification, and drug candidate generation -- all automatically."
-- "This runs on a single DGX Spark. The same pipelines scale to DGX B200 for departments and DGX SuperPOD for enterprises."
-- "NVIDIA FLARE enables federated learning across institutions -- the models get better without sharing patient data."
-- "All HCLS AI Factory code is Apache 2.0. NVIDIA NIM components are free for development on DGX Spark."
-
-**Scaling story:**
-
-| Phase | Hardware | Scale |
-|---|---|---|
-| Phase 1 | DGX Spark ($3,999) | Proof build -- what you just saw |
-| Phase 2 | DGX B200 | Department -- multiple concurrent studies |
-| Phase 3 | DGX SuperPOD | Enterprise -- thousands concurrent, federated learning |
+- "Four export formats for different integration needs: Markdown for sharing, JSON for APIs, PDF for clinical documentation, FHIR R4 for EHR interoperability."
+- "The FHIR R4 bundle uses SNOMED CT and LOINC coding for standards-based interoperability."
+- "PDF reports include all evidence citations with relevance scores -- fully auditable AI-assisted findings."
 
 ---
 
 ## Troubleshooting
 
-### NIM Services Not Available
+### No Collections Found
 
-If NIM services show red (unavailable) indicators in the sidebar instead of green (available) or yellow (mock):
-
-```bash
-# Check NIM container status
-docker compose ps | grep nim
-
-# Check NIM health endpoints
-curl -s http://localhost:8530/v1/health/ready  # VISTA-3D
-curl -s http://localhost:8520/v1/health/ready  # Llama-3
-
-# Restart NIM services
-docker compose restart nim-vista3d nim-llm
-```
-
-NIM services require 8-16 GB GPU memory each. If GPU memory is insufficient, enable mock mode:
+If the health check shows zero vectors or collections are missing:
 
 ```bash
-export IMAGING_NIM_MODE=mock
+cd ai_agent_adds/imaging_intelligence_agent/agent
+python3 scripts/setup_collections.py --drop-existing
+python3 scripts/seed_literature.py
+python3 scripts/seed_trials.py
+python3 scripts/seed_findings.py
+python3 scripts/seed_protocols.py
+python3 scripts/seed_devices.py
+python3 scripts/seed_anatomy.py
+python3 scripts/seed_benchmarks.py
+python3 scripts/seed_guidelines.py
+python3 scripts/seed_report_templates.py
+python3 scripts/seed_datasets.py
 ```
 
-### Milvus Connection Issues
+### RAG Returns Empty Answers
 
-If the sidebar shows "Milvus not connected -- stats unavailable" instead of collection counts:
+If queries return evidence but the answer is empty or generic:
 
 ```bash
-# Check Milvus status
-curl -s http://localhost:19530/v1/vector/collections
+# Verify ANTHROPIC_API_KEY is set and valid
+echo $ANTHROPIC_API_KEY | head -c 10
+# Expected: sk-ant-api
 
-# Check etcd and MinIO dependencies
-docker compose logs milvus-etcd
-docker compose logs milvus-minio
-
-# If collections show 0 records, re-run ingestion
-python3 scripts/setup_collections.py
-python3 scripts/ingest_pubmed.py --max-results 5000
+# Test Claude directly
+curl -s https://api.anthropic.com/v1/messages \
+  -H "x-api-key: $ANTHROPIC_API_KEY" \
+  -H "anthropic-version: 2023-06-01" \
+  -H "content-type: application/json" \
+  -d '{"model": "claude-sonnet-4-6", "max_tokens": 10, "messages": [{"role": "user", "content": "Hi"}]}'
 ```
 
-### Orthanc Not Responding
+### Workflow Failed
+
+If a demo case workflow fails to execute:
 
 ```bash
-# Check Orthanc status
-curl -s http://localhost:8042/system
+# Check Docker containers are healthy
+docker ps | grep imaging
+docker compose logs imaging-api
 
-# Check Orthanc logs
-docker compose logs orthanc
-
-# Restart Orthanc
-docker compose restart orthanc
+# Verify workflow registry
+curl -s http://localhost:8524/demo-cases | python3 -m json.tool
+# Expected: 4 demo cases listed
 ```
 
-### Workflow Returns Empty Findings
+### Port In Use
 
-Ensure `IMAGING_NIM_ALLOW_MOCK_FALLBACK=true` is set in your `.env` file. Without this, workflows will fail if NIM services are unavailable.
+If services fail to start due to port conflicts:
 
-### FHIR Export Returns Errors
+```bash
+# Check what is using the API port
+ss -tlnp | grep 8524
 
-Verify the workflow completed successfully before requesting FHIR export. The FHIR exporter requires a valid `WorkflowResult` object with findings and measurements.
+# Check what is using the Streamlit port
+ss -tlnp | grep 8525
+
+# Check running Docker containers
+docker ps --format "table {{.Names}}\t{{.Ports}}"
+```
 
 ### Streamlit UI Not Loading
 
 ```bash
 # Check Streamlit container status
-docker compose ps | grep streamlit
+docker compose ps
 
-# Check Streamlit logs
-docker compose logs imaging-streamlit
+# View Streamlit logs
+docker compose logs streamlit-imaging
 
-# Restart the Streamlit service
-docker compose restart imaging-streamlit
+# Restart Streamlit service
+docker compose restart streamlit-imaging
 ```
 
-Verify port 8525 is not in use by another process:
+### PDF Export Fails
+
+PDF generation requires ReportLab. If PDF export returns a 501 error:
 
 ```bash
-lsof -i :8525
+pip install reportlab
 ```
-
-### Reports Tab Shows "No conversation history"
-
-The Reports & Export tab requires at least one question-answer exchange in the Evidence Explorer tab before export buttons produce output. Run an Evidence Explorer query first, then return to the Reports & Export tab.
 
 ---
 
 ## Quick Reference
 
-### UI Endpoints
+### URLs
 
-| Service | URL |
+| Resource | URL |
 |---|---|
-| Imaging Agent UI | http://localhost:8525 |
-| Imaging Agent API docs | http://localhost:8524/docs |
-| Orthanc DICOM | http://localhost:8042 |
-| RAG Chat (Stage 2) | http://localhost:8501 |
-| Drug Discovery UI | http://localhost:8505 |
+| Imaging Agent UI (Streamlit) | http://localhost:8525 |
+| Imaging Agent API docs (Swagger) | http://localhost:8524/docs |
 | Landing Page | http://localhost:8080 |
+| Milvus | http://localhost:19530 |
+| Attu (Milvus UI) | http://localhost:8000 |
 | Grafana Monitoring | http://localhost:3000 |
 
-### Imaging Agent UI Tabs
+### Collections Reference
 
-| Tab | Purpose |
-|---|---|
-| **Evidence Explorer** | Chat-based RAG Q&A with 4 pre-filled example query buttons, Plotly donut chart showing collection contribution, evidence expander with relevance scores. Comparative analysis auto-detected for "X vs Y" queries. |
-| **Workflow Runner** | 6 clinical workflow demos (4 demo cases DEMO-001 through DEMO-004) with annotated AI images in 55/45 layout, 6-step pipeline animation (3.2s total), 4 download buttons (Markdown, JSON, PDF, FHIR R4) |
-| **Image Gallery** | 5 CXR pathology showcase (Normal, Consolidation, Effusion, Cardiomegaly, Pneumothorax), cross-modality gallery, 3D Volume Slice Viewer with HU windowing, Before/After AI toggle |
-| **Protocol Advisor** | Protocol recommendations with 4 pre-filled example indication buttons |
-| **Device & AI Ecosystem** | FDA-cleared AI/ML device catalog and NIM ecosystem overview |
-| **Dose Intelligence** | Radiation dose optimization and tracking |
-| **Reports & Export** | Export Markdown, JSON, NVIDIA-branded PDF (regex-based markdown-to-HTML), and FHIR R4 reports |
-| **Patient 360** | Interactive Plotly network graph (3-layer: Case green, Findings orange, Genes cyan), live Milvus genomic query with fallback to demo data |
-| **Benchmarks & Validation** | AI model performance validation with benchmark comparisons |
+| Collection | Purpose | Approx. Vectors |
+|---|---|---|
+| `imaging_literature` | Published research papers and reviews | 50 |
+| `imaging_trials` | ClinicalTrials.gov AI-in-imaging records | 40 |
+| `imaging_findings` | Imaging finding templates and patterns | 50 |
+| `imaging_protocols` | Acquisition protocols and parameters | 40 |
+| `imaging_devices` | FDA-cleared AI/ML medical devices | 50 |
+| `imaging_anatomy` | Anatomical structure references | 30 |
+| `imaging_benchmarks` | Model performance benchmarks | 40 |
+| `imaging_guidelines` | Clinical practice guidelines (ACR, RSNA) | 40 |
+| `imaging_report_templates` | Structured radiology report templates | 50 |
+| `imaging_datasets` | Public imaging datasets (TCIA, PhysioNet) | 50 |
+| `genomic_evidence` | Shared genomic variants (read-only, Stage 1) | 3,561,170 |
 
-### Sidebar Controls
+### Key curl Examples
 
-| Section | Controls |
-|---|---|
-| **Guided Tour** | Expander with 9-step demo flow and dismiss button |
-| **OHIF Viewer** | Link to OHIF DICOM viewer |
-| **Demo Mode** | Button to activate demo mode with pre-loaded cases |
-| **NIM Services** | 2x2 grid of service status indicators (VISTA-3D, MAISI, VILA-M3, Llama-3 / Claude) |
-| **Collection Stats** | Metric widgets for each of the 10 imaging collections + genomic_evidence |
-| **Filters** | Modality dropdown, Body Region dropdown, Year Range slider |
-| **Collections to Search** | Individual checkboxes for each collection (all checked by default) |
+```bash
+# Health check
+curl -s http://localhost:8524/health | python3 -m json.tool
+
+# List collections
+curl -s http://localhost:8524/collections | python3 -m json.tool
+
+# List demo cases
+curl -s http://localhost:8524/demo-cases | python3 -m json.tool
+
+# Run a demo case
+curl -s -X POST http://localhost:8524/demo-cases/DEMO-001/run | python3 -m json.tool
+
+# Protocol recommendation
+curl -s -X POST http://localhost:8524/protocol/recommend \
+  -H "Content-Type: application/json" \
+  -d '{
+    "indication": "acute chest pain, rule out pulmonary embolism",
+    "patient_age": 45,
+    "patient_weight_kg": 80
+  }' | python3 -m json.tool
+
+# Dose summary
+curl -s http://localhost:8524/dose/summary | python3 -m json.tool
+```
 
 ---
 
-## Appendix: API Reference (Developer Use)
+## Appendix: API Reference
 
-The following curl commands exercise the same functionality shown in the Streamlit UI during the live demo. Use these for scripted testing, CI/CD verification, or programmatic access. These are **not** used during the live presentation.
+All endpoints below are served by the FastAPI server at `http://localhost:8524`. These are provided for programmatic integration, automated testing, and scripting -- **not for live demo use**. Use the Streamlit UI at port 8525 for demos.
 
-### Health Check
+Interactive API documentation is available at `http://localhost:8524/docs` (Swagger UI).
+
+### Health and Status
 
 ```bash
+# Health check -- all collections, vectors, and NIM service status
 curl -s http://localhost:8524/health | python3 -m json.tool
-```
 
-### NIM Service Status
-
-```bash
-curl -s http://localhost:8524/nim/status | python3 -m json.tool
-```
-
-Expected:
-
-```json
-{
-  "services": [
-    {"name": "vista3d", "status": "available", "url": "http://localhost:8530"},
-    {"name": "maisi", "status": "mock", "url": ""},
-    {"name": "vila_m3", "status": "cloud", "url": "integrate.api.nvidia.com"},
-    {"name": "llm", "status": "anthropic", "url": "api.anthropic.com"}
-  ],
-  "available_count": 2,
-  "mock_count": 1,
-  "unavailable_count": 0
-}
-```
-
-### List Collections
-
-```bash
+# List all collections with vector counts and labels
 curl -s http://localhost:8524/collections | python3 -m json.tool
+
+# Knowledge graph statistics
+curl -s http://localhost:8524/knowledge/stats | python3 -m json.tool
+
+# Prometheus metrics
+curl -s http://localhost:8524/metrics
 ```
 
-### Run Workflow: CT Head Hemorrhage
+### Demo Cases
 
 ```bash
-curl -s -X POST http://localhost:8524/workflow/ct_head_hemorrhage/run \
-  -H "Content-Type: application/json" \
-  -d '{"input_path": "", "mock_mode": true}' | python3 -m json.tool
+# List all demo cases
+curl -s http://localhost:8524/demo-cases | python3 -m json.tool
+
+# Run a specific demo case (DEMO-001, DEMO-002, DEMO-003, or DEMO-004)
+curl -s -X POST http://localhost:8524/demo-cases/DEMO-001/run | python3 -m json.tool
+
+# Response includes: workflow_result, genomic_context, talking_points
 ```
 
-### Run Workflow: CT Chest Lung Nodule
+### RAG Queries
 
 ```bash
-curl -s -X POST http://localhost:8524/workflow/ct_chest_lung_nodule/run \
-  -H "Content-Type: application/json" \
-  -d '{"input_path": "", "mock_mode": true}' | python3 -m json.tool
-```
-
-### Run Workflow: CXR Rapid Findings
-
-```bash
-curl -s -X POST http://localhost:8524/workflow/cxr_rapid_findings/run \
-  -H "Content-Type: application/json" \
-  -d '{"input_path": "", "mock_mode": true}' | python3 -m json.tool
-```
-
-### Run Workflow: MRI Brain MS Lesion
-
-```bash
-curl -s -X POST http://localhost:8524/workflow/mri_brain_ms_lesion/run \
-  -H "Content-Type: application/json" \
-  -d '{"input_path": "", "mock_mode": true}' | python3 -m json.tool
-```
-
-### RAG Knowledge Query
-
-```bash
-curl -s -X POST http://localhost:8524/api/ask \
+# Full RAG query (multi-collection retrieval + LLM synthesis)
+curl -s -X POST http://localhost:8524/query \
   -H "Content-Type: application/json" \
   -d '{
-    "question": "What are the latest AI models for lung nodule detection and how do they compare?",
+    "question": "What AI models are used for intracranial hemorrhage detection?",
     "modality": "ct",
-    "body_region": "chest",
+    "body_region": "head",
+    "top_k": 5,
+    "include_genomic": true
+  }' | python3 -m json.tool
+
+# Evidence-only search (retrieval only, no LLM synthesis)
+curl -s -X POST http://localhost:8524/search \
+  -H "Content-Type: application/json" \
+  -d '{
+    "question": "lung nodule detection deep learning",
+    "modality": "ct",
+    "top_k": 10
+  }' | python3 -m json.tool
+
+# Cross-collection entity linking
+curl -s -X POST http://localhost:8524/find-related \
+  -H "Content-Type: application/json" \
+  -d '{
+    "entity": "pulmonary embolism",
     "top_k": 5
   }' | python3 -m json.tool
 ```
 
-### VISTA-3D Segmentation
+### Protocol Optimization
 
 ```bash
-curl -s -X POST http://localhost:8524/nim/vista3d/segment \
+# Recommend imaging protocol
+curl -s -X POST http://localhost:8524/protocol/recommend \
   -H "Content-Type: application/json" \
   -d '{
-    "input_path": "",
-    "target_classes": ["liver", "spleen", "left_kidney", "right_kidney"]
+    "indication": "acute chest pain, rule out pulmonary embolism",
+    "patient_age": 45,
+    "patient_weight_kg": 80,
+    "patient_sex": "male",
+    "contrast_allergy": false,
+    "pregnancy": false
   }' | python3 -m json.tool
 ```
 
-Expected:
-
-```json
-{
-  "classes_detected": ["liver", "spleen", "left_kidney", "right_kidney"],
-  "volumes": {
-    "liver": 1450.2,
-    "spleen": 180.5,
-    "left_kidney": 160.3,
-    "right_kidney": 155.8
-  },
-  "num_classes": 4,
-  "inference_time_ms": 45.2,
-  "model": "vista3d"
-}
-```
-
-### Generate Report (Markdown)
+### Dose Intelligence
 
 ```bash
+# Get all dose comparison data (20 protocols)
+curl -s http://localhost:8524/dose/reference | python3 -m json.tool
+
+# Get dose comparison for a specific protocol
+curl -s http://localhost:8524/dose/comparison/chest | python3 -m json.tool
+
+# Get summary statistics (avg/max/min reduction, by modality)
+curl -s http://localhost:8524/dose/summary | python3 -m json.tool
+```
+
+### Report Export
+
+```bash
+# Markdown report
 curl -s -X POST http://localhost:8524/reports/generate \
   -H "Content-Type: application/json" \
   -d '{
-    "question": "Summarize current guidelines for incidental lung nodule management",
+    "question": "What is the optimal imaging protocol for suspected stroke?",
     "modality": "ct",
-    "body_region": "chest",
     "format": "markdown"
   }' | python3 -m json.tool
-```
 
-### Generate Report (PDF)
-
-```bash
+# JSON report
 curl -s -X POST http://localhost:8524/reports/generate \
   -H "Content-Type: application/json" \
   -d '{
-    "question": "Summarize current guidelines for incidental lung nodule management",
-    "format": "pdf"
-  }' --output lung_nodule_report.pdf
-```
+    "question": "What is the optimal imaging protocol for suspected stroke?",
+    "format": "json"
+  }' | python3 -m json.tool
 
-### DICOM Webhook (Simulated Study Arrival)
-
-```bash
-curl -s -X POST http://localhost:8524/events/dicom-webhook \
+# PDF report (binary download)
+curl -s -X POST http://localhost:8524/reports/generate \
   -H "Content-Type: application/json" \
   -d '{
-    "event_type": "study.complete",
-    "study_uid": "1.2.840.113619.2.55.3.604688119",
-    "patient_id": "DEMO-PT-001",
-    "modality": "CT",
-    "body_region": "head",
-    "series_count": 3,
-    "instance_count": 245
-  }' | python3 -m json.tool
+    "question": "What is the optimal imaging protocol for suspected stroke?",
+    "format": "pdf"
+  }' --output imaging_report.pdf
 ```
-
-Expected:
-
-```json
-{
-  "study_uid": "1.2.840.113619.2.55.3.604688119",
-  "patient_id": "DEMO-PT-001",
-  "modality": "CT",
-  "workflow_triggered": "ct_head_hemorrhage",
-  "workflow_status": "completed",
-  "workflow_result": {
-    "findings_count": 1,
-    "classification": "urgent_hemorrhage",
-    "severity": "urgent",
-    "inference_time_ms": 42.5,
-    "nim_services_used": ["vista3d"]
-  },
-  "processed_at": "2026-02-28T14:30:45.123Z"
-}
-```
-
-### Event History
-
-```bash
-curl -s http://localhost:8524/events/history?limit=5 | python3 -m json.tool
-```
-
-### Event Status / Routing Configuration
-
-```bash
-curl -s http://localhost:8524/events/status | python3 -m json.tool
-```
-
-### API Endpoint Summary
-
-| Action | Endpoint |
-|---|---|
-| Health check | `GET http://localhost:8524/health` |
-| NIM status | `GET http://localhost:8524/nim/status` |
-| List collections | `GET http://localhost:8524/collections` |
-| List workflows | `GET http://localhost:8524/workflows` |
-| Run workflow | `POST http://localhost:8524/workflow/{name}/run` |
-| RAG query | `POST http://localhost:8524/api/ask` |
-| Evidence search | `POST http://localhost:8524/search` |
-| VISTA-3D segment | `POST http://localhost:8524/nim/vista3d/segment` |
-| Generate report | `POST http://localhost:8524/reports/generate` |
-| DICOM webhook | `POST http://localhost:8524/events/dicom-webhook` |
-| Event history | `GET http://localhost:8524/events/history` |
-| Event status | `GET http://localhost:8524/events/status` |
 
 ---
 
