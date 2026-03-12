@@ -4,7 +4,7 @@
 
 **Author:** Adam Jones
 **Date:** February 2026
-**Codebase Version:** 19,332 lines of Python across 60 files
+**Codebase Version:** 21,259 lines of Python across 61 files
 **Audience:** Experienced developers who want to understand the internals and extend the system
 
 ---
@@ -17,31 +17,31 @@ Before starting this guide, you should have:
 2. **Python proficiency** -- you are comfortable with Pydantic v2, asyncio, decorators, abstract base classes, and `concurrent.futures`.
 3. **Basic ML/NLP concepts** -- you know what embeddings are, what cosine similarity measures, and how retrieval-augmented generation works at a high level.
 4. **Vector database basics** -- you understand that Milvus stores high-dimensional vectors and retrieves the nearest neighbors for a query vector.
-5. **Development environment** -- you have the repo cloned, dependencies installed, and can run `pytest tests/` successfully (278 tests, all passing).
+5. **Development environment** -- you have the repo cloned, dependencies installed, and can run `pytest tests/` successfully (415 tests, all passing).
 
 **Codebase map for reference:**
 
 ```
 cart_intelligence_agent/
-  src/                 # 12,290 lines -- core engine
-    rag_engine.py      #   693 lines -- multi-collection RAG
+  src/                 # 12,944 lines -- core engine
+    rag_engine.py      #   754 lines -- multi-collection RAG
     collections.py     # 1,004 lines -- Milvus schema + manager
     models.py          #   484 lines -- Pydantic models + enums
-    knowledge.py       # 1,906 lines -- knowledge graph (3 dictionaries)
-    query_expansion.py # 1,380 lines -- 12 expansion maps
-    agent.py           #   271 lines -- autonomous agent
+    knowledge.py       # 2,249 lines -- knowledge graph (3 dictionaries)
+    query_expansion.py # 1,592 lines -- 12 expansion maps
+    agent.py           #   309 lines -- autonomous agent
     export.py          # 1,487 lines -- Markdown/JSON/PDF export
     metrics.py         #   404 lines -- Prometheus integration
     scheduler.py       #   226 lines -- APScheduler weekly refresh
     ingest/            # ~4,400 lines -- 15 ingest parsers
     utils/             #   pubmed_client.py
-  app/                 # 1,119 lines -- Streamlit UI
+  app/                 # 1,162 lines -- Streamlit UI
     cart_ui.py
-  api/                 # 1,032 lines -- FastAPI REST API
+  api/                 # 1,033 lines -- FastAPI REST API
     main.py
   config/
-    settings.py        #   101 lines -- Pydantic BaseSettings
-  tests/               # 2,902 lines -- 278 tests
+    settings.py        #   113 lines -- Pydantic BaseSettings
+  tests/               # 4,321 lines -- 415 tests
   scripts/             # 1,686 lines -- seed + setup utilities
 ```
 
@@ -49,7 +49,7 @@ cart_intelligence_agent/
 
 ## Chapter 1: Deep Dive into the RAG Engine
 
-The RAG engine (`src/rag_engine.py`, 693 lines) is the central nervous system of the agent. Every query -- whether from the Streamlit UI, the FastAPI endpoint, or the autonomous agent -- flows through `CARTRAGEngine`.
+The RAG engine (`src/rag_engine.py`, 754 lines) is the central nervous system of the agent. Every query -- whether from the Streamlit UI, the FastAPI endpoint, or the autonomous agent -- flows through `CARTRAGEngine`.
 
 ### 1.1 The CARTRAGEngine Class
 
@@ -620,7 +620,7 @@ cd /home/adam/projects/hcls-ai-factory/ai_agent_adds/cart_intelligence_agent
 python -m pytest tests/ -v
 ```
 
-Verify all 278 existing tests still pass, and write new tests for the imaging model, parser, and export format.
+Verify all 415 existing tests still pass, and write new tests for the imaging model, parser, and export format.
 
 ---
 
@@ -773,7 +773,7 @@ This means a single corrupt record in a batch will fail that entire batch but no
 
 ## Chapter 5: Extending the Knowledge Graph
 
-The knowledge graph (`src/knowledge.py`, 1,906 lines) contains three curated dictionaries that provide structured, authoritative data to augment vector search results.
+The knowledge graph (`src/knowledge.py`, 2,249 lines) contains three curated dictionaries that provide structured, authoritative data to augment vector search results.
 
 ### 5.1 The Three Knowledge Dictionaries
 
@@ -904,7 +904,7 @@ The `resolve_comparison_entity()` function resolves free-text entity names to st
 
 ## Chapter 6: Query Expansion Engineering
 
-The query expansion system (`src/query_expansion.py`, 1,380 lines) contains 12 expansion maps with hundreds of keyword-to-term mappings.
+The query expansion system (`src/query_expansion.py`, 1,592 lines) contains 12 expansion maps with hundreds of keyword-to-term mappings.
 
 ### 6.1 How Expansion Works
 
@@ -1516,7 +1516,7 @@ All configuration flows through `CARTSettings` (Pydantic BaseSettings with `env_
 |---|---|---|
 | `CART_MILVUS_HOST` | localhost | Milvus server hostname |
 | `CART_MILVUS_PORT` | 19530 | Milvus server port |
-| `CART_LLM_MODEL` | claude-sonnet-4-20250514 | Anthropic model ID |
+| `CART_LLM_MODEL` | claude-sonnet-4-6 | Anthropic model ID |
 | `CART_TOP_K_PER_COLLECTION` | 5 | Max results per collection |
 | `CART_SCORE_THRESHOLD` | 0.4 | Min cosine similarity |
 | `CART_WEIGHT_LITERATURE` | 0.20 | Literature collection weight |
@@ -1891,7 +1891,7 @@ All fields from `config/settings.py` (`CARTSettings`):
 | EMBEDDING_DIMENSION | int | 384 | CART_EMBEDDING_DIMENSION | Vector dimension |
 | EMBEDDING_BATCH_SIZE | int | 32 | CART_EMBEDDING_BATCH_SIZE | Batch size for embedding |
 | LLM_PROVIDER | str | anthropic | CART_LLM_PROVIDER | LLM provider |
-| LLM_MODEL | str | claude-sonnet-4-20250514 | CART_LLM_MODEL | LLM model identifier |
+| LLM_MODEL | str | claude-sonnet-4-6 | CART_LLM_MODEL | LLM model identifier |
 | ANTHROPIC_API_KEY | str | None | ANTHROPIC_API_KEY | Anthropic API key |
 | TOP_K_PER_COLLECTION | int | 5 | CART_TOP_K_PER_COLLECTION | Max results per collection |
 | SCORE_THRESHOLD | float | 0.4 | CART_SCORE_THRESHOLD | Min cosine similarity |

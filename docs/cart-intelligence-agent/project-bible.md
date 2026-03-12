@@ -47,13 +47,13 @@ The CAR-T Intelligence Agent is built as part of the HCLS AI Factory, a three-st
 
 | Metric | Value |
 |--------|-------|
-| Total Python lines | 19,332 |
-| Python files | 60 |
-| src/ (core engine) | 12,290 lines |
-| app/ (Streamlit UI) | 1,119 lines |
-| tests/ (test suite) | 2,902 lines (278 tests) |
+| Total Python lines | 21,259 |
+| Python files | 61 |
+| src/ (core engine) | 12,944 lines |
+| app/ (Streamlit UI) | 1,162 lines |
+| tests/ (test suite) | 4,321 lines (415 tests) |
 | scripts/ (ingest/seed/setup) | 1,686 lines |
-| config/ (Pydantic settings) | 102 lines |
+| config/ (Pydantic settings) | 113 lines |
 | Milvus collections | 11 |
 | Total vectors | 3,567,622 |
 | Knowledge graph entries | 71 |
@@ -866,7 +866,7 @@ The `run()` method orchestrates the full pipeline: `fetch -> parse -> embed_and_
 | `scripts/seed_regulatory.py` | 40 | cart_regulatory |
 | `scripts/seed_sequences.py` | 40 | cart_sequences |
 | `scripts/seed_realworld.py` | 54 | cart_realworld |
-| `scripts/seed_patents.py` | 26 | cart_literature (patents) |
+| `scripts/seed_patents.py` | 45 | cart_literature (patents) |
 | `scripts/seed_immunogenicity.py` | 38 (20+18) | cart_biomarkers + cart_sequences |
 | `scripts/ingest_pubmed.py` | ~5000 | cart_literature |
 | `scripts/ingest_clinical_trials.py` | ~1000 | cart_trials |
@@ -1250,7 +1250,7 @@ All configuration is managed through `CARTSettings` (defined in `config/settings
 | EMBEDDING_BATCH_SIZE | int | `32` | `CART_EMBEDDING_BATCH_SIZE` |
 | **LLM** | | | |
 | LLM_PROVIDER | str | `anthropic` | `CART_LLM_PROVIDER` |
-| LLM_MODEL | str | `claude-sonnet-4-20250514` | `CART_LLM_MODEL` |
+| LLM_MODEL | str | `claude-sonnet-4-6` | `CART_LLM_MODEL` |
 | ANTHROPIC_API_KEY | str (optional) | None | `CART_ANTHROPIC_API_KEY` |
 | **RAG Search** | | | |
 | TOP_K_PER_COLLECTION | int | `5` | `CART_TOP_K_PER_COLLECTION` |
@@ -1384,7 +1384,7 @@ open http://localhost:8521
 
 ## 18. Testing
 
-The test suite contains 278 tests across 7 test files in the `tests/` directory (2,902 lines total).
+The test suite contains 415 tests across 7 test files in the `tests/` directory (4,321 lines total).
 
 ### 18.1 Test Files
 
@@ -1448,7 +1448,7 @@ pytest tests/ --cov=src --cov-report=html
 | 7 | `d344c48` | Seed assays (45 records) | Assay seed data and ingest script |
 | 8 | `b93d802` | Seed manufacturing (30 records) | Manufacturing seed data and ingest script |
 | 9 | `9af1263` | Design doc with benchmarks | Architecture documentation and performance data |
-| 10 | `96ad742` | Fix Claude model ID | Corrected LLM_MODEL to claude-sonnet-4-20250514 |
+| 10 | `96ad742` | Fix Claude model ID | Corrected LLM_MODEL to claude-sonnet-4-6 |
 | 11 | `3210594` | Citation links + evidence panel | Clickable PubMed/CT.gov links, evidence cards |
 | 12 | `7b519c9` | Comparative analysis mode | Entity parsing, dual retrieval, comparison prompts |
 | 13 | `052c5ec` | README update | Updated documentation |
@@ -1474,27 +1474,27 @@ pytest tests/ --cov=src --cov-report=html
 
 ## 20. File Inventory
 
-### Complete List of 60 Python Files
+### Complete List of 61 Python Files
 
-#### config/ (1 file, 102 lines)
+#### config/ (1 file, 113 lines)
 
 | File | Lines | Description |
 |------|-------|-------------|
-| `config/settings.py` | 102 | CARTSettings Pydantic configuration |
+| `config/settings.py` | 113 | CARTSettings Pydantic configuration |
 
-#### src/ (28 files, 12,290 lines)
+#### src/ (28 files, 12,944 lines)
 
 | File | Lines | Description |
 |------|-------|-------------|
 | `src/__init__.py` | -- | Package init |
-| `src/agent.py` | 271 | CARTIntelligenceAgent: plan-search-synthesize |
+| `src/agent.py` | 309 | CARTIntelligenceAgent: plan-search-synthesize |
 | `src/collections.py` | 1,004 | CARTCollectionManager: 11 schemas + CRUD |
 | `src/export.py` | 1,487 | Markdown, JSON, PDF export with NVIDIA theme |
-| `src/knowledge.py` | 1,906 | Knowledge graph: 3 dictionaries, 71 entries, 54 aliases |
+| `src/knowledge.py` | 2,249 | Knowledge graph: 3 dictionaries, 71 entries, 54 aliases |
 | `src/metrics.py` | 404 | Prometheus metrics: counters, histograms, gauges |
 | `src/models.py` | 484 | Pydantic models: 13 enums, 10 collections, 4 search/agent |
-| `src/query_expansion.py` | 1,380 | 12 expansion maps, 229 keywords, 1,961 terms |
-| `src/rag_engine.py` | 693 | CARTRAGEngine: retrieval, synthesis, comparative |
+| `src/query_expansion.py` | 1,592 | 12 expansion maps, 229 keywords, 1,961 terms |
+| `src/rag_engine.py` | 754 | CARTRAGEngine: retrieval, synthesis, comparative |
 | `src/scheduler.py` | 226 | APScheduler: weekly PubMed/trials refresh |
 | `src/utils/__init__.py` | -- | Utils package init |
 | `src/utils/pubmed_client.py` | -- | NCBI E-utilities client |
@@ -1515,13 +1515,13 @@ pytest tests/ --cov=src --cov-report=html
 | `src/ingest/uniprot_parser.py` | -- | UniProt protein data parser |
 | `src/ingest/cibmtr_parser.py` | -- | CIBMTR registry data parser |
 
-#### app/ (1 file, 1,119 lines)
+#### app/ (1 file, 1,162 lines)
 
 | File | Lines | Description |
 |------|-------|-------------|
-| `app/cart_ui.py` | 1,119 | Streamlit UI: chat, knowledge graph, image analysis |
+| `app/cart_ui.py` | 1,162 | Streamlit UI: chat, knowledge graph, image analysis |
 
-#### api/ (5 files, 1,032 lines)
+#### api/ (5 files, 1,033 lines)
 
 | File | Lines | Description |
 |------|-------|-------------|
@@ -1545,14 +1545,14 @@ pytest tests/ --cov=src --cov-report=html
 | `scripts/seed_regulatory.py` | Seed 40 regulatory records |
 | `scripts/seed_sequences.py` | Seed 40 sequence records |
 | `scripts/seed_realworld.py` | Seed 54 real-world records |
-| `scripts/seed_patents.py` | Seed 26 patent literature records |
+| `scripts/seed_patents.py` | Seed 45 patent literature records |
 | `scripts/seed_immunogenicity.py` | Seed 38 immunogenicity records (20+18) |
 | `scripts/ingest_pubmed.py` | Full PubMed ingest |
 | `scripts/ingest_clinical_trials.py` | Full ClinicalTrials.gov ingest |
 | `scripts/validate_e2e.py` | End-to-end pipeline validation |
 | `scripts/test_rag_pipeline.py` | RAG pipeline integration test |
 
-#### tests/ (7 files, 2,902 lines)
+#### tests/ (7 files, 4,321 lines)
 
 | File | Description |
 |------|-------------|

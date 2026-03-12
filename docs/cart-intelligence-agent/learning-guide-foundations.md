@@ -1208,7 +1208,7 @@ cart_intelligence_agent/
 │   ├── seed_immunogenicity.py
 │   ├── validate_e2e.py
 │   └── test_rag_pipeline.py
-├── tests/                        # 278 tests
+├── tests/                        # 415 tests
 │   ├── conftest.py
 │   ├── test_models.py
 │   ├── test_rag_engine.py
@@ -1229,7 +1229,7 @@ cart_intelligence_agent/
 
 ### File-by-file walkthrough of the core files
 
-#### config/settings.py (102 lines)
+#### config/settings.py (113 lines)
 
 The single source of truth for all configuration. Uses Pydantic `BaseSettings` so every value can be overridden via environment variables (prefixed with `CART_`) or a `.env` file.
 
@@ -1269,7 +1269,7 @@ Manages the 11 Milvus collections. Contains:
 
 The `search_all()` method is the workhorse of the system. It launches concurrent searches across all 11 collections and merges the results. This is what enables the system to search 3.5 million vectors in 12-16 milliseconds.
 
-#### src/rag_engine.py (693 lines)
+#### src/rag_engine.py (754 lines)
 
 The multi-collection RAG engine. This is the central piece of the system. It orchestrates:
 
@@ -1285,7 +1285,7 @@ The multi-collection RAG engine. This is the central piece of the system. It orc
 
 The system prompt (`CART_SYSTEM_PROMPT`) defines a detailed 12-domain expert persona for Claude. It instructs the LLM to cite evidence using clickable markdown links, think cross-functionally, highlight failure modes, suggest optimizations, and acknowledge uncertainty.
 
-#### src/knowledge.py (1,906 lines)
+#### src/knowledge.py (2,249 lines)
 
 The knowledge graph. Contains four large Python dictionaries:
 
@@ -1307,7 +1307,7 @@ Public API functions:
 - `resolve_comparison_entity()`: Resolves a raw text string to a known entity for comparative analysis
 - `get_comparison_context()`: Builds side-by-side knowledge for two entities
 
-#### src/query_expansion.py (1,380 lines)
+#### src/query_expansion.py (1,592 lines)
 
 The 12 domain-specific expansion dictionaries and the expansion functions. The main function is `expand_query()`, which takes a raw user question and returns a deduplicated list of related terms.
 
@@ -1315,7 +1315,7 @@ Also provides:
 - `expand_query_by_category()`: Returns terms grouped by category (useful for weighted per-collection expansion)
 - `get_expansion_stats()`: Returns keyword and term counts per map (useful for health checks)
 
-#### src/agent.py (271 lines)
+#### src/agent.py (309 lines)
 
 The autonomous CAR-T Intelligence Agent. Implements the plan-search-synthesize pattern:
 
@@ -1324,7 +1324,7 @@ The autonomous CAR-T Intelligence Agent. Implements the plan-search-synthesize p
 3. **`run()`**: Orchestrates the full pipeline: plan, search, evaluate, optionally expand with sub-questions, generate answer.
 4. **`generate_report()`**: Creates a formatted markdown report from the results.
 
-#### app/cart_ui.py (1,120 lines)
+#### app/cart_ui.py (1,162 lines)
 
 The Streamlit chat interface. Features:
 

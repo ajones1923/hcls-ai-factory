@@ -14,7 +14,7 @@ https://github.com/ajones1923/hcls-ai-factory
 
 Chimeric antigen receptor T-cell (CAR-T) therapy represents one of the most transformative advances in oncology, yet the data ecosystem supporting its development remains profoundly fragmented. Clinical researchers, manufacturing engineers, regulatory strategists, and pharmacovigilance scientists each operate within isolated information silos -- PubMed for literature, ClinicalTrials.gov for trial data, FDA databases for regulatory milestones, CIBMTR for real-world outcomes, and institutional databases for manufacturing records. A single cross-functional question such as "How do manufacturing parameters affect clinical response rates for CD19 CAR-T products?" requires manual synthesis across at least five distinct data sources, a process that can consume days of expert time.
 
-This paper presents the CAR-T Intelligence Agent, an AI-powered multi-collection retrieval-augmented generation (RAG) system that unifies 11 specialized vector collections containing 3,567,622 indexed vectors across the full CAR-T development lifecycle. The system employs 384-dimensional BGE-small-en-v1.5 embeddings, a 3-dictionary knowledge graph with 71 structured entries (34 targets, 17 toxicities, 20 manufacturing), 12 query expansion maps mapping 229 keywords to 1,961 related terms, and Claude Sonnet 4.6 for evidence synthesis. Parallel search via ThreadPoolExecutor across all 11 collections delivers cross-functional answers with clickable PubMed and ClinicalTrials.gov citations in under 30 seconds. The system includes structured comparative analysis, citation relevance scoring, and multi-format export (Markdown, JSON, PDF). Comprising 19,332 lines of Python across 60 files with 278 automated tests, the agent runs on a single NVIDIA DGX Spark ($3,999) and is released under the Apache 2.0 license. We demonstrate that a carefully designed multi-collection RAG architecture can transform fragmented biomedical data into actionable cross-functional intelligence, democratizing access to CAR-T development knowledge that was previously available only to large pharmaceutical organizations with dedicated informatics teams.
+This paper presents the CAR-T Intelligence Agent, an AI-powered multi-collection retrieval-augmented generation (RAG) system that unifies 11 specialized vector collections containing 3,567,622 indexed vectors across the full CAR-T development lifecycle. The system employs 384-dimensional BGE-small-en-v1.5 embeddings, a 3-dictionary knowledge graph with 71 structured entries (34 targets, 17 toxicities, 20 manufacturing), 12 query expansion maps mapping 229 keywords to 1,961 related terms, and Claude Sonnet 4.6 for evidence synthesis. Parallel search via ThreadPoolExecutor across all 11 collections delivers cross-functional answers with clickable PubMed and ClinicalTrials.gov citations in under 30 seconds. The system includes structured comparative analysis, citation relevance scoring, and multi-format export (Markdown, JSON, PDF). Comprising 21,259 lines of Python across 61 files with 415 automated tests, the agent runs on a single NVIDIA DGX Spark ($3,999) and is released under the Apache 2.0 license. We demonstrate that a carefully designed multi-collection RAG architecture can transform fragmented biomedical data into actionable cross-functional intelligence, democratizing access to CAR-T development knowledge that was previously available only to large pharmaceutical organizations with dedicated informatics teams.
 
 ---
 
@@ -425,8 +425,8 @@ Measured on NVIDIA DGX Spark (GB10 GPU, 128 GB unified memory):
 | Comparative RAG query (dual search + Claude) | ~30 seconds |
 | Cosine similarity scores (demo queries) | 0.74 - 0.90 |
 | Total indexed vectors | 3,567,622 |
-| Total Python codebase | 19,332 lines across 60 files |
-| Automated test count | 278 |
+| Total Python codebase | 21,259 lines across 61 files |
+| Automated test count | 415 |
 
 ### 10.2 Query Capabilities
 
@@ -546,7 +546,7 @@ This paper has presented the CAR-T Intelligence Agent, a multi-collection RAG sy
 4. **Structured comparative analysis:** Auto-detection and resolution of "X vs Y" queries with dual retrieval, entity-grouped evidence, and structured output (comparison tables, advantages/limitations, clinical context).
 5. **Citation provenance:** Every evidence item carries a clickable link to its primary source, maintaining the traceability that scientific work demands.
 6. **Hardware democratization:** The complete system runs on a single NVIDIA DGX Spark ($3,999), reducing the infrastructure barrier from hundreds of thousands of dollars to under $4,000.
-7. **Open-source availability:** 19,332 lines of Python across 60 files, 278 automated tests, released under the Apache 2.0 license.
+7. **Open-source availability:** 21,259 lines of Python across 61 files, 415 automated tests, released under the Apache 2.0 license.
 
 ### 13.2 Future Directions
 
