@@ -14,7 +14,7 @@ https://github.com/ajones1923/hcls-ai-factory
 
 Clinical laboratory medicine relies on population-derived reference ranges to classify biomarker values as normal or abnormal. These ranges represent statistical averages across demographically diverse cohorts and ignore the genetic variation that shapes individual biochemistry. A patient carrying MTHFR C677T homozygous variant may exhibit a homocysteine level of 14 umol/L -- within the standard reference range of 5-15 umol/L -- yet clinically elevated relative to the genotype-adjusted threshold of 10 umol/L for TT carriers. This interpretive gap between population norms and individual biology represents a fundamental limitation of current clinical laboratory practice.
 
-This paper presents the Precision Biomarker Intelligence Agent, an open-source system that combines 13 biomarker-specific Milvus vector collections plus one read-only genomic evidence collection (14 total) with four computational analysis modules -- biological age estimation (PhenoAge and GrimAge surrogate), pre-symptomatic disease trajectory prediction across 9 disease categories, pharmacogenomic mapping for 9 CPIC-guided pharmacogenes, and genotype-adjusted reference range calculation -- to deliver personalized biomarker interpretation. The system employs 384-dimensional BAAI/bge-small-en-v1.5 embeddings under IVF_FLAT indexing with cosine similarity. A multi-domain knowledge graph spanning 7 disease domains, 9 pharmacogenes, PhenoAge clock biomarkers, and 8 cross-modal links augments vector retrieval with structured clinical context. Parallel search via ThreadPoolExecutor across all 14 collections delivers cross-functional answers with evidence citations. The system includes critical value detection, cross-biomarker discordance analysis, longitudinal tracking, and ancestry-aware adjustments. A 12-section clinical report generator produces comprehensive patient reports exportable to Markdown, PDF (ReportLab), and FHIR R4 DiagnosticReport bundles. Comprising approximately 29,000 lines of Python across 57 files with 709 tests across 20 test files, the agent runs on a single NVIDIA DGX Spark ($3,999) and is released under the Apache 2.0 license. We demonstrate that a carefully designed multi-collection RAG architecture, augmented with deterministic computational engines, can transform raw biomarker and genetic data into actionable precision health intelligence that accounts for the genetic individuality that population reference ranges ignore.
+This paper presents the Precision Biomarker Intelligence Agent, an open-source system that combines 13 biomarker-specific Milvus vector collections plus one read-only genomic evidence collection (14 total) with four computational analysis modules -- biological age estimation (PhenoAge and GrimAge surrogate), pre-symptomatic disease trajectory prediction across 9 disease categories, pharmacogenomic mapping for 14 CPIC-guided pharmacogenes, and genotype-adjusted reference range calculation -- to deliver personalized biomarker interpretation. The system employs 384-dimensional BAAI/bge-small-en-v1.5 embeddings under IVF_FLAT indexing with cosine similarity. A multi-domain knowledge graph spanning 7 disease domains, 14 pharmacogenes, PhenoAge clock biomarkers, and 8 cross-modal links augments vector retrieval with structured clinical context. Parallel search via ThreadPoolExecutor across all 14 collections delivers cross-functional answers with evidence citations. The system includes critical value detection, cross-biomarker discordance analysis, longitudinal tracking, and ancestry-aware adjustments. A 12-section clinical report generator produces comprehensive patient reports exportable to Markdown, PDF (ReportLab), and FHIR R4 DiagnosticReport bundles. Comprising approximately 29,000 lines of Python across 57 files with 709 tests across 18 test files, the agent runs on a single NVIDIA DGX Spark ($3,999) and is released under the Apache 2.0 license. We demonstrate that a carefully designed multi-collection RAG architecture, augmented with deterministic computational engines, can transform raw biomarker and genetic data into actionable precision health intelligence that accounts for the genetic individuality that population reference ranges ignore.
 
 ---
 
@@ -44,7 +44,7 @@ The Precision Biomarker Intelligence Agent addresses these limitations through f
 
 4. A **pre-symptomatic disease trajectory engine** that detects early disease progression across 9 categories using genotype-stratified biomarker thresholds, enabling intervention years before conventional diagnostic criteria are met.
 
-5. A **complete open-source implementation** comprising 709 tests across 20 test files, 19+ API endpoints across 3 routers, and 8 UI tabs, released under Apache 2.0 and deployable on a single NVIDIA DGX Spark ($3,999).
+5. A **complete open-source implementation** comprising 709 tests across 18 test files, 19+ API endpoints across 3 routers, and 8 UI tabs, released under Apache 2.0 and deployable on a single NVIDIA DGX Spark ($3,999).
 
 ---
 
@@ -145,7 +145,7 @@ Beyond vector retrieval, the RAG engine augments search results with structured 
 
 2. **PHENOAGE_KNOWLEDGE.** PhenoAge clock biomarker descriptions, coefficients, clinical interpretation guidelines, and actionable aging drivers.
 
-3. **PGX_KNOWLEDGE (9 pharmacogenes).** Key drug interactions, CPIC guidance summaries, and clinical impact descriptions for each supported pharmacogene.
+3. **PGX_KNOWLEDGE (14 pharmacogenes).** Key drug interactions, CPIC guidance summaries, and clinical impact descriptions for each supported pharmacogene.
 
 4. **CROSS_MODAL_LINKS (8 links).** Mappings from biomarker findings to triggers for other HCLS AI Factory agents (imaging, oncology, genomics pipeline), enabling automatic cross-modal escalation.
 
@@ -165,7 +165,7 @@ The PharmacogenomicMapper is a deterministic computation module that translates 
 
 ### 4.2 Supported Pharmacogenes
 
-The engine supports 9 primary pharmacogenes with full CPIC guideline mapping:
+The engine supports 14 primary pharmacogenes with full CPIC guideline mapping:
 
 | Gene | CPIC Version | Key Drug Classes | Clinical Impact |
 |------|-------------|-----------------|-----------------|
@@ -247,10 +247,10 @@ The DiseaseTrajectoryAnalyzer detects pre-symptomatic disease trajectories acros
 | Liver (NAFLD/NASH) | ALT, AST, GGT, FIB-4 index, platelets | PNPLA3, TM6SF2, HSD17B13 | Normal, simple steatosis, NASH, fibrosis, cirrhosis |
 | Kidney | eGFR, creatinine, BUN, albumin-creatinine ratio | APOL1, UMOD, PKD1 | Normal, mild reduction, moderate, severe, kidney failure |
 | Thyroid | TSH, free T4, free T3, TPO antibodies | DIO2, FOXE1, TSHR | Normal, subclinical hypothyroid, overt hypothyroid, subclinical hyperthyroid, overt hyperthyroid |
-| Hematologic | Hemoglobin, ferritin, transferrin saturation, TIBC | HFE, TMPRSS6, HBB | Normal, iron deficiency, iron overload, anemia, polycythemia |
-| Immune/Inflammatory | CRP, ESR, complement C3/C4, ANA titer | HLA variants, CTLA4, PTPN22 | Normal, low-grade inflammation, active inflammation, autoimmune pattern, severe |
-| Bone/Mineral | Calcium, phosphorus, vitamin D, PTH, alkaline phosphatase | VDR, COL1A1, ESR1 | Normal, vitamin D insufficiency, osteopenia risk, osteoporosis risk, metabolic bone disease |
-| Reproductive/Hormonal | Testosterone, estradiol, FSH, LH, DHEA-S | AR, CYP19A1, SHBG | Normal, early hormonal shift, symptomatic, hypogonadal/menopausal, severe deficiency |
+| Iron Metabolism | Ferritin, transferrin saturation, serum iron | HFE C282Y, HFE H63D | Normal, iron deficiency, iron overload, anemia, polycythemia |
+| Nutritional | Omega-3, Vit D, B12, folate, Mg, Zn | FADS1, FADS2, VDR, BCMO1, FUT2 | Normal, mild deficiency, moderate deficiency, severe deficiency, multi-nutrient |
+| Cognitive | Homocysteine, B12, folate, hs-CRP | APOE, MTHFR | Normal, early cognitive shift, mild impairment, moderate impairment, severe |
+| Bone Health | Calcium, PTH, vitamin D, CTX, P1NP, phosphorus | VDR, COL1A1, ESR1 | Normal, vitamin D insufficiency, osteopenia risk, osteoporosis risk, metabolic bone disease |
 
 ### 6.3 Genotype-Stratified Thresholds
 
@@ -409,7 +409,7 @@ All API operations are recorded through a structured audit logging system (`src/
 
 ### 11.1 Test Coverage
 
-The system includes 709 tests across 20 test files covering all major modules:
+The system includes 709 tests across 18 test files covering all major modules:
 
 | Test File | Scope |
 |-----------|-------|

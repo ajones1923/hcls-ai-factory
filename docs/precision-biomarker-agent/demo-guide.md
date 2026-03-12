@@ -1,186 +1,751 @@
-# Precision Biomarker Intelligence Agent — Demo Guide
+# Precision Biomarker Intelligence Agent -- Demo Guide
 
 **Author:** Adam Jones
 **Date:** March 2026
-
-> Step-by-step walkthrough of all 8 Streamlit UI tabs using both sample patients. Use this guide for live demos.
+**Version:** 1.0.0
 
 ---
 
-## Prerequisites
+## Table of Contents
 
-Before starting the demo, ensure:
+1. [Overview](#1-overview)
+2. [Prerequisites](#2-prerequisites)
+3. [Demo Flow Overview](#3-demo-flow-overview)
+4. [Tab-by-Tab Walkthrough](#4-tab-by-tab-walkthrough)
+5. [API Demo](#5-api-demo)
+6. [Talking Points for Each Feature](#6-talking-points-for-each-feature)
+7. [Troubleshooting Common Demo Issues](#7-troubleshooting-common-demo-issues)
 
-1. **Milvus** is running on `localhost:19530` with 14 seeded collections (652 vectors)
-2. **Streamlit UI** is running on `http://localhost:8528`
-3. **Anthropic API key** is configured (for RAG queries in Tab 5)
+---
 
-Verify everything is ready:
+## 1. Overview
 
-```bash
-cd ai_agent_adds/precision_biomarker_agent
-python3 scripts/demo_validation.py
-# → 65/65 checks passed
+The Precision Biomarker Intelligence Agent transforms raw clinical biomarker data and
+genomic variants into actionable clinical intelligence. It combines laboratory result
+interpretation, pharmacogenomic profiling, biological age estimation, disease risk
+trajectory modeling, and RAG-powered evidence retrieval into a single unified platform.
+
+**What the agent does:**
+
+- Ingests patient demographics, lab panels, medications, and genomic data (VCF)
+- Applies genotype-aware reference range adjustments and critical value detection
+- Calculates biological age using PhenoAge and GrimAge surrogate algorithms
+- Predicts disease trajectories across 9 clinical categories
+- Maps pharmacogenomic star alleles to metabolizer phenotypes with CPIC-guided dosing
+- Searches 14 Milvus vector collections via RAG for evidence-backed interpretation
+- Generates 12-section clinical reports with PDF export and FHIR R4 bundle output
+- Provides longitudinal trend tracking and rate-of-change analysis
+
+**Demo duration:** ~20 minutes for the full walkthrough. Individual tabs can be
+demonstrated independently in 2--3 minutes each.
+
+**Architecture at a glance:**
+
+```
+Streamlit UI (:8528)  -->  FastAPI Backend (:8529)  -->  Milvus Vector DB
+                                  |
+                      +-----------+-----------+
+                      |           |           |
+                  Biomarker   PGx Engine   RAG Engine
+                  Analysis    (14 genes)   (14 collections)
+                      |           |           |
+                  Claude LLM  CPIC DB     BGE-small-en-v1.5
+                                          (384-dim embeddings)
 ```
 
 ---
 
-## Demo Flow Overview
+## 2. Prerequisites
 
-| Tab | Time | Key Talking Points |
-|---|---|---|
-| 1. Biomarker Analysis | 3 min | Critical alerts, discordance detection, multi-lab comparison |
-| 2. Biological Age | 2 min | PhenoAge/GrimAge, aging drivers, confidence intervals |
-| 3. Disease Risk | 3 min | 9-domain risk cards, genotype integration |
-| 4. PGx Profile | 3 min | CYP2D6 *1/*4, drug recommendations, CPIC guidelines |
-| 5. Evidence Explorer | 2 min | RAG search across 14 collections, citation scoring |
-| 6. Reports | 2 min | FHIR R4 validation, PDF report, Markdown |
-| 7. Patient 360 | 2 min | Unified cross-agent dashboard |
-| 8. Longitudinal | 1 min | Multi-visit biomarker trending |
-| **Total** | **~18 min** | |
+### 2.1 Services That Must Be Running
+
+| Service            | Port  | Health Check                          |
+|--------------------|-------|---------------------------------------|
+| Streamlit UI       | 8528  | `curl http://localhost:8528`          |
+| FastAPI Backend    | 8529  | `curl http://localhost:8529/health`   |
+| Milvus             | 19530 | `curl http://localhost:9091/healthz`  |
+| etcd (Milvus dep)  | 2379  | Checked via Milvus health             |
+| MinIO (Milvus dep) | 9000  | `curl http://localhost:9000/minio/health/live` |
+
+### 2.2 Environment Variables
+
+Confirm the following are set before launching:
+
+```bash
+# Required
+export ANTHROPIC_API_KEY="sk-ant-..."
+
+# Verify services
+curl -s http://localhost:8529/health | python3 -m json.tool
+```
+
+### 2.3 Quick Start
+
+```bash
+# From the agent directory
+cd /home/adam/projects/hcls-ai-factory/ai_agent_adds/precision_biomarker_agent
+
+# Start backend
+python -m uvicorn api.main:app --host 0.0.0.0 --port 8529 &
+
+# Start UI
+streamlit run app/biomarker_ui.py --server.port 8528 &
+```
+
+Alternatively, use Docker Compose:
+
+```bash
+docker compose up -d
+```
+
+### 2.4 Demo Data
+
+Two demo patients are pre-loaded. No additional data ingestion is required.
 
 ---
 
-## Patient 1: Male, 45, Ashkenazi Jewish (HCLS-BIO-2026-00001)
+## 3. Demo Flow Overview
 
-### Key Narrative
+The recommended demo path walks through all 8 tabs in sequence. Each tab builds on
+context from the previous one, creating a narrative arc from raw biomarkers to
+clinical decision support.
 
-> A 45-year-old Ashkenazi Jewish male software engineer with ApoE E3/E4 genotype, MTHFR C677T heterozygous, CYP2D6 *1/*4 intermediate metabolizer. Family history of MI (father at 58), Alzheimer's (paternal grandmother at 74), and T2DM (mother at 52). Currently on 7 medications including atorvastatin and lisinopril. Presents with fatigue, joint stiffness, and intermittent brain fog.
+```
+Tab 1: Biomarker Analysis     -- "What do the labs show?"
+  |
+Tab 2: Biological Age         -- "How old is this patient biologically?"
+  |
+Tab 3: Disease Risk            -- "Where is this patient heading?"
+  |
+Tab 4: PGx Profile             -- "How should we dose medications?"
+  |
+Tab 5: Evidence Explorer       -- "What does the literature say?"
+  |
+Tab 6: Reports                 -- "Package it for the clinician."
+  |
+Tab 7: Patient 360             -- "See everything in one place."
+  |
+Tab 8: Longitudinal            -- "How are things changing over time?"
+```
+
+**Narrative arc:** Start with the raw data (Tab 1), derive deeper insights (Tabs 2--4),
+validate with evidence (Tab 5), package for clinical use (Tab 6), then show the
+unified and temporal views (Tabs 7--8).
+
+---
+
+## 4. Tab-by-Tab Walkthrough
+
+### Demo Patients Reference
+
+| Field           | Patient 1                         | Patient 2                          |
+|-----------------|-----------------------------------|------------------------------------|
+| **ID**          | HCLS-BIO-2026-00001               | HCLS-BIO-2026-00002               |
+| **Age/Sex**     | 45M                               | 38F                                |
+| **Ethnicity**   | Ashkenazi Jewish                  | Ashkenazi Jewish                   |
+| **Genome**      | HG002 (NA24385)                   | --                                 |
+| **BMI**         | 23.7                              | 22.6                               |
+| **Medications** | Atorvastatin 10mg, Metformin 500mg | OCP (ethinyl estradiol/norgestimate) |
+
+---
 
 ### Tab 1: Biomarker Analysis
 
-1. **Load sample patient** — Click **"Load Male Patient (HG002)"** button
-2. **Click "Run Full Analysis"**
-3. **Critical Values section** — Point out: No critical alerts on this patient (values within normal ranges). Demonstrate what happens with extreme values by mentioning the glucose=450 test.
-4. **Discordance Detection** — Show any detected cross-biomarker discordances. Key example: elevated Lp(a) of 85 nmol/L with borderline LDL of 138 — multiplicative cardiovascular risk.
-5. **Lab Range Comparison** — Show the three-way Quest vs LabCorp vs Function Health comparison. Point out where "lab normal" differs from "optimal" — e.g., Vitamin D at 38 is Quest-normal but Function Health wants >50.
+**Purpose:** Load a patient and review the full biomarker panel with intelligent
+interpretation.
 
-**Key talking point:** *"Standard lab reports would mark most of these as normal. But when we layer in the ApoE E4 genotype, the LDL of 138 actually needs to be under 100. This is what genomics-informed interpretation means."*
+**Steps:**
+
+1. **Select demo patient.** From the patient selector dropdown, choose
+   `HCLS-BIO-2026-00001` (45M, Ashkenazi Jewish, HG002).
+
+2. **Review the biomarker dashboard.** The system displays 67+ biomarker results
+   organized by clinical category.
+
+3. **Highlight genotype adjustments.** Point out biomarkers where the system has
+   adjusted reference ranges based on the patient's Ashkenazi Jewish ancestry and
+   known genomic variants. These appear with a gene icon indicator.
+
+   > *Talking point:* "Traditional lab reports use population-wide reference ranges.
+   > Our agent adjusts ranges based on the patient's actual genotype -- for example,
+   > creatinine reference ranges shift when we know the patient's ancestry and body
+   > composition."
+
+4. **Show critical values.** Any biomarker flagged as critically high or low appears
+   with a red alert banner. Click on a critical value to see the recommended clinical
+   action.
+
+   > *Talking point:* "Critical values trigger immediate alerts. The system doesn't
+   > just flag them -- it provides context on why the value is critical for THIS
+   > specific patient."
+
+5. **Demonstrate discordance alerts.** Show cases where biomarker values conflict
+   with each other or with genomic data. The discordance detector cross-references
+   related biomarkers to catch inconsistencies.
+
+   > *Talking point:* "Discordance detection is something a seasoned clinician does
+   > intuitively -- checking whether related labs tell a consistent story. We automate
+   > that pattern recognition across all 67+ biomarkers simultaneously."
+
+6. **Optionally switch to Patient 2** (HCLS-BIO-2026-00002, 38F) to show how the
+   same panel adjusts for sex-specific reference ranges and OCP medication effects.
+
+---
 
 ### Tab 2: Biological Age
 
-1. Navigate to Tab 2
-2. **PhenoAge** — Show biological age vs chronological age (45). Discuss age acceleration.
-3. **Top Aging Drivers** — Show which biomarkers contribute most to aging (positive = aging, negative = protective). Point out albumin and CRP contributions.
-4. **Confidence Interval** — Show the 95% CI. This patient has all 9/9 PhenoAge biomarkers available, giving a standard error of ~4.9 years — the tightest possible estimate.
-5. **GrimAge** — Note this returns None for this patient (no plasma markers like GDF-15 or Cystatin C in standard panel). Explain this would require a specialty lab panel.
+**Purpose:** Demonstrate the gap between chronological and biological age using
+validated algorithms.
 
-**Key talking point:** *"PhenoAge uses 9 clinical biomarkers to estimate biological age. This patient's age acceleration tells us whether his cellular aging is faster or slower than expected for 45."*
+**Steps:**
+
+1. **Review PhenoAge calculation.** The system uses 9 clinical biomarkers to compute
+   PhenoAge:
+   - Albumin
+   - Creatinine
+   - Glucose
+   - C-Reactive Protein (CRP)
+   - Lymphocyte Percent
+   - Mean Cell Volume (MCV)
+   - Red Cell Distribution Width (RDW)
+   - Alkaline Phosphatase
+   - White Blood Cell Count
+
+2. **Show the GrimAge surrogate.** A secondary biological age estimate using surrogate
+   markers when DNA methylation data is unavailable.
+
+3. **Explain age acceleration/deceleration.** The delta between chronological age (45)
+   and biological age is displayed as either acceleration (biological > chronological,
+   higher risk) or deceleration (biological < chronological, protective).
+
+   > *Talking point:* "PhenoAge was developed from NHANES III data and validated
+   > against mortality outcomes. A patient who is chronologically 45 but biologically
+   > 52 has the disease risk profile of a 52-year-old. This single number synthesizes
+   > 9 biomarkers into an actionable aging metric."
+
+4. **Point out which biomarkers are driving the result.** The breakdown shows each
+   biomarker's contribution to the biological age estimate, highlighting which ones
+   are aging the patient faster or slower.
+
+---
 
 ### Tab 3: Disease Risk
 
-1. Navigate to Tab 3
-2. **9 risk cards** — Show all 9 disease domains sorted by risk level
-3. **Cardiovascular (MODERATE)** — LDL 138 + ApoE E4 + Lp(a) 85 + family history MI at 58. Point out the genotype-adjusted LDL threshold.
-4. **Nutritional (MODERATE)** — Omega-3 Index 5.8 (suboptimal, target >8%), Vitamin D 38 (adequate but not optimal).
-5. **Cognitive (MODERATE)** — ApoE E3/E4 + family history Alzheimer's at 74. Show modifiable risk factor count.
-6. **Type 2 Diabetes (LOW)** — HbA1c 5.6 is just below the pre-diabetes threshold (5.7%), but note the TCF7L2 CT genotype (1 risk allele) means this patient should be monitored more closely than a wild-type individual with the same HbA1c.
+**Purpose:** Show predicted disease trajectories based on current biomarker patterns.
 
-**Key talking point:** *"Three domains flag MODERATE risk. The cardiovascular finding is particularly important — traditional LDL cutoffs say 138 is borderline, but ApoE E4 carriers need LDL under 100. Without genotype context, this patient would be told he's fine."*
+**Steps:**
+
+1. **Review the 9 disease trajectory categories:**
+
+   | #  | Category                 | Key Biomarkers                          |
+   |----|--------------------------|-----------------------------------------|
+   | 1  | Cardiovascular           | Lipid panel, CRP, homocysteine          |
+   | 2  | Metabolic / Diabetes     | Glucose, HbA1c, insulin, HOMA-IR        |
+   | 3  | Liver                    | ALT, AST, bilirubin, albumin, GGT       |
+   | 4  | Kidney                   | Creatinine, BUN, eGFR, cystatin C       |
+   | 5  | Thyroid                  | TSH, free T4, free T3                   |
+   | 6  | Iron Metabolism          | Ferritin, transferrin sat, serum iron    |
+   | 7  | Nutritional              | Omega-3, Vit D, B12, folate, Mg, Zn     |
+   | 8  | Cognitive                | Homocysteine, B12, folate, hs-CRP       |
+   | 9  | Bone Health              | Calcium, PTH, Vit D, CTX, P1NP         |
+
+2. **Walk through the cardiovascular risk panel for Patient 1.** Note that
+   Atorvastatin 10mg is already prescribed -- the system factors current medications
+   into risk projections.
+
+3. **Show the metabolic/diabetes trajectory.** Patient 1 is on Metformin 500mg.
+   The system models expected trajectory with and without continued treatment.
+
+4. **Demonstrate sex-specific differences.** Switch to Patient 2 to show how the
+   risk categories change for a 38F on OCP, including estrogen-related
+   cardiovascular risk modifiers.
+
+   > *Talking point:* "We don't just flag abnormal values -- we project trajectories.
+   > A fasting glucose of 105 means something very different in a 45-year-old already
+   > on Metformin versus a 38-year-old with no metabolic history."
+
+---
 
 ### Tab 4: PGx Profile
 
-1. Navigate to Tab 4
-2. **Enter star alleles:** CYP2D6 = `*1/*4`, CYP2C19 = `*1/*2`, TPMT = `*1/*1`
-3. **Enter genotypes:** MTHFR_rs1801133 = `CT`
-4. **Click "Map Drug Interactions"**
-5. **CYP2D6 Intermediate Metabolizer** — Show affected drugs: codeine (reduced efficacy), tramadol (dose adjustment), tamoxifen (reduced activation).
-6. **CYP2C19 Intermediate Metabolizer** — Show clopidogrel warning (reduced activation).
-7. **Drug-drug interactions** — Show any detected interactions across PGx recommendations.
-8. **CPIC guideline versions** — Point out the audit trail with publication dates and PMIDs.
+**Purpose:** Demonstrate pharmacogenomic profiling from genomic data to drug dosing
+recommendations.
 
-**Key talking point:** *"This patient is a CYP2D6 intermediate metabolizer. Codeine would have reduced efficacy because he can't convert it to morphine efficiently. This is exactly the kind of finding that prevents adverse drug events."*
+**Steps:**
+
+1. **Review the 14 pharmacogenes:** Show each gene with its detected star alleles,
+   diplotype, and resulting metabolizer status.
+
+   | Gene     | Example Phenotype      | Clinical Impact                        |
+   |----------|------------------------|----------------------------------------|
+   | CYP2D6   | Intermediate Metabolizer | Codeine, tamoxifen, SSRIs             |
+   | CYP2C19  | Poor Metabolizer       | Clopidogrel, PPIs, voriconazole        |
+   | CYP2C9   | Normal Metabolizer     | Warfarin, NSAIDs, phenytoin            |
+   | CYP3A5   | Non-Expressor          | Tacrolimus, many statins               |
+   | SLCO1B1  | Decreased Function     | Statin myopathy risk                   |
+   | VKORC1   | High Sensitivity       | Warfarin dose reduction                |
+   | MTHFR    | Reduced Activity       | Folate metabolism, methotrexate        |
+   | TPMT     | Normal Metabolizer     | Thiopurines (azathioprine)             |
+   | DPYD     | Normal Metabolizer     | Fluoropyrimidines (5-FU, capecitabine) |
+
+2. **Highlight the star allele to phenotype mapping.** Click on CYP2D6 to show
+   the full star allele detail (e.g., *1/*4 -> Intermediate Metabolizer).
+
+3. **Show drug interaction with current medications.** For Patient 1 on Atorvastatin:
+   - Check SLCO1B1 status (statin transport gene)
+   - If decreased function is detected, the system recommends dose adjustment or
+     alternative statin selection per CPIC guidelines
+
+4. **Demonstrate CPIC guidance integration.** Each gene-drug pair links to the
+   relevant CPIC guideline with strength of recommendation and evidence level.
+
+   > *Talking point:* "Ashkenazi Jewish populations have elevated carrier frequencies
+   > for several pharmacogenomic variants. Patient 1's HG002 genome gives us real
+   > variant calls -- not imputed data -- so the star allele assignments are
+   > high-confidence."
+
+5. **Show the dosing recommendation panel.** For each active medication, the system
+   provides a traffic-light recommendation: green (standard dose), yellow (consider
+   adjustment), red (contraindicated or major dose change needed).
+
+---
 
 ### Tab 5: Evidence Explorer
 
-1. Navigate to Tab 5
-2. **Query:** "ApoE E4 carrier with elevated LDL — cardiovascular risk management"
-3. **Show results** — Point out collection sources, relevance scores, and citation levels
-4. **Filter by collection** — Expand "Collection Filters" and demonstrate filtering to just `biomarker_genetic_variants` or `biomarker_clinical_evidence`
-5. **Second query:** "MTHFR C677T heterozygous folate metabolism homocysteine"
+**Purpose:** Demonstrate RAG-powered search across the biomarker knowledge base.
 
-**Key talking point:** *"The RAG engine searches across 14 specialized collections simultaneously — from genetic variant databases to clinical evidence to drug interaction tables — and synthesizes a grounded answer with citations."*
+**Steps:**
+
+1. **Show the 14 collections available for search:**
+   - 13 biomarker-specific collections (one per clinical category, plus general
+     clinical chemistry)
+   - 1 genomic collection (ClinVar + AlphaMissense annotations)
+
+2. **Run a sample query.** Type a clinical question such as:
+   > "What is the significance of elevated homocysteine in an Ashkenazi Jewish male
+   > with MTHFR reduced activity?"
+
+3. **Review the results.** The RAG engine returns:
+   - Ranked passages with citation scores
+   - Source collection and document metadata
+   - Relevance confidence indicator
+
+4. **Show citation scoring.** Each retrieved passage has a relevance score. Explain
+   that the system uses BGE-small-en-v1.5 embeddings (384-dimensional vectors) to
+   compute semantic similarity.
+
+5. **Demonstrate comparative analysis.** Select two biomarkers and run a comparative
+   query to show how the system synthesizes evidence across multiple collections.
+
+   > *Talking point:* "The RAG engine searches across 14 vector collections
+   > simultaneously. Each collection is embedded with BGE-small-en-v1.5, a compact
+   > but high-quality biomedical embedding model. The 384-dimensional vectors give
+   > us fast retrieval without sacrificing semantic precision."
+
+6. **Show how evidence links back to patient context.** Click on a retrieved passage
+   to see how the system connects the evidence to the specific patient's biomarker
+   values and genotype.
+
+---
 
 ### Tab 6: Reports
 
-1. Navigate to Tab 6
-2. **FHIR R4** — Generate FHIR bundle, show validation passes (0 errors)
-3. **Show bundle structure** — Patient resource, DiagnosticReport, Observations
-4. **PDF** — Download clinical report (requires reportlab)
-5. **Markdown** — Show plain-text clinical summary
+**Purpose:** Generate and export a comprehensive clinical report.
 
-**Key talking point:** *"The FHIR R4 export produces a structurally validated diagnostic report that can be ingested by any EHR system. Every reference resolves within the bundle — this is interoperability-ready."*
+**Steps:**
+
+1. **Trigger report generation.** Click "Generate Report" for Patient 1. The system
+   compiles a 12-section clinical report:
+
+   | #  | Section                          |
+   |----|----------------------------------|
+   | 1  | Patient Demographics             |
+   | 2  | Executive Summary                |
+   | 3  | Biomarker Analysis               |
+   | 4  | Critical Values & Alerts         |
+   | 5  | Genotype Adjustments             |
+   | 6  | Biological Age Assessment        |
+   | 7  | Disease Risk Trajectories        |
+   | 8  | Pharmacogenomic Profile          |
+   | 9  | Drug Interaction Analysis        |
+   | 10 | Evidence Summary                 |
+   | 11 | Recommendations                  |
+   | 12 | Appendix (Raw Data & Methods)    |
+
+2. **Walk through the executive summary.** This section distills the entire analysis
+   into 3--5 key findings with clinical priority rankings.
+
+3. **Show PDF export.** Click "Export PDF" to generate a formatted clinical document
+   suitable for EHR attachment or patient handoff.
+
+4. **Demonstrate FHIR R4 bundle export.** Click "Export FHIR" to generate a standards-
+   compliant FHIR R4 Bundle resource containing:
+   - Patient resource
+   - Observation resources (one per biomarker)
+   - DiagnosticReport resource
+   - MedicationStatement resources
+
+   > *Talking point:* "The FHIR R4 bundle means this report can be ingested directly
+   > by any FHIR-compliant EHR system. We're not generating a PDF that sits in a
+   > drawer -- we're producing structured, interoperable clinical data."
+
+---
 
 ### Tab 7: Patient 360
 
-1. Navigate to Tab 7
-2. **Unified dashboard** — This tab provides a cross-agent intelligence view combining genomics, biomarkers, drug candidates, and clinical evidence from across the HCLS AI Factory platform.
-3. **Click "Load Demo Patient 360"** to populate the dashboard with the current patient's data.
-4. **Point out cross-pipeline integration** — Show how biomarker results connect to genomic variants and potential drug candidates from other pipeline stages.
+**Purpose:** Show a unified view that brings together all patient data on a single
+screen.
 
-**Key talking point:** *"Patient 360 is where all three pipeline stages converge — genomic variants from Stage 1, biomarker intelligence from Stage 2, and drug candidates from Stage 3 — giving clinicians a single unified view."*
+**Steps:**
+
+1. **Load the Patient 360 view.** The dashboard consolidates:
+   - Biomarker summary with sparkline trends
+   - Genomic variant highlights (pathogenic/likely pathogenic)
+   - Active medications with PGx annotations
+   - Risk factor radar chart (cardiovascular, metabolic, liver, kidney, etc.)
+   - Biological age gauge
+
+2. **Demonstrate the integration story.** Point out how data from every other tab
+   feeds into this single view.
+
+   > *Talking point:* "A clinician has 15 minutes per patient visit. Patient 360
+   > gives them the full picture without clicking through 8 separate systems. Every
+   > insight from biomarkers, genomics, PGx, and disease risk is synthesized into
+   > one actionable view."
+
+3. **Show drill-down capability.** Click on any element in the 360 view to navigate
+   to the detailed tab for that data domain.
+
+4. **Highlight the risk factor radar chart.** The radar chart plots relative risk
+   across all 9 disease categories, making it immediately visible where the patient's
+   greatest vulnerabilities lie.
+
+---
 
 ### Tab 8: Longitudinal
 
-1. Navigate to Tab 8
-2. **Multi-visit tracking** — Show biomarker trends across multiple time points
-3. **Trend analysis** — Point out improving, stable, and crisis patterns
-4. **Clinical context** — Explain how longitudinal tracking reveals trajectories that single-point-in-time analysis misses
+**Purpose:** Demonstrate biomarker trend tracking and rate-of-change analysis over
+time.
 
-**Key talking point:** *"A single lab draw is a snapshot. Longitudinal tracking reveals the trajectory — is ferritin trending down toward depletion? Is HbA1c creeping up despite medication? These trends drive proactive intervention."*
+**Steps:**
 
----
+1. **Select a biomarker for trend analysis.** Choose HbA1c or LDL cholesterol for
+   the most visually compelling demo.
 
-## Patient 2: Female, 38, Ashkenazi Jewish (HCLS-BIO-2026-00002)
+2. **Review the trend chart.** The system plots historical values with:
+   - Reference range bands (green/yellow/red zones)
+   - Genotype-adjusted reference ranges (shifted bands)
+   - Trend line with confidence interval
+   - Medication start/stop annotations on the timeline
 
-### Key Narrative
+3. **Show rate-of-change analysis.** The system calculates:
+   - Absolute change per unit time
+   - Percentage change
+   - Acceleration/deceleration of the trend
+   - Projected future values (with confidence bands)
 
-> A 38-year-old Ashkenazi Jewish genetic counselor with active preconception planning (12-18 months). Mother has BRCA1 185delAG confirmed breast cancer at 48. BRCA1 status NOT YET TESTED — URGENT. Ferritin of 28 ng/mL is critically low for preconception. GBA carrier risk 50% (paternal grandmother had Gaucher Disease Type 1).
+4. **Demonstrate clinical significance detection.** The system flags when a
+   rate of change is clinically significant even if the absolute value is still
+   within the reference range.
 
-### Key Demo Points for Patient 2
-
-1. **Tab 1 — Ferritin 28** — Show lab ranges: Quest says "normal" (12-150), but Function Health optimal for preconception is >50. This is the value of multi-lab comparison.
-
-2. **Tab 3 — Iron trajectory (LOW)** — Ferritin 28 + transferrin saturation 18%. While the engine classifies this as LOW risk, point out that for preconception planning, the clinical target is ferritin >50-70 — making this a priority for optimization.
-
-3. **Tab 3 — Nutritional (MODERATE)** — Omega-3 Index 4.9% (target >8% for pregnancy), Vitamin D 32 (target 40-60). This is the only MODERATE-risk domain for this patient.
-
-4. **Tab 4 — PGx** — All normal metabolizers (CYP2D6 *1/*1, CYP2C19 *1/*1, TPMT *1/*1). Important for preconception medication safety.
-
-5. **Tab 3 — Diabetes trajectory (LOW)** — TCF7L2 TT (2 risk alleles) is the highest genetic risk category, and father has T2DM. HbA1c 5.2 is reassuringly normal now, but the genetic burden warrants monitoring during and after pregnancy when insulin resistance naturally increases.
-
-6. **Tab 7 — Patient 360** — BRCA1 NOT YET TESTED, preconception ACTIVE, GBA carrier risk 50%. This drives urgency for genetic testing before pregnancy planning proceeds.
-
-**Key talking point:** *"This is where precision medicine becomes actionable. Her Quest lab report says ferritin 28 is normal. But for a woman actively planning pregnancy, ferritin needs to be above 50. And BRCA1 testing is urgent given her family history — this should happen before any pregnancy planning."*
+   > *Talking point:* "A single lab value is a snapshot. Longitudinal tracking turns
+   > it into a movie. An LDL of 125 is 'normal' -- but if it was 95 six months ago,
+   > that trajectory matters. Our rate-of-change analysis catches these trends before
+   > they become clinical events."
 
 ---
 
-## Troubleshooting
+## 5. API Demo
 
-| Issue | Resolution |
-|---|---|
-| Streamlit not starting | Check port 8528 is free: `lsof -i :8528` |
-| "No collections found" | Run `python3 scripts/seed_all.py` |
-| FHIR validation errors | Verify export.py has Patient resource in bundle |
-| RAG returns empty | Check Milvus is running: `curl localhost:19530/healthz` |
-| PGx shows no results | Ensure star_alleles use format `*1/*4` (with asterisks) |
-| GrimAge returns None | Expected — requires specialty plasma markers not in standard panels |
+For technical audiences, demonstrate the FastAPI backend directly. All endpoints
+are available at `http://localhost:8529`.
 
----
-
-## Quick Reset
-
-If you need to reset the demo environment:
+### 5.1 Biomarker Analysis
 
 ```bash
-# Re-seed all collections (drops and recreates)
-python3 scripts/seed_all.py
+curl -s -X POST http://localhost:8529/analyze \
+  -H "Content-Type: application/json" \
+  -d '{
+    "patient_id": "HCLS-BIO-2026-00001",
+    "include_genotype_adjustments": true,
+    "include_critical_values": true
+  }' | python3 -m json.tool
+```
 
-# Verify
-python3 scripts/demo_validation.py
-# → 65/65 passed
+### 5.2 Biological Age
 
-# Restart UI
-# Ctrl+C the streamlit process, then:
+```bash
+curl -s -X POST http://localhost:8529/biological-age \
+  -H "Content-Type: application/json" \
+  -d '{
+    "patient_id": "HCLS-BIO-2026-00001",
+    "algorithms": ["phenoage", "grimage_surrogate"]
+  }' | python3 -m json.tool
+```
+
+### 5.3 Disease Risk
+
+```bash
+curl -s -X POST http://localhost:8529/disease-risk \
+  -H "Content-Type: application/json" \
+  -d '{
+    "patient_id": "HCLS-BIO-2026-00001",
+    "categories": [
+      "cardiovascular",
+      "metabolic_diabetes",
+      "liver",
+      "kidney",
+      "thyroid",
+      "iron",
+      "nutritional",
+      "cognitive",
+      "inflammatory"
+    ],
+    "include_medication_context": true
+  }' | python3 -m json.tool
+```
+
+### 5.4 Pharmacogenomic Profile
+
+```bash
+curl -s -X POST http://localhost:8529/pgx \
+  -H "Content-Type: application/json" \
+  -d '{
+    "patient_id": "HCLS-BIO-2026-00001",
+    "genes": [
+      "CYP2D6", "CYP2C19", "CYP2C9", "CYP3A5",
+      "SLCO1B1", "VKORC1", "MTHFR", "TPMT", "DPYD"
+    ],
+    "include_cpic_guidance": true
+  }' | python3 -m json.tool
+```
+
+### 5.5 Evidence Query (RAG)
+
+```bash
+curl -s -X POST http://localhost:8529/query \
+  -H "Content-Type: application/json" \
+  -d '{
+    "question": "What is the clinical significance of SLCO1B1 decreased function for statin therapy?",
+    "collections": ["pharmacogenomics", "cardiovascular"],
+    "top_k": 5,
+    "patient_id": "HCLS-BIO-2026-00001"
+  }' | python3 -m json.tool
+```
+
+### 5.6 Interactive API Docs
+
+Direct the audience to `http://localhost:8529/docs` for the full Swagger/OpenAPI
+interactive documentation.
+
+---
+
+## 6. Talking Points for Each Feature
+
+### Biomarker Analysis
+- "We analyze 67+ biomarkers with genotype-aware reference range adjustments --
+  something no standard lab report provides."
+- "Critical value detection with patient-specific context reduces alert fatigue
+  by filtering out false positives from population-level thresholds."
+- "Discordance detection catches inconsistencies across related biomarkers that
+  a single-test view would miss."
+
+### Biological Age
+- "PhenoAge distills 9 clinical biomarkers into a single biological age estimate
+  validated against mortality outcomes in large cohort studies."
+- "Age acceleration is one of the strongest predictors of all-cause mortality --
+  stronger than any individual biomarker."
+- "This gives patients and clinicians a concrete, motivating number: 'You're
+  biologically 3 years younger than your age -- here's what's driving that.'"
+
+### Disease Risk
+- "We model 9 disease trajectory categories, each driven by the biomarkers most
+  relevant to that organ system."
+- "Medication context matters: a fasting glucose of 110 in a patient on Metformin
+  tells a different story than the same value in an untreated patient."
+- "Sex-specific modeling ensures that hormonal and inflammatory risk factors are
+  appropriately weighted."
+
+### PGx Profile
+- "14 pharmacogenes cover the majority of clinically actionable drug-gene
+  interactions per CPIC guidelines."
+- "Star allele calling from real genomic data (HG002 / NA24385) means these are
+  confirmed variant calls, not imputed from population frequencies."
+- "The traffic-light dosing system (green/yellow/red) makes PGx actionable for
+  non-specialist physicians."
+
+### Evidence Explorer
+- "RAG search across 14 vector collections provides evidence-backed interpretation,
+  not just pattern matching."
+- "BGE-small-en-v1.5 embeddings at 384 dimensions give us biomedically-tuned
+  semantic search in a compact, fast model."
+- "Citation scoring lets the clinician assess evidence quality, not just relevance."
+
+### Reports
+- "The 12-section clinical report follows a structure that mirrors how clinicians
+  think: overview first, details on demand, raw data in the appendix."
+- "PDF export for clinical handoff. FHIR R4 for system integration. Two output
+  formats, one generation step."
+- "FHIR R4 compliance means this output can flow directly into Epic, Cerner, or
+  any standards-compliant EHR."
+
+### Patient 360
+- "A 15-minute patient visit demands a single-screen summary. Patient 360 delivers
+  biomarkers, genomics, medications, and risk in one view."
+- "The risk radar chart immediately shows where clinical attention should focus."
+- "Every element is clickable -- drill down into any domain without losing context."
+
+### Longitudinal
+- "Rate-of-change analysis catches clinically significant trends while values are
+  still in the 'normal' range."
+- "Medication annotations on the timeline show treatment effects -- did the statin
+  actually bend the LDL curve?"
+- "Projected values with confidence bands support proactive intervention before
+  thresholds are crossed."
+
+---
+
+## 7. Troubleshooting Common Demo Issues
+
+### 7.1 Streamlit UI Not Loading (Port 8528)
+
+**Symptom:** Browser shows "connection refused" on `localhost:8528`.
+
+**Fix:**
+```bash
+# Check if Streamlit is running
+lsof -i :8528
+
+# Restart Streamlit
+cd /home/adam/projects/hcls-ai-factory/ai_agent_adds/precision_biomarker_agent
 streamlit run app/biomarker_ui.py --server.port 8528
 ```
+
+### 7.2 FastAPI Backend Not Responding (Port 8529)
+
+**Symptom:** API calls return connection errors.
+
+**Fix:**
+```bash
+# Check if FastAPI is running
+lsof -i :8529
+
+# Restart FastAPI
+cd /home/adam/projects/hcls-ai-factory/ai_agent_adds/precision_biomarker_agent
+python -m uvicorn api.main:app --host 0.0.0.0 --port 8529
+```
+
+### 7.3 Milvus Connection Failed
+
+**Symptom:** Evidence Explorer returns empty results; RAG queries fail.
+
+**Fix:**
+```bash
+# Check Milvus health
+curl -s http://localhost:9091/healthz
+
+# If Milvus is down, restart via Docker Compose (from project root)
+cd /home/adam/projects/hcls-ai-factory
+docker compose -f docker-compose.dgx-spark.yml up -d milvus-standalone etcd minio
+```
+
+### 7.4 ANTHROPIC_API_KEY Not Set
+
+**Symptom:** Report generation or RAG queries return authentication errors.
+
+**Fix:**
+```bash
+# Verify the key is set
+echo $ANTHROPIC_API_KEY | head -c 10
+
+# If not set, export it
+export ANTHROPIC_API_KEY="sk-ant-..."
+```
+
+### 7.5 Demo Patient Not Found
+
+**Symptom:** Patient selector dropdown is empty or patient data fails to load.
+
+**Fix:**
+```bash
+# Verify demo data files exist
+ls /home/adam/projects/hcls-ai-factory/ai_agent_adds/precision_biomarker_agent/data/
+
+# If data is missing, reload demo patients
+cd /home/adam/projects/hcls-ai-factory/ai_agent_adds/precision_biomarker_agent
+python scripts/load_demo_data.py
+```
+
+### 7.6 Slow Response Times
+
+**Symptom:** API calls or UI interactions take more than 10 seconds.
+
+**Fix:**
+- Check GPU utilization: `nvidia-smi`
+- Check Milvus collection load status (collections may need to be loaded into memory)
+- Verify no competing workloads on the DGX Spark
+
+### 7.7 PDF Export Fails
+
+**Symptom:** "Export PDF" button produces an error or empty file.
+
+**Fix:**
+```bash
+# Ensure WeasyPrint or report dependencies are installed
+pip install weasyprint
+
+# Check write permissions on the output directory
+ls -la /tmp/biomarker_reports/
+```
+
+### 7.8 FHIR Export Validation Errors
+
+**Symptom:** FHIR R4 bundle fails validation in external tools.
+
+**Fix:**
+- Ensure the FHIR export uses the `fhir.resources` library for validation
+- Check that all required FHIR resource fields are populated
+- Validate the bundle at `https://inferno.healthit.gov/validator`
+
+---
+
+## Appendix: Quick Reference
+
+### Key Stats for Slides
+
+| Metric                        | Value                    |
+|-------------------------------|--------------------------|
+| Biomarkers analyzed           | 67+                      |
+| Vector collections (RAG)     | 14 (13 biomarker + 1 genomic) |
+| Pharmacogenes profiled        | 14                       |
+| Disease trajectory categories | 9                        |
+| Report sections               | 12                       |
+| Embedding model               | BGE-small-en-v1.5        |
+| Embedding dimensions          | 384                      |
+| Test suite                    | 709 tests, all passing   |
+| Streamlit UI port             | 8528                     |
+| FastAPI backend port          | 8529                     |
+
+### Recommended Demo Script Timing
+
+| Segment                     | Duration |
+|-----------------------------|----------|
+| Introduction & context      | 2 min    |
+| Tab 1: Biomarker Analysis   | 3 min    |
+| Tab 2: Biological Age       | 2 min    |
+| Tab 3: Disease Risk         | 2 min    |
+| Tab 4: PGx Profile          | 3 min    |
+| Tab 5: Evidence Explorer    | 2 min    |
+| Tab 6: Reports              | 2 min    |
+| Tab 7: Patient 360          | 2 min    |
+| Tab 8: Longitudinal         | 2 min    |
+| API Demo (optional)         | 3 min    |
+| Q&A                         | 5 min    |
+| **Total**                   | **~25 min (20 min without API/Q&A)** |
+
+---
+
+*This guide accompanies the Precision Biomarker Intelligence Agent, part of the
+HCLS AI Factory platform. For architecture documentation, see the main project
+README. For deployment instructions, see the Dockerfile and docker-compose.yml
+in the agent root directory.*

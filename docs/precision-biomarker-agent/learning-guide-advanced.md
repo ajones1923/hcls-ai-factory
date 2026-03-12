@@ -555,7 +555,7 @@ curl http://localhost:8529/collections | python -m json.tool
 
 The `PharmacogenomicMapper` class implements a pure-computation engine that maps star allele diplotypes to metabolizer phenotypes and drug-specific dosing recommendations. It requires no LLM calls or database queries -- all knowledge is embedded in the `PGX_GENE_CONFIGS` dictionary.
 
-### 5.2 The Nine Pharmacogenes
+### 5.2 The Fourteen Pharmacogenes
 
 | Gene    | Role                              | CPIC Level | Key Drugs                              |
 |---------|-----------------------------------|:----------:|----------------------------------------|
@@ -587,7 +587,7 @@ PGX_GENE_CONFIGS = {
         },
         "drug_recommendations": { ... },
     },
-    # ... 8 more genes
+    # ... 13 more genes
 }
 ```
 
@@ -1690,7 +1690,7 @@ Returns service info. No authentication required.
   "disease_domains": 6,
   "total_biomarkers": 45,
   "total_genetic_modifiers": 28,
-  "pharmacogenes": 9,
+  "pharmacogenes": 14,
   "pgx_drug_interactions": 35,
   "phenoage_markers": 9,
   "cross_modal_links": 12
