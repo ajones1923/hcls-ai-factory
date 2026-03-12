@@ -415,7 +415,7 @@ All configuration via Pydantic `BaseSettings` in `config/settings.py`. Environme
 | Demo cases | 4 (DEMO-001 through DEMO-004) |
 | Streamlit tabs | 9 |
 | AI-annotated images | 9 (5 CXR + 3 CT + 1 bilateral pneumonia) |
-| Unit tests | 539 |
+| Unit tests | 620 |
 | E2E validation checks | 9/9 |
 | Docker services (full) | 13 |
 | Docker services (lite) | 6 |

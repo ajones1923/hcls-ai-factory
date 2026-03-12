@@ -75,7 +75,7 @@ Built on the HCLS AI Factory platform:
 | Seed imaging vectors | 876 across 10 owned collections |
 | Genomic evidence vectors (read-only) | 3,561,170 vectors |
 
-539 unit tests, 9/9 end-to-end checks. 6 workflows, 4 demo cases, 9 Streamlit tabs.
+620 unit tests, 9/9 end-to-end checks. 6 workflows, 4 demo cases, 9 Streamlit tabs.
 
 ## Demo Highlights (March 2026)
 
