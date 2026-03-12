@@ -144,14 +144,14 @@ The system maintains 11 Milvus collections, each with a purpose-built schema con
 |---|-----------|---------|---------------|--------|-------------|
 | 1 | `cart_literature` | 5,047 | id, title, text_chunk, source_type, year, cart_stage, target_antigen, disease, keywords, journal | PubMed E-utilities | Published research papers and patents |
 | 2 | `cart_trials` | 973 | id, title, text_summary, phase, status, sponsor, target_antigen, car_generation, costimulatory, disease, enrollment, start_year, outcome_summary | ClinicalTrials.gov V2 API | Clinical trial registrations |
-| 3 | `cart_constructs` | 6 | id, name, text_summary, target_antigen, scfv_origin, costimulatory_domain, signaling_domain, generation, hinge_tm, vector_type, fda_status, known_toxicities | Curated (6 FDA products) | CAR molecular architecture |
-| 4 | `cart_assays` | 45 | id, text_summary, assay_type, construct_id, target_antigen, cell_line, effector_ratio, key_metric, metric_value, outcome, notes | Curated from ELIANA, ZUMA-1, KarMMa, CARTITUDE-1 | Functional assay results |
-| 5 | `cart_manufacturing` | 30 | id, text_summary, process_step, vector_type, parameter, parameter_value, target_spec, met_spec, batch_id, notes | Curated CMC data | Manufacturing process records |
-| 6 | `cart_safety` | 40 | id, text_summary, product, event_type, severity_grade, onset_timing, incidence_rate, management_protocol, outcome, reporting_source, year | FAERS, labels, trials | Adverse events and pharmacovigilance |
-| 7 | `cart_biomarkers` | 43 | id, text_summary, biomarker_name, biomarker_type, assay_method, clinical_cutoff, predictive_value, associated_outcome, target_antigen, disease, evidence_level | Published correlative studies | Predictive and prognostic biomarkers |
-| 8 | `cart_regulatory` | 25 | id, text_summary, product, regulatory_event, date, agency, indication, decision, conditions, pivotal_trial | FDA/EMA public records | Regulatory milestones and approvals |
-| 9 | `cart_sequences` | 27 | id, text_summary, construct_name, target_antigen, scfv_clone, binding_affinity_kd, heavy_chain_vregion, light_chain_vregion, framework, species_origin, immunogenicity_risk, structural_notes | Patents, UniProt, PDB | Molecular and structural data |
-| 10 | `cart_realworld` | 30 | id, text_summary, study_type, data_source, product, indication, population_size, median_followup_months, primary_endpoint, outcome_value, setting, special_population | CIBMTR, EBMT, institutional | Real-world evidence and outcomes |
+| 3 | `cart_constructs` | 41 | id, name, text_summary, target_antigen, scfv_origin, costimulatory_domain, signaling_domain, generation, hinge_tm, vector_type, fda_status, known_toxicities | Curated (6 FDA products) | CAR molecular architecture |
+| 4 | `cart_assays` | 75 | id, text_summary, assay_type, construct_id, target_antigen, cell_line, effector_ratio, key_metric, metric_value, outcome, notes | Curated from ELIANA, ZUMA-1, KarMMa, CARTITUDE-1 | Functional assay results |
+| 5 | `cart_manufacturing` | 56 | id, text_summary, process_step, vector_type, parameter, parameter_value, target_spec, met_spec, batch_id, notes | Curated CMC data | Manufacturing process records |
+| 6 | `cart_safety` | 71 | id, text_summary, product, event_type, severity_grade, onset_timing, incidence_rate, management_protocol, outcome, reporting_source, year | FAERS, labels, trials | Adverse events and pharmacovigilance |
+| 7 | `cart_biomarkers` | 60 | id, text_summary, biomarker_name, biomarker_type, assay_method, clinical_cutoff, predictive_value, associated_outcome, target_antigen, disease, evidence_level | Published correlative studies | Predictive and prognostic biomarkers |
+| 8 | `cart_regulatory` | 40 | id, text_summary, product, regulatory_event, date, agency, indication, decision, conditions, pivotal_trial | FDA/EMA public records | Regulatory milestones and approvals |
+| 9 | `cart_sequences` | 40 | id, text_summary, construct_name, target_antigen, scfv_clone, binding_affinity_kd, heavy_chain_vregion, light_chain_vregion, framework, species_origin, immunogenicity_risk, structural_notes | Patents, UniProt, PDB | Molecular and structural data |
+| 10 | `cart_realworld` | 54 | id, text_summary, study_type, data_source, product, indication, population_size, median_followup_months, primary_endpoint, outcome_value, setting, special_population | CIBMTR, EBMT, institutional | Real-world evidence and outcomes |
 | 11 | `genomic_evidence` | 3,561,170 | id, text_summary, chrom, pos, ref, alt, qual, gene, consequence, impact, genotype, clinical_significance, rsid, disease_associations, am_pathogenicity, am_class | HCLS AI Factory Stage 1+2 | Shared genomic variant data (read-only) |
 | | **Total** | **3,567,622** | | | |
 
@@ -222,7 +222,7 @@ This alias resolution is critical for comparative analysis (Section 6), where th
 
 ### 4.3 Context Functions
 
-Five context retrieval functions (`get_target_context`, `get_toxicity_context`, `get_manufacturing_context`, `get_biomarker_context`, `get_regulatory_context`, `get_immunogenicity_context`) format knowledge graph entries into structured markdown text. A master function, `get_all_context_for_query`, scans the full query text against all six dictionaries using keyword matching and returns combined context for all detected entities.
+Five context retrieval functions (`get_target_context`, `get_toxicity_context`, `get_manufacturing_context`, `get_biomarker_context`, `get_regulatory_context`, `get_immunogenicity_context`) format knowledge graph entries into structured markdown text. A master function, `get_all_context_for_query`, scans the full query text against all three dictionaries using keyword matching and returns combined context for all detected entities.
 
 The knowledge graph augmentation addresses a fundamental weakness of pure vector retrieval: embedding similarity can surface relevant documents, but it cannot provide the structured clinical parameters (grading systems, incidence rates, management protocols, dosing regimens) that clinicians and researchers need. By injecting this structured context alongside retrieved evidence, the LLM can generate responses that are both evidence-grounded and clinically precise.
 
@@ -286,14 +286,14 @@ The `ClinicalTrialsIngestPipeline` queries the ClinicalTrials.gov V2 API for CAR
 
 Six additional collection types are populated with curated seed data representing reference-quality records:
 
-- **Constructs** (6 records): Complete molecular architecture of all 6 FDA-approved CAR-T products, including scFv clone origin, costimulatory domain, signaling domain, hinge/transmembrane region, vector type, and known toxicity profile.
-- **Assays** (60 records): Functional data curated from landmark publications (ELIANA, ZUMA-1, KarMMa, CARTITUDE-1), covering cytotoxicity assays, cytokine profiling, persistence measurements, exhaustion marker expression, and resistance readouts.
-- **Manufacturing** (40 records): CMC process data spanning transduction, expansion, harvest, cryopreservation, release testing, logistics, cost analysis, and emerging platforms (point-of-care, allogeneic, non-viral).
-- **Safety** (52 records): Adverse event profiles for approved products, sourced from product labeling, pivotal trial safety tables, and FAERS data.
-- **Biomarkers** (45 records): Predictive, prognostic, pharmacodynamic, monitoring, and resistance biomarkers with assay methods, clinical cutoffs, and evidence levels.
-- **Regulatory** (25 records): FDA and EMA regulatory milestones including BLA filings, approval decisions, label updates, Breakthrough Therapy and RMAT designations, and REMS requirements.
-- **Sequences** (28 records): Molecular data including scFv sequences, CDR region annotations, binding affinity measurements, framework assignments, species origin, and immunogenicity risk assessments.
-- **Real-World** (38 records): Registry-based outcomes from CIBMTR, institutional retrospective analyses, community vs. academic center comparisons, special population outcomes (elderly, bridging therapy), and health disparities data.
+- **Constructs** (41 records): Complete molecular architecture of all 6 FDA-approved CAR-T products, including scFv clone origin, costimulatory domain, signaling domain, hinge/transmembrane region, vector type, and known toxicity profile.
+- **Assays** (75 records): Functional data curated from landmark publications (ELIANA, ZUMA-1, KarMMa, CARTITUDE-1), covering cytotoxicity assays, cytokine profiling, persistence measurements, exhaustion marker expression, and resistance readouts.
+- **Manufacturing** (56 records): CMC process data spanning transduction, expansion, harvest, cryopreservation, release testing, logistics, cost analysis, and emerging platforms (point-of-care, allogeneic, non-viral).
+- **Safety** (71 records): Adverse event profiles for approved products, sourced from product labeling, pivotal trial safety tables, and FAERS data.
+- **Biomarkers** (60 records): Predictive, prognostic, pharmacodynamic, monitoring, and resistance biomarkers with assay methods, clinical cutoffs, and evidence levels.
+- **Regulatory** (40 records): FDA and EMA regulatory milestones including BLA filings, approval decisions, label updates, Breakthrough Therapy and RMAT designations, and REMS requirements.
+- **Sequences** (40 records): Molecular data including scFv sequences, CDR region annotations, binding affinity measurements, framework assignments, species origin, and immunogenicity risk assessments.
+- **Real-World** (54 records): Registry-based outcomes from CIBMTR, institutional retrospective analyses, community vs. academic center comparisons, special population outcomes (elderly, bridging therapy), and health disparities data.
 
 In total, the 10 agent-owned collections contain 6,452 curated records. Combined with the 3,561,170 shared genomic variants, the system indexes 3,567,622 vectors.
 
@@ -527,7 +527,7 @@ This shift does not replace expert judgment -- the system is designed as an inte
 Several limitations should be acknowledged:
 
 1. **Corpus coverage:** While the system indexes over 5,000 PubMed abstracts and 973 clinical trials, this represents a fraction of the total CAR-T literature. Full-text article access would substantially improve evidence quality but introduces licensing constraints.
-2. **Manufacturing data scarcity:** Manufacturing process data is poorly represented in the public domain. The 30 curated records in `cart_manufacturing` provide reference-quality examples but do not capture the diversity of manufacturing approaches across the industry.
+2. **Manufacturing data scarcity:** Manufacturing process data is poorly represented in the public domain. The 56 curated records in `cart_manufacturing` provide reference-quality examples but do not capture the diversity of manufacturing approaches across the industry.
 3. **Real-time data:** The weekly refresh cadence means the system may lag behind breaking developments by up to 7 days for literature and trials.
 4. **LLM dependency:** The synthesis step requires a cloud LLM API call, introducing latency (~20-25 seconds per query) and a dependency on external infrastructure. On-device LLM deployment (e.g., via NVIDIA NIM on the DGX Spark) is a future direction that would eliminate this dependency.
 5. **Evaluation rigor:** While the system produces high-quality responses on curated demo queries, systematic evaluation against expert-annotated benchmarks has not yet been conducted.

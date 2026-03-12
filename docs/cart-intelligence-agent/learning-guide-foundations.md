@@ -302,14 +302,14 @@ User types: "Why do CD19 CAR-T therapies fail in relapsed B-ALL?"
     collections simultaneously using ThreadPoolExecutor:
       - cart_literature (5,047 vectors)
       - cart_trials (973 vectors)
-      - cart_constructs (6 vectors)
-      - cart_assays (45 vectors)
-      - cart_manufacturing (30 vectors)
-      - cart_safety (40 vectors)
-      - cart_biomarkers (43 vectors)
-      - cart_regulatory (25 vectors)
-      - cart_sequences (27 vectors)
-      - cart_realworld (30 vectors)
+      - cart_constructs (41 vectors)
+      - cart_assays (75 vectors)
+      - cart_manufacturing (56 vectors)
+      - cart_safety (71 vectors)
+      - cart_biomarkers (60 vectors)
+      - cart_regulatory (40 vectors)
+      - cart_sequences (40 vectors)
+      - cart_realworld (54 vectors)
       - genomic_evidence (3,561,170 vectors)
 
     Each collection returns its top-5 most similar results.
@@ -393,7 +393,7 @@ The CAR-T Intelligence Agent has four main layers:
             v                       v
 ┌─────────────────────┐  ┌────────────────────────┐
 │   MILVUS VECTOR DB  │  │   KNOWLEDGE GRAPH      │
-│   11 Collections    │  │   6 Domains:           │
+│   11 Collections    │  │   3 Domains:           │
 │   3,567,622 vectors │  │   - 34 Targets         │
 │   IVF_FLAT / COSINE │  │   - 17 Toxicities      │
 │   384 dimensions    │  │   - 20 Manufacturing   │
@@ -530,14 +530,14 @@ After each response, three download buttons appear:
 |---|-----------|---------|--------|---------|
 | 1 | `cart_literature` | 5,047 | PubMed abstracts + patent filings | Weekly ingest via NCBI E-utilities |
 | 2 | `cart_trials` | 973 | ClinicalTrials.gov API v2 | Weekly ingest |
-| 3 | `cart_constructs` | 6 | 6 FDA-approved CAR-T product designs | Manual curation |
-| 4 | `cart_assays` | 45 | Landmark publications (ELIANA, ZUMA-1, KarMMa, CARTITUDE-1) | Manual curation |
-| 5 | `cart_manufacturing` | 30 | Published CMC/process data | Manual curation |
-| 6 | `cart_safety` | 40 | FAERS, trial safety data, label safety sections | Manual curation + FAERS ingest |
-| 7 | `cart_biomarkers` | 43 | Published biomarker studies | Manual curation |
-| 8 | `cart_regulatory` | 25 | FDA/EMA approval records, designations, label updates | Manual curation |
-| 9 | `cart_sequences` | 27 | scFv/CAR sequence and structural data | Manual curation |
-| 10 | `cart_realworld` | 30 | CIBMTR registry, institutional series | Manual curation |
+| 3 | `cart_constructs` | 41 | CAR-T product designs and engineering approaches | Manual curation |
+| 4 | `cart_assays` | 75 | Landmark publications (ELIANA, ZUMA-1, KarMMa, CARTITUDE-1) | Manual curation |
+| 5 | `cart_manufacturing` | 56 | Published CMC/process data | Manual curation |
+| 6 | `cart_safety` | 71 | FAERS, trial safety data, label safety sections | Manual curation + FAERS ingest |
+| 7 | `cart_biomarkers` | 60 | Published biomarker studies | Manual curation |
+| 8 | `cart_regulatory` | 40 | FDA/EMA approval records, designations, label updates | Manual curation |
+| 9 | `cart_sequences` | 40 | scFv/CAR sequence and structural data | Manual curation |
+| 10 | `cart_realworld` | 54 | CIBMTR registry, institutional series | Manual curation |
 | 11 | `genomic_evidence` | 3,561,170 | VCF variant data from the rag-chat-pipeline | Shared (read-only) |
 
 **Total: 3,567,622 vectors**
@@ -570,7 +570,7 @@ After each response, three download buttons appear:
 
 **Key fields:** `id` (NCT number), `title`, `text_summary`, `phase`, `status`, `sponsor`, `target_antigen`, `car_generation`, `costimulatory`, `disease`, `enrollment`, `start_year`
 
-#### 3. cart_constructs (6 records)
+#### 3. cart_constructs (41 records)
 
 **What it contains:** Detailed design specifications for the six FDA-approved CAR-T products. Each record documents the target antigen, scFv origin (antibody clone), costimulatory domain, signaling domain, hinge/transmembrane region, vector type, FDA status, and known toxicities.
 
@@ -583,7 +583,7 @@ After each response, three download buttons appear:
 
 **Key fields:** `id`, `name`, `text_summary`, `target_antigen`, `scfv_origin`, `costimulatory_domain`, `signaling_domain`, `generation`, `hinge_tm`, `vector_type`, `fda_status`, `known_toxicities`
 
-#### 4. cart_assays (45 records)
+#### 4. cart_assays (75 records)
 
 **What it contains:** Laboratory test results from landmark CAR-T publications. Records cover cytotoxicity assays (how well the CAR-T cells kill target cells), cytokine release measurements, proliferation data, persistence studies, and exhaustion marker analysis.
 
@@ -596,7 +596,7 @@ After each response, three download buttons appear:
 
 **Key fields:** `id`, `text_summary`, `assay_type`, `construct_id`, `target_antigen`, `cell_line`, `effector_ratio`, `key_metric`, `metric_value`, `outcome`
 
-#### 5. cart_manufacturing (30 records)
+#### 5. cart_manufacturing (56 records)
 
 **What it contains:** Manufacturing process parameters across the entire CAR-T production workflow: transduction efficiency, expansion protocols, harvest specifications, cryopreservation conditions, release testing criteria, and logistics data.
 
@@ -609,7 +609,7 @@ After each response, three download buttons appear:
 
 **Key fields:** `id`, `text_summary`, `process_step`, `vector_type`, `parameter`, `parameter_value`, `target_spec`, `met_spec`, `batch_id`
 
-#### 6. cart_safety (40 records)
+#### 6. cart_safety (71 records)
 
 **What it contains:** Adverse event reports and safety data for CAR-T products. Records include the product name, event type (CRS, ICANS, cytopenia, infection, secondary malignancy), severity grade, onset timing, incidence rate, management protocol, outcome, and reporting source.
 
@@ -622,7 +622,7 @@ After each response, three download buttons appear:
 
 **Key fields:** `id`, `text_summary`, `product`, `event_type`, `severity_grade`, `onset_timing`, `incidence_rate`, `management_protocol`, `outcome`, `reporting_source`, `year`
 
-#### 7. cart_biomarkers (43 records)
+#### 7. cart_biomarkers (60 records)
 
 **What it contains:** Predictive, prognostic, pharmacodynamic, monitoring, and resistance biomarkers used in CAR-T therapy. Each record includes the biomarker name, type, assay method, clinical cutoff value, predictive value, associated outcome, and evidence level.
 
@@ -635,7 +635,7 @@ After each response, three download buttons appear:
 
 **Key fields:** `id`, `text_summary`, `biomarker_name`, `biomarker_type`, `assay_method`, `clinical_cutoff`, `predictive_value`, `associated_outcome`, `evidence_level`
 
-#### 8. cart_regulatory (25 records)
+#### 8. cart_regulatory (40 records)
 
 **What it contains:** FDA and EMA regulatory milestones for CAR-T products. Records cover BLA filings, breakthrough therapy designations, RMAT designations, initial approvals, supplemental approvals, label updates, REMS requirements, and post-marketing requirements.
 
@@ -648,7 +648,7 @@ After each response, three download buttons appear:
 
 **Key fields:** `id`, `text_summary`, `product`, `regulatory_event`, `date`, `agency`, `indication`, `decision`, `conditions`, `pivotal_trial`
 
-#### 9. cart_sequences (27 records)
+#### 9. cart_sequences (40 records)
 
 **What it contains:** Molecular and structural data for CAR construct binding domains. Records include scFv clone names, target antigens, binding affinity (Kd), variable heavy and light chain information, framework type, species origin (murine, humanized, fully human), immunogenicity risk, and structural notes.
 
@@ -661,7 +661,7 @@ After each response, three download buttons appear:
 
 **Key fields:** `id`, `text_summary`, `construct_name`, `target_antigen`, `scfv_clone`, `binding_affinity_kd`, `species_origin`, `immunogenicity_risk`, `structural_notes`
 
-#### 10. cart_realworld (30 records)
+#### 10. cart_realworld (54 records)
 
 **What it contains:** Real-world evidence and outcomes data from post-market registries, institutional series, and claims databases. Records include the study type, data source, product, indication, population size, follow-up duration, primary endpoint, outcome value, care setting (academic vs community), and special populations studied.
 
@@ -722,7 +722,7 @@ Think of the difference this way:
 
 The knowledge graph provides precise, factual context that helps the LLM generate more accurate and specific answers.
 
-### The six knowledge domains
+### The three knowledge domains
 
 #### 1. Targets (34 antigens)
 
@@ -959,10 +959,10 @@ This fetches CAR-T clinical trials from the ClinicalTrials.gov API v2, extracts 
 ### Step 7: Seed domain-specific data
 
 ```bash
-# Seed 45 curated assay records from landmark papers
+# Seed 75 curated assay records from landmark papers
 python3 scripts/seed_assays.py
 
-# Seed 30 curated manufacturing/CMC records
+# Seed 56 curated manufacturing/CMC records
 python3 scripts/seed_manufacturing.py
 
 # Seed safety records
@@ -1072,7 +1072,7 @@ Expected response:
   "collections": [
     {"name": "cart_literature", "record_count": 5047},
     {"name": "cart_trials", "record_count": 973},
-    {"name": "cart_constructs", "record_count": 6},
+    {"name": "cart_constructs", "record_count": 41},
     ...
   ],
   "total": 11
@@ -1155,7 +1155,7 @@ cart_intelligence_agent/
 │   ├── __init__.py
 │   ├── models.py                 # Pydantic data models (16 models + enums)
 │   ├── collections.py            # 11 Milvus collection schemas + manager
-│   ├── knowledge.py              # Knowledge graph (6 domains)
+│   ├── knowledge.py              # Knowledge graph (3 domains)
 │   ├── query_expansion.py        # 12 expansion maps
 │   ├── rag_engine.py             # Multi-collection RAG engine + comparative
 │   ├── agent.py                  # Autonomous agent (plan -> search -> synthesize)
@@ -1276,7 +1276,7 @@ The multi-collection RAG engine. This is the central piece of the system. It orc
 1. **Query embedding** (with BGE asymmetric query prefix)
 2. **Parallel collection search** (via the collection manager)
 3. **Query expansion** (via the expansion module)
-4. **Knowledge graph augmentation** (from all 6 domains: targets, toxicities, manufacturing, biomarkers, regulatory, immunogenicity)
+4. **Knowledge graph augmentation** (from all 3 domains: targets, toxicities, manufacturing)
 5. **Result merging and ranking** (deduplication, weighted scoring, relevance tagging)
 6. **Prompt construction** (formatting evidence, knowledge context, and the question into a structured LLM prompt)
 7. **LLM generation** (synchronous and streaming modes)

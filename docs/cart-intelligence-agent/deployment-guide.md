@@ -383,7 +383,7 @@ All agent-owned collections use:
 
 ### 6.2 Seed Data
 
-The `data/seed/` directory contains 13 JSON files with 630 curated records:
+The `data/seed/` directory contains 13 JSON files with 649 curated records:
 
 | File | Records | Description |
 |------|---------|-------------|

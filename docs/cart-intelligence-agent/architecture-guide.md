@@ -111,7 +111,7 @@ Stage 3: Drug Discovery  Target -> Molecules (BioNeMo)
   +------+------+ +-----+-----+ +-----+------+ +----+--------+
   | Collection  | | Knowledge | | Query      | | LLM Client  |
   | Manager     | | Graph     | | Expansion  | | (Claude)    |
-  | (Milvus)    | | (6 dicts) | | (12 maps)  | |             |
+  | (Milvus)    | | (3 dicts) | | (12 maps)  | |             |
   +------+------+ +-----------+ +------------+ +-------------+
          |
          v
@@ -329,11 +329,11 @@ COLLECTION_MODELS: Dict[str, type]               # Pydantic models for validatio
 ### 3c. Knowledge Graph
 
 **File:** `src/knowledge.py`
-**Size:** 6 dictionaries, ~1,906 lines
+**Size:** 3 dictionaries, ~1,906 lines
 
 The knowledge graph provides structured, curated domain knowledge that supplements the vector search results. Unlike the Milvus collections which contain embedded free-text, the knowledge graph contains organized factual data.
 
-#### Six Dictionaries
+#### Three Dictionaries
 
 | Dictionary | Entries | Content |
 |-----------|---------|---------|
@@ -357,7 +357,7 @@ get_regulatory_context(product)    # "Kymriah" -> approval history
 get_immunogenicity_context(topic)  # "humanization" -> strategies, tools
 ```
 
-The master function `get_all_context_for_query()` scans the query against all six dictionaries using keyword matching, returning combined context.
+The master function `get_all_context_for_query()` scans the query against all three dictionaries using keyword matching, returning combined context.
 
 #### Entity Resolution for Comparisons
 
@@ -1232,7 +1232,7 @@ The `cart-setup` service runs once after Milvus is healthy and executes 9 seed s
 |------|-------|-----------|
 | `test_models.py` | All 10 collection models, 13 enums, 4 search/agent models, `to_embedding_text()` methods, validation constraints | ~80 |
 | `test_rag_engine.py` | CARTRAGEngine: retrieve, query, query_stream, find_related, comparative, prompt building, citation formatting, score weighting | ~40 |
-| `test_knowledge.py` | Knowledge graph: all 6 dictionaries, context retrieval, entity resolution, comparison context, `get_all_context_for_query()` | ~50 |
+| `test_knowledge.py` | Knowledge graph: all 3 dictionaries, context retrieval, entity resolution, comparison context, `get_all_context_for_query()` | ~50 |
 | `test_query_expansion.py` | All 12 expansion maps, `expand_query()`, `expand_query_by_category()`, stats, edge cases | ~30 |
 | `test_agent.py` | CARTIntelligenceAgent: run, search_plan, evaluate_evidence, generate_report, sub-question decomposition | ~20 |
 | `test_export.py` | Markdown, JSON, PDF export for standard and comparative results, evidence tables, citation links | ~21 |
@@ -1569,19 +1569,19 @@ cart_intelligence_agent/
 │   └── settings.py                      # Pydantic BaseSettings (102 lines)
 ├── data/
 │   └── reference/
-│       ├── assay_seed_data.json         # 60 records
-│       ├── biomarker_seed_data.json     # 45 records
-│       ├── constructs_seed_data.json    # 25 records
-│       ├── immunogenicity_biomarker_seed.json  # 8 records
-│       ├── immunogenicity_sequence_seed.json   # 7 records
-│       ├── literature_seed_data.json    # 30 records
-│       ├── manufacturing_seed_data.json # 40 records
+│       ├── assay_seed_data.json         # 75 records
+│       ├── biomarker_seed_data.json     # 60 records
+│       ├── constructs_seed_data.json    # 41 records
+│       ├── immunogenicity_biomarker_seed.json  # 20 records
+│       ├── immunogenicity_sequence_seed.json   # 18 records
+│       ├── literature_seed_data.json    # 60 records
+│       ├── manufacturing_seed_data.json # 56 records
 │       ├── patent_seed_data.json        # 26 records
-│       ├── realworld_seed_data.json     # 38 records
-│       ├── regulatory_seed_data.json    # 25 records
-│       ├── safety_seed_data.json        # 52 records
-│       ├── sequence_seed_data.json      # 28 records
-│       └── trials_seed_data.json        # 30 records
+│       ├── realworld_seed_data.json     # 54 records
+│       ├── regulatory_seed_data.json    # 40 records
+│       ├── safety_seed_data.json        # 71 records
+│       ├── sequence_seed_data.json      # 40 records
+│       └── trials_seed_data.json        # 69 records
 ├── docs/
 │   └── ARCHITECTURE_GUIDE.md            # This document
 ├── scripts/                             # Setup and seed scripts (1,686 lines)

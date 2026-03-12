@@ -116,14 +116,14 @@ Open the browser to `http://localhost:8521`. The sidebar should show all 11 coll
 |---|---|
 | Literature | 5,047 |
 | Clinical Trials | 973 |
-| CAR Constructs | 6 |
-| Assay Data | 45 |
-| Manufacturing | 30 |
-| Safety | 40 |
-| Biomarkers | 43 |
-| Regulatory | 25 |
-| Sequences | 27 |
-| Real-World Evidence | 30 |
+| CAR Constructs | 41 |
+| Assay Data | 75 |
+| Manufacturing | 56 |
+| Safety | 71 |
+| Biomarkers | 60 |
+| Regulatory | 40 |
+| Sequences | 40 |
+| Real-World Evidence | 54 |
 | Genomic Evidence | 3,561,170 |
 | **Total** | **3,567,622** |
 
@@ -821,14 +821,14 @@ Print this page and keep it at the podium during the demo.
 |---|---|---|
 | cart_literature | 5,047 | Blue |
 | cart_trials | 973 | Green |
-| cart_constructs | 6 | Purple |
-| cart_assays | 45 | Yellow |
-| cart_manufacturing | 30 | Orange |
-| cart_safety | 40 | Red |
-| cart_biomarkers | 43 | Teal |
-| cart_regulatory | 25 | Indigo |
-| cart_sequences | 27 | Pink |
-| cart_realworld | 30 | Brown |
+| cart_constructs | 41 | Purple |
+| cart_assays | 75 | Yellow |
+| cart_manufacturing | 56 | Orange |
+| cart_safety | 71 | Red |
+| cart_biomarkers | 60 | Teal |
+| cart_regulatory | 40 | Indigo |
+| cart_sequences | 40 | Pink |
+| cart_realworld | 54 | Brown |
 | genomic_evidence | 3,561,170 | Teal |
 
 ### Demo Queries -- In Order
