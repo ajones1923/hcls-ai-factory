@@ -145,6 +145,10 @@ nav:
       - Demo Guide: precision-biomarker-agent/demo-guide.md
       - Design Document: precision-biomarker-agent/design.md
       - Project Bible: precision-biomarker-agent/project-bible.md
+      - White Paper: precision-biomarker-agent/white-paper.md
+      - Deployment Guide: precision-biomarker-agent/deployment-guide.md
+      - "Learning Guide \u2014 Foundations": precision-biomarker-agent/learning-guide-foundations.md
+      - "Learning Guide \u2014 Advanced": precision-biomarker-agent/learning-guide-advanced.md
     - Precision Autoimmune Agent:
       - Overview: precision-autoimmune-agent/index.md
       - Demo Guide: precision-autoimmune-agent/demo-guide.md
