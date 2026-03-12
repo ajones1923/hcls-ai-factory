@@ -37,11 +37,11 @@
 
 ## 1. Executive Summary
 
-The **CAR-T Intelligence Agent** is a domain-specialized retrieval-augmented generation (RAG) system that provides cross-functional intelligence across the entire CAR-T cell therapy development lifecycle. It searches 11 Milvus vector collections containing 3,567,436 vectors -- spanning published literature, clinical trials, CAR construct designs, functional assays, manufacturing records, pharmacovigilance data, predictive biomarkers, FDA regulatory milestones, molecular sequence data, real-world evidence, and patient genomic variants -- to answer complex questions about chimeric antigen receptor T-cell therapy.
+The **CAR-T Intelligence Agent** is a domain-specialized retrieval-augmented generation (RAG) system that provides cross-functional intelligence across the entire CAR-T cell therapy development lifecycle. It searches 11 Milvus vector collections containing 3,567,622 vectors -- spanning published literature, clinical trials, CAR construct designs, functional assays, manufacturing records, pharmacovigilance data, predictive biomarkers, FDA regulatory milestones, molecular sequence data, real-world evidence, and patient genomic variants -- to answer complex questions about chimeric antigen receptor T-cell therapy.
 
 The system breaks down the data silos that typically separate target identification, CAR design, manufacturing, clinical development, and post-market surveillance. A researcher asking "Why do CD19 CAR-T therapies fail?" receives a unified answer drawing simultaneously from resistance biology literature, clinical trial outcome data, manufacturing quality records, safety databases, and genomic variant evidence.
 
-The CAR-T Intelligence Agent is built as part of the HCLS AI Factory, a three-stage precision medicine platform (Genomics, RAG/Chat, Drug Discovery) designed to run end-to-end on a single NVIDIA DGX Spark. It extends the existing RAG/Chat pipeline with 10 new domain-specific collections, a 95-entry knowledge graph, 190 query expansion keywords, and an autonomous agent with plan-search-synthesize-report reasoning.
+The CAR-T Intelligence Agent is built as part of the HCLS AI Factory, a three-stage precision medicine platform (Genomics, RAG/Chat, Drug Discovery) designed to run end-to-end on a single NVIDIA DGX Spark. It extends the existing RAG/Chat pipeline with 10 new domain-specific collections, a 71-entry knowledge graph, 229 query expansion keywords, and an autonomous agent with plan-search-synthesize-report reasoning.
 
 ### Codebase at a Glance
 
@@ -55,10 +55,11 @@ The CAR-T Intelligence Agent is built as part of the HCLS AI Factory, a three-st
 | scripts/ (ingest/seed/setup) | 1,686 lines |
 | config/ (Pydantic settings) | 102 lines |
 | Milvus collections | 11 |
-| Total vectors | 3,567,436 |
-| Knowledge graph entries | 95 |
-| Query expansion terms | 1,649 |
-| Seed data records | 444 |
+| Total vectors | 3,567,622 |
+| Knowledge graph entries | 71 |
+| Query expansion keywords | 229 |
+| Query expansion terms | 1,961 |
+| Seed data records | 630 |
 
 ---
 
@@ -115,8 +116,8 @@ Accelerate CAR-T cell therapy development by providing unified, evidence-grounde
 |  +------------------+  +--------------+  +-------------------+   |
 |  | QueryExpander    |  | Knowledge    |  | ExportEngine      |   |
 |  | 12 maps          |  | Graph        |  | MD / JSON / PDF   |   |
-|  | 190 keywords     |  | 6 dicts      |  | NVIDIA theming    |   |
-|  | 1,649 terms      |  | 95 entries   |  |                   |   |
+|  | 229 keywords     |  | 3 dicts      |  | NVIDIA theming    |   |
+|  | 1,961 terms      |  | 71 entries   |  |                   |   |
 |  +------------------+  +--------------+  +-------------------+   |
 +------------------------------------------------------------------+
          |
@@ -194,16 +195,16 @@ The system manages 11 Milvus collections: 10 owned by the CAR-T Intelligence Age
 |---|-----------|---------|-------------|-------------|
 | 1 | `cart_literature` | 5,047 | Published research papers and patents | PubMed, PMC, patents |
 | 2 | `cart_trials` | 973 | Clinical trial records | ClinicalTrials.gov |
-| 3 | `cart_constructs` | 6 | CAR construct designs (FDA-approved products) | Manual curation |
-| 4 | `cart_assays` | 45 | In vitro/in vivo functional assay results | Seed data |
-| 5 | `cart_manufacturing` | 30 | CMC/manufacturing process records | Seed data |
-| 6 | `cart_safety` | 40 | Adverse events, CRS/ICANS incidence | Seed data, FAERS |
-| 7 | `cart_biomarkers` | 43 | Predictive/prognostic/PD biomarkers | Seed data |
-| 8 | `cart_regulatory` | 25 | FDA approvals, EMA, designations | Seed data |
-| 9 | `cart_sequences` | 27 | scFv/CAR molecular & structural data | Seed data |
-| 10 | `cart_realworld` | 30 | CIBMTR, post-market outcomes | Seed data |
+| 3 | `cart_constructs` | 41 | CAR construct designs and engineering approaches | Seed data |
+| 4 | `cart_assays` | 75 | In vitro/in vivo functional assay results | Seed data |
+| 5 | `cart_manufacturing` | 56 | CMC/manufacturing process records | Seed data |
+| 6 | `cart_safety` | 71 | Adverse events, CRS/ICANS incidence | Seed data, FAERS |
+| 7 | `cart_biomarkers` | 60 | Predictive/prognostic/PD biomarkers | Seed data |
+| 8 | `cart_regulatory` | 40 | FDA approvals, EMA, PMDA, NMPA designations | Seed data |
+| 9 | `cart_sequences` | 40 | scFv/CAR molecular & structural data | Seed data |
+| 10 | `cart_realworld` | 54 | CIBMTR, post-market outcomes | Seed data |
 | 11 | `genomic_evidence` | 3,561,170 | Patient variant data (ClinVar + AlphaMissense) | Read-only, rag-chat-pipeline |
-| | **TOTAL** | **3,567,436** | | |
+| | **TOTAL** | **3,567,622** | | |
 
 ### 4.2 Shared Configuration
 
@@ -415,21 +416,21 @@ All collections share:
 
 ## 5. Knowledge Graph
 
-The knowledge graph provides structured, curated domain knowledge that augments vector search results before LLM synthesis. It contains 6 dictionaries with 95 total entries and 54 entity aliases for cross-entity resolution.
+The knowledge graph provides structured, curated domain knowledge that augments vector search results before LLM synthesis. It contains 3 dictionaries with 71 total entries and 54 entity aliases for cross-entity resolution.
 
 ### 5.1 Dictionary Summary
 
 | Dictionary | Entries | Description |
 |-----------|---------|-------------|
-| CART_TARGETS | 33 | Target antigen profiles with expression, diseases, products, resistance |
-| CART_TOXICITIES | 12 | Toxicity profiles with grading, management, biomarkers, risk factors |
-| CART_MANUFACTURING | 15 | Manufacturing processes with parameters, failure modes, specs |
+| CART_TARGETS | 34 | Target antigen profiles with expression, diseases, products, resistance |
+| CART_TOXICITIES | 17 | Toxicity profiles with grading, management, biomarkers, risk factors |
+| CART_MANUFACTURING | 20 | Manufacturing processes with parameters, failure modes, specs |
 | CART_BIOMARKERS | 23 | Predictive/prognostic biomarkers with cutoffs and evidence levels |
 | CART_REGULATORY | 6 | FDA-approved products with approval history and REMS |
 | CART_IMMUNOGENICITY | 6 | HLA, ADA, humanization, and immunogenicity testing |
-| **TOTAL** | **95** | |
+| **TOTAL** | **71** | |
 
-### 5.2 CART_TARGETS (33 Entries)
+### 5.2 CART_TARGETS (34 Entries)
 
 Each entry includes: protein name, UniProt ID, expression pattern, diseases, approved products, key trials, resistance mechanisms, toxicity profile, and normal tissue expression.
 
@@ -441,7 +442,7 @@ Each entry includes: protein name, UniProt ID, expression pattern, diseases, app
 
 **Solid tumor targets (12):** GD2, HER2, GPC3, EGFR, EGFRvIII, Mesothelin, Claudin18.2, MUC1, PSMA, IL13Ra2, DLL3, B7-H3
 
-### 5.3 CART_TOXICITIES (12 Entries)
+### 5.3 CART_TOXICITIES (17 Entries)
 
 | Toxicity | Full Name | Incidence | Key Management |
 |----------|-----------|-----------|----------------|
@@ -454,7 +455,7 @@ Each entry includes: protein name, UniProt ID, expression pattern, diseases, app
 | GVHD | Graft-versus-Host Disease | Rare autologous; risk allogeneic | TCR KO prevention, steroids |
 | ON_TARGET_OFF_TUMOR | On-Target, Off-Tumor Toxicity | Target-dependent | Affinity tuning, logic gates, safety switches |
 
-### 5.4 CART_MANUFACTURING (15 Entries)
+### 5.4 CART_MANUFACTURING (20 Entries)
 
 lentiviral_transduction, retroviral_transduction, t_cell_activation, ex_vivo_expansion, leukapheresis, cryopreservation, release_testing, point_of_care_manufacturing, lymphodepletion, vein_to_vein_time
 
@@ -522,7 +523,7 @@ murine_scfv_immunogenicity, humanization_strategies, ada_clinical_impact, hla_re
 
 ## 6. Query Expansion
 
-The query expansion system maps user keywords to related biomedical terms, broadening search recall across collections. It contains 12 expansion maps with a total of 190 keywords expanding to 1,649 terms.
+The query expansion system maps user keywords to related biomedical terms, broadening search recall across collections. It contains 12 expansion maps with a total of 229 keywords expanding to 1,961 terms.
 
 ### 6.1 Expansion Map Summary
 
@@ -540,7 +541,7 @@ The query expansion system maps user keywords to related biomedical terms, broad
 | 10 | Sequence | 8 | 54 | scFv, CDR, binding affinity, nanobody |
 | 11 | RealWorld | 10 | 65 | RWE, registries, disparities, follow-up |
 | 12 | Immunogenicity | 12 | 98 | HLA, ADA, humanization, ELISpot |
-| | **TOTAL** | **190** (unique) | **1,649** (unique) | |
+| | **TOTAL** | **229** (unique) | **1,961** (unique) | |
 
 ### 6.2 Expansion Logic
 
@@ -732,7 +733,7 @@ class SearchPlan:
 
 ```
 [1] PLAN
-    - Extract target antigens from question (33 known antigens)
+    - Extract target antigens from question (34 known antigens)
     - Map keywords to CAR-T development stages (5 stages, ~4 keywords each)
     - Determine strategy: comparative (vs/compare), targeted (single antigen + stage), broad
     - Decompose complex questions ("why fail?") into sub-questions
@@ -878,20 +879,20 @@ All seed data is stored as JSON files in `data/reference/`:
 
 | File | Records | Description |
 |------|---------|-------------|
-| assay_seed_data.json | 60 | Cytotoxicity, cytokine, flow, in vivo assay results |
-| biomarker_seed_data.json | 45 | Predictive, prognostic, PD, monitoring, resistance biomarkers |
-| constructs_seed_data.json | 25 | CAR construct designs and specifications |
-| immunogenicity_biomarker_seed.json | 8 | ADA, HLA, humanization biomarkers |
-| immunogenicity_sequence_seed.json | 7 | Immunogenicity-related sequence records |
-| literature_seed_data.json | 30 | Curated literature records |
-| manufacturing_seed_data.json | 40 | Transduction, expansion, cryo, release testing records |
+| assay_seed_data.json | 75 | Cytotoxicity, cytokine, flow, in vivo, TME, exhaustion assay results |
+| biomarker_seed_data.json | 60 | Predictive, prognostic, PD, monitoring, resistance biomarkers |
+| constructs_seed_data.json | 41 | CAR construct designs, bispecific, armored, universal platforms |
+| immunogenicity_biomarker_seed.json | 20 | ADA, HLA, humanization, rejection, cellular immunogenicity biomarkers |
+| immunogenicity_sequence_seed.json | 18 | Immunogenicity-related sequence and construct engineering records |
+| literature_seed_data.json | 60 | Curated literature records including 2024-2025 landmark papers |
+| manufacturing_seed_data.json | 56 | Transduction, expansion, cryo, release testing, POC, iPSC records |
 | patent_seed_data.json | 26 | CAR-T patent literature records |
-| realworld_seed_data.json | 38 | CIBMTR, institutional, claims-based RWE studies |
-| regulatory_seed_data.json | 25 | FDA/EMA approval milestones and designations |
-| safety_seed_data.json | 52 | CRS, ICANS, cytopenia, infection, secondary malignancy events |
-| sequence_seed_data.json | 28 | scFv sequences, binding affinity, structural data |
-| trials_seed_data.json | 30 | Clinical trial seed records |
-| **TOTAL** | **444** | |
+| realworld_seed_data.json | 54 | CIBMTR, institutional, claims-based, disparities, cost RWE studies |
+| regulatory_seed_data.json | 40 | FDA/EMA/PMDA/NMPA/Health Canada approval milestones and designations |
+| safety_seed_data.json | 71 | CRS, ICANS, cytopenia, infection, secondary malignancy, solid tumor events |
+| sequence_seed_data.json | 40 | scFv sequences, VHH nanobodies, binding affinity, structural data |
+| trials_seed_data.json | 69 | Clinical trial seed records across hematologic and solid tumors |
+| **TOTAL** | **630** | |
 
 ---
 
@@ -910,7 +911,7 @@ Returns service health with collection count and total vector count.
 {
   "status": "healthy",
   "collections": 11,
-  "total_vectors": 3567436
+  "total_vectors": 3567622
 }
 ```
 
@@ -1004,10 +1005,10 @@ Returns knowledge graph statistics.
 **Response (200):**
 ```json
 {
-  "target_antigens": 33,
+  "target_antigens": 34,
   "targets_with_approved_products": 2,
-  "toxicity_profiles": 12,
-  "manufacturing_processes": 15,
+  "toxicity_profiles": 17,
+  "manufacturing_processes": 20,
   "biomarkers": 23,
   "regulatory_products": 6,
   "immunogenicity_topics": 6
@@ -1489,10 +1490,10 @@ pytest tests/ --cov=src --cov-report=html
 | `src/agent.py` | 271 | CARTIntelligenceAgent: plan-search-synthesize |
 | `src/collections.py` | 1,004 | CARTCollectionManager: 11 schemas + CRUD |
 | `src/export.py` | 1,487 | Markdown, JSON, PDF export with NVIDIA theme |
-| `src/knowledge.py` | 1,906 | Knowledge graph: 6 dictionaries, 95 entries, 54 aliases |
+| `src/knowledge.py` | 1,906 | Knowledge graph: 3 dictionaries, 71 entries, 54 aliases |
 | `src/metrics.py` | 404 | Prometheus metrics: counters, histograms, gauges |
 | `src/models.py` | 484 | Pydantic models: 13 enums, 10 collections, 4 search/agent |
-| `src/query_expansion.py` | 1,380 | 12 expansion maps, 190 keywords, 1,649 terms |
+| `src/query_expansion.py` | 1,380 | 12 expansion maps, 229 keywords, 1,961 terms |
 | `src/rag_engine.py` | 693 | CARTRAGEngine: retrieval, synthesis, comparative |
 | `src/scheduler.py` | 226 | APScheduler: weekly PubMed/trials refresh |
 | `src/utils/__init__.py` | -- | Utils package init |

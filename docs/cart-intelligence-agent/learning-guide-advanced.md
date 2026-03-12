@@ -1827,10 +1827,10 @@ curl http://localhost:8522/knowledge/stats
 Response:
 ```json
 {
-  "target_antigens": 33,
+  "target_antigens": 34,
   "targets_with_approved_products": 2,
-  "toxicity_profiles": 12,
-  "manufacturing_processes": 15,
+  "toxicity_profiles": 17,
+  "manufacturing_processes": 20,
   "biomarkers": 23,
   "regulatory_products": 6
 }

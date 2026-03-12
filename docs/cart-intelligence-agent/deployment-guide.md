@@ -37,7 +37,7 @@ Version 1.0.0 | February 2026 | Author: Adam Jones
 
 The CAR-T Intelligence Agent is a multi-collection RAG-powered clinical decision
 support system for CAR-T cell therapy. It combines 11 Milvus vector collections
-(10 agent-owned + 1 shared), a 95-node knowledge graph, BGE-small-en-v1.5
+(10 agent-owned + 1 shared), a 71-node knowledge graph, BGE-small-en-v1.5
 sentence embeddings (384-dim), and Claude LLM reasoning to deliver
 evidence-based intelligence spanning literature, clinical trials, constructs,
 assays, manufacturing, safety, biomarkers, regulatory, sequences, and
@@ -47,11 +47,10 @@ real-world evidence.
 
 - **Multi-collection RAG search** across 11 knowledge domains with weighted
   relevance scoring and antigen-specific filtering.
-- **Knowledge graph augmentation** with 95 curated nodes (33 targets, 23
-  biomarkers, 15 manufacturing processes, 12 toxicities, 6 regulatory, 6
-  immunogenicity) and 54 entity aliases.
-- **Query expansion** with 190 keyword categories mapping to 1,649 expansion
-  terms for improved recall.
+- **Knowledge graph augmentation** with 71 curated nodes (34 targets, 17
+  toxicities, 20 manufacturing processes).
+- **Query expansion** with 229 keyword categories mapping to 1,961 expansion
+  terms across 12 domain-specific maps for improved recall.
 - **Deep Research mode** with autonomous multi-pass agent pipeline.
 - **Cross-collection entity linking** for holistic product intelligence.
 - **PDF/Markdown/JSON report export** for clinical and research use.
@@ -147,7 +146,7 @@ docker compose logs -f cart-setup
 Startup sequence:
 1. `milvus-etcd` + `milvus-minio` start first (health-checked)
 2. `milvus-standalone` starts after etcd + minio are healthy (~60s)
-3. `cart-setup` runs once: creates 11 collections and seeds 444 records from 13 JSON files
+3. `cart-setup` runs once: creates 11 collections and seeds 630 records from 13 JSON files
 4. `cart-streamlit` + `cart-api` start after Milvus is healthy
 
 Total cold-start time: ~3–5 minutes (including Milvus init and embedding model download).
@@ -384,23 +383,23 @@ All agent-owned collections use:
 
 ### 6.2 Seed Data
 
-The `data/seed/` directory contains 13 JSON files with 444 curated records:
+The `data/seed/` directory contains 13 JSON files with 630 curated records:
 
 | File | Records | Description |
 |------|---------|-------------|
-| `assay_seed_data.json` | 60 | Laboratory assay protocols |
-| `biomarker_seed_data.json` | 45 | Predictive and prognostic biomarkers |
-| `constructs_seed_data.json` | 25 | CAR construct designs |
-| `knowledge_graph_seed.json` | 95 | Knowledge graph nodes |
-| `literature_seed_data.json` | 30 | Published research papers |
-| `manufacturing_seed_data.json` | 40 | Manufacturing process records |
-| `realworld_seed_data.json` | 38 | Real-world evidence studies |
-| `regulatory_seed_data.json` | 22 | Regulatory approval records |
-| `safety_seed_data.json` | 52 | Safety and toxicity profiles |
-| `sequence_seed_data.json` | 28 | CAR/TCR sequence records |
-| `trials_seed_data.json` | 30 | Clinical trial records |
-| `query_expansion_maps.json` | -- | Query expansion term mappings |
-| `entity_aliases.json` | 54 | Entity alias mappings |
+| `assay_seed_data.json` | 75 | Laboratory assay protocols |
+| `biomarker_seed_data.json` | 60 | Predictive and prognostic biomarkers |
+| `constructs_seed_data.json` | 41 | CAR construct designs |
+| `immunogenicity_biomarker_seed.json` | 20 | Immunogenicity biomarkers |
+| `immunogenicity_sequence_seed.json` | 18 | Immunogenicity sequence data |
+| `literature_seed_data.json` | 60 | Published research papers |
+| `manufacturing_seed_data.json` | 56 | Manufacturing process records |
+| `patent_seed_data.json` | 26 | Patent records |
+| `realworld_seed_data.json` | 54 | Real-world evidence studies |
+| `regulatory_seed_data.json` | 40 | Regulatory approval records |
+| `safety_seed_data.json` | 71 | Safety and toxicity profiles |
+| `sequence_seed_data.json` | 40 | CAR/TCR sequence records |
+| `trials_seed_data.json` | 69 | Clinical trial records |
 
 ### 6.3 Manual Seeding
 
@@ -562,7 +561,7 @@ cart_collection_vectors{collection="cart_trials"} 850
 
 ```bash
 curl http://localhost:8522/health
-# {"status":"healthy","collections":10,"total_vectors":6266}
+# {"status":"healthy","collections":10,"total_vectors":6452}
 ```
 
 ### 10.3 Grafana Integration

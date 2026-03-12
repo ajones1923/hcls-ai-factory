@@ -41,11 +41,11 @@ The CAR-T Intelligence Agent is a multi-collection Retrieval-Augmented Generatio
 
 A researcher asks a natural-language question such as *"Why do CD19 CAR-T patients relapse with antigen-negative disease?"* The system:
 
-1. Expands the query across 12 domain-specific terminology maps (190 keyword entries)
+1. Expands the query across 12 domain-specific terminology maps (229 keyword entries)
 2. Embeds the question using BGE-small-en-v1.5 (384 dimensions)
 3. Searches 11 Milvus vector collections simultaneously using parallel ThreadPoolExecutor
 4. Applies collection-specific score weights to rank cross-domain evidence
-5. Augments with structured knowledge from a 6-dictionary knowledge graph
+5. Augments with structured knowledge from a 3-dictionary knowledge graph
 6. Synthesizes a grounded response via Claude Sonnet 4.6 with clickable citations
 7. Returns the answer with a scored evidence panel and export options (Markdown, JSON, PDF)
 
@@ -76,9 +76,9 @@ Stage 3: Drug Discovery  Target -> Molecules (BioNeMo)
 | Source files | ~30 Python modules |
 | Total lines of code | ~19,332 |
 | Milvus collections | 11 (10 owned + 1 read-only) |
-| Knowledge graph entries | ~33 targets + 12 toxicities + 15 manufacturing + 23 biomarkers + 6 regulatory + 6 immunogenicity |
-| Query expansion maps | 12 maps, 190 keyword entries |
-| Seed records | 444 across 13 JSON files |
+| Knowledge graph entries | ~34 targets + 17 toxicities + 20 manufacturing + 23 biomarkers + 6 regulatory + 6 immunogenicity |
+| Query expansion maps | 12 maps, 229 keyword entries |
+| Seed records | 630 across 13 JSON files |
 | Test cases | 278 across 7 test files |
 | Embedding model | BGE-small-en-v1.5 (384-dim, COSINE) |
 | LLM | Claude Sonnet 4.6 (Anthropic) |
@@ -337,9 +337,9 @@ The knowledge graph provides structured, curated domain knowledge that supplemen
 
 | Dictionary | Entries | Content |
 |-----------|---------|---------|
-| `CART_TARGETS` | 33 | Target antigens with protein name, UniProt ID, expression profile, diseases, approved products, key trials, resistance mechanisms, toxicity profile, normal tissue expression |
-| `CART_TOXICITIES` | 12 | Toxicity profiles with mechanism, ASTCT grading, incidence, timing, management protocols, biomarkers, risk factors |
-| `CART_MANUFACTURING` | 15 | Manufacturing processes with parameters, specifications, failure modes, release criteria |
+| `CART_TARGETS` | 34 | Target antigens with protein name, UniProt ID, expression profile, diseases, approved products, key trials, resistance mechanisms, toxicity profile, normal tissue expression |
+| `CART_TOXICITIES` | 17 | Toxicity profiles with mechanism, ASTCT grading, incidence, timing, management protocols, biomarkers, risk factors |
+| `CART_MANUFACTURING` | 20 | Manufacturing processes with parameters, specifications, failure modes, release criteria |
 | `CART_BIOMARKERS` | 23 | Biomarkers with type (predictive/prognostic/PD/monitoring/resistance), assay method, clinical cutoff, predictive value, evidence level, PMID references |
 | `CART_REGULATORY` | 6 | FDA-approved products with approval dates, indications, pivotal trials, designations (BTD/RMAT), REMS, EMA approval, subsequent expansions |
 | `CART_IMMUNOGENICITY` | 6 | HLA-restricted epitopes, humanization strategies, ADA clinical impact, allogeneic HLA considerations, immunogenicity testing paradigms |
@@ -380,7 +380,7 @@ ENTITY_ALIASES = {
 ### 3d. Query Expansion
 
 **File:** `src/query_expansion.py`
-**Size:** 12 maps, 190 keyword entries, 1,380 lines
+**Size:** 12 maps, 229 keyword entries, 1,380 lines
 
 Query expansion improves recall by broadening search terms. When a user asks about "CRS," the system also searches for "cytokine release syndrome," "tocilizumab," "IL-6," "ferritin," "Lee grading," and 25+ related terms.
 
@@ -1590,10 +1590,10 @@ cart_intelligence_agent/
 │   ├── agent.py                         # Autonomous agent (271 lines)
 │   ├── collections.py                   # Milvus collection manager
 │   ├── export.py                        # MD/JSON/PDF export (1,487 lines)
-│   ├── knowledge.py                     # Knowledge graph (6 dicts)
+│   ├── knowledge.py                     # Knowledge graph (3 dicts, 71 entries)
 │   ├── metrics.py                       # Prometheus metrics (404 lines)
 │   ├── models.py                        # 10 models, 13 enums
-│   ├── query_expansion.py              # 12 maps, 190 keywords
+│   ├── query_expansion.py              # 12 maps, 229 keywords
 │   ├── rag_engine.py                    # Core RAG engine (693 lines)
 │   ├── scheduler.py                     # APScheduler ingest (226 lines)
 │   └── ingest/

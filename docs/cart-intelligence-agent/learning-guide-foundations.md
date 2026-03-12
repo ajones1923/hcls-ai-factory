@@ -394,10 +394,10 @@ The CAR-T Intelligence Agent has four main layers:
 ┌─────────────────────┐  ┌────────────────────────┐
 │   MILVUS VECTOR DB  │  │   KNOWLEDGE GRAPH      │
 │   11 Collections    │  │   6 Domains:           │
-│   3,567,436 vectors │  │   - 25 Targets         │
-│   IVF_FLAT / COSINE │  │   - 8 Toxicities       │
-│   384 dimensions    │  │   - 10 Manufacturing   │
-│   (BGE-small)       │  │   - 15 Biomarkers      │
+│   3,567,622 vectors │  │   - 34 Targets         │
+│   IVF_FLAT / COSINE │  │   - 17 Toxicities      │
+│   384 dimensions    │  │   - 20 Manufacturing   │
+│   (BGE-small)       │  │   - 23 Biomarkers      │
 │                     │  │   - 6 Regulatory       │
 │                     │  │   - 6 Immunogenicity   │
 └─────────────────────┘  └────────────────────────┘
@@ -540,7 +540,7 @@ After each response, three download buttons appear:
 | 10 | `cart_realworld` | 30 | CIBMTR registry, institutional series | Manual curation |
 | 11 | `genomic_evidence` | 3,561,170 | VCF variant data from the rag-chat-pipeline | Shared (read-only) |
 
-**Total: 3,567,436 vectors**
+**Total: 3,567,622 vectors**
 
 ### Collection details
 
@@ -724,9 +724,9 @@ The knowledge graph provides precise, factual context that helps the LLM generat
 
 ### The six knowledge domains
 
-#### 1. Targets (25 antigens)
+#### 1. Targets (34 antigens)
 
-For each of 33 target antigens (CD19, BCMA, CD22, CD20, CD30, CD33, CD38, CD123, GD2, HER2, GPC3, EGFR, EGFRvIII, Mesothelin, Claudin18.2, MUC1, PSMA, ROR1, GPRC5D, IL13Ra2, DLL3, B7-H3, NKG2D ligands, CD7, CD5, and 8 additional targets), the knowledge graph stores:
+For each of 34 target antigens (CD19, BCMA, CD22, CD20, CD30, CD33, CD38, CD123, GD2, HER2, GPC3, EGFR, EGFRvIII, Mesothelin, Claudin18.2, MUC1, PSMA, ROR1, GPRC5D, IL13Ra2, DLL3, B7-H3, NKG2D ligands, CD7, CD5, and 8 additional targets), the knowledge graph stores:
 
 - Full protein name and UniProt identifier
 - Expression pattern (where the protein is found)
@@ -737,7 +737,7 @@ For each of 33 target antigens (CD19, BCMA, CD22, CD20, CD30, CD33, CD38, CD123,
 - Toxicity profile (CRS rate, ICANS rate, on-target/off-tumor effects)
 - Normal tissue expression (safety implications)
 
-#### 2. Toxicities (8 profiles)
+#### 2. Toxicities (17 profiles)
 
 For CRS, ICANS, B-cell aplasia, HLH/MAS, cytopenias, tumor lysis syndrome, GvHD, and on-target/off-tumor toxicity, the knowledge graph stores:
 
@@ -749,7 +749,7 @@ For CRS, ICANS, B-cell aplasia, HLH/MAS, cytopenias, tumor lysis syndrome, GvHD,
 - Relevant biomarkers
 - Risk factors
 
-#### 3. Manufacturing (10 processes)
+#### 3. Manufacturing (20 processes)
 
 For lentiviral transduction, retroviral transduction, T-cell activation, ex vivo expansion, leukapheresis, cryopreservation, release testing, point-of-care manufacturing, lymphodepletion, and vein-to-vein time, the knowledge graph stores:
 
@@ -759,7 +759,7 @@ For lentiviral transduction, retroviral transduction, T-cell activation, ex vivo
 - Release criteria (where applicable)
 - Products that use each approach
 
-#### 4. Biomarkers (15 markers)
+#### 4. Biomarkers (23 markers)
 
 For ferritin, CRP, IL-6, sIL-2R, CAR-T expansion (Cmax), Tcm%, CD4:CD8 ratio, LDH, PD-1, LAG-3, TIM-3, MRD (flow), ctDNA, sBCMA, and IFN-gamma, the knowledge graph stores:
 
@@ -1055,7 +1055,7 @@ Expected response:
 {
   "status": "healthy",
   "collections": 11,
-  "total_vectors": 3567436
+  "total_vectors": 3567622
 }
 ```
 
@@ -1125,10 +1125,10 @@ Expected response:
 
 ```json
 {
-  "target_antigens": 33,
+  "target_antigens": 34,
   "targets_with_approved_products": 2,
-  "toxicity_profiles": 12,
-  "manufacturing_processes": 15,
+  "toxicity_profiles": 17,
+  "manufacturing_processes": 20,
   "biomarkers": 23,
   "regulatory_products": 6
 }
@@ -1289,9 +1289,9 @@ The system prompt (`CART_SYSTEM_PROMPT`) defines a detailed 12-domain expert per
 
 The knowledge graph. Contains four large Python dictionaries:
 
-- `CART_TARGETS`: 33 target antigen profiles
-- `CART_TOXICITIES`: 12 toxicity profiles with grading, management, biomarkers
-- `CART_MANUFACTURING`: 15 manufacturing process specifications
+- `CART_TARGETS`: 34 target antigen profiles
+- `CART_TOXICITIES`: 17 toxicity profiles with grading, management, biomarkers
+- `CART_MANUFACTURING`: 20 manufacturing process specifications
 - `CART_BIOMARKERS`: 23 biomarker profiles with cutoffs and evidence levels
 - `CART_REGULATORY`: 6 FDA-approved product regulatory timelines
 - `CART_IMMUNOGENICITY`: 6 immunogenicity topic profiles
