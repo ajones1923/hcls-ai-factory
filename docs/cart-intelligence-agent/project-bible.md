@@ -1,1022 +1,1662 @@
-# CAR-T Intelligence Agent — Project Bible
+# CAR-T Intelligence Agent -- Project Bible
 
-> **Purpose:** Complete implementation reference for building the HCLS CAR-T Intelligence Agent on NVIDIA DGX Spark. Import this document into a Claude Code session as context for implementation.
->
-> **License:** Apache 2.0 | **Author:** Adam Jones | **Date:** February 2026
+**Version:** 2.0.0
+**Author:** Adam Jones (14+ years genomic research experience)
+**Date:** February 2026
+**License:** Apache 2.0
+**Repository:** hcls-ai-factory/ai_agent_adds/cart_intelligence_agent
 
 ---
 
 ## Table of Contents
 
-1. [Project Overview & Goals](#1-project-overview--goals)
-2. [DGX Spark Hardware Reference](#2-dgx-spark-hardware-reference)
-3. [Repository Layout](#3-repository-layout)
-4. [Docker Compose Services](#4-docker-compose-services)
-5. [Milvus Collection Schemas](#5-milvus-collection-schemas)
-6. [Pydantic Data Models](#6-pydantic-data-models)
-7. [Configuration Reference](#7-configuration-reference)
-8. [Embedding Strategy](#8-embedding-strategy)
-9. [Multi-Collection RAG Engine](#9-multi-collection-rag-engine)
-10. [Knowledge Graph](#10-knowledge-graph)
-11. [Query Expansion](#11-query-expansion)
-12. [Comparative Analysis Mode](#12-comparative-analysis-mode)
-13. [Agent Reasoning Pipeline](#13-agent-reasoning-pipeline)
-14. [Data Ingest Pipelines](#14-data-ingest-pipelines)
-15. [FastAPI REST Server](#15-fastapi-rest-server)
-16. [Streamlit Chat UI](#16-streamlit-chat-ui)
-17. [Report Export](#17-report-export)
-18. [Monitoring & Metrics](#18-monitoring--metrics)
-19. [Testing Strategy](#19-testing-strategy)
-20. [HCLS AI Factory Integration](#20-hcls-ai-factory-integration)
-21. [Implementation Sequence](#21-implementation-sequence)
+1. [Executive Summary](#1-executive-summary)
+2. [Vision & Mission](#2-vision--mission)
+3. [System Overview](#3-system-overview)
+4. [Collections Catalog](#4-collections-catalog)
+5. [Knowledge Graph](#5-knowledge-graph)
+6. [Query Expansion](#6-query-expansion)
+7. [Data Models](#7-data-models)
+8. [RAG Engine](#8-rag-engine)
+9. [Agent Architecture](#9-agent-architecture)
+10. [Export System](#10-export-system)
+11. [Ingest Pipelines](#11-ingest-pipelines)
+12. [API Reference](#12-api-reference)
+13. [UI Guide](#13-ui-guide)
+14. [Metrics & Monitoring](#14-metrics--monitoring)
+15. [Scheduler](#15-scheduler)
+16. [Configuration](#16-configuration)
+17. [Docker Deployment](#17-docker-deployment)
+18. [Testing](#18-testing)
+19. [Project Timeline](#19-project-timeline)
+20. [File Inventory](#20-file-inventory)
+21. [Dependencies](#21-dependencies)
+22. [Future Roadmap](#22-future-roadmap)
 
 ---
 
-## 1. Project Overview & Goals
+## 1. Executive Summary
 
-### What This Agent Does
+The **CAR-T Intelligence Agent** is a domain-specialized retrieval-augmented generation (RAG) system that provides cross-functional intelligence across the entire CAR-T cell therapy development lifecycle. It searches 11 Milvus vector collections containing 3,567,436 vectors -- spanning published literature, clinical trials, CAR construct designs, functional assays, manufacturing records, pharmacovigilance data, predictive biomarkers, FDA regulatory milestones, molecular sequence data, real-world evidence, and patient genomic variants -- to answer complex questions about chimeric antigen receptor T-cell therapy.
 
-The CAR-T Intelligence Agent is a cross-functional research intelligence system that unifies CAR-T cell therapy knowledge across **11 Milvus collections** spanning the entire development lifecycle — from target identification through post-market pharmacovigilance. It uses retrieval-augmented generation to scan curated biomedical collections and generate structured, traceable reports with clickable PubMed and ClinicalTrials.gov citations.
+The system breaks down the data silos that typically separate target identification, CAR design, manufacturing, clinical development, and post-market surveillance. A researcher asking "Why do CD19 CAR-T therapies fail?" receives a unified answer drawing simultaneously from resistance biology literature, clinical trial outcome data, manufacturing quality records, safety databases, and genomic variant evidence.
 
-### Five Development Stages
+The CAR-T Intelligence Agent is built as part of the HCLS AI Factory, a three-stage precision medicine platform (Genomics, RAG/Chat, Drug Discovery) designed to run end-to-end on a single NVIDIA DGX Spark. It extends the existing RAG/Chat pipeline with 10 new domain-specific collections, a 95-entry knowledge graph, 190 query expansion keywords, and an autonomous agent with plan-search-synthesize-report reasoning.
 
-| Stage | Scope |
-|---|---|
-| **Target Identification** | Antigen biology, expression profiling, disease association |
-| **CAR Design** | scFv selection, costimulatory domains, signaling architecture |
-| **Vector Engineering** | Transduction, viral vector production, manufacturing processes |
-| **In Vitro / In Vivo Testing** | Cytotoxicity, cytokine assays, animal models, persistence |
-| **Clinical Development** | Trial design, response rates, toxicity management |
-
-### Key Results
+### Codebase at a Glance
 
 | Metric | Value |
-|---|---|
-| Total vectors indexed | **6,266** across 11 Milvus collections (10 owned + 1 read-only) |
-| Multi-collection search latency | **12-16 ms** (11 collections, top-5 each, cached) |
-| Comparative dual retrieval | **~365 ms** (2 × 11 collections, entity-filtered) |
-| Full RAG query (search + Claude) | **~24 sec** end-to-end |
-| Comparative RAG query | **~30 sec** end-to-end |
-| Cosine similarity scores | **0.74 – 0.90** on demo queries |
-| Knowledge graph entities | **70+** (25 targets, 8 toxicities, 10 manufacturing, 15 biomarkers, 6 regulatory) |
-| Query expansion | **12 maps**, 169 keywords → 1,496 terms |
-| Entity aliases | **39+** for comparative resolution |
-
-### Pipeline Pattern
-
-Every query follows the same pattern:
-
-1. User question submitted (Streamlit UI or REST API)
-2. Agent plans search strategy (identify antigens, stages, decompose complex queries)
-3. BGE-small embeds query with asymmetric instruction prefix
-4. Parallel search across 11 Milvus collections (ThreadPoolExecutor)
-5. Query expansion adds semantically related terms
-6. Knowledge graph augments results with domain context
-7. Evidence merged, deduplicated, ranked (top 30)
-8. Claude Sonnet 4 generates grounded answer with citations
-9. Response streamed to user with evidence panel
-
-### HCLS AI Factory Integration
-
-This agent is one node in the broader HCLS AI Factory. Cross-agent triggers include:
-
-- **CAR-T → Genomics (Parabricks):** Shared Milvus instance, genomic_evidence collection (3.56M vectors, read-only)
-- **CAR-T → Drug Discovery (BioNeMo):** Target validation feeds molecule generation
-- **CAR-T → Imaging Agent:** Cross-modal phenotype correlation (future)
-- **CAR-T → Biomarker Agent:** CRS prediction, exhaustion monitoring (future)
+|--------|-------|
+| Total Python lines | 19,332 |
+| Python files | 60 |
+| src/ (core engine) | 12,290 lines |
+| app/ (Streamlit UI) | 1,119 lines |
+| tests/ (test suite) | 2,902 lines (278 tests) |
+| scripts/ (ingest/seed/setup) | 1,686 lines |
+| config/ (Pydantic settings) | 102 lines |
+| Milvus collections | 11 |
+| Total vectors | 3,567,436 |
+| Knowledge graph entries | 95 |
+| Query expansion terms | 1,649 |
+| Seed data records | 444 |
 
 ---
 
-## 2. DGX Spark Hardware Reference
+## 2. Vision & Mission
 
-### Specifications
+### The Democratization Thesis
 
-| Parameter | Value |
-|---|---|
-| GPU | NVIDIA GB10 Grace Blackwell Superchip |
-| Architecture | Blackwell (GPU) + Grace (CPU) via NVLink-C2C |
-| GPU Memory | 128 GB unified LPDDR5x (shared CPU+GPU) |
-| CPU | 20 ARM Neoverse V2 cores (Grace) |
-| Storage | NVMe SSD (local) |
-| Networking | 10GbE, WiFi 7, Bluetooth 5.3 |
-| Price | $3,999 |
-| Power | Desktop form factor, standard AC |
+CAR-T cell therapy is the most successful form of adoptive cell therapy, with 6 FDA-approved products generating over $5 billion in annual revenue. Yet the intelligence required to develop a new CAR-T product is fragmented across dozens of disconnected databases, journals, regulatory filings, and institutional knowledge silos. A single researcher cannot simultaneously track target antigen biology, clinical trial outcomes, manufacturing optimization, toxicity management protocols, biomarker validation, regulatory precedent, molecular design, and real-world outcomes.
 
-### Why DGX Spark
+The CAR-T Intelligence Agent collapses these silos into a single conversational interface. It is designed to run on an NVIDIA DGX Spark -- a $3,999 workstation with a GB10 GPU, 128GB unified LPDDR5x memory, and 20 ARM cores -- making world-class CAR-T intelligence accessible to any lab, hospital, or biotech company.
 
-- **128 GB unified memory** eliminates CPU↔GPU transfer bottleneck
-- **NVLink-C2C** provides 900 GB/s bandwidth between Grace CPU and Blackwell GPU
-- **ARM64 Grace CPU** runs all Python services natively
-- **Single-box deployment** — Milvus, embeddings, LLM inference, and UI on one machine
-- **$3,999 price point** — accessible for research labs and departmental pilots
+### Mission Statement
+
+Accelerate CAR-T cell therapy development by providing unified, evidence-grounded intelligence across the entire development lifecycle -- from target identification through post-market surveillance -- on hardware that any institution can afford.
+
+### Design Principles
+
+1. **Evidence-grounded**: Every answer cites specific literature, trials, assay data, or regulatory records with clickable links to source databases.
+2. **Cross-functional**: Insights connect across development stages (e.g., how manufacturing choices affect clinical outcomes, how biomarkers predict safety events).
+3. **Failure-mode aware**: The system proactively highlights resistance mechanisms, manufacturing failure modes, and safety signals.
+4. **Quantitative**: Responses include specific numbers -- response rates, incidence percentages, binding affinities, expansion fold-changes -- not vague generalizations.
+5. **Regulatory-contextualized**: Product-level intelligence always includes FDA/EMA approval status, REMS requirements, and post-marketing commitments.
 
 ---
 
-## 3. Repository Layout
+## 3. System Overview
+
+### High-Level Architecture
 
 ```
-cart_intelligence_agent/
-├── Docs/
-│   ├── CART_Intelligence_Agent_Design.md         # Architecture design document
-│   ├── CART_INTELLIGENCE_AGENT_PROJECT_BIBLE.md   # This document
-│   ├── CART_Intelligence_Agent_DGX_Spark_Infographic_Prompt.md
-│   └── CART_Intelligence_Agent_VAST_AI_OS_Infographic_Prompt.md
-├── docs/
-│   ├── ARCHITECTURE_GUIDE.md                     # Architecture walkthrough
-│   ├── PROJECT_BIBLE.md                          # HCLS Factory project bible
-│   ├── WHITE_PAPER.md                            # Technical white paper
-│   ├── LEARNING_GUIDE_FOUNDATIONS.md             # Foundations guide
-│   ├── LEARNING_GUIDE_ADVANCED.md                # Advanced guide
-│   └── DEMO_GUIDE.md                            # Demo walkthrough
-├── src/
-│   ├── __init__.py
-│   ├── models.py                    # Pydantic data models (474 lines)
-│   ├── collections.py              # Milvus collection schemas + manager (1,004 lines)
-│   ├── knowledge.py                # Knowledge graph (1,511 lines)
-│   ├── query_expansion.py          # 12 expansion maps (1,257 lines)
-│   ├── rag_engine.py               # Multi-collection RAG engine (686 lines)
-│   ├── agent.py                    # Agent reasoning pipeline (262 lines)
-│   ├── export.py                   # Report export: MD, JSON, PDF (903 lines)
-│   ├── metrics.py                  # Prometheus metrics (189 lines)
-│   ├── scheduler.py                # Data ingestion scheduler (226 lines)
-│   ├── ingest/
-│   │   ├── __init__.py
-│   │   ├── base.py                 # Base ingest pipeline (184 lines)
-│   │   ├── literature_parser.py    # PubMed E-utilities ingest (350 lines)
-│   │   ├── clinical_trials_parser.py  # ClinicalTrials.gov API v2 (403 lines)
-│   │   ├── construct_parser.py     # CAR construct parser + FDA seed (292 lines)
-│   │   ├── assay_parser.py         # Assay data parser (163 lines)
-│   │   └── manufacturing_parser.py # Manufacturing/CMC parser (111 lines)
-│   └── utils/
-│       ├── __init__.py
-│       └── pubmed_client.py        # NCBI E-utilities HTTP client (390 lines)
-├── app/
-│   └── cart_ui.py                  # Streamlit chat + comparative UI (1,123 lines)
-├── api/
-│   └── main.py                     # FastAPI REST server (555 lines)
-├── config/
-│   └── settings.py                 # Pydantic BaseSettings (101 lines)
-├── data/
-│   ├── reference/
-│   │   ├── assay_seed_data.json    # 45 curated assay records
-│   │   └── manufacturing_seed_data.json  # 30 curated manufacturing records
-│   └── cache/                      # Embedding cache
-├── scripts/
-│   ├── setup_collections.py        # Create collections + seed FDA constructs
-│   ├── ingest_pubmed.py            # CLI: PubMed ingest
-│   ├── ingest_clinical_trials.py   # CLI: ClinicalTrials.gov ingest
-│   ├── seed_assays.py              # CLI: Seed assay data
-│   ├── seed_manufacturing.py       # CLI: Seed manufacturing data
-│   ├── validate_e2e.py             # End-to-end validation (5 tests)
-│   ├── test_rag_pipeline.py        # Full RAG + LLM integration test
-│   └── seed_knowledge.py           # Knowledge graph export
-├── docker-compose.yml              # Full deployment (6 services)
-├── Dockerfile                      # Multi-stage build (86 lines)
-├── requirements.txt                # Python dependencies
-├── .env.example                    # Environment variable template
-├── LICENSE                         # Apache 2.0
-└── README.md
++------------------------------------------------------------------+
+|                        STREAMLIT UI (8521)                        |
+|  [Chat Tab]  [Knowledge Graph Tab]  [Image Analysis Tab]         |
+|  Sidebar: Target filter, Stage filter, Date range, Collections   |
+|  Demo queries | Export: MD / JSON / PDF                          |
++------------------------------------------------------------------+
+         |                                          |
+         v                                          v
++------------------+                    +---------------------+
+| CARTIntelligence |                    | FastAPI REST (8522) |
+|     Agent        |                    | 13 endpoints        |
+|  plan -> search  |                    | /health /collections|
+|  -> synthesize   |                    | /query /search      |
+|  -> report       |                    | /find-related       |
++------------------+                    | /knowledge/stats    |
+         |                              | /metrics            |
+         v                              +---------------------+
++------------------------------------------------------------------+
+|                      CARTRAGEngine                                |
+|  embed -> parallel search -> merge & rank -> knowledge augment   |
+|  -> LLM synthesis (Claude Sonnet 4.6)                            |
+|                                                                  |
+|  Components:                                                     |
+|  +------------------+  +--------------+  +-------------------+   |
+|  | QueryExpander    |  | Knowledge    |  | ExportEngine      |   |
+|  | 12 maps          |  | Graph        |  | MD / JSON / PDF   |   |
+|  | 190 keywords     |  | 6 dicts      |  | NVIDIA theming    |   |
+|  | 1,649 terms      |  | 95 entries   |  |                   |   |
+|  +------------------+  +--------------+  +-------------------+   |
++------------------------------------------------------------------+
+         |
+         v
++------------------------------------------------------------------+
+|                 CARTCollectionManager                             |
+|  11 collections | IVF_FLAT index | COSINE metric                 |
+|  ThreadPoolExecutor parallel search across all collections       |
++------------------------------------------------------------------+
+         |
+         v
++------------------------------------------------------------------+
+|                    Milvus 2.4 (19530)                            |
+|  BGE-small-en-v1.5 embeddings (384-dim)                          |
+|                                                                  |
+|  cart_literature    (5,047)    cart_safety      (40)             |
+|  cart_trials        (973)     cart_biomarkers  (43)             |
+|  cart_constructs    (6)       cart_regulatory  (25)             |
+|  cart_assays        (45)      cart_sequences   (27)             |
+|  cart_manufacturing (30)      cart_realworld   (30)             |
+|                                                                  |
+|  genomic_evidence   (3,561,170) [read-only, shared]              |
++------------------------------------------------------------------+
+         |
+         v
++------------------------------------------------------------------+
+|                   Claude Sonnet 4.6 (Anthropic API)              |
+|  System prompt: 12 expertise domains                             |
+|  Streaming response | Citation-linked output                     |
++------------------------------------------------------------------+
 ```
 
-**55 Python files | ~16,748 lines of code | Apache 2.0**
+### Data Flow
+
+```
+User Question
+     |
+     v
+[1] Search Plan (agent identifies targets, stages, strategy)
+     |
+     v
+[2] Query Embedding (BGE-small-en-v1.5, "Represent this sentence...")
+     |
+     v
+[3] Parallel Search (ThreadPoolExecutor across 11 collections)
+     |
+     v
+[4] Query Expansion (12 maps, re-embed top 5 expansion terms)
+     |
+     v
+[5] Merge & Rank (deduplicate, weighted scoring, cap at 30 hits)
+     |
+     v
+[6] Knowledge Augmentation (targets, toxicities, manufacturing,
+     |  biomarkers, regulatory, immunogenicity)
+     v
+[7] Prompt Assembly (evidence sections + knowledge context + question)
+     |
+     v
+[8] LLM Synthesis (Claude Sonnet 4.6, streaming, 2048 tokens)
+     |
+     v
+[9] Response with clickable citations + evidence panel + export buttons
+```
 
 ---
 
-## 4. Docker Compose Services
+## 4. Collections Catalog
 
-### Service Architecture
+The system manages 11 Milvus collections: 10 owned by the CAR-T Intelligence Agent and 1 shared read-only collection from the upstream rag-chat-pipeline.
 
-| Service | Image | Port | Role |
-|---|---|---|---|
-| `milvus-etcd` | quay.io/coreos/etcd:v3.5.5 | 2379 | Milvus metadata store |
-| `milvus-minio` | minio/minio:v2023.03 | 9000, 9001 | Milvus object storage |
-| `milvus-standalone` | milvusdb/milvus:v2.4 | 19530, 9091 | Vector database |
-| `cart-streamlit` | Built from Dockerfile | 8521 | Streamlit chat UI |
-| `cart-api` | Built from Dockerfile | 8522 | FastAPI REST server |
-| `cart-setup` | Built from Dockerfile | — | One-shot collection setup + seed |
+### 4.1 Collection Summary
 
-### Startup Sequence
+| # | Collection | Vectors | Description | Data Sources |
+|---|-----------|---------|-------------|-------------|
+| 1 | `cart_literature` | 5,047 | Published research papers and patents | PubMed, PMC, patents |
+| 2 | `cart_trials` | 973 | Clinical trial records | ClinicalTrials.gov |
+| 3 | `cart_constructs` | 6 | CAR construct designs (FDA-approved products) | Manual curation |
+| 4 | `cart_assays` | 45 | In vitro/in vivo functional assay results | Seed data |
+| 5 | `cart_manufacturing` | 30 | CMC/manufacturing process records | Seed data |
+| 6 | `cart_safety` | 40 | Adverse events, CRS/ICANS incidence | Seed data, FAERS |
+| 7 | `cart_biomarkers` | 43 | Predictive/prognostic/PD biomarkers | Seed data |
+| 8 | `cart_regulatory` | 25 | FDA approvals, EMA, designations | Seed data |
+| 9 | `cart_sequences` | 27 | scFv/CAR molecular & structural data | Seed data |
+| 10 | `cart_realworld` | 30 | CIBMTR, post-market outcomes | Seed data |
+| 11 | `genomic_evidence` | 3,561,170 | Patient variant data (ClinVar + AlphaMissense) | Read-only, rag-chat-pipeline |
+| | **TOTAL** | **3,567,436** | | |
 
-```bash
-# 1. Configure
-cp .env.example .env
-# Edit .env: set ANTHROPIC_API_KEY
+### 4.2 Shared Configuration
 
-# 2. Launch all services
-docker compose up -d
+All collections share:
+- **Embedding model**: BGE-small-en-v1.5 (384-dimensional)
+- **Index type**: IVF_FLAT
+- **Index params**: `nlist=1024`
+- **Search params**: `nprobe=16`
+- **Metric**: COSINE similarity
+- **Primary key**: VARCHAR `id` field
 
-# 3. Watch setup completion
-docker compose logs -f cart-setup
+### 4.3 Collection Schemas (Detail)
 
-# 4. Verify
-curl http://localhost:8522/health
-# → {"status": "healthy", "collections": 11, "total_vectors": 6266}
-```
+#### cart_literature
 
-### Dockerfile (Multi-Stage)
+| Field | Type | Max Length | Description |
+|-------|------|-----------|-------------|
+| id | VARCHAR (PK) | 100 | PMID or patent number |
+| embedding | FLOAT_VECTOR | 384 | BGE-small-en-v1.5 |
+| title | VARCHAR | 500 | Paper or patent title |
+| text_chunk | VARCHAR | 3000 | Text chunk for embedding |
+| source_type | VARCHAR | 20 | pubmed, pmc, patent, preprint, manual |
+| year | INT64 | -- | Publication year |
+| cart_stage | VARCHAR | 30 | Development stage |
+| target_antigen | VARCHAR | 100 | e.g., CD19, BCMA |
+| disease | VARCHAR | 200 | Disease or indication |
+| keywords | VARCHAR | 1000 | Comma-separated keywords/MeSH |
+| journal | VARCHAR | 200 | Journal name |
 
-**Stage 1 — Builder:**
-- Base: `python:3.10-slim`
-- System deps: `build-essential`, `gcc`, `g++`, `libxml2-dev`, `libxslt1-dev`
-- Virtual environment with all pip dependencies
+#### cart_trials
 
-**Stage 2 — Runtime:**
-- Base: `python:3.10-slim`
-- Copy venv from builder
-- Copy source: `config/`, `src/`, `app/`, `api/`, `scripts/`, `data/`
-- Non-root user: `cartuser`
-- Healthcheck: `curl -f http://localhost:8521/_stcore/health`
+| Field | Type | Max Length | Description |
+|-------|------|-----------|-------------|
+| id | VARCHAR (PK) | 20 | NCT number (e.g., NCT03958656) |
+| embedding | FLOAT_VECTOR | 384 | BGE-small-en-v1.5 |
+| title | VARCHAR | 500 | Official trial title |
+| text_summary | VARCHAR | 3000 | Brief summary for embedding |
+| phase | VARCHAR | 30 | Trial phase |
+| status | VARCHAR | 30 | Recruitment status |
+| sponsor | VARCHAR | 200 | Lead sponsor |
+| target_antigen | VARCHAR | 100 | Target antigen |
+| car_generation | VARCHAR | 20 | 1st, 2nd, 3rd, 4th, armored, universal |
+| costimulatory | VARCHAR | 50 | CD28, 4-1BB, dual |
+| disease | VARCHAR | 200 | Disease or indication |
+| enrollment | INT64 | -- | Target enrollment count |
+| start_year | INT64 | -- | Study start year |
+| outcome_summary | VARCHAR | 2000 | Outcome summary |
+
+#### cart_constructs
+
+| Field | Type | Max Length | Description |
+|-------|------|-----------|-------------|
+| id | VARCHAR (PK) | 100 | Construct identifier |
+| embedding | FLOAT_VECTOR | 384 | BGE-small-en-v1.5 |
+| name | VARCHAR | 200 | Product or construct name |
+| text_summary | VARCHAR | 2000 | Description |
+| target_antigen | VARCHAR | 100 | Target antigen |
+| scfv_origin | VARCHAR | 200 | scFv antibody clone/origin |
+| costimulatory_domain | VARCHAR | 100 | Costimulatory domain(s) |
+| signaling_domain | VARCHAR | 100 | Default: CD3-zeta |
+| generation | VARCHAR | 20 | CAR generation |
+| hinge_tm | VARCHAR | 200 | Hinge + transmembrane domain |
+| vector_type | VARCHAR | 50 | Lentiviral, retroviral, etc. |
+| fda_status | VARCHAR | 20 | FDA approval status |
+| known_toxicities | VARCHAR | 500 | CRS, ICANS, etc. |
+
+#### cart_assays
+
+| Field | Type | Max Length | Description |
+|-------|------|-----------|-------------|
+| id | VARCHAR (PK) | 100 | Assay record identifier |
+| embedding | FLOAT_VECTOR | 384 | BGE-small-en-v1.5 |
+| text_summary | VARCHAR | 2000 | Assay description |
+| assay_type | VARCHAR | 30 | cytotoxicity, cytokine, flow, etc. |
+| construct_id | VARCHAR | 100 | FK to cart_constructs |
+| target_antigen | VARCHAR | 100 | Target antigen tested |
+| cell_line | VARCHAR | 100 | e.g., Nalm-6, Raji, K562 |
+| effector_ratio | VARCHAR | 20 | E:T ratio |
+| key_metric | VARCHAR | 50 | Primary metric name |
+| metric_value | FLOAT | -- | Numeric value |
+| outcome | VARCHAR | 20 | success, partial, failure |
+| notes | VARCHAR | 1000 | Additional notes |
+
+#### cart_manufacturing
+
+| Field | Type | Max Length | Description |
+|-------|------|-----------|-------------|
+| id | VARCHAR (PK) | 100 | Manufacturing record ID |
+| embedding | FLOAT_VECTOR | 384 | BGE-small-en-v1.5 |
+| text_summary | VARCHAR | 2000 | Process description |
+| process_step | VARCHAR | 30 | transduction, expansion, etc. |
+| vector_type | VARCHAR | 50 | Vector type |
+| parameter | VARCHAR | 100 | Process parameter name |
+| parameter_value | VARCHAR | 50 | Parameter value |
+| target_spec | VARCHAR | 100 | Acceptance criteria |
+| met_spec | VARCHAR | 10 | yes, no, borderline |
+| batch_id | VARCHAR | 50 | Batch identifier |
+| notes | VARCHAR | 1000 | Additional notes |
+
+#### cart_safety
+
+| Field | Type | Max Length | Description |
+|-------|------|-----------|-------------|
+| id | VARCHAR (PK) | 100 | Safety record ID |
+| embedding | FLOAT_VECTOR | 384 | BGE-small-en-v1.5 |
+| text_summary | VARCHAR | 3000 | Event description |
+| product | VARCHAR | 200 | Product name |
+| event_type | VARCHAR | 30 | CRS, ICANS, cytopenia, etc. |
+| severity_grade | VARCHAR | 100 | Grade 1-5 or mild/moderate/severe |
+| onset_timing | VARCHAR | 100 | e.g., median day 5 |
+| incidence_rate | VARCHAR | 200 | e.g., 42% any grade |
+| management_protocol | VARCHAR | 500 | Treatment protocol |
+| outcome | VARCHAR | 100 | Outcome description |
+| reporting_source | VARCHAR | 50 | FAERS, trial, registry, label |
+| year | INT64 | -- | Reporting year |
+
+#### cart_biomarkers
+
+| Field | Type | Max Length | Description |
+|-------|------|-----------|-------------|
+| id | VARCHAR (PK) | 100 | Biomarker record ID |
+| embedding | FLOAT_VECTOR | 384 | BGE-small-en-v1.5 |
+| text_summary | VARCHAR | 3000 | Biomarker description |
+| biomarker_name | VARCHAR | 100 | Biomarker name |
+| biomarker_type | VARCHAR | 30 | predictive, prognostic, etc. |
+| assay_method | VARCHAR | 100 | ELISA, flow cytometry, etc. |
+| clinical_cutoff | VARCHAR | 100 | e.g., >500 mg/L |
+| predictive_value | VARCHAR | 200 | Clinical correlation |
+| associated_outcome | VARCHAR | 200 | Outcome it predicts |
+| target_antigen | VARCHAR | 100 | Target antigen |
+| disease | VARCHAR | 200 | Disease context |
+| evidence_level | VARCHAR | 20 | validated, emerging, exploratory |
+
+#### cart_regulatory
+
+| Field | Type | Max Length | Description |
+|-------|------|-----------|-------------|
+| id | VARCHAR (PK) | 100 | Regulatory record ID |
+| embedding | FLOAT_VECTOR | 384 | BGE-small-en-v1.5 |
+| text_summary | VARCHAR | 3000 | Milestone description |
+| product | VARCHAR | 200 | Product name |
+| regulatory_event | VARCHAR | 50 | BLA, breakthrough therapy, etc. |
+| date | VARCHAR | 20 | YYYY-MM-DD or YYYY-MM |
+| agency | VARCHAR | 20 | FDA, EMA, PMDA |
+| indication | VARCHAR | 200 | Approved indication |
+| decision | VARCHAR | 100 | approved, rejected, pending |
+| conditions | VARCHAR | 500 | Approval conditions |
+| pivotal_trial | VARCHAR | 100 | Pivotal trial ID |
+
+#### cart_sequences
+
+| Field | Type | Max Length | Description |
+|-------|------|-----------|-------------|
+| id | VARCHAR (PK) | 100 | Sequence record ID |
+| embedding | FLOAT_VECTOR | 384 | BGE-small-en-v1.5 |
+| text_summary | VARCHAR | 3000 | Molecular description |
+| construct_name | VARCHAR | 200 | Construct name |
+| target_antigen | VARCHAR | 100 | Target antigen |
+| scfv_clone | VARCHAR | 100 | e.g., FMC63, SJ25C1 |
+| binding_affinity_kd | VARCHAR | 50 | e.g., 0.3 nM |
+| heavy_chain_vregion | VARCHAR | 500 | VH framework/CDR info |
+| light_chain_vregion | VARCHAR | 500 | VL framework/CDR info |
+| framework | VARCHAR | 100 | IgG1, IgG4, etc. |
+| species_origin | VARCHAR | 30 | murine, humanized, fully_human |
+| immunogenicity_risk | VARCHAR | 20 | low, moderate, high |
+| structural_notes | VARCHAR | 1000 | Structural notes |
+
+#### cart_realworld
+
+| Field | Type | Max Length | Description |
+|-------|------|-----------|-------------|
+| id | VARCHAR (PK) | 100 | RWE record ID |
+| embedding | FLOAT_VECTOR | 384 | BGE-small-en-v1.5 |
+| text_summary | VARCHAR | 3000 | Study description |
+| study_type | VARCHAR | 30 | retrospective, registry, etc. |
+| data_source | VARCHAR | 100 | CIBMTR, institutional, SEER |
+| product | VARCHAR | 200 | Product name |
+| indication | VARCHAR | 200 | Disease indication |
+| population_size | INT64 | -- | Study population |
+| median_followup_months | FLOAT | -- | Median follow-up |
+| primary_endpoint | VARCHAR | 100 | Primary endpoint |
+| outcome_value | VARCHAR | 100 | Outcome value |
+| setting | VARCHAR | 50 | academic, community, both |
+| special_population | VARCHAR | 200 | elderly, bridging, CNS, etc. |
+
+#### genomic_evidence (Read-Only)
+
+| Field | Type | Max Length | Description |
+|-------|------|-----------|-------------|
+| id | VARCHAR (PK) | 200 | Variant identifier |
+| embedding | FLOAT_VECTOR | 384 | BGE-small-en-v1.5 |
+| chrom | VARCHAR | 10 | Chromosome |
+| pos | INT64 | -- | Position |
+| ref | VARCHAR | 500 | Reference allele |
+| alt | VARCHAR | 500 | Alternate allele |
+| qual | FLOAT | -- | Quality score |
+| gene | VARCHAR | 50 | Gene symbol |
+| consequence | VARCHAR | 100 | Variant consequence |
+| impact | VARCHAR | 20 | HIGH, MODERATE, etc. |
+| genotype | VARCHAR | 10 | e.g., 0/1, 1/1 |
+| text_summary | VARCHAR | 2000 | Summary text |
+| clinical_significance | VARCHAR | 200 | ClinVar significance |
+| rsid | VARCHAR | 20 | dbSNP rsID |
+| disease_associations | VARCHAR | 500 | Disease associations |
+| am_pathogenicity | FLOAT | -- | AlphaMissense score |
+| am_class | VARCHAR | 30 | AlphaMissense class |
 
 ---
 
-## 5. Milvus Collection Schemas
+## 5. Knowledge Graph
 
-### 11 Collections Overview
+The knowledge graph provides structured, curated domain knowledge that augments vector search results before LLM synthesis. It contains 6 dictionaries with 95 total entries and 54 entity aliases for cross-entity resolution.
 
-| Collection | Records | Primary Fields | Source |
-|---|---|---|---|
-| `cart_literature` | 5,047 | PMID, title, text_chunk, year, cart_stage, target_antigen | PubMed E-utilities |
-| `cart_trials` | 973 | NCT ID, title, phase, status, sponsor, target_antigen | ClinicalTrials.gov API v2 |
-| `cart_constructs` | 6 | name, target_antigen, scfv_origin, costimulatory, generation | FDA product labels |
-| `cart_assays` | 45 | assay_type, construct_id, target_antigen, key_metric, outcome | Landmark publications |
-| `cart_manufacturing` | 30 | process_step, vector_type, parameter, target_spec, met_spec | Published CMC data |
-| `cart_safety` | 40 | product, event_type, severity_grade, incidence_rate, management | Pharmacovigilance |
-| `cart_biomarkers` | 43 | biomarker_name, biomarker_type, clinical_cutoff, evidence_level | CRS/response markers |
-| `cart_regulatory` | 25 | product, regulatory_event, date, agency, indication, decision | FDA/EMA milestones |
-| `cart_sequences` | 27 | construct_name, scfv_clone, binding_affinity_kd, species_origin | Molecular data |
-| `cart_realworld` | 30 | study_type, data_source, product, population_size, outcome_value | Registry/RWE outcomes |
-| `genomic_evidence` | 3,561,170 | chrom, pos, gene, consequence, clinical_significance | Shared (read-only) |
+### 5.1 Dictionary Summary
 
-### Unified Schema Pattern
+| Dictionary | Entries | Description |
+|-----------|---------|-------------|
+| CART_TARGETS | 33 | Target antigen profiles with expression, diseases, products, resistance |
+| CART_TOXICITIES | 12 | Toxicity profiles with grading, management, biomarkers, risk factors |
+| CART_MANUFACTURING | 15 | Manufacturing processes with parameters, failure modes, specs |
+| CART_BIOMARKERS | 23 | Predictive/prognostic biomarkers with cutoffs and evidence levels |
+| CART_REGULATORY | 6 | FDA-approved products with approval history and REMS |
+| CART_IMMUNOGENICITY | 6 | HLA, ADA, humanization, and immunogenicity testing |
+| **TOTAL** | **95** | |
 
-All collections share this structure:
+### 5.2 CART_TARGETS (33 Entries)
 
-```python
-# Primary key
-id: VARCHAR(100)              # PMID, NCT ID, construct ID, etc.
+Each entry includes: protein name, UniProt ID, expression pattern, diseases, approved products, key trials, resistance mechanisms, toxicity profile, and normal tissue expression.
 
-# Embedding vector (indexed)
-embedding: FLOAT_VECTOR(384)  # BGE-small-en-v1.5
-# Index: IVF_FLAT, metric: COSINE, nlist: 1024, nprobe: 16
+**Targets with approved products (2):**
+- **CD19**: Kymriah, Yescarta, Tecartus, Breyanzi (B-ALL, DLBCL, FL, MCL, CLL)
+- **BCMA**: Abecma, Carvykti (Multiple Myeloma)
 
-# Text fields
-title / text_summary / text_chunk: VARCHAR(500-3000)
+**Hematologic targets (13):** CD19, BCMA, CD22, CD20, CD30, CD33, CD38, CD123, GPRC5D, NKG2D_ligands, CD7, CD5, ROR1
 
-# Collection-specific metadata
-# VARCHAR for enums, INT64 for years/counts, FLOAT for metrics
-```
+**Solid tumor targets (12):** GD2, HER2, GPC3, EGFR, EGFRvIII, Mesothelin, Claudin18.2, MUC1, PSMA, IL13Ra2, DLL3, B7-H3
 
-### Index Configuration
+### 5.3 CART_TOXICITIES (12 Entries)
 
-```python
-INDEX_PARAMS = {
-    "metric_type": "COSINE",
-    "index_type": "IVF_FLAT",
-    "params": {"nlist": 1024},
-}
+| Toxicity | Full Name | Incidence | Key Management |
+|----------|-----------|-----------|----------------|
+| CRS | Cytokine Release Syndrome | 50-95% any grade; 10-25% grade 3+ | Tocilizumab, corticosteroids |
+| ICANS | Immune Effector Cell-Associated Neurotoxicity | 20-65% any grade; 10-30% grade 3+ | Corticosteroids, ICU monitoring |
+| B_CELL_APLASIA | B-Cell Aplasia / Hypogammaglobulinemia | Near 100% with CD19 CAR-T | IVIG replacement |
+| HLH_MAS | Hemophagocytic Lymphohistiocytosis / MAS | 1-5% | Etoposide, anakinra, ruxolitinib |
+| CYTOPENIAS | Prolonged Cytopenias | 30-50% prolonged (>30d) | G-CSF, transfusion support |
+| TLS | Tumor Lysis Syndrome | <5% | Rasburicase, hydration |
+| GVHD | Graft-versus-Host Disease | Rare autologous; risk allogeneic | TCR KO prevention, steroids |
+| ON_TARGET_OFF_TUMOR | On-Target, Off-Tumor Toxicity | Target-dependent | Affinity tuning, logic gates, safety switches |
 
-SEARCH_PARAMS = {
-    "metric_type": "COSINE",
-    "params": {"nprobe": 16},
-}
-```
+### 5.4 CART_MANUFACTURING (15 Entries)
 
-### CARTCollectionManager
+lentiviral_transduction, retroviral_transduction, t_cell_activation, ex_vivo_expansion, leukapheresis, cryopreservation, release_testing, point_of_care_manufacturing, lymphodepletion, vein_to_vein_time
 
-| Method | Purpose |
-|---|---|
-| `create_all_collections()` | Create all 11 collections with IVF_FLAT indexes |
-| `get_collection_stats()` | Return record count per collection |
-| `insert_batch()` | Bulk insert records with Enum→str conversion and UTF-8 truncation |
-| `search()` | Single-collection vector similarity search with optional filters |
-| `search_all()` | **Parallel** multi-collection search via ThreadPoolExecutor (11 threads) |
+### 5.5 CART_BIOMARKERS (23 Entries)
+
+| Biomarker | Type | Clinical Cutoff | Evidence Level |
+|-----------|------|----------------|----------------|
+| Ferritin | Predictive | >500 mg/L pre-infusion | Validated |
+| CRP | Predictive | >200 mg/L within 72h | Validated |
+| IL-6 | Pharmacodynamic | >1000 pg/mL | Validated |
+| sIL-2R | Pharmacodynamic | >5000 pg/mL | Validated |
+| CAR-T Expansion (Cmax) | Pharmacodynamic | >50,000 copies/ug DNA | Validated |
+| Tcm% | Predictive | >40% in apheresis | Emerging |
+| CD4:CD8 Ratio | Predictive | Optimal 1:1 | Emerging |
+| LDH | Prognostic | >ULN | Validated |
+| PD-1 | Resistance | >30% PD-1+ on CAR-T | Emerging |
+| LAG-3 | Resistance | >20% LAG-3+ | Emerging |
+| TIM-3 | Resistance | >25% TIM-3+ | Emerging |
+| MRD (flow) | Monitoring | <10^-4 (0.01%) | Validated |
+| ctDNA | Monitoring | 2-log reduction by day 28 | Emerging |
+| sBCMA | Resistance | >40 ng/mL baseline | Emerging |
+| IFN-gamma | Pharmacodynamic | >500 pg/mL at day 7 | Validated |
+
+### 5.6 CART_REGULATORY (6 FDA-Approved Products)
+
+| Product | Generic Name | Manufacturer | Initial Approval | Target |
+|---------|-------------|-------------|-----------------|--------|
+| Kymriah | tisagenlecleucel | Novartis | 2017-08-30 | CD19 |
+| Yescarta | axicabtagene ciloleucel | Kite/Gilead | 2017-10-18 | CD19 |
+| Tecartus | brexucabtagene autoleucel | Kite/Gilead | 2020-07-24 | CD19 |
+| Breyanzi | lisocabtagene maraleucel | BMS/Juno | 2021-02-05 | CD19 |
+| Abecma | idecabtagene vicleucel | BMS/bluebird | 2021-03-26 | BCMA |
+| Carvykti | ciltacabtagene autoleucel | Janssen/Legend | 2022-02-28 | BCMA |
+
+### 5.7 CART_IMMUNOGENICITY (6 Entries)
+
+murine_scfv_immunogenicity, humanization_strategies, ada_clinical_impact, hla_restricted_epitopes, immunogenicity_testing, allogeneic_hla_considerations
+
+### 5.8 Entity Aliases (ENTITY_ALIASES)
+
+54 aliases map common names to canonical entities for cross-entity resolution in comparative queries. Categories include:
+
+- **Product aliases** (12): Kymriah/tisagenlecleucel, Yescarta/axicabtagene, etc.
+- **Costimulatory domains** (4): 4-1BB/CD137, CD28, OX40, ICOS
+- **Vector types** (2): LENTIVIRAL, RETROVIRAL
+- **Biomarker aliases** (13): FERRITIN, CRP, IL-6, PD-1, LAG-3, TIM-3, MRD, etc.
+- **Immunogenicity aliases** (8): ADA, HAMA, HUMANIZATION, HLA, MHC, etc.
+
+### 5.9 Context Retrieval Functions
+
+| Function | Input | Output |
+|----------|-------|--------|
+| `get_target_context(antigen)` | Target name (e.g., "CD19") | Formatted markdown with biology, diseases, products, resistance |
+| `get_toxicity_context(toxicity)` | Toxicity ID (e.g., "CRS") | Mechanism, grading, management, biomarkers, risk factors |
+| `get_manufacturing_context(process)` | Process ID | Description, parameters, failure modes, specs |
+| `get_biomarker_context(biomarker)` | Biomarker key | Type, assay, cutoff, predictive value, evidence level |
+| `get_regulatory_context(product)` | Product name | Approval history, designations, REMS, EMA |
+| `get_immunogenicity_context(topic)` | Topic key | Description, methods, clinical impact |
+| `get_all_context_for_query(query)` | Free-text query | Combined context from all 6 domains |
+| `resolve_comparison_entity(text)` | Entity name | Dict with type, canonical name, target |
+| `get_comparison_context(a, b)` | Two entity dicts | Side-by-side knowledge for comparative analysis |
+| `get_knowledge_stats()` | None | Dict with entry counts per dictionary |
 
 ---
 
-## 6. Pydantic Data Models
+## 6. Query Expansion
 
-### Enumeration Types
+The query expansion system maps user keywords to related biomedical terms, broadening search recall across collections. It contains 12 expansion maps with a total of 190 keywords expanding to 1,649 terms.
 
-```python
-CARTStage:        TARGET_ID, CAR_DESIGN, VECTOR_ENG, TESTING, CLINICAL
-TrialPhase:       EARLY_1, PHASE_1, PHASE_1_2, PHASE_2, PHASE_2_3, PHASE_3, PHASE_4, NA
-TrialStatus:      RECRUITING, ACTIVE, COMPLETED, TERMINATED, WITHDRAWN, SUSPENDED, NOT_YET
-CARGeneration:    1st, 2nd, 3rd, 4th, armored, universal
-AssayType:        CYTOTOXICITY, CYTOKINE, FLOW_CYTOMETRY, PROLIFERATION, IN_VIVO, PERSISTENCE, EXHAUSTION
-ProcessStep:      TRANSDUCTION, EXPANSION, HARVEST, FORMULATION, RELEASE_TESTING, CRYOPRESERVATION
-SafetyEventType:  CRS, ICANS, CYTOPENIA, INFECTION, SECONDARY_MALIGNANCY, ORGAN_TOXICITY, NEUROLOGIC, CARDIAC
-BiomarkerType:    PREDICTIVE, PROGNOSTIC, PHARMACODYNAMIC, MONITORING, RESISTANCE
-EvidenceLevel:    VALIDATED, EMERGING, EXPLORATORY
-RegulatoryEvent:  BLA, BREAKTHROUGH_THERAPY, RMAT, ACCELERATED_APPROVAL, FULL_APPROVAL, LABEL_UPDATE, REMS
-RWEStudyType:     RETROSPECTIVE, REGISTRY, CLAIMS, EHR_ANALYSIS, META_ANALYSIS
-```
+### 6.1 Expansion Map Summary
 
-### Collection Models
+| # | Map Name | Keywords | Total Terms | Domain |
+|---|---------|----------|-------------|--------|
+| 1 | Target Antigen | 32 | 244 | Antigen names, diseases, products, aliases |
+| 2 | Disease | 16 | 143 | Disease names, related antigens, therapies |
+| 3 | Toxicity | 18 | 168 | Safety events, management, biomarkers |
+| 4 | Manufacturing | 21 | 215 | CMC terms, platforms, release testing |
+| 5 | Mechanism | 19 | 224 | Resistance, exhaustion, signaling, TME |
+| 6 | Construct | 20 | 206 | scFv, CAR generations, safety switches |
+| 7 | Safety | 8 | 69 | Pharmacovigilance, AEs, REMS |
+| 8 | Biomarker | 18 | 117 | Predictive markers, exhaustion, MRD |
+| 9 | Regulatory | 8 | 46 | FDA, BLA, RMAT, EMA pathways |
+| 10 | Sequence | 8 | 54 | scFv, CDR, binding affinity, nanobody |
+| 11 | RealWorld | 10 | 65 | RWE, registries, disparities, follow-up |
+| 12 | Immunogenicity | 12 | 98 | HLA, ADA, humanization, ELISpot |
+| | **TOTAL** | **190** (unique) | **1,649** (unique) | |
 
-Each collection has a corresponding Pydantic model with a `to_embedding_text()` method that combines key fields for BGE encoding:
+### 6.2 Expansion Logic
+
+The `expand_query()` function:
+
+1. Converts the user query to lowercase
+2. Iterates through all 12 expansion maps in order
+3. For each keyword that matches as a substring of the query, adds all associated terms to a set
+4. Returns a deduplicated, sorted list of expansion terms
+
+The `expand_query_by_category()` variant groups results by category, enabling collection-specific weighting.
+
+### 6.3 How Expansion Feeds Search
+
+In the RAG engine, expansion terms are used in two ways:
+
+1. **Antigen field filtering**: If an expansion term matches a known target antigen (from `_KNOWN_ANTIGENS`), it is used as a Milvus `target_antigen == "..."` field filter on collections that have that field.
+2. **Semantic re-embedding**: Non-antigen expansion terms are re-embedded and used for additional vector similarity searches across all collections, with a 0.7x score discount to avoid drowning out primary results.
+
+---
+
+## 7. Data Models
+
+The data model layer uses Pydantic v2 with strict validation. All models are defined in `src/models.py`.
+
+### 7.1 Enums (14)
+
+| Enum | Values | Used By |
+|------|--------|---------|
+| `CARTStage` | target_id, car_design, vector_eng, testing, clinical | CARTLiterature, AgentQuery |
+| `SourceType` | pubmed, pmc, patent, preprint, manual | CARTLiterature |
+| `TrialPhase` | Early Phase 1, Phase 1, Phase 1/Phase 2, Phase 2, Phase 2/Phase 3, Phase 3, Phase 4, N/A | ClinicalTrial |
+| `TrialStatus` | Recruiting, Active not recruiting, Completed, Terminated, Withdrawn, Suspended, Not yet recruiting, Unknown | ClinicalTrial |
+| `CARGeneration` | 1st, 2nd, 3rd, 4th, armored, universal | ClinicalTrial, CARConstruct |
+| `AssayType` | cytotoxicity, cytokine, flow, proliferation, in_vivo, persistence, exhaustion, migration, trafficking, serial_killing | AssayResult |
+| `ProcessStep` | transduction, expansion, harvest, formulation, release, cryo, non_viral, mrna_electroporation, crispr_knock_in, ipsc_derived, automated | ManufacturingRecord |
+| `FDAStatus` | approved, bla_filed, phase3, phase2, phase1, preclinical, discontinued | CARConstruct |
+| `SafetyEventType` | CRS, ICANS, cytopenia, infection, secondary_malignancy, organ_toxicity, neurologic, cardiac, coagulopathy, renal | SafetyRecord |
+| `BiomarkerType` | predictive, prognostic, pharmacodynamic, monitoring, resistance | BiomarkerRecord |
+| `EvidenceLevel` | validated, emerging, exploratory | BiomarkerRecord |
+| `RegulatoryEvent` | BLA, breakthrough_therapy, RMAT, accelerated_approval, full_approval, label_update, REMS, post_marketing_requirement, complete_response | RegulatoryRecord |
+| `RWEStudyType` | retrospective, registry, claims, ehr_analysis, meta_analysis | RealWorldRecord |
+
+### 7.2 Collection Models (10)
+
+Each collection model is a Pydantic `BaseModel` with:
+- Typed, validated fields mapping to Milvus schema columns
+- A `to_embedding_text() -> str` method that assembles the text passed to BGE-small-en-v1.5
 
 | Model | Collection | Key Fields |
-|---|---|---|
-| `CARTLiterature` | cart_literature | PMID, title, text_chunk, year, cart_stage, target_antigen, disease, journal |
-| `ClinicalTrial` | cart_trials | NCT ID, title, phase, status, sponsor, target_antigen, car_generation, costimulatory |
-| `CARConstruct` | cart_constructs | name, target_antigen, scfv_origin, costimulatory_domain, generation, fda_status |
-| `AssayResult` | cart_assays | assay_type, construct_id, target_antigen, cell_line, key_metric, outcome |
-| `ManufacturingRecord` | cart_manufacturing | process_step, vector_type, parameter, target_spec, met_spec |
-| `SafetyRecord` | cart_safety | product, event_type, severity_grade, incidence_rate, management_protocol |
-| `BiomarkerRecord` | cart_biomarkers | biomarker_name, biomarker_type, assay_method, clinical_cutoff, evidence_level |
-| `RegulatoryRecord` | cart_regulatory | product, regulatory_event, date, agency, indication, decision |
-| `SequenceRecord` | cart_sequences | construct_name, scfv_clone, binding_affinity_kd, species_origin |
-| `RealWorldRecord` | cart_realworld | study_type, data_source, product, population_size, primary_endpoint |
+|-------|-----------|------------|
+| `CARTLiterature` | cart_literature | id, title, text_chunk, source_type, year, cart_stage, target_antigen |
+| `ClinicalTrial` | cart_trials | id (NCT), title, text_summary, phase, status, sponsor, enrollment |
+| `CARConstruct` | cart_constructs | id, name, target_antigen, scfv_origin, costimulatory_domain, generation |
+| `AssayResult` | cart_assays | id, text_summary, assay_type, cell_line, key_metric, metric_value, outcome |
+| `ManufacturingRecord` | cart_manufacturing | id, text_summary, process_step, parameter, target_spec, met_spec |
+| `SafetyRecord` | cart_safety | id, text_summary, product, event_type, severity_grade, incidence_rate |
+| `BiomarkerRecord` | cart_biomarkers | id, text_summary, biomarker_name, biomarker_type, clinical_cutoff |
+| `RegulatoryRecord` | cart_regulatory | id, text_summary, product, regulatory_event, date, agency, decision |
+| `SequenceRecord` | cart_sequences | id, text_summary, scfv_clone, binding_affinity_kd, species_origin |
+| `RealWorldRecord` | cart_realworld | id, text_summary, study_type, data_source, population_size, primary_endpoint |
 
-### Search Result Models
+### 7.3 Search & Agent Models (4)
 
-```python
-SearchHit:              # Single evidence item (collection, id, score, text, metadata)
-CrossCollectionResult:  # Merged multi-collection results (hits, knowledge_context, search_time_ms)
-ComparativeResult:      # Dual-entity comparison (entity_a, entity_b, evidence_a, evidence_b)
-AgentQuery:             # User input (question, target_antigen, cart_stage, include_genomic)
-AgentResponse:          # Agent output (question, answer, evidence, knowledge_used, timestamp)
-```
+| Model | Purpose | Key Fields |
+|-------|---------|------------|
+| `AgentQuery` | Input to agent/engine | question, target_antigen, cart_stage, include_genomic |
+| `SearchHit` | Single search result | collection, id, score, text, metadata |
+| `CrossCollectionResult` | Merged multi-collection results | query, hits[], knowledge_context, total_collections_searched, search_time_ms |
+| `AgentResponse` | Full agent output | question, answer, evidence (CrossCollectionResult), knowledge_used[], timestamp |
 
----
-
-## 7. Configuration Reference
-
-### CARTSettings (Pydantic BaseSettings)
-
-```python
-# Environment prefix: CART_
-# Loaded from: .env file or environment variables
-
-# Paths
-PROJECT_ROOT: Path          # Auto-detected
-DATA_DIR: Path              # PROJECT_ROOT / "data"
-RAG_PIPELINE_ROOT: Path     # For shared resources
-
-# Milvus
-MILVUS_HOST: str = "localhost"
-MILVUS_PORT: int = 19530
-
-# Embeddings
-EMBEDDING_MODEL: str = "BAAI/bge-small-en-v1.5"
-EMBEDDING_DIMENSION: int = 384
-EMBEDDING_BATCH_SIZE: int = 32
-
-# LLM
-LLM_PROVIDER: str = "anthropic"
-LLM_MODEL: str = "claude-sonnet-4-20250514"
-ANTHROPIC_API_KEY: Optional[str] = None
-
-# RAG Search
-TOP_K_PER_COLLECTION: int = 5
-SCORE_THRESHOLD: float = 0.4
-
-# Collection Weights (sum ≈ 1.0)
-WEIGHT_LITERATURE: float = 0.20
-WEIGHT_TRIALS: float = 0.16
-WEIGHT_CONSTRUCTS: float = 0.10
-WEIGHT_ASSAYS: float = 0.09
-WEIGHT_MANUFACTURING: float = 0.07
-WEIGHT_SAFETY: float = 0.08
-WEIGHT_BIOMARKERS: float = 0.08
-WEIGHT_REGULATORY: float = 0.06
-WEIGHT_SEQUENCES: float = 0.06
-WEIGHT_REALWORLD: float = 0.07
-WEIGHT_GENOMIC: float = 0.04
-
-# External APIs
-NCBI_API_KEY: Optional[str] = None
-PUBMED_MAX_RESULTS: int = 5000
-CT_GOV_BASE_URL: str = "https://clinicaltrials.gov/api/v2"
-
-# Services
-API_HOST: str = "0.0.0.0"
-API_PORT: int = 8522
-STREAMLIT_PORT: int = 8521
-
-# Scheduling
-INGEST_SCHEDULE_HOURS: int = 168     # Weekly refresh
-INGEST_ENABLED: bool = False
-
-# RAG Context
-MAX_CONVERSATION_CONTEXT: int = 3    # Prior exchanges
-CITATION_HIGH_THRESHOLD: float = 0.75
-CITATION_MEDIUM_THRESHOLD: float = 0.60
-```
+Additionally, `ComparativeResult` extends the model set for head-to-head analysis, containing `entity_a`, `entity_b`, `evidence_a`, `evidence_b`, and `comparison_context`.
 
 ---
 
-## 8. Embedding Strategy
+## 8. RAG Engine
 
-### BGE-small-en-v1.5
+The `CARTRAGEngine` class (defined in `src/rag_engine.py`) is the central orchestrator for all retrieval and synthesis operations.
 
-| Parameter | Value |
-|---|---|
-| Model | BAAI/bge-small-en-v1.5 |
-| Dimensions | 384 |
-| Parameters | ~33M |
-| Encoding | Asymmetric (query vs document) |
-
-### Asymmetric Encoding
+### 8.1 Constructor
 
 ```python
-# Query embedding (with instruction prefix)
-prefix = "Represent this sentence for searching relevant passages: "
-query_embedding = embedder.encode(prefix + question)
-
-# Document embedding (raw text, no prefix)
-doc_embedding = embedder.encode(record.to_embedding_text())
+CARTRAGEngine(
+    collection_manager: CARTCollectionManager,
+    embedder,          # SentenceTransformer wrapper, embed_text() -> List[float]
+    llm_client,        # Anthropic client wrapper, generate() / generate_stream()
+    knowledge,         # src.knowledge module
+    query_expander,    # src.query_expansion module
+)
 ```
 
-This asymmetric approach improves retrieval relevance by 5-15% compared to symmetric encoding.
+### 8.2 Collection Weights
 
-### to_embedding_text() Pattern
+Each collection has a configurable weight that boosts its score contribution. Weights are defined in `CARTSettings` and loaded at engine initialization:
 
-Each Pydantic model generates its embedding input by combining key fields:
+| Collection | Weight | Label |
+|-----------|--------|-------|
+| cart_literature | 0.20 | Literature |
+| cart_trials | 0.16 | Trial |
+| cart_constructs | 0.10 | Construct |
+| cart_assays | 0.09 | Assay |
+| cart_manufacturing | 0.07 | Manufacturing |
+| cart_safety | 0.08 | Safety |
+| cart_biomarkers | 0.08 | Biomarker |
+| cart_regulatory | 0.06 | Regulatory |
+| cart_sequences | 0.06 | Sequence |
+| cart_realworld | 0.07 | RealWorld |
+| genomic_evidence | 0.04 | Genomic |
 
-```python
-# CARTLiterature
-def to_embedding_text(self) -> str:
-    parts = [self.title, self.text_chunk]
-    if self.target_antigen:
-        parts.append(f"Target: {self.target_antigen}")
-    if self.disease:
-        parts.append(f"Disease: {self.disease}")
-    return " ".join(parts)
-```
+The weighted score formula is: `final_score = raw_cosine_similarity * (1 + weight)`
+
+### 8.3 Retrieval Pipeline
+
+The `retrieve()` method executes the following steps:
+
+1. **Query preparation**: Optionally prepend conversation context for follow-up queries.
+2. **Embedding**: Embed query with BGE instruction prefix: `"Represent this sentence for searching relevant passages: "`
+3. **Collection selection**: Use caller-specified filter or search all 11 collections.
+4. **Filter construction**: Build per-collection Milvus filter expressions (target_antigen equality, year range bounds).
+5. **Parallel search**: `CARTCollectionManager.search_all()` uses `ThreadPoolExecutor` to search all collections concurrently.
+6. **Query expansion**: Call `expand_query()`, then for the top 5 expansion terms, either (a) use as field filter for known antigens or (b) re-embed and search all collections for semantic terms.
+7. **Merge & rank**: Deduplicate by ID, apply weighted scoring, apply citation relevance labels (high >= 0.75, medium >= 0.60, low < 0.60), sort descending, cap at 30.
+8. **Knowledge augmentation**: Scan query for target antigens, toxicities, manufacturing terms, biomarkers, products, and immunogenicity keywords; retrieve structured context from the knowledge graph.
+9. **Return**: `CrossCollectionResult` with hits, knowledge context, collection count, and timing.
+
+### 8.4 Citation Formatting
+
+Citations are formatted as clickable Markdown links:
+- **Literature**: `[Literature:PMID 12345678](https://pubmed.ncbi.nlm.nih.gov/12345678/)`
+- **Trials**: `[Trial:NCT12345678](https://clinicaltrials.gov/study/NCT12345678)`
+- **Other collections**: `[Collection:record-id]`
+
+### 8.5 Comparative Analysis
+
+When a query contains "compare", "vs", or "versus", the engine:
+
+1. Parses two entities from the question using regex.
+2. Resolves each entity against the knowledge graph via `resolve_comparison_entity()`.
+3. Runs two independent retrieval passes (one per entity).
+4. Builds side-by-side knowledge context via `get_comparison_context()`.
+5. Constructs a specialized comparative prompt requiring: comparison table, advantages, limitations, and clinical context.
+
+### 8.6 System Prompt
+
+The system prompt defines 12 expertise domains:
+
+1. Target Identification
+2. CAR Design
+3. Vector Engineering
+4. In Vitro & In Vivo Testing
+5. Clinical Development
+6. Manufacturing
+7. Safety & Pharmacovigilance
+8. Biomarkers
+9. Regulatory Intelligence
+10. Molecular Design
+11. Real-World Evidence
+12. Genomic Evidence
+
+The prompt instructs the LLM to cite evidence with clickable links, think cross-functionally, highlight failure modes, be specific with quantitative data, include regulatory context, and acknowledge uncertainty.
+
+### 8.7 Streaming
+
+The `query_stream()` method yields three message types:
+1. `{"type": "evidence", "content": CrossCollectionResult}` -- the evidence payload
+2. `{"type": "token", "content": "..."}` -- individual LLM output tokens
+3. `{"type": "done", "content": "full answer"}` -- the complete response
 
 ---
 
-## 9. Multi-Collection RAG Engine
+## 9. Agent Architecture
 
-### System Prompt
+The `CARTIntelligenceAgent` class (defined in `src/agent.py`) wraps the RAG engine with autonomous planning and reasoning.
 
-```python
-CART_SYSTEM_PROMPT = """You are a CAR-T cell therapy intelligence agent with deep expertise in:
-
-1. Target Identification — antigen biology, expression profiling
-2. CAR Design — scFv selection, costimulatory domains (CD28 vs 4-1BB)
-3. Vector Engineering — lentiviral/retroviral production, VCN optimization
-4. In Vitro & In Vivo Testing — cytotoxicity, cytokine profiling, persistence
-5. Clinical Development — trial design, response rates, toxicity management
-6. Manufacturing — leukapheresis, expansion, cryopreservation, release testing
-7. Safety & Pharmacovigilance — REMS, FAERS, long-term follow-up
-8. Biomarkers — CRS prediction (ferritin, CRP, IL-6), MRD monitoring
-9. Regulatory Intelligence — FDA pathways, BLA timelines, breakthrough therapy
-10. Molecular Design — scFv binding affinity, CDR sequences, humanization
-11. Real-World Evidence — CIBMTR registry, community vs academic outcomes
-12. Genomic Evidence — patient variants, ClinVar, AlphaMissense
-
-When answering:
-- Cite evidence using clickable markdown links
-- Think cross-functionally — connect insights across stages
-- Highlight failure modes and resistance mechanisms
-- Be specific — cite trial names, products, quantitative data
-- Acknowledge uncertainty — distinguish facts from emerging data"""
-```
-
-### Collection Configuration
-
-```python
-COLLECTION_CONFIG = {
-    "cart_literature":    {"weight": 0.20, "label": "Literature",    "has_target_antigen": True},
-    "cart_trials":        {"weight": 0.16, "label": "Trial",         "has_target_antigen": True},
-    "cart_constructs":    {"weight": 0.10, "label": "Construct",     "has_target_antigen": True},
-    "cart_assays":        {"weight": 0.09, "label": "Assay",         "has_target_antigen": True},
-    "cart_manufacturing": {"weight": 0.07, "label": "Manufacturing", "has_target_antigen": False},
-    "cart_safety":        {"weight": 0.08, "label": "Safety",        "has_target_antigen": False},
-    "cart_biomarkers":    {"weight": 0.08, "label": "Biomarker",     "has_target_antigen": True},
-    "cart_regulatory":    {"weight": 0.06, "label": "Regulatory",    "has_target_antigen": False},
-    "cart_sequences":     {"weight": 0.06, "label": "Sequence",      "has_target_antigen": True},
-    "cart_realworld":     {"weight": 0.07, "label": "RealWorld",     "has_target_antigen": False},
-    "genomic_evidence":   {"weight": 0.04, "label": "Genomic",       "has_target_antigen": False},
-}
-```
-
-### Core Methods
-
-| Method | Purpose | Returns |
-|---|---|---|
-| `retrieve()` | Parallel search + expansion + knowledge augmentation | `CrossCollectionResult` |
-| `query()` | Full RAG: retrieve + Claude generation | `str` (answer) |
-| `query_stream()` | Streaming RAG: yields evidence then tokens | `Generator[Dict]` |
-| `find_related()` | Cross-collection entity linking | `Dict[str, List[SearchHit]]` |
-| `retrieve_comparative()` | Dual-entity comparative retrieval | `ComparativeResult` |
-
-### Retrieve Pipeline
-
-```
-User Query
-    ↓
-1. Embed query (BGE asymmetric prefix)                        [< 5 ms]
-    ↓
-2. Parallel search across 11 collections (top-5 each)        [12-16 ms]
-   (ThreadPoolExecutor, 11 concurrent threads)
-    ↓
-3. Query expansion: detect keywords → expand → re-search     [8-12 ms]
-    ↓
-4. Merge + deduplicate + weighted rank (cap at 30)            [< 1 ms]
-    ↓
-5. Score citations: high (≥0.75) / medium (≥0.60) / low      [< 1 ms]
-    ↓
-6. Knowledge graph augmentation (all domains)                 [< 1 ms]
-    ↓
-7. Build prompt: evidence + knowledge + question              [< 1 ms]
-    ↓
-8. Stream Claude Sonnet 4 response                            [~22-24 sec]
-```
-
-### Citation Formatting
-
-```python
-# Literature → PubMed link
-"[Literature:PMID](https://pubmed.ncbi.nlm.nih.gov/PMID/)"
-
-# Trial → ClinicalTrials.gov link
-"[Trial:NCT...](https://clinicaltrials.gov/study/NCT...)"
-```
-
----
-
-## 10. Knowledge Graph
-
-### Components
-
-| Component | Count | Description |
-|---|---|---|
-| **Target Antigens** | 25 | Full profiles: protein, UniProt ID, expression, diseases, approved products, resistance, toxicity |
-| **Toxicity Profiles** | 8 | CRS, ICANS, B-cell aplasia, HLH/MAS, cytopenias, TLS, GvHD, on-target/off-tumor |
-| **Manufacturing Processes** | 10 | Transduction, expansion, harvest, formulation, release testing, cryopreservation |
-| **Biomarker Database** | 15+ | CRS prediction (ferritin, CRP, IL-6), exhaustion (PD-1, LAG-3, TIM-3), response markers |
-| **Regulatory Pathways** | 6 | FDA breakthrough, RMAT, accelerated approval, REMS, post-marketing |
-| **Entity Aliases** | 39+ | Product names, generic names, costimulatory domains, biomarker terms, regulatory terms |
-
-### Target Antigens (25 entries)
-
-```
-B-cell:    CD19, CD22, CD20, BCMA, GPRC5D, CD38, CD70
-Myeloid:   CD33, CD123, FLT3, CLL-1
-Solid:     HER2, GPC3, EGFR, EGFRvIII, Mesothelin, Claudin18.2, GD2,
-           PSMA, ROR1, DLL3, B7-H3, MUC1, IL13RA2, EpCAM
-```
-
-Each target includes: protein name, UniProt ID, expression pattern, associated diseases, FDA-approved products, key trials, known resistance mechanisms, toxicity profile, and normal tissue expression.
-
-### Toxicity Profiles
-
-| Toxicity | Grading | Management |
-|---|---|---|
-| **CRS** | CTCAE Grade 1-4 | Tocilizumab, corticosteroids |
-| **ICANS** | ICE score-based | Dexamethasone, supportive |
-| **B-cell aplasia** | On-target depletion | IVIG replacement |
-| **HLH/MAS** | Ferritin + fibrinogen | Anakinra, etoposide |
-| **Cytopenias** | CBC monitoring | G-CSF, transfusions |
-| **TLS** | Labs (uric acid, K+, PO4) | Rasburicase, hydration |
-| **GvHD** | Allogeneic only | Steroids, ruxolitinib |
-| **On-target/off-tumor** | Normal tissue expression | Affinity tuning, safety switches |
-
-### API Functions
-
-```python
-get_target_context("CD19")              # Full CD19 knowledge block
-get_toxicity_context("CRS")             # CRS grading + management
-get_manufacturing_context("expansion")   # Expansion process specs
-get_biomarker_context("ferritin")        # CRS prediction data
-get_regulatory_context("Kymriah")        # FDA approval timeline
-resolve_comparison_entity("Kymriah")     # → {"type": "product", "target": "CD19"}
-get_comparison_context(entity_a, entity_b)  # Side-by-side knowledge
-get_knowledge_stats()                    # {target_antigens: 25, ...}
-```
-
-### Entity Resolution Priority
-
-```
-CART_TARGETS (25) → ENTITY_ALIASES (39+) → CART_TOXICITIES (8) → CART_MANUFACTURING (10)
-```
-
----
-
-## 11. Query Expansion
-
-### 12 Expansion Map Categories
-
-| Category | Keywords | Expanded Terms | Examples |
-|---|---|---|---|
-| Target Antigen | 26 | 196 | CD19 → [B-ALL, DLBCL, tisagenlecleucel, axicabtagene, FMC63, ...] |
-| Disease | 16 | 143 | multiple myeloma → [MM, RRMM, plasma cell neoplasm, ...] |
-| Toxicity | 14 | 136 | CRS → [cytokine release syndrome, tocilizumab, IL-6, ...] |
-| Manufacturing | 16 | 181 | transduction → [lentiviral, VCN, MOI, viral vector, ...] |
-| Mechanism | 19 | 224 | resistance → [antigen loss, lineage switch, trogocytosis, ...] |
-| Construct | 20 | 206 | bispecific → [dual-targeting, tandem, bicistronic, ...] |
-| Safety | 15 | 135 | REMS → [risk evaluation, FAERS, adverse event, ...] |
-| Biomarker | 14 | 125 | CRS prediction → [ferritin, CRP, IL-6, sIL-2R, ...] |
-| Regulatory | 12 | 108 | BLA → [biologics license application, RMAT, ...] |
-| Sequence | 10 | 95 | scFv → [single-chain variable fragment, VH, VL, CDR, ...] |
-| Real-World | 12 | 110 | registry → [CIBMTR, real-world evidence, post-marketing, ...] |
-| Immunogenicity | 10 | 92 | ADA → [anti-drug antibody, neutralizing antibody, ...] |
-| **Total** | **169** | **1,496** | |
-
-### How It Works
-
-```python
-def expand_query(question: str) -> List[str]:
-    """Detect keywords in user question, return expansion terms.
-
-    Used by RAG engine to broaden recall via semantic re-search.
-    Returns up to 10-20 related terms per matched keyword.
-    """
-```
-
----
-
-## 12. Comparative Analysis Mode
-
-### Auto-Detection
-
-Comparative queries are detected by regex matching: `compare`, `vs`, `versus`, `comparing`, `X vs Y`.
-
-### Pipeline
-
-```
-User: "Compare 4-1BB vs CD28 costimulatory domains"
-    ↓
-1. _is_comparative() detects "vs"                              [< 1 ms]
-    ↓
-2. _parse_comparison_entities() extracts "4-1BB", "CD28"       [< 1 ms]
-    ↓
-3. resolve_comparison_entity() for each entity                  [< 1 ms]
-   "4-1BB" → {"type": "costimulatory", "canonical": "4-1BB (CD137)"}
-   "CD28"  → {"type": "costimulatory", "canonical": "CD28"}
-    ↓
-4. Dual retrieve() — one per entity                             [~365 ms]
-   Entity A: retrieve(question, target_antigen=entity_a.target)
-   Entity B: retrieve(question, target_antigen=entity_b.target)
-    ↓
-5. get_comparison_context() — side-by-side knowledge graph     [< 1 ms]
-    ↓
-6. _build_comparative_prompt() — structured comparison         [< 1 ms]
-   Evidence grouped by entity (A section, B section)
-   Instructions: table + advantages + limitations
-    ↓
-7. Stream Claude Sonnet 4 (max_tokens=3000)                    [~28-30 sec]
-   Output: comparison table, pros/cons, clinical context
-```
-
-### Supported Entity Types
-
-| Type | Examples | Resolution |
-|---|---|---|
-| Target Antigens | CD19, BCMA, CD22 | Direct match in CART_TARGETS (25) |
-| FDA Products | Kymriah, Yescarta, Carvykti | ENTITY_ALIASES → canonical + target |
-| Costimulatory Domains | 4-1BB, CD28 | ENTITY_ALIASES → type: costimulatory |
-| Toxicity Profiles | CRS, ICANS | CART_TOXICITIES → type: toxicity |
-| Manufacturing | Lentiviral, transduction | CART_MANUFACTURING → type: manufacturing |
-
-### Fallback
-
-If entity parsing fails, the query gracefully falls back to the standard single-query `retrieve()` path.
-
----
-
-## 13. Agent Reasoning Pipeline
-
-### CARTIntelligenceAgent
-
-```python
-class CARTIntelligenceAgent:
-    """Autonomous reasoning agent: Plan → Search → Evaluate → Synthesize → Report"""
-```
-
-### SearchPlan
+### 9.1 SearchPlan
 
 ```python
 @dataclass
 class SearchPlan:
     question: str
     identified_topics: List[str]
-    target_antigens: List[str]
-    relevant_stages: List[CARTStage]
-    search_strategy: str           # "broad" | "targeted" | "comparative"
-    sub_questions: List[str]       # Decomposed for complex queries
+    target_antigens: List[str]       # Extracted from question
+    relevant_stages: List[CARTStage] # Mapped from keywords
+    search_strategy: str             # "broad", "targeted", or "comparative"
+    sub_questions: List[str]         # Decomposed for complex queries
 ```
 
-### Agent Pipeline
+### 9.2 Agent Pipeline
 
 ```
-Phase 1: Plan
-├── Extract target antigens (regex against 25 known antigens)
-├── Identify development stages (keyword match)
-├── Determine strategy (broad / targeted / comparative)
-└── Decompose complex questions into sub-questions
+[1] PLAN
+    - Extract target antigens from question (33 known antigens)
+    - Map keywords to CAR-T development stages (5 stages, ~4 keywords each)
+    - Determine strategy: comparative (vs/compare), targeted (single antigen + stage), broad
+    - Decompose complex questions ("why fail?") into sub-questions
 
-Phase 2: Search
-├── Build AgentQuery with plan parameters
-└── Execute retrieve() via RAG engine
+[2] SEARCH
+    - Build AgentQuery with extracted target_antigen
+    - Call rag_engine.retrieve() with full parameters
 
-Phase 3: Evaluate
-├── Sufficient:   ≥3 collections with hits + ≥10 total
-├── Partial:      ≥2 collections + ≥5 total
-└── Insufficient: try sub-questions for more evidence
+[3] EVALUATE
+    - "sufficient": >= 3 collections with hits AND >= 10 total hits
+    - "partial": >= 2 collections AND >= 5 hits
+    - "insufficient": anything less
 
-Phase 4: Synthesize
-└── LLM generates grounded answer with citations
+[4] EXPAND (if insufficient)
+    - Execute up to 2 sub-questions
+    - Merge additional hits into evidence
 
-Phase 5: Report
-├── Query metadata (timestamp, collections, evidence count)
-├── Analysis (the answer)
-├── Evidence sources (by collection, top 5 each)
-└── Knowledge graph items referenced
+[5] SYNTHESIZE
+    - Call rag_engine.query() for LLM generation
+
+[6] REPORT
+    - Build AgentResponse with answer, evidence, and knowledge_used
+    - Optionally generate a structured markdown report via generate_report()
 ```
+
+### 9.3 Report Generation
+
+`generate_report()` produces a structured Markdown document with:
+- Query metadata (timestamp, collections searched, evidence count, search time)
+- Full analysis text
+- Evidence sources grouped by collection (top 5 per collection)
+- Knowledge graph entries used
 
 ---
 
-## 14. Data Ingest Pipelines
+## 10. Export System
 
-### BaseIngestPipeline Pattern
+The export system (defined in `src/export.py`) provides three output formats with consistent structure.
 
-```python
-class BaseIngestPipeline(ABC):
-    def fetch(self, **kwargs) -> Any:          # Retrieve raw data
-    def parse(self, raw_data) -> List[Model]:  # Validate into Pydantic models
-    def embed_and_store(self, records, ...) -> int:  # Embed + insert to Milvus
-    def run(self, **kwargs) -> int:            # Orchestrate full pipeline
-```
+### 10.1 Markdown Export
 
-### Five Ingest Pipelines
+`export_markdown()` generates a complete report with:
+- Title, query, timestamp, filters
+- Full response text
+- Evidence tables (collection-specific columns)
+- Knowledge graph context
+- Search metrics table
+- Footer with version
 
-| Pipeline | Source | Records | Time | Collection |
-|---|---|---|---|---|
-| PubMed | NCBI E-utilities (esearch + efetch) | 5,047 | ~15 min | cart_literature |
-| ClinicalTrials.gov | REST API v2 | 973 | ~3 min | cart_trials |
-| FDA Constructs | Seed script (6 products) | 6 | ~5 sec | cart_constructs |
-| Assays | Curated JSON (landmark papers) | 45 | ~30 sec | cart_assays |
-| Manufacturing | Curated JSON (CMC data) | 30 | ~30 sec | cart_manufacturing |
+### 10.2 JSON Export
 
-Additional seed scripts populate: cart_safety (40), cart_biomarkers (43), cart_regulatory (25), cart_sequences (27), cart_realworld (30).
+`export_json()` generates structured JSON via Pydantic `.model_dump()`:
+- Report type, version, timestamp
+- Query and response text
+- Full evidence payload (or comparative payload with entity_a/entity_b)
+- Search metrics
+- Applied filters
 
-### Batch Processing Safety
+### 10.3 PDF Export
 
-```python
-# Enum → string conversion for Milvus VARCHAR fields
-for key, value in record_dict.items():
-    if isinstance(value, Enum):
-        record_dict[key] = value.value
+`export_pdf()` uses reportlab Platypus with NVIDIA theming:
 
-# UTF-8 byte truncation for Milvus VARCHAR limits
-for key, value in record_dict.items():
-    if isinstance(value, str):
-        encoded = value.encode("utf-8")
-        if len(encoded) > 2990 and key in ("text_chunk", "text_summary"):
-            record_dict[key] = encoded[:2990].decode("utf-8", errors="ignore")
-```
+**Color Palette:**
+- NVIDIA Green: `#76B900` (headings, table headers, accent elements)
+- Dark Background: `#1a1a1a`
+- Table Alternating: `#f0f0f0`
+- Light Gray: `#666666` (metadata, footer)
+
+**Features:**
+- Collection-specific evidence tables with alternating row colors
+- Clickable PubMed and ClinicalTrials.gov links in PDF
+- Markdown-to-PDF conversion (headings, bold, bullet lists, blockquotes, tables)
+- Inline comparison table rendering for comparative queries
+- Search metrics summary table
+
+**Filenames:** `cart_query_YYYYMMDD_HHMMSS.{md,json,pdf}`
 
 ---
 
-## 15. FastAPI REST Server
+## 11. Ingest Pipelines
 
-### Service Configuration
+### 11.1 BaseIngestPipeline Pattern
 
-- **Port:** 8522
-- **Command:** `uvicorn api.main:app --host 0.0.0.0 --port 8522`
+All ingest pipelines inherit from `BaseIngestPipeline` (defined in `src/ingest/base.py`), which enforces a three-step workflow:
 
-### Endpoints
+```
+fetch(**kwargs)      -> Raw data (XML, JSON, CSV)
+parse(raw_data)      -> List[PydanticModel]
+embed_and_store()    -> Milvus insertion
+```
 
-| Method | Path | Purpose |
-|---|---|---|
-| `GET` | `/health` | Service health + collection count + total vectors |
-| `GET` | `/collections` | List all collections with record counts |
-| `POST` | `/query` | Full RAG query (retrieve + Claude generation) |
-| `POST` | `/search` | Evidence-only search (no LLM) |
-| `POST` | `/find-related` | Cross-collection entity linking |
-| `GET` | `/knowledge/stats` | Knowledge graph statistics |
-| `GET` | `/metrics` | Prometheus-compatible metrics |
+The `embed_and_store()` method:
+1. Calls each record's `to_embedding_text()` method
+2. Batch-encodes texts with the embedder (batch_size=32)
+3. Converts Enum values to strings
+4. Truncates strings to safe UTF-8 byte lengths for Milvus VARCHAR limits
+5. Inserts batch into the target collection via `CARTCollectionManager.insert_batch()`
 
-### Query Request Schema
+The `run()` method orchestrates the full pipeline: `fetch -> parse -> embed_and_store`.
 
+### 11.2 Implemented Parsers (14)
+
+| Parser | Module | Target Collection | Data Source |
+|--------|--------|------------------|-------------|
+| `PubMedIngestPipeline` | literature_parser.py | cart_literature | NCBI E-utilities (PubMed API) |
+| `ClinicalTrialsIngestPipeline` | clinical_trials_parser.py | cart_trials | ClinicalTrials.gov v2 API |
+| `ConstructIngestPipeline` | construct_parser.py | cart_constructs | Manual curation |
+| `AssayIngestPipeline` | assay_parser.py | cart_assays | JSON seed data |
+| `ManufacturingIngestPipeline` | manufacturing_parser.py | cart_manufacturing | JSON seed data |
+| `SafetyIngestPipeline` | safety_parser.py | cart_safety | JSON seed data |
+| `BiomarkerIngestPipeline` | biomarker_parser.py | cart_biomarkers | JSON seed data |
+| `RegulatoryIngestPipeline` | regulatory_parser.py | cart_regulatory | JSON seed data |
+| `SequenceIngestPipeline` | sequence_parser.py | cart_sequences | JSON seed data |
+| `RealWorldIngestPipeline` | realworld_parser.py | cart_realworld | JSON seed data |
+| `FAERSIngestPipeline` | faers_parser.py | cart_safety | FDA FAERS database |
+| `DailyMedIngestPipeline` | dailymed_parser.py | cart_regulatory | DailyMed/SPL labels |
+| `UniProtIngestPipeline` | uniprot_parser.py | cart_sequences | UniProt REST API |
+| `CIBMTRIngestPipeline` | cibmtr_parser.py | cart_realworld | CIBMTR registry data |
+
+### 11.3 Seed Scripts (14)
+
+| Script | Records | Target Collection |
+|--------|---------|------------------|
+| `scripts/setup_collections.py` | -- | Creates all 11 collections, optionally seeds constructs |
+| `scripts/seed_knowledge.py` | -- | Validates knowledge graph integrity |
+| `scripts/seed_assays.py` | 60 | cart_assays |
+| `scripts/seed_manufacturing.py` | 40 | cart_manufacturing |
+| `scripts/seed_safety.py` | 52 | cart_safety |
+| `scripts/seed_biomarkers.py` | 45 | cart_biomarkers |
+| `scripts/seed_regulatory.py` | 25 | cart_regulatory |
+| `scripts/seed_sequences.py` | 28 | cart_sequences |
+| `scripts/seed_realworld.py` | 38 | cart_realworld |
+| `scripts/seed_patents.py` | 26 | cart_literature (patents) |
+| `scripts/seed_immunogenicity.py` | 15 (8+7) | cart_biomarkers + cart_sequences |
+| `scripts/ingest_pubmed.py` | ~5000 | cart_literature |
+| `scripts/ingest_clinical_trials.py` | ~1000 | cart_trials |
+| `scripts/validate_e2e.py` | -- | End-to-end pipeline validation |
+| `scripts/test_rag_pipeline.py` | -- | RAG pipeline integration test |
+
+### 11.4 Seed Data Files
+
+All seed data is stored as JSON files in `data/reference/`:
+
+| File | Records | Description |
+|------|---------|-------------|
+| assay_seed_data.json | 60 | Cytotoxicity, cytokine, flow, in vivo assay results |
+| biomarker_seed_data.json | 45 | Predictive, prognostic, PD, monitoring, resistance biomarkers |
+| constructs_seed_data.json | 25 | CAR construct designs and specifications |
+| immunogenicity_biomarker_seed.json | 8 | ADA, HLA, humanization biomarkers |
+| immunogenicity_sequence_seed.json | 7 | Immunogenicity-related sequence records |
+| literature_seed_data.json | 30 | Curated literature records |
+| manufacturing_seed_data.json | 40 | Transduction, expansion, cryo, release testing records |
+| patent_seed_data.json | 26 | CAR-T patent literature records |
+| realworld_seed_data.json | 38 | CIBMTR, institutional, claims-based RWE studies |
+| regulatory_seed_data.json | 25 | FDA/EMA approval milestones and designations |
+| safety_seed_data.json | 52 | CRS, ICANS, cytopenia, infection, secondary malignancy events |
+| sequence_seed_data.json | 28 | scFv sequences, binding affinity, structural data |
+| trials_seed_data.json | 30 | Clinical trial seed records |
+| **TOTAL** | **444** | |
+
+---
+
+## 12. API Reference
+
+The FastAPI REST API is defined in `api/main.py` and `api/routes/` and runs on port 8522. There are 13 endpoints total (9 in main.py, 2 in routes/events.py, 1 in routes/meta_agent.py, 2 in routes/reports.py).
+
+### 12.1 Endpoints
+
+#### GET /health
+
+Returns service health with collection count and total vector count.
+
+**Response (200):**
 ```json
 {
-    "question": "Why do CD19 CAR-T therapies fail?",
-    "target_antigen": "CD19",
-    "collections": ["cart_literature", "cart_trials"],
-    "year_min": 2015,
-    "year_max": 2025
+  "status": "healthy",
+  "collections": 11,
+  "total_vectors": 3567436
 }
 ```
 
-### Query Response Schema
+**Response (503):** Engine not initialized or Milvus unavailable.
 
+#### GET /collections
+
+Returns all collection names and their record counts.
+
+**Response (200):**
 ```json
 {
-    "question": "...",
-    "answer": "...",
-    "evidence": [
-        {
-            "collection": "Literature",
-            "id": "12345678",
-            "score": 0.89,
-            "text": "...",
-            "metadata": {"relevance": "high"}
-        }
-    ],
-    "knowledge_context": "...",
-    "collections_searched": 11,
-    "search_time_ms": 234.5
+  "collections": [
+    {"name": "cart_literature", "record_count": 5047},
+    {"name": "cart_trials", "record_count": 973},
+    ...
+  ],
+  "total": 11
 }
 ```
 
----
+#### POST /query
 
-## 16. Streamlit Chat UI
+Full RAG query: retrieve evidence from Milvus, augment with knowledge graph, synthesize LLM response.
 
-### Service Configuration
-
-- **Port:** 8521
-- **Command:** `streamlit run app/cart_ui.py --server.port 8521`
-- **Theme:** NVIDIA dark (black/green)
-
-### Components
-
-**Sidebar:**
-- Collection statistics (10 owned + 1 read-only genomic)
-- Deep Research mode toggle (activates agent reasoning pipeline)
-- Collection filtering checkboxes
-- Year range slider (1990–2030)
-- Stage filter dropdown
-- Target antigen multi-select
-
-**Main Panel:**
-- Chat message history (conversation memory: last 3 exchanges)
-- Query input with demo query buttons
-- Streaming response display
-- Evidence panel (grouped by collection, color-coded badges)
-- Citation relevance tags (high/medium/low)
-- Clickable PubMed and ClinicalTrials.gov links
-
-**Comparative Mode UI:**
-- Entity A header (blue) — evidence cards for entity A
-- "— VS —" divider (green)
-- Entity B header (purple) — evidence cards for entity B
-
-**Advanced Features:**
-- Image upload for claim verification
-- Knowledge graph visualization (PyVis network)
-- Export buttons (PDF, Markdown, JSON)
-
----
-
-## 17. Report Export
-
-### Supported Formats
-
-| Format | Method | Output |
-|---|---|---|
-| **Markdown** | `export_markdown()` | Structured report with headers, evidence table, citations |
-| **JSON** | `export_json()` | Machine-readable export with all metadata |
-| **PDF** | `export_pdf()` | Formatted report via ReportLab |
-
-### Report Structure
-
-```
-1. Query Metadata (timestamp, collections searched, evidence count)
-2. Analysis (LLM-generated answer)
-3. Evidence Sources (by collection, top 5 per collection)
-4. Knowledge Graph Items Referenced
-5. Citation Links (PubMed, ClinicalTrials.gov)
+**Request:**
+```json
+{
+  "question": "Why do CD19 CAR-T therapies fail in relapsed B-ALL?",
+  "target_antigen": "CD19",
+  "collections": ["cart_literature", "cart_trials"],
+  "year_min": 2018,
+  "year_max": 2026
+}
 ```
 
----
-
-## 18. Monitoring & Metrics
-
-### Prometheus Metrics
-
-```
-cart_api_requests_total              # Total API requests (counter)
-cart_collection_vectors{collection}  # Vectors per collection (gauge)
-cart_query_duration_seconds          # Query latency histogram
-cart_search_duration_seconds         # Search latency histogram
-```
-
-### Endpoints
-
-- **Metrics:** `GET /metrics` (Prometheus scrape format)
-- **Health:** `GET /health` (JSON)
-
----
-
-## 19. Testing Strategy
-
-### End-to-End Validation (`validate_e2e.py`)
-
-5 tests:
-1. Collection stats — verify all 11 collections have expected record counts
-2. Single-collection search — verify vector similarity works
-3. Multi-collection `search_all()` — verify parallel search returns results from multiple collections
-4. Filtered search — verify `target_antigen == "CD19"` filter
-5. Demo queries — run all 5 validated demo queries
-
-### RAG Integration Test (`test_rag_pipeline.py`)
-
-Tests full pipeline: embed → search_all → knowledge graph → Claude LLM response generation. Validates both synchronous and streaming modes.
-
-### Demo Queries
-
-```
-1. "Why do CD19 CAR-T therapies fail in relapsed B-ALL?"
-2. "Compare 4-1BB vs CD28 costimulatory domains for DLBCL"
-3. "What manufacturing parameters predict clinical response?"
-4. "BCMA CAR-T resistance mechanisms in multiple myeloma"
-5. "How does T-cell exhaustion affect CAR-T persistence?"
+**Response (200):**
+```json
+{
+  "question": "...",
+  "answer": "...(LLM-generated response with citations)...",
+  "evidence": [
+    {
+      "collection": "Literature",
+      "id": "12345678",
+      "score": 0.92,
+      "text": "...",
+      "metadata": {"title": "...", "year": 2023}
+    }
+  ],
+  "knowledge_context": "## Target Antigen: CD19\n...",
+  "collections_searched": 2,
+  "search_time_ms": 142.5
+}
 ```
 
----
+#### POST /search
 
-## 20. HCLS AI Factory Integration
+Evidence-only retrieval (no LLM). Same request schema as /query, returns `SearchResponse` without the `answer` field.
 
-### Shared Infrastructure
+#### POST /find-related
 
-| Resource | Sharing |
-|---|---|
-| **Milvus 2.4** | Shared instance — CAR-T adds 10 owned collections alongside `genomic_evidence` |
-| **BGE-small-en-v1.5** | Same embedding model as RAG/Chat pipeline |
-| **ANTHROPIC_API_KEY** | Loaded from `rag-chat-pipeline/.env` if not set |
-| **DGX Spark** | All services on single GB10 hardware ($3,999) |
+Cross-collection entity linking. Finds all evidence related to an entity across all 10 collections.
 
-### Architectural Insight
+**Request:**
+```json
+{
+  "entity": "Yescarta",
+  "top_k": 5
+}
+```
 
-The platform is not disease-specific. By changing the knowledge graph, query expansion maps, and collection schemas, the same RAG architecture serves any therapeutic area. The CAR-T agent proves this with a completely different domain (cell therapy manufacturing vs. small molecule drug discovery) running on the same infrastructure.
+**Response (200):**
+```json
+{
+  "entity": "Yescarta",
+  "results": {
+    "cart_literature": [...],
+    "cart_trials": [...],
+    "cart_constructs": [...],
+    "cart_safety": [...]
+  },
+  "total_hits": 18
+}
+```
+
+#### GET /knowledge/stats
+
+Returns knowledge graph statistics.
+
+**Response (200):**
+```json
+{
+  "target_antigens": 33,
+  "targets_with_approved_products": 2,
+  "toxicity_profiles": 12,
+  "manufacturing_processes": 15,
+  "biomarkers": 23,
+  "regulatory_products": 6,
+  "immunogenicity_topics": 6
+}
+```
+
+#### GET /metrics
+
+Prometheus-compatible metrics in text exposition format.
+
+**Response (200):**
+```
+# HELP cart_api_requests_total Total API requests
+# TYPE cart_api_requests_total counter
+cart_api_requests_total 42
+
+# HELP cart_collection_vectors Number of vectors per collection
+# TYPE cart_collection_vectors gauge
+cart_collection_vectors{collection="cart_literature"} 5047
+...
+```
+
+### 12.2 Middleware
+
+- **CORS**: Restricted to 3 origins (`http://localhost:8080`, `http://localhost:8521`, `http://localhost:8522`)
+- **Lifespan**: Engine initialization on startup, disconnection on shutdown
+
+### 12.3 Error Handling
+
+- **503**: Engine not initialized, Milvus unavailable, LLM/embedder not loaded
+- **500**: Internal query/search/find-related failures (with detail message)
+- All errors increment `_metrics["errors_total"]`
 
 ---
 
-## 21. Implementation Sequence
+## 13. UI Guide
 
-### Quick Start
+The Streamlit UI (defined in `app/cart_ui.py`) runs on port 8521.
+
+### 13.1 Layout
+
+Three main tabs:
+1. **Chat**: Conversational RAG interface with streaming responses
+2. **Knowledge Graph**: Interactive pyvis graph visualization of entities
+3. **Image Analysis**: Upload slide/document images for claim extraction and verification
+
+### 13.2 Sidebar Controls
+
+| Control | Type | Default | Description |
+|---------|------|---------|-------------|
+| Deep Research Mode | Toggle | Off | Enables autonomous agent with sub-question decomposition |
+| Target Antigen Filter | Selectbox | All Targets | Filter search to specific antigen (16 options) |
+| Development Stage | Selectbox | All Stages | Filter by CAR-T stage (5 stages) |
+| From Year / To Year | Number inputs | 2010-2026 | Temporal date range |
+| Apply date filter | Checkbox | Off | Enable/disable date filtering |
+| Collection toggles | 11 checkboxes | All on | Enable/disable individual collections (shows live counts) |
+| Demo Queries | 13 buttons | -- | Pre-loaded example queries |
+
+### 13.3 Demo Queries
+
+1. Why do CD19 CAR-T therapies fail in relapsed B-ALL?
+2. Compare 4-1BB vs CD28 costimulatory domains
+3. What manufacturing parameters predict response?
+4. BCMA CAR-T resistance mechanisms in myeloma
+5. How does T-cell exhaustion affect persistence?
+6. What are the long-term safety signals for CD19 CAR-T products?
+7. Which biomarkers best predict CRS severity?
+8. Compare the FDA regulatory pathway of Kymriah vs Yescarta
+9. What is the binding affinity of FMC63 scFv?
+10. How do real-world CAR-T outcomes compare between academic and community centers?
+11. What genomic variants in CD19 or BCMA pathway genes affect CAR-T response?
+12. What patents cover bispecific CAR-T constructs targeting CD19 and CD22?
+13. How does scFv humanization reduce immunogenicity risk in CAR-T therapy?
+
+### 13.4 Chat Features
+
+- **Streaming responses**: Tokens appear in real-time with a cursor indicator
+- **Conversation memory**: Up to 3 prior exchanges injected as context for follow-up queries
+- **Comparative detection**: Automatically detects "vs"/"compare" queries and runs dual-entity retrieval
+- **Evidence panel**: Expandable panel showing all evidence cards grouped by collection
+- **Evidence cards**: Color-coded by collection with relevance badges (high/medium/low), clickable PubMed/ClinicalTrials.gov links
+- **Export buttons**: Download as Markdown, JSON, or PDF after each response
+- **Deep Research indicator**: Shows search strategy, identified targets, stages, sub-questions, and evidence quality assessment
+
+### 13.5 NVIDIA Theme
+
+Custom CSS implementing the NVIDIA black + green visual identity:
+- Background: `#0a0a0f`
+- Sidebar: `#12121a`
+- NVIDIA Green: `#76B900`
+- Cards: `#1a1a24` with `#222230` borders
+- Collection badges: 11 unique colors (Literature blue, Trial purple, Construct green, etc.)
+- Relevance classes: high (green), medium (yellow), low (gray)
+
+### 13.6 Knowledge Graph Tab
+
+Interactive pyvis network visualization with 5 entity types:
+- **Target Antigens**: Green nodes linked to disease (blue), product (purple), and resistance (red) nodes
+- **Toxicities**: Red nodes linked to biomarker (teal) and management (indigo) nodes
+- **Manufacturing**: Orange nodes linked to parameter (yellow) nodes
+- **Biomarkers**: Color-coded by type (predictive/pharmacodynamic/monitoring/resistance)
+- **Regulatory**: Indigo nodes linked to indication and designation nodes
+
+Cross-collection entity search is available below the graph.
+
+### 13.7 Image Analysis Tab
+
+Upload PNG/JPG/PDF images for automatic claim extraction:
+1. Claude Vision extracts claims and data points from the image
+2. Each claim generates a search query
+3. Evidence is retrieved across all collections
+4. Results show supporting/missing evidence per claim
+
+---
+
+## 14. Metrics & Monitoring
+
+Defined in `src/metrics.py`. Uses `prometheus_client` when available, with no-op stubs as fallback.
+
+### 14.1 Prometheus Metrics
+
+All metrics use the `cart_` prefix.
+
+**Histograms:**
+| Metric | Labels | Buckets | Description |
+|--------|--------|---------|-------------|
+| `cart_query_latency_seconds` | query_type | 0.1, 0.5, 1, 2, 5, 10, 30 | Query processing time |
+| `cart_evidence_count` | -- | 0, 5, 10, 15, 20, 25, 30 | Evidence items per query |
+
+**Counters:**
+| Metric | Labels | Description |
+|--------|--------|-------------|
+| `cart_queries_total` | query_type, status | Total queries processed |
+| `cart_collection_hits_total` | collection | Hits by collection |
+| `cart_llm_tokens_total` | direction | LLM tokens used |
+
+**Gauges:**
+| Metric | Labels | Description |
+|--------|--------|-------------|
+| `cart_active_connections` | -- | Active connections |
+| `cart_collection_size` | collection | Records per collection |
+| `cart_last_ingest_timestamp` | source | Last ingest timestamp |
+
+### 14.2 Helper Functions
+
+| Function | Purpose |
+|----------|---------|
+| `record_query(query_type, latency, hit_count, status)` | Record latency + count + status for one query |
+| `record_collection_hits(hits_by_collection)` | Increment per-collection hit counters |
+| `update_collection_sizes(stats)` | Set current record counts |
+| `get_metrics_text()` | Return Prometheus exposition text |
+
+### 14.3 API Metrics Endpoint
+
+The `/metrics` endpoint on the FastAPI server provides:
+- Request counters (total, query, search, find-related, errors)
+- Per-collection vector counts (when Milvus is available)
+
+### 14.4 Grafana Integration
+
+Metrics are designed to integrate with the HCLS AI Factory Grafana + Prometheus stack:
+- Prometheus scrapes on port 9099
+- Node Exporter on port 9100
+- DCGM Exporter on port 9400
+- CAR-T metrics available via `/metrics` on port 8522
+
+---
+
+## 15. Scheduler
+
+Defined in `src/scheduler.py`. Uses APScheduler's `BackgroundScheduler` for automated data refresh.
+
+### 15.1 IngestScheduler
+
+```python
+scheduler = IngestScheduler(
+    collection_manager=manager,
+    embedder=embedder,
+    interval_hours=168,  # Weekly (7 days)
+)
+scheduler.start()   # Non-blocking, runs in daemon thread
+scheduler.stop()    # Graceful shutdown
+scheduler.get_status()  # Returns next_run_time, last_run_time, job_count
+```
+
+### 15.2 Scheduled Jobs
+
+| Job ID | Name | Trigger | Default Interval | Action |
+|--------|------|---------|-----------------|--------|
+| `refresh_pubmed` | PubMed CAR-T Literature Refresh | Interval | 168 hours (weekly) | Runs PubMedIngestPipeline |
+| `refresh_clinical_trials` | ClinicalTrials.gov CAR-T Refresh | Interval | 168 hours (weekly) | Runs ClinicalTrialsIngestPipeline |
+
+### 15.3 Job Execution
+
+Each job:
+1. Creates a short-lived ingest pipeline instance
+2. Runs the full fetch-parse-embed_and_store pipeline
+3. Updates the `cart_last_ingest_timestamp{source=...}` Prometheus gauge
+4. Logs completion with record count and elapsed time
+5. Catches and logs exceptions without crashing the scheduler
+
+### 15.4 Graceful Degradation
+
+If `apscheduler` is not installed, the module exports a no-op `IngestScheduler` stub that silently ignores all calls, with a warning logged at initialization.
+
+---
+
+## 16. Configuration
+
+All configuration is managed through `CARTSettings` (defined in `config/settings.py`), a Pydantic `BaseSettings` class that reads from environment variables with the `CART_` prefix.
+
+### 16.1 Settings Fields
+
+| Field | Type | Default | Env Var |
+|-------|------|---------|---------|
+| **Paths** | | | |
+| PROJECT_ROOT | Path | (auto-detected) | -- |
+| DATA_DIR | Path | `{PROJECT_ROOT}/data` | -- |
+| CACHE_DIR | Path | `{DATA_DIR}/cache` | -- |
+| REFERENCE_DIR | Path | `{DATA_DIR}/reference` | -- |
+| RAG_PIPELINE_ROOT | Path | `/app/rag-chat-pipeline` | `CART_RAG_PIPELINE_ROOT` |
+| **Milvus** | | | |
+| MILVUS_HOST | str | `localhost` | `CART_MILVUS_HOST` |
+| MILVUS_PORT | int | `19530` | `CART_MILVUS_PORT` |
+| COLLECTION_LITERATURE | str | `cart_literature` | `CART_COLLECTION_LITERATURE` |
+| COLLECTION_TRIALS | str | `cart_trials` | `CART_COLLECTION_TRIALS` |
+| COLLECTION_CONSTRUCTS | str | `cart_constructs` | `CART_COLLECTION_CONSTRUCTS` |
+| COLLECTION_ASSAYS | str | `cart_assays` | `CART_COLLECTION_ASSAYS` |
+| COLLECTION_MANUFACTURING | str | `cart_manufacturing` | `CART_COLLECTION_MANUFACTURING` |
+| COLLECTION_GENOMIC | str | `genomic_evidence` | `CART_COLLECTION_GENOMIC` |
+| COLLECTION_SAFETY | str | `cart_safety` | `CART_COLLECTION_SAFETY` |
+| COLLECTION_BIOMARKERS | str | `cart_biomarkers` | `CART_COLLECTION_BIOMARKERS` |
+| COLLECTION_REGULATORY | str | `cart_regulatory` | `CART_COLLECTION_REGULATORY` |
+| COLLECTION_SEQUENCES | str | `cart_sequences` | `CART_COLLECTION_SEQUENCES` |
+| COLLECTION_REALWORLD | str | `cart_realworld` | `CART_COLLECTION_REALWORLD` |
+| **Embeddings** | | | |
+| EMBEDDING_MODEL | str | `BAAI/bge-small-en-v1.5` | `CART_EMBEDDING_MODEL` |
+| EMBEDDING_DIMENSION | int | `384` | `CART_EMBEDDING_DIMENSION` |
+| EMBEDDING_BATCH_SIZE | int | `32` | `CART_EMBEDDING_BATCH_SIZE` |
+| **LLM** | | | |
+| LLM_PROVIDER | str | `anthropic` | `CART_LLM_PROVIDER` |
+| LLM_MODEL | str | `claude-sonnet-4-20250514` | `CART_LLM_MODEL` |
+| ANTHROPIC_API_KEY | str (optional) | None | `CART_ANTHROPIC_API_KEY` |
+| **RAG Search** | | | |
+| TOP_K_PER_COLLECTION | int | `5` | `CART_TOP_K_PER_COLLECTION` |
+| SCORE_THRESHOLD | float | `0.4` | `CART_SCORE_THRESHOLD` |
+| WEIGHT_LITERATURE | float | `0.20` | `CART_WEIGHT_LITERATURE` |
+| WEIGHT_TRIALS | float | `0.16` | `CART_WEIGHT_TRIALS` |
+| WEIGHT_CONSTRUCTS | float | `0.10` | `CART_WEIGHT_CONSTRUCTS` |
+| WEIGHT_ASSAYS | float | `0.09` | `CART_WEIGHT_ASSAYS` |
+| WEIGHT_MANUFACTURING | float | `0.07` | `CART_WEIGHT_MANUFACTURING` |
+| WEIGHT_SAFETY | float | `0.08` | `CART_WEIGHT_SAFETY` |
+| WEIGHT_BIOMARKERS | float | `0.08` | `CART_WEIGHT_BIOMARKERS` |
+| WEIGHT_REGULATORY | float | `0.06` | `CART_WEIGHT_REGULATORY` |
+| WEIGHT_SEQUENCES | float | `0.06` | `CART_WEIGHT_SEQUENCES` |
+| WEIGHT_REALWORLD | float | `0.07` | `CART_WEIGHT_REALWORLD` |
+| WEIGHT_GENOMIC | float | `0.04` | `CART_WEIGHT_GENOMIC` |
+| **PubMed** | | | |
+| NCBI_API_KEY | str (optional) | None | `CART_NCBI_API_KEY` |
+| PUBMED_MAX_RESULTS | int | `5000` | `CART_PUBMED_MAX_RESULTS` |
+| **ClinicalTrials.gov** | | | |
+| CT_GOV_BASE_URL | str | `https://clinicaltrials.gov/api/v2` | `CART_CT_GOV_BASE_URL` |
+| **API Server** | | | |
+| API_HOST | str | `0.0.0.0` | `CART_API_HOST` |
+| API_PORT | int | `8522` | `CART_API_PORT` |
+| **Streamlit** | | | |
+| STREAMLIT_PORT | int | `8521` | `CART_STREAMLIT_PORT` |
+| **Prometheus** | | | |
+| METRICS_ENABLED | bool | `True` | `CART_METRICS_ENABLED` |
+| **Scheduler** | | | |
+| INGEST_SCHEDULE_HOURS | int | `168` (weekly) | `CART_INGEST_SCHEDULE_HOURS` |
+| INGEST_ENABLED | bool | `False` | `CART_INGEST_ENABLED` |
+| **Conversation** | | | |
+| MAX_CONVERSATION_CONTEXT | int | `3` | `CART_MAX_CONVERSATION_CONTEXT` |
+| **Citation Scoring** | | | |
+| CITATION_HIGH_THRESHOLD | float | `0.75` | `CART_CITATION_HIGH_THRESHOLD` |
+| CITATION_MEDIUM_THRESHOLD | float | `0.60` | `CART_CITATION_MEDIUM_THRESHOLD` |
+
+### 16.2 Environment Variable Loading
+
+Settings are loaded via:
+1. Environment variables with `CART_` prefix (highest priority)
+2. `.env` file in the project root (via `env_file=".env"`)
+3. Default values (lowest priority)
+
+The Streamlit UI and FastAPI server also independently load `ANTHROPIC_API_KEY` from the rag-chat-pipeline `.env` file as a fallback.
+
+---
+
+## 17. Docker Deployment
+
+### 17.1 Dockerfile (Multi-Stage)
+
+**Stage 1: Builder** (`python:3.10-slim AS builder`)
+- Installs build dependencies: build-essential, gcc, g++, libxml2-dev, libxslt1-dev
+- Creates virtual environment at `/opt/venv`
+- Installs all Python dependencies from requirements.txt
+
+**Stage 2: Runtime** (`python:3.10-slim`)
+- Installs minimal runtime libraries: curl, libgomp1, libxml2, libxslt1.1
+- Copies virtual environment from builder stage
+- Copies application source (config/, src/, app/, scripts/, data/)
+- Creates non-root user (`cartuser`)
+- Exposes ports 8521 (Streamlit) and 8522 (FastAPI)
+- Healthcheck against Streamlit at `/_stcore/health`
+- Default CMD: `streamlit run app/cart_ui.py`
+
+### 17.2 Docker Compose Services (6)
+
+| Service | Image | Ports | Purpose |
+|---------|-------|-------|---------|
+| `milvus-etcd` | quay.io/coreos/etcd:v3.5.5 | -- (internal) | etcd key-value store for Milvus metadata |
+| `milvus-minio` | minio/minio:RELEASE.2023-03-20T20-16-18Z | -- (internal) | MinIO object storage for Milvus data |
+| `milvus-standalone` | milvusdb/milvus:v2.4-latest | 19530, 9091 | Milvus 2.4 vector database |
+| `cart-streamlit` | (built from Dockerfile) | 8521 | Streamlit chat UI |
+| `cart-api` | (built from Dockerfile) | 8522 | FastAPI REST server (2 workers) |
+| `cart-setup` | (built from Dockerfile) | -- | One-shot: create collections + seed all data |
+
+### 17.3 Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `ANTHROPIC_API_KEY` | Yes | Anthropic API key for Claude |
+| `CART_MILVUS_HOST` | No (default: milvus-standalone) | Milvus hostname |
+| `CART_MILVUS_PORT` | No (default: 19530) | Milvus port |
+
+### 17.4 Volumes
+
+| Volume | Mount | Purpose |
+|--------|-------|---------|
+| `etcd_data` | /etcd | etcd persistent storage |
+| `minio_data` | /minio_data | MinIO object storage |
+| `milvus_data` | /var/lib/milvus | Milvus data directory |
+
+### 17.5 Network
+
+All services connect via the `cart-network` bridge network.
+
+### 17.6 Setup Sequence
+
+The `cart-setup` service runs the following scripts in order:
+1. `setup_collections.py --drop-existing --seed-constructs`
+2. `seed_knowledge.py`
+3. `seed_assays.py`
+4. `seed_manufacturing.py`
+5. `seed_safety.py`
+6. `seed_biomarkers.py`
+7. `seed_regulatory.py`
+8. `seed_sequences.py`
+9. `seed_realworld.py`
+
+After completion, the setup container exits (restart policy: `"no"`).
+
+### 17.7 Deployment Commands
 
 ```bash
-# 1. Clone
-git clone https://github.com/ajones1923/cart-intelligence-agent.git
-cd cart-intelligence-agent
-
-# 2. Install
-pip install -r requirements.txt
-
-# 3. Configure
-export ANTHROPIC_API_KEY=sk-ant-...
-
-# 4. Create collections + seed FDA constructs
-python3 scripts/setup_collections.py --seed-constructs
-
-# 5. Ingest PubMed (~15 min)
-python3 scripts/ingest_pubmed.py --max-results 5000
-
-# 6. Ingest ClinicalTrials.gov (~3 min)
-python3 scripts/ingest_clinical_trials.py --max-results 1500
-
-# 7. Seed assays + manufacturing (~1 min)
-python3 scripts/seed_assays.py
-python3 scripts/seed_manufacturing.py
-
-# 8. Validate
-python3 scripts/validate_e2e.py
-
-# 9. Launch UI
-streamlit run app/cart_ui.py --server.port 8521
-
-# 10. Launch API (separate terminal)
-uvicorn api.main:app --host 0.0.0.0 --port 8522
-```
-
-### Docker Quick Start
-
-```bash
-cp .env.example .env
-# Edit .env: set ANTHROPIC_API_KEY
+# Start all services
+cp .env.example .env  # Add ANTHROPIC_API_KEY
 docker compose up -d
-# UI: http://localhost:8521
-# API: http://localhost:8522/docs
+
+# Watch setup progress
+docker compose logs -f cart-setup
+
+# Verify health
+curl http://localhost:8522/health
+curl http://localhost:8521/_stcore/health
+
+# Access UI
+open http://localhost:8521
 ```
 
 ---
 
-## Dependencies
+## 18. Testing
 
-| Package | Version | Purpose |
-|---|---|---|
-| pydantic | ≥2.0 | Data validation |
-| pydantic-settings | ≥2.0 | Environment config |
-| pymilvus | ≥2.4.0 | Vector DB client |
-| sentence-transformers | ≥2.2.0 | BGE embeddings |
-| anthropic | ≥0.18.0 | Claude API |
-| streamlit | ≥1.30.0 | Web UI |
-| fastapi | ≥0.109.0 | REST API |
-| uvicorn[standard] | ≥0.27.0 | ASGI server |
-| lxml | ≥5.0.0 | PubMed XML parsing |
-| biopython | ≥1.83 | NCBI E-utilities |
-| reportlab | ≥4.0.0 | PDF generation |
-| pyvis | ≥0.3.0 | Network visualization |
-| prometheus-client | ≥0.20.0 | Metrics export |
-| apscheduler | ≥3.10.0 | Job scheduling |
+The test suite contains 278 tests across 7 test files in the `tests/` directory (2,902 lines total).
+
+### 18.1 Test Files
+
+| File | Description |
+|------|-------------|
+| `tests/conftest.py` | Shared fixtures: mock_embedder, mock_llm_client, mock_collection_manager, sample_search_hits, sample_evidence |
+| `tests/test_models.py` | Pydantic model validation, enum values, to_embedding_text(), field constraints |
+| `tests/test_knowledge.py` | Knowledge graph: get_target_context, get_toxicity_context, get_manufacturing_context, get_all_context_for_query, entity aliases, comparison context |
+| `tests/test_query_expansion.py` | Expansion maps: expand_query, expand_query_by_category, get_expansion_stats, keyword coverage |
+| `tests/test_rag_engine.py` | RAG engine: retrieve, query, query_stream, find_related, comparative analysis, citation formatting, prompt building |
+| `tests/test_agent.py` | Agent: search_plan, evaluate_evidence, run, generate_report |
+| `tests/test_export.py` | Export: export_markdown, export_json, export_pdf, collection-specific table formatting |
+| `tests/test_integration.py` | Integration tests: end-to-end pipeline validation, cross-collection queries |
+
+### 18.2 Fixtures
+
+| Fixture | Scope | Description |
+|---------|-------|-------------|
+| `mock_embedder` | Function | Returns 384-dim zero vectors for any input |
+| `mock_llm_client` | Function | Returns "Mock response" for generate(), yields ["Mock ", "response"] for generate_stream() |
+| `mock_collection_manager` | Function | Empty search results, dummy stats (42 per collection), no-op connect/disconnect |
+| `sample_search_hits` | Function | 5 SearchHit objects across Literature, Trial, Construct, Safety, Manufacturing |
+| `sample_evidence` | Function | CrossCollectionResult with 5 hits, knowledge context, and metrics |
+
+### 18.3 Running Tests
+
+```bash
+# Run all tests
+pytest tests/ -v
+
+# Run specific test file
+pytest tests/test_models.py -v
+
+# Run with coverage
+pytest tests/ --cov=src --cov-report=html
+```
+
+### 18.4 Test Coverage Areas
+
+- **Model validation**: Field constraints, enum membership, max_length enforcement, default values, embedding text generation
+- **Knowledge graph**: All 6 dictionaries return non-empty context, entity alias resolution, comparison context generation, stats correctness
+- **Query expansion**: Keyword matching, category grouping, term deduplication, expansion stats accuracy
+- **RAG engine**: End-to-end retrieve flow, parallel search mocking, query expansion integration, knowledge augmentation, citation formatting (PubMed, ClinicalTrials.gov, generic), comparative detection and parsing, prompt assembly
+- **Agent**: Search plan extraction, strategy classification (broad/targeted/comparative), evidence quality evaluation, sub-question generation, report structure
+- **Export**: Markdown structure, JSON schema correctness, PDF generation (bytes output), collection-specific table columns, filter formatting, comparative export
 
 ---
 
-*End of Project Bible*
+## 19. Project Timeline
+
+### Git History (20 Commits)
+
+| # | Hash | Description | Key Changes |
+|---|------|------------|-------------|
+| 1 | `3dd5c8a` | Initial scaffold + Week 1 | Project structure, base models, first 5 collections |
+| 2 | `cda1093` | .gitignore | Standard Python/data gitignore |
+| 3 | `5a6daa8` | Apache 2.0 license | LICENSE file |
+| 4 | `fa5b41c` | Real data ingest + validation | PubMed/ClinicalTrials.gov parsers, Pydantic validation |
+| 5 | `9fae702` | Full RAG pipeline + UI polish | RAG engine, Streamlit UI, knowledge graph |
+| 6 | `c078ac7` | README + setup instructions | Documentation and quickstart |
+| 7 | `d344c48` | Seed assays (45 records) | Assay seed data and ingest script |
+| 8 | `b93d802` | Seed manufacturing (30 records) | Manufacturing seed data and ingest script |
+| 9 | `9af1263` | Design doc with benchmarks | Architecture documentation and performance data |
+| 10 | `96ad742` | Fix Claude model ID | Corrected LLM_MODEL to claude-sonnet-4-20250514 |
+| 11 | `3210594` | Citation links + evidence panel | Clickable PubMed/CT.gov links, evidence cards |
+| 12 | `7b519c9` | Comparative analysis mode | Entity parsing, dual retrieval, comparison prompts |
+| 13 | `052c5ec` | README update | Updated documentation |
+| 14 | `2925e13` | Design doc v1.2.0 | Revised architecture documentation |
+| 15 | `41bd76f` | Markdown + JSON export | Export system (2 formats) |
+| 16 | `9f466a3` | PDF export with NVIDIA theme | reportlab PDF generation with NVIDIA styling |
+| 17 | `1ed77e8` | 5 new collections | safety, biomarkers, regulatory, sequences, real-world |
+| 18 | `ebc05f2` | v2.0.0 with 21 improvements | Major version with parallel search, settings-driven weights, full knowledge augmentation |
+| 19 | `2423fe2` | 3 high-priority gaps | Genomics bridge, patents, immunogenicity |
+| 20 | `4e6da4a` | UI theme matching | NVIDIA black + green CSS theme |
+
+### Development Phases
+
+**Phase 1 (Week 1):** Scaffold, first 5 collections (literature, trials, constructs, assays, manufacturing), base ingest pipeline, knowledge graph (targets + toxicities + manufacturing), query expansion (6 maps), RAG engine, Streamlit UI.
+
+**Phase 2 (Week 2):** Real data ingest (PubMed + ClinicalTrials.gov), seed scripts (assays, manufacturing), comparative analysis, citation links, evidence panel, Markdown/JSON/PDF export.
+
+**Phase 3 (Week 3):** 5 new collections (safety, biomarkers, regulatory, sequences, real-world), expanded knowledge graph (biomarkers, regulatory, immunogenicity), expanded query expansion (12 maps), FastAPI REST API, metrics, scheduler.
+
+**Phase 4 (Week 4):** v2.0.0 release with 21 improvements: parallel search, settings-driven configuration, full knowledge augmentation, conversation memory, Deep Research mode, image analysis, genomics bridge, patent data, immunogenicity collections, UI theme matching.
+
+---
+
+## 20. File Inventory
+
+### Complete List of 60 Python Files
+
+#### config/ (1 file, 102 lines)
+
+| File | Lines | Description |
+|------|-------|-------------|
+| `config/settings.py` | 102 | CARTSettings Pydantic configuration |
+
+#### src/ (28 files, 12,290 lines)
+
+| File | Lines | Description |
+|------|-------|-------------|
+| `src/__init__.py` | -- | Package init |
+| `src/agent.py` | 271 | CARTIntelligenceAgent: plan-search-synthesize |
+| `src/collections.py` | 1,004 | CARTCollectionManager: 11 schemas + CRUD |
+| `src/export.py` | 1,487 | Markdown, JSON, PDF export with NVIDIA theme |
+| `src/knowledge.py` | 1,906 | Knowledge graph: 6 dictionaries, 95 entries, 54 aliases |
+| `src/metrics.py` | 404 | Prometheus metrics: counters, histograms, gauges |
+| `src/models.py` | 484 | Pydantic models: 13 enums, 10 collections, 4 search/agent |
+| `src/query_expansion.py` | 1,380 | 12 expansion maps, 190 keywords, 1,649 terms |
+| `src/rag_engine.py` | 693 | CARTRAGEngine: retrieval, synthesis, comparative |
+| `src/scheduler.py` | 226 | APScheduler: weekly PubMed/trials refresh |
+| `src/utils/__init__.py` | -- | Utils package init |
+| `src/utils/pubmed_client.py` | -- | NCBI E-utilities client |
+| `src/ingest/__init__.py` | -- | Ingest package init |
+| `src/ingest/base.py` | 185 | BaseIngestPipeline: fetch-parse-embed_and_store |
+| `src/ingest/literature_parser.py` | -- | PubMed literature ingest |
+| `src/ingest/clinical_trials_parser.py` | -- | ClinicalTrials.gov ingest |
+| `src/ingest/construct_parser.py` | -- | CAR construct data parser |
+| `src/ingest/assay_parser.py` | -- | Assay data parser |
+| `src/ingest/manufacturing_parser.py` | -- | Manufacturing data parser |
+| `src/ingest/safety_parser.py` | -- | Safety/pharmacovigilance parser |
+| `src/ingest/biomarker_parser.py` | -- | Biomarker data parser |
+| `src/ingest/regulatory_parser.py` | -- | Regulatory milestone parser |
+| `src/ingest/sequence_parser.py` | -- | Molecular sequence parser |
+| `src/ingest/realworld_parser.py` | -- | Real-world evidence parser |
+| `src/ingest/faers_parser.py` | -- | FDA FAERS safety data parser |
+| `src/ingest/dailymed_parser.py` | -- | DailyMed label parser |
+| `src/ingest/uniprot_parser.py` | -- | UniProt protein data parser |
+| `src/ingest/cibmtr_parser.py` | -- | CIBMTR registry data parser |
+
+#### app/ (1 file, 1,119 lines)
+
+| File | Lines | Description |
+|------|-------|-------------|
+| `app/cart_ui.py` | 1,119 | Streamlit UI: chat, knowledge graph, image analysis |
+
+#### api/ (5 files, 1,032 lines)
+
+| File | Lines | Description |
+|------|-------|-------------|
+| `api/__init__.py` | -- | API package init |
+| `api/main.py` | 588 | FastAPI REST server: 9 endpoints |
+| `api/routes/__init__.py` | -- | Routes package init |
+| `api/routes/events.py` | 122 | Pipeline event endpoints (2 endpoints) |
+| `api/routes/meta_agent.py` | 142 | Meta-agent /ask endpoint (1 endpoint) |
+| `api/routes/reports.py` | 180 | Report generation endpoints (2 endpoints) |
+
+#### scripts/ (15 files, 1,686 lines)
+
+| File | Description |
+|------|-------------|
+| `scripts/setup_collections.py` | Create all 11 collections |
+| `scripts/seed_knowledge.py` | Validate knowledge graph |
+| `scripts/seed_assays.py` | Seed 60 assay records |
+| `scripts/seed_manufacturing.py` | Seed 40 manufacturing records |
+| `scripts/seed_safety.py` | Seed 52 safety records |
+| `scripts/seed_biomarkers.py` | Seed 45 biomarker records |
+| `scripts/seed_regulatory.py` | Seed 25 regulatory records |
+| `scripts/seed_sequences.py` | Seed 28 sequence records |
+| `scripts/seed_realworld.py` | Seed 38 real-world records |
+| `scripts/seed_patents.py` | Seed 26 patent literature records |
+| `scripts/seed_immunogenicity.py` | Seed 15 immunogenicity records (8+7) |
+| `scripts/ingest_pubmed.py` | Full PubMed ingest |
+| `scripts/ingest_clinical_trials.py` | Full ClinicalTrials.gov ingest |
+| `scripts/validate_e2e.py` | End-to-end pipeline validation |
+| `scripts/test_rag_pipeline.py` | RAG pipeline integration test |
+
+#### tests/ (7 files, 2,902 lines)
+
+| File | Description |
+|------|-------------|
+| `tests/__init__.py` | Test package init |
+| `tests/conftest.py` | Shared fixtures (5 fixtures) |
+| `tests/test_models.py` | Model validation tests |
+| `tests/test_knowledge.py` | Knowledge graph tests |
+| `tests/test_query_expansion.py` | Query expansion tests |
+| `tests/test_rag_engine.py` | RAG engine tests |
+| `tests/test_agent.py` | Agent architecture tests |
+| `tests/test_export.py` | Export system tests |
+| `tests/test_integration.py` | Integration tests |
+
+---
+
+## 21. Dependencies
+
+### requirements.txt
+
+| Package | Version | Category | Purpose |
+|---------|---------|----------|---------|
+| pydantic | >=2.0 | Core | Data validation and model definitions |
+| pydantic-settings | >=2.0 | Core | Environment-based configuration |
+| loguru | >=0.7.0 | Core | Structured logging |
+| pymilvus | >=2.4.0 | Vector DB | Milvus client library |
+| sentence-transformers | >=2.2.0 | Embeddings | BGE-small-en-v1.5 model |
+| anthropic | >=0.18.0 | LLM | Claude API client |
+| streamlit | >=1.30.0 | Web/API | Chat UI framework |
+| fastapi | >=0.109.0 | Web/API | REST API framework |
+| uvicorn[standard] | >=0.27.0 | Web/API | ASGI server |
+| python-multipart | >=0.0.6 | Web/API | File upload support |
+| requests | >=2.31.0 | Ingest | HTTP client |
+| lxml | >=5.0.0 | Ingest | PubMed XML parsing |
+| biopython | >=1.83 | Ingest | NCBI E-utilities |
+| apscheduler | >=3.10.0 | Scheduling | Background job scheduler |
+| prometheus-client | >=0.20.0 | Monitoring | Prometheus metrics |
+| opentelemetry-api | >=1.29.0 | Observability | OpenTelemetry tracing API |
+| opentelemetry-sdk | >=1.29.0 | Observability | OpenTelemetry tracing SDK |
+| reportlab | >=4.0.0 | Export | PDF report generation |
+| pyvis | >=0.3.0 | Visualization | Knowledge graph rendering |
+| numpy | >=1.24.0 | Utilities | Numerical operations |
+| tqdm | >=4.65.0 | Utilities | Progress bars |
+| python-dotenv | >=1.0.0 | Utilities | .env file loading |
+
+---
+
+## 22. Future Roadmap
+
+### 22.1 VAST AI OS Integration
+
+The CAR-T Intelligence Agent is designed for future integration with the VAST AI OS AgentEngine model:
+- `CARTIntelligenceAgent.run()` maps to the AgentEngine entry point
+- `search_plan()` maps to the Plan phase
+- `rag_engine.retrieve()` maps to the Execute phase
+- `evaluate_evidence()` maps to the Reflect phase
+- `generate_report()` maps to the Report phase
+
+### 22.2 Additional Agents
+
+The `ai_agent_adds/` directory is designed for multiple domain agents:
+- **Imaging Intelligence Agent**: Pathology slide analysis with CAR-T knowledge augmentation
+- **Biomarker Intelligence Agent**: Multi-omics biomarker discovery and validation
+- **Clinical Trial Intelligence Agent**: Automated trial landscape monitoring
+
+### 22.3 Data Expansion
+
+- **Expanded PubMed coverage**: Currently ~5,000 records; target 25,000+ with automated weekly refresh
+- **Patent database integration**: Full USPTO/EPO CAR-T patent corpus
+- **FAERS integration**: Real-time FDA adverse event reporting ingestion
+- **EHR data**: De-identified electronic health record integration for outcomes analysis
+- **Single-cell RNA-seq**: T-cell phenotype data from public repositories (GEO/ArrayExpress)
+
+### 22.4 Technical Improvements
+
+- **GPU-accelerated embedding**: Move from CPU-based sentence-transformers to GPU inference on DGX Spark
+- **Milvus GPU index**: Switch from IVF_FLAT to GPU_IVF_FLAT for faster search at scale
+- **Multi-turn reasoning**: Extend agent from 2 sub-questions to full chain-of-thought multi-step retrieval
+- **Retrieval evaluation**: Implement retrieval accuracy benchmarks against expert-curated question-answer pairs
+- **Fine-tuned embeddings**: Domain-adapted BGE-small for CAR-T terminology
+
+### 22.5 Scaling Targets
+
+| Metric | Current | Target |
+|--------|---------|--------|
+| Total vectors | 3.57M | 10M+ |
+| Literature records | 5,047 | 25,000+ |
+| Trial records | 973 | 5,000+ |
+| Safety records | 40 | 500+ |
+| Collections | 11 | 15+ |
+| Query latency (p50) | ~500ms | <200ms |
+| Concurrent users | 1 | 10+ |
+
+### 22.6 Hardware Target
+
+**NVIDIA DGX Spark**
+- GPU: GB10 (NVIDIA Grace Blackwell)
+- Memory: 128GB unified LPDDR5x
+- CPU: 20 ARM Cortex-A78AE cores (Grace CPU)
+- Interconnect: NVLink-C2C (chip-to-chip)
+- Price: $3,999
+- OS: Ubuntu-based DGX OS
+
+The entire HCLS AI Factory -- genomics pipeline, RAG/Chat (including this CAR-T Intelligence Agent), and drug discovery pipeline -- is designed to run concurrently on this single workstation, democratizing precision medicine and CAR-T intelligence for institutions that cannot afford traditional HPC infrastructure.
+
+---
+
+*Generated by HCLS AI Factory -- CAR-T Intelligence Agent v2.0.0*
+*Author: Adam Jones | License: Apache 2.0 | February 2026*
