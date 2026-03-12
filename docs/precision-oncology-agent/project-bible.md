@@ -1226,7 +1226,7 @@ prefix. The `.env` file is loaded automatically.
 | EMBEDDING_DIM                  | int    | 384                                | Embedding vector dimension               |
 | EMBEDDING_BATCH_SIZE           | int    | 32                                 | Batch size for embedding generation      |
 | LLM_PROVIDER                   | str    | anthropic                          | LLM provider                             |
-| LLM_MODEL                      | str    | claude-sonnet-4-20250514           | LLM model identifier                     |
+| LLM_MODEL                      | str    | claude-sonnet-4-6           | LLM model identifier                     |
 | ANTHROPIC_API_KEY              | str?   | None                               | Anthropic API key                        |
 | TOP_K                          | int    | 5                                  | Default per-collection hit limit         |
 | SCORE_THRESHOLD                | float  | 0.4                                | Minimum similarity score                 |

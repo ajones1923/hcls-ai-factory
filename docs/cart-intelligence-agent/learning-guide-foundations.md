@@ -3,7 +3,7 @@
 **CAR-T Intelligence Agent | HCLS AI Factory**
 
 Author: Adam Jones
-Date: February 2026
+Date: March 2026
 License: Apache 2.0
 
 ---
@@ -1487,4 +1487,4 @@ The CAR-T Intelligence Agent is open-source under the Apache 2.0 license. Contri
 
 ---
 
-*CAR-T Intelligence Agent | HCLS AI Factory | Apache 2.0 | Adam Jones | February 2026*
+*CAR-T Intelligence Agent | HCLS AI Factory | Apache 2.0 | Adam Jones | March 2026*

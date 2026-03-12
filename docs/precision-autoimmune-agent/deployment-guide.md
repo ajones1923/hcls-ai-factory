@@ -571,7 +571,7 @@ All agent-specific variables use the `AUTO_` prefix and are managed by Pydantic 
 
 | Variable | Default | Description |
 |---|---|---|
-| `AUTO_LLM_MODEL` | `claude-sonnet-4-20250514` | Claude model ID for synthesis. |
+| `AUTO_LLM_MODEL` | `claude-sonnet-4-6` | Claude model ID for synthesis. |
 | `AUTO_LLM_MAX_TOKENS` | `4096` | Maximum tokens in LLM response. |
 | `AUTO_LLM_TEMPERATURE` | `0.2` | LLM temperature (lower = more deterministic). |
 | `AUTO_LLM_MAX_RETRIES` | `3` | Retry count for failed LLM calls. |

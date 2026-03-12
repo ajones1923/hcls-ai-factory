@@ -641,7 +641,7 @@ then from `.env` file.
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `IMAGING_LLM_PROVIDER` | `anthropic` | LLM provider (`anthropic`) |
-| `IMAGING_LLM_MODEL` | `claude-sonnet-4-20250514` | Claude model for RAG synthesis |
+| `IMAGING_LLM_MODEL` | `claude-sonnet-4-6` | Claude model for RAG synthesis |
 | `IMAGING_ANTHROPIC_API_KEY` | — | Anthropic API key (required) |
 
 ### 6.3 NIM Configuration

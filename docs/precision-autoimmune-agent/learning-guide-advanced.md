@@ -1674,7 +1674,7 @@ All configuration is via the `AUTO_` prefix:
 | `AUTO_MILVUS_HOST` | str | localhost | Milvus server host |
 | `AUTO_MILVUS_PORT` | int | 19530 | Milvus server port |
 | `AUTO_ANTHROPIC_API_KEY` | str | "" | Claude API key |
-| `AUTO_LLM_MODEL` | str | claude-sonnet-4-20250514 | LLM model identifier |
+| `AUTO_LLM_MODEL` | str | claude-sonnet-4-6 | LLM model identifier |
 | `AUTO_LLM_MAX_TOKENS` | int | 4096 | Max response tokens |
 | `AUTO_LLM_TEMPERATURE` | float | 0.2 | LLM temperature |
 | `AUTO_TOP_K_PER_COLLECTION` | int | 5 | Results per collection |
@@ -2013,7 +2013,7 @@ class AutoimmuneSettings(BaseSettings):
 
     # LLM
     ANTHROPIC_API_KEY: str = ""
-    LLM_MODEL: str = "claude-sonnet-4-20250514"
+    LLM_MODEL: str = "claude-sonnet-4-6"
     LLM_MAX_TOKENS: int = 4096
     LLM_TEMPERATURE: float = 0.2
 

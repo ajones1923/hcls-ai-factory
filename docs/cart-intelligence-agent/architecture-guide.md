@@ -1,7 +1,7 @@
 # CAR-T Intelligence Agent -- Architecture Guide
 
 **Author:** Adam Jones
-**Date:** February 2026
+**Date:** March 2026
 **Version:** 1.0.0
 **Codebase:** `hcls-ai-factory/ai_agent_adds/cart_intelligence_agent/`
 
