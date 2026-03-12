@@ -140,6 +140,10 @@ nav:
       - Demo Guide: precision-oncology-agent/demo-guide.md
       - Design Document: precision-oncology-agent/design.md
       - Project Bible: precision-oncology-agent/project-bible.md
+      - White Paper: precision-oncology-agent/white-paper.md
+      - Deployment Guide: precision-oncology-agent/deployment-guide.md
+      - "Learning Guide \u2014 Foundations": precision-oncology-agent/learning-guide-foundations.md
+      - "Learning Guide \u2014 Advanced": precision-oncology-agent/learning-guide-advanced.md
     - Precision Biomarker Agent:
       - Overview: precision-biomarker-agent/index.md
       - Demo Guide: precision-biomarker-agent/demo-guide.md
