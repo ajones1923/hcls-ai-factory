@@ -27,7 +27,7 @@ cart_intelligence_agent/
     rag_engine.py      #   693 lines -- multi-collection RAG
     collections.py     # 1,004 lines -- Milvus schema + manager
     models.py          #   484 lines -- Pydantic models + enums
-    knowledge.py       # 1,906 lines -- knowledge graph (6 dictionaries)
+    knowledge.py       # 1,906 lines -- knowledge graph (3 dictionaries)
     query_expansion.py # 1,380 lines -- 12 expansion maps
     agent.py           #   271 lines -- autonomous agent
     export.py          # 1,487 lines -- Markdown/JSON/PDF export
@@ -773,9 +773,9 @@ This means a single corrupt record in a batch will fail that entire batch but no
 
 ## Chapter 5: Extending the Knowledge Graph
 
-The knowledge graph (`src/knowledge.py`, 1,906 lines) contains six curated dictionaries that provide structured, authoritative data to augment vector search results.
+The knowledge graph (`src/knowledge.py`, 1,906 lines) contains three curated dictionaries that provide structured, authoritative data to augment vector search results.
 
-### 5.1 The Six Knowledge Dictionaries
+### 5.1 The Three Knowledge Dictionaries
 
 | Dictionary | Entries | Key Data |
 |---|---|---|

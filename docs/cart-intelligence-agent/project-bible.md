@@ -59,7 +59,7 @@ The CAR-T Intelligence Agent is built as part of the HCLS AI Factory, a three-st
 | Knowledge graph entries | 71 |
 | Query expansion keywords | 229 |
 | Query expansion terms | 1,961 |
-| Seed data records | 630 |
+| Seed data records | 649 |
 
 ---
 
@@ -133,11 +133,11 @@ Accelerate CAR-T cell therapy development by providing unified, evidence-grounde
 |                    Milvus 2.4 (19530)                            |
 |  BGE-small-en-v1.5 embeddings (384-dim)                          |
 |                                                                  |
-|  cart_literature    (5,047)    cart_safety      (40)             |
-|  cart_trials        (973)     cart_biomarkers  (43)             |
-|  cart_constructs    (6)       cart_regulatory  (25)             |
-|  cart_assays        (45)      cart_sequences   (27)             |
-|  cart_manufacturing (30)      cart_realworld   (30)             |
+|  cart_literature    (5,047)    cart_safety      (71)             |
+|  cart_trials        (973)     cart_biomarkers  (60)             |
+|  cart_constructs    (41)      cart_regulatory  (40)             |
+|  cart_assays        (75)      cart_sequences   (40)             |
+|  cart_manufacturing (56)      cart_realworld   (54)             |
 |                                                                  |
 |  genomic_evidence   (3,561,170) [read-only, shared]              |
 +------------------------------------------------------------------+
@@ -859,15 +859,15 @@ The `run()` method orchestrates the full pipeline: `fetch -> parse -> embed_and_
 |--------|---------|------------------|
 | `scripts/setup_collections.py` | -- | Creates all 11 collections, optionally seeds constructs |
 | `scripts/seed_knowledge.py` | -- | Validates knowledge graph integrity |
-| `scripts/seed_assays.py` | 60 | cart_assays |
-| `scripts/seed_manufacturing.py` | 40 | cart_manufacturing |
-| `scripts/seed_safety.py` | 52 | cart_safety |
-| `scripts/seed_biomarkers.py` | 45 | cart_biomarkers |
-| `scripts/seed_regulatory.py` | 25 | cart_regulatory |
-| `scripts/seed_sequences.py` | 28 | cart_sequences |
-| `scripts/seed_realworld.py` | 38 | cart_realworld |
+| `scripts/seed_assays.py` | 75 | cart_assays |
+| `scripts/seed_manufacturing.py` | 56 | cart_manufacturing |
+| `scripts/seed_safety.py` | 71 | cart_safety |
+| `scripts/seed_biomarkers.py` | 60 | cart_biomarkers |
+| `scripts/seed_regulatory.py` | 40 | cart_regulatory |
+| `scripts/seed_sequences.py` | 40 | cart_sequences |
+| `scripts/seed_realworld.py` | 54 | cart_realworld |
 | `scripts/seed_patents.py` | 26 | cart_literature (patents) |
-| `scripts/seed_immunogenicity.py` | 15 (8+7) | cart_biomarkers + cart_sequences |
+| `scripts/seed_immunogenicity.py` | 38 (20+18) | cart_biomarkers + cart_sequences |
 | `scripts/ingest_pubmed.py` | ~5000 | cart_literature |
 | `scripts/ingest_clinical_trials.py` | ~1000 | cart_trials |
 | `scripts/validate_e2e.py` | -- | End-to-end pipeline validation |
@@ -886,7 +886,7 @@ All seed data is stored as JSON files in `data/reference/`:
 | immunogenicity_sequence_seed.json | 18 | Immunogenicity-related sequence and construct engineering records |
 | literature_seed_data.json | 60 | Curated literature records including 2024-2025 landmark papers |
 | manufacturing_seed_data.json | 56 | Transduction, expansion, cryo, release testing, POC, iPSC records |
-| patent_seed_data.json | 26 | CAR-T patent literature records |
+| patent_seed_data.json | 45 | CAR-T patent literature records |
 | realworld_seed_data.json | 54 | CIBMTR, institutional, claims-based, disparities, cost RWE studies |
 | regulatory_seed_data.json | 40 | FDA/EMA/PMDA/NMPA/Health Canada approval milestones and designations |
 | safety_seed_data.json | 71 | CRS, ICANS, cytopenia, infection, secondary malignancy, solid tumor events |
@@ -1425,7 +1425,7 @@ pytest tests/ --cov=src --cov-report=html
 ### 18.4 Test Coverage Areas
 
 - **Model validation**: Field constraints, enum membership, max_length enforcement, default values, embedding text generation
-- **Knowledge graph**: All 6 dictionaries return non-empty context, entity alias resolution, comparison context generation, stats correctness
+- **Knowledge graph**: All 3 dictionaries return non-empty context, entity alias resolution, comparison context generation, stats correctness
 - **Query expansion**: Keyword matching, category grouping, term deduplication, expansion stats accuracy
 - **RAG engine**: End-to-end retrieve flow, parallel search mocking, query expansion integration, knowledge augmentation, citation formatting (PubMed, ClinicalTrials.gov, generic), comparative detection and parsing, prompt assembly
 - **Agent**: Search plan extraction, strategy classification (broad/targeted/comparative), evidence quality evaluation, sub-question generation, report structure
@@ -1538,15 +1538,15 @@ pytest tests/ --cov=src --cov-report=html
 |------|-------------|
 | `scripts/setup_collections.py` | Create all 11 collections |
 | `scripts/seed_knowledge.py` | Validate knowledge graph |
-| `scripts/seed_assays.py` | Seed 60 assay records |
-| `scripts/seed_manufacturing.py` | Seed 40 manufacturing records |
-| `scripts/seed_safety.py` | Seed 52 safety records |
-| `scripts/seed_biomarkers.py` | Seed 45 biomarker records |
-| `scripts/seed_regulatory.py` | Seed 25 regulatory records |
-| `scripts/seed_sequences.py` | Seed 28 sequence records |
-| `scripts/seed_realworld.py` | Seed 38 real-world records |
+| `scripts/seed_assays.py` | Seed 75 assay records |
+| `scripts/seed_manufacturing.py` | Seed 56 manufacturing records |
+| `scripts/seed_safety.py` | Seed 71 safety records |
+| `scripts/seed_biomarkers.py` | Seed 60 biomarker records |
+| `scripts/seed_regulatory.py` | Seed 40 regulatory records |
+| `scripts/seed_sequences.py` | Seed 40 sequence records |
+| `scripts/seed_realworld.py` | Seed 54 real-world records |
 | `scripts/seed_patents.py` | Seed 26 patent literature records |
-| `scripts/seed_immunogenicity.py` | Seed 15 immunogenicity records (8+7) |
+| `scripts/seed_immunogenicity.py` | Seed 38 immunogenicity records (20+18) |
 | `scripts/ingest_pubmed.py` | Full PubMed ingest |
 | `scripts/ingest_clinical_trials.py` | Full ClinicalTrials.gov ingest |
 | `scripts/validate_e2e.py` | End-to-end pipeline validation |
