@@ -74,12 +74,12 @@ Stage 3: Drug Discovery  Target -> Molecules (BioNeMo)
 | Metric | Value |
 |--------|-------|
 | Source files | ~30 Python modules |
-| Total lines of code | ~19,332 |
+| Total lines of code | ~21,259 |
 | Milvus collections | 11 (10 owned + 1 read-only) |
 | Knowledge graph entries | ~34 targets + 17 toxicities + 20 manufacturing + 23 biomarkers + 6 regulatory + 6 immunogenicity |
 | Query expansion maps | 12 maps, 229 keyword entries |
-| Seed records | 630 across 13 JSON files |
-| Test cases | 278 across 7 test files |
+| Seed records | 649 across 13 JSON files |
+| Test cases | 415 across 7 test files |
 | Embedding model | BGE-small-en-v1.5 (384-dim, COSINE) |
 | LLM | Claude Sonnet 4.6 (Anthropic) |
 | Docker services | 6 (Milvus stack + UI + API + setup) |
@@ -177,7 +177,7 @@ User Question
 
 ### 3a. RAG Engine
 
-**File:** `src/rag_engine.py` (693 lines)
+**File:** `src/rag_engine.py` (754 lines)
 **Class:** `CARTRAGEngine`
 
 The RAG engine is the central orchestrator. It wires together the collection manager, embedder, LLM client, knowledge graph, and query expander into a unified retrieval-and-generation pipeline.
@@ -329,7 +329,7 @@ COLLECTION_MODELS: Dict[str, type]               # Pydantic models for validatio
 ### 3c. Knowledge Graph
 
 **File:** `src/knowledge.py`
-**Size:** 3 dictionaries, ~1,906 lines
+**Size:** 3 dictionaries, ~2,249 lines
 
 The knowledge graph provides structured, curated domain knowledge that supplements the vector search results. Unlike the Milvus collections which contain embedded free-text, the knowledge graph contains organized factual data.
 
@@ -380,7 +380,7 @@ ENTITY_ALIASES = {
 ### 3d. Query Expansion
 
 **File:** `src/query_expansion.py`
-**Size:** 12 maps, 229 keyword entries, 1,380 lines
+**Size:** 12 maps, 229 keyword entries, 1,592 lines
 
 Query expansion improves recall by broadening search terms. When a user asks about "CRS," the system also searches for "cytokine release syndrome," "tocilizumab," "IL-6," "ferritin," "Lee grading," and 25+ related terms.
 
@@ -424,7 +424,7 @@ A category-grouped variant `expand_query_by_category()` is also available for ca
 
 ### 3e. Agent
 
-**File:** `src/agent.py` (271 lines)
+**File:** `src/agent.py` (309 lines)
 **Class:** `CARTIntelligenceAgent`
 
 The agent wraps the RAG engine with planning and reasoning capabilities, implementing the **plan -> search -> synthesize -> report** pattern.
@@ -1051,7 +1051,7 @@ The API loads the Anthropic API key from the rag-chat-pipeline `.env` file if `A
 
 ## 6. UI Architecture
 
-**File:** `app/cart_ui.py` (1,119 lines)
+**File:** `app/cart_ui.py` (1,162 lines)
 **Framework:** Streamlit v1.30+
 **Port:** 8521
 
@@ -1173,7 +1173,7 @@ All settings use the `CART_` prefix for environment variable override (via Pydan
 | `CART_MILVUS_PORT` | 19530 | Milvus gRPC port |
 | `CART_EMBEDDING_MODEL` | BAAI/bge-small-en-v1.5 | Embedding model identifier |
 | `CART_EMBEDDING_DIMENSION` | 384 | Vector dimension |
-| `CART_LLM_MODEL` | claude-sonnet-4-20250514 | Claude model identifier |
+| `CART_LLM_MODEL` | claude-sonnet-4-6 | Claude model identifier |
 | `CART_TOP_K_PER_COLLECTION` | 5 | Max results per collection per query |
 | `CART_SCORE_THRESHOLD` | 0.4 | Minimum cosine similarity threshold |
 | `CART_WEIGHT_LITERATURE` | 0.20 | Literature collection weight |
@@ -1224,7 +1224,7 @@ The `cart-setup` service runs once after Milvus is healthy and executes 9 seed s
 
 **Directory:** `tests/`
 **Files:** 7 test modules + conftest.py
-**Total:** 278 tests, 2,902 lines
+**Total:** 415 tests, 4,321 lines
 
 ### Test Files
 
@@ -1294,7 +1294,7 @@ def sample_evidence(sample_search_hits):
 
 ```bash
 cd cart_intelligence_agent
-pytest tests/ -v                     # All 278 tests
+pytest tests/ -v                     # All 415 tests
 pytest tests/test_rag_engine.py -v   # RAG engine tests only
 pytest tests/ -k "comparative"       # Only comparison-related tests
 ```
@@ -1564,9 +1564,9 @@ cart_intelligence_agent/
 │       ├── meta_agent.py               # Meta-agent endpoint (142 lines)
 │       └── reports.py                   # Report generation (180 lines)
 ├── app/
-│   └── cart_ui.py                       # Streamlit UI (1,119 lines)
+│   └── cart_ui.py                       # Streamlit UI (1,162 lines)
 ├── config/
-│   └── settings.py                      # Pydantic BaseSettings (102 lines)
+│   └── settings.py                      # Pydantic BaseSettings (113 lines)
 ├── data/
 │   └── reference/
 │       ├── assay_seed_data.json         # 75 records
@@ -1576,7 +1576,7 @@ cart_intelligence_agent/
 │       ├── immunogenicity_sequence_seed.json   # 18 records
 │       ├── literature_seed_data.json    # 60 records
 │       ├── manufacturing_seed_data.json # 56 records
-│       ├── patent_seed_data.json        # 26 records
+│       ├── patent_seed_data.json        # 45 records
 │       ├── realworld_seed_data.json     # 54 records
 │       ├── regulatory_seed_data.json    # 40 records
 │       ├── safety_seed_data.json        # 71 records
@@ -1587,14 +1587,14 @@ cart_intelligence_agent/
 ├── scripts/                             # Setup and seed scripts (1,686 lines)
 ├── src/
 │   ├── __init__.py
-│   ├── agent.py                         # Autonomous agent (271 lines)
+│   ├── agent.py                         # Autonomous agent (309 lines)
 │   ├── collections.py                   # Milvus collection manager
 │   ├── export.py                        # MD/JSON/PDF export (1,487 lines)
 │   ├── knowledge.py                     # Knowledge graph (3 dicts, 71 entries)
 │   ├── metrics.py                       # Prometheus metrics (404 lines)
 │   ├── models.py                        # 10 models, 13 enums
 │   ├── query_expansion.py              # 12 maps, 229 keywords
-│   ├── rag_engine.py                    # Core RAG engine (693 lines)
+│   ├── rag_engine.py                    # Core RAG engine (754 lines)
 │   ├── scheduler.py                     # APScheduler ingest (226 lines)
 │   └── ingest/
 │       ├── __init__.py
