@@ -759,7 +759,7 @@ curl -s http://localhost:8527/knowledge/stats | python3 -m json.tool
 lsof -i :8527
 
 # Start the API if needed
-cd /home/adam/projects/hcls-ai-factory/ai_agent_adds/precision_oncology_agent/agent
+cd $HCLS_HOME/ai_agent_adds/precision_oncology_agent/agent
 python -m api.main
 ```
 
@@ -785,7 +785,7 @@ docker restart milvus-standalone
 
 **Fix:**
 ```bash
-cd /home/adam/projects/hcls-ai-factory/ai_agent_adds/precision_oncology_agent/agent
+cd $HCLS_HOME/ai_agent_adds/precision_oncology_agent/agent
 
 # Run all seed scripts
 python scripts/setup_collections.py
@@ -840,7 +840,7 @@ pip install reportlab
 **Fix:**
 ```bash
 # Verify the export module loads
-cd /home/adam/projects/hcls-ai-factory/ai_agent_adds/precision_oncology_agent/agent
+cd $HCLS_HOME/ai_agent_adds/precision_oncology_agent/agent
 python -c "from src.export import export_fhir_r4; print('OK')"
 ```
 
@@ -850,7 +850,7 @@ python -c "from src.export import export_fhir_r4; print('OK')"
 
 **Fix:**
 ```bash
-export PYTHONPATH="/home/adam/projects/hcls-ai-factory/lib:$PYTHONPATH"
+export PYTHONPATH="$HCLS_HOME/lib:$PYTHONPATH"
 ```
 
 ### Problem: Streamlit session state is corrupted

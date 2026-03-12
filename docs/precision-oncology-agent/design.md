@@ -74,7 +74,7 @@ BioNeMo MolMIM/DiffDock).
    recall.
 
 4. **Knowledge-augmented generation** -- A curated knowledge graph (40+
-   actionable targets, 15+ drugs, 8+ pathways) injects domain context into
+   actionable targets, 30 drugs, 10 pathways) injects domain context into
    LLM prompts alongside retrieved evidence.
 
 5. **Export interoperability** -- Reports are exported in four formats:
@@ -391,7 +391,7 @@ Pathway:      MAPK
 Evidence:     A
 ```
 
-#### THERAPY_MAP (15+ drugs)
+#### THERAPY_MAP (30 drugs)
 
 Maps drug names to structured records containing:
 - Mechanism of action (MOA)
@@ -405,13 +405,13 @@ Maps drug names to structured records containing:
 Maps drug classes to resistance mechanisms (primary mutations, bypass
 pathways, lineage plasticity) with recommended bypass strategies.
 
-#### PATHWAY_MAP (8+ pathways)
+#### PATHWAY_MAP (10 pathways)
 
 Curated definitions for MAPK, PI3K/AKT/mTOR, DDR, Cell Cycle,
 WNT/beta-catenin, Hedgehog, JAK/STAT, Notch. Each entry includes
 key nodes, druggable targets, and cross-talk relationships.
 
-#### BIOMARKER_PANELS (10+ biomarkers)
+#### BIOMARKER_PANELS (20 biomarkers)
 
 Each biomarker includes testing methods, scoring cutoffs, associated
 therapies, and companion diagnostic requirements.
@@ -1436,7 +1436,7 @@ Docker Compose environment variable interpolation (`${ANTHROPIC_API_KEY}`).
 ### 9.1 Overview
 
 The test suite contains 10 test files plus a shared `conftest.py`,
-totaling 4,585 lines and approximately 388 test functions.
+totaling 4,584 lines and 556 test cases (including parametrized expansions).
 
 **Framework:** pytest
 **Mocking:** unittest.mock (MagicMock)
