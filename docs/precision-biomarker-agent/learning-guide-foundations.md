@@ -298,7 +298,7 @@ analysis modules:
 - `DiseaseTrajectoryAnalyzer` -- Pre-symptomatic risk assessment across 6+
   disease categories with estimated years to clinical onset.
 - `PharmacogenomicMapper` -- Star allele to metabolizer phenotype mapping using
-  CPIC Level 1A guidelines for 9+ pharmacogenes.
+  CPIC Level 1A guidelines for 14 pharmacogenes.
 - `GenotypeAdjuster` -- Genotype-adjusted reference ranges for biomarkers
   affected by genetic variants (MTHFR, APOE, PNPLA3, HFE, DIO2, VDR, FADS1).
 
@@ -768,7 +768,7 @@ Key insights encoded in the knowledge graph:
 
 ### PGx Knowledge
 
-The knowledge graph stores structured data for 9 pharmacogenes:
+The knowledge graph stores structured data for 14 pharmacogenes:
 
 1. CYP2D6 -- codeine, tramadol, tamoxifen, SSRIs
 2. CYP2C19 -- clopidogrel, PPIs, voriconazole
@@ -837,9 +837,9 @@ A patient's result is written as a diplotype: two alleles separated by a slash.
 For example, `CYP2D6 *1/*4` means one normal allele and one non-functional
 allele.
 
-### The 9 Pharmacogenes
+### The 14 Pharmacogenes
 
-The agent maps the following 9 genes to drug recommendations:
+The agent maps the following 14 genes to drug recommendations:
 
 **1. CYP2D6** (Cytochrome P450 2D6) -- Metabolizes ~25% of all drugs. Key drugs:
 codeine (converted to morphine), tramadol, tamoxifen (converted to endoxifen),
@@ -1051,7 +1051,7 @@ curl http://localhost:8529/knowledge/stats
   "disease_domains": 7,
   "total_biomarkers": 42,
   "total_genetic_modifiers": 18,
-  "pharmacogenes": 9,
+  "pharmacogenes": 14,
   "pgx_drug_interactions": 27,
   "phenoage_markers": 9,
   "cross_modal_links": 8
@@ -1293,7 +1293,7 @@ COSINE similarity with IVF_FLAT index type.
 **src/knowledge.py** (1,326 lines) -- The structured knowledge graph. Contains
 `BIOMARKER_DOMAINS` (7 disease domains with biomarkers, genetic modifiers,
 and intervention targets), `PHENOAGE_KNOWLEDGE` (PhenoAge clock biomarker
-descriptions and coefficients), `PGX_KNOWLEDGE` (9 pharmacogenes with key
+descriptions and coefficients), `PGX_KNOWLEDGE` (14 pharmacogenes with key
 drugs and CPIC guidance), `CROSS_MODAL_LINKS` (8 links to other agents),
 `GENOTYPE_THRESHOLDS` (shared clinical thresholds for cross-module
 consistency), `AGE_SEX_REFERENCE_RANGES` (age- and sex-stratified ranges),
@@ -1321,7 +1321,7 @@ evidence quality, run sub-queries if evidence is insufficient, build enhanced
 prompt with analysis results, and generate LLM answer.
 
 **src/pharmacogenomics.py** (1,503 lines) -- The `PharmacogenomicMapper`. Maps
-star alleles to metabolizer phenotypes for all 9 pharmacogenes using CPIC
+star alleles to metabolizer phenotypes for all 14 pharmacogenes using CPIC
 guidelines. Contains the complete star allele to function mapping for CYP2D6,
 CYP2C19, CYP2C9, VKORC1, SLCO1B1, DPYD, CYP3A5, TPMT, and MTHFR. Tracks
 CPIC guideline versions with PMIDs. `map_all()` processes a patient's complete
