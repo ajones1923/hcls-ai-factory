@@ -82,7 +82,7 @@ ranking, clinical trial matching, and evidence synthesis.
 | Test files / cases      | 10 files, 556 test cases (all passing)       |
 | Docker services         | 6                                            |
 | Seed data files         | 10 JSON files, ~773 KB total                 |
-| Dependencies            | 57 packages                                  |
+| Dependencies            | 23 packages                                  |
 
 ---
 
@@ -1067,13 +1067,15 @@ Response:
 | POST   | /api/cases            | Create patient case              |
 | GET    | /api/cases/{id}       | Retrieve case by ID              |
 | POST   | /api/cases/{id}/mtb   | Generate MTB packet              |
+| GET    | /api/cases/{id}/variants | List case variants            |
 
 ### 14.4 Trials Router (api/routes/trials.py)
 
-| Method | Path                  | Description                      |
-|--------|-----------------------|----------------------------------|
-| POST   | /api/trials/match     | Match clinical trials            |
-| POST   | /api/therapies/rank   | Rank therapies for patient       |
+| Method | Path                        | Description                      |
+|--------|-----------------------------|----------------------------------|
+| POST   | /api/trials/match           | Match clinical trials            |
+| POST   | /api/trials/match-case/{id} | Match trials for existing case   |
+| POST   | /api/therapies/rank         | Rank therapies for patient       |
 
 ### 14.5 Reports Router (api/routes/reports.py)
 
@@ -1086,7 +1088,8 @@ Response:
 
 | Method | Path          | Description                            |
 |--------|---------------|----------------------------------------|
-| GET    | /api/events   | Event log                              |
+| GET    | /api/events           | Event log with pagination              |
+| GET    | /api/events/{event_id}| Retrieve specific event                |
 
 ### 14.7 CORS Configuration
 
@@ -1322,7 +1325,7 @@ docker compose logs -f onco-setup  # Watch seed progress
 
 ## 19. Testing
 
-**Directory:** `tests/` (10 files, 4,370 lines, 556 test cases)
+**Directory:** `tests/` (10 files, 4,584 lines, 556 test cases)
 
 All tests use pytest with fixtures defined in `conftest.py`.
 
@@ -1458,7 +1461,7 @@ collection with BGE-small-en-v1.5 embeddings.
 | test_rag_engine.py      | 301   |
 | test_collections.py     | 276   |
 | test_agent.py           | 264   |
-| **Total tests/**        | **~4,370** |
+| **Total tests/**        | **~4,584** |
 
 ### 21.3 API (api/)
 
@@ -1498,7 +1501,7 @@ collection with BGE-small-en-v1.5 embeddings.
 | Category     | Files | Lines    |
 |--------------|-------|----------|
 | Source (src/) | ~25  | ~11,440  |
-| Tests         | 10   | ~4,370   |
+| Tests         | 10   | ~4,584   |
 | API           | 6    | ~700     |
 | UI            | 1    | ~500     |
 | Config        | 1    | 134      |
@@ -1511,7 +1514,7 @@ collection with BGE-small-en-v1.5 embeddings.
 
 ## 22. Dependencies
 
-**File:** `requirements.txt` (57 packages)
+**File:** `requirements.txt` (23 packages)
 
 ### 22.1 Core Framework
 
