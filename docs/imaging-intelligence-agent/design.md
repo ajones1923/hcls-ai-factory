@@ -65,9 +65,9 @@ Cross-modal triggers link imaging to genomics: Lung-RADS 4A+ findings automatica
 |                                        |                                |
 |                  Knowledge Graph       |  Query Expansion               |
 |                  src/knowledge.py      |  src/query_expansion.py        |
-|                  15 pathologies         |  Domain-specific term maps     |
-|                  8 modalities           |                                |
-|                  15 anatomy regions     |                                |
+|                  25 pathologies         |  Domain-specific term maps     |
+|                  9 modalities           |                                |
+|                  21 anatomy regions     |                                |
 +=========================================================================+
                     |                            |
 +=========================================================================+
@@ -394,7 +394,7 @@ agent/
 |   +-- nim/{base,vista3d_client,maisi_client,vilam3_client,llm_client,service_manager}.py
 |   +-- workflows/{base,ct_head_hemorrhage,ct_chest_lung_nodule,ct_coronary_angiography,cxr_rapid_findings,mri_brain_ms_lesion,mri_prostate_pirads}.py
 |   +-- ingest/{base,literature_parser,clinical_trials_parser,finding_parser,...,dicom_watcher}.py
-+-- tests/                              # 539 unit tests
++-- tests/                              # 620 unit tests
 +-- scripts/                            # Setup, seeding, validation
 +-- docs/                               # Architecture guide, NIM guide, project bible
 +-- data/sample_images/fullres/         # Synthetic CXR images

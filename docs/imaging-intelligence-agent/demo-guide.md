@@ -31,7 +31,7 @@ tags:
 | **Knowledge Base** | 876 seed imaging vectors across 10 owned collections + shared genomic_evidence (read-only) |
 | **Collections** | imaging_literature, imaging_trials, imaging_findings, imaging_protocols, imaging_devices, imaging_anatomy, imaging_benchmarks, imaging_guidelines, imaging_report_templates, imaging_datasets + shared genomic_evidence (read-only) |
 | **Export Formats** | Markdown, JSON, PDF, FHIR R4 DiagnosticReport |
-| **Tests** | 539 |
+| **Tests** | 620 |
 
 ### What the Audience Will See
 
