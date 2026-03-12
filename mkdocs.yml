@@ -131,6 +131,10 @@ nav:
       - Demo Guide: imaging-intelligence-agent/demo-guide.md
       - Design Document: imaging-intelligence-agent/design.md
       - Project Bible: imaging-intelligence-agent/project-bible.md
+      - White Paper: imaging-intelligence-agent/white-paper.md
+      - Deployment Guide: imaging-intelligence-agent/deployment-guide.md
+      - "Learning Guide \u2014 Foundations": imaging-intelligence-agent/learning-guide-foundations.md
+      - "Learning Guide \u2014 Advanced": imaging-intelligence-agent/learning-guide-advanced.md
     - Precision Oncology Agent:
       - Overview: precision-oncology-agent/index.md
       - Demo Guide: precision-oncology-agent/demo-guide.md
