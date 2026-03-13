@@ -558,7 +558,7 @@ Note: Ingest rate is dominated by BGE-small embedding time (~180ms per text on C
 |---|---|---|
 | Vector database | Milvus | 2.4, localhost:19530 |
 | Embedding model | BGE-small-en-v1.5 | 384-dim, BAAI, ~33M params |
-| LLM | Claude Sonnet 4.6 | Anthropic API, claude-sonnet-4-20250514 |
+| LLM | Claude Sonnet 4.6 | Anthropic API, claude-sonnet-4-6 |
 | UI framework | Streamlit | Port 8521, NVIDIA black/green theme |
 | Data models | Pydantic | BaseModel + Field validation |
 | Configuration | Pydantic BaseSettings | Environment variable support |

@@ -249,7 +249,7 @@ therapy analysis.
 
 Constructs a prompt combining the system prompt, knowledge-graph context,
 retrieved evidence with citations, and the user's question. Sends to the
-Claude LLM (claude-sonnet-4-20250514 by default) and returns the generated
+Claude LLM (claude-sonnet-4-6 by default) and returns the generated
 answer.
 
 #### Citation Formatting
@@ -1033,7 +1033,7 @@ User Question: "What are the treatment options for BRAF V600E melanoma?"
     v
 [OncoRAGEngine.synthesize()]
     |   System prompt + knowledge context + evidence + question
-    |   -> Claude (claude-sonnet-4-20250514) -> answer with citations
+    |   -> Claude (claude-sonnet-4-6) -> answer with citations
     |
     v
 [Formatted Response]
@@ -1418,7 +1418,7 @@ prefix (Pydantic BaseSettings with `env_prefix="ONCO_"`):
 ONCO_MILVUS_HOST          default: localhost
 ONCO_MILVUS_PORT          default: 19530
 ONCO_EMBEDDING_MODEL      default: BAAI/bge-small-en-v1.5
-ONCO_LLM_MODEL            default: claude-sonnet-4-20250514
+ONCO_LLM_MODEL            default: claude-sonnet-4-6
 ONCO_API_PORT              default: 8527
 ONCO_STREAMLIT_PORT        default: 8526
 ONCO_TOP_K                 default: 5
@@ -1684,7 +1684,7 @@ evidence_level, description). Update `THERAPY_MAP`, `RESISTANCE_MAP`,
 ### 12.7 LLM Provider Swap
 
 The LLM provider is configurable via `ONCO_LLM_PROVIDER` (default:
-"anthropic") and `ONCO_LLM_MODEL` (default: claude-sonnet-4-20250514). To add a
+"anthropic") and `ONCO_LLM_MODEL` (default: claude-sonnet-4-6). To add a
 new provider, modify the LLM client instantiation in the RAG engine's
 `synthesize()` method.
 
