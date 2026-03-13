@@ -392,7 +392,7 @@ Each star allele is assigned a numerical **activity score** reflecting its enzym
 | Function Status | Activity Score | CYP2D6 Examples | CYP2C19 Examples |
 |----------------|---------------|-----------------|------------------|
 | No function | 0.0 | *3, *4, *5, *6 | *2, *3 |
-| Decreased function | 0.5 | *9, *10, *17, *29, *41 | N/A |
+| Decreased function | 0.25-0.5 | *10 (0.25); *9, *17, *29, *41 (0.5) | N/A |
 | Normal function | 1.0 | *1, *2 | *1 |
 | Increased function | 1.5 | N/A | *17 |
 | Increased function (duplication) | 2.0+ | *1xN, *2xN | N/A |
@@ -423,9 +423,9 @@ EXAMPLE 4: CYP2D6 *1/*1xN (gene duplication)
   Diplotype AS  = 1.0 + 2.0 = 3.0
 
 EXAMPLE 5: CYP2D6 *10/*10
-  Allele 1: *10 = 0.5 (decreased function)
-  Allele 2: *10 = 0.5 (decreased function)
-  Diplotype AS  = 0.5 + 0.5 = 1.0
+  Allele 1: *10 = 0.25 (decreased function)
+  Allele 2: *10 = 0.25 (decreased function)
+  Diplotype AS  = 0.25 + 0.25 = 0.5
 
 EXAMPLE 6: CYP2D6 *4/*41
   Allele 1: *4  = 0.0 (no function)
@@ -440,12 +440,11 @@ The activity score maps to a standardized **metabolizer phenotype** using CPIC-d
 | Phenotype | Abbreviation | CYP2D6 Activity Score | Example Diplotypes | Clinical Meaning |
 |-----------|-------------|----------------------|-------------------|-----------------|
 | Ultra-Rapid Metabolizer | UM | > 2.25 | *1/*2xN, *2/*2xN | Metabolizes drugs too fast; prodrugs = toxicity risk, regular drugs = sub-therapeutic |
-| Rapid Metabolizer | RM | 2.0 - 2.25 | *1/*1xN (with 2 copies) | Slightly faster than normal; limited clinical significance for most drugs |
-| Normal Metabolizer | NM | 1.25 - 2.0 | *1/*1, *1/*2, *1/*41 | Standard drug response expected |
-| Intermediate Metabolizer | IM | 0.25 - 1.0 | *1/*4, *4/*41, *10/*10 | Reduced metabolism; may need dose adjustment |
+| Normal Metabolizer | NM | 1.0 - 2.25 | *1/*1, *1/*2, *1/*41, *1/*10 | Standard drug response expected |
+| Intermediate Metabolizer | IM | 0.25 - 1.0 (exclusive) | *1/*4, *4/*41, *10/*10 | Reduced metabolism; may need dose adjustment |
 | Poor Metabolizer | PM | 0.0 | *4/*4, *4/*5, *3/*4 | Cannot metabolize via this enzyme; prodrugs fail, regular drugs accumulate |
 
-Note: The exact activity score boundaries for CYP2D6 phenotype assignment follow the 2020 CPIC standardization by Caudle et al. (J Clin Pharmacol 2020). Boundaries differ slightly between genes.
+Note: CYP2D6 phenotype thresholds follow the CPIC 2023 update (PM=0, IM=0.25-<1.0, NM=1.0-2.25, UM>2.25). There is no separate Rapid Metabolizer (RM) category for CYP2D6. Note: CPIC updated the CYP2D6 *10 activity score from 0.5 to 0.25 in 2023. Boundaries differ slightly between genes.
 
 ### Understanding the Phenotype Spectrum
 
@@ -492,17 +491,17 @@ CYP2C19 uses a slightly different activity score system due to the presence of *
 | *1/*4 | 1.0 + 0.0 | 1.0 | IM |
 | *1/*5 | 1.0 + 0.0 | 1.0 | IM |
 | *1/*9 | 1.0 + 0.5 | 1.5 | NM |
-| *1/*10 | 1.0 + 0.5 | 1.5 | NM |
+| *1/*10 | 1.0 + 0.25 | 1.25 | NM |
 | *1/*17 | 1.0 + 0.5 | 1.5 | NM |
 | *1/*41 | 1.0 + 0.5 | 1.5 | NM |
 | *2/*2 | 1.0 + 1.0 | 2.0 | NM |
 | *4/*4 | 0.0 + 0.0 | 0.0 | PM |
 | *4/*5 | 0.0 + 0.0 | 0.0 | PM |
-| *4/*10 | 0.0 + 0.5 | 0.5 | IM |
+| *4/*10 | 0.0 + 0.25 | 0.25 | IM |
 | *4/*41 | 0.0 + 0.5 | 0.5 | IM |
-| *10/*10 | 0.5 + 0.5 | 1.0 | IM |
-| *10/*17 | 0.5 + 0.5 | 1.0 | IM |
-| *10/*41 | 0.5 + 0.5 | 1.0 | IM |
+| *10/*10 | 0.25 + 0.25 | 0.5 | IM |
+| *10/*17 | 0.25 + 0.5 | 0.75 | IM |
+| *10/*41 | 0.25 + 0.5 | 0.75 | IM |
 | *1/*1xN (3 copies) | 1.0 + 3.0 | 4.0 | UM |
 | *1/*2xN (3 copies) | 1.0 + 3.0 | 4.0 | UM |
 

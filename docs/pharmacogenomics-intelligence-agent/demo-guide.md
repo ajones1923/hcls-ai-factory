@@ -95,8 +95,7 @@ Expected response:
 {
   "status": "healthy",
   "collections": 15,
-  "total_vectors": 240,
-  "milvus_connected": true
+  "total_vectors": 240
 }
 ```
 
@@ -603,7 +602,7 @@ curl http://localhost:8107/metrics
 ```bash
 curl -X POST http://localhost:8107/query \
   -H "Content-Type: application/json" \
-  -d '{"query": "What are the CYP2D6 implications for codeine prescribing?"}'
+  -d '{"question": "What are the CYP2D6 implications for codeine prescribing?"}'
 ```
 
 ### 5.3 Evidence-Only Search (No LLM)
@@ -611,7 +610,7 @@ curl -X POST http://localhost:8107/query \
 ```bash
 curl -X POST http://localhost:8107/search \
   -H "Content-Type: application/json" \
-  -d '{"query": "warfarin CYP2C9 VKORC1 dosing", "top_k": 10}'
+  -d '{"question": "warfarin CYP2C9 VKORC1 dosing"}'
 ```
 
 ### 5.4 Cross-Collection Entity Search
@@ -619,7 +618,7 @@ curl -X POST http://localhost:8107/search \
 ```bash
 curl -X POST http://localhost:8107/find-related \
   -H "Content-Type: application/json" \
-  -d '{"query": "CYP2D6", "top_k": 20}'
+  -d '{"entity": "CYP2D6"}'
 ```
 
 ### 5.5 Single Drug PGx Check
@@ -658,43 +657,43 @@ curl -X POST http://localhost:8107/v1/pgx/medication-review \
 
 ```bash
 # Standard patient
-curl -X POST http://localhost:8107/v1/pgx/warfarin-dose \
+curl -X POST http://localhost:8107/v1/pgx/dosing/warfarin \
   -H "Content-Type: application/json" \
   -d '{
     "age": 65,
     "height_cm": 170,
     "weight_kg": 80,
     "race": "caucasian",
-    "cyp2c9": "*1/*3",
-    "vkorc1": "A/G",
+    "cyp2c9_genotype": "*1/*3",
+    "vkorc1_genotype": "A/G",
     "amiodarone": false,
     "enzyme_inducer": false
   }'
 
 # Extreme low-dose genotype
-curl -X POST http://localhost:8107/v1/pgx/warfarin-dose \
+curl -X POST http://localhost:8107/v1/pgx/dosing/warfarin \
   -H "Content-Type: application/json" \
   -d '{
     "age": 75,
     "height_cm": 160,
     "weight_kg": 65,
     "race": "asian",
-    "cyp2c9": "*3/*3",
-    "vkorc1": "A/A",
+    "cyp2c9_genotype": "*3/*3",
+    "vkorc1_genotype": "A/A",
     "amiodarone": true,
     "enzyme_inducer": false
   }'
 
 # High-dose genotype with enzyme inducer
-curl -X POST http://localhost:8107/v1/pgx/warfarin-dose \
+curl -X POST http://localhost:8107/v1/pgx/dosing/warfarin \
   -H "Content-Type: application/json" \
   -d '{
     "age": 45,
     "height_cm": 185,
     "weight_kg": 95,
     "race": "black",
-    "cyp2c9": "*1/*1",
-    "vkorc1": "G/G",
+    "cyp2c9_genotype": "*1/*1",
+    "vkorc1_genotype": "G/G",
     "amiodarone": false,
     "enzyme_inducer": true
   }'
@@ -730,36 +729,24 @@ curl -X POST http://localhost:8107/v1/pgx/hla-screen \
 curl -X POST http://localhost:8107/v1/pgx/phenoconversion \
   -H "Content-Type: application/json" \
   -d '{
-    "genetic_phenotype": "normal_metabolizer",
-    "gene": "CYP2D6",
-    "medications": ["fluoxetine", "omeprazole"]
+    "baseline_phenotype": "normal_metabolizer",
+    "enzyme": "CYP2D6",
+    "concomitant_drugs": ["fluoxetine", "omeprazole"]
   }'
 ```
 
 ### 5.10 Gene Reference Lookup
 
 ```bash
-# CYP2D6
-curl http://localhost:8107/v1/pgx/gene/CYP2D6 | python -m json.tool
-
-# CYP2C19
-curl http://localhost:8107/v1/pgx/gene/CYP2C19 | python -m json.tool
-
-# DPYD
-curl http://localhost:8107/v1/pgx/gene/DPYD | python -m json.tool
+# List all pharmacogenes
+curl http://localhost:8107/v1/pgx/genes | python -m json.tool
 ```
 
 ### 5.11 Drug Guideline Lookup
 
 ```bash
-# Warfarin guidelines
-curl http://localhost:8107/v1/pgx/drug/warfarin | python -m json.tool
-
-# Codeine guidelines
-curl http://localhost:8107/v1/pgx/drug/codeine | python -m json.tool
-
-# Clopidogrel guidelines
-curl http://localhost:8107/v1/pgx/drug/clopidogrel | python -m json.tool
+# List all drugs with PGx guidelines
+curl http://localhost:8107/v1/pgx/drugs | python -m json.tool
 ```
 
 ---
