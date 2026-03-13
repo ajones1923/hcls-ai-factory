@@ -818,7 +818,7 @@ Import a Grafana dashboard with the following panels:
 - Clinical alerts by severity (stacked bar: CONTRAINDICATED, MAJOR, MODERATE, MINOR, INFORMATIONAL)
 - Drug checks count (counter)
 - HLA screens by result (pie: CONTRAINDICATED, HIGH_RISK, SAFE, UNKNOWN)
-- Dosing calculations by algorithm (bar: warfarin, tacrolimus, fluoropyrimidine, thiopurine)
+- Dosing calculations by algorithm (bar: warfarin, tacrolimus, fluoropyrimidine, thiopurine, tamoxifen, codeine, voriconazole, clopidogrel, phenytoin)
 
 **Row 4: Collections**
 - Evidence count per query (histogram)

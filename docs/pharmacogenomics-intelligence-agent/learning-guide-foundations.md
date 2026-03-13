@@ -1129,12 +1129,12 @@ The Pharmacogenomics Intelligence Agent operationalizes every concept in this gu
 | Star allele nomenclature | `StarAlleleCaller` (pgx_pipeline.py) | Resolves VCF variants to star alleles for 25 genes |
 | Diplotype-to-phenotype | `PhenotypeTranslator` (pgx_pipeline.py) | Activity score summation per CPIC standardized terms |
 | CPIC guidelines | `pgx_drug_guidelines` collection | 240 seed records with guideline recommendations |
-| HLA screening | `HLAScreener` (hla_screener.py) | 12 HLA-drug associations with severity and alternatives |
+| HLA screening | `HLAScreener` (hla_screener.py) | 15 HLA-drug associations with severity and alternatives |
 | Drug metabolism | `DrugGeneMatcher` (pgx_pipeline.py) | Cross-references phenotype profiles against medication lists |
-| Phenoconversion | `PhenoconversionDetector` (phenoconversion.py) | 30+ CYP inhibitors/inducers with phenotype shift modeling |
-| Dosing algorithms | `DosingCalculator` (dosing.py) | 4 validated algorithms (IWPC warfarin, tacrolimus, fluoropyrimidine, thiopurine) |
+| Phenoconversion | `PhenoconversionDetector` (phenoconversion.py) | 60 CYP inhibitors/inducers with phenotype shift modeling |
+| Dosing algorithms | `DosingCalculator` (dosing.py) | 9 validated algorithms (IWPC warfarin, tacrolimus, fluoropyrimidine, thiopurine, CYP2C19 clopidogrel, SLCO1B1 simvastatin, CYP2D6/CYP2C19 SSRI, CYP2C9 phenytoin, CYP2D6 TCA) |
 | Population genetics | `pgx_population_data` collection | Allele frequencies across all major populations |
-| Knowledge graph | `knowledge.py` (2,512 lines) | 25 pharmacogenes, 100+ drugs, 12 HLA associations |
+| Knowledge graph | `knowledge.py` (2,657 lines) | 25 pharmacogenes, 100+ drugs, 15 HLA associations |
 | Evidence retrieval | `PGxRAGEngine` (rag_engine.py) | 15-collection parallel search with weighted ranking |
 | Clinical reports | `export.py` | Markdown, JSON, PDF, FHIR R4 DiagnosticReport Bundle |
 
