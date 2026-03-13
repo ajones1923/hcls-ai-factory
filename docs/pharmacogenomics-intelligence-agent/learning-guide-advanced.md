@@ -1254,13 +1254,13 @@ TDM tells you WHERE you actually are
 
 Certain diplotype combinations create ambiguous activity score assignments that require careful interpretation:
 
-**CYP2D6 *1/*10 (AS = 1.5):** Falls at the boundary between NM and RM. CPIC classifies this as NM, but some institutions classify it as IM. Clinical impact depends on the specific substrate.
+**CYP2D6 *1/*10 (AS = 1.25):** Falls within the NM range (1.0-2.25). Note: CPIC updated the CYP2D6 *10 activity score from 0.5 to 0.25 in 2023. Clinical impact depends on the specific substrate.
 
 **CYP2D6 *41/*41 (AS = 1.0):** Two decreased-function alleles. Falls at the IM/NM boundary. CPIC classifies as IM. Some studies show CYP2D6*41 homozygotes have near-normal metabolism for some substrates.
 
 **CYP2C19 *2/*17 (AS = 1.5):** One no-function + one increased-function allele. The net effect is intermediate, but the *17 allele partially compensates for *2. CPIC classifies as IM but notes that phenotype assignment is uncertain.
 
-**CYP2D6 *10/*41 (AS = 1.0):** Two different decreased-function alleles. Assigned IM phenotype. Common in East Asian populations where both alleles are prevalent.
+**CYP2D6 *10/*41 (AS = 0.75):** Two different decreased-function alleles (*10=0.25, *41=0.5). Assigned IM phenotype. Common in East Asian populations where both alleles are prevalent.
 
 ### Population-Specific Dosing Considerations
 
@@ -1579,7 +1579,7 @@ This case demonstrates the complexity of multi-gene interactions in polypharmacy
 
 **PGx results:**
 - CYP2C19: *2/*3 (PM, AS = 0.0)
-- CYP2D6: *1/*10 (NM, AS = 1.5)
+- CYP2D6: *1/*10 (NM, AS = 1.25)
 
 **Analysis:**
 

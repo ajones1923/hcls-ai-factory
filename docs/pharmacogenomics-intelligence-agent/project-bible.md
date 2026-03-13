@@ -297,15 +297,15 @@ Democratize pharmacogenomic decision support by providing unified, evidence-grou
 
 ### 6.2 The 25 Pharmacogenes
 
-**CYP Enzymes (8):** CYP2D6, CYP2C19, CYP2C9, CYP3A4, CYP3A5, CYP2B6, CYP1A2, CYP4F2
+**CYP Enzymes (9):** CYP2D6, CYP2C19, CYP2C9, CYP3A4, CYP3A5, CYP2B6, CYP1A2, CYP2C8, CYP4F2
 
 **Phase II Enzymes (4):** UGT1A1, NAT2, TPMT, DPYD
 
 **Transporters (2):** SLCO1B1, ABCB1
 
-**HLA Genes (3):** HLA-A, HLA-B, HLA-DRB1
+**HLA Genes (1):** HLA
 
-**Other Pharmacogenes (8):** VKORC1, NUDT15, G6PD, IFNL3, RYR1, CACNA1S, CYP2A6, COMT
+**Other Pharmacogenes (9):** VKORC1, NUDT15, G6PD, IFNL3, RYR1, CACNA1S, CFTR, F5, MTHFR
 
 ### 6.3 The 12 Therapeutic Drug Categories
 
