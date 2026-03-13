@@ -9,7 +9,7 @@
 
 ## Abstract
 
-Adverse drug reactions (ADRs) affect approximately 95% of the population through inherited variation in drug-metabolizing enzymes, transporters, and HLA alleles, costing the global healthcare system an estimated $528 billion per year. The Clinical Pharmacogenetics Implementation Consortium (CPIC) publishes evidence-based guidelines for over 100 gene-drug pairs, yet fewer than 5% of patients receive pharmacogenomic testing before being prescribed high-risk medications. This paper presents the Pharmacogenomics Intelligence Agent, a multi-collection retrieval-augmented generation (RAG) system that combines 15 specialized vector collections, 4 validated dosing algorithms, 12 HLA-drug hypersensitivity associations, phenoconversion modeling across 30+ CYP inhibitors/inducers, and a 25-pharmacogene knowledge graph to deliver actionable prescribing recommendations in under 5 seconds. The system is designed to run on a single NVIDIA DGX Spark workstation, making clinical-grade pharmacogenomic decision support accessible to any clinic, pharmacy, or research institution.
+Adverse drug reactions (ADRs) affect approximately 95% of the population through inherited variation in drug-metabolizing enzymes, transporters, and HLA alleles, costing the global healthcare system an estimated $528 billion per year. The Clinical Pharmacogenetics Implementation Consortium (CPIC) publishes evidence-based guidelines for over 100 gene-drug pairs, yet fewer than 5% of patients receive pharmacogenomic testing before being prescribed high-risk medications. This paper presents the Pharmacogenomics Intelligence Agent, a multi-collection retrieval-augmented generation (RAG) system that combines 15 specialized vector collections, 9 genotype-guided dosing algorithms, 15 HLA-drug hypersensitivity associations, phenoconversion modeling across 30+ CYP inhibitors/inducers, and a 25-pharmacogene knowledge graph to deliver actionable prescribing recommendations in under 5 seconds. The system is designed to run on a single NVIDIA DGX Spark workstation, making clinical-grade pharmacogenomic decision support accessible to any clinic, pharmacy, or research institution.
 
 ---
 
@@ -61,7 +61,7 @@ Key contributions of this work include:
 1. **Multi-collection RAG architecture** that maintains 15 purpose-built vector collections with domain-specific schemas, enabling both semantic search and structured filtering within a unified retrieval framework.
 2. **Deterministic clinical pipelines** that guarantee safety-critical information (HLA contraindications, phenoconversion alerts) is never missed due to embedding similarity thresholds.
 3. **Knowledge graph augmentation** that supplements probabilistic vector retrieval with structured pharmacogenomic facts from 9 curated dictionaries.
-4. **Validated dosing algorithms** implementing published pharmacogenomic dosing equations (IWPC warfarin, CYP3A5 tacrolimus, DPYD fluoropyrimidine, TPMT+NUDT15 thiopurine) as first-class computational components.
+4. **Validated dosing algorithms** implementing published pharmacogenomic dosing equations (IWPC warfarin, CYP3A5 tacrolimus, DPYD fluoropyrimidine, TPMT+NUDT15 thiopurine, CYP2C19 clopidogrel, SLCO1B1 simvastatin, CYP2D6/CYP2C19 SSRI, CYP2C9 phenytoin, CYP2D6 TCA) as first-class computational components.
 5. **Accessible deployment** on a single NVIDIA DGX Spark workstation, removing the barrier of expensive cloud infrastructure for clinical-grade PGx decision support.
 
 ---
@@ -191,11 +191,11 @@ The `PhenoconversionDetector` accepts a patient's genetic phenotype and current 
 
 ### 3.4 HLA Screening
 
-The `HLAScreener` checks patient HLA typing against 12 validated HLA-drug hypersensitivity associations. Each association includes reaction type, severity classification, recommendation, therapeutic alternatives, evidence level, and population-specific prevalence data.
+The `HLAScreener` checks patient HLA typing against 15 HLA-drug hypersensitivity associations. Each association includes reaction type, severity classification, recommendation, therapeutic alternatives, evidence level, and population-specific prevalence data.
 
 ### 3.5 Genotype-Guided Dosing
 
-Four validated dosing algorithms translate pharmacogenomic data into quantitative dose recommendations:
+Nine genotype-guided dosing algorithms translate pharmacogenomic data into quantitative dose recommendations:
 
 **IWPC Warfarin Algorithm**: Regression model incorporating age, height, weight, race, CYP2C9 genotype (*1/*1 through *3/*3), VKORC1 genotype (GG, AG, AA), amiodarone use, and enzyme inducer status. Published by the International Warfarin Pharmacogenetics Consortium (Klein et al., NEJM 2009).
 
@@ -204,6 +204,16 @@ Four validated dosing algorithms translate pharmacogenomic data into quantitativ
 **DPYD Fluoropyrimidine Dosing**: Activity score-based dose reduction for 5-fluorouracil and capecitabine. Activity score 1.0 (DPYD *2A or *13 heterozygotes) warrants 50% dose reduction; activity score 0.0-0.5 warrants avoidance.
 
 **TPMT+NUDT15 Thiopurine Dosing**: Combined assessment of both enzymes for azathioprine and mercaptopurine dosing. Deficiency in either enzyme requires dose reduction; deficiency in both contraindicates use.
+
+**CYP2C19 Clopidogrel Dosing**: Metabolizer status-based alternative antiplatelet therapy selection. PM patients require alternative agents (prasugrel, ticagrelor).
+
+**SLCO1B1 Simvastatin Dosing**: SLCO1B1 transporter function-guided statin selection and dose capping. Poor function (rs4149056 CC) warrants simvastatin dose ≤20mg or alternative statin.
+
+**CYP2D6/CYP2C19 SSRI Dosing**: Dual-gene antidepressant dosing with metabolizer-specific dose adjustments for SSRIs metabolized by both CYP2D6 and CYP2C19.
+
+**CYP2C9 Phenytoin Dosing**: Genotype-guided anticonvulsant dose reduction for CYP2C9 decreased-function allele carriers.
+
+**CYP2D6 TCA Dosing**: CYP2D6-based tricyclic antidepressant dose adjustment. PM patients require 50% dose reduction; UM patients may need dose increase.
 
 ---
 
@@ -217,9 +227,9 @@ The structured knowledge graph in `knowledge.py` (2,512 lines) provides determin
 - **CYP inhibitors across 4 enzymes** (CYP2D6, CYP2C19, CYP2C9, CYP3A4/5)
 - **CYP inducers across 3 enzymes** (CYP2D6, CYP2C19, CYP3A4)
 - **12 HLA-drug associations** with reaction types and population prevalence
-- **30+ drug alternatives** indexed by gene and phenotype
+- **60 drug alternatives** indexed by gene and phenotype
 - **Activity score tables** for CYP2D6 and DPYD alleles
-- **80+ entity aliases** mapping brand names, abbreviations, and synonyms to canonical terms
+- **116 entity aliases** mapping brand names, abbreviations, and synonyms to canonical terms
 
 ---
 
@@ -265,20 +275,20 @@ Each collection is purpose-built for a specific PGx data type, with domain-speci
 
 ### 6.1 Test Coverage
 
-The system includes 696 tests covering all clinical logic:
+The system includes 1,001 tests covering all clinical logic:
 
 | Component | Focus |
 |-----------|-------|
 | Star allele calling | Correct diplotype assembly from VCF variants across 25 genes |
 | Phenotype translation | Activity score summation and metabolizer status assignment |
 | Drug-gene matching | CPIC guideline lookup and alert severity classification |
-| Dosing algorithms | IWPC warfarin, CYP3A5 tacrolimus, DPYD fluoropyrimidine, TPMT+NUDT15 thiopurine |
-| HLA screening | All 12 HLA-drug associations with correct status and alternatives |
+| Dosing algorithms | IWPC warfarin, CYP3A5 tacrolimus, DPYD fluoropyrimidine, TPMT+NUDT15 thiopurine, CYP2C19 clopidogrel, SLCO1B1 simvastatin, CYP2D6/CYP2C19 SSRI, CYP2C9 phenytoin, CYP2D6 TCA |
+| HLA screening | All 15 HLA-drug associations with correct status and alternatives |
 | Phenoconversion | CYP inhibitor/inducer detection and phenotype adjustment |
 | Knowledge graph | All 25 pharmacogenes, 12 drug categories, entity alias resolution |
 | RAG engine | Multi-collection retrieval, ranking, knowledge augmentation |
 
-All 696 tests pass in 0.41 seconds, indicating the clinical logic runs without external dependencies (Milvus, LLM) via comprehensive mocking.
+All 1,001 tests pass in 0.48 seconds, indicating the clinical logic runs without external dependencies (Milvus, LLM) via comprehensive mocking.
 
 ### 6.2 Evidence Grounding
 
@@ -304,7 +314,7 @@ The clinical logic implemented in the Pharmacogenomics Intelligence Agent has be
 
 ### 6.4 Dosing Algorithm Validation
 
-Each of the four dosing algorithms implemented in the system has been validated against published clinical data:
+Each of the nine dosing algorithms implemented in the system has been validated against published clinical data:
 
 **IWPC Warfarin Algorithm.** The IWPC equation was derived from a cohort of 5,700 patients across 21 countries and validated in an independent cohort of 1,009 patients (Klein et al., NEJM 2009). The pharmacogenomic algorithm explained 47% of variance in stable warfarin dose, compared to 17% for a clinical-only model and 12% for a fixed-dose approach. In the EU-PACT and COAG randomized trials, pharmacogenomic-guided warfarin dosing reduced time to stable INR by 7-12 percentage points compared to standard dosing (Pirmohamed et al., NEJM 2013; Kimmel et al., NEJM 2013). The agent's implementation matches the published IWPC coefficients exactly, producing dose predictions within rounding error of the original publication.
 
@@ -314,6 +324,16 @@ Each of the four dosing algorithms implemented in the system has been validated 
 
 **TPMT+NUDT15 Thiopurine Dosing.** The CPIC guideline for TPMT and NUDT15 (Relling et al., Clin Pharmacol Ther 2019) provides combined dosing recommendations that account for the independent contributions of both enzymes to thiopurine metabolism. Pre-emptive genotyping prevents approximately 50% of severe myelosuppression events in patients initiating thiopurine therapy.
 
+**CYP2C19 Clopidogrel Dosing.** The CPIC guideline for CYP2C19 and clopidogrel (Scott et al., Clin Pharmacol Ther 2013) recommends alternative antiplatelet therapy (prasugrel, ticagrelor) for CYP2C19 poor and intermediate metabolizers due to reduced active metabolite formation and increased cardiovascular event risk. The TAILOR-PCI trial confirmed the clinical relevance of CYP2C19-guided antiplatelet selection.
+
+**SLCO1B1 Simvastatin Dosing.** The CPIC guideline for SLCO1B1 and simvastatin (Ramsey et al., Clin Pharmacol Ther 2014) recommends simvastatin dose ≤20mg or alternative statin for patients with poor SLCO1B1 transporter function (rs4149056 CC genotype), based on the SEARCH trial finding of 18-fold increased myopathy risk with high-dose simvastatin in CC carriers.
+
+**CYP2D6/CYP2C19 SSRI Dosing.** The CPIC guideline for SSRIs (Hicks et al., Clin Pharmacol Ther 2015) provides dual-gene dosing recommendations accounting for the metabolic contributions of both CYP2D6 and CYP2C19 to SSRI clearance. Poor metabolizers require dose reduction or alternative agent selection; ultrarapid metabolizers may require dose increases or alternative agents.
+
+**CYP2C9 Phenytoin Dosing.** The CPIC guideline for CYP2C9 and phenytoin (Karnes et al., Clin Pharmacol Ther 2021) recommends genotype-guided dose reduction for CYP2C9 decreased-function allele carriers to prevent phenytoin toxicity due to reduced clearance.
+
+**CYP2D6 TCA Dosing.** The CPIC guideline for CYP2D6 and tricyclic antidepressants (Hicks et al., Clin Pharmacol Ther 2017) recommends 50% dose reduction for CYP2D6 poor metabolizers and potential dose increase for ultrarapid metabolizers based on altered TCA plasma concentrations and clinical response data.
+
 ---
 
 ## 7. Results and Performance
@@ -322,19 +342,19 @@ Each of the four dosing algorithms implemented in the system has been validated 
 
 | Metric | Value |
 |--------|-------|
-| Total Python LOC | 23,049 (19,148 source + 3,901 test) |
+| Total Python LOC | 24,577 (17,913 source + 6,664 test) |
 | Total files | 83 |
 | Milvus collections | 15 |
 | Seed data records | 240 |
 | Pharmacogenes covered | 25 |
 | Drugs covered | 100+ across 12 categories |
-| HLA-drug associations | 12 |
-| Dosing algorithms | 4 validated |
+| HLA-drug associations | 15 |
+| Dosing algorithms | 9 genotype-guided |
 | Clinical workflows | 8 |
 | Prometheus metrics | 22 |
 | API endpoints | 16+ |
 | UI tabs | 10 |
-| Test suite | 696 tests, 0.41s |
+| Test suite | 1,001 tests, 0.48s |
 
 ### 7.2 Query Performance
 
@@ -344,7 +364,7 @@ Each of the four dosing algorithms implemented in the system has been validated 
 - **HLA screening**: < 5 milliseconds per drug check
 - **Phenoconversion check**: < 5 milliseconds per medication list
 - **Collection setup and seeding**: < 30 seconds for all 15 collections and 240 records
-- **Test suite execution**: 0.41 seconds for all 696 tests
+- **Test suite execution**: 0.48 seconds for all 1,001 tests
 
 ### 7.3 Retrieval Quality
 
@@ -405,8 +425,8 @@ The PGx Intelligence Agent occupies a unique position in the pharmacogenomics de
 | Pharmacogenes | 27 | 8 | 20+ | 25 |
 | Drug scope | All classes | Psychiatry only | All classes | All classes |
 | Phenoconversion | No | No | No | Yes (30+ inhibitors/inducers) |
-| HLA screening | Limited | No | No | Yes (12 associations) |
-| Dosing algorithms | Proprietary | No | No | 4 validated (open) |
+| HLA screening | Limited | No | No | Yes (15 HLA-drug pairs) |
+| Dosing algorithms | Proprietary | No | No | 9 genotype-guided (open) |
 | Conversational interface | No | No | No | Yes (RAG + LLM) |
 | EHR integration | Epic, Cerner | Epic, Cerner | FHIR R4 output | FHIR R4 output |
 | Open source | No | No | Yes | Yes |
@@ -458,7 +478,7 @@ The 8 ingest parsers support both initial seeding and continuous updates:
 
 **Deterministic safety layer.** The knowledge graph augmentation provides a deterministic safety net that operates independently of vector retrieval. HLA contraindications, critical drug-gene interactions, and phenoconversion alerts are injected into the LLM context through structured dictionary lookups, not probabilistic similarity search. This guarantees that safety-critical information is never missed due to embedding quality or threshold settings.
 
-**Clinical pipeline integration.** Star allele calling, phenotype translation, phenoconversion detection, HLA screening, and dosing algorithms are implemented as first-class Python components with dedicated test coverage (696 tests). These pipelines run independently of the LLM, ensuring that clinical logic is deterministic and reproducible.
+**Clinical pipeline integration.** Star allele calling, phenotype translation, phenoconversion detection, HLA screening, and dosing algorithms are implemented as first-class Python components with dedicated test coverage (1,001 tests). These pipelines run independently of the LLM, ensuring that clinical logic is deterministic and reproducible.
 
 ### 8.2 Edge Deployment Advantage
 
@@ -518,7 +538,7 @@ All system outputs trace to specific evidence sources with unique identifiers:
 
 1. **CYP2D6 structural variant calling** -- Integration with Stargazer/Cyrius for copy number and hybrid allele detection from whole-genome sequencing data.
 2. **EHR integration via CDS Hooks** -- HL7 FHIR CDS Hooks implementation for real-time clinical decision support within Epic and Cerner EHR workflows.
-3. **Expanded dosing algorithms** -- CYP2C19-guided voriconazole dosing, SLCO1B1-guided simvastatin dose cap, and UGT1A1-guided irinotecan dosing.
+3. **Expanded dosing algorithms** -- CYP2C19-guided voriconazole dosing and UGT1A1-guided irinotecan dosing.
 4. **Pre-emptive panel workflows** -- End-to-end integration with the HCLS AI Factory genomics pipeline, enabling direct VCF-to-PGx-report processing.
 
 ### 10.2 Long-Term Vision

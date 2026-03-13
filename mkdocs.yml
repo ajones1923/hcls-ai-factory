@@ -167,6 +167,15 @@ nav:
       - Deployment Guide: precision-autoimmune-agent/deployment-guide.md
       - "Learning Guide \u2014 Foundations": precision-autoimmune-agent/learning-guide-foundations.md
       - "Learning Guide \u2014 Advanced": precision-autoimmune-agent/learning-guide-advanced.md
+    - Pharmacogenomics Intelligence Agent:
+      - Overview: pharmacogenomics-intelligence-agent/index.md
+      - Demo Guide: pharmacogenomics-intelligence-agent/demo-guide.md
+      - Architecture Guide: pharmacogenomics-intelligence-agent/architecture-guide.md
+      - Project Bible: pharmacogenomics-intelligence-agent/project-bible.md
+      - White Paper: pharmacogenomics-intelligence-agent/white-paper.md
+      - Deployment Guide: pharmacogenomics-intelligence-agent/deployment-guide.md
+      - "Learning Guide \u2014 Foundations": pharmacogenomics-intelligence-agent/learning-guide-foundations.md
+      - "Learning Guide \u2014 Advanced": pharmacogenomics-intelligence-agent/learning-guide-advanced.md
   - Reports:
     - Intelligence Report: HCLS_AI_FACTORY_INTELLIGENCE_REPORT.md
     - Pipeline Report: PIPELINE_REPORT.md

@@ -112,7 +112,7 @@ curl http://localhost:8107/collections | python -m json.tool
 curl http://localhost:8107/knowledge/stats | python -m json.tool
 ```
 
-Expected: 25 pharmacogenes, 12 drug categories, 12 HLA associations.
+Expected: 25 pharmacogenes, 12 drug categories, 15 HLA-drug associations.
 
 ### UI Access
 
@@ -154,8 +154,8 @@ Each scenario maps to one of the 10 Streamlit tabs. Follow these in order for a 
    |  Pharmacogenes:  25                          |
    |  Drugs Covered:  100+                        |
    |  Drug Categories: 12                         |
-   |  HLA Associations: 12                        |
-   |  Dosing Algorithms: 4                        |
+   |  HLA Associations: 15                        |
+   |  Dosing Algorithms: 9                        |
    |  Clinical Workflows: 8                       |
    |  Prometheus Metrics: 22                      |
    |                                              |
@@ -168,7 +168,7 @@ Each scenario maps to one of the 10 Streamlit tabs. Follow these in order for a 
 **Talking points:**
 - "This system covers the 25 most clinically actionable pharmacogenes as defined by CPIC."
 - "All 15 collections are searched in parallel for every query -- response time is under 5 seconds."
-- "The knowledge graph contains 2,512 lines of structured pharmacogenomic data that augments every response."
+- "The knowledge graph contains 2,657 lines of structured pharmacogenomic data that augments every response."
 
 ### Tab 2: Single Drug Check
 
@@ -768,7 +768,7 @@ curl http://localhost:8107/v1/pgx/drug/clopidogrel | python -m json.tool
 
 ### Opening Statement
 
-"The Pharmacogenomics Intelligence Agent translates genetic data into actionable drug prescribing recommendations. It integrates 15 specialized knowledge collections, 4 validated dosing algorithms, and a 25-pharmacogene knowledge graph into a single conversational interface -- all running on a single NVIDIA DGX Spark."
+"The Pharmacogenomics Intelligence Agent translates genetic data into actionable drug prescribing recommendations. It integrates 15 specialized knowledge collections, 9 validated dosing algorithms, and a 25-pharmacogene knowledge graph into a single conversational interface -- all running on a single NVIDIA DGX Spark."
 
 ### Key Messages by Audience
 
@@ -786,7 +786,7 @@ curl http://localhost:8107/v1/pgx/drug/clopidogrel | python -m json.tool
 **For IT/technical audiences:**
 - "The multi-collection RAG architecture uses 15 Milvus vector collections with weighted search."
 - "Parallel search across all 15 collections completes in under 1 second."
-- "The system includes 696 tests covering all clinical logic, with 100% pass rate."
+- "The system includes 1,001 tests covering all clinical logic, with 100% pass rate."
 - "FHIR R4 export supports EHR integration via DiagnosticReport Bundles."
 
 **For executives/administrators:**

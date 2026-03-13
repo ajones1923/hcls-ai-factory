@@ -46,7 +46,7 @@ Clinical Impact:    If codeine is prescribed, the PM recommendation applies:
 
 ### How the Agent Models Phenoconversion
 
-The `PhenoconversionDetector` in `phenoconversion.py` (494 lines) maintains a knowledge base of 30+ CYP inhibitors and inducers classified by FDA potency.
+The `PhenoconversionDetector` in `phenoconversion.py` (517 lines) maintains a knowledge base of 60 CYP inhibitors and inducers classified by FDA potency.
 
 ### Complete CYP2D6 Phenoconversion Shift Table
 
@@ -391,7 +391,7 @@ The pharmacogenomic variant reduces the predicted dose by 48% (from 41.1 to 21.2
 
 ### Implementation in the Agent
 
-The `DosingCalculator` class in `dosing.py` (692 lines) implements this algorithm as a validated Python function. The Warfarin Dosing tab (Tab 4) provides a user-friendly interface for entering patient parameters and viewing the calculated dose alongside the population average.
+The `DosingCalculator` class in `dosing.py` (1,499 lines) implements this algorithm as a validated Python function. The Warfarin Dosing tab (Tab 4) provides a user-friendly interface for entering patient parameters and viewing the calculated dose alongside the population average.
 
 ### Clinical Impact
 
@@ -567,7 +567,7 @@ A PGx panel that tests only TPMT will miss 15-22% of East Asian patients who car
 
 ### Beyond Pre-Treatment Screening
 
-The 12 HLA-drug associations in the agent's knowledge base represent the most validated, clinically actionable pairs. However, HLA pharmacovigilance extends beyond these known associations to encompass an evolving landscape of immune-mediated drug reactions.
+The 15 HLA-drug associations in the agent's knowledge base represent the most validated, clinically actionable pairs. However, HLA pharmacovigilance extends beyond these known associations to encompass an evolving landscape of immune-mediated drug reactions.
 
 ### Evidence Strength Hierarchy
 
@@ -713,7 +713,7 @@ Most pharmacogenomic research and guideline development has been conducted in po
 
 ### The Agent's Approach to Population Equity
 
-The `pgx_population_data` collection stores allele frequency data across all major populations. The Population Analytics tab (Tab 10) visualizes these disparities and the agent's LLM system prompt includes population pharmacogenetics as one of its 11 expertise domains. The knowledge graph contains population-specific allele frequency data for all 25 pharmacogenes, and the HLA screening module includes population-specific prevalence for all 12 HLA-drug associations.
+The `pgx_population_data` collection stores allele frequency data across all major populations. The Population Analytics tab (Tab 10) visualizes these disparities and the agent's LLM system prompt includes population pharmacogenetics as one of its 11 expertise domains. The knowledge graph contains population-specific allele frequency data for all 25 pharmacogenes, and the HLA screening module includes population-specific prevalence for all 15 HLA-drug associations.
 
 ### Self-Reported Race vs. Genetic Ancestry
 
@@ -1128,9 +1128,9 @@ The agent's evidence-based approach (CPIC guidelines, PharmGKB annotations, FDA 
 | Structural variants | Not detected | Varies by lab | SNV-based (structural via upstream tools) |
 | Clinical interpretation | Basic; consumer-oriented | Pharmacist-interpreted; CPIC-aligned | LLM-synthesized with full CPIC/FDA/PharmGKB evidence |
 | EHR integration | None | Yes (FHIR, CDS Hooks) | FHIR R4 export |
-| Phenoconversion | Not considered | Rarely considered | 30+ inhibitors/inducers modeled |
-| HLA screening | Not included | Varies | 12 HLA-drug associations |
-| Dosing algorithms | Not included | Varies | 4 validated algorithms |
+| Phenoconversion | Not considered | Rarely considered | 60 inhibitors/inducers modeled |
+| HLA screening | Not included | Varies | 15 HLA-drug associations |
+| Dosing algorithms | Not included | Varies | 9 validated algorithms |
 | Regulatory oversight | Varies by jurisdiction | CLIA-certified | Decision support tool (not diagnostic) |
 | Cost | $199-299 (consumer panel) | $200-500 (clinical panel) | Open-source (infrastructure cost only) |
 
@@ -1143,7 +1143,7 @@ The intersection of AI and PGx is rapidly evolving. Current and emerging applica
 | Natural language PGx queries | Emerging (few tools offer this) | Full RAG with 15-collection parallel search + Claude Sonnet 4.6 |
 | Star allele calling from VCF | Specialized tools (PharmCAT, Stargazer) | StarAlleleCaller for SNV-based alleles |
 | Drug interaction prediction | Rule-based databases | Knowledge graph + phenoconversion modeling |
-| Dosing optimization | Published algorithms (IWPC) | 4 validated algorithms with exact coefficients |
+| Dosing optimization | Published algorithms (IWPC) | 9 validated algorithms with exact coefficients |
 | Evidence synthesis | Manual literature review | Automated retrieval + LLM synthesis with citations |
 | Population analytics | Separate databases | Integrated population data with visualization |
 
@@ -2062,9 +2062,9 @@ EVIDENCE          GUIDELINES          TESTING           ACTION
 |---------|----------------|-------------------------------|
 | Knowledge gap | Clinicians must learn PGx interpretation | Natural language queries; agent explains rationale |
 | Guideline complexity | Clinicians must read and apply CPIC guidelines manually | Agent retrieves and applies guidelines automatically |
-| Phenoconversion blindness | Most systems ignore drug-drug-gene interactions | 30+ inhibitor/inducer phenoconversion modeling |
-| HLA screening gap | HLA testing often siloed from PGx | Integrated HLA screening with 12 drug associations |
-| Dosing algorithm access | Clinicians must find and calculate dose manually | 4 validated algorithms with instant calculation |
+| Phenoconversion blindness | Most systems ignore drug-drug-gene interactions | 60 inhibitor/inducer phenoconversion modeling |
+| HLA screening gap | HLA testing often siloed from PGx | Integrated HLA screening with 15 HLA-drug associations |
+| Dosing algorithm access | Clinicians must find and calculate dose manually | 9 validated algorithms with instant calculation |
 | Evidence fragmentation | CPIC, PharmGKB, FDA, PubMed in separate systems | 15 collections unified in single RAG interface |
 | Population awareness | Population-specific allele frequencies not readily available | Population Analytics tab with comparative visualization |
 
@@ -2090,7 +2090,7 @@ Clinical pharmacists serve as the primary champions of PGx implementation in mos
 
 2. **Phenoconversion assessment**: Pharmacists routinely review medication lists for drug interactions. Adding phenoconversion assessment (CYP inhibition/induction shifting genotypic phenotype) is a natural extension of this skill.
 
-3. **Dosing algorithm application**: Validated dosing algorithms (IWPC warfarin, CYP3A5-guided tacrolimus, DPYD-guided fluoropyrimidine) require pharmacokinetic expertise that pharmacists possess.
+3. **Dosing algorithm application**: Validated dosing algorithms (IWPC warfarin, CYP3A5-guided tacrolimus, DPYD-guided fluoropyrimidine, TPMT/NUDT15-guided thiopurine, CYP2C19 clopidogrel, SLCO1B1 simvastatin, CYP2D6/CYP2C19 SSRI, CYP2C9 phenytoin, CYP2D6 TCA) require pharmacokinetic expertise that pharmacists possess.
 
 4. **CDS alert management**: Pharmacists manage CDS alert systems and can design PGx alerts that are clinically relevant without causing alert fatigue.
 

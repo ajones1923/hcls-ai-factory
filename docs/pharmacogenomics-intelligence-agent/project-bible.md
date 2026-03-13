@@ -40,7 +40,7 @@
 
 The **Pharmacogenomics Intelligence Agent** is a domain-specialized retrieval-augmented generation (RAG) system that translates patient genetic data into actionable drug prescribing recommendations. It searches 15 Milvus vector collections containing pharmacogene references, CPIC/DPWG clinical guidelines, drug-gene interactions, HLA hypersensitivity associations, phenoconversion models, validated dosing algorithms, clinical evidence, population allele frequency data, clinical trial records, FDA pharmacogenomic labels, therapeutic alternatives, patient diplotype profiles, implementation protocols, and educational resources.
 
-The system implements four clinically validated dosing algorithms (IWPC warfarin, CYP3A5 tacrolimus, DPYD fluoropyrimidine, TPMT+NUDT15 thiopurine), screens 12 HLA-drug hypersensitivity associations, models phenoconversion across 30+ CYP inhibitors/inducers, and covers 25 pharmacogenes interacting with 100+ drugs across 12 therapeutic categories.
+The system implements nine genotype-guided dosing algorithms (IWPC warfarin, CYP3A5 tacrolimus, DPYD fluoropyrimidine, TPMT+NUDT15 thiopurine, CYP2C19 clopidogrel, SLCO1B1 simvastatin, CYP2D6/CYP2C19 SSRI, CYP2C9 phenytoin, CYP2D6 TCA), screens 15 HLA-drug hypersensitivity associations, models phenoconversion across 30+ CYP inhibitors/inducers, and covers 25 pharmacogenes interacting with 100+ drugs across 12 therapeutic categories.
 
 The Pharmacogenomics Intelligence Agent is built as part of the HCLS AI Factory, a three-stage precision medicine platform (Genomics, RAG/Chat, Drug Discovery) designed to run end-to-end on a single NVIDIA DGX Spark.
 
@@ -48,17 +48,17 @@ The Pharmacogenomics Intelligence Agent is built as part of the HCLS AI Factory,
 
 | Metric | Value |
 |--------|-------|
-| Total Python LOC | 23,049 (19,148 source + 3,901 test) |
+| Total Python LOC | 24,577 (17,913 source + 6,664 test) |
 | Total files | 83 (53 Python, 14 JSON seed, 8 config/infra, 8 docs) |
 | Milvus collections | 15 (14 PGx-specific + 1 shared genomic_evidence) |
 | Seed data records | 240 across 14 JSON files |
 | Knowledge graph pharmacogenes | 25 |
 | Drugs covered | 100+ across 12 therapeutic categories |
-| HLA-drug associations | 12 |
+| HLA-drug associations | 15 (screener) / 12 (knowledge graph) |
 | CYP inhibitors/inducers | 30+ for phenoconversion |
-| Dosing algorithms | 4 validated |
+| Dosing algorithms | 9 genotype-guided |
 | Clinical workflows | 8 |
-| Test suite | 696 tests, all passing in 0.41s |
+| Test suite | 1,001 tests, all passing in 0.48s |
 | LLM | Claude Sonnet 4.6 (claude-sonnet-4-6) |
 | Embedding model | BGE-small-en-v1.5 (384-dim) |
 
@@ -144,17 +144,17 @@ Democratize pharmacogenomic decision support by providing unified, evidence-grou
 
 | File | Lines | Purpose |
 |------|-------|---------|
-| `knowledge.py` | 2,512 | 25 pharmacogenes, 12 drug categories, 12 HLA associations, CYP inhibitors/inducers, drug alternatives, activity score tables, entity aliases |
+| `knowledge.py` | 2,657 | 25 pharmacogenes, 12 drug categories, 12 HLA associations, CYP inhibitors/inducers, drug alternatives, activity score tables, entity aliases |
 | `collections.py` | 1,547 | 15 Milvus collection schemas, parallel search, IVF_FLAT indexing |
-| `export.py` | 1,296 | Markdown, JSON, PDF, FHIR R4 export with PGx alerts and drug interaction matrix |
+| `export.py` | 1,307 | Markdown, JSON, PDF, FHIR R4 export with PGx alerts and drug interaction matrix |
 | `query_expansion.py` | 1,254 | 14 domain-specific expansion maps for drug, gene, phenotype, HLA, dosing terms |
-| `pgx_pipeline.py` | 1,222 | StarAlleleCaller, PhenotypeTranslator, DrugGeneMatcher -- VCF-to-PGx pipeline |
-| `rag_engine.py` | 796 | Multi-collection RAG with PGx knowledge augmentation and clinical alerts |
-| `agent.py` | 761 | Autonomous plan-search-evaluate-synthesize-report reasoning agent |
-| `dosing.py` | 692 | 4 validated dosing algorithms (IWPC warfarin, tacrolimus, fluoropyrimidine, thiopurine) |
-| `hla_screener.py` | 627 | 12 HLA-drug hypersensitivity screening with population-specific risk |
+| `pgx_pipeline.py` | 1,600 | StarAlleleCaller, PhenotypeTranslator, DrugGeneMatcher -- VCF-to-PGx pipeline |
+| `rag_engine.py` | 799 | Multi-collection RAG with PGx knowledge augmentation and clinical alerts |
+| `agent.py` | 588 | Autonomous plan-search-evaluate-synthesize-report reasoning agent |
+| `dosing.py` | 1,499 | 9 genotype-guided dosing algorithms (IWPC warfarin, tacrolimus, fluoropyrimidine, thiopurine, clopidogrel, simvastatin, SSRI, phenytoin, TCA) |
+| `hla_screener.py` | 725 | 15 HLA-drug hypersensitivity screening with population-specific risk |
 | `models.py` | 616 | Enums, collection models, query/response schemas, alert types |
-| `phenoconversion.py` | 494 | CYP inhibitor/inducer phenoconversion detection and adjustment |
+| `phenoconversion.py` | 517 | CYP inhibitor/inducer phenoconversion detection and adjustment |
 | `metrics.py` | 399 | 22 Prometheus metrics (10 histograms, 8 counters, 4 gauges) |
 | `scheduler.py` | 232 | Weekly PubMed + ClinicalTrials.gov automated ingest refresh |
 
@@ -175,8 +175,8 @@ Democratize pharmacogenomic decision support by providing unified, evidence-grou
 
 | File | Lines | Purpose |
 |------|-------|---------|
-| `main.py` | 649 | FastAPI app with 8 core endpoints, CORS, lifespan management |
-| `routes/pgx_clinical.py` | 803 | 7 PGx-specific clinical decision support endpoints |
+| `main.py` | 628 | FastAPI app with 8 core endpoints, CORS, lifespan management |
+| `routes/pgx_clinical.py` | 858 | 7 PGx-specific clinical decision support endpoints |
 | `routes/reports.py` | — | Report generation endpoints |
 | `routes/events.py` | — | Event audit trail endpoints |
 
@@ -184,13 +184,13 @@ Democratize pharmacogenomic decision support by providing unified, evidence-grou
 
 | File | Lines | Purpose |
 |------|-------|---------|
-| `pgx_ui.py` | 2,138 | 10-tab Streamlit interface with NVIDIA dark theme |
+| `pgx_ui.py` | 2,152 | 10-tab Streamlit interface with NVIDIA dark theme |
 
 ### Configuration (config/)
 
 | File | Lines | Purpose |
 |------|-------|---------|
-| `settings.py` | 118 | Pydantic BaseSettings with PGX_ env_prefix, 15 collection weights |
+| `settings.py` | 191 | Pydantic BaseSettings with PGX_ env_prefix, 15 collection weights |
 
 ### Seed Data (data/reference/)
 
@@ -231,6 +231,8 @@ Democratize pharmacogenomic decision support by providing unified, evidence-grou
 | `test_metrics.py` | Prometheus metric instrumentation |
 | `test_settings.py` | Configuration loading |
 | `test_scheduler.py` | Scheduler job registration |
+| `test_api.py` | API endpoint testing |
+| `test_ingest.py` | Ingest parser testing |
 | `conftest.py` | Shared fixtures for all test modules |
 
 ### Infrastructure
@@ -277,7 +279,7 @@ Democratize pharmacogenomic decision support by providing unified, evidence-grou
 
 ## 6. Knowledge Graph
 
-**File:** `src/knowledge.py` (2,512 lines)
+**File:** `src/knowledge.py` (2,657 lines)
 
 ### 6.1 Nine Structured Dictionaries
 
@@ -289,9 +291,9 @@ Democratize pharmacogenomic decision support by providing unified, evidence-grou
 | `CYP_INHIBITORS` | 4 enzymes | Strong/moderate/weak inhibitors per CYP enzyme |
 | `CYP_INDUCERS` | 3 enzymes | Strong/moderate inducers per CYP enzyme |
 | `HLA_DRUG_ASSOCIATIONS` | 12 | HLA-drug hypersensitivity pairs with reaction type and severity |
-| `DRUG_ALTERNATIVES` | 30+ | Gene-phenotype-specific drug substitutions with rationale |
-| `ACTIVITY_SCORE_TABLES` | 2 | CYP2D6 and DPYD activity score-to-phenotype mappings |
-| `ENTITY_ALIASES` | 80+ | Aliases for drugs (brand/generic), genes, and phenotypes |
+| `DRUG_ALTERNATIVES` | 60 | Gene-phenotype-specific drug substitutions with rationale |
+| `ACTIVITY_SCORE_TABLES` | 8 genes | CYP2D6, CYP2C19, CYP2C9, CYP3A5, DPYD, TPMT, NUDT15, UGT1A1 activity score-to-phenotype mappings |
+| `ENTITY_ALIASES` | 116 | Aliases for drugs (brand/generic), genes, and phenotypes |
 
 ### 6.2 The 25 Pharmacogenes
 
@@ -357,7 +359,7 @@ Adjusts genetic phenotype based on concomitant CYP inhibitors/inducers:
 
 ### 7.5 HLA Screening (`hla_screener.py`)
 
-Pre-emptive screening for 12 HLA-drug hypersensitivity associations:
+Pre-emptive screening for 15 HLA-drug hypersensitivity associations:
 - HLA-B*57:01 / abacavir (hypersensitivity syndrome)
 - HLA-B*15:02 / carbamazepine (SJS/TEN)
 - HLA-B*15:02 / phenytoin (SJS/TEN)
@@ -366,11 +368,16 @@ Pre-emptive screening for 12 HLA-drug hypersensitivity associations:
 
 ### 7.6 Dosing Algorithms (`dosing.py`)
 
-Four validated genotype-guided dosing calculators:
+Nine genotype-guided dosing calculators:
 1. **IWPC Warfarin** -- Age, height, weight, race, CYP2C9, VKORC1, amiodarone, enzyme inducer status
 2. **CYP3A5 Tacrolimus** -- Expresser (*1 carrier) vs non-expresser (*3/*3) starting dose
 3. **DPYD Fluoropyrimidine** -- Activity score-based dose reduction (0%, 25%, 50%, 100% reduction)
 4. **TPMT+NUDT15 Thiopurine** -- Combined activity score for azathioprine/mercaptopurine dosing
+5. **CYP2C19 Clopidogrel** -- Metabolizer status-based alternative antiplatelet selection
+6. **SLCO1B1 Simvastatin** -- Transporter function-guided statin dose cap and alternative selection
+7. **CYP2D6/CYP2C19 SSRI** -- Dual-gene antidepressant dosing with metabolizer-specific adjustments
+8. **CYP2C9 Phenytoin** -- Genotype-guided anticonvulsant dose reduction for decreased-function alleles
+9. **CYP2D6 TCA** -- Tricyclic antidepressant dosing based on CYP2D6 metabolizer status
 
 ---
 
@@ -393,7 +400,7 @@ The system supports 8 clinical workflows accessible via the UI and API:
 
 ## 9. RAG Engine
 
-**File:** `src/rag_engine.py` (796 lines)
+**File:** `src/rag_engine.py` (799 lines)
 
 ### 9.1 PGxRAGEngine -- Core Methods
 
@@ -439,7 +446,7 @@ Weights sum to 1.0 and are configurable via environment variables:
 
 ## 10. Agent Architecture
 
-**File:** `src/agent.py` (761 lines)
+**File:** `src/agent.py` (588 lines)
 
 ### 10.1 Five-Phase Pipeline
 
@@ -485,7 +492,7 @@ Defines Pydantic models and enums for the PGx domain:
 
 ## 13. Export System
 
-**File:** `src/export.py` (1,296 lines)
+**File:** `src/export.py` (1,307 lines)
 
 Four export formats with PGx-specific enhancements:
 
@@ -538,7 +545,7 @@ Four export formats with PGx-specific enhancements:
 
 ## 15. UI Guide
 
-**File:** `app/pgx_ui.py` (2,138 lines)
+**File:** `app/pgx_ui.py` (2,152 lines)
 **Port:** 8507
 
 ### 10 Tabs
@@ -626,7 +633,7 @@ Configurable via `PGX_INGEST_SCHEDULE_HOURS` and `PGX_INGEST_ENABLED` environmen
 
 ## 18. Configuration
 
-**File:** `config/settings.py` (118 lines)
+**File:** `config/settings.py` (191 lines)
 
 Pydantic BaseSettings with `PGX_` environment variable prefix. Key settings:
 
@@ -665,7 +672,7 @@ Pydantic BaseSettings with `PGX_` environment variable prefix. Key settings:
 
 ## 20. Testing
 
-696 tests across 15 test files, all passing in 0.41 seconds.
+1,001 tests across 17 test files, all passing in 0.48 seconds.
 
 | Test File | Coverage |
 |-----------|----------|
@@ -676,7 +683,7 @@ Pydantic BaseSettings with `PGX_` environment variable prefix. Key settings:
 | `test_agent.py` | Plan generation, evidence evaluation, report formatting |
 | `test_pgx_pipeline.py` | Star allele calling, phenotype translation, drug matching, alerts |
 | `test_dosing.py` | IWPC warfarin, tacrolimus, fluoropyrimidine, thiopurine algorithms |
-| `test_hla_screener.py` | All 12 HLA-drug associations, population risk, status assignment |
+| `test_hla_screener.py` | All 15 HLA-drug associations, population risk, status assignment |
 | `test_phenoconversion.py` | CYP inhibitor/inducer detection, phenotype shift modeling |
 | `test_query_expansion.py` | All 14 expansion maps, deduplication, category separation |
 | `test_export.py` | Markdown, JSON, PDF, FHIR R4 rendering with alerts |
