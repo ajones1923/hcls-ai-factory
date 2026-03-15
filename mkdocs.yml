@@ -108,6 +108,7 @@ nav:
   - Learning:
     - Foundations: HCLS_AI_FACTORY_LEARNING_GUIDE_FOUNDATIONS.md
     - Advanced: HCLS_AI_FACTORY_LEARNING_GUIDE_ADVANCED.md
+    - "Learning Guide \u2014 Unified Foundations": HCLS_AI_FACTORY_LEARNING_GUIDE_FOUNDATIONS_UNIFIED.md
   - Pipelines:
     - GPU Genomics: stage-1-genomics.md
     - Evidence RAG: stage-2-rag.md
@@ -140,6 +141,7 @@ nav:
       - Deployment Guide: imaging-intelligence-agent/deployment-guide.md
       - "Learning Guide \u2014 Foundations": imaging-intelligence-agent/learning-guide-foundations.md
       - "Learning Guide \u2014 Advanced": imaging-intelligence-agent/learning-guide-advanced.md
+      - NIM Integration Guide: imaging-intelligence-agent/nim-integration-guide.md
     - Precision Oncology Agent:
       - Overview: precision-oncology-agent/index.md
       - Demo Guide: precision-oncology-agent/demo-guide.md
@@ -167,6 +169,8 @@ nav:
       - Deployment Guide: precision-autoimmune-agent/deployment-guide.md
       - "Learning Guide \u2014 Foundations": precision-autoimmune-agent/learning-guide-foundations.md
       - "Learning Guide \u2014 Advanced": precision-autoimmune-agent/learning-guide-advanced.md
+      - API Reference: precision-autoimmune-agent/api-reference.md
+      - Research Paper: precision-autoimmune-agent/precision-autoimmune-agent-research-paper.md
     - Pharmacogenomics Intelligence Agent:
       - Overview: pharmacogenomics-intelligence-agent/index.md
       - Demo Guide: pharmacogenomics-intelligence-agent/demo-guide.md
@@ -176,6 +180,19 @@ nav:
       - Deployment Guide: pharmacogenomics-intelligence-agent/deployment-guide.md
       - "Learning Guide \u2014 Foundations": pharmacogenomics-intelligence-agent/learning-guide-foundations.md
       - "Learning Guide \u2014 Advanced": pharmacogenomics-intelligence-agent/learning-guide-advanced.md
+      - Production Readiness Report: pharmacogenomics-intelligence-agent/production-readiness-report.md
+      - Research Paper: pharmacogenomics-intelligence-agent/pharmacogenomics-intelligence-agent-research-paper.md
+    - Cardiology Intelligence Agent:
+      - Overview: cardiology-intelligence-agent/index.md
+      - Project Bible: cardiology-intelligence-agent/project-bible.md
+      - Architecture Guide: cardiology-intelligence-agent/architecture-guide.md
+      - White Paper: cardiology-intelligence-agent/white-paper.md
+      - Deployment Guide: cardiology-intelligence-agent/deployment-guide.md
+      - Demo Guide: cardiology-intelligence-agent/demo-guide.md
+      - "Learning Guide \u2014 Foundations": cardiology-intelligence-agent/learning-guide-foundations.md
+      - "Learning Guide \u2014 Advanced": cardiology-intelligence-agent/learning-guide-advanced.md
+      - Production Readiness Report: cardiology-intelligence-agent/production-readiness-report.md
+      - Research Paper: cardiology-intelligence-agent/cardiology-intelligence-agent-research-paper.md
   - Reports:
     - Intelligence Report: HCLS_AI_FACTORY_INTELLIGENCE_REPORT.md
     - Pipeline Report: PIPELINE_REPORT.md
