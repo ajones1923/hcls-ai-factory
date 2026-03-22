@@ -204,6 +204,17 @@ nav:
       - "Learning Guide \u2014 Advanced": clinical-trial-intelligence-agent/learning-guide-advanced.md
       - Production Readiness Report: clinical-trial-intelligence-agent/production-readiness-report.md
       - Research Paper: clinical-trial-intelligence-agent/clinical-trial-intelligence-agent-research-paper.md
+    - Rare Disease Diagnostic Agent:
+      - Overview: rare-disease-diagnostic-agent/index.md
+      - Project Bible: rare-disease-diagnostic-agent/project-bible.md
+      - Architecture Guide: rare-disease-diagnostic-agent/architecture-guide.md
+      - White Paper: rare-disease-diagnostic-agent/white-paper.md
+      - Deployment Guide: rare-disease-diagnostic-agent/deployment-guide.md
+      - Demo Guide: rare-disease-diagnostic-agent/demo-guide.md
+      - "Learning Guide \u2014 Foundations": rare-disease-diagnostic-agent/learning-guide-foundations.md
+      - "Learning Guide \u2014 Advanced": rare-disease-diagnostic-agent/learning-guide-advanced.md
+      - Production Readiness Report: rare-disease-diagnostic-agent/production-readiness-report.md
+      - Research Paper: rare-disease-diagnostic-agent/rare-disease-diagnostic-agent-research-paper.md
   - Reports:
     - Intelligence Report: HCLS_AI_FACTORY_INTELLIGENCE_REPORT.md
     - Pipeline Report: PIPELINE_REPORT.md
