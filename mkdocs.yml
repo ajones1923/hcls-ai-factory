@@ -193,6 +193,17 @@ nav:
       - "Learning Guide \u2014 Advanced": cardiology-intelligence-agent/learning-guide-advanced.md
       - Production Readiness Report: cardiology-intelligence-agent/production-readiness-report.md
       - Research Paper: cardiology-intelligence-agent/cardiology-intelligence-agent-research-paper.md
+    - Clinical Trial Intelligence Agent:
+      - Overview: clinical-trial-intelligence-agent/index.md
+      - Project Bible: clinical-trial-intelligence-agent/project-bible.md
+      - Architecture Guide: clinical-trial-intelligence-agent/architecture-guide.md
+      - White Paper: clinical-trial-intelligence-agent/white-paper.md
+      - Deployment Guide: clinical-trial-intelligence-agent/deployment-guide.md
+      - Demo Guide: clinical-trial-intelligence-agent/demo-guide.md
+      - "Learning Guide \u2014 Foundations": clinical-trial-intelligence-agent/learning-guide-foundations.md
+      - "Learning Guide \u2014 Advanced": clinical-trial-intelligence-agent/learning-guide-advanced.md
+      - Production Readiness Report: clinical-trial-intelligence-agent/production-readiness-report.md
+      - Research Paper: clinical-trial-intelligence-agent/clinical-trial-intelligence-agent-research-paper.md
   - Reports:
     - Intelligence Report: HCLS_AI_FACTORY_INTELLIGENCE_REPORT.md
     - Pipeline Report: PIPELINE_REPORT.md
