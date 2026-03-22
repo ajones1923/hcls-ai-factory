@@ -45,7 +45,7 @@ The Clinical Trial Intelligence Agent is a production-grade, RAG-powered decisio
 
 The agent is architected as a three-tier system: a 5-tab Streamlit UI (port 8128) for interactive clinical trial exploration, a FastAPI REST API (port 8538) exposing 26 endpoints for programmatic integration, and a RAG engine backed by Milvus (port 19530) with BGE-small-en-v1.5 384-dimensional embeddings. All 10 clinical workflows, all 5 decision support engines, and the full query expansion system operate independently of Milvus connectivity, ensuring graceful degradation and robust demo capability even when the vector store is unavailable.
 
-The codebase comprises 46 Python files totaling 22,607 lines of code, with 12 dedicated test files containing 769 passing tests at a 100% pass rate (0.47s execution time). The knowledge base contains 40 landmark trials, 13 therapeutic areas, 9 regulatory agencies, 9 endpoint types, 9 adaptive trial designs, 9 biomarker strategies, 9 decentralized trial components, 7 trial phases, 140 entity aliases, and 33 drug synonym mappings. This report documents every capability, data dimension, and test result to serve as the definitive long-term reference for the Clinical Trial Intelligence Agent.
+The codebase comprises 39 Python files (26 source + 13 test) totaling 23,062 lines of code, with 13 dedicated test files containing 769 passing tests at a 100% pass rate (0.47s execution time). The knowledge base contains 40 landmark trials, 13 therapeutic areas, 9 regulatory agencies, 9 endpoint types, 9 adaptive trial designs, 9 biomarker strategies, 9 decentralized trial components, 7 trial phases, 140 entity aliases, and 33 drug synonym mappings. This report documents every capability, data dimension, and test result to serve as the definitive long-term reference for the Clinical Trial Intelligence Agent.
 
 | Capability | Detail |
 |---|---|
@@ -58,11 +58,11 @@ The codebase comprises 46 Python files totaling 22,607 lines of code, with 12 de
 | Adaptive Designs | 9 validated designs with regulatory guidance |
 | Biomarker Strategies | 9 strategies from enrichment to digital biomarkers |
 | DCT Components | 9 decentralized trial components |
-| Query Expansion | 10 synonym maps, 140 entity aliases, 33 drug synonyms, 22 biomarkers |
+| Query Expansion | 13 synonym maps, 140 entity aliases, 33 drug synonyms, 22 biomarkers |
 | Tests | 769 passed, 0 failed, 100% pass rate, 0.47s |
-| Source LOC | ~16,300 (34 source files) |
-| Test LOC | ~6,300 (12 test files) |
-| Total Python LOC | 22,607 |
+| Source LOC | 19,813 (26 source files) |
+| Test LOC | 3,249 (13 test files) |
+| Total Python LOC | 23,062 |
 | API Endpoints | 26 |
 | Prometheus Metrics | 20+ metrics across query, RAG, workflow, and system health |
 | Ports | FastAPI 8538, Streamlit 8128, Milvus 19530 |
@@ -70,7 +70,7 @@ The codebase comprises 46 Python files totaling 22,607 lines of code, with 12 de
 | Rate Limiting | 100 requests/minute per IP |
 | Event Publishing | SSE event stream for real-time updates |
 | Export Formats | Markdown, JSON, PDF |
-| Documentation | Research paper + 7 reference documents |
+| Documentation | 10 .md + 9 .docx (19 files total) |
 | Versioning | Knowledge v2.0.0, API v1, Agent v2.0.0 |
 
 ---
@@ -262,6 +262,56 @@ Four-factor threat model: phase advancement (0.30), enrollment progress (0.25), 
 
 Phase-specific success rates across 12 therapeutic areas from BIO/QLS Advisors data, plus cumulative probability-of-success estimation from current phase to approval.
 
+### 5.7 Confidence Calibration Formula (Detail)
+
+The `ConfidenceCalibrator` produces a calibrated confidence score in the range [0.0, 1.0] using a weighted four-factor model:
+
+```
+calibrated = 0.30 * raw_confidence
+           + 0.30 * evidence_base
+           + 0.20 * doc_factor
+           + 0.20 * agreement_factor
+```
+
+**Factor definitions:**
+
+| Factor | Weight | Source | Range |
+|---|---|---|---|
+| `raw_confidence` | 0.30 | Workflow or model output | 0.0 - 1.0 |
+| `evidence_base` | 0.30 | Evidence level lookup (see below) | 0.0 - 1.0 |
+| `doc_factor` | 0.20 | Logarithmic scaling: `log(n_docs + 1) / log(12)` | 0.0 - 1.0 |
+| `agreement_factor` | 0.20 | Cross-agent agreement score | 0.0 - 1.0 |
+
+**Evidence level numeric mapping:**
+
+| Level | Description | Score |
+|---|---|---|
+| A1 | Systematic review of RCTs | 1.00 |
+| A2 | High-quality RCT | 0.85 |
+| B | Non-randomized controlled study | 0.65 |
+| C | Observational study | 0.45 |
+| D | Case series / case report | 0.25 |
+| E | Expert opinion / consensus | 0.15 |
+
+**Document factor scaling (logarithmic, diminishing returns):**
+- 0 docs = 0.0, 1 doc = 0.30, 5 docs = 0.70, 10+ docs = ~0.90
+
+### 5.8 Protocol Complexity Scoring (Detail)
+
+The `ProtocolComplexityScorer` evaluates protocol complexity across five dimensions, each normalized against Tufts CSDD industry benchmarks:
+
+| Dimension | Weight | Max Norm | Median | P75 | P90 |
+|---|---|---|---|---|---|
+| Procedure count | 0.25 | 50 | 20 | 30 | 45 |
+| Visit count | 0.25 | 36 | 12 | 18 | 28 |
+| Endpoint count | 0.20 | 20 | 8 | 12 | 18 |
+| Eligibility criteria count | 0.20 | 40 | 22 | 30 | 38 |
+| Amendment count | 0.10 | 5 | 2 | 3 | 4 |
+
+**Percentile calculation:** `percentile = clamp(complexity_score * 100, 0.0, 99.9)`
+
+Each dimension is normalized as: `clamp(value / max_norm, 0.0, 1.0)`, then combined using the weights above to produce a composite complexity score in [0.0, 1.0].
+
 ---
 
 ## 6. Cross-Agent Integration
@@ -310,6 +360,28 @@ All cross-agent queries degrade gracefully: if an agent is unavailable, a warnin
 - **nlist:** 128
 - **Batch size:** 32
 
+### All 14 Collection Schemas Detail
+
+| # | Collection | Key Fields (beyond id + embedding) | Weight | Est. Records |
+|---|---|---|---|---|
+| 1 | `trial_protocols` | trial_id, title, phase, status, therapeutic_area, sponsor, start_date, enrollment_target, text_content | 0.10 | 5,000 |
+| 2 | `trial_eligibility` | trial_id, criterion_type, criterion_text, logic_operator, population_impact | 0.09 | 50,000 |
+| 3 | `trial_endpoints` | trial_id, endpoint_type, measure, time_frame, statistical_method | 0.08 | 20,000 |
+| 4 | `trial_sites` | trial_id, site_id, facility_name, city, state, country, status, enrollment_count | 0.07 | 30,000 |
+| 5 | `trial_investigators` | investigator_id, name, specialty, h_index, publication_count, therapeutic_areas | 0.05 | 5,000 |
+| 6 | `trial_results` | trial_id, outcome, p_value, effect_size, confidence_interval, publication_pmid | 0.09 | 3,000 |
+| 7 | `trial_regulatory` | submission_id, agency, decision, document_type, drug_name, indication | 0.07 | 2,000 |
+| 8 | `trial_literature` | pmid, title, journal, mesh_terms, publication_year, study_type | 0.08 | 10,000 |
+| 9 | `trial_biomarkers` | biomarker, assay, threshold, validation_status, clinical_use | 0.07 | 3,000 |
+| 10 | `trial_safety` | trial_id, ae_term, medra_pt, medra_soc, severity, frequency, seriousness | 0.08 | 20,000 |
+| 11 | `trial_rwe` | study_id, data_source, population_size, study_design, evidence_type | 0.06 | 2,000 |
+| 12 | `trial_adaptive` | design_type, decision_rules, interim_schedule, regulatory_precedent | 0.05 | 500 |
+| 13 | `trial_guidelines` | agency, guideline_id, title, version, effective_date, category | 0.08 | 1,000 |
+| 14 | `genomic_evidence` | variant_id, gene, consequence, clinvar_significance, alphamissense_score | 0.03 | 100,000 |
+
+**Total estimated records:** ~251,500
+**Weight sum:** 1.00
+
 ---
 
 ## 8. RAG Engine
@@ -327,7 +399,7 @@ The `TrialRAGEngine` implements multi-collection retrieval with:
 
 ## 9. Query Expansion System
 
-### 10 Synonym Maps
+### 13 Synonym Maps
 
 | Map | Entries | Purpose |
 |---|---|---|
@@ -340,9 +412,12 @@ The `TrialRAGEngine` implements multi-collection retrieval with:
 | Regulatory Map | 19 | Regulatory term expansion (IND, NDA, BLA, BTD, SPA, PDUFA, etc.) |
 | Design Map | 14 | Trial design synonyms (adaptive, basket, umbrella, platform, etc.) |
 | Population Map | 10 | Population descriptors (pediatric, geriatric, treatment-naive, etc.) |
-| Safety Map | 10+ | Safety term expansion (SUSAR, SAE, DSMB, MedDRA, CRS, etc.) |
+| Safety Map | 14 | Safety term expansion (SUSAR, SAE, DSMB, MedDRA, CRS, etc.) |
+| Geographic Map | 6 | Regional term expansion (north_america, europe, asia_pacific, etc.) |
+| Procedure Map | 10 | Clinical procedure synonyms (biopsy, imaging, endoscopy, etc.) |
+| Workflow Terms | 11 | Workflow-specific term boosting for query routing |
 
-**Total:** ~283 top-level entries, 140 entity aliases, covering abbreviations across oncology, cardiology, neuroscience, metabolic, autoimmune, rare disease, and regulatory domains.
+**Total:** 314 top-level entries, 140 entity aliases, covering abbreviations across oncology, cardiology, neuroscience, metabolic, autoimmune, rare disease, and regulatory domains.
 
 ---
 
@@ -482,6 +557,159 @@ The knowledge base is seeded from `scripts/seed_knowledge.py` with:
 | Regulatory Terms | 19 | IND, NDA, BLA, BTD, SPA, etc. |
 | Design Synonyms | 14 | Adaptive, basket, umbrella, platform, etc. |
 | Population Descriptors | 10 | Pediatric, geriatric, treatment-naive, etc. |
+
+### All 35 Conditions in Knowledge Base
+
+| # | Condition | Therapeutic Area |
+|---|---|---|
+| 1 | Non-small cell lung cancer (NSCLC) | Oncology |
+| 2 | Breast cancer | Oncology |
+| 3 | Colorectal cancer (CRC) | Oncology |
+| 4 | Acute myeloid leukemia (AML) | Hematology / Oncology |
+| 5 | Multiple myeloma (MM) | Hematology |
+| 6 | Heart failure (HF) | Cardiovascular |
+| 7 | Atrial fibrillation (AFib) | Cardiovascular |
+| 8 | Alzheimer's disease (AD) | Neuroscience |
+| 9 | Parkinson's disease (PD) | Neuroscience |
+| 10 | Rheumatoid arthritis (RA) | Immunology |
+| 11 | Systemic lupus erythematosus (SLE) | Immunology |
+| 12 | Crohn's disease | Gastroenterology |
+| 13 | Ulcerative colitis (UC) | Gastroenterology |
+| 14 | Type 2 diabetes mellitus (T2DM) | Metabolic |
+| 15 | Obesity | Metabolic |
+| 16 | NASH / MASH | Metabolic / Gastroenterology |
+| 17 | HIV | Infectious Disease |
+| 18 | RSV | Infectious Disease |
+| 19 | Spinal muscular atrophy (SMA) | Rare Diseases |
+| 20 | Duchenne muscular dystrophy (DMD) | Rare Diseases |
+| 21 | Cystic fibrosis (CF) | Rare Diseases / Respiratory |
+| 22 | Atopic dermatitis | Dermatology / Immunology |
+| 23 | Psoriasis | Dermatology |
+| 24 | Glioblastoma multiforme (GBM) | Oncology |
+| 25 | Hepatocellular carcinoma (HCC) | Oncology |
+| 26 | Pancreatic ductal adenocarcinoma (PDAC) | Oncology |
+| 27 | Ovarian cancer | Oncology |
+| 28 | Bladder cancer | Oncology |
+| 29 | Myelodysplastic syndromes (MDS) | Hematology |
+| 30 | Idiopathic pulmonary fibrosis (IPF) | Respiratory |
+| 31 | Chronic kidney disease (CKD) | Metabolic / Nephrology |
+| 32 | Migraine | Neuroscience |
+| 33 | Type 1 diabetes mellitus (T1DM) | Metabolic |
+| 34 | NASH / MAFLD | Metabolic |
+| 35 | Systemic sclerosis (SSc) | Immunology |
+
+### All 34 Drugs in Knowledge Base
+
+| # | Drug (Generic) | Brand Name | Mechanism | Key Indication |
+|---|---|---|---|---|
+| 1 | Pembrolizumab | Keytruda | Anti-PD-1 | NSCLC, melanoma, multiple cancers |
+| 2 | Nivolumab | Opdivo | Anti-PD-1 | Melanoma, NSCLC, RCC |
+| 3 | Atezolizumab | Tecentriq | Anti-PD-L1 | NSCLC, urothelial cancer |
+| 4 | Durvalumab | Imfinzi | Anti-PD-L1 | NSCLC, biliary cancer |
+| 5 | Ipilimumab | Yervoy | Anti-CTLA-4 | Melanoma (combination IO) |
+| 6 | Trastuzumab | Herceptin | Anti-HER2 | HER2+ breast cancer |
+| 7 | Trastuzumab deruxtecan | Enhertu | Anti-HER2 ADC | HER2+ / HER2-low breast, NSCLC |
+| 8 | Bevacizumab | Avastin | Anti-VEGF | CRC, NSCLC, RCC |
+| 9 | Osimertinib | Tagrisso | EGFR TKI (3rd gen) | EGFR+ NSCLC |
+| 10 | Sotorasib | Lumakras | KRAS G12C inhibitor | KRAS G12C+ NSCLC |
+| 11 | Adagrasib | Krazati | KRAS G12C inhibitor | KRAS G12C+ NSCLC |
+| 12 | Olaparib | Lynparza | PARP inhibitor | BRCA+ ovarian, breast |
+| 13 | Sacubitril/valsartan | Entresto | ARNI | HFrEF |
+| 14 | Empagliflozin | Jardiance | SGLT2 inhibitor | T2DM, HFrEF, CKD |
+| 15 | Dapagliflozin | Farxiga | SGLT2 inhibitor | T2DM, HFrEF, CKD |
+| 16 | Semaglutide | Ozempic / Wegovy | GLP-1 RA | T2DM, obesity, CV risk |
+| 17 | Tirzepatide | Mounjaro / Zepbound | GLP-1/GIP dual agonist | T2DM, obesity |
+| 18 | Adalimumab | Humira | Anti-TNF | RA, IBD, psoriasis |
+| 19 | Ustekinumab | Stelara | Anti-IL-12/23 | Psoriasis, Crohn's |
+| 20 | Dupilumab | Dupixent | Anti-IL-4Ralpha | Atopic dermatitis, asthma |
+| 21 | Risankizumab | Skyrizi | Anti-IL-23 | Psoriasis, Crohn's |
+| 22 | Secukinumab | Cosentyx | Anti-IL-17A | Psoriasis, AS, PsA |
+| 23 | Abemaciclib | Verzenio | CDK4/6 inhibitor | HR+ breast cancer |
+| 24 | Palbociclib | Ibrance | CDK4/6 inhibitor | HR+ breast cancer |
+| 25 | Ribociclib | Kisqali | CDK4/6 inhibitor | HR+ breast cancer |
+| 26 | Lecanemab | Leqembi | Anti-amyloid protofibril | Early AD |
+| 27 | Donanemab | Kisunla | Anti-N3pG amyloid | Early AD |
+| 28 | Vericiguat | Verquvo | sGC stimulator | Worsening HF |
+| 29 | Evolocumab | Repatha | PCSK9 inhibitor | ASCVD / dyslipidemia |
+| 30 | Inclisiran | Leqvio | PCSK9 siRNA | Dyslipidemia |
+| 31 | Onasemnogene abeparvovec | Zolgensma | SMN1 gene therapy | SMA |
+| 32 | Tisagenlecleucel | Kymriah | Anti-CD19 CAR-T | B-ALL, DLBCL, FL |
+| 33 | Axicabtagene ciloleucel | Yescarta | Anti-CD19 CAR-T | DLBCL |
+| 34 | Upadacitinib | Rinvoq | JAK inhibitor | RA, AD, UC |
+
+### All 24 Biomarkers in Knowledge Base
+
+| # | Biomarker | Type | Clinical Use |
+|---|---|---|---|
+| 1 | PD-L1 | Predictive | IO therapy selection (TPS, CPS, IC score) |
+| 2 | TMB | Predictive | Checkpoint inhibitor response |
+| 3 | MSI / MSI-H | Predictive | Checkpoint inhibitor response, Lynch syndrome |
+| 4 | dMMR | Predictive | Mismatch repair deficiency detection |
+| 5 | HER2 | Predictive / Prognostic | Anti-HER2 therapy selection |
+| 6 | EGFR | Predictive | TKI therapy selection (exon 19del, L858R, T790M) |
+| 7 | BRCA1/2 | Predictive | PARP inhibitor selection, HRD status |
+| 8 | ALK | Predictive | ALK-TKI therapy selection |
+| 9 | KRAS | Predictive | KRAS G12C inhibitor selection |
+| 10 | BRAF | Predictive | BRAF/MEK inhibitor selection |
+| 11 | NTRK | Predictive | TRK inhibitor selection (tumor-agnostic) |
+| 12 | RET | Predictive | RET inhibitor selection |
+| 13 | MET | Predictive | MET inhibitor selection (exon 14 skip, amp) |
+| 14 | FGFR | Predictive | FGFR inhibitor selection |
+| 15 | PIK3CA | Predictive | PI3K inhibitor selection |
+| 16 | NT-proBNP | Prognostic | Heart failure diagnosis and monitoring |
+| 17 | Troponin | Diagnostic / Prognostic | MI diagnosis, cardiac safety |
+| 18 | HbA1c | Surrogate | Diabetes glycemic control |
+| 19 | ctDNA | Monitoring | Treatment response, MRD, liquid biopsy |
+| 20 | MRD | Response | Minimal residual disease in hematologic cancers |
+| 21 | CRP / hsCRP | Prognostic | Inflammation, CV risk |
+| 22 | NfL | Prognostic | Neurodegeneration monitoring |
+| 23 | FEV1 | Efficacy | Pulmonary function (asthma, COPD, IPF) |
+| 24 | Eosinophils | Predictive | Biologic therapy selection (asthma, AD) |
+
+### All 40 Landmark Trials in Knowledge Base
+
+| # | Trial Name | NCT ID | Phase | Key Finding |
+|---|---|---|---|---|
+| 1 | KEYNOTE-024 | NCT02142738 | Phase 3 | Pembrolizumab PFS HR 0.50; first-line IO monotherapy |
+| 2 | EMPEROR-Reduced | NCT03057977 | Phase 3 | Empagliflozin reduced CV death/HF hosp by 25% |
+| 3 | RECOVERY | NCT04381936 | Phase 2/3 | Dexamethasone reduced mortality by 1/3 in ventilated |
+| 4 | PARADIGM-HF | NCT01035255 | Phase 3 | ARNI 20% reduction vs ACEi; new HF standard |
+| 5 | CheckMate-067 | NCT01844505 | Phase 3 | Nivo+Ipi 52% 5-year OS; combination IO paradigm |
+| 6 | SPRINT | NCT01206062 | Phase 3 | Intensive BP control 25% MACE reduction |
+| 7 | EMPA-REG OUTCOME | NCT01131676 | Phase 3 | First diabetes drug with CV mortality benefit |
+| 8 | DAPA-CKD | NCT03036150 | Phase 3 | SGLT2i to non-diabetic CKD; HR 0.61 |
+| 9 | HIMALAYA | NCT03298451 | Phase 3 | STRIDE single anti-CTLA-4 priming dose |
+| 10 | DESTINY-Breast04 | NCT03734029 | Phase 3 | T-DXd created new HER2-low targetable population |
+| 11 | ADVANCE (Aducanumab) | NCT02477800 | Phase 3 | Controversial amyloid-based accelerated approval |
+| 12 | CLARITY-AD | NCT03887455 | Phase 3 | Lecanemab 27% CDR-SB reduction; amyloid validation |
+| 13 | FOURIER | NCT01764633 | Phase 3 | PCSK9 inhibition reduces CV events |
+| 14 | FLAURA | NCT02296125 | Phase 3 | Osimertinib first-line EGFR+ NSCLC; OS benefit |
+| 15 | ADAURA | NCT02511106 | Phase 3 | Adjuvant osimertinib DFS HR 0.20 |
+| 16 | MAGELLAN | NCT03504397 | Phase 3 | Zolbetuximab in CLDN18.2+ gastric cancer |
+| 17 | I-SPY 2 | NCT01042379 | Phase 2 | Bayesian adaptive randomization platform |
+| 18 | VICTORIA | NCT02861534 | Phase 3 | Vericiguat added to HF armamentarium |
+| 19 | TOPAZ-1 | NCT03875235 | Phase 3 | Durvalumab first IO OS benefit in biliary cancer |
+| 20 | KRYSTAL-1 | NCT03785249 | Phase 1/2 | Adagrasib 42.9% ORR; KRAS G12C validated |
+| 21 | ELARA | NCT03568461 | Phase 2 | Tisagenlecleucel CAR-T in follicular lymphoma |
+| 22 | CREST (Semaglutide) | NCT03693430 | Phase 3 | ~15% body weight reduction; GLP-1 RA obesity |
+| 23 | CheckMate-227 | NCT02477826 | Phase 3 | Nivo+Ipi OS benefit regardless of PD-L1 |
+| 24 | KEYNOTE-522 | NCT03036488 | Phase 3 | Pembro+chemo in early TNBC; pCR 64.8% |
+| 25 | DESTINY-Lung02 | NCT04644237 | Phase 2 | T-DXd in HER2-mutant NSCLC; ORR 49% |
+| 26 | CLEAR Outcomes | NCT02993406 | Phase 3 | Bempedoic acid MACE reduction |
+| 27 | SELECT | NCT03574597 | Phase 3 | Semaglutide 20% MACE reduction in obesity |
+| 28 | STEP-HFpEF | NCT04788511 | Phase 3 | Semaglutide improved HFpEF symptoms/function |
+| 29 | TRAILBLAZER-ALZ 2 | NCT04437511 | Phase 3 | Donanemab 35% iADRS slowing; tau-staging approach |
+| 30 | EMERGE/ENGAGE | NCT02484547 | Phase 3 | Aducanumab discordant twin trials; controversial |
+| 31 | SPR1NT (SMA) | NCT03505099 | Phase 3 | Pre-symptomatic Zolgensma; curative gene therapy |
+| 32 | SUNFISH | NCT02908685 | Phase 2/3 | Risdiplam oral SMA treatment across ages |
+| 33 | CASGEVY | NCT03655678 | Phase 2/3 | First CRISPR gene therapy approved |
+| 34 | SELECT-COMPARE | NCT02629159 | Phase 3 | Upadacitinib superiority over adalimumab in RA |
+| 35 | SURMOUNT-1 | NCT04184622 | Phase 3 | Tirzepatide 22.5% weight loss |
+| 36 | PURPOSE 1 | NCT04994509 | Phase 3 | Lenacapavir 100% HIV PrEP efficacy |
+| 37 | PANORAMIC | NCT04998396 | Phase 3 | Molnupiravir platform trial in vaccinated COVID |
+| 38 | EPIC-HR | NCT04960202 | Phase 2/3 | Paxlovid 89% hospitalization reduction |
+| 39 | IMpower110 | NCT02409342 | Phase 3 | Atezolizumab IO monotherapy in PD-L1-high NSCLC |
+| 40 | DAPA-HF | NCT03036124 | Phase 3 | Dapagliflozin HF benefit regardless of diabetes |
 
 ### Knowledge Sources
 
@@ -658,6 +886,121 @@ streamlit run app/trial_ui.py --server.port 8128
 | `test_settings.py` | 133 LOC | Configuration validation |
 | `test_knowledge.py` | 123 LOC | Knowledge base completeness and structure |
 
+### Test Breakdown by Module (Verified)
+
+| # | File | LOC | Coverage Focus |
+|---|---|---|---|
+| 1 | `test_models.py` | 519 | All 12 Pydantic models, 12 enums, field validation, enum membership, serialization |
+| 2 | `test_workflow_execution.py` | 379 | All 10 workflow execute methods with realistic inputs/outputs |
+| 3 | `test_clinical_workflows.py` | 347 | Workflow preprocess/postprocess, input normalization, output enrichment |
+| 4 | `test_api.py` | 310 | All 26 API endpoints (GET/POST), auth, CORS, error handling, rate limiting |
+| 5 | `test_agent.py` | 294 | Agent pipeline: plan, search, evaluate, synthesize, report, search strategy |
+| 6 | `test_decision_support.py` | 281 | All 5 decision support engines: calibrator, complexity, enrollment, eligibility, threat |
+| 7 | `test_query_expansion.py` | 255 | 13 synonym maps, 140 entity aliases, workflow-aware boosting, MeSH expansion |
+| 8 | `test_integration.py` | 247 | End-to-end workflow + RAG integration, cross-agent graceful degradation |
+| 9 | `test_rag_engine.py` | 194 | Multi-collection retrieval, scoring thresholds, citation generation, Milvus fallback |
+| 10 | `test_collections.py` | 152 | 14 collection schema validation, field types, weight sum verification |
+| 11 | `test_settings.py` | 133 | Configuration validation, env prefix, port conflict detection, weight tolerance |
+| 12 | `test_knowledge.py` | 123 | 40 trials, 13 areas, 9 agencies, phase/endpoint/design completeness |
+| 13 | `conftest.py` | 15 | Shared fixtures and test configuration |
+| | **Total** | **3,249** | **769 tests, 100% pass rate, 0.47s** |
+
+---
+
+## 22a. All 10 Workflows Detail
+
+| # | Workflow | Type Enum | Key Inputs | Key Outputs | Works Without Milvus |
+|---|---|---|---|---|---|
+| 1 | Protocol Design | `protocol_design` | Indication, phase, comparator, endpoints | Protocol blueprint, sample size, endpoint selection, comparator strategy | Yes |
+| 2 | Patient Matching | `patient_matching` | Patient demographics, biomarkers, genomics | Per-criterion match scores, overall match, site proximity ranking | Yes |
+| 3 | Site Selection | `site_selection` | Therapeutic area, phase, geography, enrollment target | Site scoring (enrollment rate, diversity, screen failure), ranked list | Yes |
+| 4 | Eligibility Optimization | `eligibility_optimization` | Eligibility criteria list, indication, phase | Population impact analysis, BROADEN/REVIEW/RETAIN recommendations | Yes |
+| 5 | Adaptive Design | `adaptive_design` | Indication, phase, sample size, endpoint type | Design type selection, interim analysis plan, regulatory precedent | Yes |
+| 6 | Safety Signal Detection | `safety_signal` | AE data, drug name, MedDRA coding | AE frequency analysis, PRR/ROR, severity classification, DSMB alerts | Yes |
+| 7 | Regulatory Documents | `regulatory_docs` | Document type, agency, indication, drug | IND/CSR/briefing/DSUR draft, agency-specific formatting | Yes |
+| 8 | Competitive Intelligence | `competitive_intel` | Drug name, indication, mechanism, phase | Threat scoring, enrollment tracking, mechanism comparison | Yes |
+| 9 | Diversity Assessment | `diversity_assessment` | Trial demographics, site locations, indication | Demographic gap analysis, site recommendations, FDA FDORA compliance | Yes |
+| 10 | Decentralized Planning | `decentralized_planning` | DCT components, indication, geography | Component feasibility assessment, regulatory guidance, patient preference | Yes |
+
+**TrialWorkflowType enum values (19):** The enum contains 19 values including 9 aliases (e.g., `eligibility_analysis` maps to `eligibility_optimization`, `safety_monitoring` maps to `safety_signal`, `competitive_intelligence` maps to `competitive_intel`) plus `general` as the default.
+
+## 22b. All 26 API Endpoints
+
+| # | Method | Path | Auth | Description |
+|---|---|---|---|---|
+| 1 | GET | `/health` | No | Service health with collection/vector counts |
+| 2 | GET | `/collections` | No | Collection names and record counts |
+| 3 | GET | `/workflows` | No | Available clinical trial workflows |
+| 4 | GET | `/metrics` | No | Prometheus-compatible metrics |
+| 5 | POST | `/v1/trial/query` | Yes | RAG-powered Q&A query |
+| 6 | POST | `/v1/trial/search` | Yes | Multi-collection vector search |
+| 7 | POST | `/v1/trial/protocol/optimize` | Yes | Protocol optimization workflow |
+| 8 | POST | `/v1/trial/match` | Yes | Patient-trial matching |
+| 9 | POST | `/v1/trial/match/batch` | Yes | Batch patient matching |
+| 10 | POST | `/v1/trial/site/recommend` | Yes | Site selection recommendations |
+| 11 | POST | `/v1/trial/eligibility/optimize` | Yes | Eligibility criteria optimization |
+| 12 | POST | `/v1/trial/adaptive/evaluate` | Yes | Adaptive design evaluation |
+| 13 | POST | `/v1/trial/safety/signal` | Yes | Safety signal detection |
+| 14 | POST | `/v1/trial/regulatory/generate` | Yes | Regulatory document generation |
+| 15 | POST | `/v1/trial/competitive/landscape` | Yes | Competitive intelligence |
+| 16 | POST | `/v1/trial/diversity/assess` | Yes | Diversity assessment |
+| 17 | POST | `/v1/trial/dct/plan` | Yes | Decentralized trial planning |
+| 18 | GET | `/v1/trial/therapeutic-areas` | No | Therapeutic area reference catalog |
+| 19 | GET | `/v1/trial/phases` | No | Phase reference data |
+| 20 | GET | `/v1/trial/guidelines` | No | Guideline reference data |
+| 21 | GET | `/v1/trial/knowledge-version` | No | Knowledge base version metadata |
+| 22 | POST | `/v1/trial/workflow/{type}` | Yes | Generic workflow dispatch |
+| 23 | POST | `/v1/reports/generate` | Yes | Report generation |
+| 24 | GET | `/v1/reports/formats` | No | Supported export formats |
+| 25 | GET | `/v1/events/stream` | No | SSE event stream |
+| 26 | GET | `/v1/events/health` | No | Event subsystem health |
+
+**Auth:** All POST endpoints on `/v1/trial/*` and `/v1/reports/generate` require `X-API-Key` header when `TRIAL_API_KEY` is configured. GET reference endpoints and system endpoints are unauthenticated.
+
+## 22c. Query Expansion System (Detail)
+
+### All 13 Synonym Maps
+
+| # | Map | Entries | Purpose |
+|---|---|---|---|
+| 1 | Entity Aliases | 140 | Abbreviation to full term (NSCLC, HFrEF, Keytruda, TMB, etc.) |
+| 2 | Therapeutic Area Map | 13 | Area keywords for classification (20 terms per area avg) |
+| 3 | Phase Map | 7 | Phase synonym resolution (8 synonyms per phase avg) |
+| 4 | Drug Synonym Map | 33 | Generic/brand/code name mapping (4 synonyms per drug avg) |
+| 5 | Biomarker Map | 22 | Biomarker alias expansion (6 synonyms per biomarker avg) |
+| 6 | Endpoint Map | 15 | Endpoint type synonyms (5 synonyms per endpoint avg) |
+| 7 | Regulatory Map | 19 | Regulatory term expansion (4 synonyms per term avg) |
+| 8 | Design Map | 14 | Trial design synonyms (5 synonyms per design avg) |
+| 9 | Population Map | 10 | Population descriptors (7 synonyms per population avg) |
+| 10 | Safety Map | 14 | Safety term expansion (5 synonyms per term avg) |
+| 11 | Geographic Map | 6 | Regional term expansion (7 terms per region avg) |
+| 12 | Procedure Map | 10 | Clinical procedure synonyms (7 synonyms per procedure avg) |
+| 13 | Workflow Terms | 11 | Workflow-specific term boosting (10 terms per workflow avg) |
+
+**Total top-level entries:** 314 across 13 maps
+**Entity aliases:** 140 abbreviation-to-full-term mappings
+**Drug synonym coverage:** 33 drugs with 130+ synonyms including brand names, code names, and mechanism labels
+
+## 22d. Issues Found and Fixed During Development
+
+| # | Issue | Severity | Fix | Status |
+|---|---|---|---|---|
+| 1 | Codebase stats in Exec Summary used incorrect file/LOC counts | Medium | Updated to verified counts: 39 files, 23,062 LOC | Fixed |
+| 2 | Landmark trial table truncated at 23 trials ("...and 17 more") | Low | Expanded to show all 40 trials with NCT IDs | Fixed |
+| 3 | Query expansion described as "10 synonym maps" | Low | Corrected to 13 synonym maps with accurate entry counts | Fixed |
+| 4 | Evidence level scores differed between report and code | Medium | Aligned to code values: A2=0.85, B=0.65, C=0.45, D=0.25, E=0.15 | Fixed |
+| 5 | Protocol complexity weights described as 4 dimensions | Low | Corrected to 5 dimensions with actual weights from code | Fixed |
+| 6 | API endpoint count stated as 26 | Low | Verified: 4 system + 18 trial + 2 report + 2 event = 26 (confirmed) | Verified |
+| 7 | Test file count stated as 12 | Low | Corrected: 13 test files (12 test modules + 1 conftest.py) | Fixed |
+| 8 | Collection weight sum not verified | Low | Verified sum = 1.00 across 14 collections | Verified |
+| 9 | Drug synonym count stated as 33 | Low | Verified: 33 drugs in DRUG_SYNONYM_MAP | Verified |
+| 10 | Entity alias count stated as 140 | Low | Verified: 140 entries in ENTITY_ALIASES dict | Verified |
+| 11 | Biomarker map stated as 22 | Low | Verified: 22 entries in BIOMARKER_MAP | Verified |
+| 12 | TrialWorkflowType enum values stated as 19 | Low | Verified: 19 values including aliases and GENERAL | Verified |
+| 13 | Safety map entries understated as "10+" | Low | Corrected to 14 entries | Fixed |
+| 14 | Source vs test LOC split inaccurate | Medium | Corrected: 19,813 source + 3,249 test = 23,062 total | Fixed |
+| 15 | Documentation file count incomplete | Low | Updated: 10 .md + 9 .docx = 19 documentation files | Fixed |
+
 ---
 
 ## 23. Known Limitations
@@ -713,23 +1056,55 @@ streamlit run app/trial_ui.py --server.port 8128
 
 | Category | Files | LOC |
 |---|---|---|
-| Source (`src/`) | 17 | ~13,200 |
-| API (`api/`) | 4 | ~2,275 |
-| App (`app/`) | 2 | ~692 |
-| Config (`config/`) | 2 | ~182 |
-| Scripts (`scripts/`) | 3 | ~747 |
-| Tests (`tests/`) | 12 | ~3,904 |
-| Infrastructure | 3 | ~1,607 |
-| **Total** | **46** | **22,607** |
+| Source (src/, api/, app/, config/, scripts/) | 26 | 19,813 |
+| Tests (tests/) | 13 | 3,249 |
+| **Total Python** | **39** | **23,062** |
+
+### Top 15 Files by LOC
+
+| # | File | LOC | Purpose |
+|---|---|---|---|
+| 1 | `src/clinical_workflows.py` | 2,615 | 10 clinical trial workflows |
+| 2 | `src/knowledge.py` | 1,929 | Domain knowledge: 40 trials, 13 areas, 9 agencies |
+| 3 | `src/agent.py` | 1,678 | Autonomous reasoning pipeline |
+| 4 | `src/rag_engine.py` | 1,555 | Multi-collection RAG with weighted retrieval |
+| 5 | `src/collections.py` | 1,221 | 14 Milvus collection schemas |
+| 6 | `src/query_expansion.py` | 1,150 | 13 synonym maps, 140 entity aliases |
+| 7 | `api/routes/trial_clinical.py` | 1,079 | 18 trial-specific API endpoints |
+| 8 | `src/ingest/clinicaltrials_parser.py` | 802 | ClinicalTrials.gov XML/JSON parser |
+| 9 | `src/decision_support.py` | 740 | 5 decision support engines |
+| 10 | `src/export.py` | 725 | Multi-format report export |
+| 11 | `app/trial_ui.py` | 695 | 5-tab Streamlit UI |
+| 12 | `api/main.py` | 615 | FastAPI app factory |
+| 13 | `src/scheduler.py` | 577 | Scheduled ingest and maintenance |
+| 14 | `src/metrics.py` | 525 | Prometheus-compatible metrics |
+| 15 | `src/models.py` | 496 | Pydantic models and enums |
 
 ### File Count by Type
 
-- Python source files: 34 (excluding tests)
-- Python test files: 12
-- Configuration files: 3 (docker-compose.yml, Dockerfile, requirements.txt)
-- Documentation: 2 (README.md, research paper)
-- **Total Python files: 46**
-- **Total Python LOC: 22,607**
+- Python source files: 26 (excluding tests)
+- Python test files: 13 (12 test modules + conftest.py)
+- Source LOC: 19,813
+- Test LOC: 3,249
+- **Total Python files: 39**
+- **Total Python LOC: 23,062**
+
+### Documentation Files
+
+| # | File | Format |
+|---|---|---|
+| 1 | `PRODUCTION_READINESS_REPORT` | .md + .docx |
+| 2 | `ARCHITECTURE_GUIDE` | .md + .docx |
+| 3 | `CLINICAL_TRIAL_INTELLIGENCE_AGENT_RESEARCH_PAPER` | .md + .docx |
+| 4 | `DEMO_GUIDE` | .md + .docx |
+| 5 | `DEPLOYMENT_GUIDE` | .md + .docx |
+| 6 | `LEARNING_GUIDE_ADVANCED` | .md + .docx |
+| 7 | `LEARNING_GUIDE_FOUNDATIONS` | .md + .docx |
+| 8 | `PROJECT_BIBLE` | .md + .docx |
+| 9 | `WHITE_PAPER` | .md + .docx |
+| 10 | `INDEX` | .md |
+
+**Total: 10 .md + 9 .docx = 19 documentation files**
 
 ---
 
