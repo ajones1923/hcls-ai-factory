@@ -226,6 +226,17 @@ nav:
       - "Learning Guide \u2014 Advanced": neurology-intelligence-agent/learning-guide-advanced.md
       - Production Readiness Report: neurology-intelligence-agent/production-readiness-report.md
       - Research Paper: neurology-intelligence-agent/neurology-intelligence-agent-research-paper.md
+    - Single-Cell Intelligence Agent:
+      - Overview: single-cell-intelligence-agent/index.md
+      - Project Bible: single-cell-intelligence-agent/project-bible.md
+      - Architecture Guide: single-cell-intelligence-agent/architecture-guide.md
+      - White Paper: single-cell-intelligence-agent/white-paper.md
+      - Deployment Guide: single-cell-intelligence-agent/deployment-guide.md
+      - Demo Guide: single-cell-intelligence-agent/demo-guide.md
+      - "Learning Guide \u2014 Foundations": single-cell-intelligence-agent/learning-guide-foundations.md
+      - "Learning Guide \u2014 Advanced": single-cell-intelligence-agent/learning-guide-advanced.md
+      - Production Readiness Report: single-cell-intelligence-agent/production-readiness-report.md
+      - Research Paper: single-cell-intelligence-agent/single-cell-intelligence-agent-research-paper.md
   - Reports:
     - Intelligence Report: HCLS_AI_FACTORY_INTELLIGENCE_REPORT.md
     - Pipeline Report: PIPELINE_REPORT.md
