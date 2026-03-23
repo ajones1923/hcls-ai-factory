@@ -1,5 +1,7 @@
 # Neurology Intelligence Agent
 
+> **Part of the [Precision Intelligence Network](../engines/precision-intelligence.md)** — one of 11 specialized agents sharing a common molecular foundation within the HCLS AI Factory.
+
 RAG-powered clinical decision support for neurology, covering 10 disease domains, 14 vector collections, 10 validated clinical scales, and 8 evidence-based workflows.
 
 ## Key Capabilities
@@ -34,3 +36,8 @@ RAG-powered clinical decision support for neurology, covering 10 disease domains
 | [Learning Guide -- Foundations](learning-guide-foundations.md) | Brain anatomy, stroke, dementia, seizures, MS, scales |
 | [Learning Guide -- Advanced](learning-guide-advanced.md) | ATN, DAWN/DEFUSE-3, NEDA-3, EMG/NCS, DBS, surgery |
 | [Research Paper](neurology-intelligence-agent-research-paper.md) | Technical research paper |
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    This agent is a clinical decision support research tool. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

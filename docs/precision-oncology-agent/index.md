@@ -1,5 +1,7 @@
 # Precision Oncology Agent
 
+> **Part of the [Precision Intelligence Network](../engines/precision-intelligence.md)** — one of 11 specialized agents sharing a common molecular foundation within the HCLS AI Factory.
+
 Closed-loop precision oncology clinical decision support -- from paired tumor-normal genomics to Molecular Tumor Board packets. Part of the [HCLS AI Factory](https://github.com/ajones1923/hcls-ai-factory).
 
 **Source:** [github.com/ajones1923/precision-oncology-agent](https://github.com/ajones1923/precision-oncology-agent)
@@ -285,3 +287,8 @@ Measured on NVIDIA DGX Spark (GB10 GPU, 128GB unified LPDDR5x memory, 20 ARM cor
 
 - **Adam Jones**
 - **Apache 2.0 License**
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    This agent is a clinical decision support research tool. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

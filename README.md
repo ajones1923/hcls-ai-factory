@@ -7,11 +7,41 @@
 [![Docs](https://img.shields.io/badge/Docs-MkDocs-526cfe.svg?logo=materialformkdocs&logoColor=white)](https://hcls-ai-factory.org)
 [![NVIDIA DGX Spark](https://img.shields.io/badge/NVIDIA-DGX_Spark-76b900.svg?logo=nvidia&logoColor=white)](https://www.nvidia.com/en-us/data-center/dgx-spark/)
 
-**Transform patient DNA into therapeutic candidates in hours, not months.**
+**Foundation. Intelligence. Discovery.**
+
+*Transform patient DNA into therapeutic candidates in hours, not months.*
 
 <p align="center">
   <img src="docs/diagrams/hcls-ai-factory-diagram.png" alt="HCLS AI Factory on NVIDIA DGX Spark" width="800">
 </p>
+
+---
+
+## Three Engines. One Pipeline.
+
+The HCLS AI Factory is built on three coordinated engines that form a continuous pipeline from raw DNA to drug candidates:
+
+| Engine | Stage | What It Does |
+|--------|-------|-------------|
+| **[Genomic Foundation Engine](docs/engines/genomic-foundation.md)** | 1 | GPU-accelerated variant calling and annotation. FASTQ → 3.5M searchable variant vectors via Parabricks, DeepVariant, ClinVar, and AlphaMissense. |
+| **[Precision Intelligence Network](docs/engines/precision-intelligence.md)** | 2 | 11 domain-specialized AI agents sharing a common molecular foundation. RAG-powered clinical interpretation across oncology, neurology, cardiology, rare disease, and 9 more domains. |
+| **[Therapeutic Discovery Engine](docs/engines/therapeutic-discovery.md)** | 3 | Generative drug design via BioNeMo MolMIM, molecular docking via DiffDock, and drug-likeness scoring via RDKit. Validated targets become ranked drug candidates. |
+
+### The 11 Intelligence Agents
+
+| Agent | Domain | Port | Key Capabilities |
+|-------|--------|------|------------------|
+| [Precision Oncology](docs/precision-oncology-agent/index.md) | Cancer | 8526 | MTB packet generation, therapy ranking, trial matching |
+| [CAR-T Intelligence](docs/cart-intelligence-agent/index.md) | Cell Therapy | 8521 | Cross-collection evidence, comparative analysis, deep research |
+| [Imaging Intelligence](docs/imaging-intelligence-agent/index.md) | Medical Imaging | 8525 | VISTA-3D, MAISI, VILA-M3 workflows, FHIR R4 export |
+| [Precision Biomarker](docs/precision-biomarker-agent/index.md) | Biomarkers | 8528 | PhenoAge/GrimAge, 9-domain risk, genotype-aware interpretation |
+| [Pharmacogenomics](docs/pharmacogenomics-intelligence-agent/index.md) | Drug-Gene | 8507 | Star allele calling, CPIC guidelines, 9 dosing algorithms |
+| [Precision Autoimmune](docs/precision-autoimmune-agent/index.md) | Autoimmune | 8531 | Autoantibody interpretation, HLA analysis, flare prediction |
+| [Neurology Intelligence](docs/neurology-intelligence-agent/index.md) | Neurology | 8529 | Stroke triage, dementia evaluation, EDSS scoring |
+| [Cardiology Intelligence](docs/cardiology-intelligence-agent/index.md) | Cardiovascular | 8536 | 11 clinical workflows, 6 risk calculators |
+| [Clinical Trial Intelligence](docs/clinical-trial-intelligence-agent/index.md) | Clinical Trials | 8128 | Trial optimization, adaptive design, biomarker strategy |
+| [Rare Disease Diagnostic](docs/rare-disease-diagnostic-agent/index.md) | Rare Disease | 8544 | HPO matching, ACMG classification, gene therapy tracking |
+| [Single-Cell Intelligence](docs/single-cell-intelligence-agent/index.md) | Single-Cell | 8130 | Cell type annotation, TME profiling, drug response |
 
 ---
 
@@ -112,21 +142,13 @@ Take it. Use it. Make it better.
 
 ## What It Does
 
-| Stage | Pipeline | Input | Output | Key Technology |
-|-------|----------|-------|--------|----------------|
-| 1 | **Genomics** | FASTQ (raw sequences) | VCF (variant calls) | NVIDIA Parabricks, DeepVariant |
-| 2 | **RAG/Chat** | VCF + natural language query | Target hypothesis | Milvus, Claude AI, ClinVar |
-| 3 | **Drug Discovery** | Protein target | Ranked drug candidates | BioNeMo MolMIM, DiffDock |
+| Stage | Engine | Input | Output | Key Technology |
+|-------|--------|-------|--------|----------------|
+| 1 | **[Genomic Foundation](docs/engines/genomic-foundation.md)** | FASTQ (raw sequences) | 3.5M variant vectors | NVIDIA Parabricks, DeepVariant, ClinVar, AlphaMissense |
+| 2 | **[Precision Intelligence](docs/engines/precision-intelligence.md)** | Variant vectors + natural language | Clinical intelligence | 11 RAG agents, Milvus, Claude AI |
+| 3 | **[Therapeutic Discovery](docs/engines/therapeutic-discovery.md)** | Protein target | Ranked drug candidates | BioNeMo MolMIM, DiffDock, RDKit |
 
-### Intelligence Agents
-
-| Agent | Domain | Key Capabilities | Port |
-|-------|--------|-----------------|------|
-| **[CAR-T Intelligence](https://github.com/ajones1923/cart-intelligence-agent)** | Cell Therapy | Cross-collection evidence, comparative analysis, deep research mode | 8521 |
-| **[Imaging Intelligence](https://github.com/ajones1923/imaging-intelligence-agent)** | Medical Imaging | NVIDIA NIM workflows (VISTA-3D, MAISI, VILA-M3), FHIR R4 export | 8525 |
-| **[Precision Oncology](https://github.com/ajones1923/precision-oncology-agent)** | Oncology | MTB packet generation, trial matching, therapy ranking, FHIR R4 | 8526 |
-
-Each agent extends the core platform with domain-specific RAG, cross-modal triggers linking to the shared genomic evidence base (3.5M vectors), and Streamlit UIs for interactive exploration.
+Each of the 11 intelligence agents extends the core platform with domain-specific RAG, cross-modal triggers linking to the shared genomic evidence base (3.5M vectors), and Streamlit UIs for interactive exploration.
 
 ### Performance
 
@@ -141,38 +163,33 @@ Each agent extends the core platform with domain-specific RAG, cross-modal trigg
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                           HCLS AI FACTORY                                   │
+│                    HCLS AI FACTORY — Foundation. Intelligence. Discovery.    │
 ├─────────────────┬─────────────────┬─────────────────────────────────────────┤
-│                 │                 │                                         │
-│   GENOMICS      │    RAG/CHAT     │         DRUG DISCOVERY                  │
-│   PIPELINE      │    PIPELINE     │            PIPELINE                     │
-│                 │                 │                                         │
-│  FASTQ → VCF    │  VCF → Target   │      Target → Molecules                 │
-│                 │                 │                                         │
-│  • Parabricks   │  • Milvus       │      • BioNeMo MolMIM                   │
-│  • BWA-MEM2     │  • ClinVar      │      • BioNeMo DiffDock                 │
-│  • DeepVariant  │  • Claude AI    │      • RDKit scoring                    │
-│                 │                 │                                         │
+│  STAGE 1        │  STAGE 2        │  STAGE 3                                │
+│  GENOMIC        │  PRECISION      │  THERAPEUTIC                            │
+│  FOUNDATION     │  INTELLIGENCE   │  DISCOVERY                              │
+│                 │  NETWORK        │  ENGINE                                 │
+│  FASTQ → 3.5M  │  11 Agents      │  Target → Molecules                     │
+│  variant vectors│                 │                                         │
+│  • Parabricks   │  • Milvus       │  • BioNeMo MolMIM                       │
+│  • BWA-MEM2     │  • Claude AI    │  • BioNeMo DiffDock                     │
+│  • DeepVariant  │  • ClinVar      │  • RDKit scoring                        │
+│  • AlphaMissense│  • 142 colls    │                                         │
 └────────┬────────┴────────┬────────┴──────────────────┬──────────────────────┘
          │                 │                           │
          ▼                 ▼                           ▼
    Web Portal:8080   Chat UI:8501              Discovery UI:8505
 
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                       INTELLIGENCE AGENTS                                   │
-├──────────────────┬──────────────────────┬───────────────────────────────────┤
-│                  │                      │                                   │
-│   CAR-T          │   IMAGING            │   PRECISION ONCOLOGY              │
-│   AGENT :8521    │   AGENT :8525        │   AGENT :8526                     │
-│                  │                      │                                   │
-│  • Cell therapy  │  • VISTA-3D, MAISI   │  • MTB packets                    │
-│  • Comparative   │  • VILA-M3, Llama-3  │  • Trial matching                 │
-│  • Deep research │  • FHIR R4 export    │  • Therapy ranking                │
-│                  │                      │                                   │
-└──────────────────┴──────────────────────┴───────────────────────────────────┘
+│                  PRECISION INTELLIGENCE NETWORK (11 Agents)                  │
+├──────────────────┬──────────────────┬───────────────────────────────────────┤
+│  Oncology :8526  │  CAR-T :8521     │  Imaging :8525    Biomarker :8528     │
+│  PGx :8507       │  Autoimmune :8531│  Neurology :8529  Cardiology :8536    │
+│  Trials :8128    │  Rare Dis :8544  │  Single-Cell :8130                    │
+└──────────────────┴──────────────────┴───────────────────────────────────────┘
          ▲                 ▲                           ▲
          └─────────────────┴───────────────────────────┘
-                  Shared Genomic Evidence (3.5M vectors)
+              Shared Genomic Evidence (3.5M vectors)
 ```
 
 <p align="center">
@@ -235,22 +252,9 @@ The platform includes a complete demonstration using VCP (Valosin-containing pro
 ## Quick Start
 
 ```bash
-# Clone the repository
-git clone https://github.com/ajones1923/hcls-ai-factory.git
-cd hcls-ai-factory
-
-# Configure environment
-cp .env.example .env
-# Edit .env with your NGC and Anthropic API keys
-
-# Stage 0: Download all required data (~500 GB, run once)
-./setup-data.sh --all
-
-# Start all services
-./start-services.sh
-
-# Access the landing page
-open http://localhost:8080
+git clone https://github.com/ajones1923/hcls-ai-factory.git && cd hcls-ai-factory
+cp .env.example .env && nano .env   # Add your NGC + Anthropic API keys
+./start-services.sh                  # Launch all 3 engines → http://localhost:8080
 ```
 
 > **First time?** The data download (`setup-data.sh`) is a one-time step that fetches ~500 GB of genomic reference data, clinical databases, and sequencing files. It includes automatic retry, checksum verification, and can be safely re-run if interrupted. See [Data Setup Guide](docs/DATA_SETUP.md) for details and troubleshooting.
@@ -430,4 +434,4 @@ Creator and Maintainer
 
 ---
 
-*Transform genomic data into therapeutic insights.*
+*Foundation. Intelligence. Discovery.*
