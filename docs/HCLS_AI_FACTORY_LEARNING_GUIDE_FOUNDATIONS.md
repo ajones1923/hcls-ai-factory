@@ -63,7 +63,7 @@ The sequencer produces huge files called **FASTQ files**. For a single person's 
 
 ---
 
-## Chapter 3: Stage 1 — Finding Variants with GPU Power
+## Chapter 3: The Genomic Foundation Engine (Stage 1) — Finding Variants with GPU Power
 
 ### The Computer Challenge
 
@@ -99,7 +99,7 @@ The output is a **VCF** (Variant Call Format) file containing every variant foun
 
 ---
 
-## Chapter 4: Stage 2 — Understanding What the Variants Mean
+## Chapter 4: The Precision Intelligence Network (Stage 2) — Understanding What the Variants Mean
 
 ### Not All Variants Are Equal
 
@@ -149,7 +149,7 @@ The knowledge base contains **201 genes** across **13 therapeutic areas** (like 
 
 ---
 
-## Chapter 5: Stage 3 — Designing New Medicines
+## Chapter 5: The Therapeutic Discovery Engine (Stage 3) — Designing New Medicines
 
 ### From Gene to Drug
 
@@ -261,7 +261,7 @@ The same software that runs on a $3,999 DGX Spark can scale to larger systems:
 ### The Bigger Picture
 
 This platform is part of the **HCLS AI Factory** — a broader ecosystem that also includes:
-- An **Imaging Intelligence Agent** for CT scans, MRI, and X-rays
+- **11 intelligence agents** covering oncology, biomarkers, CAR-T therapy, imaging, autoimmune disease, pharmacogenomics, cardiology, clinical trials, rare disease, neurology, and single-cell analysis
 - **Cross-modal triggers** — for example, a suspicious lung nodule found on a CT scan can automatically trigger genomic analysis to look for cancer-related variants
 - **NVIDIA FLARE** — technology that lets multiple hospitals train AI models together without sharing patient data
 

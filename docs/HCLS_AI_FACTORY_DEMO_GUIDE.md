@@ -138,13 +138,13 @@ ls rag-chat-pipeline/data/annotations/                # ClinVar + AlphaMissense
 
 - "This is the HCLS AI Factory — a platform that transforms patient DNA into novel drug candidates in under 5 hours."
 - "Everything runs on this single DGX Spark — a $3,999 desktop workstation."
-- "Three stages: GPU-accelerated genomics, RAG-grounded target identification, and AI-driven drug discovery."
+- "Three engines: the Genomic Foundation Engine for GPU-accelerated genomics, the Precision Intelligence Network for RAG-grounded target identification with 11 intelligence agents, and the Therapeutic Discovery Engine for AI-driven drug discovery."
 
 **Show:** Landing page at http://localhost:8080 — highlight the 10-service health grid.
 
 ---
 
-### Stage 1: Genomics (3-4 minutes)
+### Genomic Foundation Engine (Stage 1) — 3-4 minutes
 
 #### Launch Pipeline
 
@@ -172,7 +172,7 @@ python run_pipeline.py --mode demo
 
 ---
 
-### Stage 2: RAG/Chat (5-6 minutes)
+### Precision Intelligence Network (Stage 2) — 5-6 minutes
 
 #### Show Annotation Pipeline
 
@@ -223,7 +223,7 @@ Claude will identify VCP as the primary target with:
 
 ---
 
-### Stage 3: Drug Discovery (4-5 minutes)
+### Therapeutic Discovery Engine (Stage 3) — 4-5 minutes
 
 #### Show Structure Retrieval
 
@@ -297,10 +297,54 @@ Claude will identify VCP as the primary target with:
 | Phase 2 | DGX B200 | Department — multiple concurrent patients |
 | Phase 3 | DGX SuperPOD | Enterprise — thousands concurrent, federated |
 
+**11 Intelligence Agents:**
+
+- "The platform includes 11 specialized intelligence agents spanning oncology, biomarkers, CAR-T, imaging, autoimmune, pharmacogenomics, cardiology, clinical trials, rare disease, neurology, and single-cell analysis."
+
 **Cross-modal:**
 
 - "The Imaging Intelligence Agent can trigger genomic analysis — a Lung-RADS 4B+ finding automatically initiates tumor profiling."
 - "Drug candidates feed back into integrated clinical reports."
+
+---
+
+## Intelligence Agent Demo Scenarios
+
+### Clinical Trial Intelligence Agent (Port 8538/8128)
+
+**Query:** "Find open clinical trials for VCP mutations in frontotemporal dementia."
+
+**Talking points:**
+- Matches patient genomic profile to eligible trials
+- Searches ClinicalTrials.gov via embedded trial registrations
+- Ranks trials by eligibility match strength and geographic proximity
+
+### Rare Disease Diagnostic Agent (Port 8134/8544)
+
+**Query:** "Differential diagnosis for a patient with progressive myopathy, Paget disease of bone, and early-onset dementia."
+
+**Talking points:**
+- Recognizes IBMPFD pattern associated with VCP mutations
+- Cross-references rare disease databases (OMIM, Orphanet)
+- Generates diagnostic workup recommendations
+
+### Neurology Intelligence Agent (Port 8528/8529)
+
+**Query:** "What are the neurodegenerative implications of VCP R155H mutation?"
+
+**Talking points:**
+- Specialized reasoning for neurological conditions
+- Links genetic variants to neurodegenerative phenotypes
+- Integrates neuropathology evidence and treatment guidelines
+
+### Single-Cell Intelligence Agent (Port 8540/8130)
+
+**Query:** "What cell types express VCP at highest levels in the brain?"
+
+**Talking points:**
+- Analyzes single-cell transcriptomics datasets
+- Identifies cell-type-specific expression patterns
+- Connects molecular findings to cellular pathology
 
 ---
 
