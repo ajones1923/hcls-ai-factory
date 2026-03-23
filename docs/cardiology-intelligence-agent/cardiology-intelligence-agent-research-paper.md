@@ -254,7 +254,7 @@ The Cardiology Intelligence Agent will leverage battle-tested patterns from exis
 
 | Pattern | Proven In | Adaptation for Cardiology |
 |---|---|---|
-| Multi-collection parallel search | All 5 agents | 12 cardiology-specific collections |
+| Multi-collection parallel search | All 11 agents | 12 cardiology-specific collections |
 | Knowledge graph augmentation | CAR-T, Biomarker | Cardiac conditions, drug classes, risk factors |
 | Query expansion maps | CAR-T (12 maps), Biomarker | Cardiology terminology (e.g., "MI" → "myocardial infarction", "STEMI", "NSTEMI", "ACS") |
 | Comparative analysis | CAR-T, Imaging | "TAVR vs SAVR", "Amiodarone vs Sotalol" |
@@ -1551,7 +1551,7 @@ No existing product combines:
 
 | Advantage | Defensibility |
 |---|---|
-| Multi-collection RAG architecture | High -- 5 agents prove the pattern; cardiology is the 6th instantiation |
+| Multi-collection RAG architecture | High -- 11 agents prove the pattern across all major clinical domains |
 | Cross-modal genomic triggers | High -- unique to HCLS AI Factory; requires integrated platform |
 | On-device inference | High -- DGX Spark + NIM stack is NVIDIA-exclusive |
 | Open source | Medium -- community contribution, institutional customization |

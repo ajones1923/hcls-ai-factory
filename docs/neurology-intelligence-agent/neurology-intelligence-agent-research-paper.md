@@ -1495,7 +1495,7 @@ No existing product combines:
 
 | Advantage | Defensibility |
 |---|---|
-| Multi-collection RAG architecture | High -- 6 agents prove the pattern |
+| Multi-collection RAG architecture | High -- 11 agents prove the pattern |
 | Cross-modal genomic triggers | High -- unique to HCLS AI Factory |
 | On-device inference | High -- DGX Spark + NIM is NVIDIA-exclusive |
 | Breadth of neurological coverage | High -- no competitor covers 8 subspecialties |

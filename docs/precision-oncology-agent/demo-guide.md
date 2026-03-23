@@ -594,7 +594,7 @@ Below the metrics, a horizontal bar chart showing vector counts per collection.
 > agent, the imaging analysis agent -- can subscribe to these events and trigger
 > their own workflows. For example, the biomarker agent might see a new EGFR L858R
 > case and automatically queue a resistance monitoring panel. This is how the
-> five agents in the factory collaborate without tight coupling."
+> eleven agents in the factory collaborate without tight coupling."
 
 ### Step 4: Show the cross-agent API
 
@@ -712,7 +712,7 @@ curl -s http://localhost:8527/knowledge/stats | python3 -m json.tool
 > "For quick demonstrations, the sidebar has a Load Demo Patient button that
 > pre-populates the Case Workbench with our reference NSCLC patient. This uses
 > shared demo data from the HCLS common library, ensuring consistency across all
-> five agents in the factory."
+> eleven agents in the factory."
 
 ---
 
