@@ -1,5 +1,7 @@
 # Imaging Intelligence Agent
 
+> **Part of the [Precision Intelligence Network](../engines/precision-intelligence.md)** — one of 11 specialized agents sharing a common molecular foundation within the HCLS AI Factory.
+
 Automated detection, segmentation, longitudinal tracking, and clinical triage of CT, MRI, and chest X-ray studies on NVIDIA DGX Spark. Part of the [HCLS AI Factory](https://github.com/ajones1923/hcls-ai-factory).
 
 ![HCLS AI Factory Imaging AI Agent on NVIDIA DGX Spark](HCLS%20AI%20Factory%20Imaging%20AI%20Agent%20on%20NVIDIA%20DGX%20Spark%20Infographic.png)
@@ -123,3 +125,8 @@ The Imaging Agent connects into the broader HCLS AI Factory genomics pipeline:
 
 - **Adam Jones**
 - **Apache 2.0 License**
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    This agent is a clinical decision support research tool. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

@@ -1,5 +1,7 @@
 # Single-Cell Intelligence Agent -- Documentation Index
 
+> **Part of the [Precision Intelligence Network](../engines/precision-intelligence.md)** — one of 11 specialized agents sharing a common molecular foundation within the HCLS AI Factory.
+
 **Version:** 1.0.0
 **Date:** 2026-03-22
 **Agent:** Single-Cell Intelligence Agent
@@ -68,3 +70,8 @@
 ---
 
 *HCLS AI Factory -- Single-Cell Intelligence Agent Documentation Index v1.0.0*
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    This agent is a clinical decision support research tool. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.
