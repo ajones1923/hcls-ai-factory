@@ -3106,7 +3106,7 @@ All collections across all 11 intelligence agents:
 | Port | Service | Agent/Pipeline |
 |---|---|---|
 | 8080 | Landing Page / Hub | Platform |
-| 5000 | Genomics Pipeline | Stage 1 |
+| 5000 | Genomic Foundation Engine | Stage 1 |
 | 5001 | RAG/Chat API | Stage 2 |
 | 8501 | RAG Chat Interface | Stage 2 |
 | 8505 | Drug Discovery | Stage 3 |

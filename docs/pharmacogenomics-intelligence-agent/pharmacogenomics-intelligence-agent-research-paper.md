@@ -225,13 +225,13 @@ The HCLS AI Factory is an end-to-end precision medicine platform deployed on NVI
 - Output: Annotated VCF files with 11.7 million variants per genome
 - Relevance to PGx: **VCF output contains all pharmacogenomic variants** but they are not currently extracted, interpreted, or translated to prescribing guidance
 
-**Stage 2: RAG/Chat Pipeline** (`rag-chat-pipeline/`)
+**Stage 2: Precision Intelligence Network** (`rag-chat-pipeline/`)
 - Milvus vector database (19530) with BGE-small-en-v1.5 embeddings
 - Claude Sonnet 4.6 for evidence synthesis
 - 3.5 million searchable genomic variant vectors in shared `genomic_evidence` collection
-- Multi-collection architecture proven across 6 agents
+- Multi-collection architecture proven across 11 agents
 
-**Stage 3: Drug Discovery Pipeline** (`drug-discovery-pipeline/`)
+**Stage 3: Therapeutic Discovery Engine** (`drug-discovery-pipeline/`)
 - BioNeMo MolMIM for molecular generation
 - DiffDock for binding pose prediction
 - RDKit for ADMET property calculation

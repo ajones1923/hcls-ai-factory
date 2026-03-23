@@ -88,7 +88,7 @@ The Neurology Intelligence Agent is a RAG-powered clinical decision support syst
 | General Neurology Q&A | Production | All 14 collections | Free-form RAG retrieval |
 | Clinical Scale Calculators | Production | 10 validated instruments | Automated interpretation |
 | Query Expansion | Production | 251+ aliases, 16 synonym maps | Workflow-aware expansion |
-| Cross-Agent Integration | Beta | 5 agent connections | Genomics, cardiology, biomarker, trial, rare disease |
+| Cross-Agent Integration | Production | 10 agent connections | All peer agents via /integrated-assessment |
 | SSE Event Streaming | Production | Real-time progress | Cross-agent event relay |
 | Report Generation | Production | 4 formats | Markdown, JSON, PDF, FHIR R4 |
 | Conversation Memory | Production | 24-hour TTL | Disk-persisted JSON |

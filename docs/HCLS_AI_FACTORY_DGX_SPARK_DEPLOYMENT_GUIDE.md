@@ -28,9 +28,9 @@ tags:
 5. [Repository Setup](#5-repository-setup)
 6. [Reference Data Preparation](#6-reference-data-preparation)
 7. [Docker Compose Configuration](#7-docker-compose-configuration)
-8. [Deploy Genomics Pipeline (Stage 1)](#8-deploy-genomics-pipeline-stage-1)
-9. [Deploy RAG Chat Pipeline (Stage 2)](#9-deploy-rag-chat-pipeline-stage-2)
-10. [Deploy Drug Discovery Pipeline (Stage 3)](#10-deploy-drug-discovery-pipeline-stage-3)
+8. [Deploy Genomic Foundation Engine (Stage 1)](#8-deploy-genomic-foundation-engine-stage-1)
+9. [Deploy Precision Intelligence Network (Stage 2)](#9-deploy-precision-intelligence-network-stage-2)
+10. [Deploy Therapeutic Discovery Engine (Stage 3)](#10-deploy-therapeutic-discovery-engine-stage-3)
 11. [Nextflow Orchestration](#11-nextflow-orchestration)
 12. [Service Startup and Health](#12-service-startup-and-health)
 13. [Monitoring and Observability](#13-monitoring-and-observability)
@@ -84,7 +84,7 @@ This section provides essential background for engineers who may not have a biol
 
 DNA sequencing reads the order of nucleotide bases (A, T, C, G) in an organism's genome. Modern short-read sequencers (e.g., Illumina) produce paired-end reads — two sequences from opposite ends of a DNA fragment. The standard demo sample HG002 is a 30x whole-genome sequencing (WGS) dataset with 2x250 bp paired-end reads, producing approximately 200 GB of FASTQ data.
 
-#### 1.5.2 Genomics Pipeline Stages
+#### 1.5.2 Genomic Foundation Engine Stages
 
 | Stage | Input | Tool | Output | Description |
 |---|---|---|---|---|
@@ -441,7 +441,7 @@ hcls-ai-factory/
 ├── start-services.sh               # Service startup script
 ├── requirements.txt                # Python dependencies
 │
-├── genomics/                       # Stage 1: Genomics Pipeline
+├── genomics/                       # Stage 1: Genomic Foundation Engine
 │   ├── parabricks/                 # Parabricks configs and scripts
 │   │   ├── fq2bam.sh              # BWA-MEM2 alignment wrapper
 │   │   └── deepvariant.sh         # DeepVariant variant calling wrapper
@@ -453,7 +453,7 @@ hcls-ai-factory/
 │       ├── bam/                    # Alignment output
 │       └── vcf/                    # Variant call output
 │
-├── rag/                            # Stage 2: RAG Chat Pipeline
+├── rag/                            # Stage 2: Precision Intelligence Network
 │   ├── api/                        # RAG API (Port 5001)
 │   │   └── app.py
 │   ├── chat/                       # Streamlit Chat (Port 8501)

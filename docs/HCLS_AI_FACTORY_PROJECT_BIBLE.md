@@ -1245,9 +1245,10 @@ Imaging Intelligence Agent (CT/MRI/X-Ray)
 
 | Trigger | Source | Target | Action |
 |---|---|---|---|
-| Lung-RADS 4B+ | Imaging Agent | Genomics Pipeline | Initiate tumor profiling |
-| Pathogenic Variant | Genomics Pipeline | Drug Discovery | Generate targeted therapies |
-| Drug Candidates | Drug Discovery | Imaging Agent | Combined clinical report |
+| Lung-RADS 4B+ | Imaging Agent | Genomic Foundation Engine | Initiate tumor profiling |
+| Pathogenic Variant | Precision Intelligence Network | Therapeutic Discovery Engine | Generate targeted therapies |
+| Drug Candidates | Therapeutic Discovery Engine | Imaging Agent | Combined clinical report |
+| Integrated Assessment | Any Agent (`/integrated-assessment`) | Peer Agents | Cross-agent multi-domain synthesis |
 
 ### NVIDIA FLARE — Federated Learning
 

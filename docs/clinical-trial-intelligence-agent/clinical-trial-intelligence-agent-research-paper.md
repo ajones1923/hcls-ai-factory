@@ -426,7 +426,7 @@ exploration, and Milvus collections for vector-based knowledge retrieval.
 |  |  +-------------+  +--------------+  +-----------------+      |   |
 |  |  |  Workflow   |  |   Evidence   |  |   Integration   |      |   |
 |  |  |  Engines   |  |   Retriever  |  |     Layer       |      |   |
-|  |  |  (10 flows)|  |   (14 colls) |  |  (5 agents)     |      |   |
+|  |  |  (10 flows)|  |   (14 colls) |  |  (11 agents)    |      |   |
 |  |  +------+------+  +------+-------+  +--------+--------+      |   |
 |  |         |                |                    |               |   |
 |  |  +------v----------------v--------------------v-----------+  |   |
@@ -2259,7 +2259,7 @@ costing $500K-$2M per year.
 | **Competitive Intel** | Yes (real-time) | Limited | No | No | No | No | No |
 | **Diversity Assessment** | Yes (FDORA-aligned) | Limited | No | Limited | No | Yes | No |
 | **Decentralized Trials** | Yes (planning) | Yes (Rave eCOA) | Limited | No | No | No | No |
-| **Cross-Agent Intelligence** | Yes (5 agents) | No | No | No | No | No | No |
+| **Cross-Agent Intelligence** | Yes (11 agents) | No | No | No | No | No | No |
 | **Knowledge Graph** | Yes (2M+ nodes) | No | No | No | No | Limited | No |
 | **Open Source** | Yes (Apache 2.0) | No (proprietary) | No (proprietary) | No (proprietary) | No (proprietary) | No (proprietary) | No (proprietary) |
 | **GPU Accelerated** | Yes (DGX Spark) | No | No | No | Yes (training) | Yes (training) | No |

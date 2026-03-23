@@ -775,7 +775,7 @@ The `config/settings.py` module uses `pydantic-settings` with BaseSettings for t
 | External APIs | 2 | Orphanet API key, NCBI API key |
 | API Server | 2 | Host, port |
 | Streamlit | 1 | Port |
-| Cross-Agent | 6 | 5 agent URLs + timeout |
+| Cross-Agent | 12 | 10 agent URLs + timeout + integrated-assessment |
 | Security | 3 | API key, CORS origins, max request size |
 
 ---
@@ -931,7 +931,7 @@ rare-disease-agent-ui:
 | 10 | Family segregation analysis computes LOD scores | PASS | AD/AR/XL patterns tested |
 | 11 | Natural history prediction returns milestones | PASS | 6 diseases with milestones |
 | 12 | Query expansion resolves abbreviations | PASS | 120+ aliases verified |
-| 13 | Cross-agent triggers generated correctly | PASS | 5 agent targets configured |
+| 13 | Cross-agent triggers generated correctly | PASS | 10 agent targets configured |
 | 14 | Export formats (Markdown, JSON, PDF) work | PASS | All formats tested |
 | 15 | Graceful degradation without Milvus | PASS | Knowledge fallback works |
 | 16 | Graceful degradation without LLM API key | PASS | Search-only mode works |

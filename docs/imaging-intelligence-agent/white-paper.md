@@ -530,8 +530,14 @@ The HCLS AI Factory includes five specialized intelligence agents, each addressi
 3. **CAR-T Intelligence Agent** -- CAR-T cell therapy development lifecycle
 4. **Imaging Intelligence Agent** -- Medical imaging AI and clinical decision support
 5. **Autoimmune Intelligence Agent** -- Autoimmune disease genomics and therapy
+6. **Pharmacogenomics Intelligence Agent** -- Drug-gene interaction and dosing
+7. **Cardiology Intelligence Agent** -- Cardiovascular clinical decision support
+8. **Clinical Trial Intelligence Agent** -- Trial matching and enrollment optimization
+9. **Rare Disease Diagnostic Agent** -- Rare disease differential diagnosis and gene panel analysis
+10. **Neurology Intelligence Agent** -- Neurological condition assessment and treatment planning
+11. **Single-Cell Intelligence Agent** -- Single-cell transcriptomics and cell-type analysis
 
-All five agents share the same architectural pattern (multi-collection RAG, knowledge graph augmentation, query expansion, Claude synthesis) and the same infrastructure (Milvus, BGE-small-en-v1.5, DGX Spark). The `genomic_evidence` collection serves as a shared knowledge substrate across agents, enabling cross-domain intelligence without data silos.
+All eleven agents share the same architectural pattern (multi-collection RAG, knowledge graph augmentation, query expansion, Claude synthesis) and the same infrastructure (Milvus, BGE-small-en-v1.5, DGX Spark). The `genomic_evidence` collection serves as a shared knowledge substrate across agents, enabling cross-domain intelligence without data silos. Each agent exposes an `/integrated-assessment` endpoint for cross-agent multi-domain synthesis.
 
 ---
 

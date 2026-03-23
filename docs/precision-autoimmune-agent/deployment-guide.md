@@ -536,7 +536,7 @@ cd /home/adam/projects/hcls-ai-factory
 # Set API key
 export ANTHROPIC_API_KEY=sk-ant-api03-your-key-here
 
-# Start the full stack (includes Milvus, all 5 agents, monitoring, landing page)
+# Start the full stack (includes Milvus, all 11 agents, monitoring, landing page)
 docker compose -f docker-compose.dgx-spark.yml up -d
 
 # Verify the autoimmune agent is healthy
