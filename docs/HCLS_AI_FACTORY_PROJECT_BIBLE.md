@@ -8,7 +8,7 @@ tags:
 
 # HCLS AI Factory — Project Bible
 
-> **Purpose:** Complete implementation reference for building the HCLS AI Factory on NVIDIA DGX Spark. This platform transforms patient DNA into novel drug candidates in under 5 hours across three GPU-accelerated stages: Secondary Genomics, RAG-Grounded Target Identification, and AI-Driven Drug Discovery. Import this document into a Claude Code session as context for implementation.
+> **Purpose:** Complete implementation reference for building the HCLS AI Factory on NVIDIA DGX Spark. This platform transforms patient DNA into novel drug candidates in under 5 hours across three GPU-accelerated engines: the Genomic Foundation Engine, the Precision Intelligence Network, and the Therapeutic Discovery Engine. Import this document into a Claude Code session as context for implementation.
 >
 > License: Apache 2.0 | Date: February 2026
 
@@ -20,13 +20,13 @@ tags:
 2. [DGX Spark Hardware Reference](#2-dgx-spark-hardware-reference)
 3. [Repository Layout](#3-repository-layout)
 4. [Docker Compose Services](#4-docker-compose-services)
-5. [Stage 1: Genomics Pipeline](#5-stage-1-genomics-pipeline)
-6. [Stage 2: RAG/Chat Pipeline](#6-stage-2-ragchat-pipeline)
+5. [Stage 1: Genomic Foundation Engine](#5-stage-1-genomic-foundation-engine)
+6. [Stage 2: Precision Intelligence Network](#6-stage-2-precision-intelligence-network)
 7. [Milvus Vector Database Schema](#7-milvus-vector-database-schema)
 8. [Variant Annotation Pipeline](#8-variant-annotation-pipeline)
 9. [Knowledge Base — 201 Genes, 13 Therapeutic Areas](#9-knowledge-base--201-genes-13-therapeutic-areas)
 10. [Anthropic Claude LLM Integration](#10-anthropic-claude-llm-integration)
-11. [Stage 3: Drug Discovery Pipeline](#11-stage-3-drug-discovery-pipeline)
+11. [Stage 3: Therapeutic Discovery Engine](#11-stage-3-therapeutic-discovery-engine)
 12. [BioNeMo NIM Services](#12-bionemo-nim-services)
 13. [Drug-Likeness Scoring](#13-drug-likeness-scoring)
 14. [Cryo-EM Structure Evidence](#14-cryo-em-structure-evidence)
@@ -53,9 +53,9 @@ The HCLS AI Factory is an end-to-end precision medicine platform that takes a pa
 
 | Stage | Function | Duration | Key Output |
 |---|---|---|---|
-| 1 — Genomics | BWA-MEM2 alignment + DeepVariant calling | 120-240 min | VCF (~11.7M variants) |
-| 2 — RAG/Chat | Annotation → Embedding → LLM reasoning | Interactive | Target gene + evidence |
-| 3 — Drug Discovery | MolMIM generation → DiffDock docking → RDKit scoring | 8-16 min | 100 ranked drug candidates |
+| 1 — Genomic Foundation Engine | BWA-MEM2 alignment + DeepVariant calling | 120-240 min | VCF (~11.7M variants) |
+| 2 — Precision Intelligence Network | Annotation → Embedding → LLM reasoning + 11 intelligence agents | Interactive | Target gene + evidence |
+| 3 — Therapeutic Discovery Engine | MolMIM generation → DiffDock docking → RDKit scoring | 8-16 min | 100 ranked drug candidates |
 
 ### End-to-End Flow
 
@@ -271,7 +271,7 @@ The landing page at port 8080 monitors 10 services with periodic health checks:
 
 ---
 
-## 5. Stage 1: Genomics Pipeline
+## 5. Stage 1: Genomic Foundation Engine
 
 ### Overview
 
@@ -356,7 +356,7 @@ The Flask-based portal provides:
 
 ---
 
-## 6. Stage 2: RAG/Chat Pipeline
+## 6. Stage 2: Precision Intelligence Network
 
 ### Overview
 
@@ -632,7 +632,7 @@ Claude generates structured target hypotheses:
 
 ---
 
-## 11. Stage 3: Drug Discovery Pipeline
+## 11. Stage 3: Therapeutic Discovery Engine
 
 ### Overview
 
@@ -1210,7 +1210,22 @@ SERVICES = [
 
 ### HCLS AI Factory Ecosystem
 
-The genomics-to-drug-discovery pipeline integrates with the broader HCLS AI Factory:
+The genomics-to-drug-discovery pipeline integrates with the broader HCLS AI Factory ecosystem of 11 intelligence agents:
+
+**Core Agents:**
+1. Precision Oncology Agent (8503/8103)
+2. Precision Biomarker Agent (8502/8102)
+3. CAR-T Intelligence Agent (8504/8104)
+4. Imaging Intelligence Agent (8524/8105)
+5. Precision Autoimmune Agent (8506/8106)
+6. Pharmacogenomics Intelligence Agent (8507/8107)
+7. Cardiology Intelligence Agent (8527/8126)
+
+**New Agents:**
+8. Clinical Trial Intelligence Agent (8538/8128)
+9. Rare Disease Diagnostic Agent (8134/8544)
+10. Neurology Intelligence Agent (8528/8529)
+11. Single-Cell Intelligence Agent (8540/8130)
 
 ```
 Imaging Intelligence Agent (CT/MRI/X-Ray)
@@ -1395,16 +1410,16 @@ The `demo` pipeline mode uses pre-configured inputs to validate the complete pip
 ### Recommended Build Order
 
 1. **Infrastructure:** Docker Compose, Milvus, monitoring stack
-2. **Stage 1 — Genomics:** Parabricks container, fq2bam, DeepVariant, VCF output
-3. **Stage 2 — Annotation:** ClinVar + AlphaMissense + VEP pipeline
-4. **Stage 2 — Vector DB:** Milvus schema, BGE embedding, IVF_FLAT index
-5. **Stage 2 — RAG:** Claude integration, knowledge base, query expansion
-6. **Stage 2 — Chat UI:** Streamlit interface, REST API
-7. **Stage 3 — Structure:** RCSB PDB retrieval, Cryo-EM scoring
-8. **Stage 3 — Generation:** MolMIM NIM, molecule generation
-9. **Stage 3 — Docking:** DiffDock NIM, binding prediction
-10. **Stage 3 — Scoring:** RDKit properties, composite ranking
-11. **Stage 3 — Reporting:** PDF generation, Discovery UI
+2. **Genomic Foundation Engine:** Parabricks container, fq2bam, DeepVariant, VCF output
+3. **Precision Intelligence Network — Annotation:** ClinVar + AlphaMissense + VEP pipeline
+4. **Precision Intelligence Network — Vector DB:** Milvus schema, BGE embedding, IVF_FLAT index
+5. **Precision Intelligence Network — RAG:** Claude integration, knowledge base, query expansion
+6. **Precision Intelligence Network — Chat UI:** Streamlit interface, REST API
+7. **Therapeutic Discovery Engine — Structure:** RCSB PDB retrieval, Cryo-EM scoring
+8. **Therapeutic Discovery Engine — Generation:** MolMIM NIM, molecule generation
+9. **Therapeutic Discovery Engine — Docking:** DiffDock NIM, binding prediction
+10. **Therapeutic Discovery Engine — Scoring:** RDKit properties, composite ranking
+11. **Therapeutic Discovery Engine — Reporting:** PDF generation, Discovery UI
 12. **Orchestration:** Nextflow DSL2, pipeline modes, landing page
 13. **Testing:** Unit tests, integration tests, demo mode validation
 14. **Monitoring:** Grafana dashboards, alerting rules

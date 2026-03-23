@@ -48,15 +48,15 @@ More importantly, the same GPU that runs genomics can run vector similarity sear
 
 ## 3. Architecture Overview
 
-### Three-Stage Pipeline
+### Three-Engine Architecture
 
-The HCLS AI Factory processes data through three sequential stages:
+The HCLS AI Factory processes data through three sequential engines:
 
-| Stage | Technology | Duration | Input | Output |
+| Engine | Technology | Duration | Input | Output |
 |---|---|---|---|---|
-| 1 — Genomics | Parabricks 4.6 (BWA-MEM2 + DeepVariant) | 120-240 min | FASTQ (~200 GB) | VCF (~11.7M variants) |
-| 2 — RAG/Chat | Milvus + BGE + Claude | Interactive | VCF | Target gene + evidence |
-| 3 — Drug Discovery | MolMIM + DiffDock + RDKit | 8-16 min | Target gene | 100 ranked drug candidates |
+| 1 — Genomic Foundation Engine | Parabricks 4.6 (BWA-MEM2 + DeepVariant) | 120-240 min | FASTQ (~200 GB) | VCF (~11.7M variants) |
+| 2 — Precision Intelligence Network | Milvus + BGE + Claude + 11 intelligence agents | Interactive | VCF | Target gene + evidence |
+| 3 — Therapeutic Discovery Engine | MolMIM + DiffDock + RDKit | 8-16 min | Target gene | 100 ranked drug candidates |
 
 ### Technology Stack
 
@@ -83,7 +83,7 @@ The platform runs 14 services across 14 ports:
 
 ---
 
-## 4. Stage 1 — GPU-Accelerated Genomics
+## 4. Stage 1 — Genomic Foundation Engine (GPU-Accelerated Genomics)
 
 ### NVIDIA Parabricks 4.6
 
@@ -108,7 +108,7 @@ The VCF contains ~11.7 million variants: ~4.2 million SNPs, ~1.0 million indels,
 
 ---
 
-## 5. Stage 2 — RAG-Grounded Target Identification
+## 5. Stage 2 — Precision Intelligence Network (RAG-Grounded Target Identification)
 
 ### Variant Annotation
 
@@ -136,7 +136,7 @@ The RAG pipeline is grounded by a curated knowledge base of 201 genes spanning 1
 
 ---
 
-## 6. Stage 3 — AI-Driven Drug Discovery
+## 6. Stage 3 — Therapeutic Discovery Engine (AI-Driven Drug Discovery)
 
 ### 10-Stage Drug Discovery Pipeline
 
@@ -232,9 +232,23 @@ Grafana dashboards (port 3000) visualize GPU utilization, memory pressure, pipel
 
 ## 10. Cross-Modal Integration
 
-### Imaging Intelligence Agent Integration
+### Intelligence Agent Ecosystem
 
-The HCLS AI Factory ecosystem includes an Imaging Intelligence Agent for CT, MRI, and X-ray analysis. Cross-modal triggers connect imaging findings to genomic analysis:
+The HCLS AI Factory ecosystem includes 11 intelligence agents providing domain-specific clinical decision support:
+
+1. Precision Oncology Agent (8503/8103)
+2. Precision Biomarker Agent (8502/8102)
+3. CAR-T Intelligence Agent (8504/8104)
+4. Imaging Intelligence Agent (8524/8105)
+5. Precision Autoimmune Agent (8506/8106)
+6. Pharmacogenomics Intelligence Agent (8507/8107)
+7. Cardiology Intelligence Agent (8527/8126)
+8. Clinical Trial Intelligence Agent (8538/8128)
+9. Rare Disease Diagnostic Agent (8134/8544)
+10. Neurology Intelligence Agent (8528/8529)
+11. Single-Cell Intelligence Agent (8540/8130)
+
+Cross-modal triggers connect imaging findings to genomic analysis:
 
 - **Imaging → Genomics:** A Lung-RADS 4B+ finding triggers a FHIR ServiceRequest for tumor gene profiling via Parabricks
 - **Genomics → Drug Discovery:** Pathogenic variants in druggable genes trigger targeted molecule generation
@@ -274,7 +288,7 @@ DGX SuperPOD deployments with InfiniBand fabric, NVIDIA FLARE for federated lear
 
 The HCLS AI Factory demonstrates that the full precision medicine pipeline — from raw DNA to novel drug candidates — can run on a single desktop workstation. GPU acceleration collapses genomics from days to hours. Vector databases and LLM reasoning transform annotation from manual curation to interactive exploration. Generative chemistry and molecular docking automate the target-to-lead transition that traditionally takes months.
 
-The three-stage architecture (Genomics → RAG/Chat → Drug Discovery) provides a reproducible, auditable, and scalable framework. The same Nextflow pipelines that run on a $3,999 DGX Spark scale to DGX SuperPOD for enterprise deployments. All HCLS AI Factory code is Apache 2.0; NVIDIA components are free for development on DGX Spark, with enterprise licensing required at scale (see [Licensing & Cost Guide](licensing.md)).
+The three-engine architecture (Genomic Foundation Engine → Precision Intelligence Network → Therapeutic Discovery Engine) provides a reproducible, auditable, and scalable framework. The same Nextflow pipelines that run on a $3,999 DGX Spark scale to DGX SuperPOD for enterprise deployments. All HCLS AI Factory code is Apache 2.0; NVIDIA components are free for development on DGX Spark, with enterprise licensing required at scale (see [Licensing & Cost Guide](licensing.md)).
 
 This is precision medicine as a continuous, computable workflow — not a disconnected collection of tools, but an integrated factory that transforms patient data into therapeutic hypotheses in a single session.
 

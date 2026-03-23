@@ -141,11 +141,11 @@ FASTQ (200 GB) ─► Parabricks fq2bam ─► BAM (100 GB) ─► DeepVariant �
 
 The HCLS AI Factory comprises three application pipeline stages running on a single DGX Spark:
 
-| Stage | Name | Function |
+| Stage | Engine Name | Function |
 |---|---|---|
-| Stage 1 | Genomics Pipeline | FASTQ alignment and variant calling with GPU-accelerated Parabricks |
-| Stage 2 | RAG Chat Pipeline | Variant annotation, vector embedding, and Claude-powered conversational AI |
-| Stage 3 | Drug Discovery Pipeline | Structure-aware molecule generation, docking, and composite ranking |
+| Stage 1 | Genomic Foundation Engine | FASTQ alignment and variant calling with GPU-accelerated Parabricks |
+| Stage 2 | Precision Intelligence Network | Variant annotation, vector embedding, Claude-powered conversational AI, and 11 intelligence agents |
+| Stage 3 | Therapeutic Discovery Engine | Structure-aware molecule generation, docking, and composite ranking |
 
 ### 2.2 Technology Stack
 
@@ -156,7 +156,7 @@ The HCLS AI Factory comprises three application pipeline stages running on a sin
 | Container Runtime | Docker + NVIDIA Container Toolkit | nvidia-docker runtime |
 | Orchestration | Docker Compose | Multi-service deployment |
 | Pipeline Orchestration | Nextflow | DSL2, multiple profiles |
-| GPU Genomics | NVIDIA Parabricks | 4.6.0-1 |
+| Genomic Foundation Engine | NVIDIA Parabricks | 4.6.0-1 |
 | Vector Database | Milvus | 2.4 (with etcd + MinIO) |
 | Embedding Model | BGE-small-en-v1.5 | 384 dimensions |
 | LLM | Anthropic Claude | claude-sonnet-4-20250514 |
@@ -203,16 +203,16 @@ The platform deploys 13 services across 13 ports:
 │                    HCLS AI Factory — Data Flow                        │
 ├────────────────────────────────────────────────────────────────────────┤
 │                                                                        │
-│  Stage 1 — GPU Genomics                                                │
+│  Stage 1 — Genomic Foundation Engine                                   │
 │  FASTQ ──► Parabricks fq2bam ──► BAM ──► DeepVariant ──► VCF         │
 │  (200 GB)   (20-45 min)         (100 GB)   (10-35 min)    (11.7M)    │
 │                                                                        │
-│  Stage 2 — Evidence RAG                                                │
+│  Stage 2 — Precision Intelligence Network                              │
 │  VCF ──► ClinVar + AlphaMissense ──► VEP ──► Annotated VCF           │
 │  Annotated ──► BGE-small ──► Milvus (384-dim, COSINE)                 │
 │  Milvus ──► Claude (sonnet-4, temp=0.3) ──► Target Hypothesis         │
 │                                                                        │
-│  Stage 3 — Drug Discovery                                              │
+│  Stage 3 — Therapeutic Discovery Engine                                │
 │  Target ──► PDB Structures ──► MolMIM ──► Chemistry QC                │
 │  Conformers ──► DiffDock ──► Composite Ranking ──► PDF Report         │
 │                               (0.3*gen + 0.4*dock + 0.3*QED)          │
@@ -908,7 +908,7 @@ The GB10 GPU is shared across GPU-consuming services. Only one GPU-heavy workloa
 
 ---
 
-## 8. Deploy Genomics Pipeline (Stage 1)
+## 8. Deploy Genomic Foundation Engine (Stage 1)
 
 ### 8.1 Parabricks Container Setup
 
@@ -1020,7 +1020,7 @@ Access the Genomics Portal at `http://<dgx-spark-ip>:5000` to browse VCF results
 
 ---
 
-## 9. Deploy RAG Chat Pipeline (Stage 2)
+## 9. Deploy Precision Intelligence Network (Stage 2)
 
 ### 9.1 Milvus Vector Database Setup
 
@@ -1251,7 +1251,7 @@ Access the Streamlit Chat at `http://<dgx-spark-ip>:8501` for conversational var
 
 ---
 
-## 10. Deploy Drug Discovery Pipeline (Stage 3)
+## 10. Deploy Therapeutic Discovery Engine (Stage 3)
 
 ### 10.1 BioNeMo NIM Services
 
@@ -2200,6 +2200,40 @@ For Phase 2 and beyond, migrate from Docker Compose to Kubernetes:
 ### 19.4 NVIDIA FLARE for Federated Learning
 
 For multi-institutional deployments, NVIDIA FLARE enables federated learning across DGX Spark nodes without sharing raw patient data.
+
+---
+
+## 19.5 Intelligence Agent Deployment
+
+The Precision Intelligence Network includes 11 intelligence agents. Each agent provides a Streamlit frontend and a FastAPI backend:
+
+| # | Agent | Streamlit Port | API Port | Domain |
+|---|---|---|---|---|
+| 1 | Precision Oncology | 8503 | 8103 | Molecular tumor board decision support |
+| 2 | Precision Biomarker | 8502 | 8102 | Genotype-aware biomarker interpretation |
+| 3 | CAR-T Intelligence | 8504 | 8104 | Cellular immunotherapy intelligence |
+| 4 | Imaging Intelligence | 8524 | 8105 | Medical imaging AI (CT, MRI, X-ray) |
+| 5 | Precision Autoimmune | 8506 | 8106 | Autoimmune and immune-mediated conditions |
+| 6 | Pharmacogenomics | 8507 | 8107 | Drug-gene interaction and dosing |
+| 7 | Cardiology Intelligence | 8527 | 8126 | Cardiovascular clinical decision support |
+| 8 | Clinical Trial Intelligence | 8538 | 8128 | Trial matching, eligibility, enrollment optimization |
+| 9 | Rare Disease Diagnostic | 8134 | 8544 | Rare disease differential diagnosis and gene panel analysis |
+| 10 | Neurology Intelligence | 8528 | 8529 | Neurological condition assessment and treatment planning |
+| 11 | Single-Cell Intelligence | 8540 | 8130 | Single-cell transcriptomics and cell-type analysis |
+
+```bash
+# Deploy all 11 intelligence agents
+docker compose up -d \
+  oncology-agent biomarker-agent cart-agent imaging-agent \
+  autoimmune-agent pharmacogenomics-agent cardiology-agent \
+  clinical-trial-agent rare-disease-agent neurology-agent single-cell-agent
+
+# Verify new agents
+curl -s http://localhost:8538/health  # Clinical Trial Intelligence
+curl -s http://localhost:8134/health  # Rare Disease Diagnostic
+curl -s http://localhost:8528/health  # Neurology Intelligence
+curl -s http://localhost:8540/health  # Single-Cell Intelligence
+```
 
 ---
 

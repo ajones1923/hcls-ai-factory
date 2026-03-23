@@ -9,7 +9,7 @@
 
 > This is **Part 1** of a two-part unified learning guide. Part 1 covers the
 > platform introduction, architecture, and the three core pipelines. Part 2
-> covers the seven intelligence agents in depth.
+> covers the eleven intelligence agents in depth.
 
 ---
 
@@ -32,7 +32,7 @@ You do not need to write code.
 You work with genomic data -- VCF files, variant annotations, gene panels,
 embeddings, and machine learning models. You want to understand how the
 platform ingests, transforms, and searches data across its three stages and
-seven intelligence agents. You want to know how to extend it with new
+eleven intelligence agents. You want to know how to extend it with new
 collections, annotation sources, or scoring models.
 
 ### Persona 3 -- The Software Engineer
@@ -54,20 +54,20 @@ By the end of this two-part guide you will be able to:
    from months to hours.
 2. Describe the NVIDIA DGX Spark hardware and why GPU acceleration matters
    for genomics, AI, and molecular simulation.
-3. Trace a patient's DNA through the three-stage pipeline: Genomic Analysis,
-   Clinical Intelligence (RAG/Chat), and Drug Discovery.
+3. Trace a patient's DNA through the three-engine pipeline: Genomic Foundation Engine,
+   Precision Intelligence Network, and Therapeutic Discovery Engine.
 4. Read and interpret FASTQ, VCF, SMILES, and PDB file formats at a
    conceptual level.
 5. Explain how RAG (Retrieval-Augmented Generation) combines a vector
    database with a large language model to produce grounded, cited answers.
-6. Describe the shared `genomic_evidence` collection and how all seven
+6. Describe the shared `genomic_evidence` collection and how all eleven
    agents consume it.
 7. Explain how the intelligence agent architecture works: the five-phase
    plan-search-evaluate-synthesize-report loop.
 
 **Part 2 -- Intelligence Agents (separate document)**
 
-8. Describe each of the seven intelligence agents, their domain-specific
+8. Describe each of the eleven intelligence agents, their domain-specific
    collections, and their clinical workflows.
 9. Compare agent capabilities across oncology, biomarkers, CAR-T, imaging,
    autoimmune, pharmacogenomics, and cardiology.
@@ -170,9 +170,9 @@ The HCLS AI Factory compresses this timeline:
   HCLS AI Factory Timeline
   =========================
 
-  Stage 1: Genomic Analysis        2-4 hours (GPU-accelerated)
-  Stage 2: Clinical Intelligence   < 5 seconds (RAG query)
-  Stage 3: Drug Discovery          8-16 minutes (generative AI)
+  Stage 1: Genomic Foundation Engine      2-4 hours (GPU-accelerated)
+  Stage 2: Precision Intelligence Network < 5 seconds (RAG query)
+  Stage 3: Therapeutic Discovery Engine   8-16 minutes (generative AI)
   -----------------------------------------------
   Total:                           < 5 hours
 ```
@@ -190,7 +190,7 @@ eliminates the hours spent planning the route.
 ## 1.4 The Three-Stage Pipeline
 
 The platform is organized into three sequential stages, each building on the
-output of the previous one. Seven intelligence agents branch from Stage 2
+output of the previous one. Eleven intelligence agents branch from Stage 2
 to provide domain-specific clinical decision support.
 
 ```
@@ -202,7 +202,7 @@ to provide domain-specific clinical decision support.
   |       |                                                          |
   |       v                                                          |
   |  +---------------------------+                                   |
-  |  | STAGE 1: Genomic Analysis |                                   |
+  |  | STAGE 1: Genomic Foundation |                                 |
   |  | BWA-MEM2 + DeepVariant    |                                   |
   |  | Parabricks GPU-accelerated|                                   |
   |  +---------------------------+                                   |
@@ -217,11 +217,11 @@ to provide domain-specific clinical decision support.
   |       v                                                          |
   |  Milvus: genomic_evidence (3.56M vectors)                        |
   |       |                                                          |
-  |       +---> [shared read-only access by all 7 agents]            |
+  |       +---> [shared read-only access by all 11 agents]           |
   |       |                                                          |
   |       v                                                          |
   |  +-------------------------------+                               |
-  |  | STAGE 2: Clinical Intelligence|                               |
+  |  | STAGE 2: Precision Intel Net |                               |
   |  | RAG + Claude AI + Knowledge   |                               |
   |  +-------------------------------+                               |
   |       |         |       |       |       |       |       |        |
@@ -238,7 +238,7 @@ to provide domain-specific clinical decision support.
   |       |                                                          |
   |       v                                                          |
   |  +-------------------------------+                               |
-  |  | STAGE 3: Drug Discovery       |                               |
+  |  | STAGE 3: Therapeutic Discovery|                               |
   |  | MolMIM + DiffDock + RDKit     |                               |
   |  +-------------------------------+                               |
   |       |                                                          |
@@ -359,7 +359,7 @@ change.
 
 ---
 
-# Chapter 3: Stage 1 -- Genomic Analysis
+# Chapter 3: Stage 1 -- Genomic Foundation Engine
 
 ## 3.1 What Is DNA Sequencing?
 
@@ -650,7 +650,7 @@ searchable, the platform:
 4. **Stores** the vector + metadata in the Milvus `genomic_evidence`
    collection.
 
-The result: **3.56 million searchable variant vectors** that all seven
+The result: **3.56 million searchable variant vectors** that all eleven
 intelligence agents can query using natural language.
 
 ```
@@ -661,7 +661,7 @@ intelligence agents can query using natural language.
   +---------------------------------------------+
   |  Milvus: genomic_evidence collection         |
   |  3.56M vectors, 384 dimensions each          |
-  |  Read-only access by all 7 agents            |
+  |  Read-only access by all eleven agents         |
   +---------------------------------------------+
        |         |       |       |    |    |    |
        v         v       v       v    v    v    v
@@ -671,7 +671,7 @@ intelligence agents can query using natural language.
 
 ---
 
-# Chapter 4: Stage 2 -- Clinical Intelligence (RAG/Chat)
+# Chapter 4: Stage 2 -- Precision Intelligence Network (RAG/Chat)
 
 ## 4.1 The Data Challenge
 
@@ -846,14 +846,14 @@ accidentally shelved in neurology, but you save enormous amounts of time.
 
 The `genomic_evidence` collection is the backbone of the entire platform.
 It contains **3.56 million variant vectors** generated by Stage 1, and it
-is shared read-only by all seven intelligence agents.
+is shared read-only by all eleven intelligence agents.
 
 ```
   genomic_evidence Collection
   ============================
 
   Records: 3,560,000 annotated variant vectors
-  Access:  Read-only by all 7 agents
+  Access:  Read-only by all eleven agents
   Source:  Stage 1 genomic pipeline output
   Schema:  vector (384 dims) + metadata fields
 
@@ -926,7 +926,7 @@ small molecule, antibody, or gene therapy.
 ## 4.7 Claude AI -- The Synthesis Layer
 
 Claude is a large language model (LLM) from Anthropic that serves as the
-reasoning and synthesis engine for all seven intelligence agents. It is
+reasoning and synthesis engine for all 11 intelligence agents. It is
 important to understand exactly what Claude does and does not do in this
 system.
 
@@ -978,7 +978,7 @@ something up.
 
 ---
 
-# Chapter 5: Stage 3 -- Drug Discovery
+# Chapter 5: Stage 3 -- Therapeutic Discovery Engine
 
 ## 5.1 From Target to Drug Candidate
 
@@ -1304,7 +1304,7 @@ response to a single question, an intelligence agent:
 - **Reports** in multiple formats (Markdown, PDF, FHIR R4, JSON)
 
 Each agent is specialized for a clinical domain (oncology, cardiology,
-etc.) but shares the same underlying architecture. All seven agents in the
+etc.) but shares the same underlying architecture. All 11 agents in the
 HCLS AI Factory follow the same five-phase pattern.
 
 **Analogy:** Think of each agent as a specialist physician who also happens
@@ -1318,7 +1318,7 @@ for the tumor board. All in under 5 seconds.
 
 ## 6.2 The Agent Pattern
 
-All seven agents follow the same five-phase loop:
+All eleven agents follow the same five-phase loop:
 
 ```
   The Five-Phase Agent Loop
@@ -1444,7 +1444,7 @@ mechanisms:
 ### Mechanism 1: Shared Collections (Read-Only)
 
 The `genomic_evidence` collection (3.56M variant vectors) is populated by
-Stage 1 and consumed by all seven agents. No agent writes to this
+Stage 1 and consumed by all 11 agents. No agent writes to this
 collection after the initial population -- it is strictly read-only during
 operation.
 
@@ -1474,14 +1474,14 @@ domains without manual intervention.
     |    |    |    |    |    |    |
     v    v    v    v    v    v    v
   +----+----+----+----+----+----+----+
-  |Onc |Bio |CART|Img |Auto|PGx |Card|  <--- 7 agents read
+  |Onc |Bio |CART|Img |Auto|PGx |Card|+4  <-- 11 agents read
   +----+----+----+----+----+----+----+
     |         ^         |
     |   SSE   |   SSE   |
     +---------+---------+               <--- Cross-agent events
 ```
 
-## 6.4 The Seven Intelligence Agents at a Glance
+## 6.4 The Eleven Intelligence Agents at a Glance
 
 | Agent | Port | Domain Collections | Domain | Key Differentiator |
 |-------|------|--------------------|--------|--------------------|
@@ -1492,6 +1492,10 @@ domains without manual intervention.
 | Precision Autoimmune | 8506/8106 | 10 | Autoimmune and immune-mediated conditions | Immune pathway analysis, flare prediction |
 | Pharmacogenomics | 8507/8107 | 15 | Drug-gene interaction and dosing | 25 pharmacogenes, 100+ drugs, 9 dosing algorithms, 15 HLA associations |
 | Cardiology Intelligence | 8527/8126 | 12 | Cardiovascular clinical decision support | 6 risk calculators (ASCVD, HEART, CHA2DS2-VASc), GDMT optimizer |
+| Clinical Trial Intelligence | 8538/8128 | 10 | Clinical trial matching and enrollment | Trial eligibility matching, protocol analysis, enrollment optimization |
+| Rare Disease Diagnostic | 8134/8544 | 10 | Rare disease differential diagnosis | Gene panel analysis, phenotype-genotype correlation, diagnostic odyssey reduction |
+| Neurology Intelligence | 8528/8529 | 10 | Neurological condition assessment | Neurodegeneration pathways, treatment planning, cognitive assessment integration |
+| Single-Cell Intelligence | 8540/8130 | 10 | Single-cell transcriptomics analysis | Cell-type identification, expression profiling, spatial transcriptomics |
 
 ### Architecture per Agent
 
@@ -1584,23 +1588,31 @@ platform:
 
 ## What Comes Next: Part 2
 
-Part 2 of this guide covers each of the seven intelligence agents in
+Part 2 of this guide covers each of the eleven intelligence agents in
 depth:
 
-- **Chapter 7:** Precision Oncology Agent -- Molecular tumor boards,
-  therapy ranking, trial matching, resistance awareness.
-- **Chapter 8:** Precision Biomarker Agent -- Biological age, disease
-  trajectory, pharmacogenomic profiling.
-- **Chapter 9:** CAR-T Intelligence Agent -- Construct design, manufacturing
-  protocols, comparative analysis.
-- **Chapter 10:** Imaging Intelligence Agent -- NVIDIA NIM models, DICOM
+- **Chapter 7:** Imaging Intelligence Agent -- NVIDIA NIM models, DICOM
   workflows, cross-modal triggers.
+- **Chapter 8:** Precision Oncology Agent -- Molecular tumor boards,
+  therapy ranking, trial matching, resistance awareness.
+- **Chapter 9:** Precision Biomarker Agent -- Biological age, disease
+  trajectory, pharmacogenomic profiling.
+- **Chapter 10:** CAR-T Intelligence Agent -- Construct design, manufacturing
+  protocols, comparative analysis.
 - **Chapter 11:** Precision Autoimmune Agent -- Immune pathways, flare
   prediction, treatment response.
 - **Chapter 12:** Pharmacogenomics Agent -- Drug-gene interactions, dosing
   algorithms, HLA associations.
 - **Chapter 13:** Cardiology Intelligence Agent -- Risk calculators, GDMT
   optimization, cardiac genomics.
+- **Chapter 14:** Clinical Trial Intelligence Agent -- Trial matching,
+  eligibility analysis, enrollment optimization.
+- **Chapter 15:** Rare Disease Diagnostic Agent -- Differential diagnosis,
+  gene panel analysis, diagnostic odyssey reduction.
+- **Chapter 16:** Neurology Intelligence Agent -- Neurodegeneration pathways,
+  treatment planning, cognitive assessment.
+- **Chapter 17:** Single-Cell Intelligence Agent -- Cell-type identification,
+  expression profiling, spatial transcriptomics.
 
 Each chapter follows the same structure: domain introduction, clinical
 workflow, data collections, agent-specific features, example queries,
@@ -1624,7 +1636,7 @@ and output interpretation.
 5. Why is unified memory important for genomics workloads?
 6. Name two tasks that run on the GPU and two that run on the CPU.
 
-### Chapter 3: Genomic Analysis
+### Chapter 3: Genomic Foundation Engine
 
 7. What is a FASTQ file, and approximately how large is one for a whole
    genome at 30x coverage?
@@ -1634,7 +1646,7 @@ and output interpretation.
 11. Describe the annotation funnel: how many variants survive each
     filtering step?
 
-### Chapter 4: Clinical Intelligence
+### Chapter 4: Precision Intelligence Network
 
 12. What does RAG stand for, and what are its two core technologies?
 13. Why is vector search better than keyword search for medical queries?
@@ -1662,7 +1674,7 @@ and output interpretation.
 
 # PART 2 -- The Intelligence Agents
 
-> Part 2 covers all seven intelligence agents in clinical depth. Each chapter
+> Part 2 covers the eleven intelligence agents in clinical depth. Each chapter
 > follows the same pedagogical pattern: concept, analogy, clinical relevance,
 > technical detail, and agent integration. Part 2 concludes with a complete
 > patient journey, glossary, and quick reference.
@@ -3058,7 +3070,7 @@ findings from all agents into a unified patient summary.
 
 ### 14.1c Collection Inventory
 
-All collections across all 7 intelligence agents:
+All collections across all 11 intelligence agents:
 
 | Agent | Collections | Total |
 |-------|------------|-------|
