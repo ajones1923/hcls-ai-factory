@@ -335,7 +335,7 @@ The Cell Ontology is a standardized vocabulary for cell types:
 | CL:0000576 | Monocyte |
 | CL:0000235 | Macrophage |
 
-The Single-Cell Intelligence Agent maps all 44 cell types to CL identifiers for standardized communication.
+The Single-Cell Intelligence Agent maps all 57 cell types to CL identifiers for standardized communication.
 
 ### 5.2 Gene Markers
 
@@ -421,7 +421,7 @@ The Single-Cell Intelligence Agent stores knowledge as 384-dimensional vectors:
 1. Read the Scanpy tutorial: "Preprocessing and clustering 3k PBMCs"
 2. Load a public dataset from CellxGene and explore cell type annotations
 3. Run the Single-Cell Intelligence Agent Demo 1 (Cell Type Annotation)
-4. Study the 44 cell types in the knowledge base (`src/knowledge.py`)
+4. Study the 57 cell types in the knowledge base (`src/knowledge.py`)
 
 ### 7.2 Intermediate (Week 3-4)
 

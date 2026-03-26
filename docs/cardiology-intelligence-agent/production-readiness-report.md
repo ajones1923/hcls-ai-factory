@@ -45,7 +45,7 @@ The Cardiology Intelligence Agent is a production-grade, RAG-powered clinical de
 
 The agent is architected as a three-tier system: a Streamlit UI (port 8536) for interactive clinical exploration, a FastAPI REST API (port 8126) exposing 33 endpoints for programmatic integration, and a RAG engine backed by Milvus (port 19530) with BGE-small-en-v1.5 384-dimensional embeddings. All 11 clinical workflows, all 6 risk calculators, the GDMT optimizer, and the full query expansion system operate independently of Milvus connectivity, ensuring graceful degradation and robust demo capability even when the vector store is unavailable.
 
-The codebase comprises 58 Python files totaling 44,451 lines of code, with 20 dedicated test files containing 11,450 lines and 1,966 passing tests at a 100% pass rate (1.08s execution time). The knowledge graph contains 45 cardiovascular conditions, 56 genes, 32 drug classes, 29 cardiac biomarkers, 15 imaging modalities, and 63 guideline recommendations from ACC/AHA/ESC sources. This report documents every capability, data dimension, and test result to serve as the definitive long-term reference for the Cardiology Intelligence Agent.
+The codebase comprises 58 Python files totaling 44,451 lines of code, with 20 dedicated test files containing 11,450 lines and 1,966 passing tests at a 100% pass rate (1.08s execution time). The knowledge graph contains 45 cardiovascular conditions, 56 genes, 32 drug classes, 29 cardiac biomarkers, 15 imaging modalities, and 51 guideline recommendations from ACC/AHA/ESC sources. This report documents every capability, data dimension, and test result to serve as the definitive long-term reference for the Cardiology Intelligence Agent.
 
 | Capability | Detail |
 |---|---|

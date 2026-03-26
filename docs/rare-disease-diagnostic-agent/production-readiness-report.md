@@ -39,7 +39,7 @@
 26. [Appendices](#appendix-a-all-97-diseases-by-category)
     - [A. All 97 Diseases by Category](#appendix-a-all-97-diseases-by-category)
     - [B. All 12 Gene Therapies](#appendix-b-all-12-gene-therapies)
-    - [C. All 28 ACMG Criteria](#appendix-c-all-28-acmg-criteria)
+    - [C. 23 of the 28 ACMG Criteria Implemented](#appendix-c-23-of-the-28-acmg-criteria-implemented)
     - [D. All 48 Agent Conditions](#appendix-d-all-48-agent-conditions)
     - [E. All 45 Agent Genes](#appendix-e-all-45-agent-genes)
     - [F. All 30 Phenotype Patterns](#appendix-f-all-30-phenotype-patterns)
@@ -60,7 +60,7 @@ The Rare Disease Diagnostic Agent is a production-grade, RAG-powered decision su
 
 The agent is architected as a three-tier system: a 5-tab Streamlit UI (port 8544) for interactive rare disease diagnostic exploration, a FastAPI REST API (port 8134) exposing 20 endpoints for programmatic integration, and a RAG engine backed by Milvus (port 19530) with BGE-small-en-v1.5 384-dimensional embeddings. All 10 diagnostic workflows, all 6 decision support engines, and the full query expansion system operate independently of Milvus connectivity, ensuring graceful degradation and robust demo capability even when the vector store is unavailable.
 
-The codebase comprises 40 Python files (27 source + 13 test) totaling 22,378 lines of code (20,640 source + 1,738 test), with 206 passing tests at a 100% pass rate (~1.5 min execution time). The knowledge base encompasses 13 disease categories covering 28 metabolic diseases, 23 neurological diseases, 15 hematologic diseases, 13 immunologic diseases, 10 connective tissue disorders, 8 cancer predisposition syndromes, 12 approved gene therapies, 28 ACMG variant classification criteria, 23 HPO top-level terms, and 9 diagnostic algorithms. This report documents every capability, data dimension, and test result to serve as the definitive long-term reference for the Rare Disease Diagnostic Agent.
+The codebase comprises 40 Python files (27 source + 13 test) totaling 22,378 lines of code (20,640 source + 1,738 test), with 206 passing tests at a 100% pass rate (~1.5 min execution time). The knowledge base encompasses 13 disease categories covering 28 metabolic diseases, 23 neurological diseases, 15 hematologic diseases, 13 immunologic diseases, 10 connective tissue disorders, 8 cancer predisposition syndromes, 12 approved gene therapies, 23 of 28 ACMG variant classification criteria, 23 HPO top-level terms, and 9 diagnostic algorithms. This report documents every capability, data dimension, and test result to serve as the definitive long-term reference for the Rare Disease Diagnostic Agent.
 
 | Capability | Detail |
 |---|---|
@@ -127,7 +127,7 @@ The codebase comprises 40 Python files (27 source + 13 test) totaling 22,378 lin
            | 13 categories   |
            | 97+ diseases    |
            | 12 gene therapies|
-           | 28 ACMG criteria|
+           | 23 ACMG criteria|
            +--------+--------+
                     |
            +--------v--------+
@@ -1135,7 +1135,7 @@ Additional cataloged therapies: Strimvelis (ADA-SCID, retroviral), Upstaza (AADC
 
 ---
 
-## Appendix C. All 28 ACMG Criteria
+## Appendix C. 23 of the 28 ACMG Criteria Implemented
 
 ### C.1 Pathogenic Criteria (16)
 

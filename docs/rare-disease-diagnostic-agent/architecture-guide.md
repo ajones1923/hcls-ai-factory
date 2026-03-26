@@ -56,7 +56,7 @@ The Rare Disease Diagnostic Agent follows a three-tier architecture designed for
 |  |    13 disease categories           |    |    14 collections| |
 |  |    97+ diseases, 45+ genes         |    |    384-dim BGE | |
 |  |    12 gene therapies               |    |    IVF_FLAT    | |
-|  |    28 ACMG criteria                |    |    COSINE      | |
+|  |    23 ACMG criteria                |    |    COSINE      | |
 |  +------------------------------------+    +----------------+ |
 +================================================================+
 ```

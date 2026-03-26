@@ -1614,7 +1614,7 @@ The CAR-T Intelligence Agent is designed for future integration with the VAST AI
 
 The `ai_agent_adds/` directory is designed for multiple domain agents:
 - **Imaging Intelligence Agent**: Pathology slide analysis with CAR-T knowledge augmentation
-- **Biomarker Intelligence Agent**: Multi-omics biomarker discovery and validation
+- **Biomarker Intelligence Agent**: Biomarker discovery, biological age modeling, and disease trajectory prediction
 - **Clinical Trial Intelligence Agent**: Automated trial landscape monitoring
 
 ### 22.3 Data Expansion

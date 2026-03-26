@@ -182,7 +182,7 @@ The American College of Medical Genetics and Genomics (ACMG) and the Association
 
 ### 7.2 Implementation
 
-The agent implements 28 ACMG criteria with numerical scoring:
+The agent implements 23 of the 28 ACMG criteria with numerical scoring:
 
 **Pathogenic evidence** (16 criteria): PVS1 (null variant in LOF-intolerant gene, +8 points), PS1-PS4 (strong evidence, +3-4 points each), PM1-PM6 (moderate evidence, +1-2 points each), PP1-PP5 (supporting evidence, +1 point each).
 

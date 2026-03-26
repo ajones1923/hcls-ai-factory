@@ -426,7 +426,7 @@ curl -X POST http://localhost:8134/v1/diagnostic/variants/interpret \
 
 2. **HPO-based matching:** "Each phenotype is weighted by its Information Content -- rare, specific findings like ectopia lentis carry more diagnostic weight than common ones like seizures."
 
-3. **ACMG rigor:** "Variant classification follows the same ACMG/AMP framework used by clinical labs, with 28 criteria systematically evaluated and scored."
+3. **ACMG rigor:** "Variant classification follows the same ACMG/AMP framework used by clinical labs, with 23 of the 28 criteria systematically evaluated and scored."
 
 4. **Gene therapy revolution:** "12 gene therapies are now approved for rare diseases. The agent matches patients to eligible therapies based on disease, genotype, and access pathway."
 

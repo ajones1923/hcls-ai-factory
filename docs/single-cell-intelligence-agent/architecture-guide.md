@@ -46,7 +46,7 @@ The Single-Cell Intelligence Agent is built on a layered architecture that separ
 +------+-----------------+----------------+------+
 |                  DATA LAYER                     |
 |  Milvus Vector DB (12 collections)              |
-|  Knowledge Base (44 cell types, 30 drugs, ...)  |
+|  Knowledge Base (57 cell types, 30 drugs, ...)  |
 |  Conversation Store (disk-backed, 24h TTL)      |
 +-------------------------------------------------+
 ```
@@ -465,7 +465,7 @@ The `query_expansion.py` module expands queries with:
 ### 8.3 Knowledge Base
 
 - **Backend:** In-memory Python dictionaries (loaded from `knowledge.py`)
-- **Size:** 44 cell types, 30 drugs, 75 markers, 10 signatures, 25 L-R pairs, 12 TME profiles
+- **Size:** 57 cell types, 30 drugs, 75 markers, 10 signatures, 25 L-R pairs, 12 TME profiles
 - **Update:** Code deployment (static knowledge), scheduled ingest (dynamic data)
 
 ---

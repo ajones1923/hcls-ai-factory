@@ -476,7 +476,7 @@ The agent curates 25 ligand-receptor pairs across clinically actionable pathways
 scRNA-seq data (disease vs. control)
          |
          v
-Cell type annotation (44 cell types)
+Cell type annotation (57 cell types)
          |
          v
 Per-cell-type differential expression

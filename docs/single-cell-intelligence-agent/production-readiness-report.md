@@ -240,7 +240,7 @@ The system defines 11 weight profiles, one per workflow type. Each profile redis
 
 ### 5.1 Cell Type Atlas
 
-The knowledge base contains **44 cell types** organized across immune, stromal, epithelial, neural, and specialized compartments:
+The knowledge base contains **57 cell types** organized across immune, stromal, epithelial, neural, and specialized compartments:
 
 | Compartment | Cell Types | Count |
 |-------------|-----------|-------|
@@ -284,7 +284,7 @@ Each cell type entry includes:
 
 ### 5.3 Marker Genes
 
-**75 marker genes** spanning all 44 cell types. Each gene includes:
+**75 marker genes** spanning all 57 cell types. Each gene includes:
 - Gene symbol and Ensembl ID (where available)
 - Associated cell type
 - Specificity score (0-1)
@@ -1080,7 +1080,7 @@ The Streamlit interface provides 5 tabs:
 
 ## Appendix A: Complete Cell Type Atlas (44 entries)
 
-The knowledge base contains 44 cell types sourced from the Human Cell Atlas, Cell Ontology, CellMarker 2.0, Tabula Sapiens, and PanglaoDB.
+The knowledge base contains 57 cell types sourced from the Human Cell Atlas, Cell Ontology, CellMarker 2.0, Tabula Sapiens, and PanglaoDB.
 
 | # | Cell Type | Cell Ontology ID | Canonical Markers | Tissues |
 |---|-----------|-----------------|-------------------|---------|
@@ -1564,7 +1564,7 @@ Issues identified during production readiness review and their resolution status
 | 5 | No circuit breaker for cross-agent HTTP calls | HIGH | Implement tenacity retry with exponential backoff and circuit break | OPEN |
 | 6 | Ingest pipeline has zero test coverage | HIGH | Add tests for cellxgene_parser, marker_parser, tme_parser | OPEN |
 | 7 | Missing request-ID tracing across API calls | MODERATE | Add X-Request-ID middleware propagating through all layers | OPEN |
-| 8 | KNOWLEDGE_VERSION.counts says 44 cell types but atlas header says 32 | MODERATE | Updated header comment to match actual 44 entries | FIXED |
+| 8 | KNOWLEDGE_VERSION.counts says 57 cell types but atlas header says 32 | MODERATE | Updated header comment to match actual 44 entries | FIXED |
 | 9 | DRUG_SENSITIVITY_DATABASE header says 22 drugs but contains 30 | MODERATE | Updated header comment to match actual 30 entries | FIXED |
 | 10 | MARKER_GENE_DATABASE header says 55 markers but contains 75 | MODERATE | Updated header comment to match actual 75 entries | FIXED |
 | 11 | pDC appears in both DC subtypes and as separate Plasmacytoid_DC entry | LOW | Intentional: separate entry enables independent marker scoring | ACCEPTED |

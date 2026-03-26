@@ -70,7 +70,7 @@ This paper presents the sixth domain-specific intelligence agent in the HCLS AI 
 
 - A **12-collection Milvus vector schema** spanning the full cardiovascular data spectrum
 - **Eleven clinical workflows** covering coronary artery disease, heart failure, valvular disease, arrhythmia, cardiac MRI, stress testing, preventive risk stratification, cardio-oncology, acute decompensated HF, post-MI, and myocarditis/pericarditis
-- A **cardiovascular knowledge graph** with 45 conditions, 29 biomarkers, 32 drug classes, 56 genes, 27 imaging protocols, and 63 guideline recommendations across 20 guideline documents
+- A **cardiovascular knowledge graph** with 45 conditions, 29 biomarkers, 32 drug classes, 56 genes, 27 imaging protocols, and 51 guideline recommendations across 20 guideline documents
 - **Six validated risk calculators** with published coefficients and lookup tables
 - A **GDMT optimizer** supporting 7 therapy classes for evidence-based heart failure medication management
 - **Cross-modal triggers** with 18 genomic trigger patterns linking imaging findings to genomic workup panels

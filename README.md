@@ -23,7 +23,7 @@ The HCLS AI Factory is built on three coordinated engines that form a continuous
 
 | Engine | Stage | What It Does |
 |--------|-------|-------------|
-| **[Genomic Foundation Engine](docs/engines/genomic-foundation.md)** | 1 | GPU-accelerated variant calling and annotation. FASTQ → 3.5M searchable variant vectors via Parabricks, DeepVariant, ClinVar, and AlphaMissense. |
+| **[Genomic Foundation Engine](docs/engines/genomic-foundation.md)** | 1 | GPU-accelerated variant calling and annotation. FASTQ → 3.5M annotated variant vectors via Parabricks, DeepVariant, ClinVar, and AlphaMissense. |
 | **[Precision Intelligence Network](docs/engines/precision-intelligence.md)** | 2 | 11 domain-specialized AI agents sharing a common molecular foundation. RAG-powered clinical interpretation across oncology, neurology, cardiology, rare disease, and 9 more domains. |
 | **[Therapeutic Discovery Engine](docs/engines/therapeutic-discovery.md)** | 3 | Generative drug design via BioNeMo MolMIM, molecular docking via DiffDock, and drug-likeness scoring via RDKit. Validated targets become ranked drug candidates. |
 

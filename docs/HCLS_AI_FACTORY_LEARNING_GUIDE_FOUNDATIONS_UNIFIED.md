@@ -650,7 +650,7 @@ searchable, the platform:
 4. **Stores** the vector + metadata in the Milvus `genomic_evidence`
    collection.
 
-The result: **3.56 million searchable variant vectors** that all eleven
+The result: **3.56 million annotated variant vectors** that all eleven
 intelligence agents can query using natural language.
 
 ```
