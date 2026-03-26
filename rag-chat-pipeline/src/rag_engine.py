@@ -1,9 +1,8 @@
 """
 RAG Engine - Retrieval-Augmented Generation for genomic evidence.
 """
-import os
 from collections.abc import Generator
-from typing import Any, Optional
+from typing import Any
 
 from loguru import logger
 

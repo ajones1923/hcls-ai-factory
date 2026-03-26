@@ -1,13 +1,15 @@
 """Tests for NIM client retry logic and SMILES validation."""
+import importlib.util
 import sys
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import requests
+
 from src.nim_clients import DiffDockClient, MolMIMClient, NIMServiceConfig
 
 
@@ -100,7 +102,7 @@ class TestMolMIMRetry:
         mock_post.side_effect = [error_response, success_response]
 
         with patch('src.nim_clients.time.sleep'):
-            result = molmim_client.generate('CCO')
+            molmim_client.generate('CCO')
         assert mock_post.call_count == 2
 
 
@@ -151,9 +153,7 @@ class TestSMILESValidation:
 
     def test_molmim_rejects_invalid_smiles(self, molmim_client):
         """Test that invalid SMILES raises ValueError."""
-        try:
-            from rdkit import Chem
-        except ImportError:
+        if importlib.util.find_spec("rdkit") is None:
             pytest.skip("RDKit not installed")
 
         with pytest.raises(ValueError, match="Invalid SMILES"):
@@ -161,9 +161,7 @@ class TestSMILESValidation:
 
     def test_diffdock_rejects_invalid_smiles(self, diffdock_client):
         """Test that invalid SMILES raises ValueError."""
-        try:
-            from rdkit import Chem
-        except ImportError:
+        if importlib.util.find_spec("rdkit") is None:
             pytest.skip("RDKit not installed")
 
         with pytest.raises(ValueError, match="Invalid SMILES"):
@@ -178,7 +176,7 @@ class TestSMILESValidation:
             raise_for_status=Mock(),
         )
         # CB-5083 seed compound — should not raise
-        result = molmim_client.generate(
+        molmim_client.generate(
             'CC(C)C1=C(C=C(C=C1)NC2=NC3=C(C=N2)N(C=C3)C)C(=O)NC4=CC=C(C=C4)CN5CCOCC5'
         )
         assert mock_post.call_count == 1

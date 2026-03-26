@@ -18,7 +18,6 @@ from src.models import (
     StructureInfo,
     StructureManifest,
     TargetHypothesis,
-    TargetStatus,
 )
 
 
@@ -75,7 +74,7 @@ class TestStructureInfo:
         """Test structure with ligand info."""
         assert sample_structure.ligand_id == "CB5"
         assert sample_structure.ligand_smiles is not None
-        assert sample_structure.prepared == True
+        assert sample_structure.prepared
 
 
 class TestStructureManifest:
@@ -126,7 +125,7 @@ class TestGeneratedMolecule:
         assert sample_molecule.properties is not None
         assert sample_molecule.properties.molecular_weight == 489.6
         assert sample_molecule.properties.lipinski_violations == 0
-        assert sample_molecule.passed_qc == True
+        assert sample_molecule.passed_qc
 
 
 class TestMoleculeProperties:

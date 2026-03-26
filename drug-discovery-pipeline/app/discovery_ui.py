@@ -15,10 +15,10 @@ import streamlit as st
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from cryoem_evidence import CryoEMEvidenceManager, CryoEMStructure
-from molecule_generator import GeneratedMolecule, MoleculeGenerator
+from cryoem_evidence import CryoEMEvidenceManager
+from molecule_generator import MoleculeGenerator
 from structure_viewer import HAS_STMOL, StructureViewer
-from target_import import ImportedTarget, TargetImporter, get_vcp_target
+from target_import import ImportedTarget, get_vcp_target
 
 # Default paths for Stage 2 export
 RAG_EXPORT_PATH = Path(os.environ.get(
@@ -166,7 +166,6 @@ st.markdown("""
 def render_header():
     """Render the main header."""
     target = get_active_target()
-    disease = target.therapeutic_area or "Drug Discovery"
     badge = f"{target.gene}"
 
     st.markdown(f"""
@@ -224,8 +223,8 @@ def render_sidebar():
             st.markdown("---")
 
         # Current target info
-        st.markdown(f"### 🎯 Current Target")
-        diseases = ', '.join(target.variants[0].get('disease_association', '').split('/')) if target.variants and target.variants[0].get('disease_association') else (target.therapeutic_area or 'N/A')
+        st.markdown("### 🎯 Current Target")
+        ', '.join(target.variants[0].get('disease_association', '').split('/')) if target.variants and target.variants[0].get('disease_association') else (target.therapeutic_area or 'N/A')
         st.info(f"""
         **Target:** {target.gene} ({target.protein or 'Unknown protein'})
 
@@ -304,7 +303,7 @@ def render_target_hypothesis():
             st.success(f"**{ref_drug}**")
 
 
-def render_structural_evidence():
+def render_structural_evidence():  # noqa: C901
     """Render the structural evidence step."""
     target = get_active_target()
 
@@ -362,7 +361,7 @@ def render_structural_evidence():
                         st.markdown("**Interactive 3D Structure:**")
                         style = st.selectbox("Style", ["cartoon", "stick", "sphere", "line"], key=f"style_{pdb_id}", index=0)
                         if structure.inhibitor:
-                            show_ligand = st.checkbox(f"Highlight binding site", value=True, key=f"ligand_{pdb_id}")
+                            show_ligand = st.checkbox("Highlight binding site", value=True, key=f"ligand_{pdb_id}")
                             if show_ligand:
                                 structure_viewer.show_structure_with_ligand(pdb_id, ligand_resname="LIG", width=400, height=350)
                             else:
@@ -534,7 +533,7 @@ def render_molecule_generation():
 def render_summary():
     """Render the summary step."""
     target = get_active_target()
-    ref_drug = st.session_state.get('reference_drug', '')
+    st.session_state.get('reference_drug', '')
 
     st.markdown("## Step 4: Pipeline Summary")
     st.markdown("*End-to-end genomics to drug discovery*")

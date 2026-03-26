@@ -24,7 +24,7 @@ Coverage: 201 high-value genes across 13 therapeutic areas:
 85% of genes (171/201) are druggable with FDA-approved drugs or clinical candidates.
 """
 
-from typing import Any, Optional
+from typing import Any
 
 # =============================================================================
 # KNOWLEDGE CONNECTION DATABASE
@@ -2665,14 +2665,6 @@ def get_knowledge_stats() -> dict[str, Any]:
     druggable = sum(1 for data in KNOWLEDGE_CONNECTIONS.values() if data['druggable'])
 
     # Count by therapeutic area (rough categorization)
-    categories = {
-        'oncology': 0,
-        'cardiovascular': 0,
-        'rare_disease': 0,
-        'neurology': 0,
-        'immunology': 0,
-        'pharmacogenomics': 0,
-    }
 
     return {
         'total_genes': total,

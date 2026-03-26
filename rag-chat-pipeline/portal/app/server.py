@@ -994,7 +994,7 @@ if __name__ == '__main__':
     logger.info("RAG Chat Pipeline Web Portal")
     logger.info("=" * 60)
     logger.info(f"Project Root: {PROJECT_ROOT}")
-    logger.info(f"Opening portal at: http://localhost:5001")
+    logger.info("Opening portal at: http://localhost:5001")
     logger.info("=" * 60)
 
     app.run(host='0.0.0.0', port=5001, debug=os.environ.get('FLASK_DEBUG', 'false').lower() == 'true', threaded=True)

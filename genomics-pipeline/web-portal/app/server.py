@@ -451,7 +451,7 @@ def stop():
 
 @app.route('/api/stop-all', methods=['POST'])
 @require_api_key
-def stop_all():
+def stop_all():  # noqa: C901
     """Stop all pipeline-related processes"""
     global pipeline_state, running_processes
     killed_count = 0
@@ -1149,7 +1149,7 @@ if __name__ == '__main__':
     logger.info("Genomics Pipeline Web Portal")
     logger.info("=" * 60)
     logger.info(f"Project Root: {PROJECT_ROOT}")
-    logger.info(f"Opening portal at: http://localhost:5000")
+    logger.info("Opening portal at: http://localhost:5000")
     logger.info("=" * 60)
 
     # Security: Debug mode disabled by default. Set FLASK_DEBUG=true to enable.

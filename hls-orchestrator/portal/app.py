@@ -7,10 +7,9 @@ A comprehensive dashboard for end-to-end drug discovery workflows.
 
 import json
 import os
-import subprocess
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import requests
 import streamlit as st
@@ -449,7 +448,7 @@ def render_genomics():
 
     with col2:
         st.markdown("### Configuration")
-        genome = st.selectbox("Reference Genome", ["GRCh38", "GRCh37", "T2T-CHM13"])
+        st.selectbox("Reference Genome", ["GRCh38", "GRCh37", "T2T-CHM13"])
         st.text_input("Known Sites VCF", placeholder="dbsnp.vcf.gz")
 
         st.markdown("### Quick Actions")
@@ -494,7 +493,7 @@ def render_rag_chat():
 
     with col2:
         st.markdown("### Upload VCF")
-        vcf_file = st.file_uploader("Upload annotated VCF", type=["vcf", "vcf.gz"])
+        st.file_uploader("Upload annotated VCF", type=["vcf", "vcf.gz"])
 
         st.markdown("### Identified Targets")
         targets = [
@@ -567,7 +566,7 @@ def render_drug_discovery():
 
         with col1:
             st.markdown("### Target Selection")
-            target = st.selectbox(
+            st.selectbox(
                 "Select Target",
                 ["VCP (Valosin-containing protein)", "MAPT (Microtubule-associated protein tau)", "Custom..."]
             )
@@ -576,13 +575,13 @@ def render_drug_discovery():
             col_a, col_b = st.columns(2)
             with col_a:
                 num_molecules = st.slider("Number of Molecules", 5, 50, 20)
-                diversity = st.slider("Diversity", 0.1, 0.5, 0.3)
+                st.slider("Diversity", 0.1, 0.5, 0.3)
             with col_b:
-                max_mw = st.slider("Max Molecular Weight", 400, 600, 550)
-                num_poses = st.slider("Docking Poses", 5, 20, 10)
+                st.slider("Max Molecular Weight", 400, 600, 550)
+                st.slider("Docking Poses", 5, 20, 10)
 
             st.markdown("### Reference Compound")
-            seed_smiles = st.text_input(
+            st.text_input(
                 "Seed SMILES (optional)",
                 value="CC(C)C1=C(C=C(C=C1)NC2=NC3=C(C=N2)N(C=C3)C)C(=O)NC4=CC=C(C=C4)CN5CCOCC5",
                 help="CB-5083 structure for VCP"
@@ -669,7 +668,7 @@ def render_run_pipeline():
             st.markdown("**Disease**: Frontotemporal Dementia")
             st.markdown("**Reference**: CB-5083 inhibitor")
         with col2:
-            num_mol = st.number_input("Molecules to generate", 5, 50, 20)
+            st.number_input("Molecules to generate", 5, 50, 20)
 
     elif "Full" in mode:
         st.markdown("### Input Files")

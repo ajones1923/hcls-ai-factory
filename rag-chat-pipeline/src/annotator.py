@@ -395,14 +395,14 @@ class ClinVarAnnotator:
                     if progress_callback and count % 100000 == 0:
                         progress_callback(count)
 
-                except (IndexError, ValueError) as e:
+                except (IndexError, ValueError):
                     continue
 
         self._loaded = True
         logger.info(f"Loaded {count} ClinVar variants for {self.assembly}")
         return count
 
-    def annotate(self, variant: VariantEvidence) -> VariantEvidence:
+    def annotate(self, variant: VariantEvidence) -> VariantEvidence:  # noqa: C901
         """Annotate a single variant with ClinVar data."""
         if not self._loaded:
             self.load()
@@ -556,7 +556,7 @@ class AlphaMissenseAnnotator:
                     if progress_callback and count % 1000000 == 0:
                         progress_callback(count)
 
-                except (IndexError, ValueError) as e:
+                except (IndexError, ValueError):
                     continue
 
         self._loaded = True

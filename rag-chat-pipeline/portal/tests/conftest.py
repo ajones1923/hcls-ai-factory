@@ -4,7 +4,6 @@ Shared pytest fixtures for RAG Chat Pipeline Portal tests.
 import sys
 import tempfile
 from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 

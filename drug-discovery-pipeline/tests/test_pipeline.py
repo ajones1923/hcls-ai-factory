@@ -5,11 +5,8 @@ import sys
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-import pytest
-
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.models import PipelineConfig, TargetHypothesis
 from src.pipeline import DrugDiscoveryPipeline
 
 
@@ -145,7 +142,7 @@ class TestDrugDiscoveryPipeline:
             nim_manager=mock_nim_manager,
         )
 
-        result = pipeline.run_pipeline(sample_target)
+        pipeline.run_pipeline(sample_target)
 
         report_files = list(temp_output_dir.glob("report_*.json"))
         assert len(report_files) == 1

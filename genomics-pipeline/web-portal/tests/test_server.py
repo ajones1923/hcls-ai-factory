@@ -4,9 +4,7 @@ Tests for Genomics Pipeline Web Portal server.
 import json
 import sys
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
-
-import pytest
+from unittest.mock import Mock, patch
 
 # Add the app directory to the path
 sys.path.insert(0, str(Path(__file__).parent.parent / 'app'))
@@ -75,7 +73,7 @@ class TestConfigEndpoint:
 
             assert response.status_code == 200
             data = json.loads(response.data)
-            assert data.get('success') == True
+            assert data.get('success')
 
 
 class TestRunEndpoint:
@@ -97,7 +95,7 @@ class TestRunEndpoint:
 
                 assert response.status_code == 200
                 data = json.loads(response.data)
-                assert data.get('success') == True
+                assert data.get('success')
                 assert data.get('step') == 'Prerequisites Check'
 
     def test_run_while_running(self, client):
@@ -119,7 +117,7 @@ class TestStopEndpoint:
                 response = client.post('/api/stop')
                 assert response.status_code == 200
                 data = json.loads(response.data)
-                assert data.get('success') == True
+                assert data.get('success')
 
 
 class TestStopAllEndpoint:
@@ -133,7 +131,7 @@ class TestStopAllEndpoint:
                 response = client.post('/api/stop-all')
                 assert response.status_code == 200
                 data = json.loads(response.data)
-                assert data.get('success') == True
+                assert data.get('success')
 
 
 class TestLogsEndpoint:
@@ -194,25 +192,25 @@ class TestHelperFunctions:
         """Test Docker check."""
         from server import check_docker
         mock_subprocess.run.return_value = Mock(returncode=0)
-        assert check_docker() == True
+        assert check_docker()
 
     def test_check_docker_not_installed(self, mock_subprocess):
         """Test Docker not installed."""
         from server import check_docker
         mock_subprocess.run.side_effect = Exception("Docker not found")
-        assert check_docker() == False
+        assert not check_docker()
 
     def test_check_gpu_available(self, mock_subprocess):
         """Test GPU check."""
         from server import check_gpu
         mock_subprocess.run.return_value = Mock(returncode=0)
-        assert check_gpu() == True
+        assert check_gpu()
 
     def test_check_gpu_not_available(self, mock_subprocess):
         """Test GPU not available."""
         from server import check_gpu
         mock_subprocess.run.side_effect = Exception("nvidia-smi not found")
-        assert check_gpu() == False
+        assert not check_gpu()
 
     def test_get_file_size_existing(self, tmp_path):
         """Test file size for existing file."""
@@ -240,7 +238,7 @@ class TestGPUUtilization:
 
         with patch('server.NVML_AVAILABLE', False):
             result = get_gpu_utilization()
-            assert result['available'] == False
+            assert not result['available']
             assert result['devices'] == []
 
     def test_get_gpu_utilization_with_nvml(self, mock_pynvml):
@@ -249,7 +247,7 @@ class TestGPUUtilization:
             with patch('server.pynvml', mock_pynvml, create=True):
                 from server import get_gpu_utilization
                 result = get_gpu_utilization()
-                assert result['available'] == True
+                assert result['available']
 
 
 class TestCPUUtilization:
