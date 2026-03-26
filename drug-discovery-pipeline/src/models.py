@@ -63,7 +63,7 @@ class StructureInfo(BaseModel):
     prepared: bool = Field(False, description="Whether structure has been prepared")
 
     @validator("resolution", pre=True)
-    def parse_resolution(cls, v):
+    def parse_resolution(self, v):
         if isinstance(v, str):
             # Handle "2.3 Å" format
             return float(v.replace("Å", "").strip())
@@ -93,7 +93,7 @@ class MoleculeProperties(BaseModel):
     Calculated molecular properties.
     """
     molecular_weight: float = Field(..., ge=0)
-    logP: float = Field(..., description="Lipophilicity")
+    logP: float = Field(..., description="Lipophilicity")  # noqa: N815
     hbd: int = Field(..., ge=0, description="H-bond donors")
     hba: int = Field(..., ge=0, description="H-bond acceptors")
     tpsa: float = Field(..., ge=0, description="Topological polar surface area")

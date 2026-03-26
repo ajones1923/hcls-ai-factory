@@ -7,11 +7,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.models import (
-    DockingResult,
-    GeneratedMolecule,
-    MoleculeProperties,
     PipelineConfig,
-    RankedCandidate,
 )
 
 
@@ -127,10 +123,7 @@ class TestCompositeScoring:
     def _compute_composite(gen_score, dock_score, qed_score,
                             has_dock_result=True,
                             gen_w=0.3, dock_w=0.4, qed_w=0.3):
-        if has_dock_result:
-            dock_normalized = max(0.0, min(1.0, -dock_score / 12.0))
-        else:
-            dock_normalized = 0.0
+        dock_normalized = max(0.0, min(1.0, -dock_score / 12.0)) if has_dock_result else 0.0
         return gen_w * gen_score + dock_w * dock_normalized + qed_w * qed_score
 
     def test_default_weights_sum_to_one(self):

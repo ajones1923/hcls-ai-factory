@@ -4,8 +4,8 @@ Molecule Generation Module - BioNeMo integration for drug-like molecule generati
 Uses MolMIM or similar models to generate candidate molecules
 from seed SMILES strings derived from known inhibitors.
 """
+import importlib.util
 import json
-import os
 import subprocess
 from dataclasses import asdict, dataclass
 from datetime import datetime
@@ -110,7 +110,6 @@ class MoleculeGenerator:
         diversity: float,
     ) -> list[GeneratedMolecule]:
         """Generate molecules using BioNeMo MolMIM."""
-        molecules = []
 
         # BioNeMo API call would go here
         # For now, return demo molecules
@@ -129,12 +128,7 @@ class MoleculeGenerator:
         """Generate molecules using RDKit or pre-computed analogues."""
         molecules = []
 
-        try:
-            from rdkit import Chem
-            from rdkit.Chem import AllChem, Descriptors, Lipinski
-            rdkit_available = True
-        except ImportError:
-            rdkit_available = False
+        rdkit_available = importlib.util.find_spec("rdkit") is not None
 
         if rdkit_available and seed_smiles:
             molecules = self._generate_rdkit_analogues(seed_smiles, target_gene, num_molecules)
@@ -152,7 +146,7 @@ class MoleculeGenerator:
     ) -> list[GeneratedMolecule]:
         """Generate simple analogues using RDKit."""
         from rdkit import Chem
-        from rdkit.Chem import AllChem, Descriptors
+        from rdkit.Chem import AllChem
 
         molecules = []
         seed_mol = Chem.MolFromSmiles(seed_smiles)
@@ -162,14 +156,9 @@ class MoleculeGenerator:
 
         # Generate fingerprint-based similar molecules
         # In production, would use MMP or scaffold hopping
-        seed_fp = AllChem.GetMorganFingerprintAsBitVect(seed_mol, 2, nBits=2048)
+        AllChem.GetMorganFingerprintAsBitVect(seed_mol, 2, nBits=2048)
 
         # For demo, create simple modifications
-        modifications = [
-            ("F", "Cl"),  # Halogen swap
-            ("C", "N"),   # C to N swap in rings
-            ("O", "S"),   # O to S swap
-        ]
 
         # Generate the seed as first molecule
         molecules.append(GeneratedMolecule(

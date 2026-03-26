@@ -2,10 +2,8 @@
 Tests for pipeline checkpoint/resume functionality.
 """
 import json
-from pathlib import Path
-from unittest.mock import Mock, call, patch
+from unittest.mock import Mock, patch
 
-import pytest
 from src.checkpoint import CheckpointManager
 from src.models import (
     DockingResult,

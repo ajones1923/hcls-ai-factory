@@ -3,9 +3,7 @@
 Uses stmol/py3Dmol for interactive molecular visualization in Streamlit
 """
 
-import os
 from pathlib import Path
-from typing import Optional
 
 import requests
 import streamlit as st

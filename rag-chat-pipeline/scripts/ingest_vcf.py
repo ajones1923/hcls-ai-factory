@@ -87,7 +87,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def main():
+def main():  # noqa: C901
     args = parse_args()
 
     # Configure logging

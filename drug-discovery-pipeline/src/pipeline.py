@@ -16,13 +16,11 @@ Implements the 10-stage pipeline:
 Based on phase-5-6.pdf specification.
 """
 import json
-import os
 import time
 import uuid
 from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
-from typing import Any
 
 from loguru import logger
 
@@ -501,7 +499,7 @@ class DrugDiscoveryPipeline:
         self._report_progress(8, "Ranking candidates")
 
         # Build molecule lookup
-        mol_lookup = {m.id: m for m in self.molecules}
+        {m.id: m for m in self.molecules}
         dock_lookup = {d.molecule_id: d for d in self.docking_results}
 
         candidates = []
@@ -515,10 +513,7 @@ class DrugDiscoveryPipeline:
 
             # Normalize docking score (lower/more negative is better binding)
             # Range: -12 kcal/mol (excellent) → 1.0, 0 kcal/mol (no binding) → 0.0
-            if dock_result is not None:
-                dock_normalized = max(0.0, min(1.0, -dock_score / 12.0))
-            else:
-                dock_normalized = 0.0  # No docking data = worst score
+            dock_normalized = max(0.0, min(1.0, -dock_score / 12.0)) if dock_result is not None else 0.0
 
             composite = (
                 self.config.generation_weight * gen_score +

@@ -3,9 +3,6 @@ Tests for RAG Engine module.
 """
 import sys
 from pathlib import Path
-from unittest.mock import Mock, patch
-
-import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -138,7 +135,7 @@ class TestRAGEngineRetrieval:
             llm_client=mock_llm_client,
         )
 
-        results = engine.retrieve(
+        engine.retrieve(
             "What variants are on chromosome 9?",
             filter_expr='chrom == "chr9"'
         )
@@ -156,7 +153,7 @@ class TestRAGEngineRetrieval:
             top_k=5,
         )
 
-        results = engine.retrieve("variants", top_k=20)
+        engine.retrieve("variants", top_k=20)
 
         call_args = mock_milvus_client.search.call_args
         assert call_args[1]["top_k"] == 20
@@ -296,7 +293,7 @@ class TestRAGEngineGeneSearch:
             llm_client=mock_llm_client,
         )
 
-        results = engine.search_region("chr9", 100000, 200000)
+        engine.search_region("chr9", 100000, 200000)
 
         mock_milvus_client.search_by_region.assert_called_with("chr9", 100000, 200000)
 

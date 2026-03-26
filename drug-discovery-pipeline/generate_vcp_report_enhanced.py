@@ -9,24 +9,18 @@ Generates a stunning PDF report with:
 - Professional pharmaceutical-grade formatting
 """
 
-import hashlib
 import json
-import os
 from datetime import datetime
-from io import BytesIO
 from pathlib import Path
 
 import requests
-from reportlab.graphics import renderPDF
-from reportlab.graphics.shapes import Drawing, Line, Rect, String
 from reportlab.lib import colors
-from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY, TA_LEFT, TA_RIGHT
+from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
 from reportlab.platypus import (
     Flowable,
-    HRFlowable,
     Image,
     KeepTogether,
     PageBreak,

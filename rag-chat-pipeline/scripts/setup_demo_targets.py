@@ -105,7 +105,7 @@ def setup_demo_targets():
 
     # Show summary
     summary = manager.get_summary()
-    print(f"\nSummary:")
+    print("\nSummary:")
     print(f"  Total: {summary['total']}")
     print(f"  High Priority: {summary['high_priority']}")
     print(f"  By Status: {summary['by_status']}")

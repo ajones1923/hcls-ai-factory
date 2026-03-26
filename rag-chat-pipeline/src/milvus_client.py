@@ -3,7 +3,7 @@ Milvus Client - Vector database operations for genomic evidence.
 """
 import os
 import re
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 from loguru import logger

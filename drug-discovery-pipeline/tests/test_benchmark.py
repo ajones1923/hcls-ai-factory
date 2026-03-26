@@ -1,8 +1,7 @@
 """
 Tests for pipeline performance timing.
 """
-import pytest
-from src.models import PipelineConfig, TargetHypothesis
+from src.models import PipelineConfig
 from src.pipeline import DrugDiscoveryPipeline
 
 
@@ -17,7 +16,7 @@ class TestStageTimings:
             **{**sample_config.model_dump(), "output_dir": str(temp_output_dir)}
         )
         pipeline = DrugDiscoveryPipeline(config, nim_manager=mock_nim_manager)
-        run = pipeline.run_pipeline(sample_target)
+        pipeline.run_pipeline(sample_target)
 
         # All 10 stages should have timings
         assert len(pipeline.stage_timings) == 10

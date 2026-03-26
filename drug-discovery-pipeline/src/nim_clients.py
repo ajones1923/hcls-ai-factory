@@ -7,18 +7,14 @@ Provides clients for:
 
 Based on NVIDIA NIM API specifications from phase-5-6.pdf.
 """
-import json
 import os
 import time
-from collections.abc import Generator
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 import requests
 from loguru import logger
-
-from .models import DockingResult, GeneratedMolecule, MoleculeProperties
 
 
 @dataclass
@@ -338,10 +334,7 @@ class MockMolMIMClient(MolMIMClient):
         """Generate molecules using RDKit fallback."""
         try:
             from rdkit import Chem
-            from rdkit.Chem import AllChem, Descriptors
-            HAS_RDKIT = True
         except ImportError:
-            HAS_RDKIT = False
             logger.warning("RDKit not available for mock generation")
             return []
 

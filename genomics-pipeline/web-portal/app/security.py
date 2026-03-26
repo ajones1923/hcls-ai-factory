@@ -6,7 +6,6 @@ Provides:
 - Rate limiting helpers
 - Authentication helpers (optional)
 """
-import hashlib
 import hmac
 import os
 import secrets

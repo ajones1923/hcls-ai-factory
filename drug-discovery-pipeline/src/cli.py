@@ -13,9 +13,7 @@ Usage:
     ddpipe export --run-id abc123 --format sdf
 """
 import json
-import os
 import sys
-from datetime import datetime
 from pathlib import Path
 
 import typer
@@ -101,7 +99,7 @@ def run(
         task = progress.add_task("Running pipeline...", total=10)
 
         try:
-            result = pipeline.run_pipeline()
+            pipeline.run_pipeline()
 
             for _i in range(10):
                 progress.update(task, advance=1)
@@ -247,7 +245,7 @@ def stage(
 @app.command()
 def report(
     run_id: str = typer.Option(..., "--run-id", "-r", help="Pipeline run ID"),  # noqa: B008
-    format: str = typer.Option("json", "--format", "-f", help="Output format (json, html, csv)"),  # noqa: B008
+    output_format: str = typer.Option("json", "--format", "-f", help="Output format (json, html, csv)"),  # noqa: B008
     output_dir: str = typer.Option("outputs", "--output", "-o"),  # noqa: B008
 ):
     """
@@ -274,14 +272,14 @@ def report(
         f"Completed: {report.get('completed_at', 'Unknown')}",
     ))
 
-    if format == "json":
+    if output_format == "json":
         console.print_json(json.dumps(report, indent=2, default=str))
 
 
 @app.command("export")
 def export_results(
     run_id: str = typer.Option(..., "--run-id", "-r", help="Pipeline run ID"),  # noqa: B008
-    format: str = typer.Option("sdf", "--format", "-f", help="Export format (sdf, csv, smiles)"),  # noqa: B008
+    output_format: str = typer.Option("sdf", "--format", "-f", help="Export format (sdf, csv, smiles)"),  # noqa: B008
     output_dir: str = typer.Option("outputs", "--output", "-o"),  # noqa: B008
     top_n: int = typer.Option(10, "--top", "-n", help="Number of candidates to export"),  # noqa: B008
 ):
@@ -302,14 +300,14 @@ def export_results(
 
     candidates = report.get("top_candidates", [])[:top_n]
 
-    if format == "smiles":
+    if output_format == "smiles":
         output_file = Path(output_dir) / f"candidates_{run_id}.smi"
         with open(output_file, 'w') as f:
             for c in candidates:
                 f.write(f"{c['smiles']}\t{c['molecule_id']}\n")
         console.print(f"[green]Exported to: {output_file}[/green]")
 
-    elif format == "csv":
+    elif output_format == "csv":
         output_file = Path(output_dir) / f"candidates_{run_id}.csv"
         with open(output_file, 'w') as f:
             f.write("rank,id,smiles,score,docking_score,mw,logp\n")
@@ -320,7 +318,7 @@ def export_results(
                         f"{props.get('molecular_weight', '')},{props.get('logP', '')}\n")
         console.print(f"[green]Exported to: {output_file}[/green]")
 
-    elif format == "sdf":
+    elif output_format == "sdf":
         try:
             from rdkit import Chem
             from rdkit.Chem import AllChem
@@ -368,7 +366,7 @@ def demo():
         TextColumn("[progress.description]{task.description}"),
         console=console,
     ) as progress:
-        task = progress.add_task("Running VCP demo pipeline...", total=None)
+        progress.add_task("Running VCP demo pipeline...", total=None)
 
         try:
             result = run_vcp_demo_pipeline(output_dir="outputs/vcp_demo")

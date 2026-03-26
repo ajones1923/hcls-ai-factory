@@ -16,7 +16,6 @@ from src.knowledge import (
     get_gene_reference_data,
     get_genes_by_disease,
     get_genes_by_pathway,
-    get_knowledge_for_evidence,
     get_knowledge_for_genes,
     get_knowledge_stats,
 )

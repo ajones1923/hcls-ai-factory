@@ -7,7 +7,6 @@ import os
 import sys
 import time
 from pathlib import Path
-from typing import Any, Optional
 
 import streamlit as st
 
@@ -20,7 +19,6 @@ from src.rag_engine import RAGEngine, create_rag_engine
 from src.target_hypothesis import (
     TargetHypothesis,
     TargetHypothesisManager,
-    create_hypothesis_from_chat,
 )
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -724,7 +722,7 @@ def render_targets_sidebar():
                 if target.rationale:
                     st.write(f"**Rationale:** {target.rationale[:100]}...")
 
-                if st.button(f"Delete", key=f"del_{target.id}"):
+                if st.button("Delete", key=f"del_{target.id}"):
                     manager.delete(target.id)
                     st.rerun()
 
@@ -779,7 +777,6 @@ def render_vcf_preview_sidebar():
 def render_file_manager():
     """Render file manager for browsing and uploading VCF files."""
     import datetime
-    import os
 
     st.subheader("File Manager")
 
@@ -817,7 +814,7 @@ def render_file_manager():
         if uploaded_file is not None:
             # Validate file extension
             valid_extensions = ['.vcf', '.vcf.gz', '.gz']
-            file_ext = ''.join(Path(uploaded_file.name).suffixes).lower()
+            ''.join(Path(uploaded_file.name).suffixes).lower()
 
             if any(uploaded_file.name.lower().endswith(ext) for ext in valid_extensions):
                 # Show file info
@@ -1015,7 +1012,7 @@ def render_evidence(evidence_list: list):
                 # AlphaMissense badge
                 am_score = ev.get('am_pathogenicity')
                 if am_score is not None:
-                    am_class = ev.get('am_class', '')
+                    ev.get('am_class', '')
                     if am_score >= 0.564:
                         st.markdown(f":red[AM: {am_score:.2f}]")
                     elif am_score <= 0.34:
@@ -1205,7 +1202,7 @@ def render_performance_panel():
         )
 
 
-def render_target_panel():
+def render_target_panel():  # noqa: C901
     """Render target hypothesis management panel."""
     manager = get_target_manager()
 
@@ -1479,12 +1476,12 @@ def save_shared_metrics(metrics: dict):
         }
         with open(metrics_file, 'w') as f:
             json.dump(shared_data, f)
-    except OSError as e:
+    except OSError:
         # Silently fail - metrics storage is optional
         pass
 
 
-def main():
+def main():  # noqa: C901
     """Main chat interface."""
     # Initialize session state
     if "messages" not in st.session_state:

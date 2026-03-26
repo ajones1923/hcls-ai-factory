@@ -5,9 +5,7 @@ import json
 import os
 import sys
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
-
-import pytest
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).parent.parent / 'app'))
 
@@ -330,7 +328,7 @@ class TestVcfPreviewLimit:
         with patch('server.load_config', return_value={'VCF_INPUT_PATH': str(vcf_file)}):  # noqa: SIM117
             with patch('server.check_file_exists', return_value=True):  # noqa: SIM117
                 with patch('server.get_vcf_preview', return_value=[]) as mock_preview:
-                    response = client.get('/api/vcf-preview?limit=999999')
+                    client.get('/api/vcf-preview?limit=999999')
                     if mock_preview.called:
                         # Verify the limit was clamped
                         call_limit = mock_preview.call_args[0][1] if len(mock_preview.call_args[0]) > 1 else mock_preview.call_args[1].get('limit', 100)

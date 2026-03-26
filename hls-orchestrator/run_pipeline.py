@@ -8,9 +8,6 @@ Alternative to Nextflow for environments with cgroup issues.
 
 import argparse
 import json
-import os
-import shutil
-import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -49,7 +46,7 @@ def run_demo_pipeline(num_molecules: int = 20, output_dir: Path = None):
     output_dir = output_dir or RESULTS_DIR / f"demo_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    print(f"\n  Mode:          Demo (VCP/FTD)")
+    print("\n  Mode:          Demo (VCP/FTD)")
     print(f"  Output:        {output_dir}")
     print(f"  Molecules:     {num_molecules}")
 
@@ -81,10 +78,10 @@ def run_demo_pipeline(num_molecules: int = 20, output_dir: Path = None):
     print_stage(4, "Molecule Generation", f"Generating {num_molecules} molecules...")
 
     try:
-        from molecule_generator import MoleculeGenerator, generate_vcp_molecules
+        from molecule_generator import generate_vcp_molecules
         molecules = generate_vcp_molecules(num_molecules)
         print(f"  Generated {len(molecules)} molecules")
-    except (ImportError, AttributeError, Exception) as e:
+    except (ImportError, AttributeError, Exception):
         # Fallback mock generation
         molecules = []
         seed = target['reference_compound']['smiles']
@@ -186,9 +183,9 @@ def run_demo_pipeline(num_molecules: int = 20, output_dir: Path = None):
     generate_html_report(report, html_file)
 
     print(f"\n{'═' * 60}")
-    print(f"  PIPELINE COMPLETE")
+    print("  PIPELINE COMPLETE")
     print(f"{'═' * 60}")
-    print(f"  Status:        SUCCESS")
+    print("  Status:        SUCCESS")
     print(f"  Target:        {target['gene']}")
     print(f"  Molecules:     {len(candidates)}")
     print(f"  Top Score:     {candidates[0]['composite_score']:.4f}")

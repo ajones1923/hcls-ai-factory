@@ -6,18 +6,16 @@ Generates a professional PDF report showing the complete journey from
 patient VCP variant to drug candidate molecules.
 """
 
-import json
 from datetime import datetime
 from pathlib import Path
 
 from reportlab.lib import colors
-from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY, TA_LEFT
+from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
 from reportlab.platypus import (
     HRFlowable,
-    Image,
     PageBreak,
     Paragraph,
     SimpleDocTemplate,
@@ -670,7 +668,7 @@ def main():
         output_path="outputs/VCP_Drug_Candidate_Report.pdf"
     )
     output_file = generator.generate()
-    print(f"\n✅ VCP → Drug Candidate Report generated successfully!")
+    print("\n✅ VCP → Drug Candidate Report generated successfully!")
     print(f"📄 Output: {output_file}")
 
 
