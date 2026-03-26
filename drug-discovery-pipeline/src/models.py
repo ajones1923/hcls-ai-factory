@@ -63,7 +63,8 @@ class StructureInfo(BaseModel):
     prepared: bool = Field(False, description="Whether structure has been prepared")
 
     @validator("resolution", pre=True)
-    def parse_resolution(self, v):
+    @classmethod
+    def parse_resolution(cls, v):
         if isinstance(v, str):
             # Handle "2.3 Å" format
             return float(v.replace("Å", "").strip())
