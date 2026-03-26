@@ -119,7 +119,7 @@ Cardiovascular clinical practice generates data across at least fifteen distinct
 
 9. **Valvular Heart Disease** -- Severity grading (mild/moderate/severe per ASE criteria), hemodynamic quantification (EOA, DVI, PHT, regurgitant fraction), intervention criteria (surgical AVR vs TAVR, mitral repair vs replacement), surveillance protocols.
 
-10. **Preventive Cardiology** -- Lipid panels (LDL-C, HDL-C, TG, Lp(a), ApoB), risk calculators (PCE/ASCVD, MESA, Framingham, Reynolds), statin eligibility, PCSK9i criteria, coronary calcium for risk reclassification, inflammatory markers (hsCRP, IL-6), metabolic parameters.
+10. **Preventive Cardiology** -- Lipid panels (LDL-C, HDL-C, TG, Lp(a), ApoB), risk calculators (PCE/ASCVD, HEART, MESA, Reynolds), statin eligibility, PCSK9i criteria, coronary calcium for risk reclassification, inflammatory markers (hsCRP, IL-6), metabolic parameters.
 
 11. **Interventional Cardiology** -- PCI procedural data (stent type, vessel, lesion characteristics, TIMI flow), structural intervention data (TAVR, MitraClip, WATCHMAN, PFO closure), complications, antiplatelet/anticoagulant management, CTO techniques.
 

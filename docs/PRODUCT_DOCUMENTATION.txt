@@ -146,7 +146,7 @@ pipelines:
 
 KEY METRICS:
 - Full genome analysis: 120-240 minutes (vs. 24-48 hours on CPU)
-- Variant database: 3.56 million searchable variants with embeddings
+- Variant database: 3.56 million annotated variants with embeddings
 - Knowledge coverage: 201 genes across 13 therapeutic areas
 - Drug target coverage: 171 druggable targets (85% of gene panel)
 - Molecule generation: 10-100 candidates in seconds via BioNeMo

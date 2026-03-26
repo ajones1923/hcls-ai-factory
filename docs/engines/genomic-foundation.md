@@ -7,7 +7,7 @@ description: GPU-accelerated genomic variant calling and annotation pipeline
 
 **Stage 1 of the HCLS AI Factory Pipeline**
 
-The Genomic Foundation Engine transforms raw patient DNA (FASTQ) into 3.5 million searchable variant vectors in under 2 hours using NVIDIA Parabricks on DGX Spark. It creates the molecular foundation that all 11 intelligence agents build upon.
+The Genomic Foundation Engine transforms raw patient DNA (FASTQ) into 3.5 million annotated variant vectors in under 2 hours using NVIDIA Parabricks on DGX Spark. It creates the molecular foundation that all 11 intelligence agents build upon.
 
 ## What It Does
 
