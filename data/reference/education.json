@@ -1,0 +1,82 @@
+[
+  {
+    "id": "EDU_what_is_pgx_patient",
+    "title": "What is Pharmacogenomics? A Patient Guide",
+    "text_chunk": "Pharmacogenomics (PGx) is the study of how your genes affect your response to medications. Everyone's DNA is slightly different, and these differences can influence how your body processes (metabolizes) drugs. Some people break down certain medications too quickly (meaning the drug may not work well), while others break them down too slowly (meaning the drug may build up and cause side effects). A pharmacogenomic test uses a simple cheek swab or blood sample to look at specific genes that affect drug metabolism. The results help your doctor choose the right medication and the right dose for you personally. PGx testing is a one-time test — your results won't change over your lifetime and can be used every time you need a new medication. Common medications affected include blood thinners (warfarin, clopidogrel), pain medications (codeine, tramadol), antidepressants, and some cancer treatments.",
+    "audience": "patient",
+    "topic": "Introduction to pharmacogenomics",
+    "complexity_level": "basic"
+  },
+  {
+    "id": "EDU_metabolizer_phenotypes",
+    "title": "Understanding Metabolizer Phenotypes: What Your PGx Results Mean",
+    "text_chunk": "Your pharmacogenomic test results classify you into metabolizer categories for each gene tested. Poor Metabolizer (PM): Your body breaks down certain drugs very slowly. You may need a lower dose or a different medication to avoid side effects. Intermediate Metabolizer (IM): Your body breaks down drugs somewhat slower than average. You may need a modest dose adjustment. Normal Metabolizer (NM): Your body breaks down drugs at the expected rate. Standard doses should work appropriately. Rapid Metabolizer (RM): Your body breaks down drugs somewhat faster than average. Standard doses should work for most medications. Ultra-Rapid Metabolizer (UM): Your body breaks down certain drugs very quickly. The medication may not work well at standard doses, or for prodrugs like codeine, too much active drug may be produced too quickly, which can be dangerous. Your results are permanent — they describe how your body will always respond to these medications.",
+    "audience": "patient",
+    "topic": "Metabolizer phenotype interpretation",
+    "complexity_level": "basic"
+  },
+  {
+    "id": "EDU_cpic_guidelines_clinician",
+    "title": "CPIC Guidelines: Evidence-Based Pharmacogenomic Prescribing for Clinicians",
+    "text_chunk": "The Clinical Pharmacogenetics Implementation Consortium (CPIC) develops freely available, peer-reviewed, evidence-based guidelines for pharmacogenomic prescribing. CPIC guidelines translate genetic laboratory test results into actionable prescribing decisions. Key features: (1) Level A evidence: strong evidence supporting altered prescribing based on genotype (e.g., CYP2D6/codeine, CYP2C19/clopidogrel, DPYD/fluoropyrimidines, HLA-B*57:01/abacavir); (2) Activity score system: standardized genotype-to-phenotype translation using allele function assignments and numeric scores; (3) Actionable recommendations: specific dose adjustments or alternative drugs for each phenotype category; (4) Regular updates: guidelines are updated as new evidence emerges. As of 2025, CPIC has published guidelines covering 25+ gene-drug pairs. Guidelines are available at cpicpgx.org and are integrated into PharmGKB. The Dutch Pharmacogenetics Working Group (DPWG) provides complementary European guidelines that are largely concordant with CPIC.",
+    "audience": "clinician",
+    "topic": "CPIC guideline framework",
+    "complexity_level": "intermediate"
+  },
+  {
+    "id": "EDU_activity_score_clinician",
+    "title": "CYP2D6 Activity Score System: From Genotype to Clinical Action",
+    "text_chunk": "The CPIC CYP2D6 activity score (AS) system provides a standardized framework for translating complex CYP2D6 genotypes into clinical phenotypes. Each allele receives a function value: normal function = 1 (e.g., *1, *2), decreased function = 0.5 (e.g., *9, *10, *17, *29, *41), no function = 0 (e.g., *3, *4, *5, *6). The diplotype AS is the sum of two allele values. Phenotype assignment: AS 0 = Poor Metabolizer (PM); AS 0.25-1.0 = Intermediate Metabolizer (IM); AS 1.25-2.25 = Normal Metabolizer (NM); AS >2.25 = Ultra-Rapid Metabolizer (UM, requires gene duplication). Example: *1/*4 = 1.0 + 0 = AS 1.0 = IM; *4/*4 = 0 + 0 = AS 0 = PM; *1/*1xN = 1.0 + (1.0 x N) = AS >2.25 = UM. The AS system handles complex diplotypes (e.g., *2/*10 = 1.0 + 0.5 = AS 1.5 = NM) that simple PM/IM/NM/UM categories cannot easily capture.",
+    "audience": "clinician",
+    "topic": "CYP2D6 activity score interpretation",
+    "complexity_level": "advanced"
+  },
+  {
+    "id": "EDU_phenoconversion_pharmacist",
+    "title": "Phenoconversion in Practice: When Drug-Drug Interactions Override Genotype",
+    "text_chunk": "Phenoconversion occurs when a drug interaction changes a patient's metabolic phenotype from what their genotype predicts. For example, a CYP2D6 normal metabolizer taking paroxetine (strong CYP2D6 inhibitor) will functionally behave as a poor metabolizer for CYP2D6 substrates. This is critical because: (1) Genotype-based dosing recommendations assume no interacting drugs; (2) A patient genotyped as CYP2D6 NM who takes paroxetine needs the same precautions as a genetic CYP2D6 PM; (3) Phenoconversion is reversible upon discontinuation of the perpetrator drug (recovery time depends on inhibitor mechanism: 1-2 days for competitive inhibitors, 2-6 weeks for mechanism-based inhibitors like paroxetine and terbinafine). Pharmacists should review the complete medication list alongside PGx results to identify phenoconversion. Key perpetrators: CYP2D6 — paroxetine, fluoxetine, bupropion, quinidine, terbinafine; CYP3A4 — ketoconazole, itraconazole, ritonavir (inhibitors); rifampin, carbamazepine, St. John's Wort (inducers); CYP1A2 — fluvoxamine, ciprofloxacin (inhibitors); smoking (inducer).",
+    "audience": "pharmacist",
+    "topic": "Phenoconversion and drug-drug-gene interactions",
+    "complexity_level": "advanced"
+  },
+  {
+    "id": "EDU_hla_testing_clinician",
+    "title": "HLA Pharmacogenomic Testing: Preventing Severe Drug Hypersensitivity",
+    "text_chunk": "HLA (Human Leukocyte Antigen) pharmacogenomic testing identifies patients at risk for immune-mediated adverse drug reactions. Unlike CYP enzyme testing (which predicts drug levels), HLA testing predicts immunological reactions — the drug triggers a T cell-mediated immune response in genetically susceptible individuals. Key HLA-drug associations requiring clinical action: HLA-B*57:01 + abacavir = HSR (testing mandatory globally); HLA-B*15:02 + carbamazepine/phenytoin = SJS/TEN (FDA-mandated in Asian ancestry); HLA-A*31:01 + carbamazepine = MPE/DRESS/SJS (all ethnicities); HLA-B*58:01 + allopurinol = SJS/TEN (recommended in high-prevalence populations); HLA-B*13:01 + dapsone = DHS. Unlike metabolizer phenotypes (a spectrum), HLA results are binary: positive (carrier) = avoid drug, negative = proceed with standard prescribing. Negative predictive value is very high (>99%) for most associations, meaning a negative test reliably excludes risk.",
+    "audience": "clinician",
+    "topic": "HLA testing for drug hypersensitivity prevention",
+    "complexity_level": "intermediate"
+  },
+  {
+    "id": "EDU_dpyd_oncology",
+    "title": "DPYD Testing Before Fluoropyrimidine Chemotherapy: An Oncology Imperative",
+    "text_chunk": "Dihydropyrimidine dehydrogenase (DPD) deficiency is a potentially fatal pharmacogenomic condition affecting 3-5% of patients receiving fluoropyrimidine chemotherapy (5-FU, capecitabine, tegafur). DPD is responsible for >80% of 5-FU catabolism; deficiency leads to dramatically elevated drug exposure and severe toxicity (grade 4-5 neutropenia, mucositis, diarrhea, hand-foot syndrome). The European Medicines Agency (EMA) mandated DPYD testing before all fluoropyrimidine prescriptions since April 2020. CPIC recommends testing four key variants: *2A (IVS14+1G>A, no function), *13 (I560S, no function), D949V (decreased function), HapB3 (decreased function). Activity score guides dosing: AS 2.0 = full dose; AS 1.5 = 75%; AS 1.0 = 50%; AS 0.5 = 25%; AS 0 = contraindicated. The Dutch DPYD study showed that upfront genotyping reduced severe toxicity from 73% to 28% and treatment-related mortality from 10% to 0% in DPD-deficient patients. Cost of testing (~$150) is vastly offset by prevented hospitalizations (~$30,000 per severe toxicity event).",
+    "audience": "clinician",
+    "topic": "DPYD testing for fluoropyrimidine safety",
+    "complexity_level": "intermediate"
+  },
+  {
+    "id": "EDU_statin_pgx_pharmacist",
+    "title": "Pharmacogenomics of Statins: SLCO1B1 and ABCG2 for Myopathy Risk Assessment",
+    "text_chunk": "Statin-associated muscle symptoms (SAMS) affect 5-29% of patients and are a leading cause of statin discontinuation. Pharmacogenomic testing can identify patients at elevated myopathy risk: SLCO1B1 c.521T>C (rs4149056): This variant impairs hepatic uptake of statins by the OATP1B1 transporter. TC heterozygotes have 4.5x increased simvastatin myopathy risk; CC homozygotes have 16.9x risk (SEARCH trial). CPIC recommends: CC = avoid simvastatin, use pravastatin/rosuvastatin; TC = use lower simvastatin dose or switch. ABCG2 Q141K (rs2231142): Reduces intestinal/biliary efflux of rosuvastatin. Homozygous carriers have ~2x increased rosuvastatin exposure. Common in East Asians (~30%). Practical pharmacist actions: (1) Review SLCO1B1/ABCG2 genotype before statin initiation; (2) For SLCO1B1 CC patients, avoid simvastatin entirely and use pravastatin or fluvastatin; (3) Educate patients about myopathy symptoms regardless of genotype; (4) Consider PGx results when evaluating patient-reported muscle complaints.",
+    "audience": "pharmacist",
+    "topic": "Statin pharmacogenomics",
+    "complexity_level": "intermediate"
+  },
+  {
+    "id": "EDU_pgx_card_patient",
+    "title": "Your Pharmacogenomics Results Card: How to Use It",
+    "text_chunk": "After pharmacogenomic testing, you may receive a PGx results card or wallet card summarizing your key genetic results. This card should be: (1) Carried with you at all times, similar to a drug allergy card; (2) Shown to any new doctor, pharmacist, or emergency room provider before new medications are prescribed; (3) Shared with family members who may share some of your genetic variants. Your card typically lists your metabolizer status for several genes (e.g., CYP2D6: intermediate metabolizer, CYP2C19: poor metabolizer) and any important HLA results. It may also list specific medications to avoid or that require dose adjustment. If you see a new provider, say: 'I have pharmacogenomic test results that may affect which medications are best for me.' Your results will never change, but medical guidelines may be updated, so periodic review with your pharmacist is recommended. Your results also have implications for biological family members (parents, siblings, children) who may carry similar variants.",
+    "audience": "patient",
+    "topic": "Using your PGx results card",
+    "complexity_level": "basic"
+  },
+  {
+    "id": "EDU_warfarin_dosing_clinician",
+    "title": "Pharmacogenomic Warfarin Dosing: Integrating CYP2C9, VKORC1, and CYP4F2",
+    "text_chunk": "Warfarin dose requirements vary >10-fold between patients, with genetics explaining ~35-40% of this variability. Three genes have CPIC Level A evidence: CYP2C9 (metabolizes S-warfarin): *2 allele reduces clearance ~30%; *3 allele reduces clearance ~80%. PM genotypes (*2/*3, *3/*3) require 50-80% dose reduction. VKORC1 (warfarin target): -1639G>A (rs9923231) is the strongest single predictor. AA genotype requires ~50% lower doses than GG. Explains ~25% of dose variability alone. CYP4F2 (vitamin K metabolism): *3 allele (V433M) carriers need ~5-10% higher doses due to increased hepatic vitamin K. Dosing algorithm approach: The IWPC and Gage algorithms combine these genotypes with clinical variables (age, weight, height, race, amiodarone use, vitamin K intake). Example: 70-year-old, 70 kg European male, CYP2C9 *1/*3, VKORC1 GA, CYP4F2 *1/*1, no amiodarone = predicted dose ~3.5 mg/day vs typical 5 mg/day starting dose. The EU-PACT and GIFT trials demonstrated that PGx-guided dosing improves TTR and reduces adverse events compared to standard dosing.",
+    "audience": "clinician",
+    "topic": "Pharmacogenomic warfarin dosing",
+    "complexity_level": "advanced"
+  }
+]

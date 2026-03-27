@@ -1,0 +1,98 @@
+[
+  {
+    "id": "algo_warfarin_IWPC",
+    "drug": "warfarin",
+    "genes_involved": "CYP2C9, VKORC1, CYP4F2",
+    "algorithm_name": "International Warfarin Pharmacogenetics Consortium (IWPC) dosing algorithm",
+    "input_variables": "CYP2C9 genotype, VKORC1 -1639G>A genotype, CYP4F2 *3 genotype, age, height, weight, race, amiodarone use, enzyme inducer use, target INR",
+    "formula_description": "Dose (mg/week) = exp(0.9751 - 0.3238*VKORC1_AG - 0.8677*VKORC1_AA - 0.5211*CYP2C9_*1/*2 - 0.9357*CYP2C9_*1/*3 - 1.0616*CYP2C9_*2/*2 - 1.9206*CYP2C9_*2/*3 - 2.3312*CYP2C9_*3/*3 - 0.2188*amiodarone + 0.2029*enzyme_inducer - 0.0075*age + 0.3644*height_cm + 0.0093*weight_kg + race_terms). CYP4F2 *3 carriers: add 5-10% to calculated dose.",
+    "validation_cohort": "IWPC: 5700 patients from 21 countries; validated in EU-PACT (455 patients), COAG (1015 patients)",
+    "accuracy_metrics": "R-squared 0.43 for dose prediction; MAE ~8 mg/week; superior to clinical dosing alone in EU-PACT (time in therapeutic range 67.4% vs 60.3%)",
+    "clinical_context": "For patients initiating warfarin for atrial fibrillation, VTE, mechanical heart valves. Most benefit in patients with extreme genotypes (CYP2C9 PM + VKORC1 AA or CYP2C9 NM + VKORC1 GG). Not applicable to patients already on stable warfarin dose.",
+    "text_chunk": "IWPC warfarin dosing algorithm: The International Warfarin Pharmacogenetics Consortium developed the most widely validated pharmacogenomic dosing algorithm, published in NEJM (2009). The algorithm incorporates CYP2C9 genotype (S-warfarin metabolism), VKORC1 -1639G>A genotype (drug target sensitivity), and clinical variables. Genetic factors explain ~35-40% of dose variability. The EU-PACT trial (Pirmohamed et al., NEJM 2013) demonstrated that PGx-guided dosing improved time in therapeutic range compared to standard dosing. The Gage algorithm is an alternative that includes CYP4F2 genotype as an additional variable."
+  },
+  {
+    "id": "algo_tacrolimus_CYP3A5",
+    "drug": "tacrolimus",
+    "genes_involved": "CYP3A5, CYP3A4",
+    "algorithm_name": "CPIC CYP3A5-guided tacrolimus initial dosing",
+    "input_variables": "CYP3A5 genotype (*1/*1, *1/*3, *3/*3), CYP3A4*22 status, organ transplanted, days post-transplant, body weight",
+    "formula_description": "CYP3A5 expressers (*1/*1 or *1/*3): start at 0.30 mg/kg/day (1.5-2x standard). CYP3A5 non-expressers (*3/*3): start at 0.15-0.20 mg/kg/day (standard dose). CYP3A4*22 carriers may require further reduction. Adjust by TDM to target trough: 10-15 ng/mL (weeks 1-6), 8-12 ng/mL (months 2-6), 5-8 ng/mL (after 6 months).",
+    "validation_cohort": "Thervet et al. (Lancet 2010): 280 renal transplant patients; Shuker et al. (Clin Pharmacol Ther 2015): 240 patients",
+    "accuracy_metrics": "CYP3A5-guided dosing: 43.2% achieved target trough on day 3 vs 29.1% standard dosing (Thervet 2010). Faster achievement of therapeutic levels in CYP3A5 expressers.",
+    "clinical_context": "For solid organ transplant recipients (kidney, liver, heart) initiating tacrolimus-based immunosuppression. Early post-transplant period is critical — subtherapeutic levels increase acute rejection risk. African American patients are more likely to be CYP3A5 expressers and require higher doses.",
+    "text_chunk": "CYP3A5-guided tacrolimus dosing algorithm: Tacrolimus has a narrow therapeutic index and high pharmacokinetic variability. CYP3A5 is the primary genetic determinant of tacrolimus clearance. The CPIC guideline (Birdwell et al., Clin Pharmacol Ther 2015) provides genotype-based initial dose recommendations. CYP3A5 expressers require 1.5-2x higher starting doses to achieve therapeutic trough levels. The TACTIC study and additional validation studies have confirmed that genotype-guided dosing reduces time to therapeutic range without increasing adverse events."
+  },
+  {
+    "id": "algo_fluoropyrimidines_DPYD",
+    "drug": "fluorouracil/capecitabine",
+    "genes_involved": "DPYD",
+    "algorithm_name": "CPIC/DPWG DPYD activity score-based fluoropyrimidine dosing",
+    "input_variables": "DPYD genotype (*2A, *13, D949V, HapB3), DPYD activity score (0, 0.5, 1.0, 1.5, 2.0), BSA, regimen (bolus vs infusion)",
+    "formula_description": "Activity score 2.0 (NM): 100% standard dose. Activity score 1.5: 75% dose, monitor for toxicity. Activity score 1.0: 50% dose, then titrate based on toxicity/TDM. Activity score 0.5: 25% dose or avoid. Activity score 0 (complete deficiency): contraindicated, or max 25% with extreme caution.",
+    "validation_cohort": "Henricks et al. (Lancet Oncol 2018): 1103 patients prospective; Deenen et al. (JCO 2016): 2038 patients",
+    "accuracy_metrics": "DPYD-guided dosing reduced grade >=3 toxicity from 73% to 28% in DPD-deficient patients (Henricks 2018). Number needed to test = 37 to prevent one toxic death.",
+    "clinical_context": "For all patients initiating fluoropyrimidine-based chemotherapy (5-FU, capecitabine, tegafur). EMA mandated pre-treatment DPYD testing since April 2020 for all EU prescriptions. Testing four key variants (*2A, *13, D949V, HapB3) captures ~50% of DPD-deficient patients.",
+    "text_chunk": "DPYD activity score-based fluoropyrimidine dosing: The DPYD gene activity score system assigns functional values to each allele: normal function (*1) = 1.0, decreased function (D949V, HapB3) = 0.5, no function (*2A, *13) = 0. Diplotype activity score (sum of two alleles) guides dose: AS 2.0 = full dose, AS 1.5 = 75%, AS 1.0 = 50%, AS 0.5 = 25%, AS 0 = avoid. The Dutch DPYD-guided dosing study (Henricks et al., Lancet Oncol 2018) prospectively demonstrated that upfront DPYD genotyping with dose individualization reduced severe toxicity in DPD-deficient patients from 73% to 28% without compromising treatment efficacy."
+  },
+  {
+    "id": "algo_thiopurines_TPMT_NUDT15",
+    "drug": "azathioprine/mercaptopurine/thioguanine",
+    "genes_involved": "TPMT, NUDT15",
+    "algorithm_name": "CPIC combined TPMT+NUDT15 activity score thiopurine dosing",
+    "input_variables": "TPMT genotype (*1, *2, *3A, *3B, *3C), NUDT15 genotype (*1, *2, *3, *4, *5, *6), combined activity score, indication (ALL maintenance vs IBD vs autoimmune)",
+    "formula_description": "TPMT and NUDT15 each scored: NM=1, IM=0.5, PM=0. Combined classification uses lower of the two. NM/NM: 100% standard dose. NM/IM (either gene): 30-80% dose. IM/IM or NM/PM: 10-30% dose with monitoring. PM (either): 10% dose or avoid thiopurines. For ALL maintenance 6-MP: NM = 75 mg/m2/day; IM = 30-50 mg/m2/day; PM = 10 mg/m2/day 3x/week.",
+    "validation_cohort": "Relling et al. (St. Jude Total Therapy studies): >1000 ALL patients; Yang et al. (JCO 2015): NUDT15 in East Asian ALL patients",
+    "accuracy_metrics": "TPMT-guided dosing eliminates life-threatening myelosuppression in TPMT PMs. NUDT15 genotyping prevents 50-60% of unexplained thiopurine intolerance in East Asian patients.",
+    "clinical_context": "For pediatric ALL maintenance therapy, IBD, autoimmune hepatitis, and organ transplant immunosuppression. Both TPMT and NUDT15 must be tested — TPMT alone misses ~50% of at-risk patients in East Asian populations where NUDT15*3 is common.",
+    "text_chunk": "Combined TPMT+NUDT15 thiopurine dosing: The updated CPIC guideline (Relling et al., Clin Pharmacol Ther 2019) integrates both TPMT and NUDT15 genotyping for thiopurine dose individualization. Historical TPMT-only testing missed NUDT15-deficient patients, particularly in East Asian populations. The combined approach uses the more restrictive phenotype to guide dosing. This is one of the most mature pharmacogenomic applications, with >20 years of clinical evidence in pediatric ALL."
+  },
+  {
+    "id": "algo_tamoxifen_CYP2D6",
+    "drug": "tamoxifen",
+    "genes_involved": "CYP2D6",
+    "algorithm_name": "CPIC CYP2D6 activity score-guided tamoxifen therapy selection",
+    "input_variables": "CYP2D6 activity score, menopausal status, breast cancer ER status, concurrent CYP2D6 inhibitor use (phenoconversion adjustment)",
+    "formula_description": "Activity score >=2.25 (UM): use tamoxifen at standard dose. Activity score 1.25-2.0 (NM): use tamoxifen at standard dose. Activity score 0.25-1.0 (IM): consider aromatase inhibitor if postmenopausal, or higher tamoxifen dose (40mg) with endoxifen monitoring. Activity score 0 (PM): avoid tamoxifen; use aromatase inhibitor if postmenopausal; if premenopausal, consider ovarian suppression + AI or endoxifen monitoring.",
+    "validation_cohort": "Brauch et al. (JCO 2009): 1325 patients; Goetz et al. (Clin Pharmacol Ther 2018): TEXT/SOFT pooled analysis",
+    "accuracy_metrics": "CYP2D6 PMs have endoxifen levels ~75% lower than NMs. Endoxifen concentrations <5.97 ng/mL associated with higher recurrence rates in some studies.",
+    "clinical_context": "For ER-positive breast cancer patients receiving adjuvant endocrine therapy. The clinical impact is debated due to conflicting study results, but CPIC provides Level A recommendations based on cumulative evidence. Phenoconversion from concurrent CYP2D6 inhibitors (paroxetine, fluoxetine) must be considered.",
+    "text_chunk": "CYP2D6-guided tamoxifen therapy: Tamoxifen is converted to endoxifen (4-hydroxy-N-desmethyltamoxifen), which has 30-100x greater affinity for the estrogen receptor. CYP2D6 is the primary enzyme for this conversion. The CPIC guideline (Goetz et al., Clin Pharmacol Ther 2018) recommends considering alternative endocrine therapy for CYP2D6 PMs. The International Tamoxifen Pharmacogenomics Consortium meta-analysis showed a modest but significant association between CYP2D6 PM status and worse breast cancer outcomes."
+  },
+  {
+    "id": "algo_codeine_CYP2D6",
+    "drug": "codeine",
+    "genes_involved": "CYP2D6",
+    "algorithm_name": "CPIC CYP2D6 activity score-guided codeine prescribing",
+    "input_variables": "CYP2D6 activity score, patient age, renal function, concurrent CYP2D6 inhibitors",
+    "formula_description": "Activity score >=2.25 (UM): AVOID codeine — use alternative analgesic (morphine, non-opioid). Activity score 1.25-2.0 (NM): use codeine at standard label dose. Activity score 0.25-1.0 (IM): use codeine at standard dose; monitor for reduced efficacy; consider alternative if inadequate response. Activity score 0 (PM): AVOID codeine — therapeutic failure expected; use alternative analgesic.",
+    "validation_cohort": "Kirchheiner et al. (JPET 2007): morphine PK by CYP2D6 genotype; multiple case reports of UM toxicity",
+    "accuracy_metrics": "UMs produce ~50% more morphine per codeine dose. PMs produce <15% of morphine compared to NMs. Codeine-related deaths documented in CYP2D6 UM children.",
+    "clinical_context": "For all patients being prescribed codeine for pain. Particular importance in pediatric patients (post-tonsillectomy), breastfeeding mothers (codeine-morphine transfer to infant), and patients with renal impairment (morphine accumulation). Also applies to codeine-containing cough suppressants.",
+    "text_chunk": "CYP2D6-guided codeine prescribing: Codeine is the classic prodrug pharmacogenomics example. CYP2D6 O-demethylates codeine to morphine. The CPIC guideline (Crews et al., Clin Pharmacol Ther 2021) uses CYP2D6 activity score to guide therapy. Ultra-rapid metabolizers (activity score >2.25) should avoid codeine entirely due to documented fatalities from morphine excess. Poor metabolizers gain no analgesic benefit and should use alternative analgesics. The same principles apply to tramadol (CYP2D6 converts to O-desmethyltramadol)."
+  },
+  {
+    "id": "algo_voriconazole_CYP2C19",
+    "drug": "voriconazole",
+    "genes_involved": "CYP2C19",
+    "algorithm_name": "CPIC CYP2C19-guided voriconazole initial dosing with TDM",
+    "input_variables": "CYP2C19 genotype (*1, *2, *3, *17), metabolizer phenotype, body weight, hepatic function, concurrent CYP3A4 inhibitors/inducers",
+    "formula_description": "UM (*17/*17): use alternative antifungal (isavuconazole) or increase voriconazole dose with mandatory TDM, target trough 1-5.5 mcg/mL. RM (*1/*17): standard dose with TDM. NM (*1/*1): standard dose (6mg/kg IV BID x2 then 4mg/kg BID, or 200mg PO BID). IM (*1/*2 or *1/*3): standard dose with TDM. PM (*2/*2, *2/*3, *3/*3): use alternative antifungal or reduce dose by 50% with TDM.",
+    "validation_cohort": "Moriyama et al. (Clin Pharmacol Ther 2017): meta-analysis of 29 studies; Hamadeh et al. (Clin Pharmacol Ther 2017)",
+    "accuracy_metrics": "CYP2C19 PMs have 2-4x higher trough concentrations. UMs have 47% lower trough concentrations with increased treatment failure risk.",
+    "clinical_context": "For treatment of invasive aspergillosis and other invasive fungal infections. Voriconazole has a narrow therapeutic window (trough 1-5.5 mcg/mL). Both sub-therapeutic (treatment failure, mortality) and supra-therapeutic (hepatotoxicity, visual disturbances, neurotoxicity) levels are dangerous.",
+    "text_chunk": "CYP2C19-guided voriconazole dosing: Voriconazole pharmacokinetics are highly variable and non-linear. CYP2C19 is the primary metabolizing enzyme, with CYP2C9 and CYP3A4 contributing. The CPIC guideline (Moriyama et al., Clin Pharmacol Ther 2017) recommends genotype-informed initial dosing combined with therapeutic drug monitoring. Ultra-rapid metabolizers have a high rate of subtherapeutic trough levels (68% vs 36% for NMs), increasing mortality from invasive aspergillosis."
+  },
+  {
+    "id": "algo_clopidogrel_CYP2C19",
+    "drug": "clopidogrel",
+    "genes_involved": "CYP2C19",
+    "algorithm_name": "CPIC CYP2C19-guided antiplatelet therapy selection",
+    "input_variables": "CYP2C19 genotype (*1, *2, *3, *17), metabolizer phenotype, clinical indication (ACS, PCI, stroke, PAD), bleeding risk, concurrent anticoagulation",
+    "formula_description": "UM (*17/*17): clopidogrel at standard dose (effective, possible increased bleeding risk). RM/NM (*1/*17, *1/*1): clopidogrel at standard dose (75mg daily after 300-600mg loading). IM (*1/*2, *1/*3, *2/*17): use alternative P2Y12 inhibitor (prasugrel 10mg daily or ticagrelor 90mg BID) if no contraindication. PM (*2/*2, *2/*3, *3/*3): use alternative P2Y12 inhibitor (prasugrel or ticagrelor).",
+    "validation_cohort": "TAILOR-PCI (RCT, 5302 patients); ADAPT-PCI (prospective); POPular Genetics (2488 patients)",
+    "accuracy_metrics": "CYP2C19 IM/PMs on clopidogrel have 1.8x increased MACE risk and 3x increased stent thrombosis. TAILOR-PCI showed 40% relative risk reduction with genotype-guided therapy in LOF carriers.",
+    "clinical_context": "For patients undergoing percutaneous coronary intervention (PCI), acute coronary syndrome (ACS), or requiring dual antiplatelet therapy. Genotype-guided therapy is most impactful in ACS/PCI patients. Several major health systems (Vanderbilt, St. Jude, Mayo Clinic) have implemented CYP2C19-guided clopidogrel prescribing as standard of care.",
+    "text_chunk": "CYP2C19-guided antiplatelet therapy: Clopidogrel is a prodrug requiring two-step CYP-mediated activation, primarily by CYP2C19. The CPIC guideline (Lee et al., Clin Pharmacol Ther 2022) recommends alternative P2Y12 inhibitors (prasugrel, ticagrelor) for CYP2C19 IM and PM patients undergoing PCI/ACS. The TAILOR-PCI trial (Pereira et al., JAMA 2020) demonstrated a significant reduction in cardiovascular events with genotype-guided therapy in CYP2C19 loss-of-function carriers. The POPular Genetics trial (Claassens et al., NEJM 2019) showed non-inferiority of genotype-guided de-escalation from ticagrelor to clopidogrel in CYP2C19 NM patients."
+  }
+]
