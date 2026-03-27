@@ -15,7 +15,7 @@ Cardiovascular disease (CVD) remains the leading cause of death globally, claimi
 
 This paper presents the Cardiology Intelligence Agent, a multi-collection retrieval-augmented generation (RAG) system purpose-built for cardiovascular medicine. The agent unifies 12 specialized Milvus vector collections spanning cardiac imaging, electrophysiology, hemodynamics, heart failure management, valvular heart disease, preventive cardiology, interventional cardiology, and cardio-oncology -- alongside a shared genomic_evidence collection containing 3.5 million variant vectors. The system implements 6 validated cardiovascular risk calculators (ASCVD Pooled Cohort Equations, HEART Score, CHA2DS2-VASc, HAS-BLED, MAGGIC, EuroSCORE II), optimizes guideline-directed medical therapy (GDMT) for heart failure with 7 therapy classes (including finerenone, omecamtiv, and sotagliflozin), and provides 11 clinical workflows covering the highest-impact cardiovascular use cases.
 
-Deployed on a single NVIDIA DGX Spark ($3,999) using BGE-small-en-v1.5 embeddings (384-dimensional, IVF_FLAT, COSINE) and Claude Sonnet 4.6 for evidence synthesis, the platform democratizes access to integrated cardiovascular intelligence that currently requires multi-million-dollar institutional investments.
+Deployed on a single NVIDIA DGX Spark ($4,699) using BGE-small-en-v1.5 embeddings (384-dimensional, IVF_FLAT, COSINE) and Claude Sonnet 4.6 for evidence synthesis, the platform democratizes access to integrated cardiovascular intelligence that currently requires multi-million-dollar institutional investments.
 
 ---
 
@@ -74,7 +74,7 @@ This paper presents the sixth domain-specific intelligence agent in the HCLS AI 
 - **Six validated risk calculators** with published coefficients and lookup tables
 - A **GDMT optimizer** supporting 7 therapy classes for evidence-based heart failure medication management
 - **Cross-modal triggers** with 18 genomic trigger patterns linking imaging findings to genomic workup panels
-- **Deployment on a single NVIDIA DGX Spark** ($3,999)
+- **Deployment on a single NVIDIA DGX Spark** ($4,699)
 
 ---
 
@@ -448,7 +448,7 @@ The system implements multiple safety measures:
 | Cross-modal triggers | 18 imaging-genomic | None | None | None | None |
 | Guideline-grounded | 63 structured recs | Manual search | Curated | Partial | Hallucination risk |
 | Genomic integration | 3.5M variants | None | None | None | None |
-| Cost | $3,999 (DGX Spark) | Free | $500/yr/user | $500K-$2M | $20/mo |
+| Cost | $4,699 (DGX Spark) | Free | $500/yr/user | $500K-$2M | $20/mo |
 | On-premises | Yes | No | No | Yes | No |
 | Citation provenance | Per-claim | Per-paper | Per-topic | N/A | None |
 | Knowledge graph | 450+ structured entries | None | Expert-curated | Vendor-specific | None |

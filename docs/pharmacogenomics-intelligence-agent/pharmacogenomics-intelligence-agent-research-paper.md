@@ -18,7 +18,7 @@ This paper presents the architectural design, clinical rationale, and product re
 
 The system extends the proven multi-collection RAG architecture established by six existing intelligence agents in the HCLS AI Factory (Precision Biomarker, Precision Oncology, CAR-T, Imaging, Autoimmune, and Cardiology), adapting it with a genomic variant-to-drug mapping pipeline capable of processing whole-genome VCF files, star allele calling for CYP450 enzymes and transporters, diplotype-to-phenotype translation using CPIC standardized terms, multi-gene interaction modeling (e.g., CYP2C9 + VKORC1 for warfarin), phenoconversion detection (drug-induced CYP inhibition altering metabolizer status), HLA typing from NGS data for hypersensitivity screening, and real-time medication list cross-referencing against the patient's complete PGx profile. Eight reference clinical workflows will cover the highest-impact prescribing scenarios: pre-emptive PGx panel interpretation, opioid prescribing safety (CYP2D6/codeine/tramadol), anticoagulant optimization (CYP2C9/VKORC1/warfarin), antidepressant selection (CYP2D6/CYP2C19/SSRIs/TCAs), statin myopathy risk (SLCO1B1), chemotherapy toxicity prevention (DPYD/5-FU, TPMT/NUDT15/thiopurines), HLA-mediated hypersensitivity screening (abacavir/carbamazepine/allopurinol), and polypharmacy drug-drug-gene interaction resolution.
 
-The agent will deploy on a single NVIDIA DGX Spark ($3,999) using BGE-small-en-v1.5 embeddings (384-dimensional, IVF_FLAT, COSINE), Claude Sonnet 4.6 for evidence synthesis, and shared NVIDIA NIM microservices for on-device inference. Licensed under Apache 2.0, the platform will democratize access to pharmacogenomic intelligence that currently requires multi-million-dollar institutional PGx implementation programs -- bringing the prescribing safety of world-class pharmacogenomics centers to any clinic, pharmacy, or emergency department worldwide.
+The agent will deploy on a single NVIDIA DGX Spark ($4,699) using BGE-small-en-v1.5 embeddings (384-dimensional, IVF_FLAT, COSINE), Claude Sonnet 4.6 for evidence synthesis, and shared NVIDIA NIM microservices for on-device inference. Licensed under Apache 2.0, the platform will democratize access to pharmacogenomic intelligence that currently requires multi-million-dollar institutional PGx implementation programs -- bringing the prescribing safety of world-class pharmacogenomics centers to any clinic, pharmacy, or emergency department worldwide.
 
 ---
 
@@ -209,7 +209,7 @@ The pharmacogenomics market is experiencing rapid growth driven by declining seq
 | Translational Software | PGx CDS | Standalone CDS engine | No genomic pipeline integration |
 | Color Health | PGx program | Employer-based testing | Limited clinical depth |
 
-**Gap our agent fills:** No existing product combines (1) whole-genome pharmacogenomic extraction from a genomics pipeline, (2) multi-collection RAG over CPIC/DPWG/FDA guidelines, (3) multi-gene interaction modeling, (4) phenoconversion detection, (5) HLA-mediated hypersensitivity screening, and (6) natural language clinical queries -- all running on a $3,999 local device with no cloud data exposure.
+**Gap our agent fills:** No existing product combines (1) whole-genome pharmacogenomic extraction from a genomics pipeline, (2) multi-collection RAG over CPIC/DPWG/FDA guidelines, (3) multi-gene interaction modeling, (4) phenoconversion detection, (5) HLA-mediated hypersensitivity screening, and (6) natural language clinical queries -- all running on a $4,699 local device with no cloud data exposure.
 
 ---
 
@@ -1393,7 +1393,7 @@ The Pharmacogenomics Intelligence Agent operates as a **clinical decision suppor
 - **CPU:** NVIDIA Grace (72 ARM Neoverse cores)
 - **RAM:** 128 GB unified (CPU+GPU shared)
 - **Storage:** 4 TB NVMe SSD
-- **Price:** $3,999
+- **Price:** $4,699
 - **PGx Agent footprint:** ~15 GB (collections + models + reference data)
 - **Concurrent capacity:** 10 simultaneous users
 
@@ -1449,7 +1449,7 @@ As PGx adoption grows (more patients, more queries):
 ### 22.2 Ethical Considerations
 
 - **Health equity:** PGx guidelines are predominantly derived from European-ancestry populations. Allele frequency databases for African, Asian, and Latino populations are less complete. The agent must clearly communicate when evidence is population-limited.
-- **Access equity:** The $3,999 DGX Spark + open-source model makes PGx CDS accessible to under-resourced clinics, but genomic sequencing itself remains costly.
+- **Access equity:** The $4,699 DGX Spark + open-source model makes PGx CDS accessible to under-resourced clinics, but genomic sequencing itself remains costly.
 - **Genetic determinism:** PGx phenotype is one factor in drug response. Environment, adherence, comorbidities, age, and other medications all contribute. The agent must contextualize genetic findings appropriately.
 - **Incidental findings:** WGS-based PGx extraction may reveal disease-risk variants (e.g., BRCA1/2) incidentally. The agent must have a clear policy for managing incidental findings.
 
@@ -1469,7 +1469,7 @@ As PGx adoption grows (more patients, more queries):
 | HLA screening | 12+ alleles | 3 | None | 2 | 6 |
 | Natural language query | Yes (RAG + Claude) | No | No | No | No |
 | On-device / HIPAA | Yes (DGX Spark) | Cloud-based | Cloud-based | Cloud-based | N/A |
-| Cost | $3,999 (one-time HW) | Per-test subscription | Per-test ($400+) | Per-test | Free (text) |
+| Cost | $4,699 (one-time HW) | Per-test subscription | Per-test ($400+) | Per-test | Free (text) |
 | Open source | Yes (Apache 2.0) | No | No | No | Yes (guidelines) |
 
 ### 23.2 Unique Differentiators
@@ -1503,7 +1503,7 @@ The Pharmacogenomics Agent completes a critical circle in the HCLS AI Factory:
 
 ### 24.3 The Vision: PGx as Standard of Care
 
-The ultimate goal is a future where every patient's genome is processed once and their PGx profile is available for every prescribing decision for life. The Pharmacogenomics Intelligence Agent makes this vision technically feasible on a $3,999 device -- democratizing access to pharmacogenomic intelligence that currently requires multi-million-dollar institutional programs.
+The ultimate goal is a future where every patient's genome is processed once and their PGx profile is available for every prescribing decision for life. The Pharmacogenomics Intelligence Agent makes this vision technically feasible on a $4,699 device -- democratizing access to pharmacogenomic intelligence that currently requires multi-million-dollar institutional programs.
 
 With 106,000 ADR deaths per year in the U.S. alone, and 95-99% of patients carrying actionable PGx variants, the potential impact is measured not in efficiency gains but in lives saved.
 
@@ -1521,7 +1521,7 @@ Key architectural innovations include:
 - **8 clinical workflows** covering the highest-impact prescribing scenarios where PGx testing has CPIC Level A evidence
 - **Privacy-first architecture** with all patient genomic data remaining on the local DGX Spark device
 
-The agent represents the seventh intelligence module in the HCLS AI Factory platform, bringing the total agent portfolio to: Precision Biomarker, Precision Oncology, CAR-T Intelligence, Imaging Intelligence, Precision Autoimmune, Cardiology Intelligence, and Pharmacogenomics Intelligence -- a comprehensive precision medicine platform that takes patient care from genome to safe prescription on a single $3,999 device.
+The agent represents the seventh intelligence module in the HCLS AI Factory platform, bringing the total agent portfolio to: Precision Biomarker, Precision Oncology, CAR-T Intelligence, Imaging Intelligence, Precision Autoimmune, Cardiology Intelligence, and Pharmacogenomics Intelligence -- a comprehensive precision medicine platform that takes patient care from genome to safe prescription on a single $4,699 device.
 
 ---
 

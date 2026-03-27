@@ -12,7 +12,7 @@ https://github.com/ajones1923/hcls-ai-factory
 
 ## Abstract
 
-Medical imaging AI has reached clinical maturity, with over 800 FDA-cleared AI/ML-enabled devices as of 2025, yet deployment remains concentrated in well-resourced academic medical centers. Community hospitals, rural health systems, and research institutions in low- and middle-income countries lack the GPU infrastructure, engineering expertise, and capital required to deploy, integrate, and maintain these systems. This paper presents the Imaging Intelligence Agent, an open-source medical imaging AI platform that combines multi-collection retrieval-augmented generation (RAG) with NVIDIA NIM on-device inference to deliver clinical decision support for radiology on a single NVIDIA DGX Spark ($3,999).
+Medical imaging AI has reached clinical maturity, with over 800 FDA-cleared AI/ML-enabled devices as of 2025, yet deployment remains concentrated in well-resourced academic medical centers. Community hospitals, rural health systems, and research institutions in low- and middle-income countries lack the GPU infrastructure, engineering expertise, and capital required to deploy, integrate, and maintain these systems. This paper presents the Imaging Intelligence Agent, an open-source medical imaging AI platform that combines multi-collection retrieval-augmented generation (RAG) with NVIDIA NIM on-device inference to deliver clinical decision support for radiology on a single NVIDIA DGX Spark ($4,699).
 
 The system maintains 10 imaging-specific Milvus vector collections and one read-only genomic evidence collection (11 total), indexed with 384-dimensional BAAI/bge-small-en-v1.5 embeddings under IVF_FLAT indexing (nlist=1024, nprobe=16) with cosine similarity. A 3-domain knowledge graph spanning 25+ pathologies, 9 imaging modalities, and 21 anatomical structures (with SNOMED CT and FMA codes) augments vector retrieval with structured clinical context. Twelve query expansion maps improve recall by mapping domain keywords to semantically related terms. Four NVIDIA NIM microservices -- Llama-3 8B Instruct (port 8520), VISTA-3D (port 8530), MAISI (port 8531), and VILA-M3 (port 8532) -- provide on-device 3D segmentation, synthetic CT generation, vision-language understanding, and clinical text synthesis. Six reference clinical workflows implement end-to-end analysis pipelines for CT head hemorrhage triage, CT chest lung nodule tracking, CT coronary angiography, chest X-ray rapid findings, MRI brain MS lesion quantification, and MRI prostate PI-RADS scoring. Seven standardized scoring systems (Lung-RADS v2022, BI-RADS, TI-RADS, LI-RADS, CAD-RADS, PI-RADS, ASPECTS) ensure reproducible severity classification. Cross-modal genomic integration automatically triggers precision medicine queries when imaging findings exceed severity thresholds -- for example, a Lung-RADS 4A+ lung nodule triggers EGFR/ALK/ROS1 variant queries against 3.5 million genomic evidence vectors. The system exports to Markdown, JSON, PDF (ReportLab), and FHIR R4, and includes 620 tests across 12 modules. A 9-tab Streamlit interface and 19+ FastAPI endpoints across 8 routers provide both interactive and programmatic access. The entire stack deploys on a single DGX Spark with 128 GB unified LPDDR5x memory, requiring no cloud dependency and preserving full data sovereignty.
 
@@ -32,7 +32,7 @@ Three barriers explain this deployment gap:
 
 ### 1.2 Democratizing Medical Imaging AI
 
-The NVIDIA DGX Spark addresses the first barrier with a $3,999 system featuring a GB10 GPU (Blackwell architecture), 128 GB unified LPDDR5x memory, and 20 ARM cores (Grace architecture) -- sufficient to run multiple AI inference models simultaneously with no cloud dependency. The Imaging Intelligence Agent addresses the second and third barriers by providing a complete, open-source platform that combines evidence retrieval, inference orchestration, and clinical workflow automation in a single deployable package.
+The NVIDIA DGX Spark addresses the first barrier with a $4,699 system featuring a GB10 GPU (Blackwell architecture), 128 GB unified LPDDR5x memory, and 20 ARM cores (Grace architecture) -- sufficient to run multiple AI inference models simultaneously with no cloud dependency. The Imaging Intelligence Agent addresses the second and third barriers by providing a complete, open-source platform that combines evidence retrieval, inference orchestration, and clinical workflow automation in a single deployable package.
 
 ### 1.3 Design Goals
 
@@ -52,7 +52,7 @@ This paper makes five contributions:
 1. A **multi-collection RAG architecture** with 10 imaging-specific vector collections and parallel search with weighted scoring, delivering cross-domain evidence synthesis for radiology queries.
 2. A **3-domain knowledge graph** with 25+ pathologies, 9 modalities, and 21 anatomical structures that augments vector retrieval with structured clinical context including SNOMED CT, FMA, and ICD-10 codes.
 3. A **cross-modal genomic bridge** that automatically triggers precision medicine queries when imaging findings exceed clinical severity thresholds.
-4. A **reference deployment architecture** demonstrating that enterprise-grade medical imaging AI can run on a single $3,999 device with 128 GB unified memory.
+4. A **reference deployment architecture** demonstrating that enterprise-grade medical imaging AI can run on a single $4,699 device with 128 GB unified memory.
 5. A **complete open-source implementation** comprising 620 tests across 12 modules, 19+ API endpoints, and 6 clinical workflows released under Apache 2.0.
 
 ---
@@ -401,7 +401,7 @@ The NVIDIA DGX Spark represents a paradigm shift in AI infrastructure accessibil
 | CPU | 20 ARM cores (Grace architecture) |
 | Interconnect | NVLink-C2C (CPU-GPU) |
 | Form factor | Desktop (comparable to Mac Studio) |
-| Price | $3,999 |
+| Price | $4,699 |
 
 The unified memory architecture is the critical enabler: unlike discrete GPU systems where VRAM and system RAM are separate pools connected by PCIe, the DGX Spark shares its full 128 GB between CPU and GPU workloads via NVLink-C2C. This means the four NIM inference services (~52 GB), Milvus vector database (~4 GB), and application stack (~3.5 GB) coexist in a single memory pool without the data transfer bottlenecks that characterize PCIe-connected systems.
 
@@ -413,7 +413,7 @@ The deployment model prioritizes data sovereignty:
 |-----------|-------------------|-------|
 | Data sovereignty | Complete -- no data leaves device | Dependent on cloud provider |
 | Latency | Deterministic, no network variability | Variable, network-dependent |
-| Recurring cost | None (one-time $3,999) | $500-5,000+/month |
+| Recurring cost | None (one-time $4,699) | $500-5,000+/month |
 | Compliance | HIPAA/GDPR straightforward | Requires BAA, data residency |
 | Availability | 100% uptime (local) | Dependent on cloud availability |
 | Scalability | Fixed (1 device) | Elastic |
@@ -545,7 +545,7 @@ All eleven agents share the same architectural pattern (multi-collection RAG, kn
 
 ### 12.1 Implications for Clinical Radiology
 
-The Imaging Intelligence Agent demonstrates that a comprehensive medical imaging AI platform -- encompassing evidence retrieval, clinical decision support, inference orchestration, and structured reporting -- can deploy on a single $3,999 device. This has three significant implications:
+The Imaging Intelligence Agent demonstrates that a comprehensive medical imaging AI platform -- encompassing evidence retrieval, clinical decision support, inference orchestration, and structured reporting -- can deploy on a single $4,699 device. This has three significant implications:
 
 First, it removes the infrastructure barrier that has confined medical imaging AI to well-resourced institutions. A community hospital can deploy the complete stack with a single hardware purchase and no recurring cloud costs, gaining access to the same AI capabilities that previously required six-figure infrastructure investments.
 
@@ -582,7 +582,7 @@ The Imaging Intelligence Agent makes five contributions to the field of medical 
 
 3. **Reference clinical workflows.** Six end-to-end analysis pipelines implementing standardized scoring systems (Lung-RADS, CAD-RADS, PI-RADS, ASPECTS, BI-RADS, TI-RADS, LI-RADS) with graceful degradation from live inference to mock mode.
 
-4. **Hardware democratization.** A complete deployment architecture -- four NIM services, vector database, PACS server, web viewer, and application stack -- on a single NVIDIA DGX Spark ($3,999) with 128 GB unified memory, requiring no cloud dependency.
+4. **Hardware democratization.** A complete deployment architecture -- four NIM services, vector database, PACS server, web viewer, and application stack -- on a single NVIDIA DGX Spark ($4,699) with 128 GB unified memory, requiring no cloud dependency.
 
 5. **Open-source implementation.** 620 tests across 12 modules, 19+ API endpoints across 8 routers, 9 Streamlit UI tabs, and 6 clinical workflows released under Apache 2.0 with comprehensive documentation.
 

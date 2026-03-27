@@ -274,7 +274,7 @@ search:
 - **Storage:** NVMe SSD
 - **CUDA:** 12.x
 - **OS:** Ubuntu 22.04 LTS
-- **Price:** $3,999
+- **Price:** $4,699
 
 ### Minimum Requirements
 - GPU: 24 GB VRAM
@@ -348,7 +348,7 @@ search:
 ## 11. Deployment Roadmap
 
 ### Phase 1 — Proof Build (Current)
-- Single DGX Spark ($3,999)
+- Single DGX Spark ($4,699)
 - Docker Compose orchestration
 - 10+ services on one node
 - VCP/FTD end-to-end demonstration

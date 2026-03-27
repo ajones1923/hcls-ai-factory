@@ -83,7 +83,7 @@ By the end of this two-part guide you will be able to:
 - **Software Engineers:** Python 3.10+, Docker, and a terminal.
 
 No special hardware is needed to read this guide. To run the platform itself,
-the reference hardware is an NVIDIA DGX Spark ($3,999), but any machine with
+the reference hardware is an NVIDIA DGX Spark ($4,699), but any machine with
 Docker and a CPU will work for testing the intelligence agents.
 
 ---
@@ -177,7 +177,7 @@ The HCLS AI Factory compresses this timeline:
   Total:                           < 5 hours
 ```
 
-All of this runs on a single $3,999 desktop computer.
+All of this runs on a single $4,699 desktop computer.
 
 **Analogy:** Think of GPS navigation versus paper maps. Both can get you from
 New York to Los Angeles. The paper map requires you to plan the route
@@ -260,7 +260,7 @@ drug candidates.
 
 The NVIDIA DGX Spark is a desktop workstation designed for AI workloads. It
 is the smallest member of the DGX family -- the same product line used in
-the world's largest supercomputers. At $3,999, it brings supercomputer-class
+the world's largest supercomputers. At $4,699, it brings supercomputer-class
 AI capabilities to a form factor that fits on a desk.
 
 Key specifications:
@@ -276,7 +276,7 @@ Key specifications:
   Interconnect: NVLink-C2C (chip-to-chip, 900 GB/s)
   Storage:    NVMe SSD
   OS:         Ubuntu (ARM64)
-  Price:      $3,999
+  Price:      $4,699
 ```
 
 ## 2.2 Why GPU Matters for Medicine
@@ -349,7 +349,7 @@ The same software runs unchanged on larger NVIDIA systems:
 
 | System         | Price          | Use Case                               |
 |----------------|----------------|----------------------------------------|
-| DGX Spark      | $3,999         | Single researcher, clinic, or lab      |
+| DGX Spark      | $4,699         | Single researcher, clinic, or lab      |
 | DGX B200       | ~$500K-$1M     | Hospital department, multiple patients |
 | DGX SuperPOD   | $7M-$60M+     | Health system, population-scale studies |
 
@@ -963,7 +963,7 @@ something up.
 
 | Metric                               | Value                  |
 |--------------------------------------|------------------------|
-| Searchable variant vectors           | 3.56 million           |
+| Annotated variant vectors            | 3.56 million           |
 | ClinVar records available            | 4.1 million            |
 | AlphaMissense predictions available  | 71 million             |
 | Embedding dimensions                 | 384                    |
@@ -3033,7 +3033,7 @@ curl -X POST http://localhost:8126/v1/cardio/query \
 9. **Stage 3 (Drug Discovery, 5 min):** MolMIM generates 100+ BRAF inhibitor analogues → DiffDock scores binding → Top 10 candidates ranked by QED
 10. **Report generated:** PDF with ranked drug candidates ready for medicinal chemistry
 
-Total time: **<5 hours** on a single $3,999 DGX Spark.
+Total time: **<5 hours** on a single $4,699 DGX Spark.
 
 ### 14.1b Cross-Agent Coordination
 
@@ -3152,7 +3152,7 @@ curl http://localhost:8080/api/check-services
 | CRS | Cytokine Release Syndrome -- immune overactivation from CAR-T therapy |
 | CTRCD | Cancer Therapy-Related Cardiac Dysfunction |
 | DiffDock | Diffusion-based molecular docking model |
-| DGX Spark | NVIDIA's $3,999 GPU workstation for AI |
+| DGX Spark | NVIDIA's $4,699 GPU workstation for AI |
 | DPWG | Dutch Pharmacogenetics Working Group |
 | FASTQ | Raw sequencing data format (reads + quality scores) |
 | FHIR | Fast Healthcare Interoperability Resources -- standard for health data exchange |

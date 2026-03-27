@@ -34,7 +34,7 @@ IVF_FLAT and COSINE similarity. Synthesis is performed by Claude
 Sonnet 4.6. The complete system comprises 66 Python files totaling
 approximately 20,490 lines of code, validated by 556 tests across
 10 test modules, and runs on a single NVIDIA DGX Spark at a
-hardware cost of $3,999.
+hardware cost of $4,699.
 
 ---
 
@@ -97,7 +97,7 @@ RAG-powered MTB decision support system that:
    deterministic-semantic composite scores.
 5. Generates exportable MTB packets in four formats including
    FHIR R4.
-6. Runs on a single NVIDIA DGX Spark ($3,999), making
+6. Runs on a single NVIDIA DGX Spark ($4,699), making
    institutional-grade decision support accessible to community
    oncology practices.
 7. Is fully open-source under the Apache 2.0 license.
@@ -450,7 +450,7 @@ end-to-end workflows. All 556 tests pass.
 Key dependencies: Milvus (vector DB), BAAI/bge-small-en-v1.5
 (embeddings), Claude Sonnet 4.6 (LLM synthesis), ReportLab (PDF),
 FastAPI (API layer), RDKit (optional). The complete system runs on
-a single NVIDIA DGX Spark ($3,999) with sufficient GPU memory for
+a single NVIDIA DGX Spark ($4,699) with sufficient GPU memory for
 concurrent embedding and vector search across all 11 collections.
 
 ---
@@ -527,7 +527,7 @@ completeness** through 11 federated collections spanning the full
 decision landscape; (2) **weighted prioritization** ensuring
 clinically critical evidence takes precedence; (3) **resistance
 awareness** addressing a critical gap in existing tools; (4)
-**accessibility** via single DGX Spark deployment at $3,999; and
+**accessibility** via single DGX Spark deployment at $4,699; and
 (5) **interoperability** through FHIR R4 export for EHR
 integration.
 
@@ -572,7 +572,7 @@ synthesis challenge facing molecular tumor boards.
 
 With 556 passing tests, support for 26 cancer types and 40+
 actionable gene targets, and deployment on a single NVIDIA DGX
-Spark at $3,999, the system is positioned as an accessible,
+Spark at $4,699, the system is positioned as an accessible,
 open-source alternative to commercial precision oncology platforms.
 The Apache 2.0 license ensures that community oncology practices,
 resource-limited institutions, and academic researchers can deploy

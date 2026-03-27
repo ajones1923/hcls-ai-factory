@@ -474,7 +474,7 @@ The NVIDIA DGX Spark provides:
 | CPU | 20 ARM cores (NVIDIA Grace) |
 | Interconnect | NVLink-C2C |
 | Storage | NVMe SSD |
-| Price | $3,999 |
+| Price | $4,699 |
 
 The unified memory architecture eliminates PCIe bottlenecks for embedding model inference and allows Milvus to leverage the full 128 GB for large collection indexes.
 

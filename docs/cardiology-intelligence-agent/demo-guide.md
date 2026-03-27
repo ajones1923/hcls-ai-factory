@@ -578,7 +578,7 @@ curl -X POST http://localhost:8126/v1/cardio/report/pdf \
 - "6 validated risk calculators using published coefficients -- not approximations"
 - "4-pillar GDMT optimizer that checks every contraindication and generates specific titration steps"
 - "Cross-modal triggers that bridge cardiac imaging to genomic testing"
-- "All running on a $3,999 DGX Spark -- no cloud dependency, no data leaving the building"
+- "All running on a $4,699 DGX Spark -- no cloud dependency, no data leaving the building"
 
 ### Clinical Value Propositions
 
@@ -592,7 +592,7 @@ curl -X POST http://localhost:8126/v1/cardio/report/pdf \
 
 - "Unlike PubMed: semantic search across structured clinical data, not just keywords"
 - "Unlike UpToDate: patient-specific reasoning with computed risk scores"
-- "Unlike commercial CVIS: $3,999 not $500K, with genomic integration"
+- "Unlike commercial CVIS: $4,699 not $500K, with genomic integration"
 - "Unlike general AI: validated calculators, citation provenance, no hallucination of clinical values"
 
 ---

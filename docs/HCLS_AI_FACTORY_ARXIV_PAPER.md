@@ -12,7 +12,7 @@ February 2026
 
 ## Abstract
 
-We present the HCLS AI Factory, an open-source platform that transforms raw patient DNA sequencing data into ranked novel drug candidates in under five hours on a single NVIDIA DGX Spark desktop workstation (\$3,999). The platform implements a three-stage pipeline: (1) GPU-accelerated genomic variant calling via NVIDIA Parabricks 4.6, producing 11.7 million variants from 200 GB of whole-genome sequencing data in 120--240 minutes with >99% accuracy; (2) retrieval-augmented generation (RAG) over 3.56 million indexed variants using Milvus 2.4 and Anthropic Claude, identifying druggable gene targets across 13 therapeutic areas in under 5 seconds per query; and (3) AI-driven drug discovery using BioNeMo MolMIM and DiffDock, generating and ranking 100 novel molecular candidates in 8--16 minutes. Three domain-specific intelligence agents extend the platform to CAR-T cell therapy, medical imaging, and precision oncology, contributing 1,296 automated tests passing in 3.78 seconds. The entire system---14 containerized services, 128 GB unified memory, and a Nextflow DSL2 orchestrator---runs on consumer-grade hardware at a fraction of the cost of traditional approaches (\$50K--\$500K+). All code is released under the Apache 2.0 license. To our knowledge, the HCLS AI Factory is the first open-source platform to integrate genomic variant calling, RAG-grounded target identification, and generative drug discovery into a single end-to-end workflow on a desktop workstation.
+We present the HCLS AI Factory, an open-source platform that transforms raw patient DNA sequencing data into ranked novel drug candidates in under five hours on a single NVIDIA DGX Spark desktop workstation (\$4,699). The platform implements a three-stage pipeline: (1) GPU-accelerated genomic variant calling via NVIDIA Parabricks 4.6, producing 11.7 million variants from 200 GB of whole-genome sequencing data in 120--240 minutes with >99% accuracy; (2) retrieval-augmented generation (RAG) over 3.56 million indexed variants using Milvus 2.4 and Anthropic Claude, identifying druggable gene targets across 13 therapeutic areas in under 5 seconds per query; and (3) AI-driven drug discovery using BioNeMo MolMIM and DiffDock, generating and ranking 100 novel molecular candidates in 8--16 minutes. Three domain-specific intelligence agents extend the platform to CAR-T cell therapy, medical imaging, and precision oncology, contributing 1,296 automated tests passing in 3.78 seconds. The entire system---14 containerized services, 128 GB unified memory, and a Nextflow DSL2 orchestrator---runs on consumer-grade hardware at a fraction of the cost of traditional approaches (\$50K--\$500K+). All code is released under the Apache 2.0 license. To our knowledge, the HCLS AI Factory is the first open-source platform to integrate genomic variant calling, RAG-grounded target identification, and generative drug discovery into a single end-to-end workflow on a desktop workstation.
 
 ---
 
@@ -24,14 +24,14 @@ Today's genomic analysis pipelines assemble disconnected components: CPU-based a
 
 This fragmentation introduces three structural problems. First, a **compute bottleneck**: CPU-based BWA-MEM alignment of a 30x WGS sample takes 12--24 hours on a 32-core server, and DeepVariant on CPU adds another 8--12 hours. The genomics stage alone consumes 1--2 days of wall time. Second, **annotation fragmentation**: clinical variant databases (ClinVar [3]), AI pathogenicity predictors (AlphaMissense [4]), and functional annotation tools (Ensembl VEP [5]) exist as separate resources requiring bespoke ETL pipelines. Third, a **target-to-drug gap**: even after identifying a pathogenic variant in a druggable gene, the path to a lead compound requires separate molecular modeling tools, docking servers, and medicinal chemistry expertise.
 
-GPU-accelerated computing offers an opportunity to collapse these bottlenecks. The NVIDIA DGX Spark ($3,999) packages a GB10 Grace Blackwell Superchip with 128 GB unified LPDDR5x memory, 20 ARM cores, and NVLink-C2C interconnect into a desktop form factor. The same GPU that accelerates genomic alignment can run vector similarity search, molecular generation, and molecular docking---eliminating data transfer overhead and enabling sequential execution of all three stages on a single machine.
+GPU-accelerated computing offers an opportunity to collapse these bottlenecks. The NVIDIA DGX Spark ($4,699) packages a GB10 Grace Blackwell Superchip with 128 GB unified LPDDR5x memory, 20 ARM cores, and NVLink-C2C interconnect into a desktop form factor. The same GPU that accelerates genomic alignment can run vector similarity search, molecular generation, and molecular docking---eliminating data transfer overhead and enabling sequential execution of all three stages on a single machine.
 
 In this paper, we present the HCLS AI Factory, an open-source platform that exploits this convergence. Our contributions are:
 
 1. **An integrated three-stage pipeline** that processes raw FASTQ sequencing data through GPU-accelerated variant calling, RAG-grounded target identification, and AI-driven drug discovery---producing 100 ranked novel drug candidates in under 5 hours.
 2. **A demonstration** on the VCP gene target for Frontotemporal Dementia, where the top AI-generated candidate achieves a 39% composite improvement over the CB-5083 seed compound, with docking affinity of -11.4 kcal/mol (vs. -8.1) and QED of 0.81 (vs. 0.62).
 3. **Three intelligence agents** (CAR-T, Imaging, Precision Oncology) that extend the platform to cross-modal clinical decision support, backed by 1,296 automated tests.
-4. **Full reproducibility** on consumer-grade hardware: all code is Apache 2.0, the platform runs on a \$3,999 workstation, and the reference dataset (GIAB HG002) is publicly available.
+4. **Full reproducibility** on consumer-grade hardware: all code is Apache 2.0, the platform runs on a \$4,699 workstation, and the reference dataset (GIAB HG002) is publicly available.
 
 ---
 
@@ -65,7 +65,7 @@ The HCLS AI Factory targets the NVIDIA DGX Spark as its reference hardware platf
 | Interconnect | NVLink-C2C (GPU--CPU unified memory) |
 | Storage | NVMe SSD |
 | Form factor | Desktop workstation |
-| Price | \$3,999 |
+| Price | \$4,699 |
 
 The unified memory architecture is critical: NVLink-C2C enables the GPU and CPU to share the same 128 GB memory pool without transfer bottlenecks. This allows sequential execution of GPU-intensive stages (genomics, docking) and memory-intensive stages (vector indexing, annotation) without resource contention.
 
@@ -315,7 +315,7 @@ The HCLS AI Factory demonstrates that the complete precision medicine pipeline--
 
 By consolidating 14 services onto a single workstation with unified memory, we eliminate data transfer bottlenecks between pipeline stages and reduce operational complexity. A single researcher can operate the entire platform, from FASTQ input to ranked drug candidates, in a single session. This has implications for academic medical centers, small biotech companies, and institutions in resource-constrained settings that lack access to cloud genomics platforms or commercial drug discovery suites.
 
-The three-phase scaling path (DGX Spark at \$3,999 --> DGX B200 at \$500K--\$1M --> DGX SuperPOD at \$7M--\$60M+) ensures that proof-of-concept work on a desktop workstation can scale to departmental and enterprise deployments using the same Nextflow pipelines and Docker containers.
+The three-phase scaling path (DGX Spark at \$4,699 --> DGX B200 at \$500K--\$1M --> DGX SuperPOD at \$7M--\$60M+) ensures that proof-of-concept work on a desktop workstation can scale to departmental and enterprise deployments using the same Nextflow pipelines and Docker containers.
 
 ### 9.2 Limitations
 
@@ -337,11 +337,11 @@ Several directions for future development are planned. **Clinical validation:** 
 
 ## 10. Conclusion
 
-We have presented the HCLS AI Factory, an open-source platform that integrates GPU-accelerated genomics, RAG-grounded target identification, and AI-driven drug discovery into a single end-to-end workflow running on a \$3,999 desktop workstation. The platform processes 200 GB of raw sequencing data through 11.7 million variant calls, 3.56 million indexed embeddings, and 100 ranked novel drug candidates in under 5 hours---a 99% reduction from the 6--18 months required by traditional approaches.
+We have presented the HCLS AI Factory, an open-source platform that integrates GPU-accelerated genomics, RAG-grounded target identification, and AI-driven drug discovery into a single end-to-end workflow running on a \$4,699 desktop workstation. The platform processes 200 GB of raw sequencing data through 11.7 million variant calls, 3.56 million indexed embeddings, and 100 ranked novel drug candidates in under 5 hours---a 99% reduction from the 6--18 months required by traditional approaches.
 
 The VCP/Frontotemporal Dementia demonstration produces candidates with 39% composite improvement over the CB-5083 seed compound, with the top candidate achieving -11.4 kcal/mol docking affinity and 0.81 QED drug-likeness. Three intelligence agents extend the platform to CAR-T cell therapy, medical imaging, and precision oncology, with 1,296 automated tests executing in 3.78 seconds.
 
-The key architectural insight is that modern GPU workstations with unified memory can consolidate what previously required separate compute clusters, cloud platforms, and specialist teams. By releasing all code under Apache 2.0 and targeting a \$3,999 hardware platform, we aim to make end-to-end precision medicine accessible to any researcher with a desktop workstation and a sequenced genome.
+The key architectural insight is that modern GPU workstations with unified memory can consolidate what previously required separate compute clusters, cloud platforms, and specialist teams. By releasing all code under Apache 2.0 and targeting a \$4,699 hardware platform, we aim to make end-to-end precision medicine accessible to any researcher with a desktop workstation and a sequenced genome.
 
 ---
 

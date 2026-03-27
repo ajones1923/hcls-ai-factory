@@ -292,7 +292,7 @@ Use small colored dots: NVIDIA green for Stage 1, teal for Stage 2, orange for S
 - "GB10 GPU" | "128 GB LPDDR5x" | "ARM64 Cores" | "NVMe Storage" | "NVLink-C2C"
 
 **Right:**
-- "$3,999" in large bold white text
+- "$4,699" in large bold white text
 - "Desktop-Class AI Factory" in smaller gray (#999999) text below
 
 ---
@@ -332,7 +332,7 @@ Use small colored dots: NVIDIA green for Stage 1, teal for Stage 2, orange for S
 **Three-row mini-table:**
 | Phase | Hardware | Scale |
 |---|---|---|
-| 1 — Proof Build | DGX Spark | Docker Compose, $3,999 |
+| 1 — Proof Build | DGX Spark | Docker Compose, $4,699 |
 | 2 — Departmental | DGX B200 | Kubernetes, $500K-$1M |
 | 3 — Enterprise | DGX SuperPOD | FLARE Federated, $7M+ |
 
@@ -374,6 +374,6 @@ Dashed teal lines from this callout to: VCF Output (Stage 1), Claude (Stage 2), 
 5. **The three stage bands are the visual centerpiece.** They should be the largest elements, clearly showing the pipeline flow.
 6. **The VCP/FTD demo callout** should be prominent — it's what the audience sees live.
 7. **All port numbers must be visible** on their respective components.
-8. **The $3,999 price point** in the footer should be visually prominent — it's a key selling point.
+8. **The $4,699 price point** in the footer should be visually prominent — it's a key selling point.
 9. **No proprietary tools.** Everything shown is open or NVIDIA-licensed.
 10. **The cross-modal section** on the right shows the connection to the Imaging Intelligence Agent — this is the broader HCLS AI Factory ecosystem.

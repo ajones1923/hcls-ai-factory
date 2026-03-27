@@ -178,7 +178,7 @@ docker compose ps   # Verify all services are running
 
 ### 4c. DGX Spark Production
 
-On the NVIDIA DGX Spark ($3,999), the CAR-T agent runs as part of the full
+On the NVIDIA DGX Spark ($4,699), the CAR-T agent runs as part of the full
 HCLS AI Factory stack via the master `docker-compose.dgx-spark.yml`:
 
 ```bash

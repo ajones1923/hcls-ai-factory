@@ -2098,7 +2098,7 @@ matching programs:
 
 | Platform | Hardware Cost | Annual Operating | Users | Use Case |
 |----------|-------------|-----------------|-------|----------|
-| DGX Spark | ~$3,999 | ~$1,200 (power) | 15-20 | Academic, single-sponsor |
+| DGX Spark | ~$4,699 | ~$1,200 (power) | 15-20 | Academic, single-sponsor |
 | DGX Station | ~$50,000 | ~$5,000 (power) | 50-80 | Mid-size biotech, CRO |
 | DGX Cloud | ~$30/hr GPU | ~$200,000/year | 500+ | Large pharma, national programs |
 
@@ -2374,7 +2374,7 @@ Philosophically, clinical trial intelligence should not be gated by ability to p
 institutions that most need AI-powered trial optimization (community health systems, academic
 centers in developing countries, patient advocacy organizations) are often those least able to
 afford enterprise platform licensing. By making the Clinical Trial Intelligence Agent open-source,
-we enable any institution with access to an NVIDIA DGX Spark (priced at approximately $3,999) to
+we enable any institution with access to an NVIDIA DGX Spark (priced at approximately $4,699) to
 deploy clinical trial intelligence capabilities that would otherwise require $500K-2M in annual
 software licensing.
 
@@ -2443,7 +2443,7 @@ into actionable clinical trial recommendations.
 The open-source model under Apache 2.0 licensing makes this capability accessible to academic
 medical centers, community health systems, and organizations worldwide that cannot afford
 enterprise clinical trial platforms. Running on NVIDIA DGX Spark at a hardware cost of
-approximately $3,999, the Clinical Trial Intelligence Agent democratizes access to AI-powered
+approximately $4,699, the Clinical Trial Intelligence Agent democratizes access to AI-powered
 clinical trial optimization.
 
 The 12-month implementation roadmap provides a clear path from foundation (data ingestion and

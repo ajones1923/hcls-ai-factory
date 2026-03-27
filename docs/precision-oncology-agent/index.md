@@ -128,7 +128,7 @@ Built on the HCLS AI Factory platform:
 - **LLM:** Claude Sonnet 4.6 (Anthropic API)
 - **UI:** Streamlit MTB Workbench (port 8526)
 - **API:** FastAPI REST server (port 8527)
-- **Hardware target:** NVIDIA DGX Spark ($3,999)
+- **Hardware target:** NVIDIA DGX Spark ($4,699)
 
 ## Setup
 

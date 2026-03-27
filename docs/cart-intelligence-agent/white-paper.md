@@ -14,7 +14,7 @@ https://github.com/ajones1923/hcls-ai-factory
 
 Chimeric antigen receptor T-cell (CAR-T) therapy represents one of the most transformative advances in oncology, yet the data ecosystem supporting its development remains profoundly fragmented. Clinical researchers, manufacturing engineers, regulatory strategists, and pharmacovigilance scientists each operate within isolated information silos -- PubMed for literature, ClinicalTrials.gov for trial data, FDA databases for regulatory milestones, CIBMTR for real-world outcomes, and institutional databases for manufacturing records. A single cross-functional question such as "How do manufacturing parameters affect clinical response rates for CD19 CAR-T products?" requires manual synthesis across at least five distinct data sources, a process that can consume days of expert time.
 
-This paper presents the CAR-T Intelligence Agent, an AI-powered multi-collection retrieval-augmented generation (RAG) system that unifies 11 specialized vector collections containing 3,567,622 indexed vectors across the full CAR-T development lifecycle. The system employs 384-dimensional BGE-small-en-v1.5 embeddings, a 3-dictionary knowledge graph with 71 structured entries (34 targets, 17 toxicities, 20 manufacturing), 12 query expansion maps mapping 229 keywords to 1,961 related terms, and Claude Sonnet 4.6 for evidence synthesis. Parallel search via ThreadPoolExecutor across all 11 collections delivers cross-functional answers with clickable PubMed and ClinicalTrials.gov citations in under 30 seconds. The system includes structured comparative analysis, citation relevance scoring, and multi-format export (Markdown, JSON, PDF). Comprising 21,259 lines of Python across 61 files with 415 automated tests, the agent runs on a single NVIDIA DGX Spark ($3,999) and is released under the Apache 2.0 license. We demonstrate that a carefully designed multi-collection RAG architecture can transform fragmented biomedical data into actionable cross-functional intelligence, democratizing access to CAR-T development knowledge that was previously available only to large pharmaceutical organizations with dedicated informatics teams.
+This paper presents the CAR-T Intelligence Agent, an AI-powered multi-collection retrieval-augmented generation (RAG) system that unifies 11 specialized vector collections containing 3,567,622 indexed vectors across the full CAR-T development lifecycle. The system employs 384-dimensional BGE-small-en-v1.5 embeddings, a 3-dictionary knowledge graph with 71 structured entries (34 targets, 17 toxicities, 20 manufacturing), 12 query expansion maps mapping 229 keywords to 1,961 related terms, and Claude Sonnet 4.6 for evidence synthesis. Parallel search via ThreadPoolExecutor across all 11 collections delivers cross-functional answers with clickable PubMed and ClinicalTrials.gov citations in under 30 seconds. The system includes structured comparative analysis, citation relevance scoring, and multi-format export (Markdown, JSON, PDF). Comprising 21,259 lines of Python across 61 files with 415 automated tests, the agent runs on a single NVIDIA DGX Spark ($4,699) and is released under the Apache 2.0 license. We demonstrate that a carefully designed multi-collection RAG architecture can transform fragmented biomedical data into actionable cross-functional intelligence, democratizing access to CAR-T development knowledge that was previously available only to large pharmaceutical organizations with dedicated informatics teams.
 
 ---
 
@@ -55,7 +55,7 @@ The CAR-T Intelligence Agent addresses these limitations through a multi-collect
 - Expands queries using **12 domain-specific maps** that map 229 expert keywords to 1,961 related terms, dramatically improving recall
 - Synthesizes evidence through **Claude Sonnet 4.6** with a domain-expert system prompt spanning 12 areas of CAR-T expertise
 - Provides **clickable citation links** to PubMed and ClinicalTrials.gov for every evidence item, maintaining the traceability that scientific work demands
-- Runs on a **single NVIDIA DGX Spark** ($3,999), democratizing access to sophisticated CAR-T intelligence
+- Runs on a **single NVIDIA DGX Spark** ($4,699), democratizing access to sophisticated CAR-T intelligence
 
 ---
 
@@ -378,7 +378,7 @@ Enterprise-grade CAR-T intelligence systems -- pharmaceutical informatics platfo
 
 ### 9.2 The DGX Spark Platform
 
-The NVIDIA DGX Spark represents a fundamental shift in computational accessibility. At $3,999, it provides:
+The NVIDIA DGX Spark represents a fundamental shift in computational accessibility. At $4,699, it provides:
 
 | Specification | Value |
 |--------------|-------|
@@ -512,7 +512,7 @@ The knowledge graph augmentation addresses a practical limitation of pure RAG sy
 
 ### 12.2 Democratization of Intelligence
 
-The pharmaceutical industry's current informatics infrastructure creates a two-tier system: large companies with dedicated data science teams have access to comprehensive cross-functional intelligence, while academic centers, smaller biotechnology companies, and institutions in lower-resource settings rely on manual literature review and fragmented tools. The CAR-T Intelligence Agent, running on a $3,999 workstation with open-source components (Milvus, BGE-small, Streamlit, Python) and a pay-per-query cloud LLM, demonstrates that this capability gap can be substantially narrowed.
+The pharmaceutical industry's current informatics infrastructure creates a two-tier system: large companies with dedicated data science teams have access to comprehensive cross-functional intelligence, while academic centers, smaller biotechnology companies, and institutions in lower-resource settings rely on manual literature review and fragmented tools. The CAR-T Intelligence Agent, running on a $4,699 workstation with open-source components (Milvus, BGE-small, Streamlit, Python) and a pay-per-query cloud LLM, demonstrates that this capability gap can be substantially narrowed.
 
 The Apache 2.0 license ensures that the system can be freely adapted, extended, and deployed by any organization. The modular architecture -- with clearly separated ingestion pipelines, collection schemas, knowledge graph, query expansion, RAG engine, and export modules -- is designed for extension. Adding a new data type (e.g., patent claims, conference abstracts, electronic health record extracts) requires implementing a new collection schema, a new ingest parser, and registering the collection with the RAG engine.
 
@@ -545,7 +545,7 @@ This paper has presented the CAR-T Intelligence Agent, a multi-collection RAG sy
 3. **Intelligent query expansion:** 12 maps with 229 keywords expanding to 1,961 terms, using a dual strategy (field-filter for antigens, semantic re-embedding for non-antigens) that significantly improves recall without sacrificing precision.
 4. **Structured comparative analysis:** Auto-detection and resolution of "X vs Y" queries with dual retrieval, entity-grouped evidence, and structured output (comparison tables, advantages/limitations, clinical context).
 5. **Citation provenance:** Every evidence item carries a clickable link to its primary source, maintaining the traceability that scientific work demands.
-6. **Hardware democratization:** The complete system runs on a single NVIDIA DGX Spark ($3,999), reducing the infrastructure barrier from hundreds of thousands of dollars to under $4,000.
+6. **Hardware democratization:** The complete system runs on a single NVIDIA DGX Spark ($4,699), reducing the infrastructure barrier from hundreds of thousands of dollars to under $5,000.
 7. **Open-source availability:** 21,259 lines of Python across 61 files, 415 automated tests, released under the Apache 2.0 license.
 
 ### 13.2 Future Directions

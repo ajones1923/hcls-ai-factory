@@ -137,7 +137,7 @@ ls rag-chat-pipeline/data/annotations/                # ClinVar + AlphaMissense
 **Talking points:**
 
 - "This is the HCLS AI Factory — a platform that transforms patient DNA into novel drug candidates in under 5 hours."
-- "Everything runs on this single DGX Spark — a $3,999 desktop workstation."
+- "Everything runs on this single DGX Spark — a $4,699 desktop workstation."
 - "Three engines: the Genomic Foundation Engine for GPU-accelerated genomics, the Precision Intelligence Network for RAG-grounded target identification with 11 intelligence agents, and the Therapeutic Discovery Engine for AI-driven drug discovery."
 
 **Show:** Landing page at http://localhost:8080 — highlight the 10-service health grid.
@@ -284,7 +284,7 @@ Claude will identify VCP as the primary target with:
 
 **Talking points:**
 
-- "In under 5 hours, on a $3,999 desktop workstation, we went from raw DNA to 100 ranked drug candidates."
+- "In under 5 hours, on a $4,699 desktop workstation, we went from raw DNA to 100 ranked drug candidates."
 - "This collapses a process that traditionally takes weeks to months."
 - "The same Nextflow pipelines scale from DGX Spark to DGX SuperPOD for enterprise deployments."
 - "All HCLS AI Factory code is Apache 2.0. NVIDIA components are free for development on DGX Spark."
@@ -293,7 +293,7 @@ Claude will identify VCP as the primary target with:
 
 | Phase | Hardware | Scale |
 |---|---|---|
-| Phase 1 | DGX Spark ($3,999) | Proof build — what you just saw |
+| Phase 1 | DGX Spark ($4,699) | Proof build — what you just saw |
 | Phase 2 | DGX B200 | Department — multiple concurrent patients |
 | Phase 3 | DGX SuperPOD | Enterprise — thousands concurrent, federated |
 

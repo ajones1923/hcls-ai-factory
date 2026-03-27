@@ -71,7 +71,7 @@ An Anthropic API key is required for Stage 2 RAG chat. Claude is a commercial se
 
 | Phase | Hardware | Software Licenses | API Keys |
 |---|---|---|---|
-| **Phase 1 — Proof Build** | DGX Spark ($3,999) | None required | Anthropic + NGC (free) |
+| **Phase 1 — Proof Build** | DGX Spark ($4,699) | None required | Anthropic + NGC (free) |
 | **Phase 2 — Departmental** | DGX B200 ($500K-$1M) | NVAIE ($4,500/GPU/year) | Anthropic + NGC |
 | **Phase 3 — Enterprise** | DGX SuperPOD ($7M-$60M+) | NVAIE ($4,500/GPU/year) | Anthropic + NGC |
 

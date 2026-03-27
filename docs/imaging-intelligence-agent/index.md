@@ -68,7 +68,7 @@ Built on the HCLS AI Factory platform:
 - **API:** FastAPI (port 8524)
 - **Export:** Markdown, JSON, NVIDIA-branded PDF, FHIR R4 DiagnosticReport Bundle
 - **Federated Learning:** NVIDIA FLARE (3 job configs)
-- **Hardware target:** NVIDIA DGX Spark ($3,999)
+- **Hardware target:** NVIDIA DGX Spark ($4,699)
 
 ## Knowledge Base
 
