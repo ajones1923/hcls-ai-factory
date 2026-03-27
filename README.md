@@ -1,5 +1,10 @@
 # Pharmacogenomics Intelligence Agent
 
+
+![Architecture Infographic](docs/images/infographic.jpg)
+
+*Source: [pharmacogenomics-intelligence-agent](https://github.com/ajones1923/pharmacogenomics-intelligence-agent)*
+
 RAG-powered pharmacogenomics decision support system built on Milvus, Claude, and BGE-small-en-v1.5. Part of the HCLS AI Factory precision medicine platform.
 
 Translates patient genotype data into actionable prescribing guidance using CPIC/DPWG guidelines, PharmGKB annotations, FDA labeling, and published clinical evidence.
