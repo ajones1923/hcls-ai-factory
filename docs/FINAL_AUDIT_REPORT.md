@@ -255,7 +255,7 @@ Mathematically verified against output data:
 
 | Claim | Consistent Across Docs? |
 |-------|------------------------|
-| DGX Spark $3,999 | Yes (15+ references) |
+| DGX Spark $4,699 | Yes (15+ references) |
 | Under 5 hours end-to-end | Yes |
 | 11.7M variants | Yes |
 | 3.56M pass quality filter | Yes |

@@ -79,7 +79,7 @@ Patient DNA → Illumina Sequencer → FASTQ (~200 GB)
 2. **Clinically grounded:** ClinVar, AlphaMissense, and VEP provide evidence-based annotation
 3. **Reproducible:** Nextflow DSL2 orchestration with containerized processes
 4. **Open:** Apache 2.0 license, open-source tools, public reference databases
-5. **Desktop-scale:** Runs entirely on a $3,999 DGX Spark
+5. **Desktop-scale:** Runs entirely on a $4,699 DGX Spark
 
 ---
 
@@ -94,7 +94,7 @@ Patient DNA → Illumina Sequencer → FASTQ (~200 GB)
 | Memory | 128 GB unified LPDDR5x (CPU + GPU shared pool) |
 | Storage | NVMe, high-throughput I/O |
 | Storage Access | GPUDirect Storage (zero-copy GPU access) |
-| Price | $3,999 |
+| Price | $4,699 |
 | OS | Ubuntu-based (NVIDIA DGX OS) |
 
 ### Critical: ARM64 Architecture
@@ -1333,7 +1333,7 @@ DOCKING_THRESHOLDS = {
 
 | Parameter | Value |
 |---|---|
-| Hardware | NVIDIA DGX Spark ($3,999) |
+| Hardware | NVIDIA DGX Spark ($4,699) |
 | Orchestration | Docker Compose |
 | Scale | Single patient, sequential processing |
 | Timeline | Proof of concept |

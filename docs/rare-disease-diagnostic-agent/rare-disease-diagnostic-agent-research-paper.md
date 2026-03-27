@@ -18,7 +18,7 @@ This paper presents the **Rare Disease Diagnostic Agent**, an AI-powered clinica
 
 Through **10 clinical workflows** -- phenotype-driven diagnostic workup, whole exome/genome interpretation, metabolic disease screening, dysmorphology assessment, neurogenetic evaluation, cardiac genetics, connective tissue disorders, inborn errors of metabolism, gene therapy eligibility assessment, and undiagnosed disease program support -- the agent transforms fragmented clinical observations into ranked diagnostic hypotheses with evidence-graded confidence. Six **clinical decision support engines** -- Phenotype-to-Gene Matcher, ACMG Variant Classifier, Orphan Drug Matcher, Diagnostic Algorithm Recommender, Family Segregation Analyzer, and Natural History Predictor -- provide computational reasoning across the diagnostic-to-therapeutic continuum.
 
-Deployed on the NVIDIA DGX Spark ($3,999) at ports 8544 (UI) and 8134 (API), the agent operates entirely on-premises for HIPAA compliance, processes whole-exome and whole-genome sequencing data through the existing genomics pipeline, and generates structured diagnostic reports in PDF and FHIR R4 formats. By reducing diagnostic odyssey timelines from years to weeks and connecting patients with emerging gene therapies (nusinersen, onasemnogene, Casgevy, Luxturna, Hemgenix) and active clinical trials, this agent addresses one of medicine's most consequential unmet needs: ensuring that no patient remains undiagnosed simply because their disease is rare.
+Deployed on the NVIDIA DGX Spark ($4,699) at ports 8544 (UI) and 8134 (API), the agent operates entirely on-premises for HIPAA compliance, processes whole-exome and whole-genome sequencing data through the existing genomics pipeline, and generates structured diagnostic reports in PDF and FHIR R4 formats. By reducing diagnostic odyssey timelines from years to weeks and connecting patients with emerging gene therapies (nusinersen, onasemnogene, Casgevy, Luxturna, Hemgenix) and active clinical trials, this agent addresses one of medicine's most consequential unmet needs: ensuring that no patient remains undiagnosed simply because their disease is rare.
 
 ---
 
@@ -124,7 +124,7 @@ This paper presents the complete architectural blueprint and product requirement
 - **Ten reference clinical workflows** covering phenotype-driven diagnosis, WES/WGS interpretation, metabolic screening, dysmorphology assessment, neurogenetic evaluation, cardiac genetics, connective tissue disorders, inborn errors of metabolism, gene therapy eligibility, and undiagnosed disease program support
 - **Six clinical decision support engines** implementing phenotype-to-gene matching, ACMG variant classification, orphan drug matching, diagnostic algorithm recommendation, family segregation analysis, and natural history prediction
 - **Deep HPO integration** enabling computational phenotype matching with semantic similarity scoring
-- Deployment on a single **NVIDIA DGX Spark** ($3,999) at ports 8544 (UI) and 8134 (API), maintaining the platform's commitment to accessible AI
+- Deployment on a single **NVIDIA DGX Spark** ($4,699) at ports 8544 (UI) and 8134 (API), maintaining the platform's commitment to accessible AI
 - **Open-source licensing** (Apache 2.0), enabling deployment by academic institutions, patient advocacy organizations, and resource-limited settings worldwide
 
 ---

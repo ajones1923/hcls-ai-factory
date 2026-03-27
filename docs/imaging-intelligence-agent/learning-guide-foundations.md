@@ -10,7 +10,7 @@ License: Apache 2.0
 
 ## Welcome
 
-You are reading the foundational learning guide for the Imaging Intelligence Agent, an AI-powered research assistant that unifies scattered knowledge across the medical imaging landscape -- from peer-reviewed literature and clinical trials to device clearances, imaging protocols, scoring guidelines, and AI benchmarks. This system is part of the HCLS AI Factory, an end-to-end precision medicine platform that runs on a single NVIDIA DGX Spark ($3,999).
+You are reading the foundational learning guide for the Imaging Intelligence Agent, an AI-powered research assistant that unifies scattered knowledge across the medical imaging landscape -- from peer-reviewed literature and clinical trials to device clearances, imaging protocols, scoring guidelines, and AI benchmarks. This system is part of the HCLS AI Factory, an end-to-end precision medicine platform that runs on a single NVIDIA DGX Spark ($4,699).
 
 ### Who this guide is for
 
@@ -1641,7 +1641,7 @@ The Imaging Intelligence Agent is open-source under the Apache 2.0 license. Cont
 | **CXR** | Chest X-Ray. A plain radiograph of the chest, the most commonly performed imaging study worldwide. Used for pneumonia, pneumothorax, pleural effusion, and cardiac silhouette assessment. |
 | **De Novo** | An FDA regulatory pathway for novel medical devices that have no substantially equivalent predicate. Creates a new device classification. |
 | **Detection** | In imaging AI, the task of identifying the presence and location of an abnormality in a medical image (e.g., detecting a lung nodule on CT). |
-| **DGX Spark** | An NVIDIA desktop computer with a GB10 GPU, 128 GB unified LPDDR5x memory, and 20 ARM cores. The hardware target for this system ($3,999). |
+| **DGX Spark** | An NVIDIA desktop computer with a GB10 GPU, 128 GB unified LPDDR5x memory, and 20 ARM cores. The hardware target for this system ($4,699). |
 | **DICOM** | Digital Imaging and Communications in Medicine. The international standard for storing, transmitting, and displaying medical images. Every clinical imaging study produces DICOM files. |
 | **Embedding** | A numerical representation of text as a vector (list of numbers) in a high-dimensional space. Similar texts have similar embeddings. This system uses 384-dimensional embeddings. |
 | **FastAPI** | A modern Python web framework for building REST APIs. Used for the Imaging Intelligence Agent's API server on port 8524. |

@@ -8,7 +8,7 @@ tags:
 
 # Performance Benchmarks
 
-Measured performance of the HCLS AI Factory on NVIDIA DGX Spark ($3,999). All timings represent end-to-end wall clock time under default configurations.
+Measured performance of the HCLS AI Factory on NVIDIA DGX Spark ($4,699). All timings represent end-to-end wall clock time under default configurations.
 
 ---
 
@@ -19,7 +19,7 @@ Measured performance of the HCLS AI Factory on NVIDIA DGX Spark ($3,999). All ti
 | **End-to-end time** (DNA to Drug Candidates) | < 5 hours |
 | **Traditional approach** | 6-18 months |
 | **Reduction** | ~99% |
-| **Hardware cost** | $3,999 (single workstation) |
+| **Hardware cost** | $4,699 (single workstation) |
 | **Traditional infrastructure cost** | $50K-500K+ (cluster + licenses) |
 
 ---

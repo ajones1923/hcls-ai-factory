@@ -9,7 +9,7 @@
 
 ## 1. Mission
 
-Democratize medical imaging AI by providing a complete, open-source intelligence agent that runs on a single NVIDIA DGX Spark ($3,999). The agent combines RAG-grounded clinical knowledge retrieval with on-device NVIDIA NIM inference to support radiology decision-making across CT, MRI, and chest X-ray modalities.
+Democratize medical imaging AI by providing a complete, open-source intelligence agent that runs on a single NVIDIA DGX Spark ($4,699). The agent combines RAG-grounded clinical knowledge retrieval with on-device NVIDIA NIM inference to support radiology decision-making across CT, MRI, and chest X-ray modalities.
 
 ## 2. Architecture Components
 

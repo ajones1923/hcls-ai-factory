@@ -104,7 +104,6 @@ nav:
   - Design:
     - Project Bible: HCLS_AI_FACTORY_PROJECT_BIBLE.md
     - White Paper: HCLS_AI_FACTORY_WHITE_PAPER_DGX_SPARK.md
-    - Architecture Mindmap: ARCHITECTURE_MINDMAP.md
   - Learning:
     - Foundations: HCLS_AI_FACTORY_LEARNING_GUIDE_FOUNDATIONS.md
     - Advanced: HCLS_AI_FACTORY_LEARNING_GUIDE_ADVANCED.md
@@ -249,9 +248,6 @@ nav:
     - Executive Summary: HCLS_AI_FACTORY_EXECUTIVE_BULLETS.md
   - Publications:
     - arXiv Paper: HCLS_AI_FACTORY_ARXIV_PAPER.md
-    - GTC 2026 Submission: GTC_2026_SUBMISSION.md
-    - Quickstart Video Script: QUICKSTART_VIDEO_SCRIPT.md
-    - Launch Announcement: LAUNCH_ANNOUNCEMENT.md
   - Resources: downloads.md
 
 extra:

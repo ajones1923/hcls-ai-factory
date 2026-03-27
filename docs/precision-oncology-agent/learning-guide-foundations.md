@@ -80,7 +80,7 @@ By the end of this guide you will be able to:
 - **Software Engineers:** Python 3.10+, Docker, and a text editor.
 
 No special hardware is needed to read this guide. To run the agent itself,
-the reference platform is an NVIDIA DGX Spark ($3,999) with CUDA 12.x,
+the reference platform is an NVIDIA DGX Spark ($4,699) with CUDA 12.x,
 but any machine with Docker and a CPU will work for testing.
 
 ---
@@ -1604,7 +1604,7 @@ in plain language.
 
 | Component               | Value                                |
 |-------------------------|--------------------------------------|
-| Reference hardware      | NVIDIA DGX Spark ($3,999)            |
+| Reference hardware      | NVIDIA DGX Spark ($4,699)            |
 | GPU/CUDA                | CUDA 12.x                            |
 | Embedding batch size    | 32                                   |
 | API port                | 8527 (FastAPI)                       |

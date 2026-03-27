@@ -69,7 +69,7 @@ The CAR-T Intelligence Agent is built as part of the HCLS AI Factory, a three-st
 
 CAR-T cell therapy is the most successful form of adoptive cell therapy, with 6 FDA-approved products generating over $5 billion in annual revenue. Yet the intelligence required to develop a new CAR-T product is fragmented across dozens of disconnected databases, journals, regulatory filings, and institutional knowledge silos. A single researcher cannot simultaneously track target antigen biology, clinical trial outcomes, manufacturing optimization, toxicity management protocols, biomarker validation, regulatory precedent, molecular design, and real-world outcomes.
 
-The CAR-T Intelligence Agent collapses these silos into a single conversational interface. It is designed to run on an NVIDIA DGX Spark -- a $3,999 workstation with a GB10 GPU, 128GB unified LPDDR5x memory, and 20 ARM cores -- making world-class CAR-T intelligence accessible to any lab, hospital, or biotech company.
+The CAR-T Intelligence Agent collapses these silos into a single conversational interface. It is designed to run on an NVIDIA DGX Spark -- a $4,699 workstation with a GB10 GPU, 128GB unified LPDDR5x memory, and 20 ARM cores -- making world-class CAR-T intelligence accessible to any lab, hospital, or biotech company.
 
 ### Mission Statement
 
@@ -1652,7 +1652,7 @@ The `ai_agent_adds/` directory is designed for multiple domain agents:
 - Memory: 128GB unified LPDDR5x
 - CPU: 20 ARM Cortex-A78AE cores (Grace CPU)
 - Interconnect: NVLink-C2C (chip-to-chip)
-- Price: $3,999
+- Price: $4,699
 - OS: Ubuntu-based DGX OS
 
 The entire HCLS AI Factory -- genomics pipeline, RAG/Chat (including this CAR-T Intelligence Agent), and drug discovery pipeline -- is designed to run concurrently on this single workstation, democratizing precision medicine and CAR-T intelligence for institutions that cannot afford traditional HPC infrastructure.

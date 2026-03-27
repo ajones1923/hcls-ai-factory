@@ -92,7 +92,7 @@ Built on the HCLS AI Factory platform:
 - **Embeddings:** BGE-small-en-v1.5 (384-dim)
 - **LLM:** Claude Sonnet 4 (Anthropic API)
 - **UI:** Streamlit 10 tabs (port 8531) | **API:** FastAPI (port 8532)
-- **Hardware target:** NVIDIA DGX Spark ($3,999)
+- **Hardware target:** NVIDIA DGX Spark ($4,699)
 
 ### UI Tabs
 

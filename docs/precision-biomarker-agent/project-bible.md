@@ -52,7 +52,7 @@ interpretation platform that transforms standard blood panel results and
 genomic data into actionable precision health intelligence. It is one of five
 intelligence agents in the HCLS AI Factory, which delivers a complete Patient
 DNA to Drug Candidates pipeline in under 5 hours on a single NVIDIA DGX Spark
-desktop workstation ($3,999).
+desktop workstation ($4,699).
 
 **Core capabilities:**
 
@@ -145,7 +145,7 @@ Patient Profile
 | System RAM        | 128 GB unified memory                |
 | Storage           | 4 TB NVMe SSD                        |
 | CUDA              | 12.x                                 |
-| Price             | $3,999                               |
+| Price             | $4,699                               |
 | Power             | ~250 W (desktop form factor)         |
 
 The biomarker agent runs alongside Milvus, embedding model, and the other four

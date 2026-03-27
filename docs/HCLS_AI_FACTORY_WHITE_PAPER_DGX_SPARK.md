@@ -20,7 +20,7 @@ The HCLS AI Factory follows a reusable pattern: identify a canonical artifact, b
 
 The platform transforms patient FASTQ files (~200 GB of raw sequencing data from a 30× whole-genome study) into 100 ranked novel drug candidates in under 5 hours. Three stages execute sequentially: NVIDIA Parabricks performs GPU-accelerated alignment and variant calling (120-240 min), producing ~11.7 million variants. A RAG pipeline annotates variants with ClinVar, AlphaMissense, and VEP, indexes 3.56 million high-quality variants in a Milvus vector database, and uses Anthropic Claude to identify druggable gene targets. Finally, BioNeMo NIM services (MolMIM and DiffDock) generate novel molecules, predict binding affinities, and rank candidates by a composite drug-likeness score.
 
-The architecture is designed to run end-to-end on a $3,999 DGX Spark for proof builds and scale to DGX SuperPOD for enterprise deployments. All HCLS AI Factory code is released under Apache 2.0. The platform integrates open-source tools (Milvus, RDKit, DeepVariant), NVIDIA software (Parabricks, BioNeMo NIMs — free for development on DGX Spark), and the Anthropic Claude API. See the [Licensing & Cost Guide](licensing.md) for details.
+The architecture is designed to run end-to-end on a $4,699 DGX Spark for proof builds and scale to DGX SuperPOD for enterprise deployments. All HCLS AI Factory code is released under Apache 2.0. The platform integrates open-source tools (Milvus, RDKit, DeepVariant), NVIDIA software (Parabricks, BioNeMo NIMs — free for development on DGX Spark), and the Anthropic Claude API. See the [Licensing & Cost Guide](licensing.md) for details.
 
 ---
 
@@ -42,7 +42,7 @@ This sequential, manual approach introduces three structural problems:
 
 NVIDIA DGX Spark collapses the compute bottleneck. Its GB10 GPU accelerates BWA-MEM2 alignment from hours to 20-45 minutes and DeepVariant variant calling from hours to 10-35 minutes — a 10-20× speedup that transforms genomics from an overnight batch job into an interactive workflow.
 
-More importantly, the same GPU that runs genomics can run vector similarity search (Milvus), molecular generation (MolMIM), and molecular docking (DiffDock). A single $3,999 desktop workstation handles the entire pipeline.
+More importantly, the same GPU that runs genomics can run vector similarity search (Milvus), molecular generation (MolMIM), and molecular docking (DiffDock). A single $4,699 desktop workstation handles the entire pipeline.
 
 ---
 
@@ -266,13 +266,13 @@ Phase 3 deployments use NVIDIA FLARE for federated learning across institutions.
 
 | Phase | Hardware | Orchestration | Scale |
 |---|---|---|---|
-| 1 — Proof Build | DGX Spark ($3,999) | Docker Compose | Single patient, sequential |
+| 1 — Proof Build | DGX Spark ($4,699) | Docker Compose | Single patient, sequential |
 | 2 — Departmental | 1-2× DGX B200 ($500K-$1M) | Kubernetes | Multiple concurrent patients |
 | 3 — Enterprise | DGX SuperPOD ($7M-$60M+) | Kubernetes + FLARE | Thousands concurrent, federated |
 
 ### Phase 1: DGX Spark Proof Build
 
-A single DGX Spark runs the complete pipeline: GB10 GPU handles Parabricks, Milvus, MolMIM, and DiffDock sequentially. Docker Compose manages all 14 services. The 128 GB unified memory accommodates all stages without swapping. Total cost: $3,999 hardware + API keys (Anthropic, NGC).
+A single DGX Spark runs the complete pipeline: GB10 GPU handles Parabricks, Milvus, MolMIM, and DiffDock sequentially. Docker Compose manages all 14 services. The 128 GB unified memory accommodates all stages without swapping. Total cost: $4,699 hardware + API keys (Anthropic, NGC).
 
 ### Phase 2: Departmental Scale
 
@@ -288,7 +288,7 @@ DGX SuperPOD deployments with InfiniBand fabric, NVIDIA FLARE for federated lear
 
 The HCLS AI Factory demonstrates that the full precision medicine pipeline — from raw DNA to novel drug candidates — can run on a single desktop workstation. GPU acceleration collapses genomics from days to hours. Vector databases and LLM reasoning transform annotation from manual curation to interactive exploration. Generative chemistry and molecular docking automate the target-to-lead transition that traditionally takes months.
 
-The three-engine architecture (Genomic Foundation Engine → Precision Intelligence Network → Therapeutic Discovery Engine) provides a reproducible, auditable, and scalable framework. The same Nextflow pipelines that run on a $3,999 DGX Spark scale to DGX SuperPOD for enterprise deployments. All HCLS AI Factory code is Apache 2.0; NVIDIA components are free for development on DGX Spark, with enterprise licensing required at scale (see [Licensing & Cost Guide](licensing.md)).
+The three-engine architecture (Genomic Foundation Engine → Precision Intelligence Network → Therapeutic Discovery Engine) provides a reproducible, auditable, and scalable framework. The same Nextflow pipelines that run on a $4,699 DGX Spark scale to DGX SuperPOD for enterprise deployments. All HCLS AI Factory code is Apache 2.0; NVIDIA components are free for development on DGX Spark, with enterprise licensing required at scale (see [Licensing & Cost Guide](licensing.md)).
 
 This is precision medicine as a continuous, computable workflow — not a disconnected collection of tools, but an integrated factory that transforms patient data into therapeutic hypotheses in a single session.
 

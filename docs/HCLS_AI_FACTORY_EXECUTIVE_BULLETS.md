@@ -13,7 +13,7 @@ search:
 
 ## What It Is
 
-The HCLS AI Factory transforms patient DNA into ranked novel drug candidates in under 5 hours on a single NVIDIA DGX Spark ($3,999). Three GPU-accelerated stages — genomics, RAG-grounded target identification, and AI-driven drug discovery — run end-to-end with no manual intervention.
+The HCLS AI Factory transforms patient DNA into ranked novel drug candidates in under 5 hours on a single NVIDIA DGX Spark ($4,699). Three GPU-accelerated stages — genomics, RAG-grounded target identification, and AI-driven drug discovery — run end-to-end with no manual intervention.
 
 ---
 
@@ -62,7 +62,7 @@ The HCLS AI Factory transforms patient DNA into ranked novel drug candidates in 
 | Genes in Knowledge Base | 201 (13 therapeutic areas) |
 | Druggable Targets | 171 (85%) |
 | Drug Candidates Generated | 100 (ranked by composite score) |
-| Hardware Cost | $3,999 (DGX Spark) |
+| Hardware Cost | $4,699 (DGX Spark) |
 
 ---
 
@@ -82,7 +82,7 @@ The HCLS AI Factory transforms patient DNA into ranked novel drug candidates in 
 
 | Layer | Technology |
 |---|---|
-| Hardware | NVIDIA DGX Spark (GB10 GPU, 128 GB unified, $3,999) |
+| Hardware | NVIDIA DGX Spark (GB10 GPU, 128 GB unified, $4,699) |
 | Genomics | NVIDIA Parabricks 4.6, DeepVariant (>99% accuracy) |
 | Annotation | ClinVar, AlphaMissense, Ensembl VEP |
 | Vector DB | Milvus 2.4, BGE-small-en-v1.5, IVF_FLAT |
@@ -98,7 +98,7 @@ The HCLS AI Factory transforms patient DNA into ranked novel drug candidates in 
 
 | Phase | Hardware | Scale | Cost |
 |---|---|---|---|
-| 1 — Proof Build | DGX Spark | 1 patient, Docker Compose | $3,999 |
+| 1 — Proof Build | DGX Spark | 1 patient, Docker Compose | $4,699 |
 | 2 — Departmental | DGX B200 | Multiple concurrent, Kubernetes | $500K-$1M |
 | 3 — Enterprise | DGX SuperPOD | Thousands concurrent, FLARE federated | $7M-$60M+ |
 
@@ -118,7 +118,7 @@ The HCLS AI Factory transforms patient DNA into ranked novel drug candidates in 
 - **Only platform** running genomics-to-drug-candidates on a single desktop GPU
 - **End-to-end:** No manual handoffs between stages
 - **< 5 hours** total pipeline time (vs. weeks/months traditional)
-- **$3,999** proof build cost (vs. $100K+ for equivalent CPU infrastructure)
+- **$4,699** proof build cost (vs. $100K+ for equivalent CPU infrastructure)
 - **Open project:** Apache 2.0, reproducible, auditable
 - **Scalable:** Same Nextflow pipelines scale from DGX Spark to SuperPOD
 

@@ -325,7 +325,7 @@ Orthanc webhook (POST `/events/dicom-webhook`) receives study.complete events, d
 | Workflow models | MONAI bundles + torchxrayvision (pretrained weights) |
 | Data models | Pydantic BaseSettings + 20+ models |
 | Monitoring | Prometheus metrics endpoint (`/metrics`) |
-| Hardware target | DGX Spark (GB10 GPU, 128GB unified, $3,999) |
+| Hardware target | DGX Spark (GB10 GPU, 128GB unified, $4,699) |
 
 ### 10.2 Service Ports
 
@@ -409,7 +409,7 @@ agent/
 
 | Phase | Hardware | Price | Scope |
 |---|---|---|---|
-| **1 -- Proof Build** | DGX Spark | $3,999 | All 6 workflows, mock/cloud NIM fallback |
+| **1 -- Proof Build** | DGX Spark | $4,699 | All 6 workflows, mock/cloud NIM fallback |
 | **2 -- Departmental** | 1-2x DGX B200 | $500K-$1M | Full NIM stack, PACS integration |
 | **3 -- Multi-Site** | 4-8x DGX B200 | $2M-$4M | NVIDIA FLARE federated learning |
 | **4 -- AI Factory** | DGX SuperPOD | $7M-$60M+ | Thousands of concurrent studies |
@@ -434,5 +434,5 @@ agent/
 
 - **Adam Jones** -- Architecture and implementation
 - Part of the **HCLS AI Factory** platform
-- Built on NVIDIA DGX Spark ($3,999)
+- Built on NVIDIA DGX Spark ($4,699)
 - **Apache 2.0 License**

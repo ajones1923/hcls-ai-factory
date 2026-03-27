@@ -670,7 +670,7 @@ Stage 4: CAR-T Intelligence Agent   <-- YOU ARE HERE
 
 ### The Hardware Story
 
-> "All of this runs on a single NVIDIA DGX Spark. That is a $3,999 workstation with a GB10 GPU, 128 GB of unified memory, and 20 ARM cores. There is no cloud dependency for the compute -- this is on-premise, sovereign AI for healthcare and life sciences."
+> "All of this runs on a single NVIDIA DGX Spark. That is a $4,699 workstation with a GB10 GPU, 128 GB of unified memory, and 20 ARM cores. There is no cloud dependency for the compute -- this is on-premise, sovereign AI for healthcare and life sciences."
 
 ### The Open-Source Story
 
@@ -909,7 +909,7 @@ curl http://localhost:8522/metrics
 | Full RAG query time | **~24 seconds** (dominated by LLM) |
 | Embedding model | BGE-small-en-v1.5 (384-dim) |
 | LLM | Claude Sonnet 4.6 (Anthropic) |
-| Hardware target | NVIDIA DGX Spark ($3,999) |
+| Hardware target | NVIDIA DGX Spark ($4,699) |
 | License | Apache 2.0, open-source |
 
 ### Sidebar Controls Summary

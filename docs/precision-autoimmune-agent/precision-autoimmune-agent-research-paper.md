@@ -18,7 +18,7 @@ This paper presents the architectural design, clinical rationale, and product re
 
 The system extends the proven multi-collection RAG architecture established by five existing intelligence agents in the HCLS AI Factory (Precision Biomarker, Precision Oncology, CAR-T, Imaging, and Autoimmune prototype), adapting it with clinical document ingestion pipelines capable of processing thousands of patient records, NLP-based entity extraction for laboratory values and clinical findings, longitudinal biomarker trend analysis, HLA-disease association scoring with 50+ known associations, autoantibody panel interpretation across 14 antibody types, disease activity scoring (DAS28, SLEDAI-2K, CDAI, BASDAI), flare prediction algorithms, and pharmacogenomic-guided biologic therapy recommendations for 8 drug classes. Eight reference clinical workflows will cover the highest-impact diagnostic and monitoring scenarios: diagnostic odyssey acceleration, lupus nephritis surveillance, POTS/dysautonomia evaluation, inflammatory arthritis differentiation, overlap syndrome detection, biologic therapy optimization, flare prediction and prevention, and genomic-autoimmune risk profiling.
 
-The agent will deploy on a single NVIDIA DGX Spark ($3,999) using BGE-small-en-v1.5 embeddings (384-dimensional, IVF_FLAT, COSINE), Claude Sonnet 4.6 for evidence synthesis, and shared NVIDIA NIM microservices for on-device inference. Licensed under Apache 2.0, the platform will democratize access to integrated autoimmune intelligence that currently requires multi-million-dollar institutional investments in informatics infrastructure -- bringing the diagnostic power of world-class rheumatology and immunology centers to any clinic worldwide.
+The agent will deploy on a single NVIDIA DGX Spark ($4,699) using BGE-small-en-v1.5 embeddings (384-dimensional, IVF_FLAT, COSINE), Claude Sonnet 4.6 for evidence synthesis, and shared NVIDIA NIM microservices for on-device inference. Licensed under Apache 2.0, the platform will democratize access to integrated autoimmune intelligence that currently requires multi-million-dollar institutional investments in informatics infrastructure -- bringing the diagnostic power of world-class rheumatology and immunology centers to any clinic worldwide.
 
 ---
 
@@ -112,7 +112,7 @@ The Precision Autoimmune Agent addresses the diagnostic odyssey through a clinic
 - Calculates **validated disease activity scores** (DAS28-CRP, DAS28-ESR, SLEDAI-2K, CDAI, BASDAI) from extracted clinical data
 - Provides **pharmacogenomic-guided biologic therapy recommendations** for 8 drug classes based on HLA typing and genotype data
 - Generates **diagnostic hypothesis reports** that synthesize thousands of clinical data points into prioritized differential diagnoses with supporting evidence citations
-- Runs on a **single NVIDIA DGX Spark** ($3,999), democratizing access to diagnostic intelligence that currently requires multi-million-dollar institutional informatics platforms
+- Runs on a **single NVIDIA DGX Spark** ($4,699), democratizing access to diagnostic intelligence that currently requires multi-million-dollar institutional informatics platforms
 
 ---
 
@@ -191,7 +191,7 @@ The autoimmune diagnostics and AI market is experiencing rapid growth driven by 
 | IBM Watson for Genomics | Genomic variant interpretation | Discontinued; no autoimmune-specific workflows; no clinical document NLP |
 | Google Health DeepMind | Medical image analysis | Imaging only; no laboratory, clinical note, or genomic integration |
 | Epic Cognitive Computing | EHR-integrated NLP | Single-EHR vendor; limited autoimmune-specific knowledge; no genomic correlation |
-| **Precision Autoimmune Agent** | **Multi-collection RAG with clinical document ingestion, genomic correlation, 14 collections** | **Open-source; $3,999 hardware; cross-system document ingestion** |
+| **Precision Autoimmune Agent** | **Multi-collection RAG with clinical document ingestion, genomic correlation, 14 collections** | **Open-source; $4,699 hardware; cross-system document ingestion** |
 
 ### 3.3 Target Users
 
@@ -1405,7 +1405,7 @@ Only the anonymized evidence snippets (with patient identifiers removed) are sen
 
 ## 20. DGX Compute Progression
 
-### 20.1 DGX Spark (Current Target -- $3,999)
+### 20.1 DGX Spark (Current Target -- $4,699)
 
 | Component | Specification | Autoimmune Agent Usage |
 |-----------|-------------|----------------------|
@@ -1499,7 +1499,7 @@ No existing product combines all four of these capabilities:
 1. **Clinical document ingestion at patient scale:** The system ingests thousands of patient documents and extracts structured data -- not just a single lab panel or questionnaire
 2. **Multi-disease simultaneous evaluation:** The system evaluates evidence for 13+ autoimmune conditions in parallel, detecting overlaps that single-disease tools miss
 3. **Genomic correlation:** HLA typing, non-HLA risk variants, and pharmacogenomic data are integrated directly into diagnostic and therapeutic reasoning
-4. **$3,999 hardware:** The system runs on a desktop workstation, not a cloud platform with per-query pricing or enterprise licensing
+4. **$4,699 hardware:** The system runs on a desktop workstation, not a cloud platform with per-query pricing or enterprise licensing
 
 ### 23.2 Competitive Matrix
 
@@ -1514,7 +1514,7 @@ No existing product combines all four of these capabilities:
 | POTS/dysautonomia | Full evaluation | No | No | No | No |
 | Overlap syndrome detection | 12 syndromes | No | No | No | No |
 | Open-source | Apache 2.0 | Proprietary | Proprietary | Proprietary | Proprietary |
-| Hardware cost | $3,999 (one-time) | Per-test fee | EHR license | Cloud pricing | $50K-500K/year |
+| Hardware cost | $4,699 (one-time) | Per-test fee | EHR license | Cloud pricing | $50K-500K/year |
 
 ---
 
@@ -1564,7 +1564,7 @@ This paper has presented the architectural design and product requirements for t
 
 5. **POTS/dysautonomia integration:** Purpose-built evaluation for POTS, hEDS, MCAS, and associated autonomic dysfunction -- conditions that are systematically underdiagnosed due to their multi-system nature and overlap with autoimmune disease.
 
-6. **Hardware democratization:** The complete system runs on a single NVIDIA DGX Spark ($3,999), with all patient data processed locally for HIPAA compliance -- bringing world-class autoimmune diagnostic intelligence to any clinic worldwide.
+6. **Hardware democratization:** The complete system runs on a single NVIDIA DGX Spark ($4,699), with all patient data processed locally for HIPAA compliance -- bringing world-class autoimmune diagnostic intelligence to any clinic worldwide.
 
 ### 25.2 Future Directions
 

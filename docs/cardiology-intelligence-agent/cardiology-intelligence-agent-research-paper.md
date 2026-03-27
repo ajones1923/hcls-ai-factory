@@ -18,7 +18,7 @@ This paper presents the architectural design, clinical rationale, and product re
 
 The system extends the proven multi-collection RAG architecture established by five existing intelligence agents in the HCLS AI Factory (Precision Biomarker, Precision Oncology, CAR-T, Imaging, and Autoimmune agents), adapting it with cardiology-specific clinical workflows, risk calculators, cross-modal imaging-genomics triggers, and structured reporting aligned with ACC/AHA guidelines. Eight reference clinical workflows will cover the highest-impact cardiovascular use cases: coronary artery disease assessment, heart failure classification, valvular disease quantification, arrhythmia detection, cardiac MRI tissue characterization, stress test interpretation, preventive risk stratification, and cardio-oncology surveillance.
 
-The agent will deploy on a single NVIDIA DGX Spark ($3,999) using BGE-small-en-v1.5 embeddings (384-dimensional, IVF_FLAT, COSINE), Claude Sonnet 4.6 for evidence synthesis, and four NVIDIA NIM microservices for on-device inference. Licensed under Apache 2.0, the platform will democratize access to integrated cardiovascular intelligence that currently requires multi-million-dollar institutional investments in informatics infrastructure.
+The agent will deploy on a single NVIDIA DGX Spark ($4,699) using BGE-small-en-v1.5 embeddings (384-dimensional, IVF_FLAT, COSINE), Claude Sonnet 4.6 for evidence synthesis, and four NVIDIA NIM microservices for on-device inference. Licensed under Apache 2.0, the platform will democratize access to integrated cardiovascular intelligence that currently requires multi-million-dollar institutional investments in informatics infrastructure.
 
 ---
 
@@ -91,7 +91,7 @@ This paper presents the complete architectural blueprint and product requirement
 - **Cross-modal triggers** linking cardiac imaging findings to genomic workup (familial hypercholesterolemia, cardiomyopathy gene panels, channelopathies) via the shared `genomic_evidence` collection
 - **Clinical decision support engines** implementing validated risk calculators (ASCVD, HEART, CHA₂DS₂-VASc, HAS-BLED, MAGGIC, EuroSCORE II)
 - A comprehensive **product requirements document** with user stories, acceptance criteria, and implementation prioritization
-- **Deployment on a single NVIDIA DGX Spark** ($3,999), maintaining the platform's commitment to accessible AI
+- **Deployment on a single NVIDIA DGX Spark** ($4,699), maintaining the platform's commitment to accessible AI
 
 ---
 
@@ -144,7 +144,7 @@ Current approaches to cardiovascular intelligence fail to address this fragmenta
 | **General AI assistants** | No citation provenance; hallucination risk; no structured cardiovascular data; not FDA-aligned |
 | **Imaging-only AI** (Arterys, HeartFlow) | Single-modality; no genomic integration; no guideline reasoning; cloud-dependent; expensive per-scan pricing |
 
-The Cardiology Intelligence Agent addresses all six limitations simultaneously by combining multi-collection vector search, cross-modal genomic triggers, validated clinical decision support logic, and guideline-grounded LLM synthesis -- all on a $3,999 desktop device.
+The Cardiology Intelligence Agent addresses all six limitations simultaneously by combining multi-collection vector search, cross-modal genomic triggers, validated clinical decision support logic, and guideline-grounded LLM synthesis -- all on a $4,699 desktop device.
 
 ### 2.3 The Case for Multi-Collection RAG in Cardiology
 
@@ -192,7 +192,7 @@ The global cardiovascular AI market demonstrates exceptional growth dynamics:
 | **Caption Health** (Echo guidance) | AI-guided acquisition, GE partnership | Acquisition guidance only, no interpretation |
 | **Tempus** (Cardiology platform) | Multi-modal data, genomics integration | Proprietary, expensive, cloud-dependent |
 
-**Our differentiation**: The Cardiology Intelligence Agent is the only system that combines (1) multi-modal imaging AI, (2) genomic integration, (3) literature RAG, (4) guideline-aligned clinical decision support, (5) validated risk calculators, and (6) on-device deployment -- all in an open-source, $3,999 package. No competitor addresses more than two of these six dimensions.
+**Our differentiation**: The Cardiology Intelligence Agent is the only system that combines (1) multi-modal imaging AI, (2) genomic integration, (3) literature RAG, (4) guideline-aligned clinical decision support, (5) validated risk calculators, and (6) on-device deployment -- all in an open-source, $4,699 package. No competitor addresses more than two of these six dimensions.
 
 ### 3.3 Target Users
 
@@ -1262,7 +1262,7 @@ Cardiovascular reports will follow ACC/AHA reporting standards:
 
 ### 15.1 Product Vision
 
-**Vision Statement:** Enable any cardiologist, anywhere, to access integrated cardiovascular intelligence combining imaging AI, genomic analysis, guideline-based decision support, and evidence synthesis -- on a single $3,999 device.
+**Vision Statement:** Enable any cardiologist, anywhere, to access integrated cardiovascular intelligence combining imaging AI, genomic analysis, guideline-based decision support, and evidence synthesis -- on a single $4,699 device.
 
 **Target Users:** Community cardiologists, academic cardiology fellows, heart failure programs, structural heart teams, cardio-oncology clinics, preventive cardiology practices, clinical trial sites.
 
@@ -1462,7 +1462,7 @@ All outputs will include standard disclaimers:
 
 | Phase | Hardware | Price | Scope |
 |---|---|---|---|
-| **Phase 1 -- Proof Build** | DGX Spark | $3,999 | All 11 workflows (mock/cloud NIM), 12 collections, 6 risk calculators |
+| **Phase 1 -- Proof Build** | DGX Spark | $4,699 | All 11 workflows (mock/cloud NIM), 12 collections, 6 risk calculators |
 | **Phase 2 -- Departmental** | 1-2x DGX B200 | $500K-$1M | Full NIM stack, live echo/CT/MRI processing, PACS integration |
 | **Phase 3 -- Multi-Site** | 4-8x DGX B200 | $2M-$4M | NVIDIA FLARE federated learning across sites, population analytics |
 | **Phase 4 -- AI Factory** | DGX SuperPOD | $7M-$60M+ | Thousands concurrent studies, real-time ICU monitoring, national registries |
@@ -1544,7 +1544,7 @@ No existing product combines:
 3. RAG-grounded evidence synthesis with citations
 4. Validated risk calculators (ASCVD, HEART, CHA₂DS₂-VASc)
 5. GDMT optimization engine
-6. On-device deployment ($3,999)
+6. On-device deployment ($4,699)
 7. Open-source (Apache 2.0)
 
 ### 22.2 Defensibility
@@ -1608,7 +1608,7 @@ The Cardiology Intelligence Agent represents the natural next extension of the H
 
 The 12-collection Milvus architecture, 8 reference clinical workflows, 6 validated risk calculators, and GDMT optimization engine provide a comprehensive decision support platform that covers the full spectrum of cardiovascular practice: from preventive risk stratification through acute coronary syndromes to advanced heart failure management and cardio-oncology surveillance.
 
-Deploying on a single NVIDIA DGX Spark ($3,999) ensures that this intelligence is accessible not just to elite academic centers but to community cardiologists, rural health systems, and resource-limited institutions worldwide. Combined with Apache 2.0 licensing and the HCLS AI Factory's proven open-source approach, the Cardiology Intelligence Agent will democratize cardiovascular AI in a way that no existing commercial product achieves.
+Deploying on a single NVIDIA DGX Spark ($4,699) ensures that this intelligence is accessible not just to elite academic centers but to community cardiologists, rural health systems, and resource-limited institutions worldwide. Combined with Apache 2.0 licensing and the HCLS AI Factory's proven open-source approach, the Cardiology Intelligence Agent will democratize cardiovascular AI in a way that no existing commercial product achieves.
 
 ---
 

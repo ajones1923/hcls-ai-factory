@@ -77,7 +77,7 @@ On a regular computer, this takes **1-2 days**. That's too slow for clinical use
 
 A **GPU** (Graphics Processing Unit) is a special computer chip originally designed for video games. It turns out GPUs are also great at biology — they can process millions of DNA reads simultaneously.
 
-**NVIDIA Parabricks** is software that uses a GPU to do both alignment and variant calling. On the NVIDIA DGX Spark (a desktop computer that costs $3,999), Parabricks completes the entire process in about **1-4 hours** instead of 1-2 days. That's a 10-20× speedup!
+**NVIDIA Parabricks** is software that uses a GPU to do both alignment and variant calling. On the NVIDIA DGX Spark (a desktop computer that costs $4,699), Parabricks completes the entire process in about **1-4 hours** instead of 1-2 days. That's a 10-20× speedup!
 
 ### BWA-MEM2: Alignment
 
@@ -225,7 +225,7 @@ The demo produces 100 novel VCP inhibitor candidates. The top candidate improves
 
 ### A Supercomputer on Your Desk
 
-The entire pipeline runs on the **NVIDIA DGX Spark** — a desktop computer that costs $3,999. It contains:
+The entire pipeline runs on the **NVIDIA DGX Spark** — a desktop computer that costs $4,699. It contains:
 
 - **GB10 GPU** — the chip that makes everything fast
 - **128 GB unified memory** — shared between CPU and GPU (no data copying needed)
@@ -239,7 +239,7 @@ In most computers, the CPU and GPU have separate memory, and data must be copied
 
 ### Scaling Up
 
-The same software that runs on a $3,999 DGX Spark can scale to larger systems:
+The same software that runs on a $4,699 DGX Spark can scale to larger systems:
 - **DGX B200** (~$500K-$1M) — for hospital departments processing multiple patients simultaneously
 - **DGX SuperPOD** ($7M-$60M+) — for large healthcare systems processing thousands of patients
 
@@ -286,7 +286,7 @@ Note: NVIDIA BioNeMo NIMs (MolMIM, DiffDock) are free for development but requir
 | **ClinVar** | A public database of disease-related DNA variants |
 | **Cryo-EM** | A technique for determining protein structures using frozen samples |
 | **DeepVariant** | Google's AI for identifying DNA variants (>99% accuracy) |
-| **DGX Spark** | NVIDIA's $3,999 desktop AI computer |
+| **DGX Spark** | NVIDIA's $4,699 desktop AI computer |
 | **DiffDock** | NVIDIA's AI for predicting how molecules bind to proteins |
 | **DNA** | Deoxyribonucleic acid — the molecule that stores genetic instructions |
 | **Docking** | Predicting how a drug molecule fits into a protein |

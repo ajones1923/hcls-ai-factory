@@ -562,7 +562,7 @@ Note: Ingest rate is dominated by BGE-small embedding time (~180ms per text on C
 | UI framework | Streamlit | Port 8521, NVIDIA black/green theme |
 | Data models | Pydantic | BaseModel + Field validation |
 | Configuration | Pydantic BaseSettings | Environment variable support |
-| Hardware target | NVIDIA DGX Spark | GB10 GPU, 128GB unified, $3,999 |
+| Hardware target | NVIDIA DGX Spark | GB10 GPU, 128GB unified, $4,699 |
 
 ### 9.2 Service Ports
 
@@ -692,7 +692,7 @@ This agent demonstrates the **generalizability** of the HCLS AI Factory architec
 - **Same Milvus instance** — 10 new owned collections alongside existing `genomic_evidence` (3.56M vectors, read-only)
 - **Same embedding model** — BGE-small-en-v1.5 (384-dim)
 - **Same LLM** — Claude via Anthropic API
-- **Same hardware** — NVIDIA DGX Spark ($3,999)
+- **Same hardware** — NVIDIA DGX Spark ($4,699)
 - **Same patterns** — Pydantic models, BaseIngestPipeline, knowledge graph, query expansion
 
 The key architectural insight: **the platform is not disease-specific**. By changing the knowledge graph, query expansion maps, and collection schemas, the same RAG architecture serves any therapeutic area. The CAR-T agent proves this with a completely different domain (cell therapy manufacturing vs. small molecule drug discovery) running on the same infrastructure.

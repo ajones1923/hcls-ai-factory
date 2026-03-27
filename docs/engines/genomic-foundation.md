@@ -18,7 +18,7 @@ Patient DNA → BWA-MEM2 alignment → DeepVariant variant calling → ClinVar/A
 | Metric | Value |
 |--------|-------|
 | Variants detected | 11.7M per genome |
-| Searchable variants | 3.5M (after filtering + annotation) |
+| Annotated variants | 3.5M (after filtering + annotation) |
 | Processing time | 120-240 minutes (GPU) vs 24-48 hours (CPU) |
 | ClinVar matches | 35,616 per genome |
 | AlphaMissense predictions | 6,831 per genome |

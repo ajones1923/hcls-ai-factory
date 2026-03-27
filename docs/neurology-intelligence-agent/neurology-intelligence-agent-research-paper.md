@@ -18,7 +18,7 @@ This paper presents the architectural design, clinical rationale, and product re
 
 The system extends the proven multi-collection RAG architecture established by six existing intelligence agents in the HCLS AI Factory (Precision Biomarker, Precision Oncology, CAR-T, Imaging, Autoimmune, and the planned Cardiology agent), adapting it with neurology-specific clinical workflows, validated assessment scales, cross-modal neuroimaging-genomics triggers, and structured reporting aligned with AAN practice guidelines. Eight reference clinical workflows will cover the highest-impact neurological use cases: acute stroke triage, dementia evaluation, epilepsy focus localization, brain tumor grading, multiple sclerosis monitoring, Parkinson's disease assessment, headache classification, and neuromuscular disease evaluation.
 
-The agent will deploy on a single NVIDIA DGX Spark ($3,999) using BGE-small-en-v1.5 embeddings (384-dimensional, IVF_FLAT, COSINE), Claude Sonnet 4.6 for evidence synthesis, and four NVIDIA NIM microservices for on-device inference. Licensed under Apache 2.0, the platform will democratize access to integrated neurological intelligence that currently requires tertiary academic medical center infrastructure and subspecialty expertise concentrated in a small number of institutions globally.
+The agent will deploy on a single NVIDIA DGX Spark ($4,699) using BGE-small-en-v1.5 embeddings (384-dimensional, IVF_FLAT, COSINE), Claude Sonnet 4.6 for evidence synthesis, and four NVIDIA NIM microservices for on-device inference. Licensed under Apache 2.0, the platform will democratize access to integrated neurological intelligence that currently requires tertiary academic medical center infrastructure and subspecialty expertise concentrated in a small number of institutions globally.
 
 ---
 
@@ -109,7 +109,7 @@ This paper presents the complete architectural blueprint and product requirement
 - **Cross-modal triggers** linking neuroimaging findings to genomic workup (epilepsy gene panels, dementia gene panels, movement disorder genetics, neuromuscular genetics) via the shared `genomic_evidence` collection
 - **Clinical decision support engines** implementing validated neurological scales (NIHSS, GCS, MoCA, UPDRS, EDSS, mRS, HIT-6) and diagnostic algorithms
 - A comprehensive **product requirements document** with user stories, acceptance criteria, and implementation prioritization
-- **Deployment on a single NVIDIA DGX Spark** ($3,999), maintaining the platform's commitment to accessible AI
+- **Deployment on a single NVIDIA DGX Spark** ($4,699), maintaining the platform's commitment to accessible AI
 
 ---
 
@@ -210,7 +210,7 @@ No existing tool synthesizes all seven dimensions. A multi-collection RAG archit
 | **QMENTA** (Neuroimaging platform) | Brain volumetrics, cloud neuroimaging analysis | Research-focused, no clinical workflow integration, cloud-only |
 | **Tempus** (Neuro-oncology) | Molecular profiling, clinical data | Proprietary, expensive, limited to neuro-oncology |
 
-**Our differentiation**: The Neurology Intelligence Agent will be the only system combining (1) multi-modal neuroimaging AI, (2) EEG/EMG integration, (3) genomic cross-modal triggers, (4) literature RAG with citations, (5) validated neurological scales, (6) guideline-aligned decision support, and (7) on-device deployment -- all open-source at $3,999.
+**Our differentiation**: The Neurology Intelligence Agent will be the only system combining (1) multi-modal neuroimaging AI, (2) EEG/EMG integration, (3) genomic cross-modal triggers, (4) literature RAG with citations, (5) validated neurological scales, (6) guideline-aligned decision support, and (7) on-device deployment -- all open-source at $4,699.
 
 ### 3.3 Target Users
 
@@ -1263,7 +1263,7 @@ Sixteen domain-specific expansion maps:
 
 ### 15.1 Product Vision
 
-**Vision Statement:** Enable any neurologist, anywhere, to access integrated neurological intelligence combining neuroimaging AI, electrophysiology correlation, genomic analysis, validated clinical scales, and evidence synthesis -- on a single $3,999 device.
+**Vision Statement:** Enable any neurologist, anywhere, to access integrated neurological intelligence combining neuroimaging AI, electrophysiology correlation, genomic analysis, validated clinical scales, and evidence synthesis -- on a single $4,699 device.
 
 ### 15.2 User Stories
 
@@ -1416,7 +1416,7 @@ Expected: 3,500-6,000 abstracts
 
 | Phase | Hardware | Price | Scope |
 |---|---|---|---|
-| **Phase 1 -- Proof Build** | DGX Spark | $3,999 | All 8 workflows (mock/cloud NIM), 13 collections, 10 clinical scales |
+| **Phase 1 -- Proof Build** | DGX Spark | $4,699 | All 8 workflows (mock/cloud NIM), 13 collections, 10 clinical scales |
 | **Phase 2 -- Departmental** | 1-2x DGX B200 | $500K-$1M | Full NIM stack, live MRI/CT/EEG processing, PACS integration |
 | **Phase 3 -- Multi-Site** | 4-8x DGX B200 | $2M-$4M | NVIDIA FLARE federated learning across neurology centers |
 | **Phase 4 -- AI Factory** | DGX SuperPOD | $7M-$60M+ | National brain health surveillance, real-time ICU neuro monitoring |
@@ -1488,7 +1488,7 @@ No existing product combines:
 3. RAG-grounded evidence synthesis with citations
 4. Validated neurological scales (NIHSS, GCS, MoCA, UPDRS, EDSS)
 5. Diagnostic algorithms
-6. On-device deployment ($3,999)
+6. On-device deployment ($4,699)
 7. Open-source (Apache 2.0)
 
 ### 22.2 Defensibility
@@ -1543,7 +1543,7 @@ The Neurology Intelligence Agent addresses a critical unmet need at the intersec
 
 The breadth of coverage (stroke, dementia, epilepsy, brain tumors, MS, Parkinson's, headache, neuromuscular disease) is unmatched by any existing commercial product, all of which address only one or two subspecialties. Combined with genomic integration that enables precision neurology (SCN1A-guided epilepsy treatment, GBA-stratified Parkinson's management, PSEN1/2 Alzheimer's diagnosis), the agent represents a new paradigm in neurological clinical decision support.
 
-Deploying on a single NVIDIA DGX Spark ($3,999) ensures accessibility for community neurologists, rural health systems, and resource-limited institutions globally -- precisely the settings where the neurologist shortage is most acute and subspecialty expertise least available.
+Deploying on a single NVIDIA DGX Spark ($4,699) ensures accessibility for community neurologists, rural health systems, and resource-limited institutions globally -- precisely the settings where the neurologist shortage is most acute and subspecialty expertise least available.
 
 ---
 

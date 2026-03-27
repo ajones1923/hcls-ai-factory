@@ -10,7 +10,7 @@ License: Apache 2.0
 
 ## Welcome
 
-You are reading the foundational learning guide for the CAR-T Intelligence Agent, an AI-powered research assistant that breaks down data silos across the entire CAR-T cell therapy development lifecycle. This system is part of the HCLS AI Factory, an end-to-end precision medicine platform that runs on a single NVIDIA DGX Spark ($3,999).
+You are reading the foundational learning guide for the CAR-T Intelligence Agent, an AI-powered research assistant that breaks down data silos across the entire CAR-T cell therapy development lifecycle. This system is part of the HCLS AI Factory, an end-to-end precision medicine platform that runs on a single NVIDIA DGX Spark ($4,699).
 
 ### Who this guide is for
 
@@ -1454,7 +1454,7 @@ The CAR-T Intelligence Agent is open-source under the Apache 2.0 license. Contri
 | **CRS** | Cytokine Release Syndrome. An inflammatory response caused by massive cytokine release from activated CAR-T cells. The most common serious side effect of CAR-T therapy. Graded 1-4 by the ASTCT consensus. |
 | **ctDNA** | Circulating Tumor DNA. Cell-free DNA released by tumor cells into the bloodstream. Used as a liquid biopsy marker to monitor treatment response. |
 | **DLBCL** | Diffuse Large B-Cell Lymphoma. The most common type of non-Hodgkin lymphoma and a major indication for CD19 CAR-T therapy. |
-| **DGX Spark** | An NVIDIA desktop computer with a GB10 GPU, 128 GB unified LPDDR5x memory, and 20 ARM cores. The hardware target for this system ($3,999). |
+| **DGX Spark** | An NVIDIA desktop computer with a GB10 GPU, 128 GB unified LPDDR5x memory, and 20 ARM cores. The hardware target for this system ($4,699). |
 | **Embedding** | A numerical representation of text as a vector (list of numbers) in a high-dimensional space. Similar texts have similar embeddings. |
 | **FAERS** | FDA Adverse Event Reporting System. A database of post-market safety reports submitted to the FDA. |
 | **FastAPI** | A modern Python web framework for building REST APIs. Used for the CAR-T Intelligence Agent's API server. |

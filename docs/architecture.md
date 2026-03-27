@@ -41,55 +41,11 @@ All three stages run on the DGX Spark's GB10 Grace Blackwell Superchip with 128 
 
 ---
 
-## Architectural Infographic (Alt View)
-
-<div class="architecture-showcase">
-  <a href="../diagrams/dgx_spark/HCLS%20AI%20Factory%20on%20NVIDIA%20DGX%20Spark%20Architectural%20Infographic%20v1.0%20%28Alt%20View%29.png" class="lightbox-link" target="_blank">
-    <img src="../diagrams/dgx_spark/HCLS%20AI%20Factory%20on%20NVIDIA%20DGX%20Spark%20Architectural%20Infographic%20v1.0%20%28Alt%20View%29.png" alt="HCLS AI Factory on NVIDIA DGX Spark — Architectural Infographic Alt View" class="architecture-img" loading="lazy">
-  </a>
-  <p class="architecture-caption">Click image to expand</p>
-</div>
-
----
-
 ## From Patient DNA to New Medicine Infographic
 
 <div class="architecture-showcase">
   <a href="../diagrams/dgx_spark/From%20Patient%20DNA%20to%20New%20Medicine%20Infographic.png" class="lightbox-link" target="_blank">
     <img src="../diagrams/dgx_spark/From%20Patient%20DNA%20to%20New%20Medicine%20Infographic.png" alt="From Patient DNA to New Medicine Infographic" class="architecture-img" loading="lazy">
-  </a>
-  <p class="architecture-caption">Click image to expand</p>
-</div>
-
----
-
-## Pipeline Logical Diagram
-
-<div class="architecture-showcase">
-  <a href="../diagrams/dgx_spark/HCLS%20AI%20Factory%20on%20NVIDIA%20DGX%20Spark%20Pipeline%20Logical%20Diagram%20v1.0.png" class="lightbox-link" target="_blank">
-    <img src="../diagrams/dgx_spark/HCLS%20AI%20Factory%20on%20NVIDIA%20DGX%20Spark%20Pipeline%20Logical%20Diagram%20v1.0.png" alt="HCLS AI Factory on NVIDIA DGX Spark — Pipeline Logical Diagram" class="architecture-img" loading="lazy">
-  </a>
-  <p class="architecture-caption">Click image to expand</p>
-</div>
-
----
-
-## draw.io Diagrams
-
-### High Level
-
-<div class="architecture-showcase">
-  <a href="../diagrams/dgx_spark/HCLS%20AI%20Factory%20on%20NVIDIA%20DGX%20Spark%20drawio%20Diagram-High%20Level%20v1.0.png" class="lightbox-link" target="_blank">
-    <img src="../diagrams/dgx_spark/HCLS%20AI%20Factory%20on%20NVIDIA%20DGX%20Spark%20drawio%20Diagram-High%20Level%20v1.0.png" alt="HCLS AI Factory — draw.io High Level" class="architecture-img" loading="lazy">
-  </a>
-  <p class="architecture-caption">Click image to expand</p>
-</div>
-
-### Medium Level
-
-<div class="architecture-showcase">
-  <a href="../diagrams/dgx_spark/HCLS%20AI%20Factory%20on%20NVIDIA%20DGX%20Spark%20drawio%20Diagram-Medium%20Level%20v1.0.png" class="lightbox-link" target="_blank">
-    <img src="../diagrams/dgx_spark/HCLS%20AI%20Factory%20on%20NVIDIA%20DGX%20Spark%20drawio%20Diagram-Medium%20Level%20v1.0.png" alt="HCLS AI Factory — draw.io Medium Level" class="architecture-img" loading="lazy">
   </a>
   <p class="architecture-caption">Click image to expand</p>
 </div>
@@ -111,7 +67,7 @@ All three stages run on the DGX Spark's GB10 Grace Blackwell Superchip with 128 
 | **Memory** | 128 GB unified LPDDR5x |
 | **CPU** | ARM64 cores (Grace) |
 | **Storage** | NVMe SSD |
-| **Price** | $3,999 |
+| **Price** | $4,699 |
 
 ---
 

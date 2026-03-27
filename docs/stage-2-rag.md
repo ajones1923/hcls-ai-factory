@@ -158,6 +158,28 @@ This variant becomes the input for [Stage 3: Drug Discovery](stage-3-drug-discov
 
 ---
 
+## The Precision Intelligence Network — 11 Agents
+
+Stage 2 is more than a search engine. It powers the **Precision Intelligence Network** — a constellation of **11 intelligence agents**, each specialized for a clinical domain. All agents share read-only access to the 3.56 million annotated variant vectors in the `genomic_evidence` collection and follow a common five-phase reasoning loop: plan, search, evaluate, synthesize, report.
+
+| # | Agent | Port | Domain |
+|---|-------|------|--------|
+| 1 | Precision Oncology | 8503 | Molecular tumor board decision support |
+| 2 | Precision Biomarker | 8502 | Biomarker discovery and analysis, biological age estimation |
+| 3 | CAR-T Intelligence | 8504 | Cellular immunotherapy, response biomarker tracking |
+| 4 | Imaging Intelligence | 8505 | Medical imaging AI (CT, MRI, X-ray) with NVIDIA NIMs |
+| 5 | Precision Autoimmune | 8506 | 13 autoimmune conditions, flare prediction |
+| 6 | Pharmacogenomics | 8507 | Drug-gene interactions, dosing algorithms |
+| 7 | Cardiology Intelligence | 8527 | 6 risk calculators (ASCVD, HEART, CHA2DS2-VASc) |
+| 8 | Clinical Trial Intelligence | 8538 | Trial matching and enrollment optimization |
+| 9 | Rare Disease Diagnostic | 8544 | 88 rare diseases, 23 ACMG criteria |
+| 10 | Neurology Intelligence | 8528 | Neurodegeneration pathways, treatment planning |
+| 11 | Single-Cell Intelligence | 8540 | 57 cell types, expression profiling |
+
+Each agent adds **domain-specific collections** (10–15 per agent) on top of the shared genomic evidence, bringing the total to approximately 80+ specialized collections across the platform. Agents also communicate via cross-modal triggers — for example, a suspicious lung nodule detected by the Imaging Agent can automatically initiate genomic analysis through the Oncology Agent.
+
+---
+
 ## Why This Matters
 
 Traditional variant interpretation requires:
@@ -172,4 +194,5 @@ The RAG pipeline delivers:
 - **Grounded reasoning** — Every claim traceable to evidence
 - **Unified view** — All annotations in one place
 - **Natural language** — No bioinformatics expertise required
+- **11 domain-specialized agents** — Expert reasoning across oncology, cardiology, rare disease, and more
 

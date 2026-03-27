@@ -7,7 +7,7 @@ description: 11 domain-specialized AI agents sharing a common molecular foundati
 
 **Stage 2 of the HCLS AI Factory Pipeline**
 
-The Precision Intelligence Network is a coordinated system of 11 domain-specialized intelligence agents, each built on RAG (Retrieval-Augmented Generation) architecture with Milvus vector search and Claude AI. All 11 agents share read-only access to the `genomic_evidence` collection (3.5M vectors) produced by the [Genomic Foundation Engine](genomic-foundation.md), while maintaining their own domain-specific vector collections.
+The Precision Intelligence Network is a coordinated system of 11 domain-specialized intelligence agents, each built on RAG (Retrieval-Augmented Generation) architecture with Milvus vector search and Claude AI. All 11 agents share read-only access to the `genomic_evidence` collection (3.56M vectors) produced by the [Genomic Foundation Engine](genomic-foundation.md), while maintaining their own domain-specific vector collections.
 
 ## What It Does
 
@@ -34,7 +34,7 @@ Raw genomic variants from Stage 1 become clinically actionable intelligence thro
 All 11 agents connect to the `genomic_evidence` collection as a read-only data source. This shared foundation ensures:
 
 - **Consistency** -- Every agent reasons from the same molecular data
-- **Efficiency** -- 3.5M vectors are indexed once, queried by all
+- **Efficiency** -- 3.56M vectors are indexed once, queried by all
 - **Traceability** -- Variant-level lineage from FASTQ through every agent's output
 
 ## Cross-Agent Coordination
@@ -92,7 +92,7 @@ User Query / Patient Data
 |--------|-------|
 | Total agents | 11 |
 | Total domain-specific collections | 142 |
-| Shared genomic vectors | 3.5M |
+| Shared genomic vectors | 3.56M |
 | Total test cases | 6,000+ |
 | Therapeutic areas covered | 13 |
 | Genes covered | 201 |

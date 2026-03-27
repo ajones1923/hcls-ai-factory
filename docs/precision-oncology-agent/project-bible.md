@@ -8,7 +8,7 @@
   Author  : Adam Jones
   Date    : March 2026
   License : Apache 2.0
-  Platform: NVIDIA DGX Spark ($3,999)
+  Platform: NVIDIA DGX Spark ($4,699)
 ===========================================================================
 -->
 
@@ -20,7 +20,7 @@
 | Author      | Adam Jones                                         |
 | Date        | March 2026                                         |
 | License     | Apache 2.0                                         |
-| Platform    | NVIDIA DGX Spark ($3,999)                          |
+| Platform    | NVIDIA DGX Spark ($4,699)                          |
 | LLM         | Claude Sonnet 4.6 (Anthropic)                      |
 | Embeddings  | BAAI/bge-small-en-v1.5 (384-dim)                   |
 | Vector DB   | Milvus 2.4 Standalone                              |
@@ -100,7 +100,7 @@ intelligence platform that:
 - Matches patients to active clinical trials using hybrid deterministic
   and semantic search
 - Generates MTB-ready packets in Markdown, JSON, PDF, and FHIR R4
-- Runs entirely on a single NVIDIA DGX Spark ($3,999) with no cloud
+- Runs entirely on a single NVIDIA DGX Spark ($4,699) with no cloud
   dependencies
 
 ---
