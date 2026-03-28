@@ -300,7 +300,7 @@ The 11 intelligence agents provide cross-domain analysis for this case:
 | Parabricks | nvcr.io/nvidia/clara/clara-parabricks:4.6.0-1 |
 | DeepVariant | Google DeepVariant (via Parabricks, >99% accuracy) |
 | Reference | GRCh38 (3.1 GB) |
-| ClinVar | February 2026 release (4.1M variants) |
+| ClinVar | March 2026 release (4.1M variants) |
 | AlphaMissense | v1.0 (71,697,560 predictions) |
 | VEP | Ensembl VEP (GRCh38) |
 | Milvus | v2.4 (IVF_FLAT, nlist=1024, COSINE) |

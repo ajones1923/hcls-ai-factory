@@ -1,6 +1,5 @@
 # Clinical Trial Intelligence Agent -- Architecture Guide
 
-**Version:** 2.0.0
 **Date:** March 22, 2026
 **Author:** Adam Jones
 **Platform:** NVIDIA DGX Spark -- HCLS AI Factory
@@ -633,4 +632,4 @@ All metrics use the `trial_` prefix for dashboard filtering. The metrics module 
 
 ---
 
-*Clinical Trial Intelligence Agent v2.0.0 -- Architecture Guide -- March 2026*
+*Clinical Trial Intelligence Agent -- Architecture Guide -- March 2026*

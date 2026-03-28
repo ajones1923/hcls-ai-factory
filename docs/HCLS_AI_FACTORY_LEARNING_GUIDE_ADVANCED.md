@@ -12,7 +12,7 @@ tags:
 >
 > **What You'll Learn:** Deep technical analysis of the HCLS AI Factory architecture, from BWA-MEM2 seed-and-extend algorithms through diffusion-based molecular docking, with emphasis on algorithmic design decisions, scaling bottlenecks, and clinical translation barriers.
 >
-> License: Apache 2.0 | Date: February 2026
+> License: Apache 2.0 | Date: March 2026
 
 ---
 
@@ -91,7 +91,7 @@ Google DeepVariant reframes variant calling as an image classification problem. 
 
 ### 2.1 ClinVar: Clinical Variant Classification
 
-ClinVar (NCBI) is a freely accessible archive of relationships between human variants and phenotypes. The HCLS AI Factory integrates the February 2026 release containing 4.1 million variant-condition records.
+ClinVar (NCBI) is a freely accessible archive of relationships between human variants and phenotypes. The HCLS AI Factory integrates the March 2026 release containing 4.1 million variant-condition records.
 
 **Classification system (ACMG/AMP):**
 - **Pathogenic (P):** Strong evidence of disease causation
@@ -447,4 +447,4 @@ The Precision Intelligence Network includes 11 intelligence agents covering onco
 
 ---
 
-*HCLS AI Factory Learning Guide: Advanced — Apache 2.0 | February 2026*
+*HCLS AI Factory Learning Guide: Advanced — Apache 2.0 | March 2026*

@@ -12,7 +12,7 @@ tags:
 >
 > **What You'll Learn:** How scientists use computers and AI to read DNA, find disease-causing changes, and design new medicines — all on a single desktop computer.
 >
-> License: Apache 2.0 | Date: February 2026
+> License: Apache 2.0 | Date: March 2026
 
 ---
 
@@ -312,4 +312,4 @@ Note: NVIDIA BioNeMo NIMs (MolMIM, DiffDock) are free for development but requir
 
 ---
 
-*HCLS AI Factory Learning Guide: Foundations — Apache 2.0 | February 2026*
+*HCLS AI Factory Learning Guide: Foundations — Apache 2.0 | March 2026*

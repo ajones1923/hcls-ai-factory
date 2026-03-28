@@ -2,7 +2,6 @@
 
 **Author:** Adam Jones
 **Date:** March 2026
-**Version:** 1.0.0
 **Codebase:** `hcls-ai-factory/ai_agent_adds/cart_intelligence_agent/`
 
 ---

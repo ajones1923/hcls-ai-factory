@@ -1,8 +1,7 @@
 # CAR-T Intelligence Agent — Architecture Design Document
 
 **Author:** Adam Jones
-**Date:** February 2026
-**Version:** 1.2.0
+**Date:** March 2026
 **License:** Apache 2.0
 
 ---

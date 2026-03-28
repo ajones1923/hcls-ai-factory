@@ -1,6 +1,5 @@
 # Cardiology Intelligence Agent -- Architecture Guide
 
-**Version:** 1.0.0
 **Author:** Adam Jones
 **Date:** March 2026
 **License:** Apache 2.0

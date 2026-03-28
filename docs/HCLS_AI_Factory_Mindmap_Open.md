@@ -7,7 +7,7 @@ search:
 
 > **Purpose:** Comprehensive reference map of the HCLS AI Factory platform for Secondary Genomics to Novel Drug Discovery. Covers every component, data flow, technology, and integration point.
 >
-> License: Apache 2.0 | Date: February 2026
+> License: Apache 2.0 | Date: March 2026
 
 ---
 
@@ -402,4 +402,4 @@ Illumina Sequencer → FASTQ (~200 GB, 30× WGS)
 ---
 
 > *This document was created for the HCLS AI Factory — Secondary Genomics to Novel Drug Discovery.*
-> *Apache 2.0 License | February 2026*
+> *Apache 2.0 License | March 2026*

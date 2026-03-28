@@ -1,6 +1,5 @@
 # Neurology Intelligence Agent -- Demo Guide
 
-**Version:** 1.0.0
 **Date:** 2026-03-22
 **Author:** Adam Jones
 
@@ -276,5 +275,5 @@ Via Streamlit:
 
 ---
 
-*Neurology Intelligence Agent -- Demo Guide v1.0.0*
+*Neurology Intelligence Agent -- Demo Guide*
 *HCLS AI Factory / GTC Europe 2026*

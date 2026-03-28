@@ -1,6 +1,5 @@
 # Clinical Trial Intelligence Agent -- Production Readiness & Capability Report
 
-**Version:** 2.0.0
 **Date:** March 22, 2026
 **Author:** Adam Jones
 **Status:** Production Demo Ready (10/10)
@@ -1108,4 +1107,4 @@ streamlit run app/trial_ui.py --server.port 8128
 
 ---
 
-*Generated: March 22, 2026 | Clinical Trial Intelligence Agent v2.0.0 | HCLS AI Factory*
+*Generated: March 22, 2026 | Clinical Trial Intelligence Agent | HCLS AI Factory*

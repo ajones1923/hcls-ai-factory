@@ -1,6 +1,5 @@
 # Neurology Intelligence Agent -- Production Readiness Report
 
-**Version:** 1.0.0
 **Date:** 2026-03-22
 **Author:** Adam Jones
 **Status:** Ready for Production Deployment
@@ -1268,6 +1267,6 @@ Issues identified during development and testing, with severity classification a
 
 ---
 
-*Neurology Intelligence Agent v1.0.0 -- Production Readiness Report*
+*Neurology Intelligence Agent -- Production Readiness Report*
 *HCLS AI Factory / GTC Europe 2026*
 *Author: Adam Jones -- March 2026*

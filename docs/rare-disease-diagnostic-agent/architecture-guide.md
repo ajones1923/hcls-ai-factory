@@ -1,6 +1,5 @@
 # Rare Disease Diagnostic Agent -- Architecture Guide
 
-**Version:** 1.0.0
 **Date:** March 22, 2026
 **Author:** Adam Jones
 **Platform:** NVIDIA DGX Spark -- HCLS AI Factory
@@ -258,7 +257,7 @@ Patient HPO Terms                Gene-HPO Associations
 
 ## 6. ACMG Classification Pipeline
 
-The ACMG/AMP variant classification pipeline implements a simplified but complete scoring system covering 28 criteria.
+The ACMG/AMP variant classification pipeline implements a simplified scoring system covering 23 of the 28 ACMG criteria.
 
 ```
 Variant Input

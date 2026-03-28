@@ -1,6 +1,5 @@
 # Clinical Trial Intelligence Agent -- Demo Guide
 
-**Version:** 2.0.0
 **Date:** March 22, 2026
 **Author:** Adam Jones
 **Platform:** NVIDIA DGX Spark -- HCLS AI Factory
@@ -449,4 +448,4 @@ python scripts/seed_knowledge.py
 
 ---
 
-*Clinical Trial Intelligence Agent v2.0.0 -- Demo Guide -- March 2026*
+*Clinical Trial Intelligence Agent -- Demo Guide -- March 2026*

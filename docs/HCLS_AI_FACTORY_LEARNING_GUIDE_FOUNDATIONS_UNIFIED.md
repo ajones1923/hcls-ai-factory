@@ -2,7 +2,6 @@
 
 **The Complete Beginner's Guide to Precision Medicine on NVIDIA DGX Spark**
 
-> **Version:** 1.0.0
 > **Author:** Adam Jones
 > **Date:** March 2026
 > **License:** Apache 2.0

@@ -2,7 +2,6 @@
 
 **Author:** Adam Jones
 **Date:** March 2026
-**Version:** 1.0.0
 **License:** Apache 2.0
 
 ---
@@ -1769,4 +1768,4 @@ All services join `imaging-network`. Docker DNS resolves service names
 ---
 
 *Last updated: March 2026*
-*Imaging Intelligence Agent v1.0.0 — HCLS AI Factory*
+*Imaging Intelligence Agent — HCLS AI Factory*

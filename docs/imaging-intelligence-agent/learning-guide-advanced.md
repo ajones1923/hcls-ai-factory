@@ -1,6 +1,5 @@
 # Imaging Intelligence Agent -- Advanced Learning Guide
 
-**Version:** 1.0
 **Date:** March 2026
 **Author:** Adam Jones
 **Audience:** Senior engineers, ML researchers, and platform architects extending the Imaging Intelligence Agent

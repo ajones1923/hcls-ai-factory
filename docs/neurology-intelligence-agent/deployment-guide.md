@@ -1,6 +1,5 @@
 # Neurology Intelligence Agent -- Deployment Guide
 
-**Version:** 1.0.0
 **Date:** 2026-03-22
 **Author:** Adam Jones
 
@@ -343,5 +342,5 @@ For production deployment beyond demo/development:
 
 ---
 
-*Neurology Intelligence Agent -- Deployment Guide v1.0.0*
+*Neurology Intelligence Agent -- Deployment Guide*
 *HCLS AI Factory / GTC Europe 2026*

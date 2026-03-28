@@ -1,6 +1,5 @@
 # Neurology Intelligence Agent -- Learning Guide: Advanced Topics
 
-**Version:** 1.0.0
 **Date:** 2026-03-22
 **Author:** Adam Jones
 
@@ -494,5 +493,5 @@ The agent encodes biomarker-to-treatment pathways:
 
 ---
 
-*Neurology Intelligence Agent -- Learning Guide: Advanced Topics v1.0.0*
+*Neurology Intelligence Agent -- Learning Guide: Advanced Topics*
 *HCLS AI Factory / GTC Europe 2026*

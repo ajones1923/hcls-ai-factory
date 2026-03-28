@@ -2,7 +2,6 @@
 
 **Author:** Adam Jones
 **Date:** March 2026
-**Version:** 1.0.0
 **Audience:** Engineers extending the agent, adding collections, writing new analysis modules, or deploying to production.
 
 ---

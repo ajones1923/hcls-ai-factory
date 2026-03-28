@@ -1,6 +1,5 @@
 # Single-Cell Intelligence Agent -- Production Readiness Report
 
-**Version:** 1.0.0
 **Date:** 2026-03-22
 **Author:** Adam Jones
 **Status:** Production Ready (Conditional)
@@ -1636,4 +1635,4 @@ The following must be addressed before production deployment:
 ---
 
 *Report generated: 2026-03-22*
-*HCLS AI Factory -- Single-Cell Intelligence Agent v1.0.0*
+*HCLS AI Factory -- Single-Cell Intelligence Agent*

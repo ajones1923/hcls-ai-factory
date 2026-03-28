@@ -1,6 +1,5 @@
 # CAR-T Intelligence Agent — Production Readiness Report
 
-**Version:** 2.0.0
 **Date:** March 12, 2026
 **Author:** Adam Jones
 **Status:** Production Demo Ready (10/10)
@@ -576,7 +575,7 @@ On each query completion, the UI publishes an event via `hcls_common.event_bus`:
 ### 9.6 Footer
 
 ```
-HCLS AI Factory — CAR-T Intelligence Agent v2.0.0 | Apache 2.0 | Adam Jones | February 2026
+HCLS AI Factory — CAR-T Intelligence Agent | Apache 2.0 | Adam Jones | March 2026
 ```
 
 ---

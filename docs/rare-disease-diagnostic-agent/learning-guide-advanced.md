@@ -2,7 +2,6 @@
 
 **ACMG 28-criteria deep dive, phenotype matching algorithms, family segregation analysis, natural history prediction, newborn screening expansion, and gene therapy pipelines.**
 
-**Version:** 1.0.0
 **Date:** March 22, 2026
 **Author:** Adam Jones
 **Platform:** NVIDIA DGX Spark -- HCLS AI Factory

@@ -1,6 +1,5 @@
 # Single-Cell Intelligence Agent -- Learning Guide: Advanced Topics
 
-**Version:** 1.0.0
 **Date:** 2026-03-22
 **Author:** Adam Jones
 
@@ -595,4 +594,4 @@ For CONDITIONAL targets, the agent recommends:
 
 ---
 
-*HCLS AI Factory -- Single-Cell Intelligence Agent Learning Guide: Advanced Topics v1.0.0*
+*HCLS AI Factory -- Single-Cell Intelligence Agent Learning Guide: Advanced Topics*
