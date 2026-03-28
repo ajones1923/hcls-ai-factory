@@ -96,6 +96,7 @@ nav:
   - Getting Started:
     - Quick-Start Checklist: quickstart.md
     - Demo Guide: HCLS_AI_FACTORY_DEMO_GUIDE.md
+    - Pediatric Oncology Demos: pediatric-oncology-demos/index.md
     - Deployment Guide: HCLS_AI_FACTORY_DGX_SPARK_DEPLOYMENT_GUIDE.md
     - Data Setup: DATA_SETUP.md
     - Troubleshooting: TROUBLESHOOTING.md
