@@ -1389,3 +1389,8 @@ A: It depends on the type of inhibitor. Competitive (reversible) inhibitors: phe
 3. **Standardizing CYP2D6 Genotype to Phenotype Translation** (Caudle et al., 2020) -- the activity score consensus paper
 4. **The PREPARE Study** (Swen et al., Lancet 2023) -- landmark pre-emptive PGx trial demonstrating 30% ADR reduction
 5. **Addressing Phenoconversion: The Achilles' Heel of Personalized Medicine** (Shah & Smith, 2015) -- comprehensive review of phenoconversion challenges
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The Pharmacogenomics Intelligence Agent is a clinical decision support research tool for pharmacogenomic analysis. Dosing recommendations should be verified by a clinical pharmacist. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

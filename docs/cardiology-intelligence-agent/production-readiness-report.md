@@ -1331,3 +1331,8 @@ streamlit run app/cardio_ui.py --server.port 8536
 *Report generated: March 14, 2026*
 *All statistics verified against codebase as of commit date.*
 *1,966 tests passing -- 100% pass rate -- 1.08s execution time*
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The Cardiology Intelligence Agent is a clinical decision support research tool for cardiovascular medicine. Risk calculator outputs are estimates and should not replace clinical judgment. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

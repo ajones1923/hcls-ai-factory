@@ -457,3 +457,8 @@ Phase 1: Prerequisites          Phase 2: Authentication
 - [ ] Phase 4: RAG Chat - Pending
 - [ ] Phase 5: Target Selection - Pending
 - [ ] Phase 6: Molecule Generation - Pending
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    This pipeline is a research tool. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

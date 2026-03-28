@@ -430,3 +430,8 @@ precision_autoimmune_agent/
 |-- run.sh                       # Startup script
 |-- README.md
 ```
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The Precision Autoimmune Agent is a clinical decision support research tool for autoimmune disease assessment. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

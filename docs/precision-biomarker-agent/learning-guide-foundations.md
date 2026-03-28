@@ -1654,3 +1654,8 @@ contributes positively to PhenoAge (associated with accelerated aging).
 
 *This guide is part of the HCLS AI Factory documentation. For questions,
 contributions, or corrections, please open an issue in the project repository.*
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The Precision Biomarker Agent is a clinical decision support research tool for biomarker analysis. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

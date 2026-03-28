@@ -97,3 +97,8 @@ This is a common pattern in modern AI platforms — open orchestration and code,
 - [NVIDIA AI Product Terms](https://www.nvidia.com/en-us/agreements/enterprise-software/product-specific-terms-for-ai-products/)
 - [Anthropic API Pricing](https://www.anthropic.com/pricing)
 - [Apache 2.0 License](https://www.apache.org/licenses/LICENSE-2.0)
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The HCLS AI Factory platform and its components are clinical decision support research tools. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

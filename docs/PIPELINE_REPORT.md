@@ -504,3 +504,8 @@ The **HCLS AI Factory** delivers a production-ready platform for precision medic
 - **Full Specialty Coverage**: 11 intelligence agents covering oncology, cardiology, neurology, rare disease, immunology, PGx, imaging, clinical trials, single-cell, CAR-T, and biomarkers
 - **Affordable Infrastructure**: Complete platform on a $4,699 NVIDIA DGX Spark
 - **Production Ready**: 36,000+ lines of tested code, 21 services, 139 collections
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The HCLS AI Factory platform and all intelligence agents described in this document are clinical decision support research tools. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

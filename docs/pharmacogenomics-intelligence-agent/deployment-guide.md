@@ -1306,3 +1306,8 @@ curl http://localhost:8107/health
 | Stale search results after ingest | Index not rebuilt | Run `collection.release()` then `collection.load()` |
 | Container restart loop | Missing environment variable or port conflict | Check `docker compose logs <service>` for error message |
 | CORS errors in browser | Origin not in PGX_CORS_ORIGINS | Add the origin URL to the CORS configuration |
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The Pharmacogenomics Intelligence Agent is a clinical decision support research tool for pharmacogenomic analysis. Dosing recommendations should be verified by a clinical pharmacist. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

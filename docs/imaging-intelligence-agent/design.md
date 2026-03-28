@@ -435,3 +435,8 @@ agent/
 - Part of the **HCLS AI Factory** platform
 - Built on NVIDIA DGX Spark ($4,699)
 - **Apache 2.0 License**
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The Imaging Intelligence Agent is a clinical decision support research tool for medical image analysis. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

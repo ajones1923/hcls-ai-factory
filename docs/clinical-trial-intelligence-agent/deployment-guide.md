@@ -630,3 +630,8 @@ cp .env ./backup/.env.$(date +%Y%m%d)
 ---
 
 *Clinical Trial Intelligence Agent -- Deployment Guide -- March 2026*
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The Clinical Trial Intelligence Agent is a clinical decision support research tool for clinical trial analysis. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

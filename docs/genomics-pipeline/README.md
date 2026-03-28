@@ -1080,3 +1080,8 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](../../
 ---
 
 **Note:** This pipeline uses public, de-identified genomics data (GIAB HG002) for demonstration and validation purposes. For clinical use, ensure compliance with relevant regulations and institutional guidelines.
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    This pipeline is a research tool. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

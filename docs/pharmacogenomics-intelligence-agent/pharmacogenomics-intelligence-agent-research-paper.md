@@ -1552,3 +1552,8 @@ The agent represents the seventh intelligence module in the HCLS AI Factory plat
 24. Bousman CA, et al. Pharmacogenetic tests and depressive symptom remission: a meta-analysis of randomized controlled trials. Pharmacogenomics. 2019;20(1):37-47. PMID: 30520364
 25. Empey PE, et al. Multisite investigation of outcomes with implementation of CYP2C19 genotype-guided antiplatelet therapy after percutaneous coronary intervention. JACC Cardiovasc Interv. 2018;11(2):181-191. PMID: 29348010
 26. Samwald M, et al. Incidence of exposure of patients in the United States to multiple drugs for which pharmacogenomic guidelines are available. PLoS One. 2016;11(10):e0164972. PMID: 27736993
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The Pharmacogenomics Intelligence Agent is a clinical decision support research tool for pharmacogenomic analysis. Dosing recommendations should be verified by a clinical pharmacist. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

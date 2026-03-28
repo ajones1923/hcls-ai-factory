@@ -981,3 +981,8 @@ Print this card and keep it next to your laptop during the demo.
 *Last updated: March 2026*
 *Author: Adam Jones*
 *Pipeline: HCLS AI Factory - Precision Oncology Intelligence Agent v0.1.0*
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The Precision Oncology Agent is a clinical decision support research tool for oncology. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

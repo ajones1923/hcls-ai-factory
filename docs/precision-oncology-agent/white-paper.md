@@ -645,3 +645,8 @@ benefits from comprehensive, evidence-based therapy selection.
 *This work is part of the HCLS AI Factory, an open-source precision
 medicine platform. Source code available under the Apache 2.0
 license.*
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The Precision Oncology Agent is a clinical decision support research tool for oncology. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

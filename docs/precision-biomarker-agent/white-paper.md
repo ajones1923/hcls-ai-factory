@@ -644,3 +644,8 @@ The gap between population-average laboratory medicine and genotype-informed pre
 **Data Availability.** All source code, reference data files, and test suites are available in the HCLS AI Factory repository under the Apache 2.0 license. No patient-identifiable data is included; demonstration patients use synthetic biomarker profiles.
 
 **Code Repository.** https://github.com/ajones1923/hcls-ai-factory
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The Precision Biomarker Agent is a clinical decision support research tool for biomarker analysis. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

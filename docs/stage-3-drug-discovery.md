@@ -242,3 +242,8 @@ flowchart LR
 
 **Total time:** Under 5 hours from raw DNA to drug candidates (plus one-time Stage 0 data acquisition).
 
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The Therapeutic Discovery Engine generates computational drug candidates for research purposes only. No candidates have been experimentally validated. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

@@ -2722,3 +2722,8 @@ docker build --platform linux/arm64 -t my-service:latest ./my-service/
 *This deployment guide is maintained as part of the HCLS AI Factory open project. For updates, issues, and contributions, visit the project repository on GitHub.*
 
 *Copyright 2026 Adam Jones. Licensed under the Apache License, Version 2.0.*
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The HCLS AI Factory platform and all intelligence agents described in this document are clinical decision support research tools. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

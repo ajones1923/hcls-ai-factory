@@ -316,3 +316,8 @@ For VAST R&D porting to VAST AI OS:
 | NGC API Key | Parabricks container, BioNeMo NIMs | https://ngc.nvidia.com/ |
 | Anthropic API Key | Claude AI in RAG pipeline | https://console.anthropic.com/ |
 | HuggingFace Token | Local LLM (optional, if using Llama) | https://huggingface.co/settings/tokens |
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The HCLS AI Factory platform and its components are clinical decision support research tools. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

@@ -448,3 +448,8 @@ The Precision Intelligence Network includes 11 intelligence agents covering onco
 ---
 
 *HCLS AI Factory Learning Guide: Advanced — Apache 2.0 | March 2026*
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The HCLS AI Factory platform and all intelligence agents described in this document are clinical decision support research tools. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

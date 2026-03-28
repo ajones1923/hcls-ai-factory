@@ -377,3 +377,8 @@ Dashed teal lines from this callout to: VCF Output (Stage 1), Claude (Stage 2), 
 8. **The $4,699 price point** in the footer should be visually prominent — it's a key selling point.
 9. **No proprietary tools.** Everything shown is open or NVIDIA-licensed.
 10. **The cross-modal section** on the right shows the connection to the Imaging Intelligence Agent — this is the broader HCLS AI Factory ecosystem.
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The HCLS AI Factory platform and its components are clinical decision support research tools. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

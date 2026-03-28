@@ -196,3 +196,8 @@ The RAG pipeline delivers:
 - **Natural language** — No bioinformatics expertise required
 - **11 domain-specialized agents** — Expert reasoning across oncology, cardiology, rare disease, and more
 
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The Precision Intelligence Network and its 11 intelligence agents are clinical decision support research tools. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

@@ -1656,3 +1656,8 @@ cart_intelligence_agent/
 ---
 
 *This document is the definitive architecture reference for the CAR-T Intelligence Agent. For questions or contributions, contact Adam Jones.*
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The CAR-T Intelligence Agent is a clinical decision support research tool for CAR-T cell therapy evaluation. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

@@ -530,3 +530,8 @@ docker-compose.dgx-spark.yml (top-level)
 ---
 
 *HCLS AI Factory -- Single-Cell Intelligence Agent Architecture Guide*
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The Single-Cell Intelligence Agent is a clinical decision support research tool for single-cell genomic analysis. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

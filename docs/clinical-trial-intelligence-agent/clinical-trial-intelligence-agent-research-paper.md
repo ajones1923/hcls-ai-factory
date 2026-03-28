@@ -2582,3 +2582,8 @@ All architecture, specifications, and performance projections are based on the p
 of the existing HCLS AI Factory platform and are subject to refinement during implementation.*
 
 *Copyright 2026 Adam Jones. Licensed under Apache License 2.0.*
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The Clinical Trial Intelligence Agent is a clinical decision support research tool for clinical trial analysis. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

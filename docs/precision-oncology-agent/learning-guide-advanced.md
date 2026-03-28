@@ -2118,3 +2118,8 @@ ONCO_CONVERSATION_MEMORY_DEPTH=5
 *This guide reflects the codebase as of March 2026. For introductory
 material, see `LEARNING_GUIDE.md`. For deployment instructions, see
 `DEPLOYMENT.md`.*
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The Precision Oncology Agent is a clinical decision support research tool for oncology. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

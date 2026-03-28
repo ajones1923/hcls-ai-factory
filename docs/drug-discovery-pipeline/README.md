@@ -1093,3 +1093,8 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](../../
 ---
 
 **Status**: Production Ready | Optimized for NVIDIA DGX Spark | FTD → Drug Discovery Demo
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    This pipeline is a research tool. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

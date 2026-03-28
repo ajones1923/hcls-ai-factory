@@ -604,3 +604,8 @@ As pharmacogenomics moves from academic research to routine clinical practice, s
 15. Thervet E, et al. Optimization of initial tacrolimus dose using pharmacogenetics. Clin Pharmacol Ther. 2010;87(6):721-726.
 16. Shehab N, et al. US emergency department visits for outpatient adverse drug events, 2013-2014. JAMA. 2016;316(20):2115-2125.
 17. Rush AJ, et al. Acute and longer-term outcomes in depressed outpatients requiring one or several treatment steps: a STAR*D report. Am J Psychiatry. 2006;163(11):1905-1917.
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The Pharmacogenomics Intelligence Agent is a clinical decision support research tool for pharmacogenomic analysis. Dosing recommendations should be verified by a clinical pharmacist. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

@@ -861,3 +861,8 @@ All input models use Pydantic field validators:
 - `CardioQuery.question`: min_length=1
 
 These validators prevent invalid clinical data from reaching calculator logic, ensuring reproducible results.
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The Cardiology Intelligence Agent is a clinical decision support research tool for cardiovascular medicine. Risk calculator outputs are estimates and should not replace clinical judgment. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

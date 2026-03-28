@@ -1797,3 +1797,8 @@ For the estimated 300 million people worldwide living with a rare disease -- hal
 
 *Part of the HCLS AI Factory -- an end-to-end precision medicine platform.*
 *https://github.com/ajones1923/hcls-ai-factory*
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The Rare Disease Diagnostic Agent is a clinical decision support research tool for rare disease evaluation. Variant classifications should be confirmed by a certified clinical geneticist. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

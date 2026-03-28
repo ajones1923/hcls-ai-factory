@@ -656,3 +656,8 @@ The diagnostic odyssey is not an inevitable feature of autoimmune disease. It is
 19. CPIC Guidelines for Pharmacogenomics-Guided Biologic Therapy. Clinical Pharmacogenetics Implementation Consortium. 2024.
 
 20. American Diabetes Association. Standards of Medical Care in Diabetes -- 2025. *Diabetes Care*. 2025;48(Suppl 1).
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The Precision Autoimmune Agent is a clinical decision support research tool for autoimmune disease assessment. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

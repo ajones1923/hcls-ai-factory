@@ -362,3 +362,8 @@ Measured performance of the HCLS AI Factory on NVIDIA DGX Spark ($4,699). All ti
 - Test suite timings measured via `pytest` with default configuration
 - "Traditional approach" estimates based on published literature for manual genomics + drug discovery workflows at academic medical centers
 - Agent benchmarks represent typical single-query performance under normal load
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The HCLS AI Factory platform and its components are clinical decision support research tools. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

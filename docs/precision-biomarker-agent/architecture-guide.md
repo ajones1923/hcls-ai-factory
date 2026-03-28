@@ -890,3 +890,8 @@ precision_biomarker_agent/
 |-- requirements.txt             Python dependencies
 +-- README.md                    Quick start guide
 ```
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The Precision Biomarker Agent is a clinical decision support research tool for biomarker analysis. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.
