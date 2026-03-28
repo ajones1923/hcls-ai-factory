@@ -9,7 +9,6 @@
 
 Automated detection, segmentation, longitudinal tracking, and clinical triage of CT, MRI, and chest X-ray studies on NVIDIA DGX Spark. Part of the [HCLS AI Factory](https://github.com/ajones1923/hcls-ai-factory).
 
-![HCLS AI Factory Imaging AI Agent on NVIDIA DGX Spark](HCLS%20AI%20Factory%20Imaging%20AI%20Agent%20on%20NVIDIA%20DGX%20Spark%20Infographic.png)
 
 **Source:** [github.com/ajones1923/imaging-intelligence-agent](https://github.com/ajones1923/imaging-intelligence-agent)
 
