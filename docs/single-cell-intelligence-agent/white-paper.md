@@ -2,7 +2,7 @@
 
 ## Bridging the Resolution Gap: AI-Powered Single-Cell Decision Support for Precision Oncology
 
-**Date:** 2026-03-22
+**Date:** March 2026
 **Author:** Adam Jones
 **HCLS AI Factory**
 
