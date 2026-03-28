@@ -1915,7 +1915,7 @@ known resistance mechanisms and suggests next-line therapies:
 | 10 | oncology_toxicity            | 3,900    | Treatment-related adverse events         |
 | +1 | genomic_evidence (shared)    | 3,560,000| Platform-wide variant vectors            |
 
-### 8.6 How the Agent Processes a Variant
+### 8.7 How the Agent Processes a Variant
 
 ```
 Input: BRAF V600E in melanoma
@@ -1936,7 +1936,7 @@ Input: BRAF V600E in melanoma
 [MTB Report] → Structured output with tiers, alternatives, resistance warnings
 ```
 
-### 8.7 Sample Response
+### 8.8 Sample Response
 
 ```json
 {
@@ -1952,7 +1952,7 @@ Input: BRAF V600E in melanoma
 }
 ```
 
-### 8.8 Common Questions
+### 8.9 Common Questions
 
 **Q: What's the difference between Level IA and Level IB evidence?**
 A: Level IA means FDA-approved for the same tumor type (e.g., dabrafenib for BRAF V600E melanoma). Level IB means FDA-approved but for a different tumor type (e.g., pembrolizumab for MSI-H in any solid tumor — the approval is tissue-agnostic).
@@ -1963,7 +1963,7 @@ A: VUS are classified as Level III. The agent surfaces any available functional 
 **Q: Can the agent process a full VCF file?**
 A: Yes. Upload a VCF through the Streamlit UI or POST to the API. The agent parses all variants, filters for those in known cancer genes, and generates a prioritized analysis of actionable findings.
 
-### 8.9 Running Your First Query
+### 8.10 Running Your First Query
 
 ```bash
 # Ask about treatment options for a BRAF V600E melanoma

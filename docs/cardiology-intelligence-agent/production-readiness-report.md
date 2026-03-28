@@ -1049,7 +1049,7 @@ When `prometheus_client` is not installed, the module silently exports no-op stu
 Full stack deployment with all HCLS AI Factory services:
 
 - Milvus standalone + etcd + MinIO
-- 5 intelligence agents (including Cardiology)
+- 11 intelligence agents (including Cardiology)
 - Monitoring (Prometheus + Grafana)
 - Landing page
 
