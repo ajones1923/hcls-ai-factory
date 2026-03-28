@@ -8,7 +8,7 @@ tags:
 
 ## Executive Summary
 
-The **HCLS AI Factory** represents a breakthrough in precision medicine, delivering an end-to-end platform that transforms raw patient DNA sequencing data into novel drug candidates in under **5 hours**. Built on NVIDIA's accelerated computing stack and powered by advanced AI, this platform reduces what traditionally takes months of manual analysis to a streamlined, GPU-accelerated workflow.
+The **HCLS AI Factory** represents a breakthrough in precision medicine, delivering an end-to-end platform that transforms raw patient DNA sequencing data into novel drug candidates in under **5 hours**. Built on NVIDIA's accelerated computing stack and powered by advanced AI, this platform reduces what traditionally takes months of manual analysis to a streamlined, GPU-accelerated workflow. The platform comprises **3 engines** and **11 intelligence agents** spanning genomics, oncology, cardiology, neurology, rare disease, immunology, pharmacogenomics, clinical trials, imaging, single-cell analysis, and cell therapy.
 
 ### Key Achievements
 
@@ -16,9 +16,12 @@ The **HCLS AI Factory** represents a breakthrough in precision medicine, deliver
 |:-------|:-----:|:-------|
 | **Processing Time** | ~5 hours | 99% reduction from traditional methods |
 | **Lines of Code** | 36,000+ | Production-grade implementation |
-| **Variant Coverage** | 3.56M | Comprehensive genomic database |
+| **Annotated Variants** | 3.56M | Comprehensive genomic database |
 | **Target Genes** | 201 | Clinically validated targets |
 | **Druggability Rate** | 85% | High therapeutic potential |
+| **Intelligence Agents** | 11 | Full clinical specialty coverage |
+| **Milvus Collections** | 139 | ~47,691 vectors across all agents |
+| **Services** | 21 | End-to-end platform orchestration |
 
 ---
 
@@ -30,7 +33,7 @@ The **HCLS AI Factory** represents a breakthrough in precision medicine, deliver
 
     ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
     │                 │     │                 │     │                 │
-    │    STAGE 1      │────▶│    STAGE 2      │────▶│    STAGE 3      │
+    │    ENGINE 1     │────▶│    ENGINE 2     │────▶│    ENGINE 3     │
     │                 │     │                 │     │                 │
     │   GENOMICS      │     │   RAG/CHAT      │     │   DRUG          │
     │   PIPELINE      │     │   PIPELINE      │     │   DISCOVERY     │
@@ -48,13 +51,21 @@ The **HCLS AI Factory** represents a breakthrough in precision medicine, deliver
                                     │
                     ┌───────────────────────────────┐
                     │     NVIDIA DGX SPARK          │
-                    │  128GB unified LPDDR5x | 144  │
+                    │  128GB unified LPDDR5x | $4,699│
                     └───────────────────────────────┘
+                                    │
+            ┌───────────────────────┼───────────────────────┐
+            │                       │                       │
+    ┌───────┴───────┐   ┌──────────┴─────────┐   ┌────────┴────────┐
+    │ 11 INTELLIGENCE│   │  139 MILVUS        │   │ MONITORING      │
+    │    AGENTS      │   │  COLLECTIONS       │   │ Grafana +       │
+    │  Clinical CDS  │   │  ~47,691 vectors   │   │ Prometheus      │
+    └───────────────┘   └────────────────────┘   └─────────────────┘
 ```
 
 ---
 
-## Stage 1: Genomics Pipeline
+## Engine 1: Genomics Pipeline
 
 ### Overview
 
@@ -109,7 +120,7 @@ The Genomics Pipeline transforms raw DNA sequencing data (FASTQ) into variant ca
 
 ---
 
-## Stage 2: RAG/Chat Pipeline
+## Engine 2: RAG/Chat Pipeline
 
 ### Overview
 
@@ -208,7 +219,7 @@ neurodegenerative disease with known inhibitors in clinical development.
 
 ---
 
-## Stage 3: Drug Discovery Pipeline
+## Engine 3: Drug Discovery Pipeline
 
 ### Overview
 
@@ -236,9 +247,9 @@ The Drug Discovery Pipeline leverages NVIDIA BioNeMo NIM microservices to genera
 │  ─────────────────────────────                                       │
 │  ┌─────────────┐    ┌─────────────────────────────────────────┐     │
 │  │   Target    │───▶│            RCSB PDB API                  │     │
-│  │   (VCP)     │    │   8OOI: WT Hexamer (2.9Å, Cryo-EM)      │     │
-│  └─────────────┘    │   9DIL: Mutant (3.2Å)                    │     │
-│                     │   5FTK: +CB-5083 Inhibitor (2.3Å)        │     │
+│  │   (VCP)     │    │   8OOI: WT Hexamer (2.9A, Cryo-EM)      │     │
+│  └─────────────┘    │   9DIL: Mutant (3.2A)                    │     │
+│                     │   5FTK: +CB-5083 Inhibitor (2.3A)        │     │
 │                     └─────────────────────────────────────────┘     │
 │                                       │                              │
 │                                       ▼                              │
@@ -265,8 +276,8 @@ The Drug Discovery Pipeline leverages NVIDIA BioNeMo NIM microservices to genera
 │  ┌────────────────┐ ┌────────────────┐ ┌────────────────┐           │
 │  │   Lipinski     │ │      QED       │ │     ADMET      │           │
 │  │   Rule of 5    │ │    Score       │ │   Properties   │           │
-│  │   MW ≤ 500     │ │   0.0-1.0      │ │   Absorption   │           │
-│  │   LogP ≤ 5     │ │  Drug-likeness │ │   Metabolism   │           │
+│  │   MW <= 500     │ │   0.0-1.0      │ │   Absorption   │           │
+│  │   LogP <= 5     │ │  Drug-likeness │ │   Metabolism   │           │
 │  └────────────────┘ └────────────────┘ └────────────────┘           │
 │                                       │                              │
 │                                       ▼                              │
@@ -274,9 +285,9 @@ The Drug Discovery Pipeline leverages NVIDIA BioNeMo NIM microservices to genera
 │  ──────────────────────────                                          │
 │  ┌─────────────────────────────────────────────────────────────┐    │
 │  │              VCP_Drug_Candidate_Report.pdf                   │    │
-│  │   • Executive Summary        • Ranked Candidates             │    │
-│  │   • Structure Analysis       • Scoring Details               │    │
-│  │   • Binding Site Maps        • Next Steps                    │    │
+│  │   - Executive Summary        - Ranked Candidates             │    │
+│  │   - Structure Analysis       - Scoring Details               │    │
+│  │   - Binding Site Maps        - Next Steps                    │    │
 │  └─────────────────────────────────────────────────────────────┘    │
 │                                                                       │
 └──────────────────────────────────────────────────────────────────────┘
@@ -286,11 +297,49 @@ The Drug Discovery Pipeline leverages NVIDIA BioNeMo NIM microservices to genera
 
 | Rule | Criteria | Purpose |
 |:-----|:---------|:--------|
-| **Lipinski Rule 1** | MW ≤ 500 Da | Oral bioavailability |
-| **Lipinski Rule 2** | LogP ≤ 5 | Membrane permeability |
-| **Lipinski Rule 3** | H-Bond Donors ≤ 5 | Absorption |
-| **Lipinski Rule 4** | H-Bond Acceptors ≤ 10 | Solubility |
+| **Lipinski Rule 1** | MW <= 500 Da | Oral bioavailability |
+| **Lipinski Rule 2** | LogP <= 5 | Membrane permeability |
+| **Lipinski Rule 3** | H-Bond Donors <= 5 | Absorption |
+| **Lipinski Rule 4** | H-Bond Acceptors <= 10 | Solubility |
 | **QED Score** | 0.0 - 1.0 | Overall drug-likeness |
+
+---
+
+## Intelligence Agents (11)
+
+The platform includes 11 specialized intelligence agents, each providing RAG-powered clinical decision support within a specific medical domain. All agents share a common architecture: Streamlit UI + FastAPI backend + Milvus vector DB + Claude LLM.
+
+### Agent Overview
+
+| # | Agent | Collections | Key Capabilities |
+|:-:|:------|:------------|:-----------------|
+| 1 | **Precision Biomarker** | 11 (10 + 1 shared) | Genotype-aware biomarker interpretation, biological age estimation (PhenoAge/GrimAge), pharmacogenomic profiling |
+| 2 | **Precision Oncology** | 11 (10 + 1 shared) | Molecular tumor board (MTB) decision support, CIViC/OncoKB variant annotation, therapy ranking, trial matching |
+| 3 | **CAR-T Intelligence** | 11 (10 + 1 shared) | Cross-functional CAR-T cell therapy intelligence, construct comparison (4-1BB vs CD28), manufacturing and assay data |
+| 4 | **Imaging Intelligence** | 10 | Medical imaging AI with 4 NVIDIA NIMs (VISTA-3D, MAISI, VILA-M3, Llama-3), DICOM ingestion via Orthanc, federated learning |
+| 5 | **Precision Autoimmune** | 10 | 13 autoimmune conditions, diagnostic engine, disease timeline builder, cross-modal genomic enrichment |
+| 6 | **Pharmacogenomics (PGx)** | 15 | 25 pharmacogenes, 100+ drugs, 9 CPIC dosing algorithms, 15 HLA associations, phenoconversion engine |
+| 7 | **Cardiology Intelligence** | 13 (12 + 1 shared) | 6 validated risk calculators (ASCVD/HEART/CHA2DS2-VASc/HAS-BLED/MAGGIC/EuroSCORE II), GDMT optimizer (4-pillar HFrEF + HFpEF), 8 clinical workflows |
+| 8 | **Neurology Intelligence** | 14 (13 + 1 shared) | 10 validated clinical scales (NIHSS, GCS, MoCA, MDS-UPDRS, EDSS, mRS, HIT-6, ALSFRS-R, ASPECTS, Hoehn & Yahr), 8 neuro sub-domains |
+| 9 | **Rare Disease Diagnostic** | 14 (13 + 1 shared) | 88 rare diseases, 23 ACMG criteria, HPO phenotype matching, OMIM/Orphanet integration, gene therapy eligibility, newborn screening |
+| 10 | **Clinical Trial Intelligence** | 14 (13 + 1 shared) | Protocol design, patient matching, site selection, eligibility optimization, adaptive design, safety signal detection, regulatory document intelligence |
+| 11 | **Single-Cell Intelligence** | 12 (11 + 1 shared) | 57 cell types, TME profiling, spatial transcriptomics, drug response prediction, trajectory analysis, CAR-T target validation |
+
+### Aggregate Agent Statistics
+
+| Metric | Value |
+|:-------|------:|
+| Total Milvus Collections | 139 |
+| Total Vectors (approx.) | ~47,691 |
+| Guidelines Indexed | 51 |
+| Rare Diseases Covered | 88 |
+| Autoimmune Conditions | 13 |
+| Cell Types Annotated | 57 |
+| ACMG Criteria | 23 |
+| Clinical Scales (Neurology) | 10 |
+| Risk Calculators (Cardiology) | 6 |
+| CPIC Dosing Algorithms (PGx) | 9 |
+| HLA Associations (PGx) | 15 |
 
 ---
 
@@ -305,8 +354,9 @@ The Drug Discovery Pipeline leverages NVIDIA BioNeMo NIM microservices to genera
 | **CPU** | ARM64 Cores |
 | **Storage** | 2+ TB NVMe |
 | **Network** | 100 GbE |
+| **Price** | $4,699 |
 
-### Service Architecture
+### Service Architecture (21 Services)
 
 | Port | Service | Status |
 |:----:|:--------|:------:|
@@ -314,8 +364,18 @@ The Drug Discovery Pipeline leverages NVIDIA BioNeMo NIM microservices to genera
 | 5000 | Genomics Portal | Active |
 | 5001 | RAG/Chat API | Active |
 | 8501 | RAG Chat Interface | Active |
-| 8505 | Drug Discovery UI | Active |
+| 8502 | Biomarker Agent UI | Active |
+| 8503 | Oncology Agent UI | Active |
+| 8504 | CAR-T Agent UI | Active |
+| 8505 | Imaging Agent UI | Active |
+| 8506 | Autoimmune Agent UI | Active |
+| 8507 | PGx Agent UI | Active |
 | 8510 | Discovery Portal | Active |
+| 8521 | Clinical Trial Agent UI | Active |
+| 8525 | Single-Cell Agent UI | Active |
+| 8526 | Rare Disease Agent UI | Active |
+| 8527 | Cardiology Agent UI | Active |
+| 8528 | Neurology Agent UI | Active |
 | 19530 | Milvus Vector DB | Active |
 | 3000 | Grafana | Active |
 | 9099 | Prometheus | Active |
@@ -331,7 +391,7 @@ The Drug Discovery Pipeline leverages NVIDIA BioNeMo NIM microservices to genera
 │                                                                       │
 │  ┌────────────────┐  ┌────────────────┐  ┌────────────────┐         │
 │  │ GPU Utilization│  │ GPU Temperature│  │  GPU Power     │         │
-│  │      85%       │  │     62°C       │  │    320W        │         │
+│  │      85%       │  │     62 C       │  │    320W        │         │
 │  │   ████████░░   │  │   ██████░░░░   │  │   ████████░░   │         │
 │  └────────────────┘  └────────────────┘  └────────────────┘         │
 │                                                                       │
@@ -363,13 +423,15 @@ The Drug Discovery Pipeline leverages NVIDIA BioNeMo NIM microservices to genera
 
 | Asset | Count | Source |
 |:------|------:|:-------|
-| Variant Embeddings | 3,561,170 | VCF + Annotations |
+| Annotated Variants | 3,561,170 | VCF + Annotations |
 | ClinVar Variants | 4,100,000 | NCBI ClinVar |
 | AlphaMissense Predictions | 71,000,000 | DeepMind |
 | Target Genes | 201 | Clinker Knowledge Base |
 | Disease Associations | 150+ | Curated Database |
 | Therapeutic Areas | 13 | Clinical Classification |
 | Druggable Targets | 171 | Druggability Analysis |
+| Milvus Collections | 139 | Across 11 agents |
+| Total Vectors | ~47,691 | All agent collections |
 
 ---
 
@@ -379,7 +441,7 @@ The Drug Discovery Pipeline leverages NVIDIA BioNeMo NIM microservices to genera
 
 | Layer | Technology | Purpose |
 |:------|:-----------|:--------|
-| **Compute** | NVIDIA DGX Spark | GPU-accelerated processing |
+| **Compute** | NVIDIA DGX Spark ($4,699) | GPU-accelerated processing |
 | **Genomics** | NVIDIA Parabricks 4.6 | Variant calling pipeline |
 | **AI/ML** | NVIDIA BioNeMo NIM | Drug discovery models |
 | **LLM** | Claude (Anthropic) | Natural language reasoning |
@@ -399,6 +461,9 @@ The Drug Discovery Pipeline leverages NVIDIA BioNeMo NIM microservices to genera
 | MolMIM | NVIDIA BioNeMo | Molecule generation |
 | DiffDock | NVIDIA BioNeMo | Molecular docking |
 | AlphaMissense | DeepMind | Pathogenicity prediction |
+| VISTA-3D | NVIDIA | 3D medical image segmentation |
+| MAISI | NVIDIA | Medical AI for synthetic imaging |
+| VILA-M3 | NVIDIA | Vision-language medical model |
 
 ---
 
@@ -418,6 +483,7 @@ The Drug Discovery Pipeline leverages NVIDIA BioNeMo NIM microservices to genera
 
 | Factor | Impact |
 |:-------|:-------|
+| Hardware Investment | $4,699 single workstation (vs. $50K-$500K+ cluster) |
 | Compute Time Reduction | 50-100x lower GPU hours |
 | Manual Analysis Reduction | 90% fewer specialist hours |
 | Iteration Speed | 10x faster hypothesis testing |
@@ -433,7 +499,8 @@ The **HCLS AI Factory** delivers a production-ready platform for precision medic
 
 - **End-to-End Integration**: Single platform from DNA to drug candidates
 - **GPU Acceleration**: NVIDIA Parabricks and BioNeMo for 10-100x speedups
-- **AI-Powered Insights**: Claude LLM for evidence synthesis
+- **AI-Powered Insights**: Claude LLM for evidence synthesis across 11 agents
 - **Clinical Grounding**: 4.1M ClinVar variants with 71M AI predictions
-- **Production Ready**: 36,000+ lines of tested code
-
+- **Full Specialty Coverage**: 11 intelligence agents covering oncology, cardiology, neurology, rare disease, immunology, PGx, imaging, clinical trials, single-cell, CAR-T, and biomarkers
+- **Affordable Infrastructure**: Complete platform on a $4,699 NVIDIA DGX Spark
+- **Production Ready**: 36,000+ lines of tested code, 21 services, 139 collections

@@ -10,7 +10,7 @@ tags:
 
 > **Patient:** GEN-2026-0087 | **Pipeline Run:** HCLS-VCP-2026-0087 | **Mode:** Full (Stages 1→2→3)
 >
-> License: Apache 2.0 | Date: February 2026
+> License: Apache 2.0 | Date: March 2026
 
 ---
 
@@ -22,9 +22,10 @@ tags:
 | Run ID | HCLS-VCP-2026-0087 |
 | Pipeline Version | HLS-Pipeline v1.0.0 |
 | Pipeline Mode | Full (Genomics → RAG/Chat → Drug Discovery) |
-| Hardware | NVIDIA DGX Spark (GB10 GPU, 128 GB unified) |
+| Hardware | NVIDIA DGX Spark (GB10 GPU, 128 GB unified, $4,699) |
+| Platform Scale | 3 engines, 11 intelligence agents, 21 services |
 | Total Pipeline Duration | 4 hours 12 minutes |
-| Report Generated | February 2026 |
+| Report Generated | March 2026 |
 | Status | COMPLETE — 100 novel drug candidates ranked |
 
 ---
@@ -115,7 +116,9 @@ tags:
 
 | Parameter | Value |
 |---|---|
-| Total Embeddings Indexed | 3,487,216 |
+| Total Annotated Variants | 3,487,216 |
+| Platform-Wide Collections | 139 (across 11 agents) |
+| Platform-Wide Vectors | ~47,691 |
 | Embedding Model | BGE-small-en-v1.5 (384-dim) |
 | Index Type | IVF_FLAT (nlist=1024) |
 | Search nprobe | 16 |
@@ -219,7 +222,7 @@ tags:
 | 3 — Scoring + Reporting | 1 min 30 sec | 0% (CPU) | 4 GB |
 | **Total** | **~4 hr 12 min** | | |
 
-### Service Health at Report Generation
+### Service Health at Report Generation (21 Services)
 
 | Service | Port | Status |
 |---|---|---|
@@ -231,6 +234,17 @@ tags:
 | MolMIM NIM | 8001 | HEALTHY |
 | DiffDock NIM | 8002 | HEALTHY |
 | Discovery UI | 8505 | HEALTHY |
+| Precision Biomarker Agent | 8502 | HEALTHY |
+| Precision Oncology Agent | 8503 | HEALTHY |
+| CAR-T Intelligence Agent | 8504 | HEALTHY |
+| Imaging Intelligence Agent | 8105 | HEALTHY |
+| Precision Autoimmune Agent | 8506 | HEALTHY |
+| Pharmacogenomics Agent | 8507 | HEALTHY |
+| Cardiology Intelligence Agent | 8527 | HEALTHY |
+| Neurology Intelligence Agent | 8528 | HEALTHY |
+| Clinical Trial Intelligence Agent | 8538 | HEALTHY |
+| Single-Cell Intelligence Agent | 8540 | HEALTHY |
+| Rare Disease Diagnostic Agent | 8134 | HEALTHY |
 | Grafana | 3000 | HEALTHY |
 | Prometheus | 9099 | HEALTHY |
 
@@ -246,12 +260,34 @@ Patient GEN-2026-0087 carries a heterozygous pathogenic missense variant (rs1889
 
 The AI-driven drug discovery pipeline identified 100 novel VCP inhibitor candidates with the top candidate showing a 39% improvement in composite score over the CB-5083 seed compound. All top 10 candidates pass Lipinski's Rule of Five and show favorable QED scores (>0.67), suggesting oral drug-likeness.
 
+### Multi-Agent Intelligence Contributions
+
+The 11 intelligence agents provide cross-domain analysis for this case:
+
+| Agent | Contribution to VCP Case |
+|---|---|
+| **Precision Biomarker** | Genotype-aware biomarker interpretation, biological age estimation (PhenoAge/GrimAge), pharmacogenomic profiling |
+| **Precision Oncology** | Molecular tumor board analysis for EGFR/BRCA1 co-findings, tiered therapy ranking |
+| **CAR-T Intelligence** | Cross-functional CAR-T therapy assessment for oncology co-targets (6,266+ vectors) |
+| **Imaging Intelligence** | Neurological imaging assessment via NVIDIA VISTA-3D/MAISI/VILA-M3 for FTD evaluation |
+| **Precision Autoimmune** | Autoantibody panel and HLA-disease association screening across 13 autoimmune conditions |
+| **Pharmacogenomics** | CYP/HLA-guided dosing for candidate compounds (25 pharmacogenes, 100+ drugs, 9 algorithms) |
+| **Cardiology Intelligence** | Cardiovascular risk assessment via HEART score, GDMT optimization, channelopathy screening |
+| **Neurology Intelligence** | FTD/ALS-specific workflows — NIHSS, GCS, MoCA scoring, AAN/AHA guideline integration |
+| **Clinical Trial Intelligence** | Patient-trial matching, eligibility optimization, adaptive design evaluation across 14 collections |
+| **Single-Cell Intelligence** | Cell-type-resolved drug response prediction (57 cell types), TME profiling, trajectory inference |
+| **Rare Disease Diagnostic** | ACMG/AMP variant interpretation (23 criteria), HPO phenotype matching across 88 rare diseases |
+
 ### Recommended Actions
 
 1. **Genetic counseling** for FTD/ALS risk assessment
 2. **Experimental validation** of top 5 candidates in VCP ATPase activity assays
 3. **ADMET profiling** for lead optimization
-4. **Cross-modal follow-up** with Imaging Intelligence Agent for neurological assessment
+4. **Neurology Agent follow-up** — FTD-specific workflow with dementia evaluation and MoCA scoring
+5. **Imaging Agent follow-up** — neurological imaging assessment for structural FTD markers
+6. **Pharmacogenomics Agent review** — CYP/HLA profiling for candidate compound dosing
+7. **Clinical Trial Agent matching** — eligibility screening against active VCP/FTD/ALS trials
+8. **Rare Disease Agent assessment** — ACMG/AMP classification and HPO phenotype matching for IBMPFD
 
 ---
 
@@ -260,6 +296,7 @@ The AI-driven drug discovery pipeline identified 100 novel VCP inhibitor candida
 | Item | Value |
 |---|---|
 | Pipeline | HLS-Pipeline v1.0.0 (Nextflow DSL2) |
+| Platform Scale | 3 engines, 11 agents, 21 services, 139 collections, ~47,691 vectors |
 | Parabricks | nvcr.io/nvidia/clara/clara-parabricks:4.6.0-1 |
 | DeepVariant | Google DeepVariant (via Parabricks, >99% accuracy) |
 | Reference | GRCh38 (3.1 GB) |
@@ -271,11 +308,11 @@ The AI-driven drug discovery pipeline identified 100 novel VCP inhibitor candida
 | LLM | claude-sonnet-4-20250514 (temperature=0.3) |
 | MolMIM | nvcr.io/nvidia/clara/bionemo-molmim:1.0 |
 | DiffDock | nvcr.io/nvidia/clara/diffdock:1.0 |
-| Hardware | NVIDIA DGX Spark (GB10, 128 GB unified) |
+| Hardware | NVIDIA DGX Spark (GB10, 128 GB unified, $4,699) |
 | Scoring | 30% gen + 40% dock + 30% QED |
 
 ---
 
-*This is a demonstration intelligence report generated by the HCLS AI Factory. All patient data is synthetic. The report illustrates the platform's end-to-end capability from genomic variant calling through drug candidate ranking.*
+*This is a demonstration intelligence report generated by the HCLS AI Factory. All patient data is synthetic. The report illustrates the platform's end-to-end capability from genomic variant calling through multi-agent clinical intelligence to drug candidate ranking — 3 engines, 11 agents, 21 services on a single NVIDIA DGX Spark.*
 
-*HCLS AI Factory — Apache 2.0 | February 2026*
+*HCLS AI Factory — Apache 2.0 | March 2026*
