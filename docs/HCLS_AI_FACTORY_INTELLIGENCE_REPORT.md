@@ -20,7 +20,7 @@ tags:
 |---|---|
 | Patient ID | GEN-2026-0087 |
 | Run ID | HCLS-VCP-2026-0087 |
-| Pipeline Version | HLS-Pipeline v1.0.0 |
+| Pipeline Version | HLS-Pipeline v1.3.0 |
 | Pipeline Mode | Full (Genomics → RAG/Chat → Drug Discovery) |
 | Hardware | NVIDIA DGX Spark (GB10 GPU, 128 GB unified, $4,699) |
 | Platform Scale | 3 engines, 11 intelligence agents, 21 services |
@@ -295,7 +295,7 @@ The 11 intelligence agents provide cross-domain analysis for this case:
 
 | Item | Value |
 |---|---|
-| Pipeline | HLS-Pipeline v1.0.0 (Nextflow DSL2) |
+| Pipeline | HLS-Pipeline v1.3.0 (Nextflow DSL2) |
 | Platform Scale | 3 engines, 11 agents, 21 services, 139 collections, ~47,691 vectors |
 | Parabricks | nvcr.io/nvidia/clara/clara-parabricks:4.6.0-1 |
 | DeepVariant | Google DeepVariant (via Parabricks, >99% accuracy) |

@@ -3356,7 +3356,7 @@ SHARED (1)
 ---
 
 *HCLS AI Factory Learning Guide Foundations -- Unified Edition*
-*Version 1.0.0 | March 2026 | Adam Jones*
+*Version 1.3.0 | March 2026 | Adam Jones*
 *Apache 2.0 License | NVIDIA DGX Spark Platform*
 
 ---

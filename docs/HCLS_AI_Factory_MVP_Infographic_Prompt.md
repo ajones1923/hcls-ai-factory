@@ -261,7 +261,7 @@ Use small colored dots: NVIDIA green for Stage 1, teal for Stage 2, orange for S
 **Background:** Light gray (#F5F5F5) with a thin green (#76B900) top-border accent.
 
 **Left section — Nextflow DSL2:**
-- Card: "HLS-Pipeline v1.0.0" in bold navy
+- Card: "HLS-Pipeline v1.3.0" in bold navy
 - Sub-cards: genomics.nf | rag_chat.nf | drug_discovery.nf | reporting.nf
 - Modes badge: "full | target | drug | demo | genomics_only"
 - Dashed teal lines connecting up to each stage band
