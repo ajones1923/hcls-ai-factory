@@ -237,7 +237,7 @@ search:
 ## 6. Nextflow Orchestration
 
 - **Language:** Nextflow DSL2
-- **Pipeline Name:** HLS-Pipeline v1.0.0
+- **Pipeline Name:** HLS-Pipeline v1.3.0
 - **Main file:** `main.nf`
 - **Modules:** `genomics.nf`, `rag_chat.nf`, `drug_discovery.nf`, `reporting.nf`
 - **Execution modes:**

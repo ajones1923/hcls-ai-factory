@@ -2,7 +2,7 @@
 
 **HCLS AI Factory / ai_agent_adds / precision_oncology_agent**
 
-Version 1.0.0 | March 2026 | Author: Adam Jones
+Version 1.3.0 | March 2026 | Author: Adam Jones
 
 ---
 

@@ -2192,7 +2192,7 @@ costing $500K-$2M per year.
 **Milestones**:
 - Month 10: Retrospective validation complete with published results
 - Month 11: Performance optimization and security audit complete
-- Month 12: Production-ready release (v1.0.0) integrated into HCLS AI Factory
+- Month 12: Production-ready release (v1.3.0) integrated into HCLS AI Factory
 
 **Resources**: 2 engineers, 1 clinical domain expert, 1 QA engineer
 
