@@ -1396,7 +1396,7 @@ python -m pytest tests/ -v
 
 ## 25. HCLS AI Factory Integration
 
-The Precision Autoimmune Agent is one of 5 intelligence agents in the
+The Precision Autoimmune Agent is one of 11 intelligence agents in the
 HCLS AI Factory platform.
 
 ### Agent Family Port Map

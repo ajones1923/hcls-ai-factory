@@ -657,7 +657,7 @@ The agent manages 14 vector collections, each with a domain-specific schema:
 | 13 | `autoimmune_cross_disease` | Cross-disease overlap syndromes |
 | 14 | `genomic_evidence` | **Shared read-only** (from genomics pipeline) |
 
-The `genomic_evidence` collection is shared across all 5 intelligence agents and is never created or dropped by the autoimmune agent. It is accessed read-only if it already exists.
+The `genomic_evidence` collection is shared across all 11 intelligence agents and is never created or dropped by the autoimmune agent. It is accessed read-only if it already exists.
 
 ### 7.2 Index Parameters
 
