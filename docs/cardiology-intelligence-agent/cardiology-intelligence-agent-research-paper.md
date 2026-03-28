@@ -2,7 +2,6 @@
 
 **Author:** Adam Jones
 **Date:** March 2026
-**Version:** 0.1.0 (Pre-Implementation)
 **License:** Apache 2.0
 
 Part of the HCLS AI Factory -- an end-to-end precision medicine platform.
@@ -476,7 +475,7 @@ Preventive cardiology: risk stratification, lipid management, and lifestyle inte
 | embedding | FLOAT_VECTOR(384) | BGE-small-en-v1.5 embedding |
 | text_summary | VARCHAR(4000) | Prevention recommendation |
 | risk_category | VARCHAR(50) | Low, borderline, intermediate, high, very_high |
-| risk_calculator | VARCHAR(50) | PCE/ASCVD, MESA, Framingham, Reynolds |
+| risk_calculator | VARCHAR(50) | PCE/ASCVD, MESA, HEART, Reynolds |
 | biomarker | VARCHAR(100) | LDL-C, Lp(a), ApoB, hsCRP, CAC |
 | target_value | VARCHAR(50) | LDL < 70, LDL < 55 (very high risk) |
 | therapy_class | VARCHAR(100) | Statin, ezetimibe, PCSK9i, bempedoic acid, inclisiran |

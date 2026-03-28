@@ -2,7 +2,6 @@
 
 **Author:** Adam Jones
 **Date:** March 2026
-**Version:** 1.0.0
 **License:** Apache 2.0
 
 ---

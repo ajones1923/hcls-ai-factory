@@ -2,7 +2,6 @@
 
 **A primer on rare disease concepts, the diagnostic odyssey, HPO ontology, ACMG criteria, inheritance patterns, and the gene therapy revolution.**
 
-**Version:** 1.0.0
 **Date:** March 22, 2026
 **Author:** Adam Jones
 **Platform:** NVIDIA DGX Spark -- HCLS AI Factory

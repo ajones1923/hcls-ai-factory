@@ -2,7 +2,6 @@
 
 **Author:** Adam Jones
 **Date:** March 2026
-**Version:** 1.2.0
 **License:** Apache 2.0
 
 Part of the HCLS AI Factory -- an end-to-end precision medicine platform.

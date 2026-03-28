@@ -1,6 +1,5 @@
 # Single-Cell Intelligence Agent -- Learning Guide: Foundations
 
-**Version:** 1.0.0
 **Date:** 2026-03-22
 **Author:** Adam Jones
 
@@ -439,4 +438,4 @@ The Single-Cell Intelligence Agent stores knowledge as 384-dimensional vectors:
 
 ---
 
-*HCLS AI Factory -- Single-Cell Intelligence Agent Learning Guide: Foundations v1.0.0*
+*HCLS AI Factory -- Single-Cell Intelligence Agent Learning Guide: Foundations*

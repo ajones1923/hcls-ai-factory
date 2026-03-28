@@ -1,6 +1,5 @@
 # Single-Cell Intelligence Agent -- Demo Guide
 
-**Version:** 1.0.0
 **Date:** 2026-03-22
 **Author:** Adam Jones
 
@@ -330,4 +329,4 @@ Direct attendees to `http://localhost:8540/docs` for interactive Swagger documen
 
 ---
 
-*HCLS AI Factory -- Single-Cell Intelligence Agent Demo Guide v1.0.0*
+*HCLS AI Factory -- Single-Cell Intelligence Agent Demo Guide*

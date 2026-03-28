@@ -2,7 +2,6 @@
 
 ## Bridging the Neurological Data Fragmentation Gap with RAG-Driven Clinical Intelligence
 
-**Version:** 1.0.0
 **Date:** 2026-03-22
 **Author:** Adam Jones
 **Affiliation:** HCLS AI Factory
@@ -195,5 +194,5 @@ The Neurology Intelligence Agent demonstrates that domain-specific RAG architect
 
 ---
 
-*Neurology Intelligence Agent -- White Paper v1.0.0*
+*Neurology Intelligence Agent -- White Paper*
 *HCLS AI Factory / GTC Europe 2026*

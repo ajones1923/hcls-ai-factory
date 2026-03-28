@@ -1,6 +1,5 @@
 # Rare Disease Diagnostic Agent -- Production Readiness & Capability Report
 
-**Version:** 1.0.0
 **Date:** March 22, 2026
 **Author:** Adam Jones
 **Status:** Production Demo Ready (10/10)
@@ -899,7 +898,7 @@ rare-disease-agent-ui:
 | Gene-HPO Map | 14 genes with HPO associations | Full HPO-gene annotation (5,000+ genes) |
 | Natural History | 6 diseases | Registry-linked data (100+ diseases) |
 | LOD Score | Simplified calculation | Full Elston-Stewart algorithm |
-| ACMG Classification | 28 criteria (simplified) | Full SVI recommendations |
+| ACMG Classification | 23 of 28 criteria (simplified) | Full SVI recommendations |
 | Authentication | Optional API key | OAuth2 / SAML SSO |
 | HIPAA Compliance | Not validated | Required for clinical use |
 

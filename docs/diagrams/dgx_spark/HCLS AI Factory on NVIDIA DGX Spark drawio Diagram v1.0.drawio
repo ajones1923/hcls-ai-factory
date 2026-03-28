@@ -412,7 +412,7 @@
         <mxCell id="RHKvGMrIZDg15tMjI9T1-131" value="&lt;b&gt;Docker&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fontSize=7;fontFamily=Helvetica;fontColor=#FFFFFF;fontStyle=1;fillColor=#2A3545;strokeColor=#2A3545;arcSize=50;labelBackgroundColor=none;" parent="1" vertex="1">
           <mxGeometry x="921" y="563" width="88" height="18" as="geometry" />
         </mxCell>
-        <mxCell id="RHKvGMrIZDg15tMjI9T1-132" value="&lt;font style=&quot;font-size:8px;color:#999999;&quot;&gt;HCLS AI FACTORY | Author: Adam Jones | February 2026 | Apache 2.0&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];labelBackgroundColor=none;" parent="1" vertex="1">
+        <mxCell id="RHKvGMrIZDg15tMjI9T1-132" value="&lt;font style=&quot;font-size:8px;color:#999999;&quot;&gt;HCLS AI FACTORY | Author: Adam Jones | March 2026 | Apache 2.0&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];labelBackgroundColor=none;" parent="1" vertex="1">
           <mxGeometry x="222" y="596" width="550" height="14" as="geometry" />
         </mxCell>
       </root>
@@ -658,7 +658,7 @@
         <mxCell id="NjzYU1o-DmoYKGq8xm9c-75" value="GPU  (B10)&amp;nbsp;&amp;nbsp;&amp;nbsp;|&amp;nbsp;&amp;nbsp;&amp;nbsp;Grace CPU&amp;nbsp;&amp;nbsp;&amp;nbsp;|&amp;nbsp;&amp;nbsp;&amp;nbsp;NVMe Storage&amp;nbsp;&amp;nbsp;&amp;nbsp;|&amp;nbsp;&amp;nbsp;&amp;nbsp;Docker + Ollama" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#76B900;strokeColor=none;fontColor=#FFFFFF;fontSize=12;fontFamily=Helvetica;fontStyle=1;verticalAlign=middle;align=center;" vertex="1" parent="1">
           <mxGeometry y="541" width="1040" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="NjzYU1o-DmoYKGq8xm9c-77" value="HCLS AI FACTORY  |  Author: Adam Jones  |  February 2026  |  Apache 2.0" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=0;strokeColor=none;fillColor=none;fontColor=#AAAAAA;fontSize=9;fontFamily=Helvetica;" vertex="1" parent="1">
+        <mxCell id="NjzYU1o-DmoYKGq8xm9c-77" value="HCLS AI FACTORY  |  Author: Adam Jones  |  March 2026  |  Apache 2.0" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=0;strokeColor=none;fillColor=none;fontColor=#AAAAAA;fontSize=9;fontFamily=Helvetica;" vertex="1" parent="1">
           <mxGeometry x="225" y="589" width="600" height="22" as="geometry" />
         </mxCell>
       </root>

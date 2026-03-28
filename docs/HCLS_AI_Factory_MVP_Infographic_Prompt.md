@@ -56,7 +56,7 @@ Create a dense, professional technical architecture infographic in landscape ori
 - **Title (large, bold, navy #1B2333, centered):** "HCLS AI Factory"
 - **Subtitle line 1 (medium, gray #666666, centered):** "From Patient DNA to Novel Drug Candidates — MVP on NVIDIA DGX Spark"
 - **Subtitle line 2 (smaller, gray #666666, centered):** "GB10 Grace Blackwell Superchip | 128 GB Unified Memory | < 5 Hours End-to-End"
-- **Date / Author line (smallest, gray #999999, centered):** "February 2026 | Apache 2.0 | Author: Adam Jones"
+- **Date / Author line (smallest, gray #999999, centered):** "March 2026 | Apache 2.0 | Author: Adam Jones"
 
 **Right side — Key/Legend box** (small, top-right corner, thin gray border, white background):
 ```

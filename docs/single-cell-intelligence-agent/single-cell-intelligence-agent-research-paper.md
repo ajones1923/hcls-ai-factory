@@ -8,8 +8,6 @@
 
 **Date:** March 2026
 
-**Version:** 1.0
-
 **Platform:** NVIDIA DGX Spark | CUDA 12.x | RAPIDS AI
 
 ---

@@ -1,6 +1,5 @@
 # Neurology Intelligence Agent -- Learning Guide: Foundations
 
-**Version:** 1.0.0
 **Date:** 2026-03-22
 **Author:** Adam Jones
 
@@ -401,5 +400,5 @@ Each validated clinical scale in the agent serves a specific decision-making rol
 
 ---
 
-*Neurology Intelligence Agent -- Learning Guide: Foundations v1.0.0*
+*Neurology Intelligence Agent -- Learning Guide: Foundations*
 *HCLS AI Factory / GTC Europe 2026*

@@ -2,7 +2,6 @@
 
 ## RAG-Powered Decision Support for Clinical Trial Design and Optimization
 
-**Version:** 2.0.0
 **Date:** March 22, 2026
 **Author:** Adam Jones
 **Platform:** NVIDIA DGX Spark -- HCLS AI Factory
@@ -251,4 +250,4 @@ The Clinical Trial Intelligence Agent demonstrates that RAG-based systems can pr
 
 ---
 
-*Clinical Trial Intelligence Agent v2.0.0 -- HCLS AI Factory -- March 2026*
+*Clinical Trial Intelligence Agent -- HCLS AI Factory -- March 2026*

@@ -1,7 +1,6 @@
 # Clinical Trial Intelligence Agent
 ## A RAG-Powered Clinical Trial Optimization System for the HCLS AI Factory
 
-**Version:** 0.1.0 (Pre-Implementation)
 **Author:** Adam Jones
 **Date:** March 2026
 **License:** Apache 2.0

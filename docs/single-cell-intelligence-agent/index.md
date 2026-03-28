@@ -2,7 +2,6 @@
 
 > **Part of the [Precision Intelligence Network](../engines/precision-intelligence.md)** — one of 11 specialized agents sharing a common molecular foundation within the HCLS AI Factory.
 
-**Version:** 1.0.0
 **Date:** 2026-03-22
 **Agent:** Single-Cell Intelligence Agent
 **Ports:** API 8540 | UI 8130
@@ -69,7 +68,7 @@
 
 ---
 
-*HCLS AI Factory -- Single-Cell Intelligence Agent Documentation Index v1.0.0*
+*HCLS AI Factory -- Single-Cell Intelligence Agent Documentation Index*
 
 ---
 

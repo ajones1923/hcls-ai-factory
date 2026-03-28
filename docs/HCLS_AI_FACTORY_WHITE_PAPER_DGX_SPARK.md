@@ -10,7 +10,7 @@ tags:
 
 > **From Patient DNA to Novel Drug Candidates in Under Five Hours**
 >
-> License: Apache 2.0 | Date: February 2026
+> License: Apache 2.0 | Date: March 2026
 
 ---
 
@@ -73,7 +73,7 @@ The HCLS AI Factory processes data through three sequential engines:
 
 ### Service Architecture
 
-The platform runs 14 services across 14 ports:
+The platform runs 21 services across 21 ports:
 
 - **Orchestration:** Landing page (8080) with 10-service health monitor
 - **Stage 1:** Genomics portal (5000)
@@ -272,7 +272,7 @@ Phase 3 deployments use NVIDIA FLARE for federated learning across institutions.
 
 ### Phase 1: DGX Spark Proof Build
 
-A single DGX Spark runs the complete pipeline: GB10 GPU handles Parabricks, Milvus, MolMIM, and DiffDock sequentially. Docker Compose manages all 14 services. The 128 GB unified memory accommodates all stages without swapping. Total cost: $4,699 hardware + API keys (Anthropic, NGC).
+A single DGX Spark runs the complete pipeline: GB10 GPU handles Parabricks, Milvus, MolMIM, and DiffDock sequentially. Docker Compose manages all 21 services. The 128 GB unified memory accommodates all stages without swapping. Total cost: $4,699 hardware + API keys (Anthropic, NGC).
 
 ### Phase 2: Departmental Scale
 
@@ -294,4 +294,4 @@ This is precision medicine as a continuous, computable workflow — not a discon
 
 ---
 
-*HCLS AI Factory — Apache 2.0 | February 2026*
+*HCLS AI Factory — Apache 2.0 | March 2026*

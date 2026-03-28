@@ -5,7 +5,7 @@
 RAG-powered clinical trial optimization system built on Milvus, Claude, and BGE-small-en-v1.5.
 Part of the [HCLS AI Factory](https://hcls-ai-factory.org) precision medicine platform.
 
-**Version:** 2.0.0 | **Author:** Adam Jones | **Date:** March 2026
+**Author:** Adam Jones | **Date:** March 2026
 
 ---
 

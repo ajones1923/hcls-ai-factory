@@ -3,7 +3,6 @@
 Complete implementation reference for the Precision Biomarker Intelligence
 Agent, part of the HCLS AI Factory pipeline: Patient DNA -> Drug Candidates.
 
-**Version:** 1.0.0
 **Author:** Adam Jones
 **Date:** March 2026
 **License:** Apache 2.0

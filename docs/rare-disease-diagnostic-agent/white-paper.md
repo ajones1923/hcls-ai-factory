@@ -2,7 +2,6 @@
 
 **Ending the Diagnostic Odyssey: RAG-Powered Rare Disease Diagnosis on NVIDIA DGX Spark**
 
-**Version:** 1.0.0
 **Date:** March 22, 2026
 **Author:** Adam Jones
 **Platform:** NVIDIA DGX Spark -- HCLS AI Factory

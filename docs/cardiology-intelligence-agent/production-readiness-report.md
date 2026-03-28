@@ -1,6 +1,5 @@
 # Cardiology Intelligence Agent — Production Readiness & Capability Report
 
-**Version:** 2.1.0
 **Date:** March 14, 2026
 **Author:** Adam Jones
 **Status:** Production Demo Ready (10/10)

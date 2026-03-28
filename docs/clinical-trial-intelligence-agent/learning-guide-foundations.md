@@ -2,7 +2,6 @@
 
 ## A Clinical Trial Primer for Non-Specialists
 
-**Version:** 2.0.0
 **Date:** March 22, 2026
 **Author:** Adam Jones
 **Platform:** NVIDIA DGX Spark -- HCLS AI Factory
@@ -516,4 +515,4 @@ The agent's 40 landmark trials, 13 therapeutic areas, 14 vector collections, and
 
 ---
 
-*Clinical Trial Intelligence Agent v2.0.0 -- Learning Guide -- March 2026*
+*Clinical Trial Intelligence Agent -- Learning Guide -- March 2026*

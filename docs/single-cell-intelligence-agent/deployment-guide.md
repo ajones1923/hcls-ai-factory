@@ -1,6 +1,5 @@
 # Single-Cell Intelligence Agent -- Deployment Guide
 
-**Version:** 1.0.0
 **Date:** 2026-03-22
 **Author:** Adam Jones
 
@@ -369,4 +368,4 @@ docker compose logs -f sc-setup
 
 ---
 
-*HCLS AI Factory -- Single-Cell Intelligence Agent Deployment Guide v1.0.0*
+*HCLS AI Factory -- Single-Cell Intelligence Agent Deployment Guide*
