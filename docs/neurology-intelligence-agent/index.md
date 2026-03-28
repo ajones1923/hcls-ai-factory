@@ -1,5 +1,10 @@
 # Neurology Intelligence Agent
 
+
+![Neurology Intelligence Agent Architecture Infographic](infographic.jpg)
+
+*Source: [github.com/ajones1923/neurology-intelligence-agent](https://github.com/ajones1923/neurology-intelligence-agent)*
+
 > **Part of the [Precision Intelligence Network](../engines/precision-intelligence.md)** — one of 11 specialized agents sharing a common molecular foundation within the HCLS AI Factory.
 
 RAG-powered clinical decision support for neurology, covering 10 disease domains, 14 vector collections, 10 validated clinical scales, and 8 evidence-based workflows.

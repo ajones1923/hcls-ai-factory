@@ -1,5 +1,10 @@
 # Rare Disease Diagnostic Agent -- Documentation Index
 
+
+![Rare Disease Diagnostic Agent Architecture Infographic](infographic.jpg)
+
+*Source: [github.com/ajones1923/rare-disease-diagnostic-agent](https://github.com/ajones1923/rare-disease-diagnostic-agent)*
+
 > **Part of the [Precision Intelligence Network](../engines/precision-intelligence.md)** — one of 11 specialized agents sharing a common molecular foundation within the HCLS AI Factory.
 
 RAG-powered rare disease diagnostic support system built on Milvus, Claude, and BGE-small-en-v1.5.
