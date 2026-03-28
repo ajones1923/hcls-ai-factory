@@ -2,7 +2,7 @@
 
 ## Bridging the Neurological Data Fragmentation Gap with RAG-Driven Clinical Intelligence
 
-**Date:** 2026-03-22
+**Date:** March 2026
 **Author:** Adam Jones
 **Affiliation:** HCLS AI Factory
 
