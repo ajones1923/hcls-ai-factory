@@ -402,3 +402,8 @@ Each validated clinical scale in the agent serves a specific decision-making rol
 
 *Neurology Intelligence Agent -- Learning Guide: Foundations*
 *HCLS AI Factory / GTC Europe 2026*
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The Neurology Intelligence Agent is a clinical decision support research tool for neurological assessment. Clinical scale calculations are estimates and should not replace clinical judgment. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

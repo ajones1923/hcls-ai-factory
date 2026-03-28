@@ -630,3 +630,8 @@ The HCLS AI Factory Rare Disease Diagnostic Agent represents a step toward this 
 ---
 
 *Apache 2.0 License -- HCLS AI Factory*
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The Rare Disease Diagnostic Agent is a clinical decision support research tool for rare disease evaluation. Variant classifications should be confirmed by a certified clinical geneticist. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

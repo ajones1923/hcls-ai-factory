@@ -135,3 +135,8 @@ GPU acceleration changes the equation:
 - **Lower cost** — One DGX Spark vs. a CPU cluster
 - **Real-time capability** — Results while the patient is still in clinic
 
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The Genomic Foundation Engine is a research tool for genomic variant analysis. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

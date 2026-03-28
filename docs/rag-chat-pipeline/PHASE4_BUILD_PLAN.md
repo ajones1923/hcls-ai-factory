@@ -422,3 +422,8 @@ rag-chat-pipeline/
 When Phase 4 is complete, Phase 5 (Cryo-EM) receives:
 - `targets_for_phase5.json` with prioritized targets and PDB IDs
 - Ready for structure fetching and analysis
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    This pipeline is a research tool. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

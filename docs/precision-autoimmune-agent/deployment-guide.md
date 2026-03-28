@@ -1386,3 +1386,8 @@ precision_autoimmune_agent/
   data/                  # Cache, reference data, ingested docs
   demo_data/             # Demo patient scenarios (read-only in Docker)
 ```
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The Precision Autoimmune Agent is a clinical decision support research tool for autoimmune disease assessment. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

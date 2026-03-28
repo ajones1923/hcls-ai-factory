@@ -1684,3 +1684,8 @@ The Imaging Intelligence Agent is open-source under the Apache 2.0 license. Cont
 ---
 
 *Imaging Intelligence Agent | HCLS AI Factory | Apache 2.0 | Adam Jones | March 2026*
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The Imaging Intelligence Agent is a clinical decision support research tool for medical image analysis. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

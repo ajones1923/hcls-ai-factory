@@ -702,3 +702,8 @@ The key architectural insight: **the platform is not disease-specific**. By chan
 
 - **Adam Jones** — HCLS AI Factory platform, 14+ years genomic research
 - **Apache 2.0 License**
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The CAR-T Intelligence Agent is a clinical decision support research tool for CAR-T cell therapy evaluation. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

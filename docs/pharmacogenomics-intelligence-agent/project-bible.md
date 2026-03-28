@@ -731,3 +731,8 @@ Pydantic BaseSettings with `PGX_` environment variable prefix. Key settings:
 5. **Expanded dosing algorithms** -- CYP2C19-guided voriconazole, SLCO1B1-guided simvastatin
 6. **Pharmacovigilance integration** -- FDA FAERS adverse event signal detection
 7. **Pre-emptive panel workflows** -- End-to-end integration with genomics pipeline VCF output
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The Pharmacogenomics Intelligence Agent is a clinical decision support research tool for pharmacogenomic analysis. Dosing recommendations should be verified by a clinical pharmacist. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

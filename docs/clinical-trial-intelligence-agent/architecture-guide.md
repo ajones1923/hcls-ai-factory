@@ -633,3 +633,8 @@ All metrics use the `trial_` prefix for dashboard filtering. The metrics module 
 ---
 
 *Clinical Trial Intelligence Agent -- Architecture Guide -- March 2026*
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The Clinical Trial Intelligence Agent is a clinical decision support research tool for clinical trial analysis. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

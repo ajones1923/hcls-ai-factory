@@ -891,3 +891,8 @@ Returned for unexpected server-side errors.
   "detail": "Internal server error"
 }
 ```
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The Precision Autoimmune Agent is a clinical decision support research tool for autoimmune disease assessment. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

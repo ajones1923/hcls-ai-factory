@@ -314,3 +314,8 @@ Phase 4 is **COMPLETE** when:
 | Testing & verification | 30 min |
 | **Total first-time setup** | **~2 hours** |
 | **Subsequent starts** | **~5 min** |
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    This pipeline is a research tool. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

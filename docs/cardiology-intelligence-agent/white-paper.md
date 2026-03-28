@@ -537,3 +537,8 @@ The open-source, Apache 2.0-licensed platform lowers the barrier to entry for an
 13. Byrne RA, et al. 2023 ESC Guidelines for the management of acute coronary syndromes. Eur Heart J. 2023;44(38):3720-3826.
 14. World Health Organization. Cardiovascular diseases fact sheet. 2025.
 15. American Heart Association. 2025 Heart Disease and Stroke Statistics Update. Circulation. 2025.
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The Cardiology Intelligence Agent is a clinical decision support research tool for cardiovascular medicine. Risk calculator outputs are estimates and should not replace clinical judgment. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

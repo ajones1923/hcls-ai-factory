@@ -403,3 +403,8 @@ Illumina Sequencer → FASTQ (~200 GB, 30× WGS)
 
 > *This document was created for the HCLS AI Factory — Secondary Genomics to Novel Drug Discovery.*
 > *Apache 2.0 License | March 2026*
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The HCLS AI Factory platform and its components are clinical decision support research tools. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

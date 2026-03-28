@@ -1645,3 +1645,8 @@ Deploying on a single NVIDIA DGX Spark ($4,699) ensures that this intelligence i
 *HCLS AI Factory -- Cardiology Intelligence Agent Research Paper and PRD*
 *Apache 2.0 License | March 2026*
 *Author: Adam Jones*
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The Cardiology Intelligence Agent is a clinical decision support research tool for cardiovascular medicine. Risk calculator outputs are estimates and should not replace clinical judgment. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

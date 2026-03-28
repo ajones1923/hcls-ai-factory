@@ -628,3 +628,8 @@ The Imaging Intelligence Agent makes five contributions to the field of medical 
 
 *Apache 2.0 License. HCLS AI Factory -- Imaging Intelligence Agent.*
 *Part of the HCLS AI Factory precision medicine platform: Patient DNA to Drug Candidates in < 5 hours.*
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The Imaging Intelligence Agent is a clinical decision support research tool for medical image analysis. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

@@ -619,3 +619,8 @@ For production deployments:
 3. **Parallel search**: The RAG engine searches all 13 collections concurrently; ensure Milvus has sufficient query node capacity
 4. **LLM caching**: Consider caching LLM responses for identical queries (risk calculator results are deterministic; LLM responses are not)
 5. **Compaction**: Run Milvus compaction monthly on actively ingested collections to reclaim space from deleted/updated segments
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The Cardiology Intelligence Agent is a clinical decision support research tool for cardiovascular medicine. Risk calculator outputs are estimates and should not replace clinical judgment. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

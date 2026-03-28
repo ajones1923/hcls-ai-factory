@@ -918,3 +918,8 @@ precision_oncology_agent/
 |-- LICENSE
 +-- README.md
 ```
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The Precision Oncology Agent is a clinical decision support research tool for oncology. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

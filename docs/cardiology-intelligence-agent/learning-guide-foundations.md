@@ -657,3 +657,8 @@ Cardiology Intelligence Agent:
 ```
 
 This layered approach ensures that the system provides not just text answers but actionable clinical data: computed risk scores, specific medication titration plans, and genomic testing recommendations.
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The Cardiology Intelligence Agent is a clinical decision support research tool for cardiovascular medicine. Risk calculator outputs are estimates and should not replace clinical judgment. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

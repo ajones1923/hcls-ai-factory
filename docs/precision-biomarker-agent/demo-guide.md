@@ -748,3 +748,8 @@ ls -la /tmp/biomarker_reports/
 HCLS AI Factory platform. For architecture documentation, see the main project
 README. For deployment instructions, see the Dockerfile and docker-compose.yml
 in the agent root directory.*
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The Precision Biomarker Agent is a clinical decision support research tool for biomarker analysis. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

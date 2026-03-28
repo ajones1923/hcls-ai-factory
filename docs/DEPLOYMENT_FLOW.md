@@ -314,3 +314,8 @@ The previous version goes live instantly (no rebuild needed).
 | **Total** | Push to live | **~1 minute** |
 
 Your content flows from local Markdown files → GitHub repository → Netlify build server → global CDN → user's browser, all automatically on every push.
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The HCLS AI Factory platform and its components are clinical decision support research tools. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

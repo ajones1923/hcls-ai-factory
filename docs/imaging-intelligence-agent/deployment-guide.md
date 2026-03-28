@@ -1769,3 +1769,8 @@ All services join `imaging-network`. Docker DNS resolves service names
 
 *Last updated: March 2026*
 *Imaging Intelligence Agent — HCLS AI Factory*
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The Imaging Intelligence Agent is a clinical decision support research tool for medical image analysis. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

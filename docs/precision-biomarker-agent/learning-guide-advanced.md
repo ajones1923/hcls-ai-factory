@@ -2208,3 +2208,8 @@ Shared genomic variant evidence collection from the VCF-derived pipeline. Read-o
 
 *End of Learning Guide (Advanced) -- Precision Biomarker Intelligence Agent*
 *Total codebase: 12,628 lines source + 8,772 lines tests = 21,400 lines across 36 files.*
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The Precision Biomarker Agent is a clinical decision support research tool for biomarker analysis. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

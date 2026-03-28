@@ -1621,3 +1621,8 @@ The Streamlit dashboard provides interactive access to all workflows with:
 *This document is part of the HCLS AI Factory documentation suite. For platform-wide architecture and deployment instructions, see the main HCLS AI Factory documentation. For agent-specific implementation details, see the Single-Cell Intelligence Agent source code and API documentation.*
 
 *Last updated: March 2026*
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The Single-Cell Intelligence Agent is a clinical decision support research tool for single-cell genomic analysis. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

@@ -560,3 +560,8 @@ For institutional deployment:
 - **Current seed**: 240 records across 14 JSON files
 - **Post-ingest target**: Thousands of records per collection (PubMed, PharmGKB, ClinicalTrials.gov)
 - **IVF_FLAT scaling**: Efficient up to ~1M vectors per collection; beyond that, consider HNSW index
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The Pharmacogenomics Intelligence Agent is a clinical decision support research tool for pharmacogenomic analysis. Dosing recommendations should be verified by a clinical pharmacist. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

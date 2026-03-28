@@ -1561,3 +1561,8 @@ curl -X POST http://localhost:8529/v1/analyze \
 
 *Generated for the HCLS AI Factory. Import this document as context for Claude
 Code sessions to get accurate, grounded implementation guidance.*
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The Precision Biomarker Agent is a clinical decision support research tool for biomarker analysis. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

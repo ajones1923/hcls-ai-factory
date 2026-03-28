@@ -3358,3 +3358,8 @@ SHARED (1)
 *HCLS AI Factory Learning Guide Foundations -- Unified Edition*
 *Version 1.0.0 | March 2026 | Adam Jones*
 *Apache 2.0 License | NVIDIA DGX Spark Platform*
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The HCLS AI Factory platform and all intelligence agents described in this document are clinical decision support research tools. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

@@ -1141,3 +1141,8 @@ All metrics use the `pgx_` prefix for Grafana dashboard filtering alongside exis
 | FastAPI port | 8107 |
 | LLM | Claude Sonnet 4.6 (claude-sonnet-4-6) |
 | Embedding model | BGE-small-en-v1.5 (384-dim) |
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The Pharmacogenomics Intelligence Agent is a clinical decision support research tool for pharmacogenomic analysis. Dosing recommendations should be verified by a clinical pharmacist. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

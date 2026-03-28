@@ -1159,3 +1159,8 @@ All 7 documentation files updated with current metrics and synced across 3 tiers
 ---
 
 *This report was generated on March 12, 2026 and represents the complete production state of the CAR-T Intelligence Agent. All capabilities have been verified through 415 automated tests and a comprehensive demo workflow audit.*
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The CAR-T Intelligence Agent is a clinical decision support research tool for CAR-T cell therapy evaluation. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

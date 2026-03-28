@@ -473,3 +473,8 @@ Default NIM ports (8520, 8530, 8531, 8532) may conflict with other services. To 
 ---
 
 *For complete architecture details, see `ARCHITECTURE_GUIDE.md`. For the full implementation specification, see `PROJECT_BIBLE.md`.*
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The Imaging Intelligence Agent is a clinical decision support research tool for medical image analysis. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

@@ -2096,3 +2096,8 @@ Clinical pharmacists serve as the primary champions of PGx implementation in mos
 5. **Patient education**: Pharmacists are the most accessible healthcare providers and can explain PGx results to patients in understandable terms.
 
 6. **Interdisciplinary liaison**: Pharmacists bridge the gap between laboratory science (genotyping), clinical medicine (prescribing), and informatics (CDS implementation).
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The Pharmacogenomics Intelligence Agent is a clinical decision support research tool for pharmacogenomic analysis. Dosing recommendations should be verified by a clinical pharmacist. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

@@ -505,3 +505,8 @@ All configuration via Pydantic `BaseSettings` in `config/settings.py`. Environme
 ---
 
 *This document serves as the complete implementation specification for the Imaging Intelligence Agent. For architecture details see the Design Document. For demo walkthrough see the Demo Guide.*
+
+---
+
+!!! warning "Clinical Decision Support Disclaimer"
+    The Imaging Intelligence Agent is a clinical decision support research tool for medical image analysis. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.
