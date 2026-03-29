@@ -15,7 +15,7 @@ Date: February 2026
 import sys
 import time
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # noqa: F821
 
 from sentence_transformers import SentenceTransformer
 
