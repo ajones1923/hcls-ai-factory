@@ -1,266 +1,223 @@
 # Precision Biomarker Intelligence Agent -- Architecture Guide
 
-Architecture design document for the Precision Biomarker Intelligence Agent,
-part of the HCLS AI Factory on NVIDIA DGX Spark.
-
-Author: Adam Jones
-Date: March 2026
+**Author:** Adam Jones
+**Date:** March 2026
+**License:** Apache 2.0
 
 ---
 
 ## Table of Contents
 
-1. [Executive Summary](#executive-summary)
-2. [VAST AI OS Component Mapping](#vast-ai-os-component-mapping)
-3. [System Architecture](#system-architecture)
-4. [Component Architecture](#component-architecture)
-5. [Data Flow](#data-flow)
-6. [Milvus Collections](#milvus-collections)
-7. [Embedding Strategy](#embedding-strategy)
-8. [LLM Integration](#llm-integration)
-9. [Knowledge Graph](#knowledge-graph)
-10. [Clinical Pipelines](#clinical-pipelines)
-11. [RAG Engine](#rag-engine)
-12. [API Layer](#api-layer)
-13. [UI Layer](#ui-layer)
-14. [Export Pipeline](#export-pipeline)
-15. [Scaling and Performance](#scaling-and-performance)
-16. [Security](#security)
-17. [File Structure](#file-structure)
+1. [System Diagram](#1-system-diagram)
+2. [Component Interactions](#2-component-interactions)
+3. [Data Flow](#3-data-flow)
+4. [Collection Design Rationale](#4-collection-design-rationale)
+5. [Pharmacogenomic Engine](#5-pharmacogenomic-engine)
+6. [Biological Age Engine](#6-biological-age-engine)
+7. [Disease Trajectory Engine](#7-disease-trajectory-engine)
+8. [Genotype Adjustment Engine](#8-genotype-adjustment-engine)
+9. [Critical Value Engine](#9-critical-value-engine)
+10. [Discordance Detector](#10-discordance-detector)
+11. [RAG Pipeline](#11-rag-pipeline)
+12. [Agent Orchestrator](#12-agent-orchestrator)
+13. [Data Model Architecture](#13-data-model-architecture)
 
 ---
 
-## Executive Summary
+## 1. System Diagram
 
-The Precision Biomarker Intelligence Agent is a genotype-aware biomarker
-interpretation platform that transforms standard blood panel results and
-genomic data into actionable precision health intelligence. It combines
-14 Milvus vector collections, 6 specialized clinical analysis engines,
-and Claude LLM synthesis to deliver evidence-based recommendations
-spanning pharmacogenomics, biological aging, disease trajectories,
-genotype-adjusted reference ranges, critical value alerting, and
-cross-biomarker discordance detection.
-
-### Key Results
-
-| Metric | Value |
-|--------|-------|
-| Source modules (src/) | 16 Python files |
-| Total source lines | ~20,200 |
-| Test suite | 709 tests across 18 files, all passing |
-| Milvus collections | 14 (13 owned + 1 shared read-only) |
-| Pharmacogenes mapped | 14 with CPIC-guided phenotyping |
-| Disease trajectory categories | 9 |
-| Genotype modifier genes | 7 |
-| Critical value rules | 21 |
-| Report sections | 12 |
-| Export formats | 5 (Markdown, PDF, FHIR R4, CSV, JSON) |
-| API endpoints | Multiple across 3 route modules |
-| Demo patients | Included with sample data |
-| Reference data files | 18 JSON seed files |
-| Supported languages | 7 (English, Spanish, Chinese, Hindi, French, Arabic, Portuguese) |
-
----
-
-## VAST AI OS Component Mapping
-
-The Biomarker Agent maps to the VAST AI OS architecture as follows:
-
-| VAST AI OS Layer | Agent Component |
-|-----------------|-----------------|
-| Data Layer | Milvus vector store (14 collections), 18 JSON reference files |
-| Model Layer | BAAI/bge-small-en-v1.5 (embedding), Claude claude-sonnet-4-6 (synthesis) |
-| Inference Layer | FastAPI server (8529), RAG engine, 6 clinical analysis engines |
-| Application Layer | Streamlit UI (8528), 8-tab interface |
-| Orchestration | Docker Compose (6 services), health checks, CORS middleware |
-| Integration | Cross-agent stubs (Oncology, Autoimmune, CAR-T, Imaging), event bus |
-
----
-
-## System Architecture
+### 1.1 Full System Architecture
 
 ```
-+-------------------------------------------------------------------+
-|                    Streamlit UI (:8528)                            |
-|  +-------+ +--------+ +--------+ +--------+ +--------+ +------+  |
-|  |Clinical| |Patient | |PGx     | |Bio Age | |Disease | |Geno  |  |
-|  | Query  | |Analysis| |Panel   | |Calc    | |Traject | |Adjust|  |
-|  +-------+ +--------+ +--------+ +--------+ +--------+ +------+  |
-|  +-------+ +--------+                                             |
-|  |Critical| |Patient |                                            |
-|  |Values  | | 360    |                                            |
-|  +-------+ +--------+                                             |
-+-------------------------------------------------------------------+
-        |                                         |
-        v                                         v
-+-------------------+                 +----------------------------+
-|  FastAPI (:8529)  |                 |  BiomarkerAgent            |
-|  3 route modules  |                 |  plan()                    |
-|  Auth / CORS      |                 |  analyze()                 |
-|  Request limiter  |                 |  search()                  |
-|  Prometheus /     |                 |  synthesize()              |
-|    metrics        |                 |  report()                  |
-+-------------------+                 +----------------------------+
-        |                                     |
-        v                                     v
-+-------------------+            +----------------------------+
-| BiomarkerRAG      |            | 6 Clinical Engines         |
-| Engine            |            |                            |
-|  retrieve()       |            | PharmacogenomicMapper      |
-|  query()          |            |   14 pharmacogenes, CPIC   |
-|  query_stream()   |            |                            |
-|  _embed()         |            | BiologicalAgeCalculator    |
-|  _build_context() |            |   PhenoAge + GrimAge       |
-+-------------------+            |                            |
-        |                        | DiseaseTrajectoryAnalyzer  |
-        v                        |   9 disease categories     |
-+-------------------+            |                            |
-| CollectionManager |            | GenotypeAdjuster           |
-|  connect()        |            |   7 modifier genes         |
-|  search_all()     |            |                            |
-|  insert_batch()   |            | CriticalValueEngine        |
-+-------------------+            |   21 threshold rules       |
-        |                        |                            |
-        v                        | DiscordanceDetector        |
-+-------------------+            |   cross-biomarker patterns |
-| Milvus (:19530)   |            +----------------------------+
-| 14 collections    |                    |
-| IVF_FLAT / COSINE |                    v
-| 384-dim vectors   |            +----------------------------+
-+-------------------+            | ReportGenerator            |
-        |                        |   12-section reports       |
-        v                        | ExportPipeline             |
-+-------------------+            |   MD/PDF/FHIR/CSV/JSON     |
-| BGE-small-en-v1.5 |            | TranslationEngine          |
-| Embedding Model   |            |   7 languages              |
-| 384 dimensions    |            +----------------------------+
-+-------------------+
+                          EXTERNAL USERS
+                               |
+                    +----------+----------+
+                    |                     |
+              +-----+------+      +------+-----+
+              | Streamlit  |      | REST API   |
+              | UI :8533   |      | :8529      |
+              +-----+------+      +------+-----+
+                    |                     |
+                    +----------+----------+
+                               |
+                    +----------+----------+
+                    |  BiomarkerAgent    |
+                    |  (src/agent.py)    |
+                    +----------+----------+
+                               |
+       +-----------------------+------------------------+
+       |            |          |          |              |
++------+------+ +--+------+ +-+------+ +-+--------+ +--+--------+
+| Pharmacoge- | |Bio Age  | |Disease | |Genotype  | |Critical   |
+| nomic       | |Calc     | |Traject | |Adjuster  | |Value Eng  |
+| Mapper      | |(408 LOC)| |(1,421) | |(1,225)   | |(179 LOC)  |
+| (1,503 LOC) | +---------+ +--------+ +----------+ +-----------+
++------+------+                                       |
+       |            +----------------------------------+
+       |            |
++------+------+ +---+--------+
+| Discordance | | Lab Range  |
+| Detector    | | Interpreter|
+| (299 LOC)   | | (221 LOC)  |
++------+------+ +------------+
+       |
+       +--------------------+
+                            |
+                 +----------+----------+
+                 |    RAG Engine       |
+                 |    (573 LOC)        |
+                 +----------+----------+
+                            |
+       +--------------------+--------------------+
+       |                    |                    |
++------+------+    +-------+-------+    +-------+-------+
+| Knowledge   |    | Milvus        |    | LLM           |
+| Graph       |    | Vector DB     |    | (Claude 4.6)  |
+| (1,326 LOC) |    | 14 Collections|    |               |
+| 6 domains   |    |               |    |               |
++-------------+    +-------+-------+    +---------------+
+                            |
+                 +----------+----------+
+                 |  etcd    |  MinIO   |
+                 +----------+----------+
+```
+
+### 1.2 Multi-Format Export Pipeline
+
+```
+  +------------------------------------------+
+  |         AnalysisResult                    |
+  +------------------------------------------+
+      |        |        |        |        |
+  +---v---+ +--v---+ +-v----+ +-v-----+ +v--------+
+  |Markdwn| |  PDF | | FHIR | |  CSV  | |  JSON   |
+  |Report | |Report| |  R4  | |Export | |Export   |
+  |12 sect| |ReportLab| Bundle| |Flat  | |Struct  |
+  +---+---+ +--+---+ +-+----+ +-+-----+ ++--------+
+      |        |        |        |        |
+      +--------+--------+--------+--------+
+                         |
+                  +------v------+
+                  | Translation |
+                  | Engine      |
+                  | 7 languages |
+                  +-------------+
 ```
 
 ---
 
-## Component Architecture
+## 2. Component Interactions
 
-The agent is organized into four layers with clear separation of concerns.
+### 2.1 Component Dependency Graph
 
-### Presentation Layer
+```
+BiomarkerUI (Streamlit) ──> FastAPI Server ──> BiomarkerAgent
+                                                     |
+                          +--------------------------+----------------------------+
+                          |              |           |           |                |
+                   PGxMapper    BioAgeCalc   DiseaseTrajectory  GenotypeAdjuster  CriticalValues
+                          |              |           |           |                |
+                          +------+-------+-----------+-----------+-------+--------+
+                                 |                                       |
+                            DiscordanceDetector                    LabRangeInterpreter
+                                 |                                       |
+                                 +-------------------+-------------------+
+                                                     |
+                                                RAGEngine
+                                                     |
+                                 +-------------------+-------------------+
+                                 |                   |                   |
+                            Milvus DB          Knowledge Graph     genomic_evidence
+                            (14 cols)          (6 domains)         (shared col)
+```
 
-- **Streamlit UI** (`app/biomarker_ui.py`, 1,863 lines): 8-tab application
-  covering clinical query, patient analysis, pharmacogenomics, biological age,
-  disease trajectory, genotype adjustments, critical values, and the cross-agent
-  Patient 360 dashboard.
-- **Patient 360 Dashboard** (`app/patient_360.py`, 670 lines): Cross-agent
-  view aggregating findings from all five HCLS AI Factory intelligence agents.
-- **Protein Viewer** (`app/protein_viewer.py`, 168 lines): 3D protein structure
-  visualization for pharmacogenomically relevant variants.
+### 2.2 Module Responsibilities
 
-### API Layer
+| Module | File | LOC | Responsibilities |
+|--------|------|-----|-----------------|
+| **BiomarkerAgent** | `src/agent.py` | 610 | Plan-analyze-search-synthesize-report loop |
+| **PharmacogenomicMapper** | `src/pharmacogenomics.py` | 1,503 | CPIC-guided phenotyping across 14 pharmacogenes |
+| **DiseaseTrajectoryAnalyzer** | `src/disease_trajectory.py` | 1,421 | Pre-symptomatic detection across 9 disease categories |
+| **GenotypeAdjuster** | `src/genotype_adjustment.py` | 1,225 | Genotype-based reference range adjustments for 7 genes |
+| **BiologicalAgeCalculator** | `src/biological_age.py` | 408 | PhenoAge and GrimAge surrogate calculations |
+| **CriticalValueEngine** | `src/critical_values.py` | 179 | Life-threatening threshold detection (21 rules) |
+| **DiscordanceDetector** | `src/discordance_detector.py` | 299 | Cross-biomarker anomaly detection |
+| **LabRangeInterpreter** | `src/lab_range_interpreter.py` | 221 | Standard vs optimal range interpretation |
+| **BiomarkerRAGEngine** | `src/rag_engine.py` | 573 | Multi-collection RAG with parallel search |
+| **ReportGenerator** | `src/report_generator.py` | 993 | 12-section clinical reports |
+| **ExportPipeline** | `src/export.py` | 1,392 | PDF/FHIR/CSV/JSON/Markdown export |
+| **TranslationEngine** | `src/translation.py` | 217 | Multi-language medical terminology (7 languages) |
+| **Knowledge Graph** | `src/knowledge.py` | 1,326 | 6 disease domain knowledge graphs |
+| **Collections** | `src/collections.py` | 1,391 | Milvus collection management (14 schemas) |
+| **Models** | `src/models.py` | 786 | 14 collection models, 8+ analysis models, 7 enums |
+| **Audit** | `src/audit.py` | 83 | HIPAA-compliant audit logging |
 
-- **FastAPI Server** (`api/main.py`, 465 lines): Entry point with lifespan
-  management, core endpoints, health checks, and middleware configuration.
-- **Analysis Routes** (`api/routes/analysis.py`, 495 lines): Endpoints for
-  full analysis, biological age calculation, disease trajectory, PGx mapping,
-  and genotype adjustments.
-- **Event Routes** (`api/routes/events.py`, 326 lines): Cross-modal event
-  endpoints and biomarker alert handling.
-- **Report Routes** (`api/routes/reports.py`, 296 lines): Report generation,
-  PDF export, and FHIR R4 bundle endpoints.
+### 2.3 Interface Contracts
 
-### Engine Layer
+**BiomarkerAgent inputs/outputs:**
+```
+Input:  PatientProfile(demographics, biomarkers, genotypes, medications)
+Output: AnalysisResult(pgx_results, biological_age, disease_trajectories, genotype_adjustments, critical_values, discordances, report)
+```
 
-Six specialized clinical engines plus the RAG engine and agent orchestrator:
+**PharmacogenomicMapper inputs/outputs:**
+```
+Input:  GenotypePanelInput(gene_genotypes: Dict[gene, star_alleles])
+Output: PGxResult(phenotype, drug_recommendations: List[DrugRecommendation], alert_level)
+```
 
-| Engine | Module | Lines | Purpose |
-|--------|--------|-------|---------|
-| PharmacogenomicMapper | `pharmacogenomics.py` | 1,503 | CPIC-guided phenotyping across 14 pharmacogenes |
-| DiseaseTrajectoryAnalyzer | `disease_trajectory.py` | 1,421 | Pre-symptomatic detection across 9 disease categories |
-| GenotypeAdjuster | `genotype_adjustment.py` | 1,225 | Genotype-based reference range adjustments for 7 genes |
-| BiologicalAgeCalculator | `biological_age.py` | 408 | PhenoAge and GrimAge surrogate calculations |
-| CriticalValueEngine | `critical_values.py` | 179 | Life-threatening threshold detection (21 rules) |
-| DiscordanceDetector | `discordance_detector.py` | 299 | Cross-biomarker anomaly detection |
-| BiomarkerRAGEngine | `rag_engine.py` | 573 | Multi-collection RAG with parallel search |
-| BiomarkerAgent | `agent.py` | 610 | Autonomous plan-analyze-search-synthesize loop |
-
-### Data Layer
-
-- **Milvus** (14 vector collections, 384-dim BGE-small-en-v1.5 embeddings)
-- **Knowledge Graph** (`knowledge.py`, 1,326 lines): 6 disease domain knowledge graphs
-- **Reference Data** (18 JSON seed files in `data/reference/`)
-- **Models** (`models.py`, 786 lines): 14 collection models, 8+ analysis models, 7 enums
+**BiologicalAgeCalculator inputs/outputs:**
+```
+Input:  BiomarkerPanel(chronological_age, albumin, creatinine, glucose, CRP, ...)
+Output: BiologicalAgeResult(pheno_age, grim_age, acceleration, percentile, contributing_biomarkers)
+```
 
 ---
 
-## Data Flow
+## 3. Data Flow
 
-### End-to-End Pipeline
-
-```
-                    HCLS AI Factory Pipeline
-                    =======================
-
-Stage 1: Genomics Pipeline (Parabricks/DeepVariant)
-  FASTQ -> VCF -> genomic_evidence collection (shared, read-only)
-      |
-Stage 2: RAG + Intelligence Agents
-      |
-      +-> Biomarker Agent (this project)
-      |     Multi-collection RAG + 6 analysis engines
-      |     14 Milvus collections (13 owned + 1 shared)
-      |
-      +-> CAR-T Agent, Oncology Agent, Imaging Agent, Autoimmune Agent
-      |
-Stage 3: Drug Discovery Pipeline (BioNeMo/DiffDock/RDKit)
-  PGx findings -> drug candidate optimization
-```
-
-### Agent Internal Pipeline
-
-The agent orchestrator (`BiomarkerAgent`) executes a 5-step pipeline for
-each patient analysis request:
+### 3.1 Patient Analysis Pipeline
 
 ```
-Patient Profile (demographics, biomarkers, genotypes)
-    |
-    v
-[1. PLAN]
-    |  Identify relevant topics, disease areas, and modules
-    |  Select analysis engines based on available patient data
-    |  Determine which collections to prioritize
-    |
-    v
-[2. ANALYZE]  (parallel execution)
-    |  +-- BiologicalAgeCalculator: PhenoAge + GrimAge computation
-    |  +-- DiseaseTrajectoryAnalyzer: 9 disease category risk assessment
-    |  +-- PharmacogenomicMapper: 14 pharmacogene phenotyping
-    |  +-- GenotypeAdjuster: 7 modifier gene range adjustments
-    |  +-- CriticalValueEngine: 21-rule threshold check
-    |  +-- DiscordanceDetector: cross-biomarker pattern analysis
-    |  +-- LabRangeInterpreter: standard vs optimal range interpretation
-    |
-    v
-[3. SEARCH]
-    |  Multi-collection RAG across 14 collections
-    |  ThreadPoolExecutor parallel search (max_workers=6)
-    |  Weighted scoring with per-collection weights (sum = 1.0)
-    |  Score threshold filtering (minimum 0.4 cosine similarity)
-    |
-    v
-[4. SYNTHESIZE]
-    |  Claude LLM synthesis with domain knowledge injection
-    |  Grounded responses with evidence citations
-    |  Conversation memory for follow-up questions
-    |
-    v
-[5. REPORT]
-    |  12-section clinical report generation
-    |  Multi-format export: Markdown, PDF, FHIR R4, CSV, JSON
-    |  Multi-language translation (7 languages)
-    |
-    v
+Step 1: RECEIVE PATIENT PROFILE
+  PatientProfile arrives via API or UI
+  Demographics, biomarker values, genotype data, medications
+  |
+Step 2: PLAN (agent.py)
+  Identify relevant topics, disease areas, and modules
+  Select analysis engines based on available patient data
+  Determine which collections to prioritize
+  |
+Step 3: ANALYZE (parallel execution)
+  +-- BiologicalAgeCalculator: PhenoAge + GrimAge computation
+  +-- DiseaseTrajectoryAnalyzer: 9 disease category risk assessment
+  +-- PharmacogenomicMapper: 14 pharmacogene phenotyping
+  +-- GenotypeAdjuster: 7 modifier gene range adjustments
+  +-- CriticalValueEngine: 21-rule threshold check
+  +-- DiscordanceDetector: cross-biomarker pattern analysis
+  +-- LabRangeInterpreter: standard vs optimal range interpretation
+  |
+Step 4: SEARCH (rag_engine.py)
+  Multi-collection RAG across 14 collections
+  ThreadPoolExecutor parallel search (max_workers=6)
+  Weighted scoring with per-collection weights (sum = 1.0)
+  Score threshold filtering (minimum 0.4 cosine similarity)
+  |
+Step 5: SYNTHESIZE (rag_engine.py)
+  Claude LLM synthesis with domain knowledge injection
+  Grounded responses with evidence citations
+  Conversation memory for follow-up questions
+  |
+Step 6: REPORT (report_generator.py + export.py)
+  12-section clinical report generation
+  Multi-format export: Markdown, PDF, FHIR R4, CSV, JSON
+  Multi-language translation (7 languages)
+  |
+  v
 AnalysisResult + Clinical Report
 ```
 
-### Data Ingestion Flow
+### 3.2 Data Ingestion Flow
 
 ```
 Reference Data (18 JSON files)
@@ -278,53 +235,55 @@ Reference Data (18 JSON files)
 
 ---
 
-## Milvus Collections
+## 4. Collection Design Rationale
+
+### 4.1 Collection Inventory
 
 The agent manages 14 specialized vector collections. All use COSINE similarity
 with IVF_FLAT indexing (nlist=1024, nprobe=16) and 384-dimensional vectors
 from BGE-small-en-v1.5.
 
-| # | Collection Name | Description | Weight |
-|---|----------------|-------------|--------|
-| 1 | biomarker_reference | Reference biomarker definitions with standard/optimal ranges | 0.12 |
-| 2 | biomarker_genetic_variants | Genetic variants affecting biomarker levels (MTHFR, APOE, etc.) | 0.11 |
-| 3 | biomarker_pgx_rules | CPIC pharmacogenomic dosing rules | 0.10 |
-| 4 | biomarker_disease_trajectories | Disease progression trajectories with intervention windows | 0.10 |
-| 5 | biomarker_clinical_evidence | Published clinical evidence with PubMed references | 0.09 |
-| 6 | genomic_evidence | Shared VCF-derived genomic variants (read-only) | 0.08 |
-| 7 | biomarker_drug_interactions | Gene-drug interactions beyond PGx | 0.07 |
-| 8 | biomarker_aging_markers | Epigenetic aging clock marker data (PhenoAge/GrimAge) | 0.07 |
-| 9 | biomarker_nutrition | Genotype-aware nutrition guidelines | 0.05 |
-| 10 | biomarker_genotype_adjustments | Genotype-based reference range adjustments | 0.05 |
-| 11 | biomarker_monitoring | Condition-specific monitoring protocols | 0.05 |
-| 12 | biomarker_critical_values | Critical threshold definitions | 0.04 |
-| 13 | biomarker_discordance_rules | Cross-biomarker discordance patterns | 0.04 |
-| 14 | biomarker_aj_carrier_screening | Ashkenazi Jewish carrier screening panel (10 genes) | 0.03 |
-| | **Total** | | **1.00** |
+| # | Collection Name | Description | Weight | Seed Records |
+|---|----------------|-------------|--------|-------------|
+| 1 | biomarker_reference | Reference biomarker definitions with standard/optimal ranges | 0.12 | 624 |
+| 2 | biomarker_genetic_variants | Genetic variants affecting biomarker levels | 0.11 | 42 |
+| 3 | biomarker_pgx_rules | CPIC pharmacogenomic dosing rules | 0.10 | 80 |
+| 4 | biomarker_disease_trajectories | Disease progression trajectories with intervention windows | 0.10 | 60 |
+| 5 | biomarker_clinical_evidence | Published clinical evidence with PubMed references | 0.09 | 240 |
+| 6 | genomic_evidence | Shared VCF-derived genomic variants (read-only) | 0.08 | -- |
+| 7 | biomarker_drug_interactions | Gene-drug interactions beyond PGx | 0.07 | 45 |
+| 8 | biomarker_aging_markers | Epigenetic aging clock marker data (PhenoAge/GrimAge) | 0.07 | 30 |
+| 9 | biomarker_nutrition | Genotype-aware nutrition guidelines | 0.05 | 50 |
+| 10 | biomarker_genotype_adjustments | Genotype-based reference range adjustments | 0.05 | 35 |
+| 11 | biomarker_monitoring | Condition-specific monitoring protocols | 0.05 | 40 |
+| 12 | biomarker_critical_values | Critical threshold definitions | 0.04 | 21 |
+| 13 | biomarker_discordance_rules | Cross-biomarker discordance patterns | 0.04 | 20 |
+| 14 | biomarker_aj_carrier_screening | Ashkenazi Jewish carrier screening panel (10 genes) | 0.03 | 10 |
+| | **Total** | | **1.00** | **1,297** |
 
-### Collection Weight Distribution
+### 4.2 Collection Weight Distribution
 
 ```
-biomarker_reference          ████████████          0.12
-biomarker_genetic_variants   ███████████           0.11
-biomarker_pgx_rules          ██████████            0.10
-biomarker_disease_traject.   ██████████            0.10
-biomarker_clinical_evidence  █████████             0.09
-genomic_evidence             ████████              0.08
-biomarker_drug_interactions  ███████               0.07
-biomarker_aging_markers      ███████               0.07
-biomarker_nutrition          █████                 0.05
-biomarker_genotype_adjust.   █████                 0.05
-biomarker_monitoring         █████                 0.05
-biomarker_critical_values    ████                  0.04
-biomarker_discordance_rules  ████                  0.04
-biomarker_aj_carrier_screen  ███                   0.03
-                                             Sum: 1.00
+biomarker_reference          ████████████████        0.12
+biomarker_genetic_variants   ███████████████         0.11
+biomarker_pgx_rules          ██████████████          0.10
+biomarker_disease_traject.   ██████████████          0.10
+biomarker_clinical_evidence  █████████████           0.09
+genomic_evidence             ████████████            0.08
+biomarker_drug_interactions  ███████████             0.07
+biomarker_aging_markers      ███████████             0.07
+biomarker_nutrition          ████████                0.05
+biomarker_genotype_adjust.   ████████                0.05
+biomarker_monitoring         ████████                0.05
+biomarker_critical_values    ██████                  0.04
+biomarker_discordance_rules  ██████                  0.04
+biomarker_aj_carrier_screen  █████                   0.03
+                                               Sum: 1.00
 ```
 
-### Key Collection Schemas
+### 4.3 Key Collection Schemas
 
-**biomarker_reference** -- Core biomarker definitions:
+**biomarker_reference** -- Core biomarker definitions (624 records):
 
 | Field | Type | Notes |
 |-------|------|-------|
@@ -340,6 +299,20 @@ biomarker_aj_carrier_screen  ███                   0.03
 | epigenetic_clock | VARCHAR(50) | PhenoAge/GrimAge coefficient |
 | genetic_modifiers | VARCHAR(500) | Comma-separated modifier genes |
 
+**biomarker_clinical_evidence** -- Published evidence (240 records):
+
+| Field | Type | Notes |
+|-------|------|-------|
+| id (PK) | VARCHAR(100) | Primary key |
+| embedding | FLOAT_VECTOR | 384-dim |
+| title | VARCHAR(500) | Publication title |
+| pmid | VARCHAR(20) | PubMed ID |
+| journal | VARCHAR(200) | Journal name |
+| year | INT64 | Publication year |
+| biomarker_focus | VARCHAR(200) | Primary biomarker(s) discussed |
+| evidence_level | VARCHAR(20) | Evidence grade |
+| text_chunk | VARCHAR(3000) | Text for embedding |
+
 **biomarker_pgx_rules** -- Pharmacogenomic dosing rules:
 
 | Field | Type | Notes |
@@ -352,122 +325,34 @@ biomarker_aj_carrier_screen  ███                   0.03
 | phenotype | VARCHAR(30) | MetabolizerPhenotype enum |
 | cpic_level | VARCHAR(5) | CPIC evidence level (1A-3) |
 | recommendation | VARCHAR(2000) | Dosing recommendation |
-| evidence_url | VARCHAR(500) | CPIC/PharmGKB URL |
 | text_chunk | VARCHAR(3000) | Text for embedding |
 
 ---
 
-## Embedding Strategy
+## 5. Pharmacogenomic Engine
 
-| Parameter | Value |
-|-----------|-------|
-| Model | BAAI/bge-small-en-v1.5 |
-| Parameters | 33M |
-| Dimensions | 384 |
-| Metric | COSINE |
-| Index type | IVF_FLAT (nlist=1024, nprobe=16) |
-| Batch size | 32 |
-| Runtime | CPU (no GPU required) |
-| Instruction prefix | "Represent this sentence for searching relevant passages: " |
-| Search mode | Asymmetric (queries use instruction prefix, documents do not) |
-| Embedding cache | 256 entries, FIFO eviction |
+### 5.1 Architecture
 
-### Domain-Optimized Embedding Text
+```
+GenotypePanelInput (14 pharmacogenes x star alleles)
+    |
+    v
+[Phenotype Classification]
+    |   Map star allele combinations to metabolizer phenotypes
+    |   CPIC standard terminology: Normal, Intermediate, Poor, Ultra-rapid, Rapid
+    |
+    v
+[Drug Recommendation Generation]
+    |   For each gene-phenotype combination:
+    |   - Identify affected drugs from CPIC guidelines
+    |   - Determine dosing action (standard, reduce, avoid, etc.)
+    |   - Set alert level (info, warning, critical)
+    |
+    v
+PGxResult (per-gene phenotype + per-drug recommendations)
+```
 
-Each collection model provides a `to_embedding_text()` method that constructs
-a domain-optimized text representation for higher retrieval quality:
-
-- **BiomarkerReference:** `"{name} ({unit}). {text_chunk}. Significance: {clinical_significance}. Category: {category}. Genetic modifiers: {genetic_modifiers}"`
-- **PGxRule:** `"{gene} {star_alleles} -- {drug}. {text_chunk}. Recommendation: {recommendation}. Phenotype: {phenotype}. CPIC Level: {cpic_level}"`
-- **GeneticVariant:** `"{gene} {rs_id}. {text_chunk}. Mechanism: {mechanism}. Diseases: {disease_associations}"`
-- **DiseaseTrajectory:** `"{disease} {stage}. {text_chunk}. Intervention: {intervention_window}"`
-
-This approach ensures that semantically critical fields (gene names, drug names,
-phenotypes, clinical significance) are included in the embedding text even
-when they appear only in structured metadata fields.
-
----
-
-## LLM Integration
-
-### Claude Configuration
-
-| Setting | Value |
-|---------|-------|
-| Model | claude-sonnet-4-6 |
-| Provider | Anthropic API |
-| Environment variable | `ANTHROPIC_API_KEY` |
-| Max retries | 3 |
-| Conversation memory | 3 turns (configurable) |
-| Streaming | Supported (via `query_stream()`) |
-
-### System Prompt Design
-
-The system prompt defines the agent as a **Precision Biomarker Intelligence Agent**
-with expertise in:
-
-1. Genotype-aware biomarker interpretation
-2. Pharmacogenomic phenotyping (CPIC guidelines)
-3. Biological age estimation (PhenoAge/GrimAge)
-4. Disease trajectory prediction
-5. Critical value alerting
-6. Cross-biomarker discordance detection
-7. Genotype-based reference range adjustments
-8. Longitudinal trend analysis
-
-Behavioral instructions enforce:
-- Evidence-based responses with citations
-- Acknowledgment of uncertainty and limitations
-- Cross-referencing across biomarker domains
-- Pharmacogenomic context in drug-related queries
-- Flagging of critical values requiring immediate attention
-
-### Knowledge Injection
-
-Before each LLM call, the RAG engine injects structured domain knowledge from
-the knowledge graph alongside retrieved evidence. This provides the LLM with
-curated clinical context that may not be captured in the vector store alone,
-including CPIC dosing tables, disease trajectory staging criteria, and genotype
-adjustment coefficients.
-
----
-
-## Knowledge Graph
-
-**Module:** `src/knowledge.py` (1,326 lines)
-
-The knowledge graph provides curated, structured domain knowledge organized
-into 6 disease domains. This knowledge is injected into LLM prompts alongside
-retrieved vector evidence to ensure comprehensive clinical context.
-
-### Domain Structure
-
-| Domain | Content | Purpose |
-|--------|---------|---------|
-| Pharmacogenomics | 14 pharmacogene profiles with star allele tables | PGx phenotyping context |
-| Cardiovascular | Risk factors, biomarker thresholds, treatment targets | CV disease trajectory |
-| Metabolic | Diabetes, thyroid, nutritional biomarker patterns | Metabolic disease detection |
-| Hepatic/Renal | Liver function, kidney function, staging criteria | Organ function assessment |
-| Hematology | CBC interpretation, iron studies, coagulation | Blood disorder detection |
-| Aging | PhenoAge/GrimAge coefficients, aging biomarker norms | Biological age estimation |
-
-### Helper Functions
-
-- `lookup_biomarker(name)` -- Return full biomarker context including reference ranges, genetic modifiers, and clinical significance
-- `lookup_pharmacogene(gene)` -- Return star allele tables, phenotype classifications, and affected drugs
-- `lookup_disease_domain(category)` -- Return disease-specific biomarker patterns and trajectory staging
-- `lookup_interaction(drug, gene)` -- Return gene-drug interaction context
-
----
-
-## Clinical Pipelines
-
-### 1. Pharmacogenomic Engine (src/pharmacogenomics.py, 1,503 lines)
-
-Maps star alleles and genotypes to drug recommendations following CPIC Level 1A
-guidelines. Pure computation with no LLM or database calls required.
-
-**Covered pharmacogenes (14):**
+### 5.2 Covered Pharmacogenes (14)
 
 | Gene | Description | CPIC Level | Key Drugs |
 |------|-------------|------------|-----------|
@@ -480,31 +365,66 @@ guidelines. Pure computation with no LLM or database calls required.
 | MTHFR | Folate metabolism, homocysteine | Informational | Methotrexate |
 | TPMT | Thiopurine metabolism | 1A | Azathioprine, mercaptopurine |
 | DPYD | Fluoropyrimidine metabolism | 1A | 5-FU, capecitabine |
+| HLA-B*57:01 | Abacavir hypersensitivity | 1A | Abacavir |
+| G6PD | Oxidative drug hemolysis | 1A | Rasburicase, dapsone |
+| HLA-B*58:01 | Allopurinol hypersensitivity | 1A | Allopurinol |
+| UGT1A1 | Irinotecan, atazanavir | 1A | Irinotecan |
+| CYP4F2 | Vitamin K recycling | Informational | Warfarin |
 
-**Phenotype classification:** Uses CPIC standard metabolizer terminology
-(Normal/Intermediate/Poor/Ultra-rapid/Rapid Metabolizer) with gene-specific
-variants for transporters (SLCO1B1), enzymes (MTHFR), and sensitivity (VKORC1).
+### 5.3 Drug Recommendation Actions
 
-**Drug recommendation actions:** STANDARD_DOSING, DOSE_REDUCTION, DOSE_ADJUSTMENT,
-CONSIDER_ALTERNATIVE, AVOID, CONTRAINDICATED. Alert levels: INFO, WARNING, CRITICAL.
+| Action | Description | Alert Level |
+|--------|-------------|-------------|
+| STANDARD_DOSING | No adjustment needed | INFO |
+| DOSE_REDUCTION | Reduce dose per CPIC | WARNING |
+| DOSE_ADJUSTMENT | Adjust based on phenotype | WARNING |
+| CONSIDER_ALTERNATIVE | Prefer alternative drug | WARNING |
+| AVOID | Do not prescribe | CRITICAL |
+| CONTRAINDICATED | Absolute contraindication | CRITICAL |
 
-### 2. Biological Age Engine (src/biological_age.py, 408 lines)
+---
 
-Estimates biological age using two validated epigenetic aging clocks:
+## 6. Biological Age Engine
 
-- **PhenoAge (Levine 2018):** Uses 9 blood biomarkers (albumin, creatinine,
-  glucose, CRP, lymphocyte %, mean cell volume, red cell distribution width,
-  alkaline phosphatase, white blood cell count) plus chronological age.
-- **GrimAge surrogate:** Uses a subset of PhenoAge biomarkers with smoking
-  pack-years and additional aging markers.
+### 6.1 PhenoAge (Levine 2018)
 
-Output includes biological age estimate, acceleration (difference from
-chronological age), percentile ranking, and contributing biomarkers sorted
-by impact.
+Uses 9 blood biomarkers plus chronological age:
 
-### 3. Disease Trajectory Engine (src/disease_trajectory.py, 1,421 lines)
+| Biomarker | Unit | PhenoAge Weight |
+|-----------|------|----------------|
+| Albumin | g/dL | Negative (protective) |
+| Creatinine | mg/dL | Positive |
+| Glucose | mg/dL | Positive |
+| C-reactive protein (log) | mg/L | Positive |
+| Lymphocyte % | % | Negative (protective) |
+| Mean cell volume | fL | Positive |
+| Red cell distribution width | % | Positive |
+| Alkaline phosphatase | U/L | Positive |
+| White blood cell count | 10^3/uL | Positive |
+| Chronological age | years | Positive |
 
-Predicts disease progression across 9 categories:
+### 6.2 GrimAge Surrogate
+
+Uses a subset of PhenoAge biomarkers with smoking pack-years and additional aging markers to estimate the GrimAge epigenetic clock.
+
+### 6.3 Output
+
+```
+BiologicalAgeResult:
+  - pheno_age: 58.3 years
+  - grim_age: 56.1 years
+  - chronological_age: 52 years
+  - acceleration: +6.3 years (PhenoAge)
+  - percentile: 78th (aging faster than 78% of age-matched cohort)
+  - contributing_biomarkers: [CRP (high impact), RDW (moderate), glucose (moderate)]
+  - recommendations: ["Reduce CRP through anti-inflammatory interventions", ...]
+```
+
+---
+
+## 7. Disease Trajectory Engine
+
+### 7.1 Covered Disease Categories (9)
 
 | Category | Key Biomarkers | Stages |
 |----------|---------------|--------|
@@ -518,12 +438,21 @@ Predicts disease progression across 9 categories:
 | Bone Health | Calcium, phosphorus, PTH, vitamin D | Normal -> Osteopenia -> Osteoporosis |
 | Cognitive | Homocysteine, B12, folate, CRP | Risk factors -> Mild -> Significant |
 
-Each trajectory includes years-to-diagnosis estimates, intervention windows,
-and potential risk reduction percentages.
+### 7.2 Trajectory Output
 
-### 4. Genotype Adjustment Engine (src/genotype_adjustment.py, 1,225 lines)
+Each trajectory includes:
+- Current stage classification
+- Years-to-progression estimate (if untreated)
+- Intervention window description
+- Potential risk reduction percentage
+- Recommended monitoring frequency
+- Actionable biomarker targets
 
-Adjusts standard reference ranges based on 7 modifier genes:
+---
+
+## 8. Genotype Adjustment Engine
+
+### 8.1 Modifier Genes (7)
 
 | Gene | Variant | Affected Biomarkers | Adjustment |
 |------|---------|-------------------|------------|
@@ -535,33 +464,71 @@ Adjusts standard reference ranges based on 7 modifier genes:
 | HEXA | Various | Hex A activity | Carrier-specific enzyme ranges |
 | FTO | rs9939609 | BMI, glucose, HbA1c | Obesity-adjusted metabolic ranges |
 
-### 5. Critical Value Engine (src/critical_values.py, 179 lines)
+### 8.2 Adjustment Architecture
 
-Monitors 21 critical threshold rules for life-threatening lab values that
-require immediate clinical attention. Each rule defines:
-
-- Biomarker name and threshold (high/low)
-- Severity level (critical, urgent)
-- Escalation target (emergency, physician, specialist)
-- Required action text
-
-### 6. Discordance Detector (src/discordance_detector.py, 299 lines)
-
-Identifies cross-biomarker discordances -- situations where two or more
-biomarker results are physiologically contradictory or clinically unexpected.
-Examples include:
-
-- Normal TSH with elevated free T4 (suggesting assay interference)
-- Normal HbA1c with elevated fasting glucose (possible hemoglobin variant)
-- Low ferritin with elevated transferrin saturation (mixed iron picture)
+```
+Standard Reference Range + Genotype Data
+    |
+    v
+[Modifier Gene Lookup]
+    |-- Check patient genotype against 7 modifier genes
+    |-- Identify applicable adjustments
+    |
+    v
+[Range Modification]
+    |-- Apply narrowing/widening factors
+    |-- Flag genotype-specific optimal targets
+    |
+    v
+AdjustedRange(biomarker, standard_min, standard_max,
+              adjusted_min, adjusted_max, genotype, rationale)
+```
 
 ---
 
-## RAG Engine
+## 9. Critical Value Engine
 
-**Module:** `src/rag_engine.py` (573 lines)
+### 9.1 Threshold Rules (21)
 
-### Search Flow
+The engine monitors 21 critical threshold rules for life-threatening lab values:
+
+| Biomarker | Critical Low | Critical High | Severity | Escalation |
+|-----------|-------------|--------------|----------|------------|
+| Potassium | < 2.5 mEq/L | > 6.5 mEq/L | Critical | Emergency |
+| Sodium | < 120 mEq/L | > 160 mEq/L | Critical | Emergency |
+| Glucose | < 40 mg/dL | > 500 mg/dL | Critical | Emergency |
+| Calcium | < 6.0 mg/dL | > 13.0 mg/dL | Critical | Emergency |
+| Hemoglobin | < 7.0 g/dL | > 20.0 g/dL | Critical | Emergency |
+| Platelets | < 20 K/uL | > 1000 K/uL | Critical | Emergency |
+| INR | -- | > 5.0 | Urgent | Physician |
+| Troponin | -- | > 0.04 ng/mL | Critical | Emergency |
+| Lactate | -- | > 4.0 mmol/L | Critical | Emergency |
+| Creatinine | -- | > 10.0 mg/dL | Critical | Emergency |
+
+(Plus 11 additional rules for WBC, pH, pCO2, pO2, bicarbonate, magnesium, phosphorus, bilirubin, ammonia, TSH, and lithium.)
+
+---
+
+## 10. Discordance Detector
+
+### 10.1 Cross-Biomarker Patterns
+
+Identifies physiologically contradictory or clinically unexpected biomarker combinations:
+
+| Pattern | Biomarker A | Biomarker B | Implication |
+|---------|-----------|-----------|------------|
+| Thyroid discordance | Normal TSH | Elevated free T4 | Assay interference or central thyroid disease |
+| HbA1c-glucose | Normal HbA1c | Elevated fasting glucose | Possible hemoglobin variant or early diabetes |
+| Iron paradox | Low ferritin | Elevated transferrin sat | Mixed iron picture, consider inflammation |
+| Liver-albumin | Elevated ALT/AST | Normal albumin | Acute vs chronic liver disease differentiation |
+| Renal-calcium | Elevated creatinine | Elevated calcium | Evaluate for primary hyperparathyroidism |
+| B12-MMA | Normal B12 | Elevated methylmalonic acid | Functional B12 deficiency |
+
+---
+
+## 11. RAG Pipeline
+
+### 11.1 RAG Architecture
 
 ```
 Query --> Embed (BGE-small + instruction prefix)
@@ -569,11 +536,26 @@ Query --> Embed (BGE-small + instruction prefix)
   --> Weighted Scoring (per-collection weights, sum=1.0)
   --> Deduplication (by ID and text content hash)
   --> Knowledge Augmentation (pharmacogenes, disease domains, interactions)
-  --> LLM Synthesis (Claude, system prompt, conversation memory)
+  --> LLM Synthesis (Claude Sonnet 4.6, system prompt, conversation memory)
   --> Streaming Response with Evidence Citations
 ```
 
-### Citation Scoring
+### 11.2 Embedding Configuration
+
+| Parameter | Value |
+|-----------|-------|
+| Model | BAAI/bge-small-en-v1.5 |
+| Parameters | 33M |
+| Dimensions | 384 |
+| Metric | COSINE |
+| Index type | IVF_FLAT (nlist=1024, nprobe=16) |
+| Batch size | 32 |
+| Runtime | CPU (no GPU required) |
+| Instruction prefix | "Represent this sentence for searching relevant passages: " |
+| Search mode | Asymmetric |
+| Embedding cache | 256 entries, FIFO eviction |
+
+### 11.3 Citation Scoring
 
 | Score Range | Relevance Level |
 |------------|----------------|
@@ -581,26 +563,57 @@ Query --> Embed (BGE-small + instruction prefix)
 | >= 0.60 | Medium |
 | < 0.60 | Low |
 
-### Conversation Memory
+### 11.4 Knowledge Graph (6 Domains)
 
-The RAG engine maintains thread-safe conversation memory using a deque with
-configurable maximum size (default: 3 turns). This allows follow-up questions
-to reference previous context without re-executing the full analysis pipeline.
+| Domain | Content | Purpose |
+|--------|---------|---------|
+| Pharmacogenomics | 14 pharmacogene profiles with star allele tables | PGx phenotyping context |
+| Cardiovascular | Risk factors, biomarker thresholds, treatment targets | CV disease trajectory |
+| Metabolic | Diabetes, thyroid, nutritional biomarker patterns | Metabolic disease detection |
+| Hepatic/Renal | Liver function, kidney function, staging criteria | Organ function assessment |
+| Hematology | CBC interpretation, iron studies, coagulation | Blood disorder detection |
+| Aging | PhenoAge/GrimAge coefficients, aging biomarker norms | Biological age estimation |
 
 ---
 
-## API Layer
+## 12. Agent Orchestrator
 
-### FastAPI Server (port 8529)
+### 12.1 Key Statistics
 
-The API is organized across 3 route modules with a shared lifespan manager.
+| Metric | Value |
+|--------|-------|
+| Source modules (src/) | 16 Python files |
+| Total source lines | ~20,200 |
+| Test suite | 709 tests across 18 files, all passing |
+| Milvus collections | 14 (13 owned + 1 shared read-only) |
+| Total seed vectors | 1,297 |
+| Pharmacogenes mapped | 14 with CPIC-guided phenotyping |
+| Disease trajectory categories | 9 |
+| Genotype modifier genes | 7 |
+| Critical value rules | 21 |
+| Report sections | 12 |
+| Export formats | 5 (Markdown, PDF, FHIR R4, CSV, JSON) |
+| Supported languages | 7 (English, Spanish, Chinese, Hindi, French, Arabic, Portuguese) |
+
+### 12.2 Error Handling Strategy
+
+The orchestrator implements graceful degradation:
+
+1. **Milvus unavailable**: Analysis engines still function (pure computation); RAG returns error
+2. **LLM unavailable**: Returns analysis results without LLM synthesis
+3. **PGx engine error**: Logs warning, returns available engine results
+4. **Biological age error**: Logs warning, returns response without age calculation
+5. **Critical value detection**: Always runs first; alerts bypass other engine failures
+6. **Timeout**: Returns partial results with timeout indicator
+
+### 12.3 API Endpoints Summary
 
 **Core endpoints (api/main.py):**
 
 | Endpoint | Method | Purpose |
 |----------|--------|---------|
-| `/healthz` | GET | Health check (returns service status) |
-| `/readyz` | GET | Readiness check (Milvus connection verified) |
+| `/healthz` | GET | Health check |
+| `/readyz` | GET | Readiness check (Milvus connection) |
 | `/metrics` | GET | Prometheus metrics endpoint |
 | `/v1/query` | POST | RAG query with streaming support |
 
@@ -608,7 +621,7 @@ The API is organized across 3 route modules with a shared lifespan manager.
 
 | Endpoint | Method | Purpose |
 |----------|--------|---------|
-| `/v1/analyze` | POST | Full patient analysis (all 6 engines) |
+| `/v1/analyze` | POST | Full patient analysis (all engines) |
 | `/v1/biological-age` | POST | PhenoAge/GrimAge calculation |
 | `/v1/disease-trajectory` | POST | Disease trajectory prediction |
 | `/v1/pgx-map` | POST | Pharmacogenomic mapping |
@@ -629,267 +642,102 @@ The API is organized across 3 route modules with a shared lifespan manager.
 | `/v1/report/{id}/pdf` | GET | Download report as PDF |
 | `/v1/report/fhir` | POST | Generate FHIR R4 bundle |
 
-### Authentication and Security
+### 12.4 Port Configuration
 
-- API key authentication via `BIOMARKER_API_KEY` environment variable
-  (empty string disables authentication for development)
-- CORS middleware with configurable allowed origins
-- Request size limiting (default 10 MB)
-- Input sanitization for Milvus filter expressions
-
-### Health Checks
-
-- Docker health check: `/_stcore/health` (Streamlit), `/healthz` (API)
-- Check interval: 30 seconds
-- Start period: 30-60 seconds
+| Service | Port | Protocol |
+|---------|------|----------|
+| FastAPI REST API | 8529 | HTTP |
+| Streamlit UI | 8533 | HTTP |
+| Milvus (shared) | 19530 | gRPC |
 
 ---
 
-## UI Layer
+## 13. Data Model Architecture
 
-### Streamlit Application (port 8528)
+### 13.1 Export Pipeline (5 Formats)
 
-**Module:** `app/biomarker_ui.py` (1,863 lines)
+| Format | Module | Description |
+|--------|--------|------------|
+| Markdown | `export.py` | 12-section clinical report with tables |
+| PDF | `export.py` | ReportLab with NVIDIA-themed colors (#76B900) |
+| FHIR R4 | `export.py` | Bundle with Patient, Observation, DiagnosticReport |
+| CSV | `export.py` | Flat tabular biomarker results with adjustments |
+| JSON | `export.py` | Full AnalysisResult via Pydantic model_dump() |
 
-The UI provides an 8-tab interface for interactive biomarker analysis:
+### 13.2 Translation Engine (7 Languages)
 
-| Tab | Name | Functionality |
-|-----|------|--------------|
-| 1 | Clinical Query | RAG search with streaming responses and citation scoring |
-| 2 | Patient Analysis | Full pipeline execution across all 6 engines |
-| 3 | Pharmacogenomics | PGx panel with star allele input and drug recommendations |
-| 4 | Biological Age | PhenoAge/GrimAge calculator with biomarker input |
-| 5 | Disease Trajectory | 9-category disease risk assessment with intervention windows |
-| 6 | Genotype Adjustments | Reference range adjustments for 7 modifier genes |
-| 7 | Critical Values | Real-time critical value monitoring and alerting |
-| 8 | Patient 360 | Cross-agent dashboard (Biomarker + Oncology + Autoimmune + CAR-T + Imaging) |
+| Language | Code | Medical Terminology Coverage |
+|----------|------|------------------------------|
+| English | en | Full (primary) |
+| Spanish | es | Clinical terms, biomarker names |
+| Chinese | zh | Clinical terms, biomarker names |
+| Hindi | hi | Clinical terms, biomarker names |
+| French | fr | Clinical terms, biomarker names |
+| Arabic | ar | Clinical terms, biomarker names |
+| Portuguese | pt | Clinical terms, biomarker names |
 
-### Patient 360 Dashboard (app/patient_360.py, 670 lines)
-
-Cross-agent view that aggregates findings from all five intelligence agents
-into a unified patient profile. Displays:
-
-- Biomarker summary with critical values highlighted
-- PGx phenotype overview
-- Oncology variant status (from Oncology Agent)
-- Autoimmune disease activity (from Autoimmune Agent)
-- Imaging findings (from Imaging Agent)
-- CAR-T eligibility assessment (from CAR-T Agent)
-
----
-
-## Export Pipeline
-
-**Module:** `src/export.py` (1,392 lines)
-
-Five export formats, each accepting the full AnalysisResult:
-
-### Markdown Export
-
-Structured clinical report with 12 sections including critical alerts,
-PGx summary table, biological age assessment, disease trajectory findings,
-genotype adjustments, discordance alerts, and evidence citations.
-
-### PDF Export
-
-Styled report using ReportLab with NVIDIA-themed colors (green #76B900 headers),
-tabular PGx results, disease trajectory charts, and clinical footer with
-knowledge base version.
-
-### FHIR R4 Export
-
-Generates a FHIR R4 Bundle (type: collection) containing:
-
-| Resource | Content |
-|----------|---------|
-| Patient | Identifier with urn:hcls-ai-factory:patient |
-| Observation (N) | One per biomarker result |
-| Observation (PGx) | Pharmacogenomic phenotype observations |
-| DiagnosticReport | Master biomarker intelligence report |
-
-### CSV Export
-
-Flat tabular export of biomarker results with reference ranges, genotype
-adjustments, and clinical significance flags. Suitable for integration with
-external analytics tools and EHR systems.
-
-### JSON Export
-
-Structured JSON export with full analysis results, metadata, and provenance
-information. Includes the complete AnalysisResult model serialized via
-Pydantic's `model_dump()`.
-
----
-
-## Scaling and Performance
-
-### Resource Footprint on DGX Spark
-
-| Component | Resource Usage |
-|-----------|---------------|
-| Milvus standalone | ~2-4 GB RAM (14 collections) |
-| BGE-small-en-v1.5 | ~200 MB RAM (CPU inference) |
-| FastAPI server | ~500 MB RAM (2 uvicorn workers) |
-| Streamlit UI | ~300 MB RAM |
-| Total agent footprint | ~3-5 GB RAM |
-
-### Performance Characteristics
-
-| Operation | Typical Latency |
-|-----------|----------------|
-| Single collection search | 10-50 ms |
-| 14-collection parallel search | 50-200 ms |
-| BGE-small embedding (single) | 5-15 ms |
-| Claude LLM synthesis | 2-8 seconds |
-| Full patient analysis (6 engines) | 3-12 seconds |
-| Report generation (Markdown) | < 100 ms |
-| PDF generation | 200-500 ms |
-| FHIR R4 export | < 100 ms |
-
-### Parallelization
-
-- Collection searches run in parallel via ThreadPoolExecutor (max_workers=6)
-- Analysis engines run in parallel during the ANALYZE phase
-- Embedding batching (batch_size=32) for bulk operations
-- Connection pooling for Milvus gRPC connections
-
-### Caching
-
-- Embedding cache: 256 entries, FIFO eviction, thread-safe
-- Knowledge graph: In-memory dictionaries, loaded at startup
-- Reference data: Loaded from JSON at seed time, stored in Milvus
-
----
-
-## Security
-
-### Authentication
-
-- API key authentication via `BIOMARKER_API_KEY` environment variable
-- Empty API key disables authentication (development mode only)
-- Bearer token format: `Authorization: Bearer <api_key>`
-
-### Data Protection
-
-- HIPAA-compliant audit logging (`src/audit.py`, 83 lines)
-- All patient data encrypted at rest via Milvus storage encryption
-- No PHI stored in application logs
-- Anthropic API key stored in environment variables, never committed to source
-
-### Input Validation
-
-- Pydantic v2 model validation on all API inputs
-- Milvus filter expression sanitization to prevent injection
-- Request size limiting (configurable, default 10 MB)
-- CORS middleware with explicit origin allowlist
-
-### Network Security
-
-- All services communicate via Docker bridge network (`biomarker-network`)
-- Only Streamlit (8528) and FastAPI (8529) ports are exposed externally
-- Milvus gRPC (19530) is internal to the Docker network
-- Non-root container execution (`biomarkeruser`)
-
-### Audit Trail
-
-The audit module (`src/audit.py`) provides structured logging of:
-- Patient data access events
-- Analysis requests and results
-- Report generation and export events
-- API authentication events
-- Configuration changes
-
----
-
-## File Structure
+### 13.3 File Structure
 
 ```
 precision_biomarker_agent/
-|-- api/                         # FastAPI REST server
+|-- api/
 |   |-- __init__.py
-|   |-- main.py                  (465 lines) Entry point, lifespan, core endpoints
+|   |-- main.py                  (465 lines) Entry point, core endpoints
 |   +-- routes/
-|       |-- __init__.py
 |       |-- analysis.py          (495 lines) /v1/analyze, /v1/biological-age, etc.
-|       |-- events.py            (326 lines) /v1/events/cross-modal, /biomarker-alert
-|       +-- reports.py           (296 lines) /v1/report/generate, /{id}/pdf, /fhir
+|       |-- events.py            (326 lines) /v1/events/cross-modal
+|       +-- reports.py           (296 lines) /v1/report/generate
 |
-|-- app/                         # Streamlit UI
-|   |-- __init__.py
+|-- app/
 |   |-- biomarker_ui.py          (1,863 lines) 8-tab Streamlit application
 |   |-- patient_360.py           (670 lines) Cross-agent Patient 360 dashboard
 |   +-- protein_viewer.py        (168 lines) 3D protein structure viewer
 |
 |-- config/
-|   +-- settings.py              (139 lines) PrecisionBiomarkerSettings (Pydantic)
+|   +-- settings.py              (139 lines) PrecisionBiomarkerSettings
 |
 |-- data/
-|   |-- cache/                   # Runtime cache directory
 |   +-- reference/               # 18 JSON seed files
 |
-|-- docs/
-|   |-- ARCHITECTURE_GUIDE.md    # This document
-|   |-- DEMO_GUIDE.md
-|   |-- DEPLOYMENT_GUIDE.md
-|   |-- DESIGN.md
-|   |-- INDEX.md
-|   |-- LEARNING_GUIDE_ADVANCED.md
-|   |-- LEARNING_GUIDE_FOUNDATIONS.md
-|   |-- PROJECT_BIBLE.md
-|   +-- WHITE_PAPER.md
-|
-|-- src/                         # Core engine modules
-|   |-- __init__.py
-|   |-- agent.py                 (610 lines) Plan-analyze-search-synthesize loop
+|-- src/
+|   |-- agent.py                 (610 lines) Plan-analyze-search-synthesize
 |   |-- audit.py                 (83 lines) HIPAA-compliant audit logging
-|   |-- biological_age.py        (408 lines) PhenoAge + GrimAge surrogate
+|   |-- biological_age.py        (408 lines) PhenoAge + GrimAge
 |   |-- collections.py           (1,391 lines) Milvus collection management
 |   |-- critical_values.py       (179 lines) Critical threshold detection
-|   |-- discordance_detector.py  (299 lines) Cross-biomarker anomaly detection
-|   |-- disease_trajectory.py    (1,421 lines) 9-category disease trajectories
-|   |-- export.py                (1,392 lines) PDF/FHIR/CSV/JSON/Markdown export
-|   |-- genotype_adjustment.py   (1,225 lines) Genotype-based range adjustments
-|   |-- knowledge.py             (1,326 lines) 6 disease domain knowledge graphs
-|   |-- lab_range_interpreter.py (221 lines) Standard vs optimal ranges
+|   |-- discordance_detector.py  (299 lines) Cross-biomarker anomalies
+|   |-- disease_trajectory.py    (1,421 lines) 9-category trajectories
+|   |-- export.py                (1,392 lines) 5-format export
+|   |-- genotype_adjustment.py   (1,225 lines) 7 modifier genes
+|   |-- knowledge.py             (1,326 lines) 6 disease domains
+|   |-- lab_range_interpreter.py (221 lines) Standard vs optimal
 |   |-- models.py                (786 lines) 14 collection + 8 analysis models
-|   |-- pharmacogenomics.py      (1,503 lines) CPIC-guided 14 pharmacogenes
-|   |-- rag_engine.py            (573 lines) Multi-collection RAG engine
-|   |-- report_generator.py      (993 lines) 12-section clinical reports
-|   +-- translation.py           (217 lines) Multi-language medical terminology
+|   |-- pharmacogenomics.py      (1,503 lines) 14 pharmacogenes
+|   |-- rag_engine.py            (573 lines) Multi-collection RAG
+|   |-- report_generator.py      (993 lines) 12-section reports
+|   +-- translation.py           (217 lines) 7 languages
 |
-|-- scripts/                     # Setup, seeding, and validation
-|   |-- setup_collections.py     Create Milvus collections
-|   |-- seed_all.py              Seed all 14 collections from JSON
-|   |-- gen_patient_data.py      Generate sample patient data
-|   +-- demo_validation.py       End-to-end demo validation
+|-- scripts/
+|   |-- setup_collections.py
+|   |-- seed_all.py
+|   +-- demo_validation.py
 |
 |-- tests/                       # 18 test files, 709 tests
-|   |-- conftest.py              Shared fixtures
-|   |-- test_models.py
-|   |-- test_collections.py
-|   |-- test_rag_engine.py
-|   |-- test_agent.py
-|   |-- test_pharmacogenomics.py
-|   |-- test_biological_age.py
-|   |-- test_disease_trajectory.py
-|   |-- test_genotype_adjustment.py
-|   |-- test_critical_values.py
-|   |-- test_discordance_detector.py
-|   |-- test_lab_range_interpreter.py
-|   |-- test_report_generator.py
-|   |-- test_export.py
-|   |-- test_api.py
-|   |-- test_integration.py
-|   |-- test_edge_cases.py
-|   |-- test_longitudinal.py
-|   +-- test_ui.py
 |
-|-- docker-compose.yml           6-service stack
-|-- Dockerfile                   Multi-stage Python 3.10-slim
-|-- pyproject.toml               Project metadata
-|-- requirements.txt             Python dependencies
-+-- README.md                    Quick start guide
+|-- docker-compose.yml           # 6-service stack
+|-- Dockerfile
+|-- requirements.txt
++-- README.md
 ```
+
+### 13.4 Security
+
+- API key authentication via `BIOMARKER_API_KEY` environment variable
+- HIPAA-compliant audit logging (`src/audit.py`)
+- Milvus filter expression sanitization
+- CORS middleware with explicit origin allowlist
+- Non-root container execution (`biomarkeruser`)
+- Request size limiting (default 10 MB)
 
 ---
 
