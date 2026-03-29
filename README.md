@@ -61,6 +61,14 @@ The HCLS AI Factory is built on three coordinated engines that form a continuous
 
 ---
 
+## Full HCLS AI Factory
+
+<p align="center">
+  <img src="images/hcls-ai-factory-architecture-infographic.jpg" alt="The HCLS AI Factory — 3 Engine and 11 Agents Architecture" width="900">
+</p>
+
+---
+
 ## Origin
 
 In 2012, I set out to use my high-performance computing background for something that mattered. I started with one conviction: no parent should ever have to lose a child to disease.
