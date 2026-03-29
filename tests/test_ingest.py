@@ -14,11 +14,9 @@ Date: March 2026
 import json
 import sys
 from pathlib import Path
-from typing import Any, Dict, List
 from unittest.mock import MagicMock, patch
 
 import pytest
-from pydantic import BaseModel
 
 # ---------------------------------------------------------------------------
 # Ensure project root is on sys.path
@@ -315,7 +313,7 @@ class TestPubMedParser:
         )
         raw = mock_pubmed_client.fetch_abstracts.return_value
         records = pipeline.parse(raw)
-        record = records[0]
+        records[0]
         expected_fields = {
             "id", "title", "text_chunk", "source_type", "year",
             "cart_stage", "target_antigen", "disease", "keywords", "journal",
@@ -412,7 +410,7 @@ class TestClinicalTrialsParser:
 
     def test_schema_fields(self, mock_collection_manager, mock_embedder, sample_study):
         pipeline = ClinicalTrialsIngestPipeline(mock_collection_manager, mock_embedder)
-        records = pipeline.parse([sample_study])
+        pipeline.parse([sample_study])
         expected_fields = {
             "id", "title", "text_summary", "phase", "status", "sponsor",
             "target_antigen", "car_generation", "costimulatory", "disease",
@@ -430,7 +428,7 @@ class TestConstructParser:
     """Test ConstructIngestPipeline.parse() and FDA seed data."""
 
     def test_parse_fda_seed_data(self, mock_collection_manager, mock_embedder):
-        pipeline = ConstructIngestPipeline(mock_collection_manager, mock_embedder)
+        ConstructIngestPipeline(mock_collection_manager, mock_embedder)
         fda_constructs = ConstructIngestPipeline._get_fda_approved_constructs()
         assert len(fda_constructs) == 6
 
@@ -844,7 +842,7 @@ class TestFAERSParser:
 
     def test_schema_fields(self, mock_collection_manager, mock_embedder, sample_faers_event):
         pipeline = FAERSIngestPipeline(mock_collection_manager, mock_embedder)
-        records = pipeline.parse([sample_faers_event])
+        pipeline.parse([sample_faers_event])
         expected_fields = {
             "id", "text_summary", "product", "event_type", "severity_grade",
             "onset_timing", "incidence_rate", "management_protocol",

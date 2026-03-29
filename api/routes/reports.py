@@ -10,16 +10,14 @@ Date: February 2026
 from __future__ import annotations
 
 import io
-import json
 import logging
 import time
-from typing import Optional
 
 from fastapi import APIRouter, HTTPException
 
 logger = logging.getLogger(__name__)
 from fastapi.responses import JSONResponse, PlainTextResponse, StreamingResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from src.metrics import record_report_generated, record_pipeline_stage
 

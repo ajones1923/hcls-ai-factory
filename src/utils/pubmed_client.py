@@ -25,7 +25,6 @@ import requests
 
 from loguru import logger
 
-from src.models import CARTLiterature
 
 
 # ═══════════════════════════════════════════════════════════════════════

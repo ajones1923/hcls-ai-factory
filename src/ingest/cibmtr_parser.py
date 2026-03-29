@@ -378,7 +378,7 @@ class CIBMTRIngestPipeline(BaseIngestPipeline):
         scraped_entries: List[Dict[str, Any]] = []
 
         # Look for links to PDF reports or data pages
-        link_pattern = re.compile(
+        re.compile(
             r'href=["\']([^"\']*(?:car[_\-]?t|cellular[_\-]?therapy)[^"\']*)["\']',
             re.IGNORECASE,
         )

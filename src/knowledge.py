@@ -14,7 +14,7 @@ Author: Adam Jones
 Date: February 2026
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 
 # =============================================================================

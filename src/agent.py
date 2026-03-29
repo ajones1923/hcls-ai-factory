@@ -21,8 +21,7 @@ Date: February 2026
 """
 
 from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Dict, List, Optional
+from typing import List
 
 from .knowledge import CART_TARGETS
 from .models import AgentQuery, AgentResponse, CARTStage, CrossCollectionResult
@@ -270,7 +269,7 @@ class CARTIntelligenceAgent:
         by_coll = response.evidence.hits_by_collection()
 
         report_lines = [
-            f"# CAR-T Intelligence Report",
+            "# CAR-T Intelligence Report",
             f"**Query:** {response.question}",
             f"**Generated:** {response.timestamp}",
             f"**Collections Searched:** {response.evidence.total_collections_searched}",

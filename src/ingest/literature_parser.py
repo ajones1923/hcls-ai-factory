@@ -232,7 +232,7 @@ class PubMedIngestPipeline(BaseIngestPipeline):
                 pmid = article.get("pmid", "")
                 title = article.get("title", "")
                 abstract = article.get("abstract", "")
-                authors = article.get("authors", [])
+                article.get("authors", [])
                 journal = article.get("journal", "")
                 year = article.get("year", None)
                 mesh_terms = article.get("mesh_terms", [])

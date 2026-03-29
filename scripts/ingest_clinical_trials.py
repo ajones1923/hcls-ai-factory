@@ -172,7 +172,7 @@ def main():
 
     print()
     print("=" * 65)
-    print(f"  ClinicalTrials.gov ingest complete!")
+    print("  ClinicalTrials.gov ingest complete!")
     print(f"  Records stored: {count:,}")
     print(f"  Time elapsed: {elapsed:.1f}s")
     print("=" * 65)

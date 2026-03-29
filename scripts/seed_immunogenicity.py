@@ -61,7 +61,7 @@ def main():
     bio_pipeline = BiomarkerIngestPipeline(collection_manager=manager, embedder=embedder)
     bio_count = bio_pipeline.run(data_file=str(biomarker_file))
 
-    print(f"\n[4/4] Ingesting immunogenicity sequence data...")
+    print("\n[4/4] Ingesting immunogenicity sequence data...")
     seq_pipeline = SequenceIngestPipeline(collection_manager=manager, embedder=embedder)
     seq_count = seq_pipeline.run(data_file=str(sequence_file))
 

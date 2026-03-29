@@ -224,9 +224,9 @@ def query_cardiology_agent(
             f"{settings.CARDIOLOGY_AGENT_URL}/api/query",
             json={
                 "question": (
-                    f"Provide baseline cardiac assessment for CAR-T "
-                    f"lymphodepletion candidacy including LVEF, troponin, "
-                    f"BNP, and arrhythmia history"
+                    "Provide baseline cardiac assessment for CAR-T "
+                    "lymphodepletion candidacy including LVEF, troponin, "
+                    "BNP, and arrhythmia history"
                 ),
                 "patient_context": {"patient_id": patient_id},
             },

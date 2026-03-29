@@ -168,7 +168,7 @@ def main():
     elapsed = time.time() - t0
 
     print(f"  Response received in {elapsed:.1f}s ({len(answer)} chars)")
-    print(f"  First 500 chars:")
+    print("  First 500 chars:")
     print("-" * 50)
     print(answer[:500])
     print("-" * 50)
@@ -197,7 +197,7 @@ def main():
 
     elapsed = time.time() - t0
     print(f"  Streamed {chunk_count} chunks in {elapsed:.1f}s ({len(full_answer)} chars)")
-    print(f"  First 300 chars:")
+    print("  First 300 chars:")
     print("-" * 50)
     print(full_answer[:300])
     print("-" * 50)

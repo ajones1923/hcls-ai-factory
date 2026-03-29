@@ -175,7 +175,7 @@ def main():
 
     print()
     print("=" * 65)
-    print(f"  PubMed ingest complete!")
+    print("  PubMed ingest complete!")
     print(f"  Records stored: {count:,}")
     print(f"  Time elapsed: {elapsed:.1f}s")
     print("=" * 65)

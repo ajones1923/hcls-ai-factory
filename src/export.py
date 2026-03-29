@@ -390,7 +390,7 @@ def _format_evidence_table(hits: list[SearchHit], collection_name: str) -> list[
 # ═══════════════════════════════════════════════════════════════════════
 
 from reportlab.lib import colors
-from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
+from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
@@ -401,7 +401,6 @@ from reportlab.platypus import (
     HRFlowable,
     KeepTogether,
     NextPageTemplate,
-    PageBreak,
     PageTemplate,
     Paragraph,
     Spacer,

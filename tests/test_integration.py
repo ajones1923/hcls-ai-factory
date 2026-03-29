@@ -27,10 +27,9 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.agent import CARTIntelligenceAgent, SearchPlan
+from src.agent import CARTIntelligenceAgent
 from src.export import export_json, export_markdown, generate_filename
 from src.models import (
-    AgentQuery,
     AgentResponse,
     AssayResult,
     AssayType,
