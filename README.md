@@ -130,3 +130,11 @@ uvicorn src.api_server:app --host 0.0.0.0 --port 8107 --workers 2
 - **API:** FastAPI + Uvicorn
 - **VCF Parsing:** cyvcf2
 - **Monitoring:** Prometheus metrics
+
+## License
+
+This project is licensed under the [Apache License 2.0](LICENSE).
+
+## Author
+
+Adam Jones -- HCLS AI Factory, March 2026
