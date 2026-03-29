@@ -22,22 +22,18 @@ Date: March 2026
 """
 
 from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 from .knowledge import (
     PHARMACOGENES,
     DRUG_CATEGORIES,
     HLA_DRUG_ASSOCIATIONS,
-    CYP_INHIBITORS as KNOWLEDGE_CYP_INHIBITORS,
-    CYP_INDUCERS as KNOWLEDGE_CYP_INDUCERS,
 )
 from .models import (
     AgentQuery,
     AlertLevel,
     CrossCollectionResult,
     PGxAlert,
-    PGxQuery,
     PGxResponse,
     PGxWorkflowType,
 )
@@ -473,7 +469,7 @@ class PGxIntelligenceAgent:
                 "",
             ])
             for alert in response.alerts:
-                icon = {"critical": "!!!", "warning": "!!", "info": "i"}.get(
+                {"critical": "!!!", "warning": "!!", "info": "i"}.get(
                     alert.alert_level.value, "i"
                 )
                 report_lines.append(

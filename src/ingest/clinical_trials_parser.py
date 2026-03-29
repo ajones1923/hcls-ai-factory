@@ -16,7 +16,6 @@ from typing import Any, Dict, List, Optional
 
 import requests
 from loguru import logger
-from pydantic import BaseModel
 
 from src.collections import PGxCollectionManager
 from src.models import PGxClinicalTrial
@@ -160,7 +159,7 @@ class ClinicalTrialsPGxParser(BaseIngestPipeline):
                 status_module = protocol.get("statusModule", {})
                 design_module = protocol.get("designModule", {})
                 description_module = protocol.get("descriptionModule", {})
-                conditions_module = protocol.get("conditionsModule", {})
+                protocol.get("conditionsModule", {})
                 interventions_module = protocol.get("armsInterventionsModule", {})
                 outcomes_module = protocol.get("outcomesModule", {})
 

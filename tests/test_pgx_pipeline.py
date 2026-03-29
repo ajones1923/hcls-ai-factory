@@ -7,7 +7,6 @@ Date: March 2026
 import pytest
 from src.pgx_pipeline import (
     AlertSeverity,
-    PGxAlert,
     PGxPosition,
     StarAlleleCaller,
     PhenotypeTranslator,

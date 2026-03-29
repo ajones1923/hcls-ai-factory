@@ -26,7 +26,7 @@ import json
 import sys
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 # Add project root to path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent

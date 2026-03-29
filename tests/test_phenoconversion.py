@@ -16,7 +16,6 @@ from src.phenoconversion import (
     CYP_SUBSTRATES,
     INHIBITION_SHIFT,
     INDUCTION_SHIFT,
-    PhenoconversionAlert,
     PhenoconversionDetector,
 )
 

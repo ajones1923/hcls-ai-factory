@@ -16,11 +16,9 @@ import re
 import time
 import xml.etree.ElementTree as ET
 from typing import Any, Dict, List, Optional
-from urllib.parse import urlencode
 
 import requests
 from loguru import logger
-from pydantic import BaseModel
 
 from src.collections import PGxCollectionManager
 from src.models import ClinicalEvidence

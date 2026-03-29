@@ -6,7 +6,6 @@ Author: Adam Jones
 Date: March 2026
 """
 
-import pytest
 from src.query_expansion import (
     expand_query,
     expand_query_by_category,

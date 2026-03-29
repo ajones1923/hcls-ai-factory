@@ -9,10 +9,7 @@ Date: March 2026
 
 import json
 import re
-from datetime import datetime, timezone
-from unittest.mock import patch
 
-import pytest
 from src.export import (
     VERSION,
     export_fhir_r4,
@@ -67,7 +64,7 @@ class TestGenerateFilename:
 
     def test_unique_filenames(self):
         fn1 = generate_filename("md")
-        fn2 = generate_filename("md")
+        generate_filename("md")
         # Same second → same name; just verify format is consistent
         assert fn1.startswith("pgx_query_")
 

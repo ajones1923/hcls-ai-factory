@@ -15,7 +15,6 @@ from typing import Any, Dict, List, Optional
 
 import requests
 from loguru import logger
-from pydantic import BaseModel
 
 from src.collections import PGxCollectionManager
 from src.models import GeneReference

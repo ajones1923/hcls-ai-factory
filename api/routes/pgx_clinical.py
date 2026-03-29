@@ -15,11 +15,10 @@ Date: March 2026
 from __future__ import annotations
 
 import logging
-import math
 import time
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException
 
 logger = logging.getLogger(__name__)
 from pydantic import BaseModel, Field
@@ -31,7 +30,6 @@ from src.knowledge import (
     CYP_INHIBITORS,
     CYP_INDUCERS,
     DRUG_ALTERNATIVES,
-    ENTITY_ALIASES,
     get_gene_context,
     get_drug_context,
     get_hla_context,
@@ -714,7 +712,7 @@ def _hla_screen_impl(request: HLAScreenRequest, t0: float) -> HLAScreenResponse:
         ))
 
     # Also check knowledge context
-    hla_ctx = get_hla_context(request.drug)
+    get_hla_context(request.drug)
 
     elapsed_ms = (time.perf_counter() - t0) * 1000
     record_pipeline_stage("hla_screen", elapsed_ms / 1000)

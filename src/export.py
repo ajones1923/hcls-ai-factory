@@ -22,7 +22,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from .models import ComparativeResult, CrossCollectionResult, PGxAlert, SearchHit
+from .models import ComparativeResult, CrossCollectionResult, PGxAlert
 
 
 VERSION = "1.0.0"
@@ -89,7 +89,7 @@ def export_markdown(
         ])
         for alert in alerts:
             level = alert.alert_level.value.upper()
-            icon = {"CRITICAL": "!!!", "WARNING": "!!", "INFO": "i"}.get(level, "i")
+            {"CRITICAL": "!!!", "WARNING": "!!", "INFO": "i"}.get(level, "i")
             lines.append(
                 f"- **[{level}]** **{alert.gene}** / **{alert.drug}** "
                 f"({alert.phenotype}): {alert.recommendation}"
@@ -1275,7 +1275,7 @@ def export_fhir_r4(
 
     # Add alert summary as presentedForm
     if alerts:
-        alert_summary = "; ".join(
+        "; ".join(
             f"[{a.alert_level.value.upper()}] {a.gene}/{a.drug}: {a.recommendation[:100]}"
             for a in alerts
         )

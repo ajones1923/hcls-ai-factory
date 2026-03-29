@@ -9,11 +9,10 @@ Author: Adam Jones
 Date: March 2026
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import requests
 from loguru import logger
-from pydantic import BaseModel
 
 from src.collections import PGxCollectionManager
 from src.models import FDALabel

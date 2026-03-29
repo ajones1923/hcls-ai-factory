@@ -33,9 +33,7 @@ Date: March 2026
 from __future__ import annotations
 
 import logging
-import math
-from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -778,10 +776,9 @@ class DosingCalculator:
 
         if lookup is None:
             phenotype = "Unknown"
-            risk_level = "unknown"
         else:
             phenotype = lookup["phenotype"]
-            risk_level = lookup["risk"]
+            lookup["risk"]
 
         if phenotype == "Normal Function":
             max_dose = 80

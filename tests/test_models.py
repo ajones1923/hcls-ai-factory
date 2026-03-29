@@ -8,7 +8,6 @@ Author: Adam Jones
 Date: March 2026
 """
 
-import pytest
 from src.models import (
     MetabolizerPhenotype, TransporterFunction, HLAStatus, EnzymeDeficiency,
     GuidelineBody, CPICLevel, ClinicalAction, AlertLevel, InteractionType,

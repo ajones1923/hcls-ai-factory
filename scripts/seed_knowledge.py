@@ -21,7 +21,7 @@ import json
 import sys
 import time
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict
 
 # Add project root to path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -29,7 +29,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from loguru import logger
 
-from src.collections import COLLECTION_SCHEMAS, PGxCollectionManager
+from src.collections import PGxCollectionManager
 
 # Import the seeding utilities from setup_collections
 from scripts.setup_collections import (

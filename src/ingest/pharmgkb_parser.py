@@ -154,7 +154,7 @@ class PharmGKBParser(BaseIngestPipeline):
     def _parse_clinical_annotation(self, ann: Dict[str, Any]) -> Optional[DrugInteraction]:
         """Parse a single PharmGKB clinical annotation into a DrugInteraction."""
         ann_id = str(ann.get("id", ""))
-        location = ann.get("location", {})
+        ann.get("location", {})
         gene_name = ""
         variant_rsid = ""
 
