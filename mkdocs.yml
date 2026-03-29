@@ -108,6 +108,7 @@ nav:
     - Foundations: HCLS_AI_FACTORY_LEARNING_GUIDE_FOUNDATIONS.md
     - Advanced: HCLS_AI_FACTORY_LEARNING_GUIDE_ADVANCED.md
     - "Learning Guide \u2014 Unified Foundations": HCLS_AI_FACTORY_LEARNING_GUIDE_FOUNDATIONS_UNIFIED.md
+    - "Learning Guide \u2014 Unified Advanced": HCLS_AI_FACTORY_LEARNING_GUIDE_ADVANCED_UNIFIED.md
   - Engines:
     - Genomic Foundation Engine: stage-1-genomics.md
     - Precision Intelligence Network: stage-2-rag.md
