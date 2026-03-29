@@ -434,7 +434,22 @@ Each agent follows the same foundational architecture: FastAPI REST server, Stre
 
 **Overview and Clinical Purpose**
 
-The Precision Oncology Agent is a closed-loop clinical decision support system designed for molecular tumor board (MTB) workflows. Given a patient's somatic and germline VCF, it identifies actionable variants, matches them against oncology knowledge bases, ranks candidate therapies, surfaces relevant clinical trials, and assembles a structured MTB-ready report.
+The Precision Oncology Agent is a closed-loop clinical decision support system designed for molecular tumor board (MTB) workflows. Given a patient's somatic and germline VCF, it identifies actionable variants, matches them against oncology knowledge bases, ranks candidate therapies, surfaces relevant clinical trials, and assembles a structured MTB-ready report. The entire pipeline runs on a single NVIDIA DGX Spark ($4,699, March 2026).
+
+**Advanced Configuration Options**
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `ONCO_AGENT_PORT` | `8527` | FastAPI listen port |
+| `MILVUS_HOST` | `localhost` | Milvus server hostname |
+| `MILVUS_PORT` | `19530` | Milvus gRPC port |
+| `MILVUS_POOL_SIZE` | `10` | Connection pool size; increase for concurrent MTB sessions |
+| `ANTHROPIC_API_KEY` | (required) | Claude API key for LLM synthesis |
+| `LLM_MODEL` | `claude-sonnet-4-20250514` | Claude model ID; upgrade to `claude-opus-4-20250514` for complex cases |
+| `EMBEDDING_MODEL` | `BAAI/bge-small-en-v1.5` | Sentence-transformer for 384-dim embeddings |
+| `TOP_K` | `15` | Max chunks retrieved per collection search |
+| `EVIDENCE_THRESHOLD` | `0.65` | Minimum cosine similarity for evidence inclusion |
+| `CROSS_AGENT_TIMEOUT` | `30` | Seconds to wait for cross-agent responses |
 
 **Milvus Collections (11)**
 
@@ -452,50 +467,97 @@ The Precision Oncology Agent is a closed-loop clinical decision support system d
 | `onco_cases` | De-identified patient case snapshots | Synthetic/RWD |
 | `genomic_evidence` | VCF-derived evidence (shared, read-only) | Stage 1 pipeline |
 
-**Key API Endpoints**
+**Complete API Endpoint Table**
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/health` | Service health with component status |
+| GET | `/collections` | List all loaded collections with record counts |
+| GET | `/knowledge/stats` | Knowledge base statistics (total vectors, last ingest) |
+| GET | `/metrics` | Prometheus-compatible metrics export |
+| POST | `/query` | Free-text oncology RAG query with evidence synthesis |
+| POST | `/search` | Direct vector similarity search across collections |
+| POST | `/find-related` | Find related concepts given an entity (gene, drug, pathway) |
+| POST | `/v1/onco/integrated-assessment` | Full multi-collection integrated assessment |
+| POST | `/api/ask` | Meta-agent question answering with chain-of-thought |
+| POST | `/api/cases` | Create a new patient case with cancer type and variants |
+| GET | `/api/cases/{case_id}` | Retrieve case details and analysis status |
+| POST | `/api/cases/{case_id}/mtb` | Run full molecular tumor board analysis for a case |
+| GET | `/api/cases/{case_id}/variants` | List annotated variants for a case |
+| POST | `/api/trials/match` | Match molecular profile to clinical trials |
+| POST | `/api/trials/match-case/{case_id}` | Match a stored case to clinical trials |
+| POST | `/api/therapies/rank` | Rank therapies by evidence level and biomarker fit |
+| POST | `/api/reports/generate` | Generate MTB report (Markdown, JSON, PDF, FHIR R4) |
+| GET | `/api/reports/{case_id}/{fmt}` | Download generated report in specified format |
+| GET | `/api/events` | List cross-agent events (SSE stream) |
+| GET | `/api/events/{event_id}` | Retrieve a specific event by ID |
+
+**Detailed Clinical Workflow Walkthrough**
+
+1. **Variant submission** -- Clinician uploads somatic/germline VCF via Streamlit UI or POSTs variant list to `/api/cases`. The VCF parser extracts gene, protein change, allele frequency, and quality metrics.
+2. **Entity detection** -- The agent identifies gene names (EGFR, BRAF, ALK), variant notations (L858R, V600E), and cancer types from free-text or structured input.
+3. **Evidence-level annotation** -- Variants are annotated against CIViC and OncoKB with AMP/ASCO/CAP evidence-level tiering (Level IA through Level III). Each variant receives a clinical significance classification.
+4. **Multi-collection retrieval** -- Parallel search across all 11 collections: therapies, biomarkers, trials, resistance mechanisms, pathways, guidelines, outcomes, and cases. Each result carries a cosine similarity score.
+5. **TherapyRanker scoring** -- Approved and investigational therapies are scored using a composite of evidence level (40%), biomarker match (25%), resistance profile (15%), guideline concordance (10%), and trial availability (10%).
+6. **TrialMatcher execution** -- Molecular profile is matched against eligibility criteria in `onco_trials`. Results include NCT IDs, phase, enrollment status, and distance to nearest trial sites.
+7. **Claude LLM synthesis** -- All retrieved evidence is assembled into a structured prompt. Claude generates a narrative summary with inline citations, therapy recommendations, and resistance warnings.
+8. **MTB report generation** -- Structured report exported as Markdown, JSON, PDF, or FHIR R4 DiagnosticReport with tiered evidence, therapy rankings, trial matches, and resistance alerts.
+
+**Example Query and Response**
 
 ```bash
-# Health check
-curl http://localhost:8527/health
-
-# Free-text oncology RAG query
 curl -X POST http://localhost:8527/query \
   -H "Content-Type: application/json" \
   -d '{"question": "What targeted therapies are available for EGFR L858R in NSCLC?"}'
-
-# Create a patient case
-curl -X POST http://localhost:8527/cases \
-  -H "Content-Type: application/json" \
-  -d '{"patient_id": "P001", "cancer_type": "NSCLC", "variants": ["EGFR L858R"]}'
-
-# Run full MTB analysis
-curl -X POST http://localhost:8527/cases/P001/analyze
-
-# Generate MTB report
-curl -X POST http://localhost:8527/reports/mtb \
-  -H "Content-Type: application/json" \
-  -d '{"case_id": "P001"}'
-
-# Match molecular profile to clinical trials
-curl -X POST http://localhost:8527/trials/match \
-  -H "Content-Type: application/json" \
-  -d '{"variants": ["EGFR L858R"], "cancer_type": "NSCLC"}'
 ```
 
-**Clinical Workflow**
-
-1. Clinician uploads somatic/germline VCF or enters variant list
-2. Agent annotates variants against CIViC and OncoKB with evidence-level tiering (Level 1-4)
-3. TherapyRanker scores approved and investigational therapies using variant profile, biomarkers, resistance mechanisms, and guideline concordance
-4. TrialMatcher identifies eligible clinical trials based on molecular profile and cancer type
-5. MTB report is generated with tiered evidence citations and FHIR R4 export
+```json
+{
+  "answer": "EGFR L858R is a Level IA actionable target in NSCLC. Osimertinib (3rd-gen TKI) is the preferred first-line therapy per NCCN 2026 guidelines, with a median PFS of 18.9 months (FLAURA trial). Second-line options include amivantamab + lazertinib for C797S-mediated resistance...",
+  "evidence": [
+    {"collection": "onco_therapies", "score": 0.94, "text": "Osimertinib: 3rd-generation EGFR TKI, FDA-approved for EGFR-mutant NSCLC..."},
+    {"collection": "onco_guidelines", "score": 0.91, "text": "NCCN NSCLC v3.2026: EGFR L858R — Preferred first-line: osimertinib..."},
+    {"collection": "onco_resistance", "score": 0.87, "text": "C797S mutation confers resistance to osimertinib in 10-15% of cases..."},
+    {"collection": "onco_trials", "score": 0.83, "text": "NCT04487080: Phase III, osimertinib + savolitinib for MET-amplified progression..."}
+  ],
+  "therapies_ranked": [
+    {"rank": 1, "drug": "Osimertinib", "evidence": "Level IA", "score": 0.96},
+    {"rank": 2, "drug": "Amivantamab + Lazertinib", "evidence": "Level IB", "score": 0.82},
+    {"rank": 3, "drug": "Erlotinib + Ramucirumab", "evidence": "Level IB", "score": 0.74}
+  ],
+  "active_trials": 8,
+  "confidence": 0.93,
+  "collections_searched": 11,
+  "processing_time_ms": 3420
+}
+```
 
 **Cross-Agent Integration**
 
-- Receives genomic evidence from Stage 1 pipeline via shared `genomic_evidence` collection
-- Triggers Clinical Trial Agent when novel actionable variants are identified
-- Receives cardiotoxicity alerts from Cardiology Agent for proposed chemotherapy regimens
-- Connects to Drug Discovery pipeline (Stage 3) for candidate molecule docking
+- **Receives** genomic evidence from Stage 1 pipeline via shared `genomic_evidence` collection (3.56M variants)
+- **Triggers** Clinical Trial Agent (:8538) when novel actionable variants are identified, passing variant list and cancer type for trial matching
+- **Receives** cardiotoxicity alerts from Cardiology Agent (:8126) for proposed chemotherapy regimens (anthracyclines, trastuzumab) with pre-treatment ejection fraction data
+- **Sends** antigen expression queries to Single-Cell Agent (:8540) for immunotherapy candidate validation (TME profiling, PD-L1 expression)
+- **Connects** to Drug Discovery pipeline (Stage 3) for candidate molecule docking when no approved therapies match the variant profile
+
+**Performance Characteristics**
+
+| Operation | Typical Latency |
+|-----------|----------------|
+| Single collection search (top-15) | 80-150 ms |
+| Full 11-collection parallel search | 200-400 ms |
+| Embedding generation (BGE-small) | 15-25 ms |
+| Claude LLM synthesis | 2,000-3,500 ms |
+| Full MTB analysis (end-to-end) | 3,500-5,000 ms |
+| Report generation (PDF) | 1,500-2,500 ms |
+
+**Common Pitfalls and Troubleshooting**
+
+- **"No actionable variants found"** -- Check that the VCF contains PASS-filtered variants with gene annotations. Raw VCF without functional annotation will not match CIViC/OncoKB entries. Run `bcftools view -f PASS` first.
+- **Therapy ranking returns empty** -- Verify that `onco_therapies` collection is loaded (`GET /collections`). If the collection shows 0 records, re-run the ingest script.
+- **Slow LLM responses (>10s)** -- Reduce `TOP_K` from 15 to 8 to shrink the context window. Alternatively, switch to a faster Claude model via `LLM_MODEL`.
+- **Cross-agent timeout** -- If the Cardiology or Trial agent is down, the oncology agent logs a warning but continues without cross-agent enrichment. Check `CROSS_AGENT_TIMEOUT` and verify target agents are healthy.
+- **Duplicate case IDs** -- Case creation is idempotent on `patient_id` + `cancer_type`. Submitting the same combination returns the existing case rather than creating a duplicate.
 
 ---
 
@@ -503,7 +565,22 @@ curl -X POST http://localhost:8527/trials/match \
 
 **Overview and Clinical Purpose**
 
-The CAR-T Intelligence Agent breaks down data silos across the 5 stages of CAR-T cell therapy development: target selection, construct design, manufacturing, clinical evaluation, and post-market surveillance. It features a unique comparative analysis mode that auto-detects "X vs Y" queries and produces structured side-by-side comparisons.
+The CAR-T Intelligence Agent breaks down data silos across the 5 stages of CAR-T cell therapy development: target selection, construct design, manufacturing, clinical evaluation, and post-market surveillance. It features a unique comparative analysis mode that auto-detects "X vs Y" queries and produces structured side-by-side comparisons. The agent covers all 6 FDA-approved CAR-T products, 25 target antigens, and 39+ product aliases, running on a single DGX Spark ($4,699, March 2026).
+
+**Advanced Configuration Options**
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `CART_AGENT_PORT` | `8522` | FastAPI listen port |
+| `MILVUS_HOST` | `localhost` | Milvus server hostname |
+| `MILVUS_PORT` | `19530` | Milvus gRPC port |
+| `MILVUS_POOL_SIZE` | `10` | Connection pool size |
+| `ANTHROPIC_API_KEY` | (required) | Claude API key for LLM synthesis |
+| `LLM_MODEL` | `claude-sonnet-4-20250514` | Claude model; use `claude-opus-4-20250514` for nuanced comparative analyses |
+| `EMBEDDING_MODEL` | `BAAI/bge-small-en-v1.5` | 384-dim sentence-transformer |
+| `TOP_K` | `15` | Max chunks per collection search |
+| `COMPARATIVE_THRESHOLD` | `0.70` | Minimum confidence to trigger comparative mode |
+| `QUERY_EXPANSION_MAPS` | `12` | Number of domain-specific expansion maps (169 keywords to 1,496 terms) |
 
 **Milvus Collections (11)**
 
@@ -514,46 +591,101 @@ The CAR-T Intelligence Agent breaks down data silos across the 5 stages of CAR-T
 | `cart_constructs` | 6 | 6 FDA-approved CAR-T products |
 | `cart_assay_results` | 45 | Curated from landmark papers (ELIANA, ZUMA-1, KarMMa, CARTITUDE-1) |
 | `cart_manufacturing` | 30 | CMC/process data (transduction, expansion, release, cryo, logistics) |
-| `cart_safety` | — | Pharmacovigilance, CRS/ICANS profiles |
-| `cart_biomarkers` | — | CRS prediction, exhaustion monitoring |
-| `cart_regulatory` | — | Approval timelines, post-marketing requirements |
-| `cart_sequences` | — | Molecular binding, scFv sequences |
-| `cart_rwe` | — | Registry outcomes, real-world data |
+| `cart_safety` | -- | Pharmacovigilance, CRS/ICANS profiles |
+| `cart_biomarkers` | -- | CRS prediction, exhaustion monitoring |
+| `cart_regulatory` | -- | Approval timelines, post-marketing requirements |
+| `cart_sequences` | -- | Molecular binding, scFv sequences |
+| `cart_rwe` | -- | Registry outcomes, real-world data |
 | `genomic_evidence` | 3.56M | Shared from Stage 2 RAG pipeline (read-only) |
 
-**Key API Endpoints**
+**Complete API Endpoint Table**
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/health` | Service health with Milvus and engine status |
+| GET | `/collections` | List loaded collections with record counts |
+| GET | `/knowledge/stats` | Knowledge base statistics and last ingest time |
+| GET | `/metrics` | Prometheus-compatible metrics export |
+| POST | `/query` | Cross-functional RAG query (standard or comparative, auto-detected) |
+| POST | `/search` | Direct vector similarity search with collection filtering |
+| POST | `/find-related` | Find related entities (antigens, products, mechanisms) |
+| POST | `/v1/cart/integrated-assessment` | Full multi-collection integrated CAR-T assessment |
+| POST | `/api/ask` | Meta-agent question answering with reasoning chain |
+| GET | `/api/reports/{patient_id}` | Retrieve generated report for a patient |
+| GET | `/api/reports/{patient_id}/{fmt}` | Download report in specified format (md, json, pdf, fhir) |
+| GET | `/api/events` | List cross-agent events |
+| GET | `/api/events/{event_id}` | Retrieve a specific cross-agent event |
+
+**Detailed Clinical Workflow Walkthrough**
+
+1. **Query submission** -- User submits a question about any stage of CAR-T development via Streamlit UI or POST to `/query`. Input can be free-text or structured with explicit parameters.
+2. **Comparative detection** -- The engine scans for "vs", "versus", "compare", "difference between" patterns. If detected, it enters comparative mode; otherwise, standard RAG mode.
+3. **Entity resolution (comparative)** -- Both entities are parsed and resolved against the knowledge graph containing 25 antigens, 6 FDA-approved products, and 39+ aliases (e.g., "tisa-cel" resolves to "tisagenlecleucel / Kymriah").
+4. **Dual retrieval (comparative)** -- Separate searches are run for each entity across all 11 collections. Results are aligned by category (efficacy, safety, manufacturing, cost) for side-by-side comparison.
+5. **Query expansion (standard)** -- 12 domain-specific expansion maps transform 169 seed keywords into 1,496 search terms. For example, "CRS management" expands to include "cytokine release syndrome", "tocilizumab", "IL-6 blockade", "grading criteria".
+6. **Parallel multi-collection search** -- All 11 collections are searched concurrently. Results are scored by cosine similarity and weighted by collection relevance to the query domain.
+7. **Claude LLM synthesis** -- Retrieved evidence is assembled with comparative formatting when applicable. Responses include clickable PubMed IDs (PMID) and ClinicalTrials.gov NCT numbers.
+8. **Report generation** -- Exportable as Markdown, JSON, PDF, or FHIR R4 DiagnosticReport.
+
+**Example Query and Response**
 
 ```bash
-# Health check
-curl http://localhost:8522/health
-
-# Cross-functional RAG query
-curl -X POST http://localhost:8522/query \
-  -H "Content-Type: application/json" \
-  -d '{"question": "Why do CD19 CAR-T therapies fail in relapsed B-ALL?"}'
-
-# Comparative analysis (auto-detected)
 curl -X POST http://localhost:8522/query \
   -H "Content-Type: application/json" \
   -d '{"question": "Compare 4-1BB vs CD28 costimulatory domains for DLBCL"}'
-
-# Collection statistics
-curl http://localhost:8522/collections/stats
 ```
 
-**Clinical Workflow**
-
-1. User submits a query about CAR-T development (any stage)
-2. Comparative detection engine checks for "vs/versus/compare" patterns
-3. If comparative: parse entities, resolve against knowledge graph (25 antigens, 6 products, 39+ aliases), run dual retrieval
-4. If standard: query expansion (12 maps, 169 keywords to 1,496 terms), parallel search across 11 collections
-5. Claude synthesizes grounded response with clickable PubMed and ClinicalTrials.gov citations
+```json
+{
+  "answer": "4-1BB (CD137) and CD28 costimulatory domains represent the two main signaling architectures in FDA-approved CAR-T products for DLBCL...",
+  "comparison": {
+    "entity_a": "4-1BB (CD137)",
+    "entity_b": "CD28",
+    "dimensions": [
+      {"category": "Persistence", "entity_a": "Superior T-cell persistence (>6 months detectable)", "entity_b": "Rapid expansion, shorter persistence (~3 months)"},
+      {"category": "CRS Rate", "entity_a": "Lower grade 3+ CRS (2-22%)", "entity_b": "Higher grade 3+ CRS (13-15%)"},
+      {"category": "FDA Products", "entity_a": "Tisagenlecleucel (Kymriah), Lisocabtagene (Breyanzi)", "entity_b": "Axicabtagene (Yescarta), Brexucabtagene (Tecartus)"},
+      {"category": "ORR (DLBCL)", "entity_a": "52-73%", "entity_b": "72-83%"}
+    ]
+  },
+  "evidence": [
+    {"collection": "cart_constructs", "score": 0.93, "text": "4-1BB signaling promotes memory T-cell differentiation..."},
+    {"collection": "cart_literature", "score": 0.89, "text": "ZUMA-1: axi-cel (CD28) achieved 83% ORR in r/r DLBCL (PMID: 28982775)..."},
+    {"collection": "cart_safety", "score": 0.86, "text": "CRS incidence comparison across costimulatory domains..."}
+  ],
+  "mode": "comparative",
+  "confidence": 0.91,
+  "processing_time_ms": 3180
+}
+```
 
 **Cross-Agent Integration**
 
-- Receives antigen escape alerts from Single-Cell Agent
-- Queries Oncology Agent for tumor mutational burden context
-- Shares CRS/ICANS toxicity data with Biomarker Agent for monitoring protocols
+- **Receives** antigen escape alerts from Single-Cell Agent (:8540) when off-tumor expression is detected for a target antigen (e.g., CD19 loss in B-ALL relapse)
+- **Queries** Oncology Agent (:8527) for tumor mutational burden and microsatellite instability context that may influence CAR-T eligibility
+- **Shares** CRS/ICANS toxicity profiles with Biomarker Agent (:8529) for real-time monitoring protocols (IL-6, ferritin, CRP thresholds)
+- **Triggers** Clinical Trial Agent (:8538) when a query involves investigational CAR-T constructs not yet FDA-approved
+
+**Performance Characteristics**
+
+| Operation | Typical Latency |
+|-----------|----------------|
+| Standard single-collection search | 80-150 ms |
+| Full 11-collection parallel search | 200-400 ms |
+| Comparative dual-entity retrieval | 350-600 ms |
+| Query expansion (12 maps) | 5-10 ms |
+| Claude LLM synthesis (standard) | 2,000-3,000 ms |
+| Claude LLM synthesis (comparative) | 2,500-4,000 ms |
+| End-to-end query (standard) | 2,500-3,500 ms |
+| End-to-end query (comparative) | 3,000-5,000 ms |
+
+**Common Pitfalls and Troubleshooting**
+
+- **Comparative mode not triggering** -- The detection engine requires explicit comparison language ("vs", "versus", "compare", "difference between"). Rephrase ambiguous queries to include one of these trigger words.
+- **Entity resolution failure** -- If a product name is misspelled or uses a non-standard alias, the knowledge graph may not resolve it. Use canonical names (e.g., "axicabtagene ciloleucel" not "axi-cel") or add custom aliases via the configuration.
+- **Empty `cart_constructs` collection** -- This is a small curated collection (6 records). If it returns 0, re-run `scripts/seed_constructs.py` to reload the 6 FDA-approved product profiles.
+- **Slow comparative queries** -- Comparative mode runs two full retrieval passes. If latency exceeds 5s, reduce `TOP_K` from 15 to 10 or limit the collection set.
+- **Missing PubMed citations** -- The `cart_literature` collection requires periodic refresh via the NCBI E-utilities ingest script. Stale data will miss recent publications.
 
 ---
 
@@ -561,7 +693,23 @@ curl http://localhost:8522/collections/stats
 
 **Overview and Clinical Purpose**
 
-The Precision Biomarker Agent interprets patient biomarker panels with genotype awareness. It estimates biological age using PhenoAge/GrimAge algorithms, detects disease trajectories across 6 categories, provides pharmacogenomic profiling for 7 key pharmacogenes, and generates genotype-adjusted reference ranges.
+The Precision Biomarker Agent interprets patient biomarker panels with genotype awareness. It estimates biological age using PhenoAge/GrimAge algorithms, detects disease trajectories across 6 categories, provides pharmacogenomic profiling for 7 key pharmacogenes, and generates genotype-adjusted reference ranges. All processing runs on a single DGX Spark ($4,699, March 2026).
+
+**Advanced Configuration Options**
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `BIOMARKER_AGENT_PORT` | `8529` | FastAPI listen port |
+| `MILVUS_HOST` | `localhost` | Milvus server hostname |
+| `MILVUS_PORT` | `19530` | Milvus gRPC port |
+| `MILVUS_POOL_SIZE` | `10` | Connection pool size |
+| `ANTHROPIC_API_KEY` | (required) | Claude API key for LLM synthesis |
+| `LLM_MODEL` | `claude-sonnet-4-20250514` | Claude model ID |
+| `EMBEDDING_MODEL` | `BAAI/bge-small-en-v1.5` | 384-dim sentence-transformer |
+| `TOP_K` | `15` | Max chunks per collection search |
+| `AGING_ALGORITHM` | `phenoage` | Biological age algorithm: `phenoage` or `grimage` |
+| `DISEASE_CATEGORIES` | `6` | Number of disease trajectory categories screened |
+| `PGX_GENES` | `7` | Number of pharmacogenes profiled (CYP2D6, CYP2C19, CYP2C9, CYP3A5, SLCO1B1, VKORC1, MTHFR) |
 
 **Milvus Collections (11)**
 
@@ -579,44 +727,102 @@ The Precision Biomarker Agent interprets patient biomarker panels with genotype 
 | `biomarker_monitoring` | Condition-specific monitoring protocols | ~15 |
 | `genomic_evidence` | Shared genomic variants (read-only) | 3.56M |
 
-**Key API Endpoints**
+**Complete API Endpoint Table**
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/health` | Service health with Milvus and engine status |
+| GET | `/collections` | List loaded collections with record counts |
+| GET | `/knowledge/stats` | Knowledge base statistics |
+| GET | `/metrics` | Prometheus-compatible metrics export |
+| POST | `/v1/biomarker/integrated-assessment` | Full multi-collection integrated biomarker assessment |
+| POST | `/v1/analyze` | Full patient analysis (biomarkers + genotypes combined) |
+| POST | `/v1/biological-age` | Biological age calculation (PhenoAge/GrimAge) |
+| POST | `/v1/disease-risk` | Disease risk trajectory analysis across 6 categories |
+| POST | `/v1/pgx` | Pharmacogenomic profile from star allele diplotypes |
+| POST | `/v1/query` | Free-text RAG query across all biomarker collections |
+| POST | `/v1/query/stream` | Streaming RAG query (Server-Sent Events) |
+| POST | `/v1/report/generate` | Generate clinical report (Markdown, JSON, PDF, FHIR R4) |
+| GET | `/v1/report/{report_id}/pdf` | Download generated PDF report |
+| POST | `/v1/report/fhir` | Export analysis as FHIR R4 DiagnosticReport |
+| POST | `/v1/events/cross-modal` | Receive cross-modal events from other agents |
+| POST | `/v1/events/biomarker-alert` | Receive biomarker alert events (threshold breaches) |
+| GET | `/v1/events/cross-modal` | List received cross-modal events |
+| GET | `/v1/events/biomarker-alert` | List received biomarker alerts |
+
+**Detailed Clinical Workflow Walkthrough**
+
+1. **Data submission** -- Patient biomarker panel (CRP, HbA1c, LDL, albumin, creatinine, glucose, etc.) and genotype data (star alleles or VCF-derived diplotypes) are submitted via Streamlit UI or POST to `/v1/analyze`.
+2. **Biological Age Engine** -- Computes PhenoAge and GrimAge estimates from 9 routine blood biomarkers (albumin, creatinine, glucose, CRP, lymphocyte %, mean cell volume, red cell distribution width, alkaline phosphatase, white blood cell count). Output: chronological age, biological age, acceleration (positive = aging faster).
+3. **Disease Trajectory Analyzer** -- Screens 6 disease categories (cardiovascular, metabolic/diabetes, hepatic, renal, inflammatory, hematologic) using genotype-stratified thresholds. Each trajectory returns a stage (normal, borderline, early, established, advanced) with progression rate.
+4. **Pharmacogenomic Mapper** -- Interprets star alleles for CYP2D6, CYP2C19, CYP2C9, CYP3A5, SLCO1B1, VKORC1, MTHFR, plus HLA-B*57:01 screening. Maps diplotypes to metabolizer phenotypes (ultra-rapid, normal, intermediate, poor) with CPIC-level dosing recommendations.
+5. **Genotype Adjustment Engine** -- Modifies standard reference ranges based on genomic context. For example: PNPLA3 I148M carriers have lower ALT thresholds for NAFLD screening; TCF7L2 rs7903146 T/T carriers have elevated fasting glucose baselines; APOE e4/e4 carriers have higher LDL reference ceilings.
+6. **Evidence retrieval** -- Parallel search across all 11 collections to ground recommendations in published literature, CPIC guidelines, and clinical evidence.
+7. **Report generation** -- 12-section clinical report covering biological age summary, disease trajectories (6 categories), pharmacogenomic profile, genotype-adjusted ranges, nutrition recommendations, drug interaction alerts, and monitoring schedule. Exported as PDF and FHIR R4.
+
+**Example Query and Response**
 
 ```bash
-# Full patient analysis (biomarkers + genotypes)
-curl -X POST http://localhost:8529/analyze \
+curl -X POST http://localhost:8529/v1/analyze \
   -H "Content-Type: application/json" \
-  -d '{"biomarkers": {"CRP": 2.1, "HbA1c": 6.8, "LDL": 145}, "genotypes": {"CYP2D6": "*1/*4"}}'
-
-# Biological age calculation
-curl -X POST http://localhost:8529/biological-age \
-  -H "Content-Type: application/json" \
-  -d '{"age": 55, "albumin": 4.2, "creatinine": 0.9, "glucose": 105, "crp": 1.8}'
-
-# Pharmacogenomic profile
-curl -X POST http://localhost:8529/pgx \
-  -H "Content-Type: application/json" \
-  -d '{"diplotypes": {"CYP2D6": "*1/*4", "CYP2C19": "*1/*2"}}'
-
-# Disease risk trajectory
-curl -X POST http://localhost:8529/disease-risk \
-  -H "Content-Type: application/json" \
-  -d '{"biomarkers": {"HbA1c": 6.2, "fasting_glucose": 115}}'
+  -d '{"biomarkers": {"CRP": 2.1, "HbA1c": 6.8, "LDL": 145, "albumin": 4.2, "creatinine": 0.9, "glucose": 118}, "genotypes": {"CYP2D6": "*1/*4", "CYP2C19": "*1/*2"}}'
 ```
 
-**Clinical Workflow**
-
-1. Patient biomarker panel and genotype data are submitted
-2. Biological Age Engine computes PhenoAge and GrimAge estimates from 9 routine blood biomarkers
-3. Disease Trajectory Analyzer screens 6 disease categories with genotype-stratified thresholds
-4. Pharmacogenomic Mapper interprets star alleles for CYP2D6, CYP2C19, CYP2C9, CYP3A5, SLCO1B1, VKORC1, MTHFR, plus HLA-B*57:01
-5. Genotype Adjustment Engine modifies standard reference ranges (e.g., PNPLA3, TCF7L2, APOE variants)
-6. 12-section clinical report generated with PDF and FHIR R4 export
+```json
+{
+  "biological_age": {
+    "chronological_age": 55,
+    "phenoage": 58.3,
+    "grimage": 57.1,
+    "acceleration": "+3.3 years",
+    "percentile": 72,
+    "interpretation": "Moderately accelerated aging. CRP and glucose are primary contributors."
+  },
+  "disease_trajectories": [
+    {"category": "Metabolic", "stage": "Borderline", "risk_score": 0.62, "key_markers": ["HbA1c: 6.8 (pre-diabetic)", "glucose: 118"]},
+    {"category": "Cardiovascular", "stage": "Early", "risk_score": 0.48, "key_markers": ["LDL: 145", "CRP: 2.1"]},
+    {"category": "Inflammatory", "stage": "Borderline", "risk_score": 0.35, "key_markers": ["CRP: 2.1"]}
+  ],
+  "pharmacogenomics": {
+    "CYP2D6": {"diplotype": "*1/*4", "phenotype": "Intermediate Metabolizer", "drugs_affected": ["codeine", "tramadol", "tamoxifen"]},
+    "CYP2C19": {"diplotype": "*1/*2", "phenotype": "Intermediate Metabolizer", "drugs_affected": ["clopidogrel", "omeprazole", "escitalopram"]}
+  },
+  "genotype_adjustments": [
+    {"marker": "CYP2D6", "adjustment": "Codeine: avoid or reduce dose by 50%; consider morphine alternative"}
+  ],
+  "confidence": 0.88,
+  "processing_time_ms": 3850
+}
+```
 
 **Cross-Agent Integration**
 
-- Receives inflammation monitoring requests from Autoimmune Agent during flare events
-- Provides biological age context to Cardiology Agent for ASCVD risk refinement
-- Shares pharmacogenomic profiles with Pharmacogenomics Agent for detailed dosing guidance
+- **Receives** inflammation monitoring requests from Autoimmune Agent (:8532) during flare events, tracking CRP, ESR, IL-6, and calprotectin trends
+- **Provides** biological age context to Cardiology Agent (:8126) for ASCVD risk refinement -- accelerated biological age increases the 10-year risk estimate
+- **Shares** pharmacogenomic profiles with Pharmacogenomics Agent (:8107) for detailed CPIC/DPWG dosing guidance
+- **Sends** biomarker alerts to Oncology Agent (:8527) when tumor markers (CEA, CA-125, PSA) exceed surveillance thresholds
+- **Receives** genotype-adjusted reference range requests from Rare Disease Agent (:8134) for rare metabolic conditions
+
+**Performance Characteristics**
+
+| Operation | Typical Latency |
+|-----------|----------------|
+| Single collection search (top-15) | 80-150 ms |
+| Full 11-collection parallel search | 200-400 ms |
+| Biological age calculation | 50-100 ms |
+| Disease trajectory analysis (6 categories) | 100-200 ms |
+| PGx diplotype interpretation | 30-60 ms |
+| Claude LLM synthesis | 2,000-3,500 ms |
+| Full analysis (end-to-end) | 3,000-5,000 ms |
+| PDF report generation | 1,500-2,500 ms |
+
+**Common Pitfalls and Troubleshooting**
+
+- **Biological age returns null** -- The PhenoAge algorithm requires at least 7 of the 9 input biomarkers. If fewer are provided, the engine falls back to a partial estimate with a warning flag. Ensure albumin, creatinine, and glucose are included at minimum.
+- **PGx phenotype "Indeterminate"** -- This occurs when the star allele combination is not in the CPIC lookup table. Verify that diplotype notation follows PharmVar conventions (e.g., `*1/*4` not `*1/4`).
+- **Genotype adjustments not applied** -- The adjustment engine requires both the biomarker value and the relevant genotype. Submitting biomarkers without genotypes produces standard (non-adjusted) reference ranges.
+- **Disease trajectory showing "Unknown" stage** -- Some trajectories require specific marker combinations. For example, the hepatic trajectory needs ALT, AST, and albumin together. A single liver enzyme without context is insufficient.
+- **Slow report generation** -- PDF rendering adds 1-2s overhead. For faster iteration, request Markdown format first, then generate PDF only for the final version.
 
 ---
 
@@ -624,7 +830,22 @@ curl -X POST http://localhost:8529/disease-risk \
 
 **Overview and Clinical Purpose**
 
-The Cardiology Intelligence Agent synthesizes cardiac imaging, electrophysiology, hemodynamics, heart failure management, valvular disease, preventive cardiology, interventional data, and cardio-oncology surveillance into ACC/AHA/ESC guideline-aligned recommendations. It includes 6 validated risk calculators and 11 clinical workflows.
+The Cardiology Intelligence Agent synthesizes cardiac imaging, electrophysiology, hemodynamics, heart failure management, valvular disease, preventive cardiology, interventional data, and cardio-oncology surveillance into ACC/AHA/ESC guideline-aligned recommendations. It includes 6 validated risk calculators (ASCVD, HEART Score, CHA2DS2-VASc, HAS-BLED, MAGGIC, EuroSCORE II), a GDMT optimizer, and 11 clinical workflows. All processing runs on a single DGX Spark ($4,699, March 2026).
+
+**Advanced Configuration Options**
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `CARDIO_AGENT_PORT` | `8126` | FastAPI listen port |
+| `MILVUS_HOST` | `localhost` | Milvus server hostname |
+| `MILVUS_PORT` | `19530` | Milvus gRPC port |
+| `MILVUS_POOL_SIZE` | `10` | Connection pool size |
+| `ANTHROPIC_API_KEY` | (required) | Claude API key for LLM synthesis |
+| `LLM_MODEL` | `claude-sonnet-4-20250514` | Claude model ID |
+| `EMBEDDING_MODEL` | `BAAI/bge-small-en-v1.5` | 384-dim sentence-transformer |
+| `TOP_K` | `15` | Max chunks per collection search |
+| `GDMT_TITRATION_STEPS` | `4` | GDMT medication classes optimized simultaneously (ARNI/ACEi, beta-blocker, MRA, SGLT2i) |
+| `RISK_CALCULATOR_COUNT` | `6` | Number of validated risk calculators |
 
 **Milvus Collections (13)**
 
@@ -655,37 +876,113 @@ The Cardiology Intelligence Agent synthesizes cardiac imaging, electrophysiology
 | MAGGIC | Heart failure mortality risk |
 | EuroSCORE II | Cardiac surgical mortality risk |
 
-**Key API Endpoints**
+**Complete API Endpoint Table**
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/health` | Service health with Milvus, RAG engine, GDMT optimizer, and calculator status |
+| GET | `/collections` | List loaded collections with record counts |
+| GET | `/workflows` | List all 11 clinical workflow definitions |
+| GET | `/metrics` | Prometheus-compatible metrics export |
+| POST | `/v1/cardio/integrated-assessment` | Full multi-collection integrated cardiac assessment |
+| POST | `/v1/cardio/query` | Free-text RAG query across all cardiology collections |
+| POST | `/v1/cardio/search` | Direct vector similarity search with collection filtering |
+| POST | `/v1/cardio/find-related` | Find related entities (drugs, conditions, biomarkers) |
+| POST | `/v1/cardio/risk/ascvd` | ASCVD 10-year risk (Pooled Cohort Equations) |
+| POST | `/v1/cardio/risk/heart-score` | HEART Score for ED chest pain risk stratification |
+| POST | `/v1/cardio/risk/cha2ds2-vasc` | CHA2DS2-VASc stroke risk for atrial fibrillation |
+| POST | `/v1/cardio/risk/has-bled` | HAS-BLED anticoagulation bleeding risk |
+| POST | `/v1/cardio/risk/maggic` | MAGGIC heart failure mortality risk |
+| POST | `/v1/cardio/risk/euroscore` | EuroSCORE II cardiac surgical mortality |
+| POST | `/v1/cardio/gdmt/optimize` | GDMT titration optimization for heart failure |
+| POST | `/v1/cardio/workflow/cad` | Coronary artery disease assessment workflow |
+| POST | `/v1/cardio/workflow/heart-failure` | Heart failure classification and management |
+| POST | `/v1/cardio/workflow/valvular` | Valvular heart disease workflow |
+| POST | `/v1/cardio/workflow/arrhythmia` | Arrhythmia and EP assessment |
+| POST | `/v1/cardio/workflow/cardiac-mri` | Cardiac MRI tissue characterization |
+| POST | `/v1/cardio/workflow/stress-test` | Stress testing protocol |
+| POST | `/v1/cardio/workflow/prevention` | Cardiovascular prevention and risk stratification |
+| POST | `/v1/cardio/workflow/cardio-oncology` | Cardio-oncology surveillance |
+| POST | `/v1/cardio/cross-modal/evaluate` | Cross-modal genomic-cardiac evaluation |
+| GET | `/v1/cardio/guidelines` | List available clinical guideline references |
+| GET | `/v1/cardio/conditions` | List supported cardiovascular conditions |
+| GET | `/v1/cardio/biomarkers` | List tracked cardiac biomarkers |
+| GET | `/v1/cardio/drugs` | List cardiovascular drugs in knowledge base |
+| GET | `/v1/cardio/genes` | List cardiomyopathy-associated genes |
+| GET | `/v1/cardio/knowledge-version` | Knowledge base version and last update timestamp |
+| POST | `/v1/reports/generate` | Generate clinical report (Markdown, JSON, PDF, FHIR R4) |
+| GET | `/v1/reports/formats` | List available report export formats |
+| GET | `/v1/events/stream` | SSE stream for cross-agent events |
+| GET | `/v1/events/health` | Event system health status |
+
+**Detailed Clinical Workflow Walkthrough (11 workflows)**
+
+1. **Coronary Artery Disease (CAD)** -- Calcium score interpretation, CAD-RADS classification, plaque characterization, revascularization planning (PCI vs CABG), and ischemia-guided management.
+2. **Heart Failure Management** -- HFrEF/HFpEF/HFmrEF classification by ejection fraction, GDMT optimization (4-pillar: ARNI/ACEi, beta-blocker, MRA, SGLT2i), device evaluation (ICD/CRT), and hemodynamic profiling.
+3. **Valvular Heart Disease** -- Severity grading (mild/moderate/severe) by echocardiographic criteria, intervention timing per ACC/AHA guidelines, and prosthetic valve follow-up.
+4. **Arrhythmia and EP** -- AF management with CHA2DS2-VASc and HAS-BLED scoring, ablation candidacy assessment, and device programming optimization.
+5. **Cardiac MRI** -- LGE pattern interpretation, T1/T2 mapping analysis, strain assessment, and tissue characterization for cardiomyopathy diagnosis.
+6. **Stress Testing** -- Exercise and pharmacologic stress interpretation, Duke treadmill score, perfusion defect classification, and ischemia quantification.
+7. **Cardiovascular Prevention** -- ASCVD risk stratification, lipid management (statin/PCSK9i/ezetimibe selection), lifestyle Rx, and risk enhancer assessment.
+8. **Cardio-Oncology** -- Chemotherapy cardiotoxicity surveillance, GLS tracking (global longitudinal strain), troponin/BNP monitoring, and CTRCD detection.
+9. **Acute Decompensated HF** -- Hemodynamic profiling (warm-wet/cold-wet/cold-dry/warm-dry), IV diuretic dosing, inotrope selection, and MCS escalation criteria.
+10. **Post-MI Secondary Prevention** -- Reperfusion assessment, DAPT strategy duration, beta-blocker/statin/ACEi titration, cardiac rehab referral, and ICD timing.
+11. **Myocarditis/Pericarditis** -- Lake Louise CMR criteria evaluation, biopsy indications, NSAIDs/colchicine dosing, and activity restriction guidelines.
+
+**Example Query and Response**
 
 ```bash
-# Health check
-curl http://localhost:8126/health
-
-# RAG query
-curl -X POST http://localhost:8126/query \
+curl -X POST http://localhost:8126/v1/cardio/risk/heart-score \
   -H "Content-Type: application/json" \
-  -d '{"question": "Optimal GDMT titration for HFrEF with EF 25%"}'
-
-# ASCVD risk calculation
-curl -X POST http://localhost:8126/risk/ascvd \
-  -H "Content-Type: application/json" \
-  -d '{"age": 55, "sex": "male", "total_cholesterol": 220, "hdl": 45, "systolic_bp": 140, "diabetes": false, "smoker": false}'
-
-# CHA2DS2-VASc score
-curl -X POST http://localhost:8126/risk/chadsvasc \
-  -H "Content-Type: application/json" \
-  -d '{"age": 72, "sex": "female", "chf": true, "hypertension": true, "diabetes": false, "stroke_history": false, "vascular_disease": true}'
+  -d '{"age": 62, "history": "moderately suspicious", "ecg": "nonspecific ST changes", "troponin": "normal", "risk_factors": 3}'
 ```
 
-**Clinical Workflow (11 workflows)**
-
-Workflows span coronary artery disease assessment, heart failure classification and GDMT optimization, valvular disease quantification, arrhythmia detection, cardiac MRI tissue characterization, stress test interpretation, preventive risk stratification, cardio-oncology surveillance, acute decompensated HF, post-MI management, and myocarditis/pericarditis evaluation.
+```json
+{
+  "calculator": "HEART Score",
+  "score": 6,
+  "risk_category": "Moderate",
+  "interpretation": "HEART Score 6/10 (Moderate risk). 30-day MACE rate: 12-17%. Recommend observation, serial troponins, and non-invasive testing within 72 hours.",
+  "components": {
+    "history": {"score": 1, "detail": "Moderately suspicious for ACS"},
+    "ecg": {"score": 1, "detail": "Nonspecific ST-segment changes"},
+    "age": {"score": 2, "detail": "Age 62 (>= 45 and < 65)"},
+    "risk_factors": {"score": 2, "detail": "3+ risk factors (>= 3)"},
+    "troponin": {"score": 0, "detail": "Normal troponin"}
+  },
+  "guideline_reference": "ACC/AHA 2021 Chest Pain Guideline, Section 5.3",
+  "confidence": 0.95,
+  "processing_time_ms": 280
+}
+```
 
 **Cross-Agent Integration**
 
-- Sends cardiotoxicity alerts to Oncology Agent when chemotherapy candidates show cardiac risk
-- Receives biomarker trends (BNP, troponin) from Biomarker Agent
-- Queries genomic_evidence for cardiomyopathy-associated variants (TTN, LMNA, MYH7)
+- **Sends** cardiotoxicity alerts to Oncology Agent (:8527) when chemotherapy candidates show cardiac risk (pre-treatment EF, GLS baseline, anthracycline cumulative dose tracking)
+- **Receives** biomarker trends (BNP, troponin, CRP) from Biomarker Agent (:8529) for longitudinal heart failure monitoring
+- **Queries** `genomic_evidence` for cardiomyopathy-associated variants (TTN, LMNA, MYH7, MYBPC3, SCN5A) to integrate genetic risk into clinical assessment
+- **Receives** stroke triage events from Neurology Agent (:8528) to trigger cardiac workup (AF screening, echocardiography) after cryptogenic stroke
+- **Provides** cardiotoxicity risk context to CAR-T Agent (:8522) for patients receiving lymphodepleting chemotherapy
+
+**Performance Characteristics**
+
+| Operation | Typical Latency |
+|-----------|----------------|
+| Risk calculator (any of 6) | 50-150 ms |
+| GDMT optimization | 200-500 ms |
+| Single collection search (top-15) | 80-150 ms |
+| Full 13-collection parallel search | 250-450 ms |
+| Claude LLM synthesis | 2,000-3,500 ms |
+| Full integrated assessment | 3,500-5,500 ms |
+| Report generation (PDF) | 1,500-2,500 ms |
+
+**Common Pitfalls and Troubleshooting**
+
+- **ASCVD risk returns "out of range"** -- The Pooled Cohort Equations are validated for ages 40-79. Inputs outside this range receive a warning and extrapolated estimate.
+- **HEART Score confusion with Framingham** -- The HEART Score is for acute chest pain triage in the ED (History, ECG, Age, Risk factors, Troponin), not for long-term cardiovascular risk. Use ASCVD (PCE) for 10-year risk prediction.
+- **GDMT optimizer returns "contraindicated"** -- The optimizer checks for absolute contraindications (hyperkalemia for MRA, bradycardia for beta-blockers, angioedema history for ACEi). Review the contraindication reason in the response before overriding.
+- **Missing workflow endpoints** -- Workflows for acute decompensated HF, post-MI, and myocarditis/pericarditis use the generic `/v1/cardio/query` endpoint with structured parameters rather than dedicated workflow routes.
+- **Cross-modal evaluation empty** -- The `/v1/cardio/cross-modal/evaluate` endpoint requires `genomic_evidence` collection to be loaded. Verify via `GET /collections` that it shows 3.56M records.
 
 ---
 
@@ -693,7 +990,22 @@ Workflows span coronary artery disease assessment, heart failure classification 
 
 **Overview and Clinical Purpose**
 
-The Neurology Intelligence Agent supports 8 clinical workflows covering acute stroke triage, dementia evaluation, epilepsy classification, brain tumor grading, MS monitoring, Parkinson's assessment, headache classification, and neuromuscular evaluation. It integrates guidelines from AAN, AHA/ASA, ILAE, ICHD-3, WHO CNS 2021, McDonald 2017, and MDS criteria.
+The Neurology Intelligence Agent supports 8 specialized clinical workflows plus a general neurology RAG query mode (9 total), covering acute stroke triage, dementia evaluation, epilepsy classification, brain tumor grading, MS monitoring, Parkinson's assessment, headache classification, and neuromuscular evaluation. It integrates guidelines from AAN, AHA/ASA, ILAE, ICHD-3, WHO CNS 2021, McDonald 2017, and MDS criteria, with 10 validated clinical scale calculators. All processing runs on a single DGX Spark ($4,699, March 2026).
+
+**Advanced Configuration Options**
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `NEURO_AGENT_PORT` | `8528` | FastAPI listen port |
+| `MILVUS_HOST` | `localhost` | Milvus server hostname |
+| `MILVUS_PORT` | `19530` | Milvus gRPC port |
+| `MILVUS_POOL_SIZE` | `10` | Connection pool size |
+| `ANTHROPIC_API_KEY` | (required) | Claude API key for LLM synthesis |
+| `LLM_MODEL` | `claude-sonnet-4-20250514` | Claude model ID |
+| `EMBEDDING_MODEL` | `BAAI/bge-small-en-v1.5` | 384-dim sentence-transformer |
+| `TOP_K` | `15` | Max chunks per collection search |
+| `STROKE_WINDOW_HOURS` | `4.5` | tPA eligibility window in hours from symptom onset |
+| `THROMBECTOMY_WINDOW_HOURS` | `24` | Mechanical thrombectomy eligibility window (DAWN/DEFUSE-3) |
 
 **10 Clinical Scale Calculators**
 
@@ -706,50 +1018,114 @@ The Neurology Intelligence Agent supports 8 clinical workflows covering acute st
 | EDSS | Expanded Disability Status Scale (MS) |
 | mRS | Modified Rankin Scale (functional outcome) |
 | HIT-6 | Headache Impact Test |
-| ALSFRS-R | ALS Functional Rating Scale — Revised |
+| ALSFRS-R | ALS Functional Rating Scale -- Revised |
 | ASPECTS | Alberta Stroke Programme Early CT Score |
 | Hoehn-Yahr | Parkinson's disease staging |
 
-**Key API Endpoints**
+**Complete API Endpoint Table**
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/health` | Service health with Milvus, RAG engine, and workflow engine status |
+| GET | `/collections` | List loaded collections with record counts |
+| GET | `/workflows` | List all 9 workflow definitions |
+| GET | `/metrics` | Prometheus-compatible metrics export |
+| POST | `/v1/neuro/integrated-assessment` | Full multi-collection integrated neurological assessment |
+| POST | `/v1/neuro/query` | Free-text RAG query across all neurology collections |
+| POST | `/v1/neuro/search` | Direct vector similarity search with collection filtering |
+| POST | `/v1/neuro/scale/calculate` | Clinical scale calculation (any of 10 scales) |
+| POST | `/v1/neuro/stroke/triage` | Acute stroke triage with NIHSS, ASPECTS, thrombolysis/thrombectomy eligibility |
+| POST | `/v1/neuro/dementia/evaluate` | Dementia evaluation with MoCA, ATN staging, differential diagnosis |
+| POST | `/v1/neuro/epilepsy/classify` | Epilepsy classification (ILAE 2017), syndrome identification, EEG-MRI concordance |
+| POST | `/v1/neuro/tumor/grade` | Brain tumor grading (WHO CNS 2021) with molecular markers (IDH, MGMT, 1p/19q) |
+| POST | `/v1/neuro/ms/assess` | MS disease monitoring with EDSS, NEDA-3/4, DMT escalation evaluation |
+| POST | `/v1/neuro/parkinsons/assess` | Parkinson's assessment with MDS-UPDRS III, Hoehn-Yahr, motor subtype classification |
+| POST | `/v1/neuro/headache/classify` | Headache classification (ICHD-3), HIT-6 scoring, red flag screening |
+| POST | `/v1/neuro/neuromuscular/evaluate` | Neuromuscular evaluation with ALSFRS-R, EMG/NCS pattern analysis |
+| POST | `/v1/neuro/workflow/{workflow_type}` | Generic workflow endpoint for any of 9 workflow types |
+| GET | `/v1/neuro/domains` | List supported neurological domains |
+| GET | `/v1/neuro/scales` | List available clinical scales with input requirements |
+| GET | `/v1/neuro/guidelines` | List integrated clinical guidelines |
+| GET | `/v1/neuro/knowledge-version` | Knowledge base version and last update timestamp |
+| POST | `/v1/reports/generate` | Generate clinical report (Markdown, JSON, PDF, FHIR R4) |
+| GET | `/v1/reports/formats` | List available report export formats |
+| GET | `/v1/events/stream` | SSE stream for cross-agent events |
+| GET | `/v1/events/health` | Event system health status |
+
+**Detailed Clinical Workflow Walkthrough**
+
+1. **Acute Stroke Triage** -- Clinician enters onset time, NIHSS score, and CT findings. The agent calculates time-to-treatment, evaluates tPA eligibility (<4.5 hours per AHA/ASA guidelines), assesses thrombectomy candidacy (<24 hours, DAWN/DEFUSE-3 criteria), computes ASPECTS score for anterior circulation strokes, and localizes vascular territory.
+2. **Dementia Evaluation** -- MoCA score, age, and symptom list are submitted. The agent performs ATN biomarker staging (Amyloid/Tau/Neurodegeneration), generates a differential diagnosis ranked by probability (AD, FTD, LBD, VaD, NPH, CJD), recommends further workup (PET, CSF, MRI volumetrics), and suggests treatment options.
+3. **Epilepsy Classification** -- Seizure semiology and EEG/MRI findings are entered. The agent classifies seizures per ILAE 2017 (focal, generalized, unknown onset), identifies epilepsy syndromes, performs EEG-MRI concordance analysis for surgical candidacy, and recommends ASMs based on seizure type with PGx context.
+4. **Brain Tumor Grading** -- Histology and molecular markers (IDH mutation, MGMT methylation, 1p/19q codeletion, ATRX, H3K27M) are submitted. The agent applies WHO CNS 2021 classification, determines integrated diagnosis (e.g., "Astrocytoma, IDH-mutant, grade 3"), and maps to NCCN treatment guidelines.
+5. **MS Disease Monitoring** -- EDSS score, relapse history, and MRI lesion data are entered. The agent assesses NEDA-3/4 status (No Evidence of Disease Activity), evaluates DMT escalation criteria, calculates relapse risk stratification, and tracks lesion burden over time.
+6. **Parkinson's Assessment** -- MDS-UPDRS Part III motor items are scored. The agent computes total score, determines Hoehn-Yahr stage, classifies motor subtype (tremor-dominant, PIGD, indeterminate), and optimizes medication regimen (levodopa, dopamine agonists, MAO-B inhibitors).
+7. **Headache Classification** -- Attack characteristics (duration, location, quality, associated symptoms) are entered. The agent applies ICHD-3 criteria, computes HIT-6 disability score, screens for red flags (thunderclap, positional, progressive), and recommends preventive therapy if indicated.
+8. **Neuromuscular Evaluation** -- Weakness pattern, reflexes, and EMG/NCS findings are submitted. The agent computes ALSFRS-R functional score, analyzes EMG/NCS patterns (neuropathic vs myopathic vs NMJ), guides genetic testing, and recommends specialty referral.
+9. **General Neurology Query** -- Free-form RAG-powered Q&A across all neurology knowledge collections, not bound to a specific workflow.
+
+**Example Query and Response**
 
 ```bash
-# Health check
-curl http://localhost:8528/health
-
-# RAG query
-curl -X POST http://localhost:8528/v1/neuro/query \
-  -H "Content-Type: application/json" \
-  -d '{"question": "McDonald 2017 criteria for MS diagnosis with one clinical attack"}'
-
-# Clinical scale calculation
-curl -X POST http://localhost:8528/v1/neuro/scale/calculate \
-  -H "Content-Type: application/json" \
-  -d '{"scale": "NIHSS", "items": {"consciousness": 0, "gaze": 1, "visual_fields": 0, "facial_palsy": 2, "motor_arm_left": 3}}'
-
-# Acute stroke triage
 curl -X POST http://localhost:8528/v1/neuro/stroke/triage \
   -H "Content-Type: application/json" \
-  -d '{"onset_time": "2026-03-29T08:30:00", "nihss_score": 14, "ct_findings": "no hemorrhage"}'
-
-# Dementia evaluation
-curl -X POST http://localhost:8528/v1/neuro/dementia/evaluate \
-  -H "Content-Type: application/json" \
-  -d '{"moca_score": 18, "age": 72, "symptoms": ["memory loss", "word finding difficulty"]}'
+  -d '{"onset_time": "2026-03-29T08:30:00", "current_time": "2026-03-29T10:45:00", "nihss_score": 14, "ct_findings": "no hemorrhage", "aspects_score": 8}'
 ```
 
-**Clinical Workflow**
-
-1. Clinician selects a workflow (stroke, dementia, epilepsy, tumor, MS, Parkinson's, headache, neuromuscular)
-2. Structured input forms collect workflow-specific parameters
-3. Clinical scale calculators provide standardized scoring
-4. RAG engine retrieves guideline-concordant evidence across 12 collections
-5. Multi-format report generated (Markdown, JSON, PDF, FHIR R4 DiagnosticReport)
+```json
+{
+  "triage_result": {
+    "time_from_onset_minutes": 135,
+    "tpa_eligible": true,
+    "tpa_window_remaining_minutes": 135,
+    "thrombectomy_eligible": true,
+    "thrombectomy_window_remaining_minutes": 1305,
+    "nihss_severity": "Moderate-Severe",
+    "aspects_interpretation": "Score 8/10 -- favorable for intervention (>= 6 threshold)",
+    "vascular_territory": "MCA (likely M1 or M2 occlusion based on NIHSS pattern)",
+    "recommendation": "URGENT: Administer IV tPA immediately (within 4.5-hour window). Activate neurointerventional team for mechanical thrombectomy evaluation. Obtain CTA head and neck to confirm large vessel occlusion."
+  },
+  "guideline_references": [
+    "AHA/ASA 2019 Acute Ischemic Stroke Guidelines, Section 3.2 (tPA)",
+    "DAWN Trial: thrombectomy 6-24 hours with clinical-core mismatch",
+    "DEFUSE-3 Trial: thrombectomy 6-16 hours with perfusion mismatch"
+  ],
+  "evidence": [
+    {"collection": "neuro_stroke", "score": 0.93, "text": "IV alteplase within 4.5 hours of symptom onset..."},
+    {"collection": "neuro_guidelines", "score": 0.91, "text": "AHA/ASA Class I recommendation for mechanical thrombectomy..."}
+  ],
+  "confidence": 0.96,
+  "processing_time_ms": 1850
+}
+```
 
 **Cross-Agent Integration**
 
-- Queries Imaging Agent for MRI findings (lesion counts, brain volumetrics)
-- Receives pharmacogenomic context from PGx Agent for antiepileptic drug selection
-- Shares stroke triage events with Cardiology Agent for cardiac workup (AF screening)
+- **Queries** Imaging Agent (:8524) for MRI findings (MS lesion counts, brain volumetrics, DWI/ADC maps for stroke)
+- **Receives** pharmacogenomic context from PGx Agent (:8107) for antiepileptic drug selection (HLA-B*15:02 and carbamazepine, CYP2C9 and phenytoin)
+- **Shares** stroke triage events with Cardiology Agent (:8126) for cardiac workup -- AF screening, echocardiography, and Holter monitoring after cryptogenic stroke
+- **Queries** `genomic_evidence` for neurogenetic variants (APP, PSEN1/2, GBA, LRRK2, PARK2, SMN1) to integrate genetic risk into clinical assessment
+- **Receives** tumor molecular markers from Oncology Agent (:8527) for integrated brain tumor classification
+
+**Performance Characteristics**
+
+| Operation | Typical Latency |
+|-----------|----------------|
+| Clinical scale calculation (any of 10) | 20-80 ms |
+| Single collection search (top-15) | 80-150 ms |
+| Full multi-collection parallel search | 250-450 ms |
+| Stroke triage (end-to-end, no LLM) | 200-500 ms |
+| Claude LLM synthesis | 2,000-3,500 ms |
+| Full workflow assessment (end-to-end) | 3,000-5,500 ms |
+| Report generation (PDF) | 1,500-2,500 ms |
+
+**Common Pitfalls and Troubleshooting**
+
+- **Stroke triage returns "window expired"** -- Verify that `onset_time` and `current_time` are in ISO 8601 format with timezone. If `current_time` is omitted, the server uses UTC now, which may differ from local time.
+- **NIHSS score mismatch** -- The agent accepts either a pre-computed total score or individual item scores. If both are provided, individual items take precedence and the total is recalculated. Ensure all 15 items are included for accurate scoring.
+- **MoCA score interpretation varies by education** -- The agent applies the standard +1 point adjustment for education <= 12 years. Provide the raw score without manual adjustment; the agent handles the correction.
+- **MS NEDA-3 assessment incomplete** -- NEDA-3 requires three inputs: relapse count (0), new/enlarging T2 lesions (0), and disability progression (stable EDSS). Missing any component results in a partial assessment.
+- **Workflow type not found** -- Valid workflow types are: `acute_stroke_triage`, `dementia_evaluation`, `epilepsy_focus`, `brain_tumor_grading`, `ms_monitoring`, `parkinsons_assessment`, `headache_classification`, `neuromuscular_evaluation`, `general`. Use the exact ID from `GET /workflows`.
 
 ---
 
@@ -757,11 +1133,27 @@ curl -X POST http://localhost:8528/v1/neuro/dementia/evaluate \
 
 **Overview and Clinical Purpose**
 
-The Precision Autoimmune Agent addresses the diagnostic odyssey that autoimmune patients face — often 3-6 years across multiple specialists before diagnosis. It interprets autoantibody panels, HLA typing, biomarker trends, and genomic data across 13 autoimmune conditions. It features disease activity scoring (DAS28-CRP, SLEDAI-2K, CDAI, BASDAI), flare prediction, biologic therapy recommendations with PGx context, and diagnostic odyssey analysis.
+The Precision Autoimmune Agent addresses the diagnostic odyssey that autoimmune patients face -- often 3-6 years across multiple specialists before diagnosis. It interprets autoantibody panels, HLA typing, biomarker trends, and genomic data across 13 autoimmune conditions. It features disease activity scoring (DAS28-CRP, SLEDAI-2K, CDAI, BASDAI), flare prediction, biologic therapy recommendations with PGx context, and diagnostic odyssey analysis. Also detects the POTS/hEDS/MCAS triad and overlap syndromes. All processing runs on a single DGX Spark ($4,699, March 2026).
+
+**Advanced Configuration Options**
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `AUTOIMMUNE_AGENT_PORT` | `8532` | FastAPI listen port |
+| `MILVUS_HOST` | `localhost` | Milvus server hostname |
+| `MILVUS_PORT` | `19530` | Milvus gRPC port |
+| `MILVUS_POOL_SIZE` | `10` | Connection pool size |
+| `ANTHROPIC_API_KEY` | (required) | Claude API key for LLM synthesis |
+| `LLM_MODEL` | `claude-sonnet-4-20250514` | Claude model ID; upgrade to `claude-opus-4-20250514` for complex diagnostic odyssey analyses |
+| `EMBEDDING_MODEL` | `BAAI/bge-small-en-v1.5` | 384-dim sentence-transformer |
+| `TOP_K` | `15` | Max chunks per collection search |
+| `FLARE_RISK_THRESHOLD` | `0.65` | Risk score threshold for flare alerts (0-1 scale) |
+| `HLA_ODDS_RATIO_MIN` | `2.0` | Minimum odds ratio for HLA-disease associations to flag |
+| `COLLECTION_WEIGHTS` | (see table) | Weighted relevance for each collection in composite scoring |
 
 **13 Supported Conditions**
 
-Rheumatoid arthritis, SLE, multiple sclerosis, type 1 diabetes, inflammatory bowel disease, psoriasis/psoriatic arthritis, ankylosing spondylitis, Sjogren's syndrome, systemic sclerosis, myasthenia gravis, celiac disease, Graves' disease, Hashimoto's thyroiditis. Also detects the POTS/hEDS/MCAS triad and overlap syndromes.
+Rheumatoid arthritis, SLE, multiple sclerosis, type 1 diabetes, inflammatory bowel disease, psoriasis/psoriatic arthritis, ankylosing spondylitis, Sjogren's syndrome, systemic sclerosis, myasthenia gravis, celiac disease, Graves' disease, Hashimoto's thyroiditis.
 
 **Milvus Collections (14)**
 
@@ -782,43 +1174,113 @@ Rheumatoid arthritis, SLE, multiple sclerosis, type 1 diabetes, inflammatory bow
 | `autoimmune_cross_disease` | 0.02 | Overlap syndromes, cross-disease mechanisms |
 | `genomic_evidence` | 0.02 | Shared genomic evidence (read-only) |
 
-**Key API Endpoints**
+**Complete API Endpoint Table**
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/health` | Service health with Milvus and engine status |
+| GET | `/healthz` | Kubernetes-style liveness probe |
+| GET | `/collections` | List loaded collections with record counts |
+| GET | `/metrics` | Prometheus-compatible metrics export |
+| POST | `/v1/autoimmune/integrated-assessment` | Full multi-collection integrated autoimmune assessment |
+| POST | `/query` | Free-text RAG query across all autoimmune collections |
+| POST | `/query/stream` | Streaming RAG query (Server-Sent Events) |
+| POST | `/search` | Direct vector similarity search with collection filtering |
+| POST | `/analyze` | Full patient analysis (antibodies + HLA + biomarkers combined) |
+| POST | `/differential` | Differential diagnosis from symptom/antibody profile |
+| POST | `/ingest/upload` | Upload and ingest clinical documents (PDF, DOCX, text) |
+| POST | `/ingest/demo-data` | Load demo patient dataset for testing |
+| POST | `/collections/create` | Create custom collections for institution-specific data |
+| POST | `/export` | Export analysis results (Markdown, JSON, PDF, FHIR R4) |
+
+**Detailed Clinical Workflow Walkthrough**
+
+1. **Document ingestion** -- Clinical documents (progress notes, lab reports, imaging reports) are uploaded via `/ingest/upload` or Streamlit UI. Documents are chunked, embedded with BGE-small-en-v1.5, and stored in `autoimmune_clinical_documents`.
+2. **Autoantibody panel interpretation** -- Antibody results (ANA, anti-dsDNA, anti-CCP, RF, anti-SSA/SSB, anti-Scl-70, anti-Jo-1, ANCA, anti-centromere, anti-Smith, anti-RNP, anti-TPO, TSI, anti-AChR, anti-tTG) are mapped to disease associations with published sensitivity and specificity. For example: anti-CCP positive with RF positive has 95% specificity for RA.
+3. **HLA typing analysis** -- HLA alleles are evaluated against 50+ allele-disease associations with odds ratios. Key associations: HLA-B*27:05 and ankylosing spondylitis (OR=87.4), HLA-DRB1*04:01 and RA (OR=4.2), HLA-DQ2/DQ8 and celiac disease (OR=7.0).
+4. **Disease activity scoring** -- Standardized scores are calculated based on disease:
+   - RA: DAS28-CRP (remission <2.6, low 2.6-3.2, moderate 3.2-5.1, high >5.1)
+   - SLE: SLEDAI-2K (no activity 0, mild 1-5, moderate 6-10, high 11-19, very high >=20)
+   - IBD: CDAI for Crohn's (remission <150, mild 150-219, moderate 220-450, severe >450)
+   - AS: BASDAI (low <4, high >=4)
+5. **Flare prediction** -- Analyzes longitudinal biomarker patterns (CRP, ESR, IL-6, complement C3/C4, calprotectin, ferritin) against known flare precursors. Returns a 0-1 risk score with contributing factors. Scores above 0.65 trigger an alert to the Biomarker Agent.
+6. **Biologic therapy recommendations** -- Filtered by confirmed diagnosis, disease activity level, prior therapy failures, and PGx context (FCGR3A V/F polymorphism for rituximab response, TPMT for azathioprine dosing). Recommendations include TNF inhibitors, anti-CD20, IL-6R blockers, JAK inhibitors, and IL-17/23 inhibitors.
+7. **Diagnostic odyssey analysis** -- Surfaces patterns missed across fragmented multi-specialist records. Identifies symptom constellations that span years and multiple providers, flags potential overlap syndromes (e.g., RA + Sjogren's, SLE + APS), and detects the POTS/hEDS/MCAS triad.
+
+**Example Query and Response**
 
 ```bash
-# Full patient analysis
 curl -X POST http://localhost:8532/analyze \
   -H "Content-Type: application/json" \
-  -d '{"antibodies": {"ANA": "positive", "anti_dsDNA": 85}, "hla": ["B*27:05"], "biomarkers": {"CRP": 18.5, "ESR": 42}}'
-
-# Disease activity scoring
-curl -X POST http://localhost:8532/disease-activity \
-  -H "Content-Type: application/json" \
-  -d '{"disease": "RA", "score_type": "DAS28-CRP", "tender_joints": 6, "swollen_joints": 4, "crp": 2.1, "patient_global": 55}'
-
-# Flare prediction
-curl -X POST http://localhost:8532/flare-risk \
-  -H "Content-Type: application/json" \
-  -d '{"disease": "SLE", "biomarkers": {"CRP": 12, "C3": 65, "C4": 8, "anti_dsDNA": 120}}'
-
-# Ingest demo patient data
-curl -X POST http://localhost:8532/ingest/demo-data
+  -d '{"antibodies": {"ANA": "positive", "anti_dsDNA": 85, "anti_Smith": "positive"}, "hla": ["DRB1*15:01"], "biomarkers": {"CRP": 18.5, "ESR": 42, "C3": 62, "C4": 7, "anti_dsDNA_titer": 120}}'
 ```
 
-**Clinical Workflow**
-
-1. Clinical documents (progress notes, lab reports, imaging) are ingested and chunked
-2. Autoantibody panel interpretation maps positives to disease associations with sensitivity/specificity
-3. HLA analysis evaluates typing against 50+ allele-disease associations (e.g., HLA-B*27:05 and AS at OR=87.4)
-4. Disease activity scoring calculates standardized scores with remission/low/moderate/high/very high levels
-5. Flare prediction analyzes CRP, ESR, IL-6, complement C3/C4, calprotectin patterns on a 0-1 risk scale
-6. Biologic therapy recommendations filtered by diagnosis and PGx context
-7. Diagnostic odyssey analysis surfaces patterns missed across fragmented multi-specialist records
+```json
+{
+  "primary_diagnosis": {
+    "disease": "Systemic Lupus Erythematosus (SLE)",
+    "confidence": 0.92,
+    "acr_eular_score": 18,
+    "classification_criteria": "ACR/EULAR 2019 SLE Classification (threshold >= 10)"
+  },
+  "disease_activity": {
+    "score_type": "SLEDAI-2K",
+    "score": 12,
+    "level": "High Activity",
+    "active_domains": ["immunologic (anti-dsDNA, low complement)", "serositis risk"]
+  },
+  "flare_risk": {
+    "score": 0.78,
+    "risk_level": "High",
+    "contributing_factors": ["Rising anti-dsDNA (120 IU/mL)", "Low C4 (7 mg/dL)", "Low C3 (62 mg/dL)"],
+    "recommendation": "Consider preemptive dose adjustment; monitor weekly for 4 weeks"
+  },
+  "hla_associations": [
+    {"allele": "DRB1*15:01", "disease": "SLE", "odds_ratio": 2.1, "significance": "Moderate risk association"}
+  ],
+  "therapy_recommendations": [
+    {"rank": 1, "drug": "Belimumab (anti-BLyS)", "rationale": "Add-on for active SLE with high anti-dsDNA and low complement"},
+    {"rank": 2, "drug": "Mycophenolate mofetil", "rationale": "Steroid-sparing immunosuppression for moderate-severe SLE"},
+    {"rank": 3, "drug": "Anifrolumab (anti-IFNAR1)", "rationale": "Type I IFN pathway blockade for refractory skin/joint SLE"}
+  ],
+  "evidence": [
+    {"collection": "autoimmune_disease_criteria", "score": 0.94, "text": "ACR/EULAR 2019: Anti-dsDNA + low complement = 10 points..."},
+    {"collection": "autoimmune_biologic_therapies", "score": 0.89, "text": "BLISS-76: Belimumab + SOC improved SRI-4 response vs placebo..."}
+  ],
+  "processing_time_ms": 4120
+}
+```
 
 **Cross-Agent Integration**
 
-- Receives longitudinal biomarker trends from Biomarker Agent
-- Requests imaging assessment from Imaging Agent for joint/organ evaluation
-- Publishes diagnosis events to other agents via event bus
+- **Receives** longitudinal biomarker trends from Biomarker Agent (:8529) for disease monitoring -- CRP, ESR, complement, calprotectin tracked over time with trend analysis
+- **Requests** imaging assessment from Imaging Agent (:8524) for joint erosion scoring (MRI/ultrasound), organ evaluation (renal, pulmonary), and skin lesion characterization
+- **Publishes** diagnosis events to other agents via SSE event bus -- new autoimmune diagnoses trigger downstream assessments in Cardiology (pericarditis risk), Neurology (CNS lupus, MS overlap), and PGx (immunosuppressant metabolism)
+- **Queries** `genomic_evidence` for HLA alleles and autoimmune-associated variants (CTLA4, PTPN22, IL2RA, STAT4) to integrate genetic risk
+- **Sends** flare alerts to Biomarker Agent (:8529) when biomarker patterns indicate impending flare, triggering intensified monitoring protocols
+
+**Performance Characteristics**
+
+| Operation | Typical Latency |
+|-----------|----------------|
+| Single collection search (top-15) | 80-150 ms |
+| Full 14-collection weighted search | 300-500 ms |
+| Disease activity calculation | 30-80 ms |
+| Flare risk prediction | 50-120 ms |
+| Autoantibody panel interpretation | 40-100 ms |
+| HLA association lookup | 20-50 ms |
+| Claude LLM synthesis | 2,500-4,000 ms |
+| Full analysis (end-to-end) | 3,500-5,500 ms |
+| Document ingestion (per page) | 500-1,000 ms |
+
+**Common Pitfalls and Troubleshooting**
+
+- **ANA "positive" without titer** -- The agent accepts qualitative ("positive"/"negative") or quantitative (titer, e.g., "1:640") ANA values. Quantitative values enable more precise disease association scoring. Include titer and pattern (homogeneous, speckled, nucleolar, centromere) when available.
+- **Disease activity score returns "insufficient data"** -- Each score requires specific inputs. DAS28-CRP needs tender joint count (28 joints), swollen joint count (28 joints), CRP (mg/L), and patient global assessment (0-100 VAS). Missing any component prevents calculation.
+- **HLA alleles not recognized** -- Use standard nomenclature (e.g., "B*27:05" not "B27" or "HLA-B27"). The agent accepts both 2-field (B*27:05) and 1-field (B*27) resolution but 2-field provides more accurate odds ratios.
+- **Flare prediction unreliable with single timepoint** -- The prediction model works best with longitudinal data (3+ timepoints). A single snapshot can estimate current risk but cannot detect trajectory-based patterns (rising anti-dsDNA, falling complement).
+- **Overlap syndromes missed** -- The diagnostic odyssey analysis requires documents from multiple visits and specialties. Single-visit data limits the agent's ability to detect cross-specialist patterns. Upload historical records for comprehensive analysis.
+- **Demo data ingestion fails** -- Ensure the `/data/demo` directory exists and contains the sample patient files. Run `curl http://localhost:8532/health` first to verify Milvus connectivity before ingesting.
 
 ---
 
@@ -826,7 +1288,30 @@ curl -X POST http://localhost:8532/ingest/demo-data
 
 **Overview and Clinical Purpose**
 
-The Rare Disease Diagnostic Agent provides differential diagnosis, ACMG/AMP variant interpretation (implementing a subset of 28 ACMG criteria), HPO-based phenotype matching with information content (IC) weighted similarity scoring, therapeutic option search (orphan drugs, gene therapy, enzyme replacement), and clinical trial eligibility assessment. It covers 13 disease categories with 88 diseases in its knowledge base.
+The Rare Disease Diagnostic Agent provides differential diagnosis, ACMG/AMP variant interpretation (implementing 23 ACMG criteria), HPO-based phenotype matching with information content (IC) weighted similarity scoring, therapeutic option search (orphan drugs, gene therapy, enzyme replacement), and clinical trial eligibility assessment. It covers 13 disease categories with 88 diseases in its knowledge base and tracks 25 approved or investigational gene therapies.
+
+**Advanced Configuration Options**
+
+All environment variables use the `RD_` prefix. Key settings:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `RD_MILVUS_HOST` | `localhost` | Milvus vector database host |
+| `RD_MILVUS_PORT` | `19530` | Milvus port |
+| `RD_API_PORT` | `8134` | FastAPI REST server port |
+| `RD_STREAMLIT_PORT` | `8544` | 5-tab Streamlit UI port |
+| `RD_LLM_MODEL` | `claude-sonnet-4-6` | Claude model for synthesis |
+| `RD_ANTHROPIC_API_KEY` | (none) | Required for LLM; search-only mode without it |
+| `RD_SCORE_THRESHOLD` | `0.4` | Minimum cosine similarity for evidence retrieval |
+| `RD_TOP_K_PHENOTYPES` | `50` | Max results from `rd_phenotypes` per query |
+| `RD_TOP_K_VARIANTS` | `100` | Max results from `rd_variants` per query |
+| `RD_INGEST_SCHEDULE_HOURS` | `24` | Auto-ingest cycle (set `RD_INGEST_ENABLED=true`) |
+| `RD_MAX_CONVERSATION_CONTEXT` | `3` | Prior exchanges injected for multi-turn |
+| `RD_CITATION_HIGH_THRESHOLD` | `0.75` | Score above which citations are marked high-confidence |
+| `RD_API_KEY` | (empty) | Set to require X-API-Key header on all endpoints |
+| `RD_CROSS_AGENT_TIMEOUT` | `30` | Seconds before cross-agent HTTP calls time out |
+
+Collection weight tuning: 14 `RD_WEIGHT_*` variables (e.g., `RD_WEIGHT_PHENOTYPES=0.12`) control the relative influence of each collection during multi-collection fusion. Weights must sum to approximately 1.0 (tolerance 0.05).
 
 **Milvus Collections (14)**
 
@@ -847,49 +1332,116 @@ The Rare Disease Diagnostic Agent provides differential diagnosis, ACMG/AMP vari
 | `rd_newborn_screening` | Newborn screening panels |
 | `genomic_evidence` | Shared genomic evidence (read-only) |
 
-**Key API Endpoints**
+**Complete API Endpoint Table**
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/health` | Service health with component readiness and vector counts |
+| GET | `/collections` | Collection names and record counts |
+| GET | `/workflows` | 11 available diagnostic workflow definitions |
+| GET | `/metrics` | Prometheus-compatible metrics export |
+| POST | `/v1/diagnostic/query` | RAG Q&A across all rare disease collections |
+| POST | `/v1/diagnostic/search` | Multi-collection evidence search (no LLM) |
+| POST | `/v1/diagnostic/diagnose` | Differential diagnosis from HPO terms |
+| POST | `/v1/diagnostic/variants/interpret` | ACMG/AMP variant classification |
+| POST | `/v1/diagnostic/phenotype/match` | HPO-to-disease phenotype matching |
+| POST | `/v1/diagnostic/therapy/search` | Therapeutic option search (ERT, SRT, gene therapy) |
+| POST | `/v1/diagnostic/trial/match` | Clinical trial eligibility assessment |
+| POST | `/v1/diagnostic/workflow/{type}` | Generic workflow dispatch (11 types) |
+| POST | `/v1/diagnostic/integrated-assessment` | Cross-agent multi-agent assessment |
+| GET | `/v1/diagnostic/disease-categories` | Reference catalog of 13 disease categories |
+| GET | `/v1/diagnostic/gene-therapies` | 25 approved/investigational gene therapies |
+| GET | `/v1/diagnostic/acmg-criteria` | 23 ACMG criteria reference |
+| GET | `/v1/diagnostic/hpo-categories` | HPO top-level ontology terms |
+| GET | `/v1/diagnostic/knowledge-version` | Knowledge base version metadata |
+| POST | `/v1/reports/generate` | Multi-format report generation |
+| GET | `/v1/reports/formats` | Supported export formats |
+| GET | `/v1/events/stream` | Server-sent event stream |
+
+**Detailed Clinical Workflow Walkthrough**
+
+1. **Phenotype entry** -- Clinician enters patient phenotypes as HPO terms (e.g., HP:0001250 Seizure, HP:0001263 Global developmental delay) via the 5-tab Streamlit UI or the `/v1/diagnostic/diagnose` API. Age of onset category (antenatal, neonatal, infantile, childhood, juvenile, adult) is provided as context.
+
+2. **HPO-to-disease matching** -- The agent embeds the HPO term descriptions using BGE-small-en-v1.5, searches the `rd_phenotypes` collection (top_k=50), and computes IC-weighted Resnik similarity against OMIM and Orphanet disease phenotype profiles. Each disease receives a composite phenotype match score.
+
+3. **Differential diagnosis ranking** -- Candidate diseases are ranked by phenotype match score. The LLM synthesizes evidence from `rd_diseases`, `rd_literature`, and `rd_case_reports` to assign confidence levels (high/moderate/low) and highlight discriminating features.
+
+4. **Variant interpretation** -- If VCF data is available, candidate variants in genes associated with top-ranked diseases are classified using 23 ACMG/AMP criteria: PVS1, PM1-PM6, PP1-PP5, BA1, BS1-BS4, BP1-BP7. ClinVar, gnomAD allele frequency, AlphaMissense scores, and in-silico predictors are integrated.
+
+5. **Therapeutic search** -- For confirmed or suspected diagnoses, the agent queries `rd_therapies` for orphan drugs (FDA/EMA approved), gene therapies (25 tracked), enzyme replacement therapies, substrate reduction therapies, and investigational compounds.
+
+6. **Trial eligibility** -- The agent cross-references patient age, gene, diagnosis, and variant status against `rd_trials` and triggers the Clinical Trial Agent for expanded matching.
+
+7. **Report export** -- Final report exported as Markdown, JSON, PDF, FHIR R4 DiagnosticReport, or GA4GH Phenopacket v2.
+
+**Example Query and Response**
 
 ```bash
-# Differential diagnosis from HPO terms
 curl -X POST http://localhost:8134/v1/diagnostic/diagnose \
   -H "Content-Type: application/json" \
   -d '{"hpo_terms": ["HP:0001250", "HP:0001263", "HP:0002079"], "age_of_onset": "infantile"}'
-
-# ACMG variant interpretation
-curl -X POST http://localhost:8134/v1/diagnostic/variants/interpret \
-  -H "Content-Type: application/json" \
-  -d '{"variant": "NM_000492.4(CFTR):c.1521_1523del", "gene": "CFTR", "consequence": "in_frame_deletion"}'
-
-# HPO-to-disease phenotype matching
-curl -X POST http://localhost:8134/v1/diagnostic/phenotype/match \
-  -H "Content-Type: application/json" \
-  -d '{"hpo_terms": ["HP:0001250", "HP:0001263"], "max_results": 10}'
-
-# Therapeutic option search
-curl -X POST http://localhost:8134/v1/diagnostic/therapy/search \
-  -H "Content-Type: application/json" \
-  -d '{"disease": "Gaucher disease type 1", "therapy_types": ["ERT", "SRT"]}'
-
-# Clinical trial eligibility
-curl -X POST http://localhost:8134/v1/diagnostic/trial/match \
-  -H "Content-Type: application/json" \
-  -d '{"disease": "Duchenne muscular dystrophy", "age": 8, "gene": "DMD"}'
 ```
 
-**Clinical Workflow**
-
-1. Patient phenotypes entered as HPO terms via the 5-tab Streamlit UI
-2. HPO-to-disease matching uses IC-weighted similarity against OMIM and Orphanet
-3. Differential diagnosis ranked by phenotype match score with confidence levels
-4. Candidate variants classified using ACMG/AMP criteria (PVS1, PM1-PM6, PP1-PP5, BA1, BS1-BS4, BP1-BP7)
-5. Therapeutic options searched across orphan drugs, gene therapy, and enzyme replacement
-6. Report exported as Markdown, JSON, PDF, FHIR R4, or GA4GH Phenopacket v2
+```json
+{
+  "status": "completed",
+  "differential_diagnosis": [
+    {
+      "rank": 1,
+      "disease": "Dravet syndrome",
+      "omim": "607208",
+      "orphanet": "ORPHA:33069",
+      "phenotype_match_score": 0.87,
+      "confidence": "high",
+      "key_gene": "SCN1A",
+      "discriminating_features": ["Febrile seizures progressing to afebrile", "Temperature sensitivity"]
+    },
+    {
+      "rank": 2,
+      "disease": "CLN2 disease (late-infantile neuronal ceroid lipofuscinosis)",
+      "omim": "204500",
+      "orphanet": "ORPHA:228346",
+      "phenotype_match_score": 0.74,
+      "confidence": "moderate",
+      "key_gene": "TPP1",
+      "discriminating_features": ["Progressive vision loss", "Cerebellar atrophy on MRI"]
+    }
+  ],
+  "hpo_terms_matched": 3,
+  "diseases_evaluated": 88,
+  "evidence_sources": 42,
+  "processing_time_ms": 2340.5
+}
+```
 
 **Cross-Agent Integration**
 
-- Queries Pharmacogenomics Agent for drug metabolism context in rare disease therapeutics
-- Shares phenotype-genotype correlations with Biomarker Agent
-- Triggers Clinical Trial Agent for rare disease trial matching
+| Direction | Partner Agent | Trigger/Scenario |
+|-----------|--------------|------------------|
+| Outbound | Pharmacogenomics (:8107) | Queries drug metabolism context when rare disease therapeutics have PGx implications (e.g., ERT dosing) |
+| Outbound | Clinical Trial (:8538) | Triggers expanded trial matching for rare disease patients via `/v1/trial/workflow/patient_matching/run` |
+| Outbound | Imaging (:8524) | Requests imaging assessment for rare diseases with organ involvement (e.g., lysosomal storage diseases) |
+| Outbound | Cardiology (:8126) | Queries cardiac phenotype context for cardiomyopathy-associated rare diseases (e.g., Fabry, Pompe) |
+| Inbound | Biomarker (:8529) | Receives phenotype-genotype correlation requests |
+| Bidirectional | All agents | Publishes diagnosis events via SSE event bus; reads `genomic_evidence` (shared) |
+
+**Performance Characteristics**
+
+| Operation | Typical Latency | Notes |
+|-----------|----------------|-------|
+| Phenotype match (3 HPO terms) | 800-1,200 ms | Vector search across `rd_phenotypes` (top_k=50) |
+| Differential diagnosis (full) | 2,000-3,500 ms | Multi-collection search + LLM synthesis |
+| ACMG variant interpretation | 1,500-2,500 ms | ClinVar + gnomAD + AlphaMissense lookup + LLM classification |
+| Therapeutic search | 600-1,000 ms | `rd_therapies` search only |
+| Report generation (PDF) | 3,000-5,000 ms | LLM narrative + template rendering |
+
+**Common Pitfalls and Troubleshooting**
+
+- **HPO term formatting**: Terms must use the `HP:NNNNNNN` format (7 digits, zero-padded). Using free-text symptom descriptions instead of HPO codes bypasses the IC-weighted matching and falls back to text similarity, which is less precise.
+- **ACMG criteria incomplete**: The agent implements 23 of 28 ACMG criteria. Functional assay evidence (PS3) and segregation data (PP1 with quantitative scoring) require manual review.
+- **Low phenotype match scores**: If all differential diagnoses score below 0.5, consider whether the phenotype is incomplete. Adding more HPO terms (especially specific sub-terms rather than general parent terms) significantly improves matching.
+- **Gene therapy list currency**: The 25 gene therapies are current as of March 2026. New FDA/EMA approvals require a data refresh via `scripts/seed_knowledge.py`.
+- **Cross-agent timeout**: If the PGx or Trial agent is down, the integrated assessment degrades gracefully (returns partial results). Check `RD_CROSS_AGENT_TIMEOUT` if timeouts are frequent.
 
 ---
 
@@ -897,7 +1449,28 @@ curl -X POST http://localhost:8134/v1/diagnostic/trial/match \
 
 **Overview and Clinical Purpose**
 
-The Pharmacogenomics (PGx) Intelligence Agent translates patient genotype data into actionable prescribing guidance. It interprets star alleles for 14 pharmacogenes, applies CPIC and DPWG guidelines, screens for HLA-mediated adverse drug reactions, models phenoconversion from drug-drug interactions, and provides genotype-guided dosing algorithms.
+The Pharmacogenomics (PGx) Intelligence Agent translates patient genotype data into actionable prescribing guidance. It interprets star alleles for 14 pharmacogenes, applies 9 CPIC guideline algorithms, screens for 12 HLA-mediated adverse drug reaction associations, models phenoconversion from drug-drug interactions, and provides genotype-guided dosing algorithms including the IWPC warfarin dosing calculator.
+
+**Advanced Configuration Options**
+
+All environment variables use the `PGX_` prefix. Key settings:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `PGX_MILVUS_HOST` | `localhost` | Milvus vector database host |
+| `PGX_MILVUS_PORT` | `19530` | Milvus port |
+| `PGX_API_PORT` | `8107` | FastAPI REST server port |
+| `PGX_STREAMLIT_PORT` | `8507` | Streamlit UI port |
+| `PGX_LLM_MODEL` | `claude-sonnet-4-6` | Claude model for synthesis |
+| `PGX_ANTHROPIC_API_KEY` | (none) | Required for LLM features |
+| `PGX_SCORE_THRESHOLD` | `0.4` | Minimum cosine similarity for evidence retrieval |
+| `PGX_TOP_K_PER_COLLECTION` | `5` | Default results per collection |
+| `PGX_INGEST_SCHEDULE_HOURS` | `168` | Weekly auto-ingest cycle (7 days) |
+| `PGX_API_KEY` | (empty) | Set to require X-API-Key header |
+| `PGX_CROSS_AGENT_TIMEOUT` | `30` | Cross-agent HTTP timeout in seconds |
+| `PGX_RAG_PIPELINE_ROOT` | `/app/rag-chat-pipeline` | Path to shared RAG pipeline |
+
+Collection weight tuning: 15 `PGX_WEIGHT_*` variables control multi-collection fusion. `PGX_WEIGHT_DRUG_GUIDELINES` defaults to 0.14 (highest weight) because CPIC/DPWG guideline matching is the most clinically relevant signal.
 
 **Milvus Collections (15)**
 
@@ -919,48 +1492,105 @@ The Pharmacogenomics (PGx) Intelligence Agent translates patient genotype data i
 | `pgx_education` | PGx educational resources and guidelines |
 | `genomic_evidence` | Shared genomic evidence (read-only) |
 
-**Key API Endpoints**
+**Complete API Endpoint Table**
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/health` | Service health with Milvus and LLM status |
+| GET | `/collections` | Collection names and record counts |
+| GET | `/metrics` | Prometheus-compatible metrics |
+| POST | `/query` | RAG Q&A across all PGx collections |
+| POST | `/search` | Multi-collection evidence search (no LLM) |
+| POST | `/profile` | Full PGx profile from diplotype map |
+| POST | `/dosing` | Drug-specific dosing guidance |
+| POST | `/hla-screen` | HLA hypersensitivity screening |
+| POST | `/v1/pgx/drug-check` | Single-drug PGx check with CPIC alerts |
+| POST | `/v1/pgx/medication-review` | Polypharmacy review with DDI detection |
+| POST | `/v1/pgx/dosing/warfarin` | IWPC warfarin dosing algorithm |
+| POST | `/v1/pgx/hla-screen` | HLA adverse reaction screening |
+| POST | `/v1/pgx/phenoconversion` | Phenoconversion analysis from concomitant drugs |
+| POST | `/v1/pgx/integrated-assessment` | Cross-agent multi-agent assessment |
+| GET | `/v1/pgx/genes` | List all 14 pharmacogenes with metadata |
+| GET | `/v1/pgx/drugs` | List all tracked drugs by therapeutic category |
+| POST | `/v1/reports/generate` | Multi-format report generation |
+| GET | `/v1/reports/formats` | Supported export formats |
+| GET | `/v1/events/stream` | Server-sent event stream |
+
+**Detailed Clinical Workflow Walkthrough**
+
+1. **Diplotype submission** -- Clinician submits patient diplotypes (e.g., `CYP2D6: *1/*4`, `CYP2C19: *1/*2`) from VCF-based star allele calling (Stargazer, Cyrius) or laboratory report. The `/profile` or `/v1/pgx/drug-check` endpoint receives the data.
+
+2. **Metabolizer phenotype assignment** -- Each diplotype is mapped to an activity score and metabolizer phenotype: ultra-rapid metabolizer (UM), normal metabolizer (NM), intermediate metabolizer (IM), or poor metabolizer (PM). The mapping follows CPIC standardized terms.
+
+3. **CPIC/DPWG guideline matching** -- For each gene-drug pair in the patient's medication list, the agent queries `pgx_drug_guidelines` for applicable CPIC Level A/B recommendations. 9 CPIC algorithms are implemented covering CYP2D6, CYP2C19, CYP2C9, CYP3A5, DPYD, TPMT, NUDT15, SLCO1B1, and UGT1A1.
+
+4. **Phenoconversion check** -- Current medications are screened against CYP inhibitor/inducer databases. A strong CYP2D6 inhibitor (e.g., fluoxetine, paroxetine) in a genotypic NM converts the effective phenotype to PM. The `/v1/pgx/phenoconversion` endpoint returns the precipitant drug, inhibitor strength, converted phenotype, and affected substrate drugs.
+
+5. **HLA screening** -- 12 HLA-drug associations are checked. Key associations include HLA-B*57:01/abacavir (mandatory screening), HLA-B*58:01/allopurinol, HLA-B*15:02/carbamazepine, and HLA-A*31:01/carbamazepine. Population-specific prevalence data is returned.
+
+6. **Dosing algorithm** -- For warfarin, the IWPC algorithm (Klein et al., NEJM 2009) calculates predicted weekly dose incorporating VKORC1, CYP2C9, age, height, weight, race, amiodarone use, and enzyme inducer status. Safety bounds clamp output to 3-105 mg/week.
+
+7. **Alternative recommendations** -- For PM/UM patients, the agent retrieves genotype-appropriate alternative drugs from `pgx_drug_alternatives` and generates a structured report.
+
+**Example Query and Response**
 
 ```bash
-# Health check
-curl http://localhost:8107/health
-
-# Full PGx profile from diplotypes
-curl -X POST http://localhost:8107/profile \
+curl -X POST http://localhost:8107/v1/pgx/drug-check \
   -H "Content-Type: application/json" \
-  -d '{"diplotypes": {"CYP2D6": "*1/*4", "CYP2C19": "*1/*2", "CYP2C9": "*1/*3", "SLCO1B1": "*1a/*5"}}'
-
-# Drug-specific dosing guidance
-curl -X POST http://localhost:8107/dosing \
-  -H "Content-Type: application/json" \
-  -d '{"drug": "codeine", "diplotype": {"CYP2D6": "*4/*4"}, "indication": "pain"}'
-
-# HLA screening
-curl -X POST http://localhost:8107/hla-screen \
-  -H "Content-Type: application/json" \
-  -d '{"hla_alleles": ["B*57:01", "B*58:01"], "proposed_drugs": ["abacavir", "allopurinol"]}'
-
-# RAG query
-curl -X POST http://localhost:8107/query \
-  -H "Content-Type: application/json" \
-  -d '{"question": "CPIC guidelines for CYP2D6 poor metabolizers prescribed tramadol"}'
+  -d '{"drug": "codeine", "gene": "CYP2D6", "phenotype": "poor_metabolizer", "diplotype": "*4/*4"}'
 ```
 
-**Clinical Workflow**
-
-1. Patient diplotype data submitted (from VCF star allele calling or manual entry)
-2. Star alleles mapped to metabolizer phenotypes (ultra-rapid, normal, intermediate, poor)
-3. CPIC/DPWG guidelines matched for each gene-drug pair
-4. Phenoconversion check: current medications that may alter metabolizer status via enzyme inhibition/induction
-5. HLA screening for hypersensitivity risk (HLA-B*57:01 and abacavir, HLA-B*58:01 and allopurinol, etc.)
-6. Dosing algorithms applied (e.g., IWPC warfarin algorithm)
-7. Alternative drug recommendations for poor/ultra-rapid metabolizers
+```json
+{
+  "drug": "codeine",
+  "gene": "CYP2D6",
+  "phenotype": "poor_metabolizer",
+  "alerts": [
+    {
+      "alert_level": "critical",
+      "gene": "CYP2D6",
+      "drug": "codeine",
+      "phenotype": "poor_metabolizer",
+      "recommendation": "CPIC guideline exists for CYP2D6-codeine. Patient phenotype: poor_metabolizer. Consider alternative therapy or significant dose reduction.",
+      "guideline_body": "CPIC",
+      "cpic_level": "A",
+      "alternative_drugs": ["morphine", "non-opioid analgesics", "acetaminophen"]
+    }
+  ],
+  "knowledge_context": "CYP2D6 encodes cytochrome P450 2D6, which metabolizes codeine to morphine via O-demethylation. Poor metabolizers (*4/*4) produce insufficient morphine for analgesic effect.",
+  "processing_time_ms": 45.2
+}
+```
 
 **Cross-Agent Integration**
 
-- Provides PGx context to all agents that recommend drug therapies
-- Receives dosing queries from Oncology Agent for chemotherapy metabolism
-- Shares metabolizer status with Biomarker Agent for genotype-adjusted reference ranges
+| Direction | Partner Agent | Trigger/Scenario |
+|-----------|--------------|------------------|
+| Outbound | Oncology (:8527) | Queries planned chemotherapy context for metabolism assessment (e.g., tamoxifen and CYP2D6) |
+| Outbound | Cardiology (:8126) | Queries cardiac drug interaction context (e.g., clopidogrel and CYP2C19) |
+| Outbound | Neurology (:8528) | Queries neurotoxic drug interaction context (e.g., carbamazepine and HLA-B*15:02) |
+| Outbound | Clinical Trial (:8538) | Queries PGx-guided clinical trials |
+| Inbound | All prescribing agents | Any agent recommending drug therapy can query PGx for metabolism context |
+| Inbound | Biomarker (:8529) | Receives requests for genotype-adjusted biomarker reference ranges |
+
+**Performance Characteristics**
+
+| Operation | Typical Latency | Notes |
+|-----------|----------------|-------|
+| Single drug check | 30-80 ms | Knowledge graph lookup only, no vector search |
+| Polypharmacy review (5 drugs) | 100-250 ms | Iterates CYP inhibitor/inducer databases |
+| Warfarin IWPC dosing | 10-30 ms | Pure mathematical calculation |
+| HLA screening | 20-60 ms | Dictionary lookup against 12 associations |
+| Phenoconversion analysis | 40-120 ms | CYP inhibitor/inducer scan per drug |
+| Full RAG query | 1,500-3,000 ms | 15-collection vector search + LLM synthesis |
+
+**Common Pitfalls and Troubleshooting**
+
+- **Star allele formatting**: Diplotypes must use the `*N/*N` format (e.g., `*1/*4`). Suballeles like `*1a` and `*5` are supported for SLCO1B1. Submitting raw VCF positions instead of called star alleles will not produce useful results.
+- **Phenoconversion missed**: The phenoconversion engine only detects interactions from the concomitant drug list explicitly provided. It does not infer medications from other clinical data. Ensure the full medication list is submitted.
+- **Population-specific allele frequencies**: HLA prevalence data varies significantly by ancestry. The agent reports population-specific frequencies (e.g., HLA-B*57:01 prevalence: 6-8% European, <1% East Asian) but does not automatically select the relevant population.
+- **IWPC warfarin clamping**: Doses below 3 mg/week or above 105 mg/week are clamped to safety bounds. If the algorithm produces extreme values, verify input genotypes and clinical parameters.
+- **Missing CPIC guideline**: Not all gene-drug pairs have CPIC Level A guidelines. The agent returns an `info` alert listing which drugs do have guidelines for the queried gene.
 
 ---
 
@@ -968,13 +1598,37 @@ curl -X POST http://localhost:8107/query \
 
 **Overview and Clinical Purpose**
 
-The Imaging Intelligence Agent provides clinical decision support for radiology through a RAG knowledge system, 4 NVIDIA NIM microservices (VISTA-3D, MAISI, VILA-M3, Llama-3), and 4 reference clinical workflows. It supports Orthanc DICOM auto-ingestion, cross-modal genomics enrichment, NVIDIA FLARE federated learning, and FHIR R4 interoperability.
+The Imaging Intelligence Agent provides clinical decision support for radiology through a RAG knowledge system, 4 NVIDIA NIM microservices (VISTA-3D with 127 anatomical structures, MAISI, VILA-M3, Llama-3), and 4 reference clinical workflows. It supports Orthanc DICOM auto-ingestion, cross-modal genomics enrichment, NVIDIA FLARE federated learning, and FHIR R4 interoperability.
+
+**Advanced Configuration Options**
+
+All environment variables use the `IMAGING_` prefix. Key settings:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `IMAGING_MILVUS_HOST` | `localhost` | Milvus vector database host |
+| `IMAGING_MILVUS_PORT` | `19530` | Milvus port |
+| `IMAGING_API_PORT` | `8524` | FastAPI REST server port |
+| `IMAGING_STREAMLIT_PORT` | `8525` | 9-tab Streamlit UI port |
+| `IMAGING_LLM_MODEL` | `claude-sonnet-4-20250514` | Claude model for synthesis |
+| `IMAGING_NIM_MODE` | `local` | NIM mode: `local`, `cloud`, or `mock` |
+| `IMAGING_NIM_LLM_URL` | `http://localhost:8520/v1` | Local Llama-3 NIM endpoint |
+| `IMAGING_NIM_VISTA3D_URL` | `http://localhost:8530` | VISTA-3D segmentation endpoint |
+| `IMAGING_NIM_MAISI_URL` | `http://localhost:8531` | MAISI synthetic CT endpoint |
+| `IMAGING_NIM_VILAM3_URL` | `http://localhost:8532` | VILA-M3 vision-language endpoint |
+| `IMAGING_NIM_ALLOW_MOCK_FALLBACK` | `true` | Fall back to mock responses if NIM unavailable |
+| `IMAGING_NVIDIA_API_KEY` | (none) | Required for cloud NIM mode |
+| `IMAGING_ORTHANC_URL` | `http://localhost:8042` | Orthanc DICOM server |
+| `IMAGING_DICOM_AUTO_INGEST` | `false` | Enable automatic DICOM webhook processing |
+| `IMAGING_DICOM_WATCH_INTERVAL` | `5` | Seconds between Orthanc `/changes` polls |
+| `IMAGING_CROSS_MODAL_ENABLED` | `false` | Enable imaging-to-genomics cross-modal triggers |
+| `IMAGING_PREVIEW_DEFAULT_FPS` | `8` | Frames per second for NIfTI preview videos |
 
 **NVIDIA NIM Integration**
 
 | NIM Service | Port | Capability |
 |------------|------|------------|
-| VISTA-3D | 8530 | 3D medical image segmentation (132 anatomical classes) |
+| VISTA-3D | 8530 | 3D medical image segmentation (127 anatomical structures) |
 | MAISI | 8531 | Synthetic CT volume generation with paired segmentation masks |
 | VILA-M3 | 8532 | Vision-language model for radiology image understanding |
 | Llama-3 8B | 8520 | Clinical reasoning and report generation |
@@ -1004,35 +1658,99 @@ The Imaging Intelligence Agent provides clinical decision support for radiology 
 | CXR Rapid Findings | X-ray | < 30 sec |
 | MRI Brain MS Lesion Tracking | MRI | < 5 min |
 
-**Key API Endpoints**
+**Complete API Endpoint Table**
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/health` | Service health with collection stats and NIM status |
+| GET | `/` | Service info with links to docs and health |
+| GET | `/collections` | Collection names, counts, and labels |
+| GET | `/metrics` | Prometheus metrics (Counter, Histogram) |
+| GET | `/knowledge/stats` | Imaging domain knowledge graph statistics |
+| POST | `/query` | Full RAG query: multi-collection retrieval + LLM synthesis |
+| POST | `/search` | Evidence-only search (no LLM synthesis) |
+| POST | `/find-related` | Cross-collection entity linking |
+| POST | `/api/ask` | Meta-agent question answering |
+| POST | `/nim/vista3d/segment` | VISTA-3D 3D segmentation (127 structures) |
+| POST | `/nim/maisi/generate` | MAISI synthetic CT generation |
+| POST | `/nim/vilam3/analyze` | VILA-M3 image understanding |
+| POST | `/nim/llm/generate` | Llama-3 text generation |
+| GET | `/nim/status` | NIM service availability check |
+| POST | `/workflow/{name}/run` | Execute a clinical workflow |
+| GET | `/workflows` | List available workflows |
+| POST | `/events/dicom-webhook` | DICOM auto-ingest webhook (Orthanc) |
+| GET | `/events/stream` | SSE event stream |
+| POST | `/reports/generate` | Multi-format report generation |
+| GET | `/reports/formats` | Supported export formats |
+| GET | `/preview/{study_id}` | NIfTI slice preview (MP4/GIF) |
+| GET | `/demo-cases` | Pre-loaded demo imaging cases |
+| POST | `/protocol/optimize` | Protocol optimization advisor |
+| POST | `/dose/estimate` | Radiation dose intelligence |
+
+**Detailed Clinical Workflow Walkthrough (CT Head Hemorrhage Triage)**
+
+1. **DICOM arrival** -- A CT head study arrives at Orthanc. If `DICOM_AUTO_INGEST` is enabled, the `/events/dicom-webhook` endpoint is triggered with the study UID, modality, and body part.
+
+2. **Study retrieval** -- The agent fetches the DICOM series from Orthanc, converts to NIfTI format, and generates a slice preview video (8 FPS MP4).
+
+3. **VISTA-3D segmentation** -- The NIfTI volume is sent to the VISTA-3D NIM at port 8530. The model segments 127 anatomical structures, identifying brain parenchyma, ventricles, midline structures, and extra-axial spaces.
+
+4. **Hemorrhage detection** -- The workflow applies density thresholds and morphological analysis on the segmented volume to detect hyperdense regions consistent with acute hemorrhage. Classification includes epidural, subdural, subarachnoid, intraparenchymal, and intraventricular subtypes.
+
+5. **RAG evidence enrichment** -- The agent searches `imaging_literature`, `imaging_guidelines`, and `imaging_findings` for evidence relevant to the detected pattern. Genomic evidence from `genomic_evidence` is queried if cross-modal is enabled (e.g., coagulation factor variants).
+
+6. **Report generation** -- A structured radiology report is generated using the Llama-3 NIM or Claude, populated with findings, measurements, classification, and relevant literature citations. FHIR R4 DiagnosticReport format is available.
+
+7. **Triage alert** -- If hemorrhage is detected, a high-priority SSE event is published to the event stream for downstream consumers.
+
+**Example Query and Response**
 
 ```bash
-# Meta-agent question answering
-curl -X POST http://localhost:8524/api/ask \
+curl -X POST http://localhost:8524/query \
   -H "Content-Type: application/json" \
-  -d '{"question": "What is the sensitivity of AI-assisted CXR for pneumothorax detection?"}'
+  -d '{"question": "What is the sensitivity of AI-assisted CXR for pneumothorax detection?", "top_k": 5}'
+```
 
-# Run VISTA-3D segmentation
-curl -X POST http://localhost:8524/nim/vista3d/segment \
-  -H "Content-Type: application/json" \
-  -d '{"image_path": "/data/ct_scan.nii.gz", "target_classes": ["liver", "spleen", "kidney"]}'
-
-# Execute a workflow
-curl -X POST http://localhost:8524/workflow/ct_head_hemorrhage/run \
-  -H "Content-Type: application/json" \
-  -d '{"study_path": "/data/ct_head/", "patient_id": "P001"}'
-
-# DICOM webhook (auto-triggered by Orthanc)
-curl -X POST http://localhost:8524/events/dicom-webhook \
-  -H "Content-Type: application/json" \
-  -d '{"study_uid": "1.2.3.4.5", "modality": "CT", "body_part": "HEAD"}'
+```json
+{
+  "question": "What is the sensitivity of AI-assisted CXR for pneumothorax detection?",
+  "answer": "AI-assisted chest X-ray systems demonstrate sensitivity of 85-95% for pneumothorax detection, with specificity of 90-98%. FDA-cleared devices include Annalise.ai CXR (sensitivity 94.2%), Qure.ai qXR (sensitivity 91.8%), and Zebra Medical Vision (sensitivity 89.5%). Performance is highest for moderate-to-large pneumothoraces (>2 cm) and decreases for small or loculated collections. Current ACR guidelines recommend AI as a triage aid rather than a standalone diagnostic tool.",
+  "evidence_count": 18,
+  "collections_searched": 8,
+  "search_time_ms": 1245.3,
+  "nim_services_used": ["llm"]
+}
 ```
 
 **Cross-Agent Integration**
 
-- When Lung-RADS 4A+ nodules are detected, automatically queries `genomic_evidence` for EGFR/ALK/ROS1/KRAS variants
-- Receives MRI requests from Neurology Agent for MS lesion tracking
-- Provides cardiac imaging context to Cardiology Agent
+| Direction | Partner Agent | Trigger/Scenario |
+|-----------|--------------|------------------|
+| Outbound | Oncology (:8527) | Lung-RADS 4A+ nodules trigger genomic_evidence query for EGFR/ALK/ROS1/KRAS variants |
+| Outbound | Cardiology (:8126) | Cardiac CT findings shared for integrated cardiovascular assessment |
+| Inbound | Neurology (:8528) | Receives MRI brain requests for MS lesion tracking workflow |
+| Inbound | Rare Disease (:8134) | Receives imaging assessment requests for organ-involved rare diseases |
+| Bidirectional | All agents | Publishes imaging events via SSE; reads `genomic_evidence` (shared) |
+
+**Performance Characteristics**
+
+| Operation | Typical Latency | Notes |
+|-----------|----------------|-------|
+| RAG query (full) | 1,500-3,000 ms | 11-collection search + LLM synthesis |
+| Evidence search (no LLM) | 400-800 ms | Vector search only |
+| VISTA-3D segmentation | 30-90 sec | GPU-dependent; 127-class volumetric segmentation |
+| MAISI synthetic generation | 60-180 sec | Full CT volume synthesis |
+| VILA-M3 image analysis | 5-15 sec | Single image understanding |
+| CXR Rapid Findings workflow | < 30 sec | End-to-end triage pipeline |
+| NIfTI preview generation | 2-5 sec | MP4/GIF slice animation |
+
+**Common Pitfalls and Troubleshooting**
+
+- **NIM service unavailable**: If NIM containers are not running, set `IMAGING_NIM_ALLOW_MOCK_FALLBACK=true` to get structured mock responses for development. Check `GET /nim/status` for per-service availability.
+- **DICOM webhook not triggering**: Verify `IMAGING_DICOM_AUTO_INGEST=true` and that Orthanc is configured with a Lua script pointing its `OnStableStudy` callback to `http://imaging-agent:8524/events/dicom-webhook`.
+- **Cross-modal disabled by default**: The `IMAGING_CROSS_MODAL_ENABLED` flag defaults to `false`. Enable it to allow imaging findings to automatically query genomic evidence.
+- **Large DICOM series**: Series with >500 slices may exceed the 10MB request size limit. Increase `IMAGING_MAX_REQUEST_SIZE_MB` or process via the Orthanc webhook path (which streams data).
+- **Cloud vs local NIM**: When `IMAGING_NIM_MODE=cloud`, requests go to `integrate.api.nvidia.com` and require a valid `IMAGING_NVIDIA_API_KEY`. Cloud mode uses different model identifiers (e.g., `meta/llama-3.1-8b-instruct`).
 
 ---
 
@@ -1040,70 +1758,162 @@ curl -X POST http://localhost:8524/events/dicom-webhook \
 
 **Overview and Clinical Purpose**
 
-The Single-Cell Intelligence Agent provides cell-type annotation, tumor microenvironment (TME) profiling, drug response prediction, subclonal architecture analysis, spatial transcriptomics niche mapping, trajectory inference, ligand-receptor interaction analysis, biomarker discovery, CAR-T target validation, and treatment monitoring. Its knowledge base covers 57 cell types, 30 drugs, 75 markers, and 4 spatial platforms (Visium, MERFISH, Xenium, CosMx).
+The Single-Cell Intelligence Agent provides cell-type annotation, tumor microenvironment (TME) profiling, drug response prediction, subclonal architecture analysis, spatial transcriptomics niche mapping, trajectory inference, ligand-receptor interaction analysis, biomarker discovery, CAR-T target validation, and treatment monitoring. Its knowledge base covers 57 cell types, 30 drugs, 75 markers, 4 TME phenotypes (hot, cold, excluded, immunosuppressive), and 4 spatial platforms (Visium, MERFISH, Xenium, CosMx). It supports 10 specialized workflows plus general RAG query.
+
+**Advanced Configuration Options**
+
+All environment variables use the `SC_` prefix. Key settings:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SC_MILVUS_HOST` | `localhost` | Milvus vector database host |
+| `SC_MILVUS_PORT` | `19530` | Milvus port |
+| `SC_API_PORT` | `8540` | FastAPI REST server port |
+| `SC_STREAMLIT_PORT` | `8130` | Streamlit UI port |
+| `SC_LLM_MODEL` | `claude-sonnet-4-6` | Claude model for synthesis |
+| `SC_ANTHROPIC_API_KEY` | (none) | Required for LLM features |
+| `SC_SCORE_THRESHOLD` | `0.4` | Minimum cosine similarity |
+| `SC_TOP_K_CELL_TYPES` | `50` | Max results from `sc_cell_types` per query |
+| `SC_TOP_K_MARKERS` | `40` | Max results from `sc_markers` per query |
+| `SC_TOP_K_SPATIAL` | `30` | Max results from `sc_spatial` per query |
+| `SC_INGEST_SCHEDULE_HOURS` | `24` | Auto-ingest cycle |
+| `SC_GPU_MEMORY_LIMIT_GB` | `120` | GPU memory limit for RAPIDS-based analysis |
+| `SC_CELLXGENE_API_URL` | (none) | Optional CellxGene Census API endpoint |
+| `SC_CROSS_AGENT_TIMEOUT` | `30` | Cross-agent HTTP timeout in seconds |
+
+Collection weight tuning: 12 `SC_WEIGHT_*` variables control multi-collection fusion. `SC_WEIGHT_CELL_TYPES` defaults to 0.14 (highest) followed by `SC_WEIGHT_MARKERS` at 0.12, reflecting the primacy of cell identity in single-cell analysis.
 
 **Milvus Collections (13)**
 
 | Collection | Description |
 |-----------|-------------|
-| `sc_cell_types` | Cell type reference profiles and markers |
-| `sc_markers` | Marker gene signatures per cell type |
+| `sc_cell_types` | Cell type reference profiles and markers (57 types) |
+| `sc_markers` | Marker gene signatures per cell type (75 markers) |
 | `sc_literature` | Single-cell genomics literature |
 | `sc_trials` | Clinical trials involving single-cell analysis |
-| `sc_drugs` | Drug response signatures (GDSC/DepMap) |
+| `sc_drugs` | Drug response signatures (GDSC/DepMap, 30 drugs) |
 | `sc_pathways` | Pathway activity signatures |
-| `sc_spatial` | Spatial transcriptomics references |
+| `sc_spatial` | Spatial transcriptomics references (4 platforms) |
 | `sc_trajectories` | Differentiation trajectory templates |
 | `sc_interactions` | Ligand-receptor pair databases (CellPhoneDB/NicheNet) |
-| `sc_tme` | TME classification profiles |
+| `sc_tme` | TME classification profiles (4 phenotypes) |
 | `sc_clinical` | Clinical correlation data |
 | `sc_methods` | Computational method references |
 | `genomic_evidence` | Shared genomic evidence (read-only) |
 
-**Key API Endpoints**
+**Complete API Endpoint Table**
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/health` | Service health with component readiness |
+| GET | `/collections` | Collection names and record counts |
+| GET | `/workflows` | 10 available workflow definitions |
+| GET | `/metrics` | Prometheus-compatible metrics |
+| POST | `/v1/sc/query` | RAG Q&A across all single-cell collections |
+| POST | `/v1/sc/search` | Multi-collection evidence search (no LLM) |
+| POST | `/v1/sc/annotate` | Cell type annotation from marker expression |
+| POST | `/v1/sc/tme-profile` | TME classification from cell proportions |
+| POST | `/v1/sc/drug-response` | Drug response prediction per cell type |
+| POST | `/v1/sc/cart-validate` | CAR-T target validation (on/off-tumor expression) |
+| POST | `/v1/sc/spatial-niche` | Spatial niche mapping (Visium/MERFISH/Xenium/CosMx) |
+| POST | `/v1/sc/trajectory` | Trajectory inference from pseudotime data |
+| POST | `/v1/sc/interactions` | Ligand-receptor interaction analysis |
+| POST | `/v1/sc/biomarker-discovery` | Biomarker discovery from differential expression |
+| POST | `/v1/sc/subclonal` | Subclonal architecture and CNV analysis |
+| POST | `/v1/sc/treatment-monitor` | Treatment response monitoring over time |
+| POST | `/v1/sc/workflow/{type}` | Generic workflow dispatch (10 types) |
+| POST | `/v1/sc/integrated-assessment` | Cross-agent multi-agent assessment |
+| GET | `/v1/sc/cell-types` | Reference catalog of 57 cell types |
+| GET | `/v1/sc/markers` | Reference catalog of 75 markers |
+| GET | `/v1/sc/tme-classes` | TME classification definitions (4 phenotypes) |
+| GET | `/v1/sc/spatial-platforms` | Supported spatial platforms |
+| POST | `/v1/reports/generate` | Multi-format report generation |
+| GET | `/v1/reports/formats` | Supported export formats |
+| GET | `/v1/events/stream` | Server-sent event stream |
+
+**Detailed Clinical Workflow Walkthrough (TME-Guided Immunotherapy Selection)**
+
+1. **Expression data submission** -- Clinician submits a gene expression marker panel or cell type proportions from a tumor biopsy via the `/v1/sc/tme-profile` endpoint. Input can be raw marker values (e.g., `CD3D: 5.2, CD8A: 4.1, GZMB: 3.8`) or pre-computed cell type proportions.
+
+2. **Cell type annotation** -- If raw markers are provided, the agent performs multi-strategy annotation: reference-based matching against the 57-cell-type atlas, marker-based scoring using the 75-marker database, and LLM-augmented classification for ambiguous profiles. Confidence levels (high/medium/low) are assigned.
+
+3. **TME classification** -- Cell type proportions are analyzed against the 4 TME phenotype profiles:
+   - **Hot** (immune-inflamed): high CD8+ T cells (>15%), high PD-L1 expression, active IFN-gamma signaling
+   - **Cold** (immune-desert): low immune infiltrate (<5%), absent T cell signatures
+   - **Excluded** (immune-excluded): immune cells at tumor periphery, high stromal content
+   - **Immunosuppressive**: high Treg (>8%), high M2 macrophage, elevated TGF-beta/IL-10
+
+4. **Drug response prediction** -- Based on the TME phenotype and cell-type-resolved expression, the agent queries `sc_drugs` for GDSC/DepMap sensitivity signatures across 30 drugs. Checkpoint inhibitors (pembrolizumab, nivolumab, atezolizumab) are ranked for hot TMEs; combination strategies are suggested for cold/excluded TMEs.
+
+5. **Subclonal architecture** -- If CNV data is available, the agent performs subclonal detection to identify resistant subpopulations and assess antigen escape risk. Clones with loss of heterozygosity at HLA loci are flagged.
+
+6. **Spatial context** -- For spatial transcriptomics data (Visium, MERFISH, Xenium, CosMx), the agent maps immune cell niches relative to tumor boundaries, quantifying immune exclusion zones and tertiary lymphoid structures.
+
+7. **Report generation** -- Results exported as Markdown, JSON, PDF, or FHIR R4.
+
+**Example Query and Response**
 
 ```bash
-# Cell type annotation
-curl -X POST http://localhost:8540/v1/sc/annotate \
-  -H "Content-Type: application/json" \
-  -d '{"markers": {"CD3D": 5.2, "CD8A": 4.1, "GZMB": 3.8}, "tissue": "tumor"}'
-
-# TME profiling
 curl -X POST http://localhost:8540/v1/sc/tme-profile \
   -H "Content-Type: application/json" \
-  -d '{"cell_type_proportions": {"CD8_T_cell": 0.15, "Macrophage": 0.25, "Treg": 0.08, "Fibroblast": 0.30}}'
-
-# Drug response prediction
-curl -X POST http://localhost:8540/v1/sc/drug-response \
-  -H "Content-Type: application/json" \
-  -d '{"cell_type": "CD8_T_cell", "drug": "pembrolizumab", "expression_profile": {"PD1": 4.2, "PDL1": 3.1}}'
-
-# CAR-T target validation
-curl -X POST http://localhost:8540/v1/sc/cart-validate \
-  -H "Content-Type: application/json" \
-  -d '{"target": "CD19", "tumor_type": "B-ALL", "expression_data": {"tumor": 0.95, "normal_b_cells": 0.88, "other_tissues": 0.02}}'
-
-# Spatial niche mapping
-curl -X POST http://localhost:8540/v1/sc/spatial-niche \
-  -H "Content-Type: application/json" \
-  -d '{"platform": "Visium", "cell_types": {"spot_1": "T_cell", "spot_2": "Macrophage", "spot_3": "Tumor"}}'
+  -d '{"cell_type_proportions": {"CD8_T_cell": 0.15, "Macrophage": 0.25, "Treg": 0.08, "Fibroblast": 0.30, "Tumor": 0.18, "NK_cell": 0.04}}'
 ```
 
-**Clinical Workflow**
-
-1. Single-cell expression data submitted (gene expression matrix or marker panel)
-2. Multi-strategy cell type annotation: reference-based, marker-based, and LLM-augmented
-3. TME classification: hot, cold, excluded, or immunosuppressive microenvironment
-4. Drug response prediction using GDSC/DepMap cell-type-resolved signatures
-5. Subclonal architecture analysis with CNV-based detection and antigen escape risk
-6. Spatial niche identification for spatial transcriptomics data
-7. Reports exported in Markdown, JSON, PDF, or FHIR R4
+```json
+{
+  "status": "completed",
+  "tme_classification": "immunosuppressive",
+  "confidence": "high",
+  "rationale": "Elevated Treg proportion (8%) combined with high macrophage content (25%) suggests immunosuppressive microenvironment. CD8+ T cell infiltration (15%) is present but likely functionally exhausted based on the Treg:CD8 ratio.",
+  "immunotherapy_recommendations": [
+    {
+      "drug": "ipilimumab + nivolumab",
+      "rationale": "Combination anti-CTLA-4/PD-1 to overcome Treg-mediated suppression",
+      "evidence_level": "Level 1A (CheckMate 067)"
+    },
+    {
+      "drug": "anti-CCR4 (mogamulizumab)",
+      "rationale": "Treg depletion strategy for immunosuppressive TME",
+      "evidence_level": "Level 2B (Phase II data)"
+    }
+  ],
+  "escape_risk": "moderate",
+  "collections_searched": 8,
+  "processing_time_ms": 1850.3
+}
+```
 
 **Cross-Agent Integration**
 
-- Sends antigen escape alerts to CAR-T Agent when off-tumor expression detected
-- Provides TME context to Oncology Agent for immunotherapy selection
-- Shares cell-type-resolved drug sensitivity data with Pharmacogenomics Agent
+| Direction | Partner Agent | Trigger/Scenario |
+|-----------|--------------|------------------|
+| Outbound | CAR-T (:8522) | Sends antigen escape alerts when off-tumor expression detected in CAR-T target validation |
+| Outbound | Oncology (:8527) | Provides TME context for immunotherapy selection and combination strategy |
+| Outbound | Biomarker (:8529) | Shares cell-type-resolved biomarker panels for panel enrichment |
+| Outbound | Drug Discovery | Queries compound integration for cell-type-selective drug candidates |
+| Inbound | Imaging (:8524) | Receives spatial-imaging correlation requests |
+| Inbound | Pharmacogenomics (:8107) | Receives requests for cell-type-resolved drug sensitivity data |
+| Bidirectional | All agents | Reads `genomic_evidence` (shared); publishes events via SSE |
+
+**Performance Characteristics**
+
+| Operation | Typical Latency | Notes |
+|-----------|----------------|-------|
+| Cell type annotation (marker panel) | 500-1,200 ms | Multi-strategy: reference + marker + LLM |
+| TME profiling | 800-1,500 ms | Proportion analysis + evidence retrieval |
+| Drug response prediction | 600-1,200 ms | GDSC/DepMap signature matching |
+| CAR-T target validation | 400-800 ms | Expression ratio analysis |
+| Spatial niche mapping | 1,000-2,500 ms | Platform-specific spatial analysis |
+| Full RAG query | 1,500-3,500 ms | 13-collection search + LLM synthesis |
+| Subclonal architecture | 2,000-4,000 ms | CNV detection + clone assignment |
+
+**Common Pitfalls and Troubleshooting**
+
+- **Cell type proportion normalization**: Proportions submitted to `/v1/sc/tme-profile` should sum to approximately 1.0. The agent normalizes internally, but significantly unbalanced inputs (e.g., sum > 2.0) may indicate double-counting.
+- **Marker gene naming**: Gene symbols must follow HGNC nomenclature (e.g., `CD3D` not `CD3`). The agent attempts alias resolution via `ENTITY_ALIASES` but non-standard names may fail silently.
+- **TME classification edge cases**: Tumors with mixed hot/cold regions (spatially heterogeneous) may be classified inconsistently depending on the biopsy site. Spatial transcriptomics data is recommended for heterogeneous tumors.
+- **GDSC/DepMap coverage**: Drug response predictions are limited to the 30 drugs in the sensitivity database. Novel agents or combination regimens fall back to LLM-based inference from literature.
+- **GPU memory for RAPIDS**: If `SC_GPU_MEMORY_LIMIT_GB` is set too low for large expression matrices, RAPIDS operations will fall back to CPU, significantly increasing latency.
 
 ---
 
@@ -1111,7 +1921,28 @@ curl -X POST http://localhost:8540/v1/sc/spatial-niche \
 
 **Overview and Clinical Purpose**
 
-The Clinical Trial Intelligence Agent provides AI-driven support across the full clinical trial lifecycle: protocol optimization, patient-trial matching, site selection, eligibility optimization, adaptive design evaluation, safety signal detection, regulatory document generation, competitive intelligence, diversity assessment, and decentralized trial planning. It supports 10 specialized workflows plus general RAG query capability.
+The Clinical Trial Intelligence Agent provides AI-driven support across the full clinical trial lifecycle: protocol optimization, patient-trial matching, site selection with 7-factor scoring, eligibility optimization, adaptive design evaluation, safety signal detection using PRR/ROR disproportionality analysis, regulatory document generation, competitive intelligence, diversity assessment, and decentralized trial planning. It supports 10 specialized workflows plus general RAG query capability, and its knowledge base includes 40 landmark trial references.
+
+**Advanced Configuration Options**
+
+All environment variables use the `TRIAL_` prefix. Key settings:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `TRIAL_MILVUS_HOST` | `localhost` | Milvus vector database host |
+| `TRIAL_MILVUS_PORT` | `19530` | Milvus port |
+| `TRIAL_API_PORT` | `8538` | FastAPI REST server port |
+| `TRIAL_STREAMLIT_PORT` | `8128` | Streamlit UI port |
+| `TRIAL_LLM_MODEL` | `claude-sonnet-4-6` | Claude model for synthesis |
+| `TRIAL_ANTHROPIC_API_KEY` | (none) | Required for LLM features |
+| `TRIAL_SCORE_THRESHOLD` | `0.4` | Minimum cosine similarity |
+| `TRIAL_TOP_K_PER_COLLECTION` | `5` | Default results per collection |
+| `TRIAL_INGEST_SCHEDULE_HOURS` | `24` | Auto-ingest cycle |
+| `TRIAL_API_KEY` | (empty) | Set to require X-API-Key header |
+| `TRIAL_CROSS_AGENT_TIMEOUT` | `30` | Cross-agent HTTP timeout in seconds |
+| `TRIAL_CLINICALTRIALS_API_KEY` | (none) | Optional ClinicalTrials.gov API key |
+
+The agent connects to 8 partner agents for cross-agent integration, with dedicated URL variables: `TRIAL_ONCOLOGY_AGENT_URL`, `TRIAL_PGX_AGENT_URL`, `TRIAL_CARDIOLOGY_AGENT_URL`, `TRIAL_BIOMARKER_AGENT_URL`, `TRIAL_RARE_DISEASE_AGENT_URL`, `TRIAL_NEUROLOGY_AGENT_URL`, `TRIAL_SINGLE_CELL_AGENT_URL`, `TRIAL_IMAGING_AGENT_URL`.
 
 **Milvus Collections (14)**
 
@@ -1122,7 +1953,7 @@ The Clinical Trial Intelligence Agent provides AI-driven support across the full
 | `trial_endpoints` | Primary, secondary, exploratory endpoints |
 | `trial_sites` | Site feasibility, enrollment history |
 | `trial_investigators` | Investigator profiles, experience |
-| `trial_results` | Published trial results, CSRs |
+| `trial_results` | Published trial results, CSRs (40 landmark trials) |
 | `trial_regulatory` | FDA/EMA guidance, IND/NDA data |
 | `trial_literature` | PubMed clinical trial publications |
 | `trial_biomarkers` | Biomarker-driven trial designs |
@@ -1138,7 +1969,7 @@ The Clinical Trial Intelligence Agent provides AI-driven support across the full
 |---------|-------------|
 | Protocol Design | Complexity scoring, SOA review, endpoint optimization |
 | Patient Matching | AI eligibility screening with genomic/biomarker integration |
-| Site Selection | Feasibility scoring, enrollment forecasting, diversity metrics |
+| Site Selection | 7-factor feasibility scoring, enrollment forecasting, diversity metrics |
 | Eligibility Optimization | Population impact modeling, competitor benchmarking |
 | Adaptive Design | Bayesian interim analysis, dose-response, futility assessment |
 | Safety Signal | Disproportionality analysis (PRR/ROR), causality assessment |
@@ -1147,52 +1978,145 @@ The Clinical Trial Intelligence Agent provides AI-driven support across the full
 | Diversity Assessment | FDA diversity guidance compliance, gap analysis |
 | Decentralized Planning | DCT component feasibility, hybrid model design |
 
-**Key API Endpoints**
+**Complete API Endpoint Table**
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/health` | Service health with component readiness |
+| GET | `/collections` | Collection names and record counts |
+| GET | `/workflows` | 10 workflow definitions + general query |
+| GET | `/metrics` | Prometheus-compatible metrics |
+| POST | `/v1/trial/query` | RAG Q&A across all trial collections |
+| POST | `/v1/trial/search` | Multi-collection evidence search (no LLM) |
+| POST | `/v1/trial/workflow/protocol_design/run` | Protocol design complexity scoring |
+| POST | `/v1/trial/workflow/patient_matching/run` | Patient-trial matching with genomics |
+| POST | `/v1/trial/workflow/site_selection/run` | 7-factor site feasibility scoring |
+| POST | `/v1/trial/workflow/eligibility_optimization/run` | Population impact modeling |
+| POST | `/v1/trial/workflow/adaptive_design/run` | Bayesian adaptive design evaluation |
+| POST | `/v1/trial/workflow/safety_signal/run` | PRR/ROR disproportionality analysis |
+| POST | `/v1/trial/workflow/regulatory_docs/run` | Regulatory document generation |
+| POST | `/v1/trial/workflow/competitive_intel/run` | Competitive landscape analysis |
+| POST | `/v1/trial/workflow/diversity_assessment/run` | FDA diversity guidance compliance |
+| POST | `/v1/trial/workflow/decentralized_planning/run` | DCT feasibility assessment |
+| POST | `/v1/trial/integrated-assessment` | Cross-agent multi-agent assessment |
+| GET | `/v1/trial/therapeutic-areas` | Reference catalog of therapeutic areas |
+| GET | `/v1/trial/phases` | Trial phase definitions |
+| GET | `/v1/trial/landmark-trials` | 40 landmark trial references |
+| GET | `/v1/trial/regulatory-agencies` | Supported regulatory agencies (FDA/EMA/PMDA) |
+| POST | `/v1/reports/generate` | Multi-format report generation |
+| GET | `/v1/reports/formats` | Supported export formats |
+| GET | `/v1/events/stream` | Server-sent event stream |
+
+**Detailed Clinical Workflow Walkthrough (Safety Signal Detection)**
+
+1. **Adverse event submission** -- Safety team submits adverse event data via `/v1/trial/workflow/safety_signal/run`. Input includes the drug name, a list of adverse events with counts (exposed and unexposed), and optional background rate data.
+
+2. **Disproportionality analysis** -- The agent computes two standard pharmacovigilance metrics:
+   - **PRR (Proportional Reporting Ratio)**: ratio of the proportion of a specific AE for the drug vs. all other drugs in the database. PRR > 2 with chi-squared > 4 and N >= 3 triggers a signal.
+   - **ROR (Reporting Odds Ratio)**: odds ratio of the AE in exposed vs. unexposed populations. The 95% confidence interval lower bound > 1 indicates a statistically significant signal.
+
+3. **Historical comparator retrieval** -- The agent searches `trial_safety` for historical AE rates from similar drug classes and indications. Published DSMB reports and FDA safety communications are retrieved from `trial_regulatory`.
+
+4. **Causality assessment** -- Evidence from `trial_literature` and `trial_results` is used to assess temporal relationship, dose-response, biological plausibility, and consistency across studies. The LLM synthesizes a causality narrative referencing the WHO-UMC and Naranjo scales.
+
+5. **Benchmark against landmark trials** -- The detected signal is compared against AE profiles from relevant landmark trials in `trial_results` (40 stored). For example, hepatotoxicity in a checkpoint inhibitor trial would be benchmarked against CheckMate 067 and KEYNOTE 024 safety data.
+
+6. **Report generation** -- A structured safety signal report is generated with PRR/ROR calculations, confidence intervals, historical comparator data, causality assessment, and recommended actions (continue monitoring, dose modification, or study hold).
+
+**Example Query and Response**
 
 ```bash
-# Health check
-curl http://localhost:8538/health
-
-# RAG query
-curl -X POST http://localhost:8538/v1/trial/query \
-  -H "Content-Type: application/json" \
-  -d '{"question": "What adaptive designs are used in Phase II oncology trials?"}'
-
-# Patient-trial matching
-curl -X POST http://localhost:8538/v1/trial/workflow/patient_matching/run \
-  -H "Content-Type: application/json" \
-  -d '{"patient_profile": {"age": 55, "diagnosis": "NSCLC", "biomarkers": ["EGFR L858R"], "prior_therapies": ["carboplatin"]}}'
-
-# Protocol design review
-curl -X POST http://localhost:8538/v1/trial/workflow/protocol_design/run \
-  -H "Content-Type: application/json" \
-  -d '{"protocol": {"phase": "II", "indication": "NSCLC", "primary_endpoint": "ORR", "sample_size": 120}}'
-
-# Safety signal detection
 curl -X POST http://localhost:8538/v1/trial/workflow/safety_signal/run \
   -H "Content-Type: application/json" \
-  -d '{"drug": "experimental_agent_X", "adverse_events": [{"event": "hepatotoxicity", "count": 8, "total_exposed": 200}]}'
-
-# List available workflows
-curl http://localhost:8538/workflows
+  -d '{
+    "drug": "experimental_agent_X",
+    "adverse_events": [
+      {"event": "hepatotoxicity", "count": 8, "total_exposed": 200},
+      {"event": "rash", "count": 15, "total_exposed": 200},
+      {"event": "fatigue", "count": 45, "total_exposed": 200}
+    ],
+    "comparator_class": "checkpoint_inhibitor"
+  }'
 ```
 
-**Clinical Workflow**
+```json
+{
+  "status": "completed",
+  "workflow": "safety_signal",
+  "signals_detected": [
+    {
+      "event": "hepatotoxicity",
+      "prr": 3.2,
+      "prr_ci_lower": 1.8,
+      "ror": 3.5,
+      "ror_ci_lower": 1.6,
+      "signal_strength": "moderate",
+      "historical_rate_class": "2-5% for checkpoint inhibitors",
+      "observed_rate": "4.0%",
+      "assessment": "Signal detected. Observed hepatotoxicity rate (4.0%) is within the expected range for checkpoint inhibitors (2-5%) but PRR exceeds threshold. Recommend enhanced liver function monitoring at 2-week intervals.",
+      "causality_score": "possible (Naranjo: 4)"
+    },
+    {
+      "event": "rash",
+      "prr": 1.4,
+      "signal_strength": "none",
+      "assessment": "No signal. Rash rate (7.5%) is below the expected range for checkpoint inhibitors (10-20%)."
+    }
+  ],
+  "landmark_comparators": ["CheckMate 067", "KEYNOTE 024", "IMpower 150"],
+  "evidence_sources": 28,
+  "processing_time_ms": 3120.7
+}
+```
 
-1. User selects a workflow or submits a free-form query
-2. Workflow engine routes to the appropriate analysis module
-3. RAG engine retrieves evidence from 14 collections with domain-specific query expansion
-4. For patient matching: genomic and biomarker data cross-referenced against trial eligibility criteria
-5. For protocol design: complexity scoring against benchmark protocols, SOA review
-6. For safety signals: disproportionality analysis (PRR/ROR) with historical comparator data
-7. Regulatory document templates generated with auto-populated sections
+**7-Factor Site Selection Scoring**
+
+The site selection workflow evaluates investigative sites using a composite score across 7 factors:
+
+| Factor | Weight | Data Sources |
+|--------|--------|-------------|
+| Disease prevalence in catchment area | 0.20 | `trial_sites`, census data |
+| Prior enrollment performance | 0.20 | `trial_investigators`, historical enrollment |
+| Investigator experience (publications, prior trials) | 0.15 | `trial_investigators`, `trial_literature` |
+| Regulatory readiness (IRB turnaround, startup time) | 0.15 | `trial_sites` |
+| Diversity index (demographic representation) | 0.10 | `trial_sites`, FDA diversity guidance |
+| Competitor trial burden (active competing studies) | 0.10 | `trial_protocols`, competitive intelligence |
+| Infrastructure score (lab, imaging, pharmacy) | 0.10 | `trial_sites` |
 
 **Cross-Agent Integration**
 
-- Receives trial matching requests from Oncology Agent when actionable variants are found
-- Receives rare disease trial queries from Rare Disease Agent
-- Accesses genomic_evidence for biomarker-driven trial design support
-- Integrates with Biomarker Agent for eligibility biomarker interpretation
+| Direction | Partner Agent | Trigger/Scenario |
+|-----------|--------------|------------------|
+| Inbound | Oncology (:8527) | Receives trial matching requests when actionable variants found |
+| Inbound | Rare Disease (:8134) | Receives rare disease trial eligibility queries |
+| Inbound | Biomarker (:8529) | Receives biomarker-driven trial design queries |
+| Inbound | PGx (:8107) | Receives queries for PGx-guided clinical trials |
+| Outbound | Oncology (:8527) | Queries tumor profiling for patient eligibility context |
+| Outbound | PGx (:8107) | Queries metabolizer status for trial-specific dosing arms |
+| Outbound | Cardiology (:8126) | Queries cardiac safety context for cardiovascular endpoint trials |
+| Outbound | Biomarker (:8529) | Queries biomarker interpretation for eligibility criteria |
+| Bidirectional | All agents | Reads `genomic_evidence` (shared); publishes events via SSE |
+
+**Performance Characteristics**
+
+| Operation | Typical Latency | Notes |
+|-----------|----------------|-------|
+| RAG query | 1,500-3,000 ms | 14-collection search + LLM synthesis |
+| Patient-trial matching | 2,000-4,000 ms | Multi-collection search + eligibility scoring |
+| Protocol design review | 2,500-4,500 ms | Complexity scoring + benchmark comparison |
+| Safety signal (PRR/ROR) | 1,500-3,500 ms | Statistical calculation + evidence retrieval |
+| Site selection (7-factor) | 3,000-5,000 ms | Multi-factor scoring + enrollment forecasting |
+| Regulatory document generation | 5,000-10,000 ms | Template population + LLM narrative |
+| Competitive intelligence | 2,000-4,000 ms | Landscape analysis across `trial_protocols` |
+
+**Common Pitfalls and Troubleshooting**
+
+- **Patient matching requires complete profiles**: The patient-trial matching workflow performs best with age, diagnosis, biomarker status, prior therapy history, and ECOG performance status. Partial profiles produce fewer matches with lower confidence.
+- **PRR/ROR minimum counts**: Disproportionality analysis requires at least 3 events (N >= 3) to generate a statistically meaningful signal. Submitting events with count < 3 will return "insufficient data" rather than a false signal.
+- **Landmark trial coverage**: The 40 landmark trials are curated references. New landmark trials (e.g., recently published Phase III results) require manual addition via `scripts/seed_knowledge.py`.
+- **ClinicalTrials.gov rate limiting**: If `TRIAL_CLINICALTRIALS_API_KEY` is not set, the ClinicalTrials.gov v2 API rate-limits to 3 requests/second. Set the key for production workloads.
+- **Regulatory document templates**: Generated IND/CSR documents are templates requiring clinical review. They auto-populate statistical sections, safety summaries, and study schemas but do not replace regulatory affairs expertise.
+- **Cross-agent integration breadth**: This agent connects to 8 partner agents (more than any other agent). If multiple partner agents are unavailable, the integrated assessment still returns partial results from available agents.
 
 ---
 
