@@ -147,6 +147,7 @@ nav:
         - Overview: single-cell-intelligence-agent/index.md
         - White Paper: single-cell-intelligence-agent/white-paper.md
         - Project Bible: single-cell-intelligence-agent/project-bible.md
+        - Design Document: single-cell-intelligence-agent/design.md
         - Architecture Guide: single-cell-intelligence-agent/architecture-guide.md
         - Demo Guide: single-cell-intelligence-agent/demo-guide.md
         - Deployment Guide: single-cell-intelligence-agent/deployment-guide.md
@@ -156,6 +157,7 @@ nav:
         - Overview: clinical-trial-intelligence-agent/index.md
         - White Paper: clinical-trial-intelligence-agent/white-paper.md
         - Project Bible: clinical-trial-intelligence-agent/project-bible.md
+        - Design Document: clinical-trial-intelligence-agent/design.md
         - Architecture Guide: clinical-trial-intelligence-agent/architecture-guide.md
         - Demo Guide: clinical-trial-intelligence-agent/demo-guide.md
         - Deployment Guide: clinical-trial-intelligence-agent/deployment-guide.md
@@ -166,6 +168,7 @@ nav:
         - Overview: cardiology-intelligence-agent/index.md
         - White Paper: cardiology-intelligence-agent/white-paper.md
         - Project Bible: cardiology-intelligence-agent/project-bible.md
+        - Design Document: cardiology-intelligence-agent/design.md
         - Architecture Guide: cardiology-intelligence-agent/architecture-guide.md
         - Demo Guide: cardiology-intelligence-agent/demo-guide.md
         - Deployment Guide: cardiology-intelligence-agent/deployment-guide.md
@@ -175,6 +178,7 @@ nav:
         - Overview: pharmacogenomics-intelligence-agent/index.md
         - White Paper: pharmacogenomics-intelligence-agent/white-paper.md
         - Project Bible: pharmacogenomics-intelligence-agent/project-bible.md
+        - Design Document: pharmacogenomics-intelligence-agent/design.md
         - Architecture Guide: pharmacogenomics-intelligence-agent/architecture-guide.md
         - Demo Guide: pharmacogenomics-intelligence-agent/demo-guide.md
         - Deployment Guide: pharmacogenomics-intelligence-agent/deployment-guide.md
@@ -195,6 +199,7 @@ nav:
         - Overview: neurology-intelligence-agent/index.md
         - White Paper: neurology-intelligence-agent/white-paper.md
         - Project Bible: neurology-intelligence-agent/project-bible.md
+        - Design Document: neurology-intelligence-agent/design.md
         - Architecture Guide: neurology-intelligence-agent/architecture-guide.md
         - Demo Guide: neurology-intelligence-agent/demo-guide.md
         - Deployment Guide: neurology-intelligence-agent/deployment-guide.md
@@ -204,6 +209,7 @@ nav:
         - Overview: rare-disease-diagnostic-agent/index.md
         - White Paper: rare-disease-diagnostic-agent/white-paper.md
         - Project Bible: rare-disease-diagnostic-agent/project-bible.md
+        - Design Document: rare-disease-diagnostic-agent/design.md
         - Architecture Guide: rare-disease-diagnostic-agent/architecture-guide.md
         - Demo Guide: rare-disease-diagnostic-agent/demo-guide.md
         - Deployment Guide: rare-disease-diagnostic-agent/deployment-guide.md
