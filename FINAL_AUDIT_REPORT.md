@@ -354,5 +354,5 @@ The private deployment guide at `dashing-pegasus-fc7708.netlify.app` provides:
 
 ---
 
-*HCLS AI Factory — Apache 2.0 | February 2026*
+*HCLS AI Factory — Apache 2.0 | March 2026*
 *Audit performed by Claude Opus 4.6*

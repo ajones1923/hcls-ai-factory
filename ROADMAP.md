@@ -6,7 +6,7 @@ This document outlines the development trajectory of the HCLS AI Factory, from i
 
 ## Completed
 
-### v1.0.0 — Foundation Release (February 2026)
+### v1.0.0 — Foundation Release (March 2026)
 
 The initial release establishes the complete end-to-end pipeline: Patient DNA to Drug Candidates on a single workstation.
 
@@ -20,7 +20,7 @@ The initial release establishes the complete end-to-end pipeline: Patient DNA to
 - **CI/CD** — GitHub Actions (lint, test, security scan, docs build), Codecov, Dependabot
 - **Demo Pipeline** — VCP (p97) for Frontotemporal Dementia with CB-5083 seed compound
 
-### v1.0.1–v1.0.3 — Hardening (February 2026)
+### v1.0.1–v1.0.3 — Hardening (March 2026)
 
 - Cloud NIM API support (health.api.nvidia.com) with 3-tier fallback: cloud → local → mock
 - ARM64/DGX Spark compatibility via cloud NIM bypass
