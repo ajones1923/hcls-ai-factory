@@ -231,6 +231,12 @@ to provide domain-specific clinical decision support.
   |   |Agent | |Agent | |Agent| |Agent| |ne   | |gen. | |Agent |   |
   |   |:8503 | |:8502 | |:8504| |:8505| |:8506| |:8507| |:8527 |   |
   |   +------+ +------+ +-----+ +-----+ +-----+ +-----+ +------+   |
+  |   +------+ +------+ +-----+ +-----+                             |
+  |   |Trial | |Rare  | |Neuro| |Sing-|                             |
+  |   |Intel | |Disea-| |logy | |le   |                             |
+  |   |Agent | |se Dx | |Agent| |Cell |                             |
+  |   |:8538 | |:8544 | |:8528| |:8540|                             |
+  |   +------+ +------+ +-----+ +-----+                             |
   |       |                                                          |
   |       v                                                          |
   |  Therapeutic Targets                                             |
@@ -873,8 +879,8 @@ Each agent adds its own **domain-specific collections** on top of the
 shared genomic evidence. The oncology agent adds 10 collections covering
 therapies, resistance, trials, and guidelines. The cardiology agent adds
 12 collections covering risk calculators, medications, and cardiac imaging.
-In total, the platform maintains approximately 80+ specialized collections
-across all agents.
+In total, the platform maintains **139 specialized collections** with
+approximately **47,691 vectors** across all agents.
 
 ## 4.6 The Knowledge Graph
 
@@ -971,7 +977,7 @@ something up.
 | Genes in knowledge graph             | 201                    |
 | Druggable targets                    | 171 (85%)              |
 | Therapeutic areas                    | 13                     |
-| Total agent collections              | 80+                    |
+| Total agent collections              | 139 (~47,691 vectors)  |
 | LLM                                  | Claude (Anthropic)     |
 | Vector database                      | Milvus v2.4.0          |
 
@@ -1585,37 +1591,12 @@ platform:
 
 ---
 
-## What Comes Next: Part 2
+## Transition to Part 2
 
-Part 2 of this guide covers each of the eleven intelligence agents in
-depth:
-
-- **Chapter 7:** Imaging Intelligence Agent -- NVIDIA NIM models, DICOM
-  workflows, cross-modal triggers.
-- **Chapter 8:** Precision Oncology Agent -- Molecular tumor boards,
-  therapy ranking, trial matching, resistance awareness.
-- **Chapter 9:** Precision Biomarker Agent -- Biological age, disease
-  trajectory, pharmacogenomic profiling.
-- **Chapter 10:** CAR-T Intelligence Agent -- Construct design, manufacturing
-  protocols, comparative analysis.
-- **Chapter 11:** Precision Autoimmune Agent -- Immune pathways, flare
-  prediction, treatment response.
-- **Chapter 12:** Pharmacogenomics Agent -- Drug-gene interactions, dosing
-  algorithms, HLA associations.
-- **Chapter 13:** Cardiology Intelligence Agent -- Risk calculators, GDMT
-  optimization, cardiac genomics.
-- **Chapter 14:** Clinical Trial Intelligence Agent -- Trial matching,
-  eligibility analysis, enrollment optimization.
-- **Chapter 15:** Rare Disease Diagnostic Agent -- Differential diagnosis,
-  gene panel analysis, diagnostic odyssey reduction.
-- **Chapter 16:** Neurology Intelligence Agent -- Neurodegeneration pathways,
-  treatment planning, cognitive assessment.
-- **Chapter 17:** Single-Cell Intelligence Agent -- Cell-type identification,
-  expression profiling, spatial transcriptomics.
-
-Each chapter follows the same structure: domain introduction, clinical
-workflow, data collections, agent-specific features, example queries,
-and output interpretation.
+Part 2 of this guide (below) covers each of the eleven intelligence agents
+in clinical depth. Each chapter follows the same structure: domain
+introduction, clinical workflow, data collections, agent-specific features,
+example queries, and output interpretation.
 
 ---
 
@@ -2401,7 +2382,7 @@ curl -X POST http://localhost:8521/v1/cart/query \
 
 ### 11.1 The Diagnostic Odyssey
 
-The average autoimmune patient waits 4.5 years and sees 4+ doctors before receiving a correct diagnosis. Symptoms overlap across diseases, lab results fluctuate, and no single test is definitive.
+The Precision Autoimmune Agent covers **13 autoimmune conditions** including SLE, rheumatoid arthritis, Sjogren's syndrome, systemic sclerosis, ankylosing spondylitis, inflammatory bowel disease (Crohn's and UC), celiac disease, multiple sclerosis, myasthenia gravis, Behcet's disease, psoriatic arthritis, dermatomyositis/polymyositis, and vasculitis. The average autoimmune patient waits 4.5 years and sees 4+ doctors before receiving a correct diagnosis. Symptoms overlap across diseases, lab results fluctuate, and no single test is definitive.
 
 **Analogy:** Diagnosing autoimmune disease is like assembling a jigsaw puzzle where the pieces come from different boxes, some pieces are missing, the picture on the box keeps changing, and multiple puzzles may be mixed together.
 
@@ -3017,24 +2998,494 @@ curl -X POST http://localhost:8126/v1/cardio/query \
 
 ---
 
-## Chapter 14: Putting It All Together
+## Chapter 14: Clinical Trial Intelligence Agent
 
-### 14.1 A Complete Patient Journey
+### 14.1 The Trial Matching Challenge
+
+At any given time, ClinicalTrials.gov lists over 400,000 registered clinical trials, yet only 5-8% of eligible cancer patients enroll in a trial. The gap is not patient willingness -- it is the staggering complexity of matching a patient's molecular profile, disease history, prior therapies, organ function, and demographics against hundreds of inclusion/exclusion criteria per protocol.
+
+**Analogy:** Imagine applying for 400,000 jobs simultaneously, where each application requires matching your resume against 50-200 specific requirements written in dense medical-legal language. The Clinical Trial Intelligence Agent is the recruiter who reads every posting, understands your profile, and returns a shortlist of trials you actually qualify for -- in seconds.
+
+### 14.2 How Trial Matching Works
+
+The agent performs three-stage matching: molecular eligibility (does the patient's genomic profile match the trial's biomarker requirements?), clinical eligibility (does the patient meet age, organ function, prior therapy, and performance status criteria?), and logistic feasibility (is the trial site accessible, is enrollment open, what phase is it in?).
+
+```
+  TRIAL MATCHING PIPELINE
+
+  Patient Profile
+  (genomic + clinical + demographic)
+       |
+       v
+  [Molecular Matching]
+       Variant: EGFR L858R → Filter trials requiring EGFR mutation
+       Biomarker: PD-L1 TPS 80% → Filter trials requiring PD-L1 ≥50%
+       TMB: 14 mut/Mb → Filter trials requiring TMB-high
+       |
+       v
+  [Clinical Eligibility]
+       ECOG PS: 1 → Meets ≤2 requirement
+       Prior lines: 1 → Meets ≤3 requirement
+       eGFR: 62 → Meets ≥30 requirement
+       No brain mets → Meets exclusion criterion
+       |
+       v
+  [Logistic Feasibility]
+       Phase III (recruiting) → Priority
+       Phase II (recruiting) → Secondary
+       Phase I (recruiting) → Tertiary
+       |
+       v
+  Ranked Trial List with Eligibility Scores
+```
+
+### 14.3 The 10 Collections
+
+| # | Collection | Description |
+|---|-----------|-------------|
+| 1 | `trial_protocols` | Full protocol documents with structured eligibility criteria |
+| 2 | `trial_biomarkers` | Biomarker requirements mapped to genomic variants |
+| 3 | `trial_endpoints` | Primary/secondary endpoints and statistical design |
+| 4 | `trial_results` | Published trial results and interim analyses |
+| 5 | `trial_sites` | Participating sites, PI contacts, enrollment status |
+| 6 | `trial_eligibility` | Parsed inclusion/exclusion criteria (structured) |
+| 7 | `trial_drugs` | Investigational agents, mechanism of action, sponsors |
+| 8 | `trial_literature` | Trial-related publications and conference abstracts |
+| 9 | `trial_regulatory` | FDA breakthrough, fast track, orphan designations |
+| 10 | `trial_comparators` | Standard-of-care comparator arm details |
+| +1 | `genomic_evidence` | Shared read-only genomic variants |
+
+### 14.4 Protocol Analysis
+
+The agent parses complex eligibility criteria into structured, queryable fields. A single Phase III oncology trial may have 30+ inclusion criteria and 40+ exclusion criteria. The agent converts natural language criteria ("Patients must have documented EGFR exon 19 deletion or L858R mutation confirmed by an FDA-approved test") into machine-readable filters that can be matched against a patient profile in milliseconds.
+
+### 14.5 Enrollment Optimization
+
+Beyond individual patient matching, the agent supports site-level enrollment analytics: which trials are under-enrolling, which patient populations are underrepresented, and which eligibility criteria are unnecessarily restrictive (screening failure analysis). This supports clinical operations teams in optimizing trial portfolios.
+
+### 14.6 Sample Response
+
+```json
+{
+  "patient_profile": "EGFR L858R NSCLC, PD-L1 80%, 1 prior line, ECOG 1",
+  "trials_matched": 18,
+  "top_trials": [
+    {"nct_id": "NCT05555555", "phase": "III", "drug": "Investigational EGFR degrader",
+     "eligibility_score": 0.95, "status": "Recruiting", "match_reason": "EGFR mutation required, ≤2 prior lines"},
+    {"nct_id": "NCT06666666", "phase": "II", "drug": "EGFR + MET bispecific",
+     "eligibility_score": 0.88, "status": "Recruiting", "match_reason": "EGFR L858R specific, PD-L1 ≥50% enrichment"}
+  ],
+  "exclusion_flags": ["No active brain metastases — patient eligible"],
+  "confidence": 0.91
+}
+```
+
+### 14.7 Common Questions
+
+**Q: How current is the trial data?**
+A: The trial_protocols and trial_sites collections are designed to be refreshed from ClinicalTrials.gov. Enrollment status, site activation, and protocol amendments should be updated regularly to ensure accuracy.
+
+**Q: Does the agent replace a clinical research coordinator?**
+A: No. It pre-screens patients against eligibility criteria and generates a ranked shortlist. A coordinator or investigator must confirm eligibility through formal screening. The agent eliminates hours of manual protocol review, not the human judgment step.
+
+**Q: Can it match across therapeutic areas?**
+A: Yes. The agent searches all trial collections regardless of disease area. A patient with both a BRCA2 mutation and heart failure could be matched to oncology trials for PARP inhibitors and cardiology trials simultaneously.
+
+### 14.8 Running Your First Query
+
+```bash
+# Match a patient to eligible clinical trials
+curl -X POST http://localhost:8128/v1/trials/match \
+  -H "Content-Type: application/json" \
+  -d '{"question": "Find clinical trials for EGFR L858R NSCLC patient who progressed on osimertinib, ECOG 1, no brain metastases"}'
+```
+
+**Expected output:** A ranked list of recruiting trials requiring EGFR mutations or osimertinib resistance, filtered by ECOG and brain metastasis exclusion criteria. Evidence from `trial_protocols`, `trial_biomarkers`, and `trial_eligibility` collections with match scores.
+
+---
+
+## Chapter 15: Rare Disease Diagnostic Agent
+
+### 15.1 The Diagnostic Odyssey in Rare Disease
+
+There are approximately 7,000 known rare diseases, collectively affecting 300 million people worldwide. The average rare disease patient waits 5-7 years for a correct diagnosis, sees 7+ specialists, and receives 2-3 misdiagnoses along the way. Approximately 80% of rare diseases have a genetic basis, making genomic analysis the most powerful diagnostic tool -- but only when combined with systematic phenotype matching and variant classification.
+
+**Analogy:** Diagnosing a rare disease is like identifying an obscure bird species. You need a field guide (the knowledge base of 88 rare diseases), a checklist of distinguishing features (phenotype terms), and expertise in telling similar species apart (differential diagnosis). The Rare Disease Diagnostic Agent is an expert ornithologist who knows every species, never forgets a distinguishing feature, and cross-references multiple field guides simultaneously.
+
+### 15.2 ACMG/AMP Variant Classification
+
+The American College of Medical Genetics (ACMG) and Association for Molecular Pathology (AMP) published a framework with 28 criteria for classifying genetic variants. The agent implements **23 of these 28 criteria** computationally:
+
+| Category | Criteria | What They Assess |
+|----------|----------|-----------------|
+| Pathogenic Strong | PVS1, PS1-PS4 | Null variant, same AA change known pathogenic, functional studies, prevalence |
+| Pathogenic Moderate | PM1-PM6 | Mutational hot spot, absent in controls, protein length change, novel missense, segregation |
+| Pathogenic Supporting | PP1-PP5 | Cosegregation, patient phenotype matches, missense in gene with low benign rate, multiple computational evidence, reputable source |
+| Benign Strong | BS1-BS4 | Allele frequency too high, functional studies show benign, segregation, no phenotype |
+| Benign Supporting | BP1-BP7 | Missense where truncating is mechanism, silent variant, in-trans with known pathogenic, benign computational, reputable source |
+
+The agent combines these criteria using the ACMG scoring matrix to classify each variant as Pathogenic, Likely Pathogenic, VUS, Likely Benign, or Benign -- providing an evidence trail for every classification decision.
+
+### 15.3 Phenotype-Driven Differential Diagnosis
+
+The agent uses Human Phenotype Ontology (HPO) terms to perform phenotype-driven gene prioritization across **88 rare diseases**. Clinicians enter observed phenotypes (e.g., "intellectual disability," "seizures," "hypotonia," "microcephaly"), and the agent calculates semantic similarity scores against known disease-phenotype associations.
+
+```
+  PHENOTYPE-DRIVEN DIAGNOSIS
+
+  Observed Phenotypes (HPO terms):
+    HP:0001249 - Intellectual disability
+    HP:0001250 - Seizures
+    HP:0001290 - Hypotonia
+    HP:0000252 - Microcephaly
+       |
+       v
+  [Semantic Similarity Matching]
+       Disease 1: Angelman syndrome    → score 0.92
+       Disease 2: Rett syndrome        → score 0.85
+       Disease 3: Phelan-McDermid      → score 0.78
+       Disease 4: MECP2 duplication    → score 0.74
+       |
+       v
+  [Gene Panel Generation]
+       UBE3A, MECP2, SHANK3, CDKL5, FOXG1...
+       |
+       v
+  [Variant Classification (23 ACMG criteria)]
+       UBE3A c.2505del → Pathogenic (PVS1 + PM2 + PP3)
+       |
+       v
+  [Diagnosis] → Angelman Syndrome confirmed
+```
+
+### 15.4 The 10 Collections
+
+| # | Collection | Description |
+|---|-----------|-------------|
+| 1 | `rare_disease_phenotypes` | HPO-indexed disease phenotype profiles for 88 diseases |
+| 2 | `rare_disease_genes` | Gene-disease associations with inheritance patterns |
+| 3 | `rare_disease_variants` | Known pathogenic/likely pathogenic variants in rare disease genes |
+| 4 | `rare_disease_guidelines` | Diagnostic and management guidelines |
+| 5 | `rare_disease_therapies` | Gene therapies, enzyme replacement, substrate reduction therapies |
+| 6 | `rare_disease_trials` | Rare disease clinical trials (many with orphan drug designation) |
+| 7 | `rare_disease_newborn` | Newborn screening panel conditions and follow-up protocols |
+| 8 | `rare_disease_literature` | Rare disease research publications |
+| 9 | `rare_disease_registries` | Patient registry information and natural history studies |
+| 10 | `rare_disease_acmg` | ACMG/AMP criteria definitions and scoring logic |
+| +1 | `genomic_evidence` | Shared read-only genomic variants |
+
+### 15.5 Gene Therapy Eligibility
+
+For the subset of rare diseases with approved or investigational gene therapies, the agent assesses eligibility based on genotype, disease stage, organ function, and age. It tracks 25+ gene therapy programs including:
+
+| Disease | Gene | Therapy | Status |
+|---------|------|---------|--------|
+| Spinal Muscular Atrophy | SMN1 | Zolgensma (onasemnogene) | FDA approved |
+| Sickle Cell Disease | HBB | Casgevy (exagamglogene) | FDA approved |
+| Duchenne Muscular Dystrophy | DMD | Elevidys (delandistrogene) | FDA approved |
+| Hemophilia B | F9 | Hemgenix (etranacogene) | FDA approved |
+| Leber Congenital Amaurosis | RPE65 | Luxturna (voretigene) | FDA approved |
+
+### 15.6 Sample Response
+
+```json
+{
+  "phenotypes_entered": ["intellectual disability", "seizures", "hypotonia", "microcephaly"],
+  "top_differential": [
+    {"disease": "Angelman Syndrome", "gene": "UBE3A", "similarity_score": 0.92,
+     "variant_found": "c.2505del", "acmg_class": "Pathogenic",
+     "criteria_met": ["PVS1", "PM2", "PP3"]},
+    {"disease": "Rett Syndrome", "gene": "MECP2", "similarity_score": 0.85,
+     "variant_found": null, "note": "No pathogenic variant identified"}
+  ],
+  "gene_therapy_eligible": false,
+  "recommended_testing": "Methylation analysis for UBE3A to confirm mechanism",
+  "confidence": 0.94
+}
+```
+
+### 15.7 Common Questions
+
+**Q: Why 88 rare diseases and not all 7,000?**
+A: The platform focuses on 88 rare diseases that meet at least two of three criteria: (1) known genetic basis, (2) available therapeutic intervention or clinical trial, (3) diagnosable through whole-genome sequencing. This ensures every diagnosis leads to an actionable next step. The framework is extensible to additional diseases.
+
+**Q: How does ACMG scoring work computationally?**
+A: Each variant is evaluated against the 23 implemented criteria. Criteria that are met are combined using the ACMG scoring matrix: 1 very strong + 1 strong = Pathogenic, 2 strong = Pathogenic, 1 strong + 3 supporting = Likely Pathogenic, and so on. The agent provides a full evidence trail showing which criteria were met and why.
+
+**Q: What about variants of uncertain significance (VUS)?**
+A: VUS are the most common and most challenging classification. The agent flags VUS with available functional prediction data (AlphaMissense, REVEL, CADD), population frequency, and any published functional studies. It recommends functional follow-up or segregation studies when appropriate rather than making premature pathogenicity calls.
+
+### 15.8 Running Your First Query
+
+```bash
+# Phenotype-driven differential diagnosis
+curl -X POST http://localhost:8134/v1/rare/diagnose \
+  -H "Content-Type: application/json" \
+  -d '{"phenotypes": ["intellectual disability", "seizures", "hypotonia", "microcephaly"], "age_onset": "infantile"}'
+```
+
+**Expected output:** A ranked differential diagnosis with semantic similarity scores against 88 rare diseases, prioritized gene panel, and ACMG variant classification for any identified variants. Evidence from `rare_disease_phenotypes`, `rare_disease_genes`, and `rare_disease_acmg` collections.
+
+---
+
+## Chapter 16: Neurology Intelligence Agent
+
+### 16.1 Neurological Disease and Genomics
+
+Neurological diseases -- from neurodegenerative conditions like Alzheimer's and Parkinson's to movement disorders, epilepsies, and peripheral neuropathies -- represent some of the most complex diagnostic and therapeutic challenges in medicine. Many have a strong genetic component, and the intersection of genomics with neurology is transforming both diagnosis and treatment planning.
+
+**Analogy:** The brain is like a city's electrical grid. Neurodegenerative diseases are a gradual, spreading blackout -- different neighborhoods (brain regions) lose power at different rates depending on the underlying cause. Epilepsy is a surge in the grid that overwhelms circuits. The Neurology Agent maps the grid, identifies where the failure is occurring, traces it to the genetic wiring defect, and recommends targeted repairs.
+
+### 16.2 Neurodegeneration Pathways
+
+The agent models the major neurodegenerative pathways and their genetic drivers:
+
+| Pathway | Diseases | Key Genes | Mechanism |
+|---------|----------|-----------|-----------|
+| Amyloid/Tau | Alzheimer's disease | APP, PSEN1, PSEN2, MAPT, APOE | Amyloid plaque and tau tangle accumulation |
+| Alpha-synuclein | Parkinson's, DLB | SNCA, LRRK2, GBA, PARK2 | Protein aggregation in dopaminergic neurons |
+| TDP-43 | ALS, FTD | C9orf72, TARDBP, FUS, VCP | RNA processing dysfunction, protein aggregation |
+| Trinucleotide repeat | Huntington's, spinocerebellar ataxias | HTT, ATXN1-3, ATXN7 | CAG repeat expansion, polyglutamine toxicity |
+| Channelopathy | Epilepsy syndromes | SCN1A, SCN2A, KCNQ2, KCNA2 | Ion channel dysfunction, hyperexcitability |
+| Demyelination | MS, leukodystrophies | HLA-DRB1, PLP1, GALC | Myelin loss, impaired nerve conduction |
+
+### 16.3 Cognitive Assessment Integration
+
+The agent integrates standardized cognitive assessment scales and tracks longitudinal trajectories:
+
+| Assessment | Domain | Score Range | Clinical Use |
+|------------|--------|-------------|-------------|
+| MMSE | Global cognition | 0-30 | Dementia screening (≤24 abnormal) |
+| MoCA | Global cognition | 0-30 | Mild cognitive impairment (≤25 abnormal) |
+| CDR | Dementia staging | 0-3 | Staging severity (0=normal, 3=severe) |
+| UPDRS | Parkinson's motor | 0-199 | Motor symptom severity and progression |
+| ALSFRS-R | ALS function | 0-48 | Functional decline rate (normal=48) |
+| Expanded EDSS | MS disability | 0-10 | MS disability staging |
+
+### 16.4 The 10 Collections
+
+| # | Collection | Description |
+|---|-----------|-------------|
+| 1 | `neuro_diseases` | Neurological disease profiles with genetic associations |
+| 2 | `neuro_genes` | Neurogenetic gene-disease mappings and variant databases |
+| 3 | `neuro_pathways` | Neurodegenerative pathway models and biomarkers |
+| 4 | `neuro_therapies` | Approved and investigational neurological therapeutics |
+| 5 | `neuro_trials` | Neurology clinical trials |
+| 6 | `neuro_imaging` | Neuroimaging findings (MRI patterns, PET tracers) |
+| 7 | `neuro_cognitive` | Cognitive assessment scales and normative data |
+| 8 | `neuro_guidelines` | AAN, EAN clinical practice guidelines |
+| 9 | `neuro_literature` | Neurology research publications |
+| 10 | `neuro_pharmacology` | Neuropsychiatric drug-gene interactions |
+| +1 | `genomic_evidence` | Shared read-only genomic variants |
+
+### 16.5 Treatment Planning
+
+The agent generates treatment plans that integrate genetic findings with standard-of-care neurology:
+
+- **Epilepsy:** SCN1A variants guide therapy selection -- sodium channel blockers (carbamazepine, phenytoin) are contraindicated in Dravet syndrome (SCN1A loss-of-function) but beneficial in other SCN1A gain-of-function epilepsies
+- **Parkinson's:** GBA variant carriers may respond differently to standard dopaminergic therapy and are candidates for GBA-targeted trials (ambroxol, venglustat)
+- **ALS:** C9orf72 expansion carriers are eligible for antisense oligonucleotide trials targeting the repeat expansion
+- **Alzheimer's:** APOE genotype influences anti-amyloid therapy eligibility and ARIA (amyloid-related imaging abnormalities) risk monitoring
+
+### 16.6 Sample Response
+
+```json
+{
+  "presentation": "Progressive memory loss, age 62, family history of dementia",
+  "genomic_findings": {
+    "APOE": "e3/e4 (heterozygous — 3x increased AD risk)",
+    "PSEN1": "No pathogenic variants",
+    "APP": "No pathogenic variants"
+  },
+  "cognitive_scores": {"MoCA": 22, "CDR": 0.5},
+  "staging": "Mild Cognitive Impairment (amnestic, single-domain)",
+  "treatment_plan": [
+    "Cholinesterase inhibitor (donepezil 5mg) — consider if progressing",
+    "Anti-amyloid therapy eligibility: APOE e4 carrier — requires enhanced ARIA monitoring (MRI q3 months)",
+    "Cardiovascular risk optimization (APOE e4 also affects lipid metabolism)",
+    "Cognitive rehabilitation referral"
+  ],
+  "monitoring": "MoCA every 6 months, MRI annually for progression and ARIA surveillance",
+  "confidence": 0.87
+}
+```
+
+### 16.7 Common Questions
+
+**Q: How does genetic testing change neurological management?**
+A: In epilepsy, it can redirect therapy entirely (avoiding sodium channel blockers in Dravet syndrome saves lives). In neurodegenerative disease, it identifies trial eligibility, predicts treatment response, and enables presymptomatic counseling for at-risk family members. Genetic diagnosis ends the diagnostic odyssey for many rare neurological conditions.
+
+**Q: What is the role of APOE genotyping in Alzheimer's?**
+A: APOE e4 is the strongest genetic risk factor for late-onset Alzheimer's (3x risk for heterozygotes, 12x for homozygotes). With anti-amyloid therapies now available, APOE status determines ARIA monitoring intensity. The agent integrates APOE genotype into both risk assessment and treatment planning.
+
+**Q: Can the agent track disease progression over time?**
+A: Yes. By ingesting longitudinal cognitive assessment scores (MMSE, MoCA, UPDRS, ALSFRS-R), the agent calculates rate of decline, compares to expected trajectories for the specific disease and genotype, and flags accelerated progression that may warrant therapy adjustment or trial enrollment.
+
+### 16.8 Running Your First Query
+
+```bash
+# Assess a neurology patient with genetic findings
+curl -X POST http://localhost:8529/v1/neuro/query \
+  -H "Content-Type: application/json" \
+  -d '{"question": "62-year-old with progressive memory loss, MoCA 22, APOE e3/e4. What is the recommended workup and treatment plan?"}'
+```
+
+**Expected output:** A structured assessment identifying mild cognitive impairment with APOE e4 risk factor, recommended amyloid PET or CSF biomarker workup, treatment options including cholinesterase inhibitors and anti-amyloid therapy eligibility with ARIA monitoring requirements. Evidence from `neuro_diseases`, `neuro_genes`, and `neuro_guidelines` collections.
+
+---
+
+## Chapter 17: Single-Cell Intelligence Agent
+
+### 17.1 Why Single-Cell Resolution Matters
+
+Traditional genomic analysis treats a tumor or tissue sample as a single entity. In reality, a tumor is a heterogeneous ecosystem containing cancer cells, immune cells, fibroblasts, endothelial cells, and more -- each with distinct gene expression profiles and drug sensitivities. Single-cell transcriptomics reveals this hidden complexity.
+
+**Analogy:** Traditional bulk sequencing is like blending an entire fruit salad and analyzing the smoothie -- you know the average composition but cannot distinguish the strawberries from the blueberries. Single-cell analysis is like examining each piece of fruit individually -- you see the strawberry cells, the blueberry cells, and can determine which are ripe (responsive to therapy) and which are not.
+
+### 17.2 Cell Type Annotation
+
+The agent classifies cells into **57 cell types** organized across five compartments:
+
+| Compartment | Cell Types | Examples |
+|-------------|-----------|---------|
+| Immune | 22 types | CD8+ T cells, NK cells, M1/M2 macrophages, Tregs, plasma cells, dendritic cells |
+| Stromal | 10 types | Fibroblasts (CAF subtypes), pericytes, mesenchymal stem cells |
+| Epithelial | 12 types | Basal, luminal, secretory, ciliated, alveolar type I/II |
+| Neural | 6 types | Neurons, astrocytes, oligodendrocytes, microglia, Schwann cells |
+| Specialized | 7 types | Hepatocytes, cardiomyocytes, podocytes, beta cells, osteoclasts |
+
+Each cell type is mapped to Cell Ontology (CL) identifiers for standardized cross-platform communication.
+
+### 17.3 Tumor Microenvironment Profiling
+
+The agent characterizes tumors into four TME phenotypes based on immune cell composition, which predicts immunotherapy response:
+
+| TME Phenotype | Immune Signature | Immunotherapy Response | Prevalence |
+|--------------|------------------|----------------------|-----------|
+| Immune-inflamed ("hot") | High CD8+ T cells, high PD-L1, IFN-gamma signature | Best response (~40-60%) | 20-30% |
+| Immune-excluded | Immune cells at margin, not infiltrating | Moderate response (~15-25%) | 30-40% |
+| Immune-desert ("cold") | Few immune cells, low PD-L1 | Poor response (~5-10%) | 20-30% |
+| Immune-suppressed | Tregs, M2 macrophages, MDSCs dominant | Poor without combination | 10-20% |
+
+### 17.4 The 10 Collections
+
+| # | Collection | Description |
+|---|-----------|-------------|
+| 1 | `sc_cell_atlas` | 57 cell type definitions with marker genes and CL identifiers |
+| 2 | `sc_markers` | 75 marker genes spanning all cell types with expression thresholds |
+| 3 | `sc_tme_profiles` | Tumor microenvironment phenotype signatures |
+| 4 | `sc_drug_responses` | Cell-type-resolved drug sensitivity data (30 drugs) |
+| 5 | `sc_signatures` | Gene expression signatures for cell state classification |
+| 6 | `sc_spatial` | Spatial transcriptomics reference patterns |
+| 7 | `sc_ligand_receptor` | 25 ligand-receptor interaction pairs for cell communication |
+| 8 | `sc_literature` | Single-cell research publications |
+| 9 | `sc_trials` | Trials using single-cell endpoints or biomarkers |
+| 10 | `sc_methods` | Computational methods (Scanpy, Seurat, CellRanger parameters) |
+| +1 | `genomic_evidence` | Shared read-only genomic variants |
+
+### 17.5 CAR-T Target Validation
+
+The Single-Cell Agent uniquely bridges to the CAR-T Intelligence Agent. When evaluating a potential CAR-T target antigen (e.g., CD19, BCMA, CD22), the agent queries single-cell expression data to determine:
+
+- **On-target expression:** Is the antigen expressed on tumor cells? At what level?
+- **Off-target expression:** Is the antigen expressed on normal tissues (toxicity risk)?
+- **Heterogeneity:** What fraction of tumor cells express the target (escape risk)?
+
+This analysis directly informs CAR-T construct selection and predicts resistance mechanisms.
+
+### 17.6 Drug Response Prediction
+
+By mapping drug sensitivity to specific cell types, the agent predicts which cell populations within a tumor will respond to a given therapy and which will survive as resistant clones:
+
+```
+  CELL-TYPE-RESOLVED DRUG RESPONSE
+
+  Tumor composition (single-cell analysis):
+    40% Tumor cells (EGFR+)  → Sensitive to osimertinib
+    15% CAF fibroblasts       → Resistant, may promote drug resistance
+    20% CD8+ T cells          → Enhanced by pembrolizumab
+    10% M2 macrophages        → Immunosuppressive, target with CSF1R inhibitor
+    8%  Tregs                 → Deplete with anti-CTLA-4
+    7%  Endothelial cells     → Target with anti-VEGF if needed
+
+  Prediction: Osimertinib + pembrolizumab combination
+              likely effective for 60% of tumor mass.
+              CAF-mediated resistance predicted in 6-12 months.
+```
+
+### 17.7 Sample Response
+
+```json
+{
+  "sample_type": "NSCLC biopsy",
+  "cell_types_identified": 8,
+  "tme_phenotype": "immune-inflamed",
+  "composition": {
+    "tumor_cells": {"fraction": 0.40, "markers": ["EGFR", "KRT7", "NKX2-1"]},
+    "cd8_t_cells": {"fraction": 0.20, "state": "activated", "exhaustion_score": 0.35},
+    "macrophages": {"fraction": 0.10, "polarization": "M2-dominant"},
+    "tregs": {"fraction": 0.08, "suppressive_score": 0.72}
+  },
+  "immunotherapy_prediction": {
+    "checkpoint_inhibitor": "likely responsive (immune-inflamed, CD8+ infiltrated)",
+    "estimated_response_probability": 0.55
+  },
+  "cart_target_assessment": {
+    "EGFR": {"tumor_expression": 0.92, "normal_tissue_risk": "high (expressed in skin, GI)"},
+    "MSLN": {"tumor_expression": 0.45, "normal_tissue_risk": "moderate"}
+  },
+  "confidence": 0.84
+}
+```
+
+### 17.8 Common Questions
+
+**Q: Does the agent process raw single-cell sequencing data (10x Chromium)?**
+A: The agent works with pre-processed count matrices and cell annotations. Raw FASTQ processing through CellRanger or STARsolo is handled upstream. The agent's strength is in interpreting cell type composition, TME phenotyping, and drug response prediction, not raw data processing.
+
+**Q: How does TME phenotype predict immunotherapy response?**
+A: Immune-inflamed ("hot") tumors with high CD8+ T-cell infiltration and PD-L1 expression respond best to checkpoint inhibitors (40-60% response rate). Immune-desert ("cold") tumors with few immune cells respond poorly (5-10%). This classification guides whether to use single-agent immunotherapy, combination therapy, or alternative approaches.
+
+**Q: What is spatial transcriptomics?**
+A: Traditional single-cell sequencing dissociates tissue, losing spatial information. Spatial transcriptomics preserves tissue architecture while measuring gene expression, revealing which cell types are adjacent and how they interact. The agent's `sc_spatial` collection contains reference spatial patterns for tumor-immune interfaces.
+
+### 17.9 Running Your First Query
+
+```bash
+# Analyze tumor microenvironment composition
+curl -X POST http://localhost:8130/v1/singlecell/query \
+  -H "Content-Type: application/json" \
+  -d '{"question": "What immunotherapy approach is best for an immune-desert NSCLC tumor with high CAF content?"}'
+```
+
+**Expected output:** A recommendation to convert the cold tumor to a hot phenotype through combination strategy (e.g., anti-VEGF + checkpoint inhibitor, or oncolytic virus + anti-PD-1), with evidence on CAF-mediated immunosuppression mechanisms and clinical trial options. Evidence from `sc_tme_profiles`, `sc_drug_responses`, and `sc_literature` collections.
+
+---
+
+## Chapter 18: Putting It All Together
+
+### 18.1 A Complete Patient Journey
 
 1. **Patient DNA arrives** as FASTQ files (200 GB raw sequencing data)
 2. **Stage 1 (Genomics, 120 min):** BWA-MEM2 aligns reads → DeepVariant calls variants → 11.7M variants in VCF
-3. **Annotation:** ClinVar matches (35,616), AlphaMissense predictions (6,831), VEP consequences → 3.5M searchable vectors in genomic_evidence
+3. **Annotation:** ClinVar matches (35,616), AlphaMissense predictions (6,831), VEP consequences → 3.56M annotated variant vectors in genomic_evidence
 4. **Stage 2 (Clinical Intelligence):** Clinician queries "What therapeutic targets exist for this patient?"
 5. **Oncology Agent** identifies BRAF V600E (Level IA evidence) → recommends dabrafenib + trametinib
 6. **Biomarker Agent** calculates biological age, detects cardiovascular trajectory risk
 7. **Pharmacogenomics Agent** identifies CYP2D6 poor metabolizer → flags codeine contraindication
 8. **Cardiology Agent** checks cardiac safety of proposed therapies → no LVEF concerns
-9. **Stage 3 (Drug Discovery, 5 min):** MolMIM generates 100+ BRAF inhibitor analogues → DiffDock scores binding → Top 10 candidates ranked by QED
-10. **Report generated:** PDF with ranked drug candidates ready for medicinal chemistry
+9. **Clinical Trial Agent** matches patient to 12 recruiting trials targeting BRAF V600E
+10. **Rare Disease Agent** classifies VUS in secondary findings using 23 ACMG criteria
+11. **Neurology Agent** screens for neurodegenerative risk variants (APOE, PSEN1)
+12. **Single-Cell Agent** profiles tumor microenvironment → immune-inflamed phenotype → checkpoint inhibitor candidate
+13. **Imaging Agent** correlates lung nodule findings with EGFR mutation status
+14. **Autoimmune Agent** screens HLA associations for drug hypersensitivity risk
+15. **Stage 3 (Drug Discovery, 5 min):** MolMIM generates 100+ BRAF inhibitor analogues → DiffDock scores binding → Top 10 candidates ranked by QED
+16. **Report generated:** PDF with ranked drug candidates ready for medicinal chemistry
 
 Total time: **<5 hours** on a single $4,699 DGX Spark.
 
-### 14.1b Cross-Agent Coordination
+### 18.1b Cross-Agent Coordination
 
 The agents do not operate in isolation. They coordinate through three mechanisms:
 
@@ -3067,7 +3518,7 @@ are detected. Other agents subscribe to relevant event streams:
 **3. Patient 360 Dashboard.** The biomarker agent's Patient 360 view aggregates
 findings from all agents into a unified patient summary.
 
-### 14.1c Collection Inventory
+### 18.1c Collection Inventory
 
 All collections across all 11 intelligence agents:
 
@@ -3080,10 +3531,14 @@ All collections across all 11 intelligence agents:
 | Autoimmune | autoimmune_clinical_documents through autoimmune_cross_disease | 13 |
 | PGx | pgx_gene_reference through pgx_education | 14 |
 | Cardiology | cardio_literature through cardio_hemodynamics | 12 |
+| Clinical Trial | trial_protocols through trial_comparators | 10 |
+| Rare Disease | rare_disease_phenotypes through rare_disease_acmg | 10 |
+| Neurology | neuro_diseases through neuro_pharmacology | 10 |
+| Single-Cell | sc_cell_atlas through sc_methods | 10 |
 | Shared | genomic_evidence | 1 |
-| **Total** | | **80** |
+| **Total** | **139 collections, ~47,691 vectors** | **139** |
 
-### 14.2 The Technology Stack
+### 18.2 The Technology Stack
 
 | Component | Technology | Purpose |
 |---|---|---|
@@ -3099,8 +3554,9 @@ All collections across all 11 intelligence agents:
 | API | FastAPI | REST endpoints for programmatic access |
 | Monitoring | Prometheus + Grafana | Observability and dashboards |
 | Orchestration | Docker Compose + Nextflow | Multi-service deployment and pipeline management |
+| **Platform Scale** | **3 engines, 11 agents, 21 services** | **139 collections, ~47,691 vectors** |
 
-### 14.3 Complete Port Map
+### 18.3 Complete Port Map
 
 | Port | Service | Agent/Pipeline |
 |---|---|---|
@@ -3116,11 +3572,15 @@ All collections across all 11 intelligence agents:
 | 8531/8532 | Autoimmune Agent | Intelligence |
 | 8507/8107 | Pharmacogenomics Agent | Intelligence |
 | 8126/8536 | Cardiology Agent (API/UI) | Intelligence |
+| 8538/8128 | Clinical Trial Agent (UI/API) | Intelligence |
+| 8134/8544 | Rare Disease Agent (API/UI) | Intelligence |
+| 8528/8529 | Neurology Agent (UI/API) | Intelligence |
+| 8540/8130 | Single-Cell Agent (UI/API) | Intelligence |
 | 19530 | Milvus (shared) | Infrastructure |
 | 9099 | Prometheus | Monitoring |
 | 3000 | Grafana | Monitoring |
 
-### 14.4 Getting Started
+### 18.4 Getting Started
 
 ```bash
 # Start the full platform
@@ -3233,7 +3693,11 @@ curl http://localhost:8080/api/check-services
 | Autoimmune        | 14                | 1        | 15    |
 | Pharmacogenomics  | 15                | 1        | 16    |
 | Cardiology        | 13                | 1        | 14    |
-| **Total**         | **83**            | **1 shared** | **84 unique** |
+| Clinical Trial    | 10                | 1        | 11    |
+| Rare Disease      | 10                | 1        | 11    |
+| Neurology         | 10                | 1        | 11    |
+| Single-Cell       | 10                | 1        | 11    |
+| **Total**         | **138**           | **1 shared** | **139 unique** |
 
 ### Full Collection List (alphabetical by agent)
 
@@ -3295,6 +3759,34 @@ PHARMACOGENOMICS (15 owned)
   pgx_pediatric                  pgx_population_frequencies
   pgx_psychiatry
 
+CLINICAL TRIAL (10 owned)
+  trial_protocols                trial_biomarkers
+  trial_endpoints                trial_results
+  trial_sites                    trial_eligibility
+  trial_drugs                    trial_literature
+  trial_regulatory               trial_comparators
+
+RARE DISEASE (10 owned)
+  rare_disease_phenotypes        rare_disease_genes
+  rare_disease_variants          rare_disease_guidelines
+  rare_disease_therapies         rare_disease_trials
+  rare_disease_newborn           rare_disease_literature
+  rare_disease_registries        rare_disease_acmg
+
+NEUROLOGY (10 owned)
+  neuro_diseases                 neuro_genes
+  neuro_pathways                 neuro_therapies
+  neuro_trials                   neuro_imaging
+  neuro_cognitive                neuro_guidelines
+  neuro_literature               neuro_pharmacology
+
+SINGLE-CELL (10 owned)
+  sc_cell_atlas                  sc_markers
+  sc_tme_profiles                sc_drug_responses
+  sc_signatures                  sc_spatial
+  sc_ligand_receptor             sc_literature
+  sc_trials                      sc_methods
+
 SHARED (1)
   genomic_evidence               (3,560,000 vectors, read by all)
 ```
@@ -3346,18 +3838,41 @@ SHARED (1)
 43. What is the CHA2DS2-VASc score used for?
 44. Name three genomic triggers that activate automatic cardiac assessment.
 
-### Chapter 14: Integration
+### Chapter 14: Clinical Trial Intelligence
 
-45. How long does the complete patient journey take, from DNA to drug
+45. What three stages of matching does the Clinical Trial Agent perform?
+46. Why do only 5-8% of eligible cancer patients enroll in clinical trials?
+
+### Chapter 15: Rare Disease Diagnostic
+
+47. How many ACMG criteria does the agent implement, and how many rare
+    diseases does it cover?
+48. What is phenotype-driven differential diagnosis, and how does HPO
+    help?
+
+### Chapter 16: Neurology
+
+49. How does SCN1A genotype change epilepsy treatment decisions?
+50. What role does APOE genotyping play in Alzheimer's management?
+
+### Chapter 17: Single-Cell
+
+51. What are the four TME phenotypes, and which responds best to
+    immunotherapy?
+52. How does the Single-Cell Agent bridge to CAR-T target validation?
+
+### Chapter 18: Integration
+
+53. How long does the complete patient journey take, from DNA to drug
     candidates?
-46. What two mechanisms do agents use to coordinate with each other?
-47. How many total Milvus collections does the platform maintain?
+54. What three mechanisms do agents use to coordinate with each other?
+55. How many total Milvus collections does the platform maintain?
 
 ---
 
 *HCLS AI Factory Learning Guide Foundations -- Unified Edition*
-*Version 1.3.0 | March 2026 | Adam Jones*
-*Apache 2.0 License | NVIDIA DGX Spark Platform*
+*License: Apache 2.0 | Date: March 2026 | Adam Jones*
+*NVIDIA DGX Spark Platform | v1.3.0*
 
 ---
 
