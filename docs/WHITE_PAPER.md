@@ -575,7 +575,7 @@ This paper has presented the CAR-T Intelligence Agent, a multi-collection RAG sy
 3. **Intelligent query expansion:** 12 maps with 229 keywords expanding to 1,961 terms, using a dual strategy (field-filter for antigens, semantic re-embedding for non-antigens) that significantly improves recall without sacrificing precision.
 4. **Structured comparative analysis:** Auto-detection and resolution of "X vs Y" queries with dual retrieval, entity-grouped evidence, and structured output (comparison tables, advantages/limitations, clinical context).
 5. **Citation provenance:** Every evidence item carries a clickable link to its primary source, maintaining the traceability that scientific work demands.
-6. **Hardware democratization:** The complete system runs on a single NVIDIA DGX Spark ($4,699), reducing the infrastructure barrier from hundreds of thousands of dollars to under $4,000.
+6. **Hardware democratization:** The complete system runs on a single NVIDIA DGX Spark ($4,699), reducing the infrastructure barrier from hundreds of thousands of dollars to under $5,000.
 7. **Open-source availability:** 21,259 lines of Python across 61 files, 415 automated tests, released under the Apache 2.0 license.
 
 ### 14.2 Future Directions
