@@ -3,14 +3,9 @@
 
 ![CAR-T Intelligence Agent Architecture Infographic](infographic.jpg)
 
-*Source: [github.com/ajones1923/cart-intelligence-agent](https://github.com/ajones1923/cart-intelligence-agent)*
-
 > **Part of the [Precision Intelligence Network](../engines/precision-intelligence.md)** — one of 11 specialized agents sharing a common molecular foundation within the HCLS AI Factory.
 
 Cross-functional intelligence across the CAR-T cell therapy development lifecycle. Part of the [HCLS AI Factory](https://github.com/ajones1923/hcls-ai-factory).
-
-
-**Source:** [github.com/ajones1923/cart-intelligence-agent](https://github.com/ajones1923/cart-intelligence-agent)
 
 ## Overview
 
