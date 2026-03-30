@@ -1451,7 +1451,7 @@ pytest tests/ --cov=src --cov-report=html
 | 11 | `3210594` | Citation links + evidence panel | Clickable PubMed/CT.gov links, evidence cards |
 | 12 | `7b519c9` | Comparative analysis mode | Entity parsing, dual retrieval, comparison prompts |
 | 13 | `052c5ec` | README update | Updated documentation |
-| 14 | `2925e13` | Design doc v1.2.0 | Revised architecture documentation |
+| 14 | `2925e13` | Design doc v1.3.0 | Revised architecture documentation |
 | 15 | `41bd76f` | Markdown + JSON export | Export system (2 formats) |
 | 16 | `9f466a3` | PDF export with NVIDIA theme | reportlab PDF generation with NVIDIA styling |
 | 17 | `1ed77e8` | 5 new collections | safety, biomarkers, regulatory, sequences, real-world |
