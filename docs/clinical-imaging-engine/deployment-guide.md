@@ -343,6 +343,20 @@ docker pull nvcr.io/nvidia/monailabel:latest
 # Start all 16 services
 docker compose up -d
 
+### Download MONAI Model Weights (Optional, 1.87 GB)
+
+For live DICOM analysis (real GPU inference instead of mock mode):
+
+```bash
+python3 -c "
+from monai.bundle import download
+for bundle in ["wholeBody_ct_segmentation", "lung_nodule_ct_detection",
+               "wholeBrainSeg_Large_UNEST_segmentation", "breast_density_classification",
+               "prostate_mri_anatomy", "vista3d"]:
+    download(name=bundle, bundle_dir="data/models")
+"
+```
+
 # Monitor startup progress
 docker compose logs -f
 ```
@@ -596,7 +610,7 @@ docker inspect imaging-nim-llm | grep -A 5 DeviceRequests
 
 ### 5.5 Systemd Service (Auto-Start on Boot)
 
-Create `/etc/systemd/system/clinical-imaging-engine.service`:
+Create `/etc/systemd/system/imaging-intelligence-engine.service`:
 
 ```ini
 [Unit]
@@ -621,14 +635,14 @@ Enable and start:
 
 ```bash
 sudo systemctl daemon-reload
-sudo systemctl enable clinical-imaging-engine.service
-sudo systemctl start clinical-imaging-engine.service
-sudo systemctl status clinical-imaging-engine.service
+sudo systemctl enable imaging-intelligence-engine.service
+sudo systemctl start imaging-intelligence-engine.service
+sudo systemctl status imaging-intelligence-engine.service
 ```
 
 ### 5.6 Log Rotation
 
-Create `/etc/logrotate.d/clinical-imaging-engine`:
+Create `/etc/logrotate.d/imaging-intelligence-engine`:
 
 ```
 /var/lib/docker/containers/*/*.log {
@@ -677,6 +691,20 @@ and multi-user session support.
 # The React portal is included in the Enterprise and Research tiers
 # For standalone launch:
 docker compose up -d react-portal
+
+### Download MONAI Model Weights (Optional, 1.87 GB)
+
+For live DICOM analysis (real GPU inference instead of mock mode):
+
+```bash
+python3 -c "
+from monai.bundle import download
+for bundle in ["wholeBody_ct_segmentation", "lung_nodule_ct_detection",
+               "wholeBrainSeg_Large_UNEST_segmentation", "breast_density_classification",
+               "prostate_mri_anatomy", "vista3d"]:
+    download(name=bundle, bundle_dir="data/models")
+"
+```
 
 # Verify React portal
 curl -s http://localhost:8550/api/health
@@ -858,6 +886,20 @@ and COSINE distance metric.
 ### 7.2 Automated Setup
 
 The `imaging-setup` container runs automatically on `docker compose up` and handles
+
+### Download MONAI Model Weights (Optional, 1.87 GB)
+
+For live DICOM analysis (real GPU inference instead of mock mode):
+
+```bash
+python3 -c "
+from monai.bundle import download
+for bundle in ["wholeBody_ct_segmentation", "lung_nodule_ct_detection",
+               "wholeBrainSeg_Large_UNEST_segmentation", "breast_density_classification",
+               "prostate_mri_anatomy", "vista3d"]:
+    download(name=bundle, bundle_dir="data/models")
+"
+```
 collection creation and data seeding:
 
 ```bash
@@ -945,6 +987,20 @@ docker run --rm \
   -v $(pwd)/backups:/backup \
   alpine tar xzf /backup/milvus-backup-20260311.tar.gz -C /data
 docker compose up -d
+
+### Download MONAI Model Weights (Optional, 1.87 GB)
+
+For live DICOM analysis (real GPU inference instead of mock mode):
+
+```bash
+python3 -c "
+from monai.bundle import download
+for bundle in ["wholeBody_ct_segmentation", "lung_nodule_ct_detection",
+               "wholeBrainSeg_Large_UNEST_segmentation", "breast_density_classification",
+               "prostate_mri_anatomy", "vista3d"]:
+    download(name=bundle, bundle_dir="data/models")
+"
+```
 ```
 
 ---
@@ -1229,6 +1285,20 @@ Or export from a secrets manager before launching:
 export ANTHROPIC_API_KEY=$(vault kv get -field=api_key secret/imaging/anthropic)
 export NGC_API_KEY=$(vault kv get -field=api_key secret/imaging/ngc)
 docker compose up -d
+
+### Download MONAI Model Weights (Optional, 1.87 GB)
+
+For live DICOM analysis (real GPU inference instead of mock mode):
+
+```bash
+python3 -c "
+from monai.bundle import download
+for bundle in ["wholeBody_ct_segmentation", "lung_nodule_ct_detection",
+               "wholeBrainSeg_Large_UNEST_segmentation", "breast_density_classification",
+               "prostate_mri_anatomy", "vista3d"]:
+    download(name=bundle, bundle_dir="data/models")
+"
+```
 ```
 
 ### 10.2 CORS Configuration
@@ -1328,7 +1398,7 @@ For production, place a reverse proxy (nginx, Traefik, Caddy) in front of the
 services with TLS:
 
 ```nginx
-# /etc/nginx/sites-available/clinical-imaging-engine
+# /etc/nginx/sites-available/imaging-intelligence-engine
 server {
     listen 443 ssl http2;
     server_name imaging.yourdomain.com;
@@ -1464,7 +1534,7 @@ Add to your `prometheus.yml`:
 
 ```yaml
 scrape_configs:
-  - job_name: 'clinical-imaging-engine-api'
+  - job_name: 'imaging-intelligence-engine-api'
     scrape_interval: 15s
     static_configs:
       - targets: ['localhost:8524']
@@ -1504,7 +1574,7 @@ docker compose logs imaging-api 2>&1 | grep "ERROR"
 docker compose logs imaging-api 2>&1 | grep "WARNING"
 
 # Export logs to file
-docker compose logs --no-color > clinical-imaging-engine-logs-$(date +%Y%m%d).txt
+docker compose logs --no-color > imaging-intelligence-engine-logs-$(date +%Y%m%d).txt
 ```
 
 ---
@@ -1566,6 +1636,20 @@ docker compose logs milvus-minio
    docker compose down
    docker volume rm imaging_intelligence_agent_etcd_data
    docker compose up -d
+
+### Download MONAI Model Weights (Optional, 1.87 GB)
+
+For live DICOM analysis (real GPU inference instead of mock mode):
+
+```bash
+python3 -c "
+from monai.bundle import download
+for bundle in ["wholeBody_ct_segmentation", "lung_nodule_ct_detection",
+               "wholeBrainSeg_Large_UNEST_segmentation", "breast_density_classification",
+               "prostate_mri_anatomy", "vista3d"]:
+    download(name=bundle, bundle_dir="data/models")
+"
+```
    ```
 
 2. **Port conflict:** Another service using 19530 or 9091:
@@ -1625,6 +1709,20 @@ docker compose ps imaging-streamlit
 1. **Container not running:**
    ```bash
    docker compose up -d imaging-streamlit
+
+### Download MONAI Model Weights (Optional, 1.87 GB)
+
+For live DICOM analysis (real GPU inference instead of mock mode):
+
+```bash
+python3 -c "
+from monai.bundle import download
+for bundle in ["wholeBody_ct_segmentation", "lung_nodule_ct_detection",
+               "wholeBrainSeg_Large_UNEST_segmentation", "breast_density_classification",
+               "prostate_mri_anatomy", "vista3d"]:
+    download(name=bundle, bundle_dir="data/models")
+"
+```
    ```
 
 2. **Waiting for Milvus:** Streamlit depends on Milvus health check:

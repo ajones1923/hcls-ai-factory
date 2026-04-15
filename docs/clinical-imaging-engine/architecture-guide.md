@@ -637,6 +637,8 @@ Three.js rotating point cloud visualization for 3D volumetric data display in th
 
 ### 11.12 React Portal
 
+**Live Analysis Layer.** A DICOMAnalyzer class (`src/dicom_analyzer.py`) provides real GPU inference on uploaded DICOM files. It auto-detects modality from DICOM headers, routes to the appropriate workflow, and runs actual model inference (DenseNet-121 for CXR, threshold segmentation for CT/MRI). Six MONAI model bundles (1.87 GB) are downloaded for production inference. API endpoints at `/analyze/*` handle file upload, sample analysis, and status reporting. The React portal exposes this at `/live-analysis` with drag-and-drop upload.
+
 Full React portal with 10 pages, providing a modern web interface alongside the Streamlit workbench.
 
 ---

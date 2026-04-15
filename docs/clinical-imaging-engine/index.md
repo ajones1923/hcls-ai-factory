@@ -172,3 +172,16 @@ Markdown | JSON | PDF | FHIR R4 (103 SNOMED codes) | DICOM SR (TID 1500)
 
 !!! warning "Clinical Decision Support Disclaimer"
     The Clinical Imaging Engine is a clinical decision support research tool. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.
+
+## Live DICOM Analysis
+
+Upload real DICOM files for actual AI inference — not mock data.
+
+| Feature | Detail |
+|---------|--------|
+| **CXR Analysis** | DenseNet-121, 18 pathology labels, ~100ms inference |
+| **CT Volume Analysis** | 64-slice series processing with segmentation |
+| **Auto-Detection** | Modality routing from DICOM headers (CR, DX, CT, MR, MG) |
+| **MONAI Models** | 6 bundles downloaded (1.87 GB) — wholeBody CT, lung nodule, brain UNEST, breast density, prostate anatomy, VISTA-3D |
+| **React Page** | Drag-and-drop upload at `/live-analysis` |
+| **Results** | Green "LIVE INFERENCE" badge distinguishes from canned demos |
