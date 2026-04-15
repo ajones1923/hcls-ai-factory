@@ -297,7 +297,7 @@ Claude will identify VCP as the primary target with:
 | Phase 2 | DGX B200 | Department — multiple concurrent patients |
 | Phase 3 | DGX SuperPOD | Enterprise — thousands concurrent, federated |
 
-**10 Intelligence Agents:**
+**8 Specialized Agents:**
 
 - "The platform includes 11 specialized intelligence agents spanning oncology, biomarkers, CAR-T, imaging, autoimmune, pharmacogenomics, cardiology, clinical trials, rare disease, neurology, and single-cell analysis."
 

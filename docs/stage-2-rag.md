@@ -158,7 +158,7 @@ This variant becomes the input for [Stage 3: Drug Discovery](stage-3-drug-discov
 
 ---
 
-## The Precision Intelligence Engine — 8 Agents
+## The Precision Intelligence Engine — 8 Specialized Agents
 
 Stage 2 is more than a search engine. It powers the **Precision Intelligence Engine** — a constellation of **11 intelligence agents**, each specialized for a clinical domain. All agents share read-only access to the 3.56 million annotated variant vectors in the `genomic_evidence` collection and follow a common five-phase reasoning loop: plan, search, evaluate, synthesize, report.
 

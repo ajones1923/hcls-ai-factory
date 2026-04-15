@@ -43,7 +43,7 @@ The HCLS AI Factory transforms patient DNA into ranked novel drug candidates in 
 - **201 genes** across **13 therapeutic areas**, **171 druggable targets** (85%)
 - Output: Validated target gene with full evidence chain, clinical reports (PDF, FHIR R4)
 
-**The 10 Intelligence Agents:**
+**The 8 Specialized Agents:**
 
 | Agent | Key Capabilities |
 |---|---|
@@ -76,7 +76,7 @@ The HCLS AI Factory transforms patient DNA into ranked novel drug candidates in 
 | Input Data | ~200 GB FASTQ (30x WGS) |
 | Variants Called | ~11.7 million |
 | Annotated Variants | ~3.56 million |
-| Intelligence Agents | 11 (spanning 11 medical specialties) |
+| Specialized Agents | 8 (spanning 11 medical specialties) |
 | Milvus Collections | 139 (agent-owned) + shared genomic evidence |
 | Agent Vectors | ~47,691 (domain-specific) |
 | Services | 21 (engines + agents + infrastructure) |
