@@ -138,7 +138,7 @@ ls rag-chat-pipeline/data/annotations/                # ClinVar + AlphaMissense
 
 - "This is the HCLS AI Factory — a platform that transforms patient DNA into novel drug candidates in under 5 hours."
 - "Everything runs on this single DGX Spark — a $4,699 desktop workstation."
-- "Three engines: the Genomic Foundation Engine for GPU-accelerated genomics, the Precision Intelligence Network for RAG-grounded target identification with 11 intelligence agents, and the Therapeutic Discovery Engine for AI-driven drug discovery."
+- "Three engines: the Genomic Foundation Engine for GPU-accelerated genomics, the Precision Intelligence Network for RAG-grounded target identification with 10 intelligence agents, and the Therapeutic Discovery Engine for AI-driven drug discovery."
 
 **Show:** Landing page at http://localhost:8080 — highlight the 10-service health grid.
 
@@ -297,7 +297,7 @@ Claude will identify VCP as the primary target with:
 | Phase 2 | DGX B200 | Department — multiple concurrent patients |
 | Phase 3 | DGX SuperPOD | Enterprise — thousands concurrent, federated |
 
-**11 Intelligence Agents:**
+**10 Intelligence Agents:**
 
 - "The platform includes 11 specialized intelligence agents spanning oncology, biomarkers, CAR-T, imaging, autoimmune, pharmacogenomics, cardiology, clinical trials, rare disease, neurology, and single-cell analysis."
 

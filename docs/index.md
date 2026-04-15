@@ -1,7 +1,7 @@
 ---
 template: home.html
 title: HCLS AI Factory — Precision Medicine to Drug Discovery
-description: 11 Intelligence Agents. 3 Engines. Transform patient DNA into therapeutic candidates in hours, not months. Open source on NVIDIA DGX Spark.
+description: 10 Intelligence Agents. 4 Engines. Transform patient DNA into therapeutic candidates in hours, not months. Open source on NVIDIA DGX Spark.
 hide:
   - navigation
   - toc
