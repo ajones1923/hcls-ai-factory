@@ -284,7 +284,7 @@ User types: "What is the best AI model for detecting intracranial hemorrhage?"
       - imaging_findings
       - imaging_protocols
       - imaging_devices
-      - imaging_anatomy (103 SNOMED codes)
+      - imaging_anatomy (54 SNOMED CT codes)
       - imaging_benchmarks
       - imaging_guidelines
       - imaging_report_templates
@@ -400,7 +400,7 @@ The Clinical Imaging Engine (Engine 4) has six main layers:
 1. **The user** interacts with the React portal (port 8550), Streamlit UI (port 8525), or sends requests to the FastAPI REST API (port 8524).
 2. **The RAG engine** embeds the question using BGE-small-en-v1.5, searches all 13 Milvus collections (38,028 vectors) in parallel, expands the query using 12 domain-specific expansion maps, and retrieves knowledge graph context. NeMo Guardrails validates all inputs and outputs for safety.
 3. **Milvus** (port 19530) performs fast cosine-similarity search using IVF_FLAT indexes, returning the most relevant evidence from each collection.
-4. **The knowledge graph** adds structured facts (pathology characteristics, modality physics, anatomical relationships, scoring system criteria, 103 SNOMED codes) that complement the vector search results.
+4. **The knowledge graph** adds structured facts (pathology characteristics, modality physics, anatomical relationships, scoring system criteria, 54 SNOMED CT codes) that complement the vector search results.
 5. **NIM services** provide inference capabilities via 9 clients: Llama 3 8B generates text responses, VISTA-3D and NV-Segment-CT segment 3D medical images, MAISI generates synthetic imaging data, VILA-M3 handles multimodal vision-language tasks, MONAI Label provides interactive annotation, Holoscan enables real-time streaming, and RAPIDS powers population analytics. Protocol optimization covers 12 ACR indications with DRL dose comparison.
 
 ### The 13 collections as "specialized libraries"
@@ -566,7 +566,7 @@ After each query or workflow run, you can export results:
 | 3 | `imaging_findings` | Structured radiology findings | Clinical knowledge bases |
 | 4 | `imaging_protocols` | Imaging acquisition protocols | Institutional protocols, ACR |
 | 5 | `imaging_devices` | FDA-cleared AI/ML devices | FDA database, manufacturer data |
-| 6 | `imaging_anatomy` | Anatomical structures and labels (103 SNOMED codes) | SNOMED CT, FMA, VISTA-3D |
+| 6 | `imaging_anatomy` | Anatomical structures and labels (54 SNOMED CT codes) | SNOMED CT, FMA, VISTA-3D |
 | 7 | `imaging_benchmarks` | AI model performance data | RSNA, MICCAI, published studies |
 | 8 | `imaging_guidelines` | Clinical imaging guidelines | ACR, Fleischner, NCCN, AHA |
 | 9 | `imaging_report_templates` | Structured reporting templates | ACR, RadLex, institutional |

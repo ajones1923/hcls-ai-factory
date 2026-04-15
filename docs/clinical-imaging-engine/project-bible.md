@@ -102,7 +102,7 @@ CrossModalTrigger enriches clinical findings with genomic context via 8 cross-mo
 
 Five export formats: Markdown, JSON, PDF, FHIR R4 DiagnosticReport Bundle, and DICOM SR (Structured Report via highdicom TID 1500):
 - FHIR Bundle contains Patient, ImagingStudy, Observation, and DiagnosticReport resources
-- 103 SNOMED CT codes for findings (hemorrhage=50960005, nodule=416940007, etc.)
+- 54 SNOMED CT codes (103 mapped findings) for findings (hemorrhage=50960005, nodule=416940007, etc.)
 - LOINC coding for category (LP29684-5 Radiology) and code (18748-4 Diagnostic imaging study)
 - DICOM modality codes (CT, MR, DX, CR, US, PT, MG, RF)
 - Observation Interpretation codes mapped from FindingSeverity
@@ -478,7 +478,7 @@ When local NIM containers are unavailable, the engine falls back to NVIDIA Cloud
 
 6. **Dose Intelligence** -- Dashboard comparing standard vs AI-optimized radiation doses across 20 protocols. Plotly bar charts, 36% average dose reduction, DLIR technique details, ALARA compliance.
 
-7. **Reports & Export** -- Generate clinical reports in 5 formats: Markdown (copy-paste), JSON (programmatic), NVIDIA-themed PDF (documentation), FHIR R4 DiagnosticReport Bundle (EHR interoperability with 103 SNOMED CT codes and LOINC coding), and DICOM SR (Structured Report via highdicom TID 1500).
+7. **Reports & Export** -- Generate clinical reports in 5 formats: Markdown (copy-paste), JSON (programmatic), NVIDIA-themed PDF (documentation), FHIR R4 DiagnosticReport Bundle (EHR interoperability with 54 SNOMED CT codes (103 mapped findings) and LOINC coding), and DICOM SR (Structured Report via highdicom TID 1500).
 
 8. **Patient 360** -- Cross-modal genomic enrichment results showing gene-finding relationships. Interactive Plotly network graph connecting imaging findings to genetic risk factors. Gene details with clinical significance and AlphaMissense scores.
 
@@ -615,7 +615,7 @@ All configuration via Pydantic `BaseSettings` in `config/settings.py`. Environme
 | Report NLP | Full radiology report parsing pipeline, imaging_reports collection | Implemented |
 | 38,028 Vectors | 1,938 real PubMed papers, 13 collections total | Implemented |
 | 1,324 Tests | Expanded from 620 across all new modules | Implemented |
-| 103 SNOMED Codes | Expanded from 34 for comprehensive finding coverage | Implemented |
+| 54 SNOMED CT Codes (103 mapped findings) | Expanded from 34 for comprehensive finding coverage | Implemented |
 | 8 Cross-Modal Triggers | Added BI-RADS, TI-RADS, LI-RADS triggers | Implemented |
 | Protocol Optimization | 12 ACR indications with patient-specific safety | Implemented |
 | Dose Tracking | DRL comparison, cumulative alerts | Implemented |

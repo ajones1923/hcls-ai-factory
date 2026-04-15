@@ -1164,7 +1164,7 @@ The test suite consists of 18 modules with 1,324 tests, all passing:
 | `test_rag_engine.py` | ~105 | Retrieve, query, comparative, scoring |
 | `test_workflows.py` | ~120 | All 9 workflows, mock inference, postprocess |
 | `test_agent.py` | ~80 | Agent orchestrator, search planning, agentic reasoning |
-| `test_knowledge.py` | ~70 | Knowledge graph lookups, 103 SNOMED codes |
+| `test_knowledge.py` | ~70 | Knowledge graph lookups, 54 SNOMED CT codes |
 | `test_nim_clients.py` | ~115 | All 9 NIM clients, fallback chains |
 | `test_dicom_ingestion.py` | ~55 | DICOM watcher, Orthanc events |
 | `test_cross_modal.py` | ~70 | 8 trigger evaluators, genomic queries |
@@ -1355,7 +1355,7 @@ The FHIR R4 export produces a standards-compliant `DiagnosticReport` resource wi
 | edema | 267038008 |
 | normal | 17621005 |
 
-The system maps 103 SNOMED codes in total across all anatomy entries, findings, and pathologies (expanded from 34 in the initial release).
+The system maps 54 SNOMED CT codes in total across all anatomy entries, findings, and pathologies (expanded from 34 in the initial release).
 
 **Severity to FHIR Interpretation mapping:**
 
