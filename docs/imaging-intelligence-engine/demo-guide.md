@@ -13,7 +13,7 @@ tags:
 
 > **Two demos. One story. Global impact.**
 >
-> Engine 4 of the HCLS AI Factory. Apache 2.0. $4,699.
+> Engine 4 of the HCLS AI Factory. Apache 2.0. NVIDIA DGX Spark.
 
 ---
 
@@ -33,7 +33,7 @@ tags:
 | **Demo 1 Duration** | 21 minutes (Imaging Engine only) |
 | **Demo 2 Duration** | 27 minutes (4-engine closed loop) |
 | **Combined Duration** | ~48 minutes total |
-| **Hardware** | NVIDIA DGX Spark (GB10, 128 GB unified, $4,699) |
+| **Hardware** | NVIDIA DGX Spark (GB10, 128 GB unified) |
 | **Total Vectors** | 38,028 across 13 collections (1,938 real PubMed papers) |
 | **React Portal** | `http://localhost:8550` |
 | **API URL** | `http://localhost:8524` |
@@ -47,7 +47,7 @@ tags:
 | **Tests Passing** | 1,324 |
 | **Demo Cases** | 9 clinical scenarios |
 | **Audience** | NVIDIA HCLS, VAST Data, healthcare IT, radiologists, open-source community |
-| **Story** | What one $4,699 box can do for a community hospital that has never had AI |
+| **Story** | What one DGX Spark can do for a community hospital that has never had AI |
 
 **The patient:** Maria Santos, 58-year-old woman in rural New Mexico. 20-pack-year smoking history. Annual lung cancer screening CT. The only AI infrastructure at her hospital is a single NVIDIA DGX Spark sitting in the radiology reading room.
 
@@ -115,7 +115,7 @@ Four engine architecture cards span the page. Engines 1-3 (Genomics, RAG/Chat, D
 
 **Script:**
 
-> "This is the Clinical Imaging Engine — Engine 4 of the HCLS AI Factory. Everything you see is running on one device. An NVIDIA DGX Spark. $4,699. The size of a Mac Studio."
+> "This is the Clinical Imaging Engine — Engine 4 of the HCLS AI Factory. Everything you see is running on one device. An NVIDIA DGX Spark. The size of a Mac Studio."
 
 Point to the sidebar:
 
@@ -469,7 +469,7 @@ Four benchmark cards showing clinical accuracy metrics (Lung: 94.2% sensitivity,
 | **NVIDIA HCLS** | 20 NVIDIA technologies, NIM adoption, DGX Spark sales | Act 2 (technology count), Act 3 (cross-modal trigger) |
 | **VAST Data** | Enterprise upgrade path, VAST AI OS, co-sell | Act 12 (the number), transition to Demo 2 |
 | **Radiologists** | Lung-RADS accuracy, standardized scoring, DICOM SR | Act 3 (Maria Santos), Act 7 (Protocol) |
-| **Hospital CIOs** | Data sovereignty, $4,699 TCO, no cloud | Act 1 (one device), Act 12 (the number) |
+| **Hospital CIOs** | Data sovereignty, desktop-class TCO, no cloud | Act 1 (one device), Act 12 (the number) |
 | **Open-source community** | Apache 2.0, 1,324 tests, git clone | Act 1 (one command), Act 12 |
 | **Oncologists** | Cross-modal genomic triggers, EGFR/BRCA | Act 3 (genomic bridge), Act 5 (all organ systems) |
 
@@ -698,7 +698,7 @@ Results:
 | **2** | Precision Intelligence | Found EGFR L858R, validated druggable target | 2 minutes |
 | **3** | Therapeutic Discovery | Generated 100 EGFR inhibitor candidates | 16 minutes |
 
-> "Total active time from CT scan to drug candidates: under one hour. On a $4,699 NVIDIA DGX Spark. With zero software licensing costs."
+> "Total active time from CT scan to drug candidates: under one hour. On a single NVIDIA DGX Spark. With zero software licensing costs."
 
 > "No other system on earth does this. Not commercially. Not in open source. Not at any price point."
 
@@ -771,7 +771,7 @@ Or run Demo 2 standalone in ~27 minutes (briefly recap the Lung-RADS 4B finding 
 
 | Number | What |
 |--------|------|
-| **$4,699** | DGX Spark price. Hardware only. Zero software cost. |
+| **DGX Spark** | Desktop-class hardware. Zero software cost. |
 | **38,028** | Vectors indexed across 13 collections |
 | **1,938** | Real PubMed papers in the literature collection |
 | **9** | Clinical workflows |
@@ -821,7 +821,7 @@ Or run Demo 2 standalone in ~27 minutes (briefly recap the Lung-RADS 4B finding 
 ## The Story Arc
 
 ```
-"This shouldn't be possible"     -> One box. $4,699. Community hospital.
+"This shouldn't be possible"     -> One box. One DGX Spark. Community hospital.
   |
 "But it is"                      -> 9 workflows. Real scoring. Real images.
   |
@@ -868,7 +868,7 @@ Demo 2 builds:
   "Clone it. Deploy it. Improve it."
 ```
 
-The silences are as important as the words. After "45 minutes, one device" — stop talking for 3 full seconds. After "$4,699, Apache 2.0" — stop for 3 more. Let the audience process what they just saw.
+The silences are as important as the words. After "45 minutes, one device" — stop talking for 3 full seconds. After the price reveal and "Apache 2.0" — stop for 3 more. Let the audience process what they just saw.
 
 ---
 
@@ -881,7 +881,7 @@ No one has ever demonstrated, on any platform at any price point:
 3. That mutation driving AI-powered drug candidate generation
 4. 100 novel molecules generated, validated, docked, and ranked
 5. The entire cycle completing in under one hour
-6. On a single desktop device costing $4,699
+6. On a single desktop-class DGX Spark
 7. With the entire platform available as open source under Apache 2.0
 
 Each of these individually would be impressive. All seven together, in sequence, live, on one device — that's unprecedented.

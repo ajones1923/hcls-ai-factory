@@ -32,7 +32,7 @@ Three barriers explain this deployment gap:
 
 ### 1.2 Democratizing Medical Imaging AI
 
-The NVIDIA DGX Spark addresses the first barrier with a $4,699 system featuring a GB10 GPU (Blackwell architecture), 128 GB unified LPDDR5x memory, and 20 ARM cores (Grace architecture) -- sufficient to run multiple AI inference models simultaneously with no cloud dependency. The Clinical Imaging Engine (Engine 4) addresses the second and third barriers by providing a complete, open-source platform that integrates 20 NVIDIA technologies, combining evidence retrieval, inference orchestration, agentic reasoning, guardrails, and clinical workflow automation in a single deployable package.
+The NVIDIA DGX Spark addresses the first barrier with a desktop-class system featuring a GB10 GPU (Blackwell architecture), 128 GB unified LPDDR5x memory, and 20 ARM cores (Grace architecture) -- sufficient to run multiple AI inference models simultaneously with no cloud dependency. The Clinical Imaging Engine (Engine 4) addresses the second and third barriers by providing a complete, open-source platform that integrates 20 NVIDIA technologies, combining evidence retrieval, inference orchestration, agentic reasoning, guardrails, and clinical workflow automation in a single deployable package.
 
 ### 1.3 Design Goals
 
@@ -52,7 +52,7 @@ This paper makes five contributions:
 1. A **multi-collection RAG architecture** with 13 imaging-specific vector collections (38,028 vectors, 1,938 real PubMed papers) and parallel search with weighted scoring, delivering cross-domain evidence synthesis for radiology queries.
 2. A **3-domain knowledge graph** with 25+ pathologies, 9 modalities, and 21 anatomical structures that augments vector retrieval with structured clinical context including 103 SNOMED CT codes, FMA, and ICD-10 codes.
 3. A **cross-modal genomic bridge** with 8 triggers that automatically invoke precision medicine queries when imaging findings exceed clinical severity thresholds.
-4. A **reference deployment architecture** integrating 20 NVIDIA technologies, demonstrating that enterprise-grade medical imaging AI can run on a single $4,699 device with 128 GB unified memory in a 3-tier deployment model (Community/Enterprise/Research).
+4. A **reference deployment architecture** integrating 20 NVIDIA technologies, demonstrating that enterprise-grade medical imaging AI can run on a single DGX Spark with 128 GB unified memory in a 3-tier deployment model (Community/Enterprise/Research).
 5. A **complete open-source implementation** comprising 1,324 tests across 12 modules, 19+ API endpoints, 9 clinical workflows, 9 NIM clients, AIQ agentic reasoning, NeMo Guardrails, and 9 MONAI Deploy MAPs released under Apache 2.0.
 
 ---
@@ -437,7 +437,7 @@ The deployment model prioritizes data sovereignty:
 |-----------|-------------------|-------|
 | Data sovereignty | Complete -- no data leaves device | Dependent on cloud provider |
 | Latency | Deterministic, no network variability | Variable, network-dependent |
-| Recurring cost | None (one-time $4,699) | $500-5,000+/month |
+| Recurring cost | None (one-time hardware purchase) | $500-5,000+/month |
 | Compliance | HIPAA/GDPR straightforward | Requires BAA, data residency |
 | Availability | 100% uptime (local) | Dependent on cloud availability |
 | Scalability | Fixed (1 device) | Elastic |
@@ -609,7 +609,7 @@ The Clinical Imaging Engine makes five contributions to the field of medical ima
 
 3. **Reference clinical workflows.** Nine end-to-end analysis pipelines implementing standardized scoring systems (Lung-RADS, CAD-RADS, PI-RADS, ASPECTS, BI-RADS, TI-RADS, LI-RADS) with graceful degradation from live inference to mock mode. PyRadiomics-CUDA extracts ~1,500 radiomics features. Holoscan enables real-time ultrasound/endoscopy streaming. Nine MONAI Deploy MAPs are packaged for clinical deployment.
 
-4. **Hardware democratization.** A complete deployment architecture integrating 20 NVIDIA technologies -- nine NIM clients, vector database, PACS server, web viewer, React portal, agentic reasoning, guardrails, and application stack -- on a single NVIDIA DGX Spark ($4,699) with 128 GB unified memory, requiring no cloud dependency. 3-tier deployment: Community/Enterprise/Research.
+4. **Hardware democratization.** A complete deployment architecture integrating 20 NVIDIA technologies -- nine NIM clients, vector database, PACS server, web viewer, React portal, agentic reasoning, guardrails, and application stack -- on a single NVIDIA DGX Spark with 128 GB unified memory, requiring no cloud dependency. 3-tier deployment: Community/Enterprise/Research.
 
 5. **Open-source implementation.** 1,324 tests across 12 modules, 19+ API endpoints across 8 routers, 9 Streamlit UI tabs, a React portal with 10 pages, 9 clinical workflows, 9 NIM clients, AIQ agentic reasoning, NeMo Guardrails, and 5 export formats (including DICOM SR) released under Apache 2.0 with comprehensive documentation.
 
