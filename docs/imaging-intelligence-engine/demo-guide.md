@@ -9,13 +9,22 @@ tags:
   - Clinical Decision Support
 ---
 
-# Clinical Imaging Engine -- Demo Guide
+# Clinical Imaging Engine -- Demo Guides
 
-> **UI-driven walkthrough for demonstrating the Clinical Imaging Engine on DGX Spark.**
+> **Two demos. One story. Global impact.**
 >
-> All live demo interaction uses the Streamlit Imaging Workbench -- no terminal commands during the presentation.
+> Engine 4 of the HCLS AI Factory. 9 Workflows. 7 Scoring Systems. 20 NVIDIA Technologies. Apache 2.0.
 >
-> License: Apache 2.0 | Date: March 2026
+> License: Apache 2.0 | Date: April 2026
+
+---
+
+## Download Demo Guides
+
+| Demo | Description | Download |
+|------|-------------|----------|
+| **Demo 1: Imaging Engine** | Engine 4 standalone. 9 workflows, 7 scoring systems, cross-modal genomic triggers, 3D visualization, evidence search across 1,938 PubMed papers. 21 minutes, 12 acts. | [:material-download: Demo Guide 1 (.docx)](Clinical_Imaging_Engine_Demo_Guide_1_(1_eng).docx){ .md-button } |
+| **Demo 2: Closed Loop (4 Engines)** | CT scan → genomic analysis → drug candidate generation. All 4 engines working together. 27 minutes, 10 acts. | [:material-download: Demo Guide 2 (.docx)](Clinical_Imaging_Engine_Demo_Guide_2_(mult_eng).docx){ .md-button } |
 
 ---
 
@@ -23,15 +32,22 @@ tags:
 
 | Parameter | Value |
 |---|---|
-| **Total Duration** | 25 minutes |
-| **Hardware** | NVIDIA DGX Spark (GB10, 128 GB unified) |
-| **Total Vectors** | 876 seed vectors across 10 owned collections |
-| **Streamlit URL** | `http://localhost:8525` |
+| **Demo 1 Duration** | 21 minutes (Imaging Engine only) |
+| **Demo 2 Duration** | 27 minutes (4-engine closed loop) |
+| **Hardware** | NVIDIA DGX Spark (GB10, 128 GB unified, $4,699) |
+| **Total Vectors** | 38,028 across 13 collections (1,938 real PubMed papers) |
+| **React Portal** | `http://localhost:8550` |
+| **Streamlit UI** | `http://localhost:8525` |
 | **API URL** | `http://localhost:8524` |
-| **LLM** | Claude Sonnet 4.6 (Anthropic) |
+| **LLM** | Claude Sonnet / Llama-3 8B (Ollama) |
 | **Milvus** | `http://localhost:19530` |
-| **Collections** | 10 owned + 1 shared `genomic_evidence` |
-| **Workflows** | 6 (CT Head Hemorrhage, CT Chest Lung Nodule, CT Coronary Angiography, CXR Rapid Findings, MRI Brain MS Lesion, MRI Prostate PI-RADS) |
+| **Collections** | 13 (11 imaging-specific + 1 radiomics + 1 shared genomic_evidence) |
+| **Workflows** | 9 (CT Head, CT Chest, CT Coronary, CXR, MRI Brain MS, MRI Prostate, Breast BI-RADS, Thyroid TI-RADS, Liver LI-RADS) |
+| **Scoring Systems** | 7 (Lung-RADS, BI-RADS, TI-RADS, LI-RADS, CAD-RADS, PI-RADS, ASPECTS) |
+| **Cross-Modal Triggers** | 8 (linking imaging to 35K genomic variants) |
+| **NVIDIA Technologies** | 20 (all free, Apache 2.0/BSD/MIT/Open Model) |
+| **Tests Passing** | 1,324 |
+| **Demo Cases** | 9 clinical scenarios |
 
 ### What the Audience Will See
 
