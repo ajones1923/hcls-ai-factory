@@ -2,6 +2,7 @@
 
 **Author:** Adam Jones
 **Date:** March 2026
+**Version:** 2.0.0
 **License:** Apache 2.0
 
 ---
@@ -25,10 +26,13 @@
 
 ## 1. Overview
 
-The Clinical Imaging Engine is a clinical decision support system for radiology,
-providing multi-collection RAG-based question answering, NVIDIA NIM inference
-microservices, reference clinical workflows, and PACS integration. It is one of
-five intelligence agents in the HCLS AI Factory platform.
+The Clinical Imaging Engine (Engine 4) is a clinical decision support system for
+radiology, providing multi-collection RAG-based question answering, 9 NVIDIA NIM
+clients, 9 clinical workflows, radiomics feature extraction, radiology report NLP,
+NeMo Guardrails, protocol optimization with ACR indications, dose tracking with DRL
+comparison, RAPIDS population analytics, Holoscan real-time streaming, 9 MONAI Deploy
+MAPs, and PACS integration. It is one of five intelligence engines in the HCLS AI
+Factory platform.
 
 ### What This Guide Covers
 
@@ -37,12 +41,12 @@ This guide walks through three deployment profiles:
 | Profile | Services | GPU Required | Use Case |
 |---------|----------|-------------|----------|
 | **Docker Lite** | 6 services | No | Demo, testing, CI/CD, development |
-| **Docker Full Stack** | 11 services | Yes (NVIDIA) | Full inference with NIM containers |
-| **DGX Spark Production** | 11 services | Yes (DGX Spark) | Production deployment on NVIDIA DGX Spark |
+| **Docker Full Stack** | 16 services | Yes (NVIDIA) | Full inference with NIM containers |
+| **DGX Spark Production** | 16 services | Yes (DGX Spark) | Production deployment on NVIDIA DGX Spark |
 
 ### Service Inventory
 
-**Docker Full Stack — 11 services:**
+**Docker Full Stack — 16 services:**
 
 | # | Service | Image | Port(s) |
 |---|---------|-------|---------|
@@ -53,11 +57,15 @@ This guide walks through three deployment profiles:
 | 5 | Milvus | `milvusdb/milvus:v2.4.17` | 19530, 9091 |
 | 6 | Imaging Streamlit UI | Built from Dockerfile | 8525 |
 | 7 | Imaging FastAPI Server | Built from Dockerfile | 8524 |
-| 8 | Imaging Setup (one-shot) | Built from Dockerfile | — |
-| 9 | NIM LLM (Llama-3 8B) | `nvcr.io/nvidia/nim/meta-llama3-8b-instruct:latest` | 8520 |
-| 10 | NIM VISTA-3D | `nvcr.io/nvidia/nim/vista3d:latest` | 8530 |
-| 11 | NIM MAISI | `nvcr.io/nvidia/nim/maisi:latest` | 8531 |
-| 12 | NIM VILA-M3 | `nvcr.io/nvidia/nim/vilam3:latest` | 8532 |
+| 8 | React Portal | Built from Dockerfile | 8550 |
+| 9 | Imaging Setup (one-shot) | Built from Dockerfile | — |
+| 10 | NIM LLM (Llama-3 8B) | `nvcr.io/nvidia/nim/meta-llama3-8b-instruct:latest` | 8520 |
+| 11 | NIM VISTA-3D | `nvcr.io/nvidia/nim/vista3d:latest` | 8530 |
+| 12 | NIM MAISI | `nvcr.io/nvidia/nim/maisi:latest` | 8531 |
+| 13 | NIM VILA-M3 | `nvcr.io/nvidia/nim/vilam3:latest` | 8532 |
+| 14 | NIM NV-Segment-CT | `nvcr.io/nvidia/nim/nv-segment-ct:latest` | 8534 |
+| 15 | MONAI Label | `nvcr.io/nvidia/monailabel:latest` | 8527 |
+| 16 | NeMo Guardrails | Built from Dockerfile | 8540 |
 
 **Docker Lite Stack — 6 services:**
 
@@ -202,15 +210,15 @@ docker compose -f docker-compose.lite.yml logs -f imaging-setup
 ```
 
 The setup container will:
-1. Create all 10 Milvus collections with IVF_FLAT indexes
-2. Seed findings, protocols, devices, anatomy, benchmarks, guidelines, report templates, and datasets
+1. Create all 13 Milvus collections with IVF_FLAT indexes
+2. Seed findings, protocols, devices, anatomy, benchmarks, guidelines, report templates, datasets, radiomics features, and report NLP data
 3. Exit with code 0 on success
 
 Expected output (final lines):
 
 ```
 imaging-setup  | ===== Seeding datasets =====
-imaging-setup  | ===== Imaging Agent Setup complete! =====
+imaging-setup  | ===== Imaging Engine Setup complete! =====
 imaging-setup exited with code 0
 ```
 
@@ -259,7 +267,8 @@ docker compose -f docker-compose.lite.yml down -v
 
 ## 4. Full Stack Deployment (Docker with GPU + NIM Services)
 
-The Full Stack adds Orthanc DICOM server, OHIF viewer, and 4 NVIDIA NIM containers
+The Full Stack adds Orthanc DICOM server, OHIF viewer, React portal (port 8550),
+NeMo Guardrails, MONAI Label, and 5 NVIDIA NIM containers (including NV-Segment-CT)
 for on-device medical imaging inference. This requires an NVIDIA GPU with the
 Container Toolkit installed.
 
@@ -286,6 +295,16 @@ IMAGING_NIM_LLM_URL=http://nim-llm:8000
 IMAGING_NIM_VISTA3D_URL=http://nim-vista3d:8000
 IMAGING_NIM_MAISI_URL=http://nim-maisi:8000
 IMAGING_NIM_VILAM3_URL=http://nim-vilam3:8000
+IMAGING_NIM_SEGMENT_CT_URL=http://nim-segment-ct:8000
+
+# MONAI Label
+IMAGING_MONAI_LABEL_URL=http://monai-label:8000
+
+# NeMo Guardrails
+IMAGING_GUARDRAILS_URL=http://nemo-guardrails:8540
+
+# React Portal
+IMAGING_PORTAL_PORT=8550
 
 # Milvus
 IMAGING_MILVUS_HOST=milvus-standalone
@@ -314,12 +333,14 @@ docker pull nvcr.io/nvidia/nim/meta-llama3-8b-instruct:latest
 docker pull nvcr.io/nvidia/nim/vista3d:latest
 docker pull nvcr.io/nvidia/nim/maisi:latest
 docker pull nvcr.io/nvidia/nim/vilam3:latest
+docker pull nvcr.io/nvidia/nim/nv-segment-ct:latest
+docker pull nvcr.io/nvidia/monailabel:latest
 ```
 
 ### 4.3 Launch the Full Stack
 
 ```bash
-# Start all 11 services
+# Start all 16 services
 docker compose up -d
 
 # Monitor startup progress
@@ -366,11 +387,14 @@ curl -s http://localhost:9091/healthz
 
 | Service | URL |
 |---------|-----|
+| React Portal | [http://localhost:8550](http://localhost:8550) |
 | Streamlit Chat UI | [http://localhost:8525](http://localhost:8525) |
 | FastAPI Docs (Swagger) | [http://localhost:8524/docs](http://localhost:8524/docs) |
 | OHIF DICOM Viewer | [http://localhost:8526](http://localhost:8526) |
 | Orthanc Explorer | [http://localhost:8042](http://localhost:8042) |
+| MONAI Label | [http://localhost:8527](http://localhost:8527) |
 | NIM LLM | [http://localhost:8520](http://localhost:8520) |
+| NIM NV-Segment-CT | [http://localhost:8534](http://localhost:8534) |
 | Milvus Metrics | [http://localhost:9091/metrics](http://localhost:9091/metrics) |
 
 ### 4.6 Test NIM Inference
@@ -431,15 +455,19 @@ HCLS AI Factory agents running on the same host.
 
 | Service | Internal Port | External Port (DGX Spark) |
 |---------|--------------|---------------------------|
+| React Portal | 8550 | **8550** |
 | Streamlit UI | 8525 | **8505** |
 | FastAPI Server | 8524 | **8105** |
 | Orthanc REST | 8042 | 8042 |
 | Orthanc DICOM | 4242 | 4242 |
 | OHIF Viewer | 80 (container) | 8526 |
+| MONAI Label | 8000 (container) | 8527 |
 | NIM LLM | 8000 (container) | 8520 |
 | NIM VISTA-3D | 8000 (container) | 8530 |
 | NIM MAISI | 8000 (container) | 8531 |
 | NIM VILA-M3 | 8000 (container) | 8532 |
+| NIM NV-Segment-CT | 8000 (container) | 8534 |
+| NeMo Guardrails | 8540 | 8540 |
 | Milvus gRPC | 19530 | 19530 |
 | Milvus Metrics | 9091 | 9091 |
 
@@ -568,11 +596,11 @@ docker inspect imaging-nim-llm | grep -A 5 DeviceRequests
 
 ### 5.5 Systemd Service (Auto-Start on Boot)
 
-Create `/etc/systemd/system/imaging-agent.service`:
+Create `/etc/systemd/system/imaging-intelligence-engine.service`:
 
 ```ini
 [Unit]
-Description=Clinical Imaging Engine — HCLS AI Factory
+Description=Clinical Imaging Engine (Engine 4) — HCLS AI Factory
 After=docker.service nvidia-persistenced.service
 Requires=docker.service
 
@@ -593,14 +621,14 @@ Enable and start:
 
 ```bash
 sudo systemctl daemon-reload
-sudo systemctl enable imaging-agent.service
-sudo systemctl start imaging-agent.service
-sudo systemctl status imaging-agent.service
+sudo systemctl enable imaging-intelligence-engine.service
+sudo systemctl start imaging-intelligence-engine.service
+sudo systemctl status imaging-intelligence-engine.service
 ```
 
 ### 5.6 Log Rotation
 
-Create `/etc/logrotate.d/imaging-agent`:
+Create `/etc/logrotate.d/imaging-intelligence-engine`:
 
 ```
 /var/lib/docker/containers/*/*.log {
@@ -614,6 +642,55 @@ Create `/etc/logrotate.d/imaging-agent`:
     copytruncate
 }
 ```
+
+---
+
+## 5.7 Deployment Tiers
+
+The Clinical Imaging Engine supports three deployment tiers using Docker Compose
+profiles. All 20 NVIDIA technologies are free in the Community Edition.
+
+| Tier | Profile | Services | GPU | Use Case |
+|------|---------|----------|-----|----------|
+| **Community** | `--profile community` | Core RAG + Streamlit + 3 NIMs | 1x GPU (24 GB) | Open-source, single-researcher |
+| **Enterprise** | `--profile enterprise` | Full stack + React portal + Guardrails + MONAI Deploy | 1-4x GPU | Clinical deployment, multi-user |
+| **Research** | `--profile research` | Enterprise + FLARE + RAPIDS + Holoscan | Multi-GPU | Federated learning, population analytics |
+
+```bash
+# Launch Community tier
+docker compose --profile community up -d
+
+# Launch Enterprise tier
+docker compose --profile enterprise up -d
+
+# Launch Research tier (includes all services)
+docker compose --profile research up -d
+```
+
+### 5.8 React Portal Setup (Port 8550)
+
+The React portal provides a modern web interface for the Clinical Imaging Engine,
+complementing the Streamlit UI with interactive dashboards, workflow management,
+and multi-user session support.
+
+```bash
+# The React portal is included in the Enterprise and Research tiers
+# For standalone launch:
+docker compose up -d react-portal
+
+# Verify React portal
+curl -s http://localhost:8550/api/health
+```
+
+Access the React portal at [http://localhost:8550](http://localhost:8550).
+
+The portal connects to the FastAPI backend (port 8524) and provides:
+- Interactive workflow dashboard with 9 clinical workflows
+- Real-time NIM service status monitoring (9 NIM clients)
+- Population analytics powered by RAPIDS
+- DICOM study browser with OHIF viewer integration
+- Dose tracking dashboard with DRL comparison
+- Protocol optimization panel with 12 ACR indications
 
 ---
 
@@ -755,10 +832,10 @@ sum to approximately 1.0.
 
 ## 7. Milvus Collection Setup
 
-The Clinical Imaging Engine uses 10 dedicated Milvus collections plus 1 shared
-read-only collection from the Stage 2 RAG pipeline. All collections use
-BGE-small-en-v1.5 embeddings (384 dimensions), IVF_FLAT index type, and COSINE
-distance metric.
+The Clinical Imaging Engine uses 12 dedicated Milvus collections plus 1 shared
+read-only collection from the Stage 2 RAG pipeline (13 total, 38,028 vectors). All
+collections use BGE-small-en-v1.5 embeddings (384 dimensions), IVF_FLAT index type,
+and COSINE distance metric.
 
 ### 7.1 Collection Inventory
 
@@ -769,12 +846,14 @@ distance metric.
 | 3 | `imaging_findings` | Imaging finding templates and patterns | Seed data |
 | 4 | `imaging_protocols` | Acquisition protocols and parameters | Seed data |
 | 5 | `imaging_devices` | FDA-cleared AI/ML medical devices | Seed data |
-| 6 | `imaging_anatomy` | Anatomical structure references | Seed data |
+| 6 | `imaging_anatomy` | Anatomical structure references (103 SNOMED codes) | Seed data |
 | 7 | `imaging_benchmarks` | Model performance benchmarks | Seed data |
 | 8 | `imaging_guidelines` | Clinical practice guidelines (ACR, RSNA, NCCN) | Seed data |
 | 9 | `imaging_report_templates` | Structured radiology report templates | Seed data |
 | 10 | `imaging_datasets` | Public imaging datasets (TCIA, PhysioNet) | Seed data |
-| 11 | `genomic_evidence` | Shared from Stage 2 RAG pipeline (read-only) | Pre-existing |
+| 11 | `imaging_radiomics` | PyRadiomics features (~1,500 features per study) | Computed from DICOM |
+| 12 | `imaging_reports` | Parsed radiology reports (NLP-extracted entities) | Report NLP pipeline |
+| 13 | `genomic_evidence` | Shared from Stage 2 RAG pipeline (read-only) | Pre-existing |
 
 ### 7.2 Automated Setup
 
@@ -794,7 +873,7 @@ data manually:
 ```bash
 # Ensure Milvus is running on localhost:19530
 
-# Create all 10 collections (drops existing if --drop-existing flag used)
+# Create all 12 imaging collections (drops existing if --drop-existing flag used)
 python scripts/setup_collections.py --drop-existing
 
 # Seed each collection
@@ -872,9 +951,9 @@ docker compose up -d
 
 ## 8. NIM Service Configuration
 
-The agent integrates four NVIDIA NIM microservices for on-device medical imaging
-inference. Each NIM container exposes an OpenAI-compatible REST API on port 8000
-internally, mapped to unique external ports.
+The engine integrates 9 NVIDIA NIM clients for on-device medical imaging inference.
+Each NIM container exposes an OpenAI-compatible REST API on port 8000 internally,
+mapped to unique external ports.
 
 ### 8.1 NIM Service Overview
 
@@ -884,6 +963,11 @@ internally, mapped to unique external ports.
 | **VISTA-3D** (3D Segmentation) | `nvcr.io/nvidia/nim/vista3d:latest` | 8000 | 8530 | ~8 GB |
 | **MAISI** (Synthetic CT) | `nvcr.io/nvidia/nim/maisi:latest` | 8000 | 8531 | ~8 GB |
 | **VILA-M3** (Vision-Language) | `nvcr.io/nvidia/nim/vilam3:latest` | 8000 | 8532 | ~8 GB |
+| **NV-Segment-CT** (CT Segmentation) | `nvcr.io/nvidia/nim/nv-segment-ct:latest` | 8000 | 8534 | ~8 GB |
+
+Additionally, the engine uses 4 client integrations for MONAI Label, NeMo Guardrails,
+Holoscan streaming, and RAPIDS analytics that are not NIM containers but are managed
+through the same `BaseNIMClient` interface pattern.
 
 ### 8.2 NIM Modes
 
@@ -928,6 +1012,9 @@ curl -s http://localhost:8520/v1/health/ready  # LLM
 curl -s http://localhost:8530/v1/health/ready  # VISTA-3D
 curl -s http://localhost:8531/v1/health/ready  # MAISI
 curl -s http://localhost:8532/v1/health/ready  # VILA-M3
+curl -s http://localhost:8534/v1/health/ready  # NV-Segment-CT
+curl -s http://localhost:8527/info              # MONAI Label
+curl -s http://localhost:8540/v1/health/ready  # NeMo Guardrails
 
 # Check all via FastAPI proxy
 curl -s http://localhost:8524/nim/status | python3 -m json.tool
@@ -944,10 +1031,15 @@ All NIM clients extend `BaseNIMClient` (defined in `src/nim/base.py`), which pro
 
 ```
 BaseNIMClient (ABC)
-  +-- LLMClient         (src/nim/llm_client.py)
-  +-- VISTA3DClient     (src/nim/vista3d_client.py)
-  +-- MAISIClient       (src/nim/maisi_client.py)
-  +-- VILAM3Client      (src/nim/vilam3_client.py)
+  +-- LLMClient              (src/nim/llm_client.py)
+  +-- VISTA3DClient           (src/nim/vista3d_client.py)
+  +-- MAISIClient             (src/nim/maisi_client.py)
+  +-- VILAM3Client            (src/nim/vilam3_client.py)
+  +-- SegmentCTClient         (src/nim/segment_ct_client.py)
+  +-- MONAILabelClient        (src/nim/monai_label_client.py)
+  +-- GuardrailsClient        (src/nim/guardrails_client.py)
+  +-- HoloscanClient          (src/nim/holoscan_client.py)
+  +-- RAPIDSAnalyticsClient   (src/nim/rapids_client.py)
 ```
 
 ### 8.6 Multi-GPU Allocation
@@ -1236,7 +1328,7 @@ For production, place a reverse proxy (nginx, Traefik, Caddy) in front of the
 services with TLS:
 
 ```nginx
-# /etc/nginx/sites-available/imaging-agent
+# /etc/nginx/sites-available/imaging-intelligence-engine
 server {
     listen 443 ssl http2;
     server_name imaging.yourdomain.com;
@@ -1287,6 +1379,9 @@ server {
 | `GET /v1/health/ready` | 8530 | NIM VISTA-3D readiness |
 | `GET /v1/health/ready` | 8531 | NIM MAISI readiness |
 | `GET /v1/health/ready` | 8532 | NIM VILA-M3 readiness |
+| `GET /v1/health/ready` | 8534 | NIM NV-Segment-CT readiness |
+| `GET /info` | 8527 | MONAI Label info |
+| `GET /v1/health/ready` | 8540 | NeMo Guardrails readiness |
 | `GET /system` | 8042 | Orthanc system info |
 
 ### 11.2 Health Check Script
@@ -1297,7 +1392,7 @@ server {
 
 set -e
 
-echo "=== Clinical Imaging Engine Health Check ==="
+echo "=== Clinical Imaging Engine (Engine 4) Health Check ==="
 echo ""
 
 # FastAPI
@@ -1321,7 +1416,7 @@ echo -n "OHIF (8526):        "
 curl -sf http://localhost:8526 > /dev/null && echo "OK" || echo "FAIL"
 
 # NIM services
-for svc in "LLM:8520" "VISTA-3D:8530" "MAISI:8531" "VILA-M3:8532"; do
+for svc in "LLM:8520" "VISTA-3D:8530" "MAISI:8531" "VILA-M3:8532" "NV-Segment-CT:8534" "Guardrails:8540"; do
   name="${svc%%:*}"
   port="${svc##*:}"
   echo -n "NIM $name ($port):  "
@@ -1369,7 +1464,7 @@ Add to your `prometheus.yml`:
 
 ```yaml
 scrape_configs:
-  - job_name: 'imaging-agent-api'
+  - job_name: 'imaging-intelligence-engine-api'
     scrape_interval: 15s
     static_configs:
       - targets: ['localhost:8524']
@@ -1409,7 +1504,7 @@ docker compose logs imaging-api 2>&1 | grep "ERROR"
 docker compose logs imaging-api 2>&1 | grep "WARNING"
 
 # Export logs to file
-docker compose logs --no-color > imaging-agent-logs-$(date +%Y%m%d).txt
+docker compose logs --no-color > imaging-intelligence-engine-logs-$(date +%Y%m%d).txt
 ```
 
 ---
@@ -1675,7 +1770,7 @@ docker compose version
 
 ### 12.11 Running Tests
 
-The project includes 620 tests:
+The project includes 1,324 tests:
 
 ```bash
 # Run all tests
@@ -1752,9 +1847,13 @@ All services join `imaging-network`. Docker DNS resolves service names
 | 8524 | FastAPI REST Server | HTTP |
 | 8525 | Streamlit Chat UI | HTTP |
 | 8526 | OHIF Viewer | HTTP |
+| 8527 | MONAI Label | HTTP |
 | 8530 | NIM VISTA-3D | HTTP |
 | 8531 | NIM MAISI | HTTP |
 | 8532 | NIM VILA-M3 | HTTP |
+| 8534 | NIM NV-Segment-CT | HTTP |
+| 8540 | NeMo Guardrails | HTTP |
+| 8550 | React Portal | HTTP |
 | 9091 | Milvus Metrics | HTTP |
 | 19530 | Milvus gRPC | gRPC |
 
@@ -1767,10 +1866,5 @@ All services join `imaging-network`. Docker DNS resolves service names
 
 ---
 
-*Last updated: March 2026*
-*Clinical Imaging Engine — HCLS AI Factory*
-
----
-
-!!! warning "Clinical Decision Support Disclaimer"
-    The Clinical Imaging Engine is a clinical decision support research tool for medical image analysis. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.
+*Last updated: April 2026*
+*Clinical Imaging Engine (Engine 4) v2.0.0 — HCLS AI Factory*

@@ -1,8 +1,9 @@
 # Clinical Imaging Engine -- Advanced Learning Guide
 
-**Date:** March 2026
+**Version:** 2.0
+**Date:** April 2026
 **Author:** Adam Jones
-**Audience:** Senior engineers, ML researchers, and platform architects extending the Clinical Imaging Engine
+**Audience:** Senior engineers, ML researchers, and platform architects extending the Clinical Imaging Engine (Engine 4)
 
 ---
 
@@ -45,7 +46,7 @@ agent/
     collections.py                  # ImagingCollectionManager (Milvus)
     cross_modal.py                  # Imaging->Genomics trigger (401 lines)
     demo_cases.py                   # Demo case definitions
-    export.py                       # 4-format export (691 lines)
+    export.py                       # 5-format export (MD/JSON/PDF/FHIR/DICOM SR)
     knowledge.py                    # Domain knowledge graph (1843 lines)
     models.py                       # 37 enums + 20 Pydantic models (728 lines)
     protocol_optimizer.py           # AI protocol optimization
@@ -73,7 +74,12 @@ agent/
       vista3d_client.py             # VISTA3DClient (215 lines)
       maisi_client.py               # MAISIClient (136 lines)
       vilam3_client.py              # VILAM3Client (537 lines)
-      service_manager.py            # NIMServiceManager
+      segment_ct_client.py          # SegmentCTClient
+      monai_label_client.py         # MONAILabelClient
+      guardrails_client.py          # GuardrailsClient (NeMo Guardrails)
+      holoscan_client.py            # HoloscanClient (real-time streaming)
+      rapids_client.py              # RAPIDSAnalyticsClient (population analytics)
+      service_manager.py            # NIMServiceManager (9 clients)
     workflows/
       base.py                       # BaseImagingWorkflow (83 lines)
       ct_head_hemorrhage.py         # ICH detection (488 lines)
@@ -82,6 +88,9 @@ agent/
       cxr_rapid_findings.py         # CXR classification (658 lines)
       mri_brain_ms_lesion.py        # MS lesion analysis (645 lines)
       mri_prostate_pirads.py        # PI-RADS scoring (280 lines)
+      breast_birads.py              # BI-RADS scoring
+      thyroid_tirads.py             # TI-RADS scoring
+      liver_lirads.py               # LI-RADS scoring
   tests/
     conftest.py                     # 10+ fixtures
     test_models.py                  # Data model validation
@@ -101,7 +110,7 @@ agent/
       cxr_classification/           # Chest X-ray classification FL job
       ct_segmentation/              # CT organ segmentation FL job
       lung_nodule_detection/        # Lung nodule detection FL job
-  docker-compose.yml                # Full stack (11 services)
+  docker-compose.yml                # Full stack (16 services)
   docker-compose.lite.yml           # Lite stack (6 services, no GPU)
   Dockerfile                        # Multi-stage build
 ```
@@ -145,7 +154,7 @@ def retrieve(self, query, top_k_per_collection=5, collections_filter=None,
              body_region_filter=None) -> CrossCollectionResult:
 ```
 
-**Key detail:** The `top_k_per_collection` parameter defaults to 5, meaning a full search across all 11 collections can return up to 55 candidate hits before weighted ranking.
+**Key detail:** The `top_k_per_collection` parameter defaults to 5, meaning a full search across all 13 collections can return up to 65 candidate hits before weighted ranking.
 
 ### 1.3 Score Weighting (COLLECTION_CONFIG)
 
@@ -163,9 +172,11 @@ Each collection has a weight that reflects its relevance priority:
 | `imaging_anatomy` | Anatomy | 0.06 | No | -- |
 | `imaging_datasets` | Dataset | 0.06 | Yes | -- |
 | `imaging_report_templates` | ReportTemplate | 0.05 | Yes | -- |
-| `genomic_evidence` | Genomic | 0.04 | No | -- |
+| `imaging_radiomics` | Radiomics | 0.04 | Yes | -- |
+| `imaging_reports` | Report | 0.04 | Yes | -- |
+| `genomic_evidence` | Genomic | 0.03 | No | -- |
 
-**Weights sum to 1.00.** Literature and Findings dominate because they contain the most clinically actionable evidence. The genomic collection has the lowest weight (0.04) because it provides cross-modal enrichment context rather than primary imaging evidence.
+**Weights sum to approximately 1.00.** Literature and Findings dominate because they contain the most clinically actionable evidence. The genomic collection has the lowest weight (0.04) because it provides cross-modal enrichment context rather than primary imaging evidence.
 
 The weighted score formula is:
 
@@ -234,7 +245,7 @@ Both automatically detect comparative queries via `_is_comparative()` and route 
 
 ### 2.1 Index Type: IVF_FLAT
 
-The Imaging Agent uses `IVF_FLAT` (Inverted File with Flat quantization) defined in `src/collections.py`:
+The Imaging Engine uses `IVF_FLAT` (Inverted File with Flat quantization) defined in `src/collections.py`:
 
 ```python
 INDEX_PARAMS = {
@@ -246,7 +257,7 @@ INDEX_PARAMS = {
 
 IVF_FLAT partitions vectors into 1024 Voronoi cells (clusters). At search time, only a subset of clusters is scanned, controlled by `nprobe`.
 
-**Why IVF_FLAT over HNSW?** For the Imaging Agent's collection sizes (hundreds to low thousands of records per collection), IVF_FLAT offers lower memory overhead than HNSW's graph structure while maintaining exact distance computation within probed clusters. HNSW would be preferred at scale (100K+ vectors per collection).
+**Why IVF_FLAT over HNSW?** For the Imaging Engine's collection sizes (hundreds to low thousands of records per collection), IVF_FLAT offers lower memory overhead than HNSW's graph structure while maintaining exact distance computation within probed clusters. HNSW would be preferred at scale (100K+ vectors per collection).
 
 ### 2.2 Distance Metric: COSINE
 
@@ -943,16 +954,19 @@ def run(self, input_path: str = "") -> WorkflowResult:
 
 The `mock_overrides` parameter allows demo cases to inject specific findings (e.g., force Lung-RADS 4B classification for a demo scenario).
 
-### 8.4 Six Implemented Workflows
+### 8.4 Nine Implemented Workflows
 
-| Workflow | File | Lines | Modality | Scoring System | Models |
-|---|---|---|---|---|---|
-| CT Head Hemorrhage | `ct_head_hemorrhage.py` | 488 | CT | Volume/midline shift | 3D U-Net, VISTA-3D |
-| CT Lung Nodule | `ct_chest_lung_nodule.py` | 598 | CT | Lung-RADS v2022 | DenseNet, VISTA-3D |
-| CT Coronary Angiography | `ct_coronary_angiography.py` | 357 | CT | CAD-RADS 2.0 | SegResNet |
-| CXR Rapid Findings | `cxr_rapid_findings.py` | 658 | CXR | Multi-finding classification | DenseNet-121 |
-| MRI Brain MS Lesion | `mri_brain_ms_lesion.py` | 645 | MRI | Lesion count/volume | nnU-Net, FLAIR |
-| MRI Prostate PI-RADS | `mri_prostate_pirads.py` | 280 | MRI | PI-RADS v2.1 | SegResNet |
+| Workflow | File | Modality | Scoring System | Models |
+|---|---|---|---|---|
+| CT Head Hemorrhage | `ct_head_hemorrhage.py` | CT | Volume/midline shift | 3D U-Net, VISTA-3D |
+| CT Lung Nodule | `ct_chest_lung_nodule.py` | CT | Lung-RADS v2022 | DenseNet, VISTA-3D |
+| CT Coronary Angiography | `ct_coronary_angiography.py` | CT | CAD-RADS 2.0 | SegResNet |
+| CXR Rapid Findings | `cxr_rapid_findings.py` | CXR | Multi-finding classification | DenseNet-121 |
+| MRI Brain MS Lesion | `mri_brain_ms_lesion.py` | MRI | Lesion count/volume | nnU-Net, FLAIR |
+| MRI Prostate PI-RADS | `mri_prostate_pirads.py` | MRI | PI-RADS v2.1 | SegResNet |
+| Breast BI-RADS | `breast_birads.py` | Mammo/US/MRI | BI-RADS 0-6 | DenseNet, VISTA-3D |
+| Thyroid TI-RADS | `thyroid_tirads.py` | Ultrasound | TI-RADS TR1-TR5 | SegResNet |
+| Liver LI-RADS | `liver_lirads.py` | CT/MRI | LI-RADS LR-1 to LR-5 | SegResNet, VISTA-3D |
 
 ### 8.5 Adding a New Workflow
 
@@ -1103,9 +1117,34 @@ The mock system is controlled by:
 - Per-client `mock_enabled` constructor parameter
 - `NIM_MODE: str = "local"` (values: "local", "cloud", "mock")
 
+**NV-Segment-CT Client (`segment_ct_client.py`):**
+```
+Local NV-Segment-CT NIM -> Mock (realistic segmentation results)
+```
+
+**MONAI Label Client (`monai_label_client.py`):**
+```
+Local MONAI Label -> Mock (annotation templates)
+```
+
+**Guardrails Client (`guardrails_client.py`):**
+```
+Local NeMo Guardrails -> Passthrough (no filtering)
+```
+
+**Holoscan Client (`holoscan_client.py`):**
+```
+Local Holoscan -> Mock (simulated streaming)
+```
+
+**RAPIDS Client (`rapids_client.py`):**
+```
+Local RAPIDS -> CPU fallback (pandas/scipy)
+```
+
 ### 9.5 NIMServiceManager
 
-The `NIMServiceManager` aggregates all four NIM clients and provides:
+The `NIMServiceManager` aggregates all nine NIM clients and provides:
 - `check_all_services()` -- returns status dict for all services
 - `get_available_services()` -- list of services with live endpoints
 - `get_client(name)` -- retrieve a specific client by name
@@ -1116,22 +1155,28 @@ The `NIMServiceManager` aggregates all four NIM clients and provides:
 
 ### 10.1 Test Suite Overview
 
-The test suite consists of 12 modules with 620 tests, all passing:
+The test suite consists of 18 modules with 1,324 tests, all passing:
 
 | Module | Tests | Focus |
 |---|---|---|
-| `test_models.py` | ~80 | Pydantic model validation, enum coverage |
-| `test_export.py` | ~60 | Markdown, JSON, PDF, FHIR R4 output |
-| `test_rag_engine.py` | ~75 | Retrieve, query, comparative, scoring |
-| `test_workflows.py` | ~65 | All 6 workflows, mock inference, postprocess |
-| `test_agent.py` | ~55 | Agent orchestrator, search planning |
-| `test_knowledge.py` | ~50 | Knowledge graph lookups, comparison context |
-| `test_nim_clients.py` | ~60 | All 4 NIM clients, fallback chains |
-| `test_dicom_ingestion.py` | ~40 | DICOM watcher, Orthanc events |
-| `test_cross_modal.py` | ~45 | Trigger evaluation, genomic queries |
-| `test_query_expansion.py` | ~35 | All 12 expansion maps |
-| `test_preview_generator.py` | ~30 | Slice animation, windowing |
-| `test_preview_api.py` | ~25 | Preview API endpoints |
+| `test_models.py` | ~110 | Pydantic model validation, enum coverage |
+| `test_export.py` | ~85 | Markdown, JSON, PDF, FHIR R4, DICOM SR output |
+| `test_rag_engine.py` | ~105 | Retrieve, query, comparative, scoring |
+| `test_workflows.py` | ~120 | All 9 workflows, mock inference, postprocess |
+| `test_agent.py` | ~80 | Agent orchestrator, search planning, agentic reasoning |
+| `test_knowledge.py` | ~70 | Knowledge graph lookups, 103 SNOMED codes |
+| `test_nim_clients.py` | ~115 | All 9 NIM clients, fallback chains |
+| `test_dicom_ingestion.py` | ~55 | DICOM watcher, Orthanc events |
+| `test_cross_modal.py` | ~70 | 8 trigger evaluators, genomic queries |
+| `test_query_expansion.py` | ~45 | All 12 expansion maps |
+| `test_preview_generator.py` | ~40 | Slice animation, windowing |
+| `test_preview_api.py` | ~35 | Preview API endpoints |
+| `test_radiomics.py` | ~65 | PyRadiomics feature extraction, ~1,500 features |
+| `test_report_nlp.py` | ~55 | Radiology report parsing, entity extraction |
+| `test_guardrails.py` | ~50 | NeMo Guardrails validation |
+| `test_protocol_optimizer.py` | ~60 | 12 ACR indications, DRL comparison |
+| `test_monai_deploy.py` | ~80 | 9 MONAI Deploy MAPs |
+| `test_holoscan.py` | ~40 | Real-time streaming pipeline |
 
 ### 10.2 The Mock-Everything Approach
 
@@ -1193,7 +1238,7 @@ def mock_collection_manager():
     return manager
 ```
 
-**mock_nim_services** -- all 4 NIM clients with mock responses (VISTA-3D segmentation, MAISI generation, VILA-M3 image analysis, LLM generation).
+**mock_nim_services** -- all 9 NIM clients with mock responses (VISTA-3D segmentation, MAISI generation, VILA-M3 image analysis, NV-Segment-CT segmentation, MONAI Label annotation, NeMo Guardrails validation, Holoscan streaming, RAPIDS analytics, LLM generation).
 
 **sample_search_hits** -- 5 SearchHit objects spanning literature, trials, findings, guidelines, and benchmarks.
 
@@ -1244,7 +1289,7 @@ def test_lung_rads_4b_triggers(trigger, mock_embedder):
 
 ### 11.1 Four Export Formats
 
-`src/export.py` (691 lines) provides four export functions:
+`src/export.py` provides five export functions:
 
 | Function | Output | Use Case |
 |---|---|---|
@@ -1252,6 +1297,7 @@ def test_lung_rads_4b_triggers(trigger, mock_embedder):
 | `export_json()` | String | API responses, downstream integration |
 | `export_pdf()` | File path | Clinical reports, presentations |
 | `export_fhir_r4()` | Dict | EHR integration, interoperability |
+| `export_dicom_sr()` | DICOM file | PACS integration, structured reporting archival |
 
 ### 11.2 Markdown Export
 
@@ -1309,6 +1355,8 @@ The FHIR R4 export produces a standards-compliant `DiagnosticReport` resource wi
 | edema | 267038008 |
 | normal | 17621005 |
 
+The system maps 103 SNOMED codes in total across all anatomy entries, findings, and pathologies (expanded from 34 in the initial release).
+
 **Severity to FHIR Interpretation mapping:**
 
 | Severity | FHIR Code |
@@ -1347,7 +1395,7 @@ class CrossModalTrigger:
     SCORE_THRESHOLD = 0.40
 ```
 
-### 12.2 Five Evaluator Functions
+### 12.2 Eight Evaluator Functions
 
 Each evaluator maps a workflow result to genomic query templates:
 
@@ -1358,6 +1406,9 @@ Each evaluator maps a workflow result to genomic query templates:
 | `_evaluate_brain_lesion` | `mri_brain_ms_lesion` | Classification contains "highly_active" | HLA-DRB1 susceptibility, treatment response |
 | `_evaluate_cardiac` | `ct_coronary_angiography` | CAD-RADS >= 3 | LDLR, PCSK9, APOB, polygenic risk |
 | `_evaluate_prostate` | `mri_prostate_pirads` | PI-RADS >= 4 | BRCA2, HOXB13, ATM susceptibility |
+| `_evaluate_breast` | `breast_birads` | BI-RADS >= 4 | BRCA1, BRCA2, PALB2, ATM, CHEK2 |
+| `_evaluate_thyroid` | `thyroid_tirads` | TI-RADS TR4, TR5 | RET, BRAF V600E, RAS, PAX8/PPARG |
+| `_evaluate_liver` | `liver_lirads` | LI-RADS >= LR-4 | TP53, CTNNB1, TERT promoter, AFP |
 
 ### 12.3 Severity Threshold Mapping
 
@@ -1443,7 +1494,7 @@ The `Dockerfile` uses a multi-stage build:
 
 ### 13.2 Compose Topology
 
-**Full stack** (`docker-compose.yml`) -- 11 services:
+**Full stack** (`docker-compose.yml`) -- 16 services:
 
 ```
 orthanc (8042, 4242)          -- DICOM server + web viewer
@@ -1453,11 +1504,15 @@ milvus-minio                  -- Milvus object storage (MinIO)
 milvus-standalone (19530)     -- Milvus vector database
 imaging-streamlit (8525)      -- Streamlit chat UI
 imaging-api (8524)            -- FastAPI REST server
+react-portal (8550)           -- React portal UI
 imaging-setup                 -- One-shot collection + seed
 nim-llm (8520)                -- Meta Llama 3 NIM
 nim-vista3d (8530)            -- NVIDIA VISTA-3D NIM
 nim-maisi (8531)              -- NVIDIA MAISI NIM
 nim-vilam3 (8532)             -- VILA-M3 VLM NIM
+nim-segment-ct (8534)         -- NV-Segment-CT NIM
+monai-label (8527)            -- MONAI Label
+nemo-guardrails (8540)        -- NeMo Guardrails
 ```
 
 **Lite stack** (`docker-compose.lite.yml`) -- 6 services (no GPU required):
@@ -1488,6 +1543,9 @@ All NIM-dependent features run in mock mode with the Lite stack.
 | NIM VISTA-3D | 8530 | HTTP |
 | NIM MAISI | 8531 | HTTP |
 | NIM VILA-M3 | 8532 | HTTP |
+| NIM NV-Segment-CT | 8534 | HTTP |
+| NeMo Guardrails | 8540 | HTTP |
+| React Portal | 8550 | HTTP |
 
 ### 13.4 Health Checks
 
@@ -1558,6 +1616,11 @@ WORKFLOW_ROUTING = {
     ("DX", "chest"): "cxr_rapid_findings",
     ("MR", "brain"): "mri_brain_ms_lesion",
     ("MR", "head"): "mri_brain_ms_lesion",
+    ("MR", "prostate"): "mri_prostate_pirads",
+    ("MG", "breast"): "breast_birads",
+    ("US", "thyroid"): "thyroid_tirads",
+    ("CT", "liver"): "liver_lirads",
+    ("MR", "liver"): "liver_lirads",
 }
 ```
 
@@ -1565,9 +1628,98 @@ WORKFLOW_ROUTING = {
 
 ---
 
-## Chapter 14: Future Architecture
+## Chapter 14: Radiomics and Report NLP
 
-### 14.1 Federated Learning with NVIDIA FLARE
+### 14.1 PyRadiomics Feature Extraction
+
+The `imaging_radiomics` collection stores quantitative imaging features extracted using PyRadiomics. Each study yields approximately 1,500 features across seven feature classes:
+
+| Feature Class | Features | Description |
+|---|---|---|
+| Shape | ~14 | Volume, surface area, sphericity, elongation, flatness |
+| First Order | ~18 | Mean, median, skewness, kurtosis, entropy, energy |
+| GLCM | ~24 | Gray-Level Co-occurrence Matrix (contrast, correlation, homogeneity) |
+| GLRLM | ~16 | Gray-Level Run-Length Matrix (run emphasis, non-uniformity) |
+| GLSZM | ~16 | Gray-Level Size Zone Matrix (zone emphasis, entropy) |
+| GLDM | ~14 | Gray-Level Dependence Matrix (dependence emphasis) |
+| NGTDM | ~5 | Neighbourhood Gray-Tone Difference Matrix (coarseness, busyness) |
+
+Wavelet decompositions (8 sub-bands) multiply the texture features, yielding ~1,500 total features per ROI.
+
+### 14.2 Radiology Report NLP Pipeline
+
+The `imaging_reports` collection stores parsed radiology reports. The NLP pipeline extracts:
+
+- **Findings**: Named entities (lesions, measurements, anatomical locations)
+- **Impressions**: Clinical conclusion sentences
+- **Measurements**: Numeric values with units and comparison to prior
+- **Laterality**: Left, right, bilateral designation
+- **Severity**: Urgency classification from report language
+- **Comparison**: References to prior studies with dates
+
+### 14.3 Agentic Reasoning
+
+The Clinical Imaging Engine implements agentic reasoning through a plan-search-synthesize loop with NeMo Guardrails validation at each step. The agent autonomously:
+
+1. Analyzes the user query to identify clinical intent
+2. Plans a multi-step search strategy across relevant collections
+3. Evaluates evidence sufficiency and generates sub-questions if needed
+4. Validates all outputs through NeMo Guardrails before delivery
+
+### 14.4 Protocol Optimization and Dose Tracking
+
+**Protocol optimization** covers 12 ACR indications with AI-recommended acquisition parameters:
+
+| ACR Indication | Modality | Key Parameters |
+|---|---|---|
+| Lung cancer screening | CT | Low-dose, 1mm slice, no contrast |
+| PE evaluation | CT | CTA, bolus tracking, 0.625mm |
+| Stroke | CT/MRI | Non-contrast CT + CTA, or DWI/FLAIR/MRA |
+| Coronary CTA | CT | Prospective gating, 0.6mm, beta-blocker |
+| Liver lesion | MRI | Multiphasic, hepatobiliary agent |
+| And 7 more... | Various | Per ACR guidelines |
+
+**Dose tracking** compares patient radiation doses against Diagnostic Reference Levels (DRLs) and tracks cumulative exposure with ALARA compliance scoring.
+
+### 14.5 RAPIDS Population Analytics
+
+RAPIDS-powered GPU-accelerated analytics enable population-level analysis across the radiomics and reports collections, including:
+
+- Cohort stratification by radiomics feature clusters
+- Temporal trend analysis of findings across patient populations
+- Dose distribution analysis and outlier detection
+- Cross-modal correlation between imaging features and outcomes
+
+### 14.6 Holoscan Real-Time Streaming
+
+The Holoscan integration enables real-time streaming inference for:
+
+- Live DICOM study processing as images arrive from the scanner
+- Real-time annotation overlay during image acquisition
+- Streaming segmentation results to the OHIF viewer
+- Continuous monitoring of critical finding detection
+
+### 14.7 MONAI Deploy MAPs
+
+The engine includes 9 MONAI Application Packages (MAPs) for deployment:
+
+| MAP | Task | Modality |
+|---|---|---|
+| CT Organ Segmentation | Multi-organ segmentation | CT |
+| Lung Nodule Detection | CADe lung nodules | CT |
+| Brain Lesion Segmentation | Tumor/lesion delineation | MRI |
+| Cardiac Function | LV/RV segmentation + EF | CT/MRI |
+| Breast Density | Density classification | Mammography |
+| Liver Lesion | HCC/metastasis detection | CT/MRI |
+| Thyroid Nodule | Nodule characterization | Ultrasound |
+| Spine Segmentation | Vertebral body segmentation | CT |
+| Chest X-ray Triage | Multi-finding classification | CXR |
+
+---
+
+## Chapter 15: Future Architecture
+
+### 15.1 Federated Learning with NVIDIA FLARE
 
 The `flare/` directory contains federated learning job configurations for three clinical tasks:
 
@@ -1595,7 +1747,7 @@ Local Training          Local Training          Local Training
            Deploy to NIM Endpoint
 ```
 
-### 14.2 Multi-Agent Systems
+### 15.2 Multi-Agent Systems
 
 The Clinical Imaging Engine is designed to operate within the HCLS AI Factory's multi-agent ecosystem:
 
@@ -1609,7 +1761,7 @@ Future cross-agent integration patterns:
 - Genomic variants informing imaging protocol selection
 - Federated knowledge sharing across agent collections
 
-### 14.3 Fine-Tuned Embeddings
+### 15.3 Fine-Tuned Embeddings
 
 The current BGE-small-en-v1.5 model is a general-purpose text encoder. Future improvements include:
 
@@ -1623,11 +1775,11 @@ The current BGE-small-en-v1.5 model is a general-purpose text encoder. Future im
 - Use BiomedCLIP or RadFM for joint image-text embeddings
 - Enable "find studies similar to this image" searches
 
-### 14.4 Scalability Roadmap
+### 15.4 Scalability Roadmap
 
 | Current | Near-Term | Long-Term |
 |---|---|---|
-| IVF_FLAT, 11 collections | HNSW, 15+ collections | Distributed Milvus, 50+ collections |
+| IVF_FLAT, 13 collections, 38K vectors | HNSW, 20+ collections | Distributed Milvus, 50+ collections |
 | BGE-small (384d) | Fine-tuned BGE (384d) | Multi-modal (768d+) |
 | Mock NIM fallback | Full NIM deployment | Multi-GPU NIM cluster |
 | Single DGX Spark | DGX Spark + Cloud NIM | Multi-node DGX |
@@ -1738,7 +1890,7 @@ Workflow details: modality, body region, models used, target latency.
 
 **GET /nim/status**
 
-Status of all 4 NIM services (available/mock/unavailable).
+Status of all 9 NIM clients (available/mock/unavailable).
 
 Response:
 ```json
@@ -1746,7 +1898,12 @@ Response:
     "vista3d": "mock",
     "maisi": "mock",
     "vila_m3": "mock",
-    "llm": "available"
+    "llm": "available",
+    "segment_ct": "mock",
+    "monai_label": "mock",
+    "guardrails": "available",
+    "holoscan": "mock",
+    "rapids": "available"
 }
 ```
 
@@ -1878,6 +2035,8 @@ All environment variables use the `IMAGING_` prefix (controlled by Pydantic `env
 | `IMAGING_COLLECTION_GUIDELINES` | `imaging_guidelines` | Guidelines collection name |
 | `IMAGING_COLLECTION_REPORT_TEMPLATES` | `imaging_report_templates` | Report templates collection |
 | `IMAGING_COLLECTION_DATASETS` | `imaging_datasets` | Datasets collection name |
+| `IMAGING_COLLECTION_RADIOMICS` | `imaging_radiomics` | Radiomics features collection |
+| `IMAGING_COLLECTION_REPORTS` | `imaging_reports` | Parsed radiology reports collection |
 | `IMAGING_COLLECTION_GENOMIC` | `genomic_evidence` | Cross-agent genomic collection |
 
 ### B.3 Embedding Configuration
@@ -1934,7 +2093,9 @@ All environment variables use the `IMAGING_` prefix (controlled by Pydantic `env
 | `IMAGING_WEIGHT_GUIDELINES` | `0.10` | Guidelines collection weight |
 | `IMAGING_WEIGHT_REPORT_TEMPLATES` | `0.05` | Report templates weight |
 | `IMAGING_WEIGHT_DATASETS` | `0.06` | Datasets collection weight |
-| `IMAGING_WEIGHT_GENOMIC` | `0.04` | Genomic collection weight |
+| `IMAGING_WEIGHT_RADIOMICS` | `0.04` | Radiomics collection weight |
+| `IMAGING_WEIGHT_REPORTS` | `0.04` | Reports collection weight |
+| `IMAGING_WEIGHT_GENOMIC` | `0.03` | Genomic collection weight |
 
 ### B.8 Citation Scoring
 
@@ -2175,9 +2336,4 @@ _AXIS_MAP = {
 
 ---
 
-*This guide covers the Clinical Imaging Engine codebase as of March 2026. For updates, check the repository history and the PROJECT_BIBLE.md in the docs/ directory.*
-
----
-
-!!! warning "Clinical Decision Support Disclaimer"
-    The Clinical Imaging Engine is a clinical decision support research tool for medical image analysis. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.
+*This guide covers the Clinical Imaging Engine (Engine 4) codebase as of April 2026. For updates, check the repository history and the PROJECT_BIBLE.md in the docs/ directory.*

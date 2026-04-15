@@ -2,167 +2,129 @@
 
 **Author:** Adam Jones
 **Date:** March 2026
-**License:** Apache 2.0
+**Version:** 2.1.0
 
 ---
 
-## Table of Contents
+## 1. System Architecture Overview
 
-1. [System Diagram](#1-system-diagram)
-2. [Component Interactions](#2-component-interactions)
-3. [Data Flow](#3-data-flow)
-4. [Collection Design Rationale](#4-collection-design-rationale)
-5. [NIM Client Layer](#5-nim-client-layer)
-6. [Workflow Pipeline](#6-workflow-pipeline)
-7. [Cross-Modal Engine](#7-cross-modal-engine)
-8. [Query Expansion](#8-query-expansion)
-9. [RAG Pipeline](#9-rag-pipeline)
-10. [Agent Orchestrator](#10-agent-orchestrator)
-11. [Data Model Architecture](#11-data-model-architecture)
+The Clinical Imaging Engine (Engine 4) is organized into six interconnected layers, each with clear responsibilities and interfaces. The system integrates 20 NVIDIA technologies (Community Edition, all free), 9 NIM clients, 9 clinical workflows, 13 Milvus collections (38,028 vectors including 1,938 real PubMed papers), and 1,324 tests. It is designed for deployment on a single NVIDIA DGX Spark ($4,699) with 128 GB unified memory in a 3-tier model (Community/Enterprise/Research), but runs equally well in CPU-only mode with mock NIM fallbacks.
+
+### Design Principles
+
+1. **Graceful degradation** -- Every NIM-dependent feature falls back to mock mode automatically
+2. **Shared infrastructure** -- Reuses Milvus and embedding model from the HCLS AI Factory platform
+3. **Cross-agent interoperability** -- Read-only access to `genomic_evidence` collection from Stage 2
+4. **Consistent patterns** -- Follows the same Pydantic BaseSettings, collection manager, and RAG engine patterns as the CAR-T Intelligence Engine
 
 ---
 
-## 1. System Diagram
-
-### 1.1 Full System Architecture
+## 2. Component Diagram
 
 ```
-                          EXTERNAL USERS
-                               |
-                    +----------+----------+
-                    |                     |
-              +-----+------+      +------+-----+
-              | Streamlit  |      | REST API   |
-              | UI :8525   |      | :8524      |
-              +-----+------+      +------+-----+
-                    |                     |
-                    +----------+----------+
-                               |
-                    +----------+----------+
-                    |   Imaging Agent     |
-                    |   (src/agent.py)    |
-                    +----------+----------+
-                               |
-          +--------------------+--------------------+
-          |                    |                    |
-   +------+------+    +-------+-------+    +-------+-------+
-   | Query       |    | NIM Service   |    | Workflow      |
-   | Expansion   |    | Manager       |    | Engine        |
-   +------+------+    +-------+-------+    +-------+-------+
-          |                    |                    |
-          |           +-------+-------+            |
-          |           |       |       |            |
-          |        VISTA-3D MAISI  VILA-M3         |
-          |        :8530  :8531  :8532             |
-          |           |       |       |            |
-          |           +-------+-------+            |
-          |                    |                    |
-          +--------------------+--------------------+
-                               |
-                    +----------+----------+
-                    |    RAG Engine       |
-                    +----------+----------+
-                               |
-          +--------------------+--------------------+
-          |                    |                    |
-   +------+------+    +-------+-------+    +-------+-------+
-   | Knowledge   |    | Milvus        |    | LLM           |
-   | Graph       |    | Vector DB     |    | (Claude 4.6)  |
-   | 25 pathols  |    | 11 Collections|    | Llama-3 NIM   |
-   | 9 modalities|    |               |    | fallback      |
-   | 21 anatomy  |    |               |    |               |
-   +-------------+    +-------+-------+    +---------------+
-                               |
-                    +----------+----------+
-                    |  etcd    |  MinIO   |
-                    +----------+----------+
-```
-
-### 1.2 NVIDIA NIM Integration
-
-```
-  +------------------------------------------+
-  |           NVIDIA NIM Microservices         |
-  +------------------------------------------+
-  | Vista3D   | MAISI     | VILA-M3  | Llama-3|
-  | :8530     | :8531     | :8532    | :8520  |
-  | 3D organ  | Synthetic | Visual   | Text   |
-  | segment   | CT gen    | Q&A      | LLM    |
-  +----+------+-----+-----+----+-----+---+---+
-       |            |          |          |
-       +------------+----------+----------+
-                         |
-                  +------v------+
-                  | NIM Service |
-                  | Manager     |
-                  | (mock/live) |
-                  +------+------+
-                         |
-                  +------v------+
-                  | BaseNIMClient|
-                  | health_check|
-                  | retry logic |
-                  | mock fallbk |
-                  +-------------+
-```
-
----
-
-## 2. Component Interactions
-
-### 2.1 Component Dependency Graph
-
-```
-ImagingUI (Streamlit) ──> FastAPI Server ──> ImagingAgent
-                                               |
-                                 +-------------+-------------+
-                                 |             |             |
-                          QueryExpansion  NIMServiceMgr   WorkflowEngine
-                                 |             |             |
-                                 +------+------+      6 Ref Workflows
-                                        |                    |
-                                   RAGEngine          CrossModalEngine
-                                        |                    |
-                                 +------+------+             |
-                                 |             |             |
-                            Milvus DB    Knowledge      genomic_evidence
-                            (11 cols)     Graph          (shared col)
-```
-
-### 2.2 Module Responsibilities
-
-| Module | File | Responsibilities |
-|--------|------|-----------------|
-| **Imaging Agent** | `src/agent.py` | Query classification, workflow dispatch, NIM orchestration, response assembly |
-| **RAG Engine** | `src/rag_engine.py` | Multi-collection search, weighted scoring, query expansion, comparative analysis, LLM synthesis |
-| **Knowledge Graph** | `src/knowledge.py` | 25 pathologies, 9 modalities, 21 anatomy entries |
-| **Query Expansion** | `src/query_expansion.py` | Domain-specific maps, keyword-to-term expansion, entity resolution |
-| **NIM Service Manager** | `src/nim/service_manager.py` | VISTA-3D, MAISI, VILA-M3, Llama-3 client coordination |
-| **Workflow Engine** | `src/workflows/` | 6 reference workflows (CT head, CT chest, CT coronary, CXR, MRI brain, MRI prostate) |
-| **Collections** | `src/collections.py` | Schema definitions, CRUD operations, parallel search |
-| **Cross-Modal** | `src/cross_modal.py` | Imaging-to-genomics trigger evaluation |
-| **Export** | `src/export.py` | Markdown, JSON, PDF, FHIR R4 DiagnosticReport |
-| **Models** | `src/models.py` | 10 collection models, 4 NIM result models, search models, agent I/O |
-| **Ingest** | `src/ingest/` | PubMed parser, ClinicalTrials parser, 6 seed data parsers |
-
-### 2.3 Interface Contracts
-
-**Imaging Agent inputs/outputs:**
-```
-Input:  ImagingQuery(question, modality_filter?, body_region?, patient_context?)
-Output: ImagingResponse(answer, evidence, nim_status, workflow_results, cross_modal)
-```
-
-**Workflow Engine inputs/outputs:**
-```
-Input:  WorkflowRequest(workflow_name, input_path?, study_data?)
-Output: WorkflowResult(findings, measurements, classification, severity, inference_time_ms, is_mock)
-```
-
-**NIM Service Manager inputs/outputs:**
-```
-Input:  NIMRequest(endpoint, payload, client_type)
-Output: NIMResponse(result, status, latency_ms, is_mock)
++=========================================================================+
+|                        PRESENTATION LAYER                                |
+|                                                                          |
+|  +---------------------------+    +-------------------------------+      |
+|  | Streamlit Chat UI (8525)  |    | FastAPI REST Server (8524)    |      |
+|  | app/imaging_ui.py         |    | api/main.py                  |      |
+|  |                           |    |   +-- routes/meta_agent.py    |      |
+|  | - Chat interface          |    |   +-- routes/nim.py          |      |
+|  | - Evidence panel          |    |   +-- routes/workflows.py    |      |
+|  | - Workflow runner         |    |   +-- routes/reports.py      |      |
+|  | - NIM status              |    |                               |      |
+|  | - Report export           |    | Prometheus metrics            |      |
+|  +---------------------------+    +-------------------------------+      |
++=========================================================================+
+                    |                            |
+                    v                            v
++=========================================================================+
+|                        INTELLIGENCE LAYER                                |
+|                                                                          |
+|  +----------------------------+   +-----------------------------+        |
+|  | Imaging Agent              |   | RAG Engine                  |        |
+|  | src/agent.py               |   | src/rag_engine.py           |        |
+|  |                            |   |                             |        |
+|  | - Query classification     |   | - Multi-collection search   |        |
+|  | - Workflow dispatch        |   | - Weighted scoring          |        |
+|  | - NIM orchestration        |   | - Query expansion           |        |
+|  | - Response assembly        |   | - Comparative analysis      |        |
+|  +----------------------------+   | - LLM synthesis             |        |
+|                                   +-----------------------------+        |
+|  +----------------------------+   +-----------------------------+        |
+|  | Knowledge Graph            |   | Query Expansion             |        |
+|  | src/knowledge.py           |   | src/query_expansion.py      |        |
+|  |                            |   |                             |        |
+|  | - 25 pathologies           |   | - Domain-specific maps      |        |
+|  | - 9 modalities             |   | - Keyword -> term expansion |        |
+|  | - 21 anatomy entries       |   | - Entity resolution         |        |
+|  +----------------------------+   +-----------------------------+        |
++=========================================================================+
+                    |                            |
+                    v                            v
++=========================================================================+
+|                        INFERENCE LAYER                                   |
+|                                                                          |
+|  +------------------------------------------------------------------+   |
+|  | NIM Service Manager (src/nim/service_manager.py)                  |   |
+|  |                                                                    |   |
+|  |  +-----------+  +-----------+  +-----------+  +----------------+  |   |
+|  |  | VISTA-3D  |  | MAISI     |  | VILA-M3   |  | LLM            |  |   |
+|  |  | Client    |  | Client    |  | Client    |  | Client         |  |   |
+|  |  | 8530      |  | 8531      |  | 8532      |  | 8520           |  |   |
+|  |  +-----------+  +-----------+  +-----------+  +----------------+  |   |
+|  |  +-----------+  +-----------+  +-----------+  +----------------+  |   |
+|  |  | NV-Seg-CT |  | Nemotron  |  | NV-Gen-CT |  | NV-Gen-MR      |  |   |
+|  |  | Client    |  | Nano Clt  |  | Client    |  | Client         |  |   |
+|  |  +-----------+  +-----------+  +-----------+  +----------------+  |   |
+|  |  +-----------+                                                     |   |
+|  |  | NV-Reason |  (stub)                                            |   |
+|  |  | CXR Client|                                                    |   |
+|  |  +-----------+                                                     |   |
+|  |                                                                    |   |
+|  |  All 9 inherit BaseNIMClient: health check + retry + mock fallback|   |
+|  +------------------------------------------------------------------+   |
+|                                                                          |
+|  +------------------------------------------------------------------+   |
+|  | Workflow Engine (src/workflows/)                                   |   |
+|  |                                                                    |   |
+|  |  +-- CTHeadHemorrhageWorkflow    (< 90 sec, 3D U-Net)            |   |
+|  |  +-- CTChestLungNoduleWorkflow   (< 5 min, RetinaNet+SegResNet)  |   |
+|  |  +-- CTCoronaryAngiographyWorkflow (< 5 min, CAD-RADS)          |   |
+|  |  +-- CXRRapidFindingsWorkflow    (< 30 sec, DenseNet-121)        |   |
+|  |  +-- MRIBrainMSLesionWorkflow    (< 5 min, 3D U-Net+SyN)        |   |
+|  |  +-- MRIProstateWorkflow         (< 5 min, PI-RADS v2.1)        |   |
+|  |  +-- BreastBIRADSWorkflow        (< 5 min, BI-RADS)             |   |
+|  |  +-- ThyroidTIRADSWorkflow       (< 3 min, TI-RADS)             |   |
+|  |  +-- LiverLIRADSWorkflow         (< 5 min, LI-RADS)             |   |
+|  |                                                                    |   |
+|  |  All 9 inherit BaseImagingWorkflow: preprocess->infer->postprocess|   |
+|  +------------------------------------------------------------------+   |
++=========================================================================+
+                    |                            |
+                    v                            v
++=========================================================================+
+|                        DATA LAYER                                        |
+|                                                                          |
+|  +----------------------------+   +-----------------------------+        |
+|  | Milvus 2.4 (19530)        |   | Collection Manager          |        |
+|  |                            |   | src/collections.py          |        |
+|  | 13 imaging collections     |   |                             |        |
+|  | + 1 read-only genomic      |   | - Schema definitions        |        |
+|  | 38,028 vectors total       |   | - CRUD operations           |        |
+|  | IVF_FLAT / COSINE / 384d   |   |                             |        |
+|  +----------------------------+   | - Parallel search            |        |
+|                                   +-----------------------------+        |
+|  +----------------------------+   +-----------------------------+        |
+|  | Pydantic Models            |   | Ingest Pipelines            |        |
+|  | src/models.py              |   | src/ingest/                 |        |
+|  |                            |   |                             |        |
+|  | - 13 collection models     |   | - PubMed parser             |        |
+|  | - 9 NIM result models      |   | - ClinicalTrials parser     |        |
+|  | - Search result models     |   | - 6 seed data parsers       |        |
+|  | - Agent I/O models         |   | - APScheduler integration   |        |
+|  +----------------------------+   +-----------------------------+        |
++=========================================================================+
 ```
 
 ---
@@ -172,113 +134,101 @@ Output: NIMResponse(result, status, latency_ms, is_mock)
 ### 3.1 RAG Query Flow
 
 ```
-Step 1: RECEIVE QUERY
-  User Query: "What is ACR Lung-RADS classification?"
-  |
-Step 2: QUERY CLASSIFICATION
-  Detect comparative ("X vs Y")? --> No
-  Detect modality filter? --> CT
-  Detect body region? --> Chest
-  |
-Step 3: QUERY EXPANSION
-  "Lung-RADS" --> ["lung_rads", "lung_cancer_screening",
-                    "nodule_management", "ACR", ...]
-  |
-Step 4: EMBEDDING
-  BGE-small-en-v1.5: "Represent this sentence: ..."
-  Output: 384-dim float32 vector
-  |
-Step 5: PARALLEL MULTI-COLLECTION SEARCH
-  imaging_literature    (weight 0.18, top-5) --> 5 hits
-  imaging_findings      (weight 0.15, top-5) --> 3 hits
-  imaging_guidelines    (weight 0.10, top-5) --> 5 hits
-  imaging_trials        (weight 0.12, top-5) --> 4 hits
-  ... (all 11 collections)
-  |
-Step 6: WEIGHTED SCORE MERGE
-  Combine hits across collections
-  Apply collection weights
-  Filter by SCORE_THRESHOLD (0.4)
-  Sort by weighted score descending
-  |
-Step 7: KNOWLEDGE GRAPH AUGMENTATION
-  Match "lung_nodule" pathology entry
-  Inject: Lung-RADS categories, severity criteria,
-          CT characteristics, AI models
-  |
-Step 8: LLM SYNTHESIS
-  Build prompt: question + evidence + knowledge context
-  Inject conversation history (up to 3 prior turns)
-  Call Claude API (or Llama-3 NIM fallback)
-  |
-Step 9: RESPONSE ASSEMBLY
-  Grounded answer with evidence citations
-  Source references with scores
-  Follow-up question suggestions
-  NIM service availability status
+User Query: "What is ACR Lung-RADS classification?"
+       |
+       v
+[1. Query Classification]
+       |-- Detect comparative ("X vs Y")? --> No
+       |-- Detect modality filter? --> CT
+       |-- Detect body region? --> Chest
+       |
+       v
+[2. Query Expansion]
+       |-- "Lung-RADS" --> ["lung_rads", "lung_cancer_screening",
+       |                     "nodule_management", "ACR", ...]
+       |
+       v
+[3. Embedding]
+       |-- BGE-small-en-v1.5: "Represent this sentence: ..."
+       |-- Output: 384-dim float32 vector
+       |
+       v
+[4. Parallel Multi-Collection Search]
+       |-- imaging_literature    (weight 0.18, top-5) --> 5 hits
+       |-- imaging_guidelines    (weight 0.10, top-5) --> 5 hits
+       |-- imaging_findings      (weight 0.15, top-5) --> 3 hits
+       |-- imaging_trials        (weight 0.12, top-5) --> 4 hits
+       |-- imaging_radiomics     (weight 0.08, top-5) --> 3 hits
+       |-- imaging_reports       (weight 0.06, top-5) --> 4 hits
+       |-- ... (all 14 collections including genomic_evidence)
+       |
+       v
+[5. Weighted Score Merge]
+       |-- Combine hits across collections
+       |-- Apply collection weights
+       |-- Filter by SCORE_THRESHOLD (0.4)
+       |-- Sort by weighted score descending
+       |
+       v
+[6. Knowledge Graph Augmentation]
+       |-- Match "lung_nodule" pathology entry
+       |-- Inject: Lung-RADS categories, severity criteria,
+       |           CT characteristics, AI models
+       |
+       v
+[7. LLM Synthesis]
+       |-- Build prompt: question + evidence + knowledge context
+       |-- Inject conversation history (up to 3 prior turns)
+       |-- Call Claude API (or Llama-3 NIM fallback)
+       |
+       v
+[8. Response Assembly]
+       |-- Grounded answer with evidence citations
+       |-- Source references with scores
+       |-- Follow-up question suggestions
+       |-- NIM service availability status
 ```
 
 ### 3.2 Workflow Execution Flow
 
 ```
 API Request: POST /workflow/ct_head_hemorrhage/run
-  |
-  v
+       |
+       v
 [1. Workflow Registry Lookup]
-  WORKFLOW_REGISTRY["ct_head_hemorrhage"]
-  Instantiate CTHeadHemorrhageWorkflow(mock_mode=True)
-  |
-  v
+       |-- WORKFLOW_REGISTRY["ct_head_hemorrhage"]
+       |-- Instantiate CTHeadHemorrhageWorkflow(mock_mode=True)
+       |
+       v
 [2. Preprocess]
-  Mock: skip (return synthetic volume metadata)
-  Live: LoadImaged -> EnsureChannelFirst -> Orientationd(RAS)
-        -> Spacingd(1mm) -> ScaleIntensityRanged(0-80 HU)
-  |
-  v
+       |-- Mock: skip (return synthetic volume metadata)
+       |-- Live: LoadImaged -> EnsureChannelFirst -> Orientationd(RAS)
+       |         -> Spacingd(1mm) -> ScaleIntensityRanged(0-80 HU)
+       |
+       v
 [3. Infer]
-  Mock: return synthetic segmentation result
-  Live: 3D U-Net binary segmentation via MONAI
-  |
-  v
+       |-- Mock: return synthetic segmentation result
+       |-- Live: 3D U-Net binary segmentation via MONAI
+       |
+       v
 [4. Postprocess]
-  Volume estimation: voxel count x voxel volume
-  Midline shift: center of mass vs falx cerebri
-  Max thickness measurement
-  BTF urgency classification (P1/P2/P4)
-  |
-  v
+       |-- Volume estimation: voxel count x voxel volume
+       |-- Midline shift: center of mass vs falx cerebri
+       |-- Max thickness measurement
+       |-- BTF urgency classification (P1/P2/P4)
+       |
+       v
 [5. WorkflowResult]
-  findings: [{category, description, severity, recommendation}]
-  measurements: {volume_ml, shift_mm, thickness_mm}
-  classification: "P1" / "P2" / "P4"
-  severity: critical / urgent / routine
-  inference_time_ms, is_mock
-```
-
-### 3.3 DICOM Ingestion Flow
-
-```
-Orthanc DICOM Server (port 8042 HTTP, 4242 C-STORE)
-    |
-    v
-POST /events/dicom-webhook (study.complete event)
-    |
-    v
-determine_workflow(modality, body_region) -> workflow name
-    |
-    v
-WorkflowRegistry.run(workflow_name, study_data)
-    |
-    v
-DicomIngestionResult (findings, classification, severity)
-    |
-    v
-Event history (in-memory, max 200 entries)
+       |-- findings: [{category, description, severity, recommendation}]
+       |-- measurements: {volume_ml, shift_mm, thickness_mm}
+       |-- classification: "P1" / "P2" / "P4"
+       |-- severity: critical / urgent / routine
+       |-- inference_time_ms, is_mock
 ```
 
 ---
 
-## 4. Collection Design Rationale
+## 4. Milvus Collection Design
 
 ### 4.1 Index Configuration
 
@@ -293,41 +243,7 @@ All collections use the same index configuration:
 | Vector dimension | 384 |
 | Embedding model | BAAI/bge-small-en-v1.5 |
 
-### 4.2 Collection Inventory
-
-| # | Collection Name | Description | Weight | Seed Records |
-|---|----------------|-------------|--------|-------------|
-| 1 | imaging_literature | PubMed research papers, radiology reviews | 0.18 | 464 |
-| 2 | imaging_findings | Imaging finding templates and clinical patterns | 0.15 | 80 |
-| 3 | imaging_trials | Clinical trials for imaging interventions | 0.12 | 60 |
-| 4 | imaging_guidelines | ACR, RSNA, ESR guideline recommendations | 0.10 | 50 |
-| 5 | imaging_protocols | Imaging protocol parameters by modality | 0.09 | 45 |
-| 6 | imaging_anatomy | Anatomical reference data and landmarks | 0.08 | 40 |
-| 7 | imaging_devices | FDA-cleared AI devices and 510(k) database | 0.07 | 35 |
-| 8 | imaging_benchmarks | AI model benchmark results and metrics | 0.06 | 30 |
-| 9 | imaging_report_templates | Structured reporting templates (BI-RADS, Lung-RADS, etc.) | 0.06 | 40 |
-| 10 | imaging_pathology_correlation | Imaging-pathology correlation data | 0.05 | 32 |
-| 11 | genomic_evidence | Shared VCF-derived genomic variants (read-only) | 0.04 | -- |
-| | **Total** | | **1.00** | **876** |
-
-### 4.3 Collection Weight Distribution
-
-```
-imaging_literature      ██████████████████████  0.18
-imaging_findings        ██████████████████      0.15
-imaging_trials          ████████████████        0.12
-imaging_guidelines      █████████████           0.10
-imaging_protocols       ████████████            0.09
-imaging_anatomy         ██████████              0.08
-imaging_devices         █████████               0.07
-imaging_benchmarks      ████████                0.06
-imaging_report_templ.   ████████                0.06
-imaging_path_corr.      ███████                 0.05
-genomic_evidence        █████                   0.04
-                                           Sum: 1.00
-```
-
-### 4.4 Schema Pattern
+### 4.2 Schema Pattern
 
 Every collection follows the same field pattern:
 
@@ -338,17 +254,17 @@ FieldSchema("text",      DataType.VARCHAR, max_length=3000)
 # ... domain-specific metadata fields (VARCHAR, INT64, FLOAT, etc.)
 ```
 
-### 4.5 Search Strategy
+### 4.3 Search Strategy
 
-1. **Parallel search:** All collections searched simultaneously using ThreadPoolExecutor
+1. **Parallel search:** All collections are searched simultaneously using `ThreadPoolExecutor`
 2. **Per-collection top-K:** Default 5 results per collection (configurable 1-50)
 3. **Weighted scoring:** Each collection has a configurable weight (0.04 to 0.18)
 4. **Score threshold:** Results below 0.4 cosine similarity are filtered out
-5. **Asymmetric embedding:** Queries use BGE instruction prefix
+5. **Asymmetric embedding:** Queries use BGE instruction prefix `"Represent this sentence for searching relevant passages: "`
 
 ---
 
-## 5. NIM Client Layer
+## 5. NIM Client Layer Design
 
 ### 5.1 BaseNIMClient (ABC)
 
@@ -370,31 +286,48 @@ BaseNIMClient (ABC)
     |
     +-- VISTA3DClient
     |       segment(input_path, target_classes) -> SegmentationResult
-    |       Port: 8530
     |
     +-- MAISIClient
     |       generate(body_region, resolution) -> SyntheticCTResult
-    |       Port: 8531
     |
     +-- VILAM3Client
     |       analyze(question, input_path) -> VLMResponse
-    |       Port: 8532
     |
-    +-- LlamaLLMClient
-            complete(messages) -> str
-            Port: 8520 (OpenAI-compatible /v1/chat/completions)
+    +-- LLMClient
+    |       complete(messages) -> str
+    |       (OpenAI-compatible /v1/chat/completions)
+    |
+    +-- NVSegmentCTClient
+    |       segment_ct(input_path) -> SegmentationResult
+    |
+    +-- NemotronNanoClient
+    |       reason(messages) -> str
+    |
+    +-- NVGenerateCTClient
+    |       generate_ct(params) -> SyntheticCTResult
+    |
+    +-- NVGenerateMRClient
+    |       generate_mr(params) -> SyntheticMRResult
+    |
+    +-- NVReasonCXRClient (stub)
+            reason_cxr(image_path, question) -> ReasoningResult
 ```
 
 ### 5.3 NIMServiceManager
 
-Coordinates all four NIM clients:
+Coordinates all 9 NIM clients:
 
 ```python
 NIMServiceManager(settings)
-    .vista3d    -> VISTA3DClient
-    .maisi      -> MAISIClient
-    .vilam3     -> VILAM3Client
-    .llm        -> LlamaLLMClient
+    .vista3d         -> VISTA3DClient
+    .maisi           -> MAISIClient
+    .vilam3          -> VILAM3Client
+    .llm             -> LLMClient
+    .nv_segment_ct   -> NVSegmentCTClient
+    .nemotron_nano   -> NemotronNanoClient
+    .nv_generate_ct  -> NVGenerateCTClient
+    .nv_generate_mr  -> NVGenerateMRClient
+    .nv_reason_cxr   -> NVReasonCXRClient (stub)
     .check_all_services() -> Dict[str, str]  # name -> status
 ```
 
@@ -415,15 +348,13 @@ _invoke_or_mock(endpoint, payload):
         raise ConnectionError
 ```
 
-Every NIM-dependent feature degrades gracefully through three tiers: Full (local GPU) -> Cloud (API endpoint) -> Mock (synthetic results). This ensures the agent remains functional for RAG queries and knowledge retrieval even without GPU hardware.
-
 ---
 
-## 6. Workflow Pipeline
+## 6. Workflow Pipeline Design
 
 ### 6.1 BaseImagingWorkflow (ABC)
 
-All six reference workflows inherit from the same abstract base class:
+All nine reference workflows inherit from the same abstract base class:
 
 ```python
 class BaseImagingWorkflow(ABC):
@@ -433,41 +364,33 @@ class BaseImagingWorkflow(ABC):
     BODY_REGION: str
     MODELS_USED: List[str]
 
-    preprocess(input_path)    -> Any
-    infer(preprocessed)       -> Dict
-    postprocess(result)       -> WorkflowResult
-    _mock_inference()         -> Dict
-    run(input_path)           -> WorkflowResult
-    get_workflow_info()       -> Dict
+    preprocess(input_path)    -> Any          # Abstract
+    infer(preprocessed)       -> Dict         # Abstract
+    postprocess(result)       -> WorkflowResult   # Abstract
+    _mock_inference()         -> Dict         # Abstract
+    run(input_path)           -> WorkflowResult   # Orchestrator
+    get_workflow_info()       -> Dict         # Metadata
 ```
 
 ### 6.2 Workflow Registry
 
 ```python
 WORKFLOW_REGISTRY = {
-    "ct_head_hemorrhage":    CTHeadHemorrhageWorkflow,     # < 90 sec, 3D U-Net
-    "ct_chest_lung_nodule":  CTChestLungNoduleWorkflow,    # < 5 min, RetinaNet+SegResNet
-    "ct_coronary_angiography": CTCoronaryAngiographyWorkflow,  # Calcium scoring, stenosis
-    "cxr_rapid_findings":    CXRRapidFindingsWorkflow,     # < 30 sec, DenseNet-121
-    "mri_brain_ms_lesion":   MRIBrainMSLesionWorkflow,     # < 5 min, 3D U-Net+SyN
-    "mri_prostate_pirads":   MRIProstateWorkflow,          # PI-RADS classification
+    "ct_head_hemorrhage":     CTHeadHemorrhageWorkflow,
+    "ct_chest_lung_nodule":   CTChestLungNoduleWorkflow,
+    "ct_coronary_angiography": CTCoronaryAngiographyWorkflow,
+    "cxr_rapid_findings":     CXRRapidFindingsWorkflow,
+    "mri_brain_ms_lesion":    MRIBrainMSLesionWorkflow,
+    "mri_prostate_pirads":    MRIProstateWorkflow,
+    "breast_birads":          BreastBIRADSWorkflow,
+    "thyroid_tirads":         ThyroidTIRADSWorkflow,
+    "liver_lirads":           LiverLIRADSWorkflow,
 }
 ```
 
 Dynamic dispatch via the `/workflow/{name}/run` API endpoint.
 
-### 6.3 Workflow Details
-
-| Workflow | Modality | Region | Model | Output |
-|----------|----------|--------|-------|--------|
-| CT Head Hemorrhage | CT | Head | SegResNet 3D U-Net | Volume (mL), midline shift (mm), urgency (P1/P2/P4) |
-| CT Chest Lung Nodule | CT | Chest | RetinaNet + SegResNet | Nodule count, volume, doubling time, Lung-RADS |
-| CT Coronary Angiography | CT | Chest | Calcium scoring | Agatston score, stenosis grade, CAD-RADS |
-| CXR Rapid Findings | CXR | Chest | DenseNet-121 (CheXpert) | Multi-label classification, confidence scores |
-| MRI Brain MS Lesion | MRI | Brain | UNEST + SyN registration | Lesion count, volume, longitudinal change |
-| MRI Prostate PI-RADS | MRI | Pelvis | Lesion detection | PI-RADS score, lesion locations, volume |
-
-### 6.4 Error Handling
+### 6.3 Error Handling
 
 ```
 run(input_path):
@@ -488,16 +411,103 @@ run(input_path):
 
 ---
 
-## 7. Cross-Modal Engine
+## 7. Ingest Pipeline Design
 
-### 7.1 Genomic Pipeline Trigger
+### 7.1 Pipeline Pattern
 
-The CrossModalTrigger class (`src/cross_modal.py`) automatically enriches high-risk imaging findings with genomic context from the shared `genomic_evidence` collection (3.5M vectors from Stage 2).
+```
+[Source] --> fetch() --> parse() --> embed() --> store()
+              |            |           |           |
+         HTTP/API    Extract fields  BGE-small   Milvus
+         PubMed      Normalize       384-dim     upsert
+         CT.gov      Validate
+         Seed JSON   Pydantic model
+```
 
-**Trigger conditions:**
+### 7.2 Ingest Parsers
+
+| Parser | Source | Collection |
+|---|---|---|
+| `literature_parser.py` | PubMed (NCBI E-utilities) | `imaging_literature` |
+| `clinical_trials_parser.py` | ClinicalTrials.gov API v2 | `imaging_trials` |
+| `finding_parser.py` | Curated seed data | `imaging_findings` |
+| `protocol_parser.py` | Curated seed data | `imaging_protocols` |
+| `device_parser.py` | Curated seed data | `imaging_devices` |
+| `anatomy_parser.py` | Curated seed data | `imaging_anatomy` |
+| `benchmark_parser.py` | Curated seed data | `imaging_benchmarks` |
+| `guideline_parser.py` | Curated seed data | `imaging_guidelines` |
+| `report_template_parser.py` | Curated seed data | `imaging_report_templates` |
+
+### 7.3 PubMed Client (`src/utils/pubmed_client.py`)
+
+- NCBI E-utilities: esearch + efetch
+- Optional API key for increased rate limits
+- Configurable max results (default 5000)
+
+### 7.4 Scheduling
+
+APScheduler (`src/scheduler.py`) supports periodic re-ingestion:
+- Default interval: 168 hours (weekly)
+- Configurable via `IMAGING_INGEST_SCHEDULE_HOURS`
+- Disabled by default (`IMAGING_INGEST_ENABLED=false`)
+
+---
+
+## 8. API Layer
+
+### 8.1 FastAPI Application
+
+- **Lifespan management:** Initializes Milvus connection, embedding model, NIM service manager, and RAG engine on startup
+- **CORS:** Enabled for all origins (development mode)
+- **Prometheus metrics:** Query count, latency histogram, search hit histogram
+- **Health check:** Reports collection stats, NIM service status, and overall system health
+
+### 8.2 Route Organization
+
+| Router | Prefix | Tags | Endpoints |
+|---|---|---|---|
+| `meta_agent` | `/api` | Meta-Agent | `/api/ask` |
+| `nim` | `/nim` | NIM Services | `/nim/status`, `/nim/vista3d/segment`, `/nim/maisi/generate`, `/nim/vilam3/analyze` |
+| `workflows` | (root) | Workflows | `/workflows`, `/workflow/{name}/info`, `/workflow/{name}/run` |
+| `reports` | (root) | Reports | `/reports/generate` |
+| `events` | `/events` | DICOM Events | `/events/dicom-webhook`, `/events/history`, `/events/status` |
+
+Core endpoints registered directly on the app: `/health`, `/collections`, `/query`, `/search`, `/find-related`, `/knowledge/stats`, `/metrics`
+
+---
+
+## 9. UI Layer
+
+### 9.1 Streamlit Application (`app/imaging_ui.py`)
+
+The Streamlit UI provides:
+
+1. **Chat interface** with multi-turn conversation memory
+2. **Evidence panel** with expandable results grouped by collection
+3. **Comparative analysis** auto-detection and dual-panel display
+4. **Workflow runner** sidebar for executing reference workflows
+5. **NIM service status** indicators showing available/mock/unavailable
+6. **Report export** button for PDF generation
+7. **Collection statistics** in the sidebar
+8. **NVIDIA-themed** dark/green styling
+
+---
+
+## 10. Cross-Modal Integration
+
+### 10.1 Genomic Pipeline Trigger (Implemented)
+
+The `CrossModalTrigger` class (`src/cross_modal.py`) automatically enriches high-risk imaging findings with genomic context from the shared `genomic_evidence` collection (3.5M vectors).
+
+**8 trigger conditions including:**
 - Lung-RADS 4A+ findings --> queries EGFR, ALK, ROS1, KRAS variants
 - CXR urgent consolidation --> queries infection-related genomic variants
-- Brain lesion with mass effect --> queries tumor-associated variants
+- CAD-RADS >= 3 --> queries LDLR, PCSK9, APOB cardiovascular variants
+- PI-RADS >= 4 --> queries BRCA2, HOXB13 cancer susceptibility
+- BI-RADS 4+ --> queries BRCA1, BRCA2, ATM breast cancer variants
+- TI-RADS TR4+ --> queries RET, BRAF thyroid cancer variants
+- LI-RADS LR-4+ --> queries HFE, SERPINA1 liver disease variants
+- Brain lesion high activity --> queries HLA-DRB1, MS susceptibility genes
 
 **Data flow:**
 ```
@@ -516,26 +526,52 @@ CrossModalResult (12 genomic hits, top score: 0.78)
 AgentResponse.cross_modal (enriched response)
 ```
 
-### 7.2 FHIR R4 Export Architecture
+**Configuration:**
+```python
+CROSS_MODAL_ENABLED: bool = True  # Active
+```
 
-The `export_fhir()` function generates FHIR R4 DiagnosticReport Bundles:
+### 10.2 Export Architecture (5 Formats)
+
+The export system supports 5 formats: Markdown, JSON, PDF (ReportLab), FHIR R4, and DICOM SR (Structured Report via highdicom TID 1500). The `export_fhir()` function generates FHIR R4 DiagnosticReport Bundles with 103 SNOMED codes:
 
 ```
 FHIR Bundle (type: collection)
-+-- Patient resource (stub with identifier)
-+-- ImagingStudy resource (modality auto-detected from query)
-+-- Observation resources (one per workflow finding)
-|   +-- SNOMED CT coding (finding category)
-|   +-- Interpretation (severity -> HH/H/A/N)
-|   +-- Components (measurements with UCUM units)
-+-- DiagnosticReport resource
-    +-- LOINC category (LP29684-5 Radiology)
-    +-- LOINC code (18748-4 Diagnostic imaging study)
-    +-- conclusionCode (SNOMED for all findings)
-    +-- extension (cross-modal enrichment summary)
+├── Patient resource (stub with identifier)
+├── ImagingStudy resource (modality auto-detected from query)
+├── Observation resources (one per workflow finding)
+│   ├── SNOMED CT coding (finding category)
+│   ├── Interpretation (severity → HH/H/A/N)
+│   └── Components (measurements with UCUM units)
+└── DiagnosticReport resource
+    ├── LOINC category (LP29684-5 Radiology)
+    ├── LOINC code (18748-4 Diagnostic imaging study)
+    ├── conclusionCode (SNOMED for all findings)
+    └── extension (cross-modal enrichment summary)
 ```
 
-### 7.3 Drug Discovery Pipeline Feed
+### 10.3 DICOM Ingestion Architecture
+
+```
+Orthanc DICOM Server (port 8042 HTTP, 4242 C-STORE)
+    |
+    v
+POST /events/dicom-webhook (study.complete event)
+    |
+    v
+determine_workflow(modality, body_region) → workflow name
+    |
+    v
+WorkflowRegistry.run(workflow_name, study_data)
+    |
+    v
+DicomIngestionResult (findings, classification, severity)
+    |
+    v
+Event history (in-memory, max 200 entries)
+```
+
+### 10.4 Drug Discovery Pipeline Feed (Phase 2)
 
 ```
 Quantitative imaging endpoint
@@ -544,193 +580,65 @@ Quantitative imaging endpoint
     |-- Treatment response
     |
     v
-Drug Discovery Pipeline (Stage 3)
+Drug Discovery Pipeline
     |-- Treatment-response tracking
     |-- Molecular target validation
 ```
 
 ---
 
-## 8. Query Expansion
-
-### 8.1 Domain-Specific Maps
-
-The query expansion module resolves imaging-specific terminology:
-
-| Category | Example Input | Example Expansions |
-|----------|---------------|-------------------|
-| Modality | CT | computed tomography, MDCT, helical CT |
-| Body region | chest | thorax, thoracic, pulmonary |
-| Finding | nodule | lung nodule, SPN, pulmonary nodule, GGO |
-| Classification | Lung-RADS | lung_rads, lung_cancer_screening, ACR |
-| AI model | VISTA-3D | vista3d, 3D segmentation, organ segmentation |
-| Measurement | SUV | standardized uptake value, FDG uptake |
-| Protocol | contrast | contrast-enhanced, IV contrast, iodinated |
-| Anatomy | coronary | coronary artery, LAD, RCA, circumflex |
-
-### 8.2 Entity Resolution
-
-Abbreviations and synonyms are resolved before embedding:
-
-- "CXR" -> "chest X-ray, chest radiograph"
-- "MRI" -> "magnetic resonance imaging"
-- "GGO" -> "ground-glass opacity"
-- "LGE" -> "late gadolinium enhancement"
-- "PE" -> "pulmonary embolism"
-
 ---
 
-## 9. RAG Pipeline
+## 11. New Architectural Components (v2.1)
 
-### 9.1 RAG Architecture
+### 11.1 Agentic Reasoning (AIQ Toolkit)
 
-```
-SearchPlan (from Query Expansion)
-        |
-  Embedding (BGE-small-en-v1.5, 384-dim)
-        |
-  Multi-Collection Search (11 collections, parallel)
-        |
-  Score Filtering (threshold 0.4)
-        |
-  Weight Application (per-collection weights)
-        |
-  Deduplication (content hash)
-        |
-  Citation Scoring
-  - High confidence: score >= 0.80
-  - Medium confidence: score >= 0.60
-  - Standard: score < 0.60
-        |
-  Knowledge Graph Augmentation
-  - 25 pathology entries
-  - 9 modality entries
-  - 21 anatomy entries
-        |
-  LLM Synthesis
-  - Primary: Claude Sonnet 4.6
-  - Fallback: Llama-3 8B NIM (port 8520)
-  - System prompt: Radiology domain expert
-  - Conversation memory: 3 turns
-        |
-  Response Assembly
-  - Grounded answer with citations
-  - NIM service status
-  - Follow-up suggestions
-```
+The Clinical Imaging Engine integrates AIQ Plan/Execute/Reflect/Refine agentic reasoning with 6 tools for multi-step clinical analysis. The agent plans a series of tool invocations, executes them, reflects on intermediate results, and refines its approach before synthesizing a final answer.
 
-### 9.2 Embedding Configuration
+### 11.2 NeMo Guardrails
 
-| Parameter | Value |
-|-----------|-------|
-| Model | BAAI/bge-small-en-v1.5 |
-| Parameters | 33M |
-| Dimensions | 384 |
-| Metric | COSINE |
-| Index type | IVF_FLAT (nlist=1024, nprobe=16) |
-| Batch size | 32 |
-| Runtime | CPU (no GPU required) |
-| Instruction prefix | "Represent this sentence for searching relevant passages: " |
-| Search mode | Asymmetric |
+NeMo Guardrails enforce PII protection (detecting and redacting patient identifiers), evidence grounding (ensuring claims are traceable to retrieved evidence), and disclaimer enforcement (appending clinical disclaimer to all outputs).
 
----
+### 11.3 Radiomics (PyRadiomics-CUDA)
 
-## 10. Agent Orchestrator
+~1,500 radiomics features are extracted via PyRadiomics-CUDA, stored in the `imaging_radiomics` collection, and searchable via the RAG engine. Features include shape, first-order, GLCM, GLRLM, GLSZM, NGTDM, and GLDM descriptors.
 
-### 10.1 Key Statistics
+### 11.4 Radiology Report NLP
 
-| Metric | Value |
-|--------|-------|
-| Reference workflows | 6 (CT head, CT chest, CT coronary, CXR, MRI brain, MRI prostate) |
-| Demo cases | 4 (DEMO-001 through DEMO-004) |
-| Milvus collections | 11 (10 imaging + 1 read-only genomic_evidence) |
-| Seed imaging vectors | 876 across 10 owned collections |
-| NVIDIA NIMs | 3 (Vista3D, MAISI, VILA-M3) + Llama-3 fallback |
-| Streamlit tabs | 9 |
-| Docker Compose services | 13 full mode, 6 lite mode |
-| Unit tests | 539, E2E checks 9/9 |
-| Output formats | 4 (Markdown, JSON, PDF, FHIR R4) |
+A full radiology report parsing pipeline extracts findings, impressions, measurements, and coded diagnoses from free-text reports, storing structured results in the `imaging_reports` collection.
 
-### 10.2 Error Handling Strategy
+### 11.5 Protocol Optimization
 
-The agent implements graceful degradation at every layer:
+12 ACR indications with patient-specific safety parameters. Protocol recommendations consider patient age, weight, renal function, contrast allergy history, and pregnancy status.
 
-1. **NIM unavailable**: Falls back to mock mode automatically (Full -> Cloud -> Mock)
-2. **Milvus unavailable**: Returns error with clear message
-3. **LLM unavailable (Claude)**: Falls back to Llama-3 NIM, then to mock
-4. **Workflow error**: Returns WorkflowResult with status=FAILED
-5. **Cross-modal error**: Logs warning, returns response without genomic enrichment
-6. **Timeout**: Returns partial results with timeout indicator
+### 11.6 Dose Tracking
 
-### 10.3 API Endpoints Summary
+DRL (Diagnostic Reference Level) comparison with cumulative dose alerts. Tracks patient radiation exposure history and alerts when cumulative doses approach institutional thresholds.
 
-| Router | Prefix | Endpoints |
-|--------|--------|-----------|
-| meta_agent | `/api` | `/api/ask` |
-| nim | `/nim` | `/nim/status`, `/nim/vista3d/segment`, `/nim/maisi/generate`, `/nim/vilam3/analyze` |
-| workflows | (root) | `/workflows`, `/workflow/{name}/info`, `/workflow/{name}/run` |
-| reports | (root) | `/reports/generate` |
-| events | `/events` | `/events/dicom-webhook`, `/events/history`, `/events/status` |
-| core | (root) | `/health`, `/collections`, `/query`, `/search`, `/find-related`, `/knowledge/stats`, `/metrics` |
+### 11.7 Population Analytics (RAPIDS)
 
-### 10.4 Port Configuration
+GPU-accelerated RAPIDS population analytics for cohort-level imaging trends, disease prevalence monitoring, and outcomes tracking across institutional imaging archives.
 
-| Service | Port | Protocol |
-|---------|------|----------|
-| FastAPI REST API | 8524 | HTTP |
-| Streamlit UI | 8525 | HTTP |
-| VISTA-3D NIM | 8530 | HTTP |
-| MAISI NIM | 8531 | HTTP |
-| VILA-M3 NIM | 8532 | HTTP |
-| Llama-3 NIM | 8520 | HTTP |
-| Milvus (shared) | 19530 | gRPC |
+### 11.8 Streaming (Holoscan)
 
----
+Holoscan real-time streaming pipeline for ultrasound and endoscopy, enabling sub-second AI inference on live video feeds.
 
-## 11. Data Model Architecture
+### 11.9 MONAI Deploy MAPs
 
-### 11.1 Model Hierarchy
+9 MONAI Application Packages (MAPs) packaged for clinical deployment, following MONAI Deploy standards for containerized inference pipelines.
 
-```
-                    ImagingResponse (top-level output)
-                    /        |         \           \
-              answer    evidence    nim_status    workflow_results
-                |           |            |              |
-              str    List[Dict]    Dict[str,str]  List[WorkflowResult]
+### 11.10 MONAI Label
 
-                    WorkflowResult (per-workflow output)
-                    /        |         \           \
-              findings  measurements  classification  severity
-                |           |            |              |
-           List[Finding]  Dict      str           SeverityLevel
-```
+Interactive annotation with FLARE bridge, enabling radiologists to interactively segment structures and feed corrections back to the model training loop.
 
-### 11.2 Ingest Pipeline
+### 11.11 3D Visualization
 
-| Parser | Source | Collection |
-|---|---|---|
-| `literature_parser.py` | PubMed (NCBI E-utilities) | `imaging_literature` |
-| `clinical_trials_parser.py` | ClinicalTrials.gov API v2 | `imaging_trials` |
-| `finding_parser.py` | Curated seed data | `imaging_findings` |
-| `protocol_parser.py` | Curated seed data | `imaging_protocols` |
-| `device_parser.py` | Curated seed data | `imaging_devices` |
-| `anatomy_parser.py` | Curated seed data | `imaging_anatomy` |
-| `benchmark_parser.py` | Curated seed data | `imaging_benchmarks` |
-| `guideline_parser.py` | Curated seed data | `imaging_guidelines` |
-| `report_template_parser.py` | Curated seed data | `imaging_report_templates` |
+Three.js rotating point cloud visualization for 3D volumetric data display in the React portal.
 
-### 11.3 Scheduling
+### 11.12 React Portal
 
-APScheduler (`src/scheduler.py`) supports periodic re-ingestion:
-- Default interval: 168 hours (weekly)
-- Configurable via `IMAGING_INGEST_SCHEDULE_HOURS`
-- Disabled by default (`IMAGING_INGEST_ENABLED=false`)
+Full React portal with 10 pages, providing a modern web interface alongside the Streamlit workbench.
 
 ---
 
 *For NIM-specific setup instructions, see `NIM_INTEGRATION_GUIDE.md`. For the complete implementation specification, see `PROJECT_BIBLE.md`.*
-
----
-
-!!! warning "Clinical Decision Support Disclaimer"
-    The Clinical Imaging Engine is a clinical decision support research tool for medical image analysis. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.
