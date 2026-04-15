@@ -32,6 +32,13 @@
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
     Strict-Transport-Security = "max-age=31536000; includeSubDomains"
 
+# Redirect old imaging agent URL to new engine URL
+[[redirects]]
+  from = "/imaging-intelligence-agent/*"
+  to = "/imaging-intelligence-engine/:splat"
+  status = 301
+  force = true
+
 # 404 fallback
 [[redirects]]
   from = "/*"

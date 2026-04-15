@@ -37,13 +37,13 @@ The HCLS AI Factory transforms patient DNA into ranked novel drug candidates in 
 - Output: **~11.7 million variants**, **3.56 million annotated variant** embeddings in Milvus
 
 ### Engine 2: Precision Intelligence Network (Interactive)
-- **11 intelligence agents** sharing read-only access to 3.56M annotated variant vectors
+- **10 intelligence agents** sharing read-only access to 3.56M annotated variant vectors
 - **139 Milvus collections** containing **~47,691 agent-owned vectors** across all domains
 - **Anthropic Claude** (RAG-grounded reasoning) powers each agent
 - **201 genes** across **13 therapeutic areas**, **171 druggable targets** (85%)
 - Output: Validated target gene with full evidence chain, clinical reports (PDF, FHIR R4)
 
-**The 11 Intelligence Agents:**
+**The 10 Intelligence Agents:**
 
 | Agent | Key Capabilities |
 |---|---|
