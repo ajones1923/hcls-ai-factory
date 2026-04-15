@@ -138,7 +138,7 @@ ls rag-chat-pipeline/data/annotations/                # ClinVar + AlphaMissense
 
 - "This is the HCLS AI Factory — a platform that transforms patient DNA into novel drug candidates in under 5 hours."
 - "Everything runs on this single DGX Spark — a $4,699 desktop workstation."
-- "Three engines: the Genomic Foundation Engine for GPU-accelerated genomics, the Precision Intelligence Network for RAG-grounded target identification with 10 intelligence agents, and the Therapeutic Discovery Engine for AI-driven drug discovery."
+- "Three engines: the Genomic Foundation Engine for GPU-accelerated genomics, the Precision Intelligence Engine for RAG-grounded target identification with 10 intelligence agents, and the Therapeutic Discovery Engine for AI-driven drug discovery."
 
 **Show:** Landing page at http://localhost:8080 — highlight the 10-service health grid.
 
@@ -172,7 +172,7 @@ python run_pipeline.py --mode demo
 
 ---
 
-### Precision Intelligence Network (Stage 2) — 5-6 minutes
+### Precision Intelligence Engine (Stage 2) — 5-6 minutes
 
 #### Show Annotation Pipeline
 

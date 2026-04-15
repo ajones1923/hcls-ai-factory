@@ -4,7 +4,7 @@
 
 **Source:** [github.com/ajones1923/single-cell-intelligence-agent](https://github.com/ajones1923/single-cell-intelligence-agent)
 
-> **Part of the [Precision Intelligence Network](../engines/precision-intelligence.md)** — one of 11 specialized agents sharing a common molecular foundation within the HCLS AI Factory.
+> **Part of the [Precision Intelligence Engine](../engines/precision-intelligence.md)** — one of 11 specialized agents sharing a common molecular foundation within the HCLS AI Factory.
 
 
 ---

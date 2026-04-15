@@ -99,7 +99,7 @@ The output is a **VCF** (Variant Call Format) file containing every variant foun
 
 ---
 
-## Chapter 4: The Precision Intelligence Network (Stage 2) — Understanding What the Variants Mean
+## Chapter 4: The Precision Intelligence Engine (Stage 2) — Understanding What the Variants Mean
 
 ### Not All Variants Are Equal
 

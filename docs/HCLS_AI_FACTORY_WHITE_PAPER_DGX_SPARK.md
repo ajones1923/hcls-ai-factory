@@ -55,7 +55,7 @@ The HCLS AI Factory processes data through three sequential engines:
 | Engine | Technology | Duration | Input | Output |
 |---|---|---|---|---|
 | 1 — Genomic Foundation Engine | Parabricks 4.6 (BWA-MEM2 + DeepVariant) | 120-240 min | FASTQ (~200 GB) | VCF (~11.7M variants) |
-| 2 — Precision Intelligence Network | Milvus + BGE + Claude + 11 intelligence agents | Interactive | VCF | Target gene + evidence |
+| 2 — Precision Intelligence Engine | Milvus + BGE + Claude + 11 intelligence agents | Interactive | VCF | Target gene + evidence |
 | 3 — Therapeutic Discovery Engine | MolMIM + DiffDock + RDKit | 8-16 min | Target gene | 100 ranked drug candidates |
 
 ### Technology Stack
@@ -108,7 +108,7 @@ The VCF contains ~11.7 million variants: ~4.2 million SNPs, ~1.0 million indels,
 
 ---
 
-## 5. Stage 2 — Precision Intelligence Network (RAG-Grounded Target Identification)
+## 5. Stage 2 — Precision Intelligence Engine (RAG-Grounded Target Identification)
 
 ### Variant Annotation
 
@@ -288,7 +288,7 @@ DGX SuperPOD deployments with InfiniBand fabric, NVIDIA FLARE for federated lear
 
 The HCLS AI Factory demonstrates that the full precision medicine pipeline — from raw DNA to novel drug candidates — can run on a single desktop workstation. GPU acceleration collapses genomics from days to hours. Vector databases and LLM reasoning transform annotation from manual curation to interactive exploration. Generative chemistry and molecular docking automate the target-to-lead transition that traditionally takes months.
 
-The three-engine architecture (Genomic Foundation Engine → Precision Intelligence Network → Therapeutic Discovery Engine) provides a reproducible, auditable, and scalable framework. The same Nextflow pipelines that run on a $4,699 DGX Spark scale to DGX SuperPOD for enterprise deployments. All HCLS AI Factory code is Apache 2.0; NVIDIA components are free for development on DGX Spark, with enterprise licensing required at scale (see [Licensing & Cost Guide](licensing.md)).
+The three-engine architecture (Genomic Foundation Engine → Precision Intelligence Engine → Therapeutic Discovery Engine) provides a reproducible, auditable, and scalable framework. The same Nextflow pipelines that run on a $4,699 DGX Spark scale to DGX SuperPOD for enterprise deployments. All HCLS AI Factory code is Apache 2.0; NVIDIA components are free for development on DGX Spark, with enterprise licensing required at scale (see [Licensing & Cost Guide](licensing.md)).
 
 This is precision medicine as a continuous, computable workflow — not a disconnected collection of tools, but an integrated factory that transforms patient data into therapeutic hypotheses in a single session.
 

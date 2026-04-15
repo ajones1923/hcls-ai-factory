@@ -29,7 +29,7 @@ tags:
 6. [Reference Data Preparation](#6-reference-data-preparation)
 7. [Docker Compose Configuration](#7-docker-compose-configuration)
 8. [Deploy Genomic Foundation Engine (Stage 1)](#8-deploy-genomic-foundation-engine-stage-1)
-9. [Deploy Precision Intelligence Network (Stage 2)](#9-deploy-precision-intelligence-network-stage-2)
+9. [Deploy Precision Intelligence Engine (Stage 2)](#9-deploy-precision-intelligence-network-stage-2)
 10. [Deploy Therapeutic Discovery Engine (Stage 3)](#10-deploy-therapeutic-discovery-engine-stage-3)
 11. [Nextflow Orchestration](#11-nextflow-orchestration)
 12. [Service Startup and Health](#12-service-startup-and-health)
@@ -144,7 +144,7 @@ The HCLS AI Factory comprises three application pipeline stages running on a sin
 | Stage | Engine Name | Function |
 |---|---|---|
 | Stage 1 | Genomic Foundation Engine | FASTQ alignment and variant calling with GPU-accelerated Parabricks |
-| Stage 2 | Precision Intelligence Network | Variant annotation, vector embedding, Claude-powered conversational AI, and 11 intelligence agents |
+| Stage 2 | Precision Intelligence Engine | Variant annotation, vector embedding, Claude-powered conversational AI, and 11 intelligence agents |
 | Stage 3 | Therapeutic Discovery Engine | Structure-aware molecule generation, docking, and composite ranking |
 
 ### 2.2 Technology Stack
@@ -207,7 +207,7 @@ The platform deploys 13 services across 13 ports:
 │  FASTQ ──► Parabricks fq2bam ──► BAM ──► DeepVariant ──► VCF         │
 │  (200 GB)   (20-45 min)         (100 GB)   (10-35 min)    (11.7M)    │
 │                                                                        │
-│  Stage 2 — Precision Intelligence Network                              │
+│  Stage 2 — Precision Intelligence Engine                              │
 │  VCF ──► ClinVar + AlphaMissense ──► VEP ──► Annotated VCF           │
 │  Annotated ──► BGE-small ──► Milvus (384-dim, COSINE)                 │
 │  Milvus ──► Claude (sonnet-4, temp=0.3) ──► Target Hypothesis         │
@@ -453,7 +453,7 @@ hcls-ai-factory/
 │       ├── bam/                    # Alignment output
 │       └── vcf/                    # Variant call output
 │
-├── rag/                            # Stage 2: Precision Intelligence Network
+├── rag/                            # Stage 2: Precision Intelligence Engine
 │   ├── api/                        # RAG API (Port 5001)
 │   │   └── app.py
 │   ├── chat/                       # Streamlit Chat (Port 8501)
@@ -1020,7 +1020,7 @@ Access the Genomics Portal at `http://<dgx-spark-ip>:5000` to browse VCF results
 
 ---
 
-## 9. Deploy Precision Intelligence Network (Stage 2)
+## 9. Deploy Precision Intelligence Engine (Stage 2)
 
 ### 9.1 Milvus Vector Database Setup
 
@@ -2205,7 +2205,7 @@ For multi-institutional deployments, NVIDIA FLARE enables federated learning acr
 
 ## 19.5 Intelligence Agent Deployment
 
-The Precision Intelligence Network includes 11 intelligence agents. Each agent provides a Streamlit frontend and a FastAPI backend:
+The Precision Intelligence Engine includes 11 intelligence agents. Each agent provides a Streamlit frontend and a FastAPI backend:
 
 | # | Agent | Streamlit Port | API Port | Domain |
 |---|---|---|---|---|

@@ -45,7 +45,7 @@ Engine 1: Genomic Foundation Engine
   → Annotation (ClinVar 4.1M + AlphaMissense 71M + VEP)
   → Embedding (BGE-small-en-v1.5, 384-dim) → Milvus (3.56M annotated variants)
 
-Engine 2: Precision Intelligence Network (11 Agents)
+Engine 2: Precision Intelligence Engine (11 Agents)
   Shared genomic_evidence collection (3.56M vectors, read-only)
   + 139 domain-specific Milvus collections (~47,691 vectors)
   + Claude RAG-grounded reasoning
@@ -144,7 +144,7 @@ The single failing test (`test_get_gpu_utilization_with_nvml`) is a pre-existing
 
 ---
 
-## Engine 2: Precision Intelligence Network (11 Agents)
+## Engine 2: Precision Intelligence Engine (11 Agents)
 
 **Status: APPROVED -- ALL AGENTS FUNCTIONAL WITH FULL TEST COVERAGE**
 
