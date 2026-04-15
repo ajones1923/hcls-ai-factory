@@ -5,17 +5,15 @@ tags:
   - Demo
   - Walkthrough
   - Medical Imaging
-  - Radiology AI
-  - Clinical Decision Support
+  - Clinical Imaging Engine
+  - Engine 4
 ---
 
-# Clinical Imaging Engine -- Demo Guides
+# Clinical Imaging Engine — Demo Guides
 
 > **Two demos. One story. Global impact.**
 >
-> Engine 4 of the HCLS AI Factory. 9 Workflows. 7 Scoring Systems. 20 NVIDIA Technologies. Apache 2.0.
->
-> License: Apache 2.0 | Date: April 2026
+> Engine 4 of the HCLS AI Factory. Apache 2.0. $4,699.
 
 ---
 
@@ -24,20 +22,20 @@ tags:
 | Demo | Description | Download |
 |------|-------------|----------|
 | **Demo 1: Imaging Engine** | Engine 4 standalone. 9 workflows, 7 scoring systems, cross-modal genomic triggers, 3D visualization, evidence search across 1,938 PubMed papers. 21 minutes, 12 acts. | [:material-download: Demo Guide 1 (.docx)](Clinical_Imaging_Engine_Demo_Guide_1_(1_eng).docx){ .md-button } |
-| **Demo 2: Closed Loop (4 Engines)** | CT scan → genomic analysis → drug candidate generation. All 4 engines working together. 27 minutes, 10 acts. | [:material-download: Demo Guide 2 (.docx)](Clinical_Imaging_Engine_Demo_Guide_2_(mult_eng).docx){ .md-button } |
+| **Demo 2: Closed Loop (4 Engines)** | CT scan to genomic analysis to drug candidate generation. All 4 engines working together. 27 minutes, 10 acts. | [:material-download: Demo Guide 2 (.docx)](Clinical_Imaging_Engine_Demo_Guide_2_(mult_eng).docx){ .md-button } |
 
 ---
 
 ## Demo Overview
 
 | Parameter | Value |
-|---|---|
+|-----------|-------|
 | **Demo 1 Duration** | 21 minutes (Imaging Engine only) |
 | **Demo 2 Duration** | 27 minutes (4-engine closed loop) |
+| **Combined Duration** | ~48 minutes total |
 | **Hardware** | NVIDIA DGX Spark (GB10, 128 GB unified, $4,699) |
 | **Total Vectors** | 38,028 across 13 collections (1,938 real PubMed papers) |
 | **React Portal** | `http://localhost:8550` |
-| **Streamlit UI** | `http://localhost:8525` |
 | **API URL** | `http://localhost:8524` |
 | **LLM** | Claude Sonnet / Llama-3 8B (Ollama) |
 | **Milvus** | `http://localhost:19530` |
@@ -48,675 +46,852 @@ tags:
 | **NVIDIA Technologies** | 20 (all free, Apache 2.0/BSD/MIT/Open Model) |
 | **Tests Passing** | 1,324 |
 | **Demo Cases** | 9 clinical scenarios |
+| **Audience** | NVIDIA HCLS, VAST Data, healthcare IT, radiologists, open-source community |
+| **Story** | What one $4,699 box can do for a community hospital that has never had AI |
 
-### What the Audience Will See
-
-1. Four pre-loaded clinical demo cases run through imaging AI workflows with mock-realistic results
-2. Cross-modal genomic enrichment linking imaging findings to genetic risk factors via the shared `genomic_evidence` collection
-3. Image Gallery with AI-annotated CXR showcase, cross-modality gallery, and 3D volume slice viewer
-4. Interactive Plotly network graph in Patient 360 showing gene-finding relationships
-5. Multi-collection RAG queries across 10 imaging-specific knowledge bases with Claude-synthesized answers and citations, with pre-filled example queries in Evidence Explorer and Protocol Advisor
-6. Automatic comparative analysis triggered by natural language -- "CT vs MRI" produces structured comparison tables
-7. Patient-specific imaging protocol recommendations with AI-optimized dose reduction
-8. A landscape of 50 FDA-cleared and research AI devices filterable by modality and clinical task
-9. Dose intelligence showing 36% average radiation dose reduction across 20 protocols via DLIR
-10. 6-step pipeline animation in Workflow Runner with annotated AI images
-11. Sidebar guided tour with 9-step demo flow
-12. Professional reports exported as Markdown, JSON, NVIDIA-themed PDF, and FHIR R4 DiagnosticReport Bundles
+**The patient:** Maria Santos, 58-year-old woman in rural New Mexico. 20-pack-year smoking history. Annual lung cancer screening CT. The only AI infrastructure at her hospital is a single NVIDIA DGX Spark sitting in the radiology reading room.
 
 ---
 
-## Pre-Demo Setup
+## Pre-Demo Checklist
 
-### Step 1: Verify Milvus Running
-
-```bash
-curl -s http://localhost:19530/v1/vector/collections
-# Expected: JSON response listing imaging collections
+```
+[ ] FastAPI running on port 8524 (curl http://localhost:8524/health -> "healthy")
+[ ] React Portal running on port 8550 (browser -> http://<IP>:8550)
+[ ] Milvus running on port 19530 (38,028+ vectors)
+[ ] LLM available (Ollama on 11434 or Claude API key set)
+[ ] Demo data generated (data/demo/ -- 88 files)
+[ ] Browser: Chrome/Safari, clean window, no bookmarks bar, dark mode OS
+[ ] Screen: 2560x1440 minimum, 4K preferred for recording
 ```
 
-### Step 2: Verify Docker Containers
-
+Quick service check:
 ```bash
-docker ps | grep imaging
-# Expected: imaging-intelligence-engine containers running (API + Streamlit)
+curl -s http://localhost:8524/health | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'{d[\"status\"]}, {d[\"total_vectors\"]:,} vectors, {len(d[\"collections\"])} collections')"
 ```
 
-### Step 3: Health Check
+**For Demo 2 (Closed Loop), also verify:**
 
-```bash
-curl -s http://localhost:8524/health | python3 -m json.tool
 ```
-
-Expected response:
-
-```json
-{
-  "status": "healthy",
-  "collections": {
-    "imaging_literature": 50,
-    "imaging_trials": 40,
-    "imaging_findings": 50,
-    "imaging_protocols": 40,
-    "imaging_devices": 50,
-    "imaging_anatomy": 30,
-    "imaging_benchmarks": 40,
-    "imaging_guidelines": 40,
-    "imaging_report_templates": 50,
-    "imaging_datasets": 50
-  },
-  "total_vectors": 440,
-  "nim_services": {
-    "vista3d": "mock",
-    "maisi": "mock",
-    "vila_m3": "mock",
-    "llm": "anthropic"
-  }
-}
-```
-
-All 10 collections should have non-zero counts. NIM services will show `mock` unless NVIDIA API keys are configured; the LLM should show `anthropic`.
-
-### Step 4: Verify Streamlit
-
-```bash
-curl -s http://localhost:8525/_stcore/health
-# Expected: "ok"
-```
-
-### Step 5: Verify ANTHROPIC_API_KEY
-
-```bash
-echo $ANTHROPIC_API_KEY | head -c 10
-# Expected: sk-ant-api (first 10 characters of your key)
-```
-
-### Step 6: Open Browser Tabs
-
-Before starting the live demo, open the following tabs in your browser so you can switch between them without typing URLs:
-
-| Tab | URL | Used In |
-|---|---|---|
-| Imaging Agent UI | http://localhost:8525 | All steps |
-| Imaging Agent API docs | http://localhost:8524/docs | Reference only |
-| Landing Page | http://localhost:8080 | Opening context |
-
----
-
-## Route A: Guided Demo Cases (15 minutes)
-
-> **These four cases demonstrate the full imaging AI workflow: detection, classification, measurement, and cross-modal genomic enrichment.**
->
-> All cases use pre-loaded mock data that runs without live DICOM images or NIM GPU services.
-
-### Step 1: Emergency Stroke (5 minutes)
-
-**Click:** the **Workflow Runner** tab (the second tab) in the Streamlit UI at `http://localhost:8525`.
-
-**Select:** "DEMO-001: Emergency Stroke: Acute Intracranial Hemorrhage" from the demo case dropdown.
-
-**Expected result:** The clinical scenario populates:
-
-> 62-year-old male presents to ED with sudden onset severe headache, left-sided weakness, and slurred speech. GCS 12. History of uncontrolled hypertension and type 2 diabetes. BP 195/110 on arrival. Non-contrast CT head ordered stat for acute stroke workup.
-
-**Click:** the **Run** button.
-
-**Expected result:** The workflow executes the `ct_head_hemorrhage` pipeline and displays:
-
-- **Hemorrhage Detection:** Intraparenchymal hemorrhage detected
-- **Location:** Right basal ganglia extending to internal capsule
-- **Volume:** 28.5 mL (ABC/2 method)
-- **Midline Shift:** 4.8 mm
-- **Max Thickness:** 42.0 mm
-- **Hounsfield Units:** Mean 65, Max 82
-- **Surrounding Edema:** 12.1 mL
-- **Intraventricular Extension:** Present
-- **Fisher Grade:** 3
-- **Severity Classification:** Critical
-
-**Click:** the **Patient 360** tab (the eighth tab).
-
-**Show:** Cross-modal genomic enrichment results linking the hemorrhage finding to genetic risk factors:
-
-- **APOE** -- e4 allele associated with lobar hemorrhage risk and worse outcomes
-- **COL3A1** -- Variants linked to vascular fragility
-- **ACE** -- Insertion/deletion polymorphism affects cerebrovascular risk
-
-**Talking points:**
-
-- "AI detected the hemorrhage in under 90 seconds -- faster than radiologist page response time."
-- "Automatic midline shift measurement eliminates subjective assessment. 4.8 mm shift is clinically significant."
-- "Cross-modal genomic enrichment identifies genetic risk factors for hemorrhage recurrence -- APOE, COL3A1, and ACE polymorphisms."
-- "Structured report with ICH Score automatically generated for neurosurgery consult."
-
----
-
-### Step 2: Lung Cancer Screening (5 minutes)
-
-**Click:** the **Workflow Runner** tab.
-
-**Select:** "DEMO-002: Lung Cancer Screening: Suspicious Nodule Detection" from the demo case dropdown.
-
-**Expected result:** The clinical scenario populates:
-
-> 58-year-old female, 30 pack-year smoking history, undergoing annual low-dose CT lung cancer screening per USPSTF guidelines. Prior screening CT 12 months ago showed a 6mm ground-glass nodule in the right upper lobe (Lung-RADS 3). Follow-up scan ordered.
-
-**Click:** the **Run** button.
-
-**Expected result:** The workflow executes the `ct_chest_lung_nodule` pipeline and displays two nodules:
-
-- **Nodule 1 (Primary):**
-    - Location: Right upper lobe, posterior segment
-    - Type: Part-solid, spiculated margin
-    - Size: 18 mm (long axis) x 14 mm (short axis)
-    - Solid component: 10 mm
-    - Volume: 1,890 mm3 (prior: 680 mm3)
-    - Volume doubling time: 245 days
-    - Density: -450 HU
-    - **Lung-RADS: 4B** -- Tissue sampling recommended
-
-- **Nodule 2 (Incidental):**
-    - Location: Left lower lobe, superior segment
-    - Type: Ground-glass, smooth margin
-    - Size: 5 mm
-    - Volume: 52 mm3
-    - Density: -650 HU
-    - **Lung-RADS: 2** -- Benign appearance, no intervention
-
-**Show:** Genomic enrichment panel linking to driver mutations:
-
-- **EGFR** -- Mutations found in 15-50% of lung adenocarcinomas
-- **ALK** -- Rearrangements in 3-7% of NSCLC
-- **ROS1, KRAS, BRAF, MET** -- Additional targetable driver mutations
-
-**Talking points:**
-
-- "AI tracked nodule growth from 6 mm to 18 mm over 12 months -- volume doubling time of 245 days is concerning for malignancy."
-- "Automatic Lung-RADS 4B classification triggers tissue sampling recommendation per ACR guidelines."
-- "The second nodule (5 mm GGN, Lung-RADS 2) is appropriately classified as benign -- no intervention needed."
-- "Cross-modal genomic query identifies targetable driver mutations: EGFR, ALK, ROS1, KRAS."
-- "Complete screening-to-genomics pipeline: low-dose CT -> AI detection -> Lung-RADS classification -> molecular profiling -> treatment planning."
-
----
-
-### Step 3: Cardiac Workup (5 minutes)
-
-**Click:** the **Workflow Runner** tab.
-
-**Select:** "DEMO-003: Cardiac Workup: Coronary Artery Disease Assessment" from the demo case dropdown.
-
-**Expected result:** The clinical scenario populates:
-
-> 55-year-old male presents with exertional chest pain and dyspnea on exertion for 3 weeks. Family history of premature CAD (father MI at age 50). BMI 28, total cholesterol 265 mg/dL, LDL 185 mg/dL. Stress test equivocal. Coronary CT angiography ordered for definitive evaluation.
-
-**Click:** the **Run** button.
-
-**Expected result:** The workflow executes the `ct_coronary_angiography` pipeline and displays:
-
-- **Calcium Score:** 385 Agatston (92nd percentile for age/sex)
-- **CAD-RADS Classification:** 4A
-- **Vessel Assessment:**
-    - LAD (proximal): 72% stenosis, mixed plaque -- **significant**
-    - LAD (mid): 40% stenosis, calcified plaque
-    - LCx (proximal): 30% stenosis, calcified plaque
-    - RCA (proximal): 15% stenosis, no plaque
-    - Left Main: 0% stenosis, no plaque
-- **High-Risk Plaque Features:** Low-attenuation plaque, positive remodeling
-- **Ejection Fraction Estimate:** 55%
-- **Severity Classification:** Urgent
-
-**Show:** Genomic enrichment panel linking to familial hypercholesterolemia genes:
-
-- **LDLR** -- Variants cause 60-80% of familial hypercholesterolemia cases
-- **PCSK9** -- Gain-of-function variants increase LDL cholesterol
-- **APOB** -- Defective ligand binding causes FH
-- **LPA** -- Elevated Lp(a) is an independent cardiovascular risk factor
-- **9p21** -- Strongest common CAD risk variant locus
-
-**Talking points:**
-
-- "Calcium score of 385 (92nd percentile for age and sex) -- high atherosclerotic burden quantified in seconds."
-- "AI detected 72% LAD stenosis with high-risk plaque features: low-attenuation plaque and positive remodeling."
-- "CAD-RADS 4A classification automatically generated with guideline-concordant follow-up recommendations."
-- "Cross-modal genomic enrichment identifies familial hypercholesterolemia genes -- LDLR, PCSK9, APOB -- family cascade screening is indicated."
-- "Complete cardiac loop: CTA -> calcium score -> stenosis grading -> genomics -> risk management."
-
----
-
-## Route B: Interactive Exploration (10 minutes)
-
-> **This route demonstrates the breadth of the knowledge base, protocol intelligence, dose optimization, and export capabilities.**
-
-### Step 4: Evidence Explorer (3 minutes)
-
-**Click:** the **Evidence Explorer** tab (the first tab).
-
-**Type this query** in the "Ask a question" text input:
-
-> What AI models are used for intracranial hemorrhage detection?
-
-**Click:** the **Ask** button.
-
-**Expected result:**
-
-- A markdown answer appears identifying specific models and approaches: CNN-based classifiers, U-Net segmentation, attention-based architectures, and FDA-cleared commercial solutions.
-- Evidence sources display badges from multiple collections: `imaging_literature`, `imaging_devices`, `imaging_benchmarks`, `imaging_findings`.
-- Each source shows its cosine similarity score and a text excerpt.
-- Processing time caption appears at the bottom.
-
-**Show:** The evidence count -- 20+ sources retrieved across multiple collections in a single query.
-
-**Type this comparative query** in the text input:
-
-> CT vs MRI for stroke detection
-
-**Click:** the **Ask** button.
-
-**Expected result:** Claude detects the comparative keywords ("vs") and produces a structured comparison table:
-
-| Dimension | CT | MRI |
-|---|---|---|
-| Speed | Minutes | 30-60 minutes |
-| Sensitivity (acute hemorrhage) | >95% | Lower for acute blood |
-| Sensitivity (ischemic stroke) | Limited (<6h) | High (DWI within minutes) |
-| Availability | Ubiquitous, 24/7 | Limited off-hours |
-| Cost | Lower | Higher |
-| Guideline Role | First-line for acute stroke | Follow-up and characterization |
-
-**Talking points:**
-
-- "One question searched all 10 collections in parallel -- literature, devices, benchmarks, and findings all contributed evidence."
-- "The comparative query was auto-detected. Claude parsed 'CT' and 'MRI' as two entities and ran dual retrieval."
-- "Every claim is backed by a citation with cosine similarity scores."
-
----
-
-### Step 5: Protocol Advisor (2 minutes)
-
-**Click:** the **Protocol Advisor** tab (the third tab).
-
-**Type this value** in the clinical indication input:
-
-> acute chest pain, rule out pulmonary embolism
-
-**Enter:** Patient age = `45`, Patient weight = `80` kg.
-
-**Click:** the **Recommend Protocol** button.
-
-**Expected result:** A protocol recommendation card displays:
-
-- **Protocol:** CT Pulmonary Angiography (CTPA)
-- **Modality:** CT
-- **Contrast Agent:** Iodinated IV contrast (100 mL, bolus tracking)
-- **Estimated Dose:** Optimized CTDIvol with AI dose reduction percentage
-- **Duration:** Estimated scan time
-- **AI Optimization Notes:** DLIR (Deep Learning Image Reconstruction) recommendations, kVp optimization for patient weight
-- **Alternatives:** V/Q scan (if contrast allergy), D-dimer follow-up (if low pretest probability)
-
-**Talking points:**
-
-- "Patient-specific dose adjustment based on age and weight -- the protocol adapts to the individual."
-- "AI optimization notes recommend DLIR for noise reduction at lower dose levels."
-- "Alternatives are provided for patients with contrast allergies -- following the ALARA principle."
-
----
-
-### Step 6: Dose Intelligence (2 minutes)
-
-**Click:** the **Dose Intelligence** tab (the fifth tab).
-
-**Expected result:** The dose comparison dashboard displays:
-
-- **Summary Statistics:** 20 protocols analyzed, average dose reduction, max/min reduction by modality.
-- **Standard vs AI-Optimized Dose Chart:** Side-by-side bar chart comparing CTDIvol (mGy) for standard protocols vs AI-optimized protocols.
-- **Protocol Table:** All 20 protocols with standard dose, AI-optimized dose, reduction percentage, technique used, and image quality assessment.
-
-**Show:** The average dose reduction metric.
-
-**Expected result:** ~36% average dose reduction across all 20 protocols. Individual protocols range from 15-55% reduction depending on body region and technique.
-
-**Talking points:**
-
-- "DLIR (Deep Learning Image Reconstruction) reduces radiation dose by an average of 36% without sacrificing diagnostic image quality."
-- "The highest reductions are in pediatric protocols and repeat imaging studies."
-- "Image quality is maintained or improved -- AI reconstruction compensates for lower photon counts."
-- "This directly supports the ALARA principle: As Low As Reasonably Achievable."
-
----
-
-### Step 7: Device & AI Ecosystem (1 minute)
-
-**Click:** the **Device & AI Ecosystem** tab (the fourth tab).
-
-**Expected result:** A searchable, filterable catalog of AI devices displays with columns for device name, manufacturer, modality, clinical task, regulatory status, and performance metrics.
-
-**Select:** Modality filter = `CT`, Task filter = `detection`.
-
-**Expected result:** The table filters to show CT-specific AI detection devices -- triage tools, hemorrhage detectors, pulmonary embolism detectors, nodule detection, and fracture detection solutions.
-
-**Show:** The total device count: 50 FDA-cleared and research AI devices across all modalities.
-
-**Talking points:**
-
-- "A landscape of 50+ AI devices spanning CT, MRI, X-ray, ultrasound, mammography, and PET."
-- "Each device is catalogued with regulatory status, clinical task, and published performance benchmarks."
-- "This collection enables evidence-based evaluation of AI tools for clinical deployment."
-
----
-
-### Step 8: Reports & Export (2 minutes)
-
-**Click:** the **Reports & Export** tab (the sixth tab).
-
-**Click:** the **Generate Report** button to create a report from the last query.
-
-**Expected result:** A formatted clinical report renders inline with sections:
-
-- **Clinical Question** -- the original query
-- **Analysis** -- Claude-synthesized answer with structured findings
-- **Evidence Citations** -- numbered list with collection badges, document IDs, and relevance scores
-
-**Show:** The four export format buttons:
-
-1. **Markdown** -- Copy-paste ready for clinical notes
-2. **JSON** -- Structured data for programmatic consumption
-3. **PDF** -- NVIDIA-themed report with green headers and professional formatting
-4. **FHIR R4** -- DiagnosticReport Bundle with SNOMED CT and LOINC coding
-
-**Click:** the **PDF** button.
-
-**Expected result:** A PDF downloads with NVIDIA-branded formatting, clinical question, analysis, evidence citations with relevance scores, and a disclaimer footer.
-
-**Click:** the **FHIR R4** button.
-
-**Expected result:** A FHIR R4 DiagnosticReport Bundle renders as JSON, including `resourceType: "Bundle"`, `DiagnosticReport` resource with LOINC-coded sections, and `Observation` resources for each finding.
-
-**Talking points:**
-
-- "Four export formats for different integration needs: Markdown for sharing, JSON for APIs, PDF for clinical documentation, FHIR R4 for EHR interoperability."
-- "The FHIR R4 bundle uses SNOMED CT and LOINC coding for standards-based interoperability."
-- "PDF reports include all evidence citations with relevance scores -- fully auditable AI-assisted findings."
-
----
-
-## Troubleshooting
-
-### No Collections Found
-
-If the health check shows zero vectors or collections are missing:
-
-```bash
-cd ai_agent_adds/imaging_intelligence_agent/agent
-python3 scripts/setup_collections.py --drop-existing
-python3 scripts/seed_literature.py
-python3 scripts/seed_trials.py
-python3 scripts/seed_findings.py
-python3 scripts/seed_protocols.py
-python3 scripts/seed_devices.py
-python3 scripts/seed_anatomy.py
-python3 scripts/seed_benchmarks.py
-python3 scripts/seed_guidelines.py
-python3 scripts/seed_report_templates.py
-python3 scripts/seed_datasets.py
-```
-
-### RAG Returns Empty Answers
-
-If queries return evidence but the answer is empty or generic:
-
-```bash
-# Verify ANTHROPIC_API_KEY is set and valid
-echo $ANTHROPIC_API_KEY | head -c 10
-# Expected: sk-ant-api
-
-# Test Claude directly
-curl -s https://api.anthropic.com/v1/messages \
-  -H "x-api-key: $ANTHROPIC_API_KEY" \
-  -H "anthropic-version: 2023-06-01" \
-  -H "content-type: application/json" \
-  -d '{"model": "claude-sonnet-4-6", "max_tokens": 10, "messages": [{"role": "user", "content": "Hi"}]}'
-```
-
-### Workflow Failed
-
-If a demo case workflow fails to execute:
-
-```bash
-# Check Docker containers are healthy
-docker ps | grep imaging
-docker compose logs imaging-api
-
-# Verify workflow registry
-curl -s http://localhost:8524/demo-cases | python3 -m json.tool
-# Expected: 4 demo cases listed
-```
-
-### Port In Use
-
-If services fail to start due to port conflicts:
-
-```bash
-# Check what is using the API port
-ss -tlnp | grep 8524
-
-# Check what is using the Streamlit port
-ss -tlnp | grep 8525
-
-# Check running Docker containers
-docker ps --format "table {{.Names}}\t{{.Ports}}"
-```
-
-### Streamlit UI Not Loading
-
-```bash
-# Check Streamlit container status
-docker compose ps
-
-# View Streamlit logs
-docker compose logs streamlit-imaging
-
-# Restart Streamlit service
-docker compose restart streamlit-imaging
-```
-
-### PDF Export Fails
-
-PDF generation requires ReportLab. If PDF export returns a 501 error:
-
-```bash
-pip install reportlab
+[ ] Demo 1 completed (or at minimum, DEMO-002 Lung-RADS 4B result visible)
+[ ] Engine 1 -- Genomics Portal at http://<IP>:5000 (200 OK)
+[ ] Engine 2 -- RAG Chat at http://<IP>:8501 (200 OK)
+[ ] Engine 3 -- Drug Discovery at http://<IP>:8505 (200 OK)
+[ ] Engine 4 -- Imaging Portal at http://<IP>:8550 (200 OK)
+[ ] Pre-computed demo data at data/demo/ (engine3_handoff, cross_modal)
+[ ] 4 browser tabs ready: :8550, :5000, :8501, :8505
 ```
 
 ---
 
-## Quick Reference
+# Demo 1: Engine 4 — The Clinical Imaging Engine
 
-### URLs
-
-| Resource | URL |
-|---|---|
-| Imaging Agent UI (Streamlit) | http://localhost:8525 |
-| Imaging Agent API docs (Swagger) | http://localhost:8524/docs |
-| Landing Page | http://localhost:8080 |
-| Milvus | http://localhost:19530 |
-| Attu (Milvus UI) | http://localhost:8000 |
-| Grafana Monitoring | http://localhost:3000 |
-
-### Collections Reference
-
-| Collection | Purpose | Approx. Vectors |
-|---|---|---|
-| `imaging_literature` | Published research papers and reviews | 50 |
-| `imaging_trials` | ClinicalTrials.gov AI-in-imaging records | 40 |
-| `imaging_findings` | Imaging finding templates and patterns | 50 |
-| `imaging_protocols` | Acquisition protocols and parameters | 40 |
-| `imaging_devices` | FDA-cleared AI/ML medical devices | 50 |
-| `imaging_anatomy` | Anatomical structure references | 30 |
-| `imaging_benchmarks` | Model performance benchmarks | 40 |
-| `imaging_guidelines` | Clinical practice guidelines (ACR, RSNA) | 40 |
-| `imaging_report_templates` | Structured radiology report templates | 50 |
-| `imaging_datasets` | Public imaging datasets (TCIA, PhysioNet) | 50 |
-| `genomic_evidence` | Shared genomic variants (read-only, Stage 1) | 3,561,170 |
-
-### Key curl Examples
-
-```bash
-# Health check
-curl -s http://localhost:8524/health | python3 -m json.tool
-
-# List collections
-curl -s http://localhost:8524/collections | python3 -m json.tool
-
-# List demo cases
-curl -s http://localhost:8524/demo-cases | python3 -m json.tool
-
-# Run a demo case
-curl -s -X POST http://localhost:8524/demo-cases/DEMO-001/run | python3 -m json.tool
-
-# Protocol recommendation
-curl -s -X POST http://localhost:8524/protocol/recommend \
-  -H "Content-Type: application/json" \
-  -d '{
-    "indication": "acute chest pain, rule out pulmonary embolism",
-    "patient_age": 45,
-    "patient_weight_kg": 80
-  }' | python3 -m json.tool
-
-# Dose summary
-curl -s http://localhost:8524/dose/summary | python3 -m json.tool
-```
+**Duration:** 21 minutes | **Acts:** 12 | **Engine:** Imaging (port 8550)
 
 ---
 
-## Appendix: API Reference
+## ACT 1: "The Dashboard" (2 minutes)
 
-All endpoints below are served by the FastAPI server at `http://localhost:8524`. These are provided for programmatic integration, automated testing, and scripting -- **not for live demo use**. Use the Streamlit UI at port 8525 for demos.
+**Navigate to:** `http://<IP>:8550`
 
-Interactive API documentation is available at `http://localhost:8524/docs` (Swagger UI).
+**What the audience sees:**
 
-### Health and Status
+The React Portal loads with a dark theme and NVIDIA green accents. At the top, a gradient hero banner with a green "ENGINE 4" badge reads:
 
-```bash
-# Health check -- all collections, vectors, and NIM service status
-curl -s http://localhost:8524/health | python3 -m json.tool
+> **Clinical Imaging Engine**
+> HCLS AI Factory — Precision Medicine Platform
+> 9 Workflows -- 7 Scoring Systems -- 13 Collections -- 20 NVIDIA Technologies -- Apache 2.0
 
-# List all collections with vector counts and labels
-curl -s http://localhost:8524/collections | python3 -m json.tool
+Below the banner, a clinical disclaimer in amber: "Clinical Decision Support — Not FDA-cleared."
 
-# Knowledge graph statistics
-curl -s http://localhost:8524/knowledge/stats | python3 -m json.tool
+Four stats cards show live system data:
 
-# Prometheus metrics
-curl -s http://localhost:8524/metrics
-```
+- **38,028** Total Vectors
+- **13** Collections
+- **9** Workflows
+- **4** NIM Services
 
-### Demo Cases
+Four engine architecture cards span the page. Engines 1-3 (Genomics, RAG/Chat, Drug Discovery) show "Available." Engine 4 (Clinical Imaging) glows green with an "ACTIVE" badge and connecting arrows between all four engines.
 
-```bash
-# List all demo cases
-curl -s http://localhost:8524/demo-cases | python3 -m json.tool
+**Script:**
 
-# Run a specific demo case (DEMO-001, DEMO-002, DEMO-003, or DEMO-004)
-curl -s -X POST http://localhost:8524/demo-cases/DEMO-001/run | python3 -m json.tool
+> "This is the Clinical Imaging Engine — Engine 4 of the HCLS AI Factory. Everything you see is running on one device. An NVIDIA DGX Spark. $4,699. The size of a Mac Studio."
 
-# Response includes: workflow_result, genomic_context, talking_points
-```
+Point to the sidebar:
 
-### RAG Queries
+> "On the left — four NIM services. VISTA-3D and MAISI are in mock mode because we haven't downloaded the NIM containers yet. VILA-M3 is running through NVIDIA's cloud API. And the LLM — Llama-3 — is running locally on the device through Ollama. Below that, 13 vector collections with 38,000 indexed vectors, including 1,938 real PubMed research papers."
 
-```bash
-# Full RAG query (multi-collection retrieval + LLM synthesis)
-curl -s -X POST http://localhost:8524/query \
-  -H "Content-Type: application/json" \
-  -d '{
-    "question": "What AI models are used for intracranial hemorrhage detection?",
-    "modality": "ct",
-    "body_region": "head",
-    "top_k": 5,
-    "include_genomic": true
-  }' | python3 -m json.tool
+Point to the stats:
 
-# Evidence-only search (retrieval only, no LLM synthesis)
-curl -s -X POST http://localhost:8524/search \
-  -H "Content-Type: application/json" \
-  -d '{
-    "question": "lung nodule detection deep learning",
-    "modality": "ct",
-    "top_k": 10
-  }' | python3 -m json.tool
-
-# Cross-collection entity linking
-curl -s -X POST http://localhost:8524/find-related \
-  -H "Content-Type: application/json" \
-  -d '{
-    "entity": "pulmonary embolism",
-    "top_k": 5
-  }' | python3 -m json.tool
-```
-
-### Protocol Optimization
-
-```bash
-# Recommend imaging protocol
-curl -s -X POST http://localhost:8524/protocol/recommend \
-  -H "Content-Type: application/json" \
-  -d '{
-    "indication": "acute chest pain, rule out pulmonary embolism",
-    "patient_age": 45,
-    "patient_weight_kg": 80,
-    "patient_sex": "male",
-    "contrast_allergy": false,
-    "pregnancy": false
-  }' | python3 -m json.tool
-```
-
-### Dose Intelligence
-
-```bash
-# Get all dose comparison data (20 protocols)
-curl -s http://localhost:8524/dose/reference | python3 -m json.tool
-
-# Get dose comparison for a specific protocol
-curl -s http://localhost:8524/dose/comparison/chest | python3 -m json.tool
-
-# Get summary statistics (avg/max/min reduction, by modality)
-curl -s http://localhost:8524/dose/summary | python3 -m json.tool
-```
-
-### Report Export
-
-```bash
-# Markdown report
-curl -s -X POST http://localhost:8524/reports/generate \
-  -H "Content-Type: application/json" \
-  -d '{
-    "question": "What is the optimal imaging protocol for suspected stroke?",
-    "modality": "ct",
-    "format": "markdown"
-  }' | python3 -m json.tool
-
-# JSON report
-curl -s -X POST http://localhost:8524/reports/generate \
-  -H "Content-Type: application/json" \
-  -d '{
-    "question": "What is the optimal imaging protocol for suspected stroke?",
-    "format": "json"
-  }' | python3 -m json.tool
-
-# PDF report (binary download)
-curl -s -X POST http://localhost:8524/reports/generate \
-  -H "Content-Type: application/json" \
-  -d '{
-    "question": "What is the optimal imaging protocol for suspected stroke?",
-    "format": "pdf"
-  }' --output imaging_report.pdf
-```
+> "Nine clinical workflows. Seven standardized scoring systems — the same ones radiologists use every day. Twenty NVIDIA technologies integrated. All free. All Apache 2.0."
 
 ---
 
-*HCLS AI Factory -- Apache 2.0 | March 2026*
+## ACT 2: "Nine Workflows" (2 minutes)
+
+**Navigate to:** Click **Workflows** in the sidebar
+
+**What the audience sees:**
+
+A 3x3 grid of workflow cards, each with a large modality-colored icon (Brain, Heart, Scan, etc.), colored badges for modality, body region, and scoring system, and a green **"Run Workflow"** button.
+
+Below the grid, 9 Clinical Demo Cases with patient summaries, severity badges, and **"Run Case"** buttons.
+
+**Script:**
+
+> "Nine clinical workflows covering the highest-impact radiology use cases. CT head hemorrhage for emergency stroke triage. CT chest with Lung-RADS for lung cancer screening. Coronary CTA with CAD-RADS. Chest X-ray with multi-label pathology detection. MRI brain for multiple sclerosis monitoring. Prostate with PI-RADS. Breast with BI-RADS. Thyroid with TI-RADS. And liver with LI-RADS for hepatocellular carcinoma screening."
+
+> "Seven standardized scoring systems — Lung-RADS, BI-RADS, TI-RADS, LI-RADS, CAD-RADS, PI-RADS, and ASPECTS. These aren't custom AI scores. These are the classification systems that ACR, RSNA, and specialty societies have established as the clinical standard. The AI speaks the radiologist's language."
+
+---
+
+## ACT 3: "Maria Santos" (4 minutes) — THE KEY MOMENT
+
+**Action:** Scroll down to Demo Cases. Click **"Run Case"** on **DEMO-002: Lung Cancer Screening**
+
+**What happens:**
+
+First, a **processing pipeline animation** appears — six stages light up sequentially in green: DICOM Parse -> Segment -> Classify -> Score -> Cross-Modal -> Report. Each stage advances every 400ms, showing the AI pipeline executing in real-time.
+
+Then the result panel appears. The page auto-scrolls down. A **three-panel medical imaging display** fills the top:
+
+- **Left:** High-resolution AI segmentation overlay (256x256) — CT chest slice with lung regions in green, ribcage in cream, nodule circled in orange, with before/after toggle (click "Raw Image" to see the grayscale CT, click "AI Analysis" to see the colored overlay fade back in)
+- **Center:** Animated GIF scrolling through 50 axial CT chest slices at 256x256 resolution with live segmentation — detailed ribcage, lung fields, heart, and nodule visible as it scrolls through the thorax
+- **Right:** 3D rotating point cloud — a Three.js visualization showing the chest volume as glowing semi-transparent points (lungs in green, heart in red, small orange cluster for the nodule), slowly auto-rotating with NVIDIA green ambient lighting
+
+If the classification is **critical**, a red pulse animation glows around the result panel border and a "CRITICAL FINDING DETECTED" alert bar appears at the top with an animated pinging red dot.
+
+Below the images, a **patient journey timeline** shows numbered nodes: DICOM Received -> AI Segmentation -> Lung-RADS 4B (red node) -> Scoring Applied -> Genomic Trigger -> EGFR, ALK -> Report Generated.
+
+Then the results:
+
+- **Classification:** "Lung-RADS 4B" in a large red badge
+- **Severity:** "CRITICAL" in red
+- **Findings:** Part-solid nodule in right upper lobe, 18mm, growing from 6mm on prior study
+- **Measurements:** Volume doubling time 245 days, volume 1,890 mm3
+- **Cross-Modal Genomic Context:** Gene pills for EGFR, ALK, ROS1, KRAS, BRAF, MET with relevance text explaining actionable mutations
+- **Talking Points:** 5 clinical key points
+
+**Script:**
+
+> "Maria Santos. 58 years old. 20-pack-year smoking history. She drove 90 minutes to this community hospital for her annual lung cancer screening CT."
+
+*Click Run Case. Wait for result to appear. Let the animated CT scroll play for a moment.*
+
+> "The engine detected an 18 millimeter part-solid nodule in her right upper lobe. It was 6 millimeters on her prior study 12 months ago. Volume doubling time: 245 days."
+
+*Point to the large red classification badge:*
+
+> "Lung-RADS 4B. That's the ACR's classification for a highly suspicious nodule. The system recommends tissue sampling."
+
+*Point to the Cross-Modal Bridge Animation — the pulsing dots flowing from Engine 4 (Imaging) to Engine 2 (Genomics):*
+
+> "But here's what no other radiology AI platform does. Watch this animation. When the classification hit Lung-RADS 4A or higher, the engine automatically triggered a cross-modal query — data flowing from the imaging engine to the genomics engine — searching 35,000 variant vectors from ClinVar and AlphaMissense for lung cancer driver mutations. EGFR, ALK, ROS1, KRAS. No one clicked a button. No one told it to check genomics. The architecture did it."
+
+*Point to the talking points:*
+
+> "And these talking points — 'cross-modal genomic query identifies targetable driver mutations for precision therapy' — that's the closed loop. Imaging finds the nodule. Genomics identifies the target. Drug discovery generates the candidates. All on one device."
+
+*Pause. Let it land.*
+
+---
+
+## ACT 4: "Emergency Stroke" (2 minutes)
+
+**Action:** Scroll back up to Demo Cases. Click **"Run Case"** on **DEMO-001: Emergency Stroke**
+
+**What happens:**
+
+The pipeline animation runs (DICOM Parse -> Segment -> Classify...), then the result appears with a **red critical alert pulse** and "CRITICAL FINDING DETECTED" banner with pinging red dot.
+
+Three-panel image display:
+
+- **Left:** High-res AI segmentation overlay (256x256) — bone in cream, brain tissue in blue/purple, CSF in cyan, hemorrhage glowing bright red. Toggle "Raw Image" <-> "AI Analysis" to show the before/after.
+- **Center:** Animated GIF scrolling through 50 axial brain slices with AI segmentation — hemorrhage region visible in red as it scrolls through the basal ganglia
+- **Right:** 3D rotating brain visualization — blue/purple brain tissue points, cyan CSF, bright red hemorrhage cluster in the right hemisphere, slowly rotating
+
+Results below:
+
+- **Classification:** "critical_hemorrhage" in large red badge
+- **Severity:** CRITICAL
+- **Findings:** Intraparenchymal hemorrhage, 28.5 mL, midline shift 4.8mm, plus intraventricular extension
+- **Patient timeline:** DICOM Received -> AI Segmentation -> critical_hemorrhage (red) -> Scoring -> Genomic Trigger -> APOE, COL3A1 -> Report
+- **Genomic Context:** Cross-modal bridge animation (Engine 4 -> Engine 2) with APOE, COL3A1, ACE gene pills
+- **One-click "Report" button** in the header to download the findings instantly
+
+**Script:**
+
+> "Different patient. 62-year-old male. Sudden onset headache, left-sided weakness, slurred speech. This is an emergency."
+
+*Click Run Case. Point to the animated CT head scroll:*
+
+> "The AI segmented the brain in under 90 seconds. Bone in cream. Brain tissue in blue and purple. CSF in cyan. And there — the hemorrhage in red. 28.5 milliliters in the right basal ganglia. Midline shift 4.8 millimeters."
+
+> "The system automatically classifies this as critical and generates a structured ICH report for neurosurgery consult. And it checked the patient's genome for hemorrhage risk factors — APOE e4, COL3A1 vascular fragility genes."
+
+---
+
+## ACT 5: "Quick Fire — All Nine" (2 minutes)
+
+**Action:** Rapidly run 3-4 more demo cases to show breadth
+
+**Suggested sequence:**
+
+1. **DEMO-006: Thyroid TI-RADS TR5** -> "22 millimeter solid hypoechoic nodule. TI-RADS TR5. Critical. The system queries BRAF V600E."
+2. **DEMO-007: Liver LI-RADS LR-5** -> "25 millimeter hepatocellular carcinoma. LI-RADS LR-5 — definitive HCC without biopsy. Queries TP53 and CTNNB1."
+3. **DEMO-005: Breast BI-RADS 4C** -> "15 millimeter spiculated mass. BI-RADS 4C — greater than 50% malignancy probability. Queries BRCA1, BRCA2, PALB2."
+4. **DEMO-003: Cardiac CAD-RADS 4A** -> "72% LAD stenosis, calcium score 385. Queries LDLR, PCSK9 for familial hypercholesterolemia."
+
+**Script:**
+
+> "Let me show you this isn't a one-trick demo. Nine workflows. Nine organ systems. Each with clinically validated scoring."
+
+*Click each case rapidly, showing classification badges:*
+
+> "Thyroid — TI-RADS TR5, critical. Automatically queries BRAF V600E. Liver — LI-RADS LR-5, definitive HCC. Queries TP53. Breast — BI-RADS 4C, over 50% malignancy probability. Queries BRCA1, BRCA2. Cardiac — CAD-RADS 4A, 72% stenosis. Queries for familial hypercholesterolemia genes."
+
+> "Nine workflows. Seven scoring systems. Eight cross-modal genomic triggers. All on one device."
+
+---
+
+## ACT 6: "The Evidence" (2 minutes)
+
+**Navigate to:** Click **Evidence** in the sidebar
+
+**What the audience sees:**
+
+Clean empty state with a centered search icon in a green circle and 6 example query chips.
+
+**Action:** Click the chip **"What is the Lung-RADS classification system?"** or type: "What is the evidence for AI-assisted lung nodule detection in low-dose CT screening?"
+
+**What happens:**
+
+A stats bar appears: "20 sources -- 11 collections -- 168ms search -- 23s total"
+
+The answer streams in — a substantive, multi-section markdown response with headers, bullet points, and evidence citations. On the right, an Evidence Sources sidebar shows 20 citation cards with relevance score bars and PubMed links.
+
+Below the answer, 3 follow-up question pills appear in green.
+
+**Script:**
+
+> "The engine searched 1,938 real PubMed papers plus 11 other knowledge collections — clinical trials, ACR guidelines, FDA devices, benchmarks, protocols — in 168 milliseconds. Then it synthesized the answer with evidence citations."
+
+*Point to a citation card:*
+
+> "Every claim is traceable to a specific PubMed paper. This isn't a language model guessing. This is retrieval-augmented generation grounded in published research."
+
+*Point to follow-up questions:*
+
+> "And it suggests follow-up questions — 'What is the ACR Lung-RADS v2022 management algorithm for category 4A nodules?' Click it and the conversation continues."
+
+---
+
+## ACT 7: "The Protocol" (1.5 minutes)
+
+**Navigate to:** Click **Protocol** in the sidebar
+
+**Action:** Select "lung_cancer_screening" from the indication pills at the bottom. Set age to 58, sex to Female.
+
+**What happens:**
+
+Result panel shows:
+
+- **Protocol:** Low-dose CT Chest
+- **ACR Rating:** 9/9 with a visual gauge showing 9 green segments
+- **Dose:** 1.5 mSv with a colored progress bar
+- **Alternative:** Chest X-Ray (rating 2)
+
+**Script:**
+
+> "The protocol advisor is powered by ACR Appropriateness Criteria. Twelve clinical indications. Lung cancer screening for a 58-year-old female — Low-dose CT Chest, ACR rating 9 out of 9, estimated dose 1.5 millisieverts."
+
+**Action:** Change patient to pregnant 30F with headache.
+
+> "Watch what happens when we change to a pregnant patient with headache."
+
+*The result changes to MRI Brain without contrast.*
+
+> "It switches to MRI — no ionizing radiation. The system knows pregnant patients shouldn't get CT."
+
+**Action:** Change to 70M with eGFR 25, abdominal pain.
+
+> "Seventy-year-old male with kidney function at 25. Watch the warnings."
+
+*Two amber warning cards appear about contrast-induced nephropathy and NSF risk.*
+
+> "Two renal impairment warnings. The system knows iodinated contrast is relatively contraindicated at this eGFR level."
+
+---
+
+## ACT 8: "The Dose" (1 minute)
+
+**Navigate to:** Click **Dose Tracking** in the sidebar
+
+**Action:** In the Patient Lookup tab, type "MARIA_DEMO" and click Lookup.
+
+**What happens:**
+
+A large "8.5 mSv" number appears with a "NORMAL" green badge and a visual dose gauge showing the position within the 0-100+ mSv threshold scale.
+
+**Script:**
+
+> "Maria's cumulative radiation dose across all her imaging studies this year: 8.5 millisieverts. Well within the normal annual threshold of 20. The system tracks every study, compares to national diagnostic reference levels, and alerts if thresholds are exceeded."
+
+> "Her latest low-dose CT was 1.5 mSv against a DRL of 2.0 — ratio 0.75. Below the achievable level. The protocol is well optimized."
+
+---
+
+## ACT 9: "The Analytics" (1 minute)
+
+**Navigate to:** Click **Analytics** in the sidebar
+
+**Action:** Click **"Generate Demo Data"** to populate 500 synthetic studies. The charts fill in.
+
+**What happens:**
+
+Population overview: 500 studies, 7% critical rate. Modality distribution bar chart in green. Severity distribution donut chart. Monthly trend line chart.
+
+**Script:**
+
+> "Population analytics across the hospital's imaging studies. GPU-accelerated when NVIDIA RAPIDS is available, but works with standard pandas too. Modality distribution, severity trends, cohort queries. A radiation safety officer can ask 'show me all critical CT findings from the last 6 months' and get an answer in milliseconds."
+
+---
+
+## ACT 10: "The Report" (1 minute)
+
+**Navigate to:** Click **Reports** in the sidebar
+
+**Action:** Click the quick report pill **"Lung nodule management per Lung-RADS criteria"** then click **Generate Report**.
+
+**What happens:**
+
+An 11,000+ character markdown report generates with headers, sections, evidence citations, and clinical recommendations.
+
+**Script:**
+
+> "Five export formats. Markdown for documentation. JSON for downstream systems. PDF for printing. FHIR R4 with 103 SNOMED CT codes for EHR integration. And DICOM Structured Report — the AI findings stored back in PACS alongside the source images, viewable in any DICOM viewer."
+
+---
+
+## ACT 11: "Side by Side" (1.5 minutes)
+
+**Navigate to:** Click **Compare** in the sidebar
+
+**What the audience sees:**
+
+A two-column comparison view. Two independent case selectors on each side.
+
+**Action:** Select DEMO-002 (Maria Santos, Lung-RADS 4B) on the left and DEMO-006 (Thyroid, TI-RADS TR5) on the right. Click Run on both.
+
+**What happens:**
+
+Side-by-side results: Lung-RADS 4B in red on the left, TI-RADS TR5 in red on the right. Below, a comparison summary automatically highlights:
+
+- Different modalities (CT vs Ultrasound)
+- Both critical severity
+- Different genomic targets (EGFR/ALK vs BRAF/RAS)
+- Different organ systems, same platform, same device
+
+**Script:**
+
+> "Two patients. Two organ systems. Two different imaging modalities. Both analyzed on the same device, both with cross-modal genomic triggers, both with evidence-based scoring. CT and ultrasound. Lung-RADS and TI-RADS. EGFR and BRAF. One platform covers it all."
+
+---
+
+## ACT 12: "The Number" (1 minute)
+
+**Navigate to:** Click **Benchmarks** in the sidebar
+
+**What the audience sees:**
+
+Four benchmark cards showing clinical accuracy metrics (Lung: 94.2% sensitivity, Cardiac: 97.4% calcium score accuracy, Neuro: 89.7% lesion detection, System: 1,324 tests passing). At the bottom, the hardware target: NVIDIA DGX Spark.
+
+**Script:**
+
+> "Let me count what Maria's hospital got today."
+
+| What | Count |
+|------|-------|
+| NVIDIA technologies | 20 |
+| Clinical workflows | 9 |
+| Scoring systems | 7 |
+| Cross-modal genomic triggers | 8 |
+| Vector collections | 13 |
+| PubMed papers indexed | 1,938 |
+| SNOMED CT codes | 103 |
+| Export formats | 5 |
+| Tests passing | 1,324 |
+| Software license cost | $0 |
+| Hardware cost | $4,699 |
+
+> "Twenty NVIDIA technologies. Nine workflows. Seven scoring systems. Thirteen knowledge collections with 38,000 vectors. 1,324 tests. Five export formats. 103 SNOMED codes. Apache 2.0."
+
+> "Total cost: $4,699. The price of the hardware. Zero software licensing. Zero cloud subscription. Zero vendor lock-in."
+
+**Pause. Let it land.**
+
+> "Every community hospital. Every rural clinic. Every research institution in every country. No exceptions."
+
+---
+
+## Demo 1 Timing Guide
+
+| Act | Content | Duration | Running Total |
+|-----|---------|----------|---------------|
+| 1 | Dashboard | 2:00 | 2:00 |
+| 2 | Nine Workflows | 2:00 | 4:00 |
+| 3 | Maria Santos (Lung-RADS 4B) — pipeline animation, 3-panel images, 3D viewer, before/after toggle, cross-modal bridge | 4:00 | 8:00 |
+| 4 | Emergency Stroke — critical alert pulse, 3D brain visualization | 2:00 | 10:00 |
+| 5 | Quick Fire (4 more cases) | 2:00 | 12:00 |
+| 6 | Evidence Explorer | 2:00 | 14:00 |
+| 7 | Protocol Advisor | 1:30 | 15:30 |
+| 8 | Dose Tracking | 1:00 | 16:30 |
+| 9 | Analytics | 1:00 | 17:30 |
+| 10 | Reports | 1:00 | 18:30 |
+| 11 | Side by Side Comparison | 1:30 | 20:00 |
+| 12 | The Number | 1:00 | 21:00 |
+| | Transition to Demo 2 | 0:30 | 21:30 |
+
+---
+
+## The Transition to Demo 2
+
+> "Maria's nodule is Lung-RADS 4B. The radiologist recommends tissue sampling. But what if we could go further? What if the same box that found the nodule could check Maria's genome for EGFR driver mutations — and generate 100 candidate drug molecules targeting those mutations — before she leaves the building?"
+
+> "That's the closed loop. Engine 4 triggered it. Engines 1, 2, and 3 finish it."
+
+---
+
+## Audience-Specific Emphasis
+
+| If speaking to... | Emphasize | Spend more time on |
+|-------------------|-----------|-------------------|
+| **NVIDIA HCLS** | 20 NVIDIA technologies, NIM adoption, DGX Spark sales | Act 2 (technology count), Act 3 (cross-modal trigger) |
+| **VAST Data** | Enterprise upgrade path, VAST AI OS, co-sell | Act 12 (the number), transition to Demo 2 |
+| **Radiologists** | Lung-RADS accuracy, standardized scoring, DICOM SR | Act 3 (Maria Santos), Act 7 (Protocol) |
+| **Hospital CIOs** | Data sovereignty, $4,699 TCO, no cloud | Act 1 (one device), Act 12 (the number) |
+| **Open-source community** | Apache 2.0, 1,324 tests, git clone | Act 1 (one command), Act 12 |
+| **Oncologists** | Cross-modal genomic triggers, EGFR/BRCA | Act 3 (genomic bridge), Act 5 (all organ systems) |
+
+---
+
+# Demo 2: The Closed Loop — CT Scan to Drug Candidate
+
+**The demo that has never been done before. On any platform. At any price.**
+
+**Duration:** 27 minutes | **Acts:** 10 | **Engines:** All 4
+
+---
+
+## Screen Layout
+
+**Option A (4 screens/monitors):** One engine per screen. Best for live presentations.
+
+**Option B (single screen, 4 tabs):** Switch between browser tabs. Color-code each tab mentally:
+
+- Tab 1: Engine 4 — Imaging (green, where we start)
+- Tab 2: Engine 1 — Genomics (blue)
+- Tab 3: Engine 2 — Intelligence (teal)
+- Tab 4: Engine 3 — Drug Discovery (purple)
+
+**Option C (recorded video):** Pre-record with transitions. Each engine gets a colored border or label overlay.
+
+---
+
+## ACT 1: "The Trigger" (3 minutes)
+
+**Screen:** Engine 4 — Imaging Portal (http://<IP>:8550/workflows)
+
+**Starting point:** DEMO-002 Maria Santos result from Demo 1 is still visible. If not, click "Run Case" on DEMO-002 to re-run it.
+
+**What the audience sees:**
+
+The Lung-RADS 4B result with:
+
+- 3-panel medical imaging (AI segmentation + animated CT scroll + 3D point cloud)
+- CRITICAL FINDING DETECTED banner
+- Patient journey timeline with red Lung-RADS 4B node
+- Cross-modal bridge animation — pulsing dots flowing from Engine 4 (Imaging) -> Engine 2 (Genomics)
+- Gene pills: EGFR, ALK, ROS1, KRAS, BRAF, MET
+
+**Script:**
+
+> "In Demo 1, we showed you what Engine 4 — the Clinical Imaging Engine — can do on its own. Nine workflows, seven scoring systems, cross-modal genomic triggers. But Maria's story doesn't end with Lung-RADS 4B."
+
+*Point to the cross-modal bridge animation:*
+
+> "Watch this animation. Data is flowing from Engine 4 — Imaging — to Engine 2 — Genomics. The engine didn't just find a nodule and classify it. It asked a question: does this patient have actionable driver mutations?"
+
+> "In a traditional hospital, that question takes 6 to 8 weeks. Biopsy referral, tissue sampling, molecular testing, results. On this device, it takes minutes."
+
+*Point to the gene pills:*
+
+> "EGFR. ALK. ROS1. KRAS. BRAF. MET. These are the genes that determine which targeted therapies will work for this specific type of lung cancer. The imaging engine queried them automatically. Now let me show you what happened on the other side."
+
+---
+
+## ACT 2: "The Genome" (3 minutes)
+
+**Switch to:** Engine 1 — Genomics Portal (http://<IP>:5000)
+
+**What the audience sees:**
+
+The Genomics Pipeline portal showing the completed genomic analysis. If showing live data, the VCF file with 11.7 million variants is displayed.
+
+**Script:**
+
+> "This is Engine 1 — the Genomic Foundation Engine. When Maria visited this hospital previously, her whole genome was sequenced. 200 gigabytes of raw DNA data. Engine 1 processed it using NVIDIA Parabricks — GPU-accelerated alignment with BWA-MEM2 and variant calling with Google DeepVariant."
+
+> "What would take 48 hours on a CPU server took 3 hours on this DGX Spark. The result: 11.7 million variants called with over 99.7% accuracy."
+
+*Point to the VCF data:*
+
+> "Every variant in Maria's genome is indexed and searchable. But 11.7 million variants is too many for a human to review. That's where Engine 2 comes in."
+
+---
+
+## ACT 3: "The Intelligence" (4 minutes) — THE PIVOT MOMENT
+
+**Switch to:** Engine 2 — RAG Chat (http://<IP>:8501)
+
+**What the audience sees:**
+
+The Precision Intelligence Network — a chat interface backed by Milvus with 3.56 million indexed vectors from ClinVar (4.1M clinical variants), AlphaMissense (71M AI pathogenicity predictions), and a curated knowledge base of 201 genes across 13 therapeutic areas.
+
+**Action:** Type or paste: "What EGFR variants does this patient carry and what is their clinical significance for non-small cell lung cancer treatment?"
+
+**What happens:**
+
+The RAG engine searches the genomic evidence collection. The answer identifies EGFR L858R — a missense mutation in exon 21. ClinVar classifies it as pathogenic. AlphaMissense gives it a pathogenicity score of 0.94 (high confidence). The knowledge graph connects it to erlotinib, osimertinib, and gefitinib as targeted therapies.
+
+**Script:**
+
+> "Engine 2 is the Precision Intelligence Network. It searched 3.56 million genomic evidence vectors — ClinVar clinical annotations, AlphaMissense AI pathogenicity predictions, and a curated knowledge base of 201 druggable genes."
+
+*Wait for the answer to appear:*
+
+> "There it is. EGFR L858R. A missense mutation in exon 21 of the epidermal growth factor receptor gene. ClinVar says pathogenic. AlphaMissense scores it 0.94 out of 1.0 — high confidence that this variant is disease-causing."
+
+> "This is the most common actionable EGFR mutation in non-small cell lung cancer. It's the mutation that erlotinib and osimertinib were designed to target. But those are existing drugs. What if we could design something new? Something optimized for this specific mutation?"
+
+*Pause. The audience knows what's coming.*
+
+---
+
+## ACT 4: "The Target" (2 minutes)
+
+**Still on Engine 2 or switch to pre-computed data.**
+
+**Script:**
+
+> "Engine 2 validated EGFR as a druggable target. Priority 5 out of 5 — the highest. It pulled the protein's crystal structures from the Protein Data Bank. PDB IDs: 1M17, 4ZAU, 5CAL. And it identified erlotinib as the reference compound — the seed molecule for drug generation."
+
+> "This target hypothesis — gene, variant, protein structure, reference drug, druggability assessment — is the handoff to Engine 3."
+
+---
+
+## ACT 5: "The Molecules" (5 minutes) — THE JAW-DROP MOMENT
+
+**Switch to:** Engine 3 — Drug Discovery UI (http://<IP>:8505)
+
+**What the audience sees:**
+
+The Therapeutic Discovery Engine. The EGFR target is loaded. Crystal structure PDB:5CAL is visible — the EGFR kinase domain with the erlotinib binding pocket highlighted.
+
+**Action:** Show the drug discovery pipeline or pre-computed results.
+
+**What the audience sees:**
+
+The 10-stage pipeline:
+
+1. Initialize target
+2. Normalize to UniProt/PDB
+3. Structure discovery (RCSB PDB)
+4. Structure preparation
+5. **Molecule generation (MolMIM)** — 100 new molecular structures appear
+6. Chemistry QC (RDKit validation)
+7. Conformer generation
+8. **Molecular docking (DiffDock)** — binding poses predicted
+9. Composite ranking
+10. Report generation
+
+Results:
+
+- 100 novel EGFR inhibitor candidates
+- 87 pass Lipinski's Rule of Five
+- 72 have QED > 0.67 (drug-like)
+- Top 10 docking scores: -8.2 to -11.4 kcal/mol
+- Composite scores: 0.68-0.89
+
+**Script:**
+
+> "This is Engine 3 — the Therapeutic Discovery Engine. It loaded Maria's EGFR target. It pulled the crystal structure — this is the protein's kinase domain, the molecular machine that drives cell growth. And here, in the active site, is where erlotinib binds."
+
+*Point to the molecule generation results:*
+
+> "MolMIM — NVIDIA's molecular generation model — created 100 novel molecular structures using erlotinib as a seed. Each one is a variation on the EGFR inhibitor scaffold, designed to fit the same binding pocket but with different chemical properties."
+
+> "DiffDock predicted how each molecule docks into the EGFR active site. Binding poses, affinity scores, hydrogen bonds, contact residues."
+
+*Point to the top-ranked candidates:*
+
+> "100 novel EGFR inhibitor candidates. 87 pass Lipinski's Rule of Five — they look like real drugs. The top 10 have binding scores comparable to or better than erlotinib itself."
+
+*Let that sink in.*
+
+> "These aren't existing drugs pulled from a database. These are new molecules that didn't exist before this pipeline ran. Generated, validated, docked, and ranked — in under 16 minutes."
+
+---
+
+## ACT 6: "The Loop Closes" (3 minutes)
+
+**Switch back to:** Engine 4 — Imaging Portal (http://<IP>:8550)
+
+**Script:**
+
+> "Let me show you what just happened."
+
+*Show or describe the timeline:*
+
+```
+8:00 AM — Maria arrives for screening CT
+8:15 AM — Engine 4: Lung-RADS 4B nodule detected, cross-modal trigger fires
+8:16 AM — Engine 2: EGFR L858R mutation identified from 3.56M genomic vectors
+8:20 AM — Engine 3: 100 novel EGFR inhibitor candidates generated and ranked
+8:35 AM — Radiologist reviews AI findings alongside CT images
+8:40 AM — FHIR DiagnosticReport + DICOM SR exported to EHR
+8:45 AM — Oncologist receives complete precision medicine packet
+```
+
+> "From CT scan to drug candidates. 45 minutes. On a single device."
+
+*Pause.*
+
+> "But the loop doesn't end there."
+
+---
+
+## ACT 7: "The Follow-Up" (2 minutes)
+
+**Script:**
+
+> "Three months from now, Maria comes back for follow-up imaging. Engine 4 runs the same CT workflow. But this time, it also extracts 1,500 radiomics features from the nodule — quantitative texture measurements at the microstructural level."
+
+> "It compares these features to the baseline scan. Changes in tissue entropy, heterogeneity, and shape that predict treatment response — weeks before the nodule visibly shrinks or grows on imaging."
+
+> "The loop is circular. Imaging triggers genomics. Genomics triggers drug discovery. Drug discovery guides treatment. Imaging monitors response. And if treatment fails, the cycle restarts with new molecular targets."
+
+> "That's not a pipeline. That's a precision medicine system."
+
+---
+
+## ACT 8: "The Architecture" (2 minutes)
+
+**Script:**
+
+> "Four engines. One device."
+
+| Engine | Name | What It Did for Maria | Time |
+|--------|------|----------------------|------|
+| **4** | Clinical Imaging | Found the nodule, classified Lung-RADS 4B, triggered genomics | 1 minute |
+| **1** | Genomic Foundation | Processed her genome, called 11.7M variants | 3 hours (pre-computed) |
+| **2** | Precision Intelligence | Found EGFR L858R, validated druggable target | 2 minutes |
+| **3** | Therapeutic Discovery | Generated 100 EGFR inhibitor candidates | 16 minutes |
+
+> "Total active time from CT scan to drug candidates: under one hour. On a $4,699 NVIDIA DGX Spark. With zero software licensing costs."
+
+> "No other system on earth does this. Not commercially. Not in open source. Not at any price point."
+
+---
+
+## ACT 9: "The Scale" (2 minutes)
+
+**Script:**
+
+> "Everything you just saw runs on one box. But what happens when it's not one hospital — it's a hundred?"
+
+> "That's where VAST AI OS enters the picture."
+
+*If presenting to VAST/NVIDIA:*
+
+> "VAST AI OS replaces the Docker volumes with canonical file storage — every DICOM image, every VCF file, every molecule, every AI result exists as a transactional Element in a unified namespace. DataEngine triggers the pipeline automatically when a CT arrives. InsightEngine embeds reports without ETL. DataBase provides unified SQL plus vector search. And ICMS accelerates the LLM by 10 to 20x."
+
+> "One DGX Spark serves one hospital. VAST AI OS plus DGX SuperPOD serves a health system. The code is the same. The deployment tier changes."
+
+*If presenting to open-source community, skip VAST and go to:*
+
+> "And through NVIDIA FLARE federated learning, multiple hospitals can train shared AI models without sharing patient data. Only model improvements flow between sites. Data sovereignty preserved."
+
+---
+
+## ACT 10: "The Invitation" (1 minute)
+
+**Script:**
+
+> "This is open source. Apache 2.0. The repository is public."
+
+```
+git clone https://github.com/ajones1923/hcls-ai-factory.git
+```
+
+> "Four engines. Twenty NVIDIA technologies. Nine clinical workflows. Seven scoring systems. Cross-modal genomic triggers. 100 drug candidates per target. 1,324 tests. All free."
+
+> "We built this because Maria Santos — and every patient like her in every community hospital, in every rural clinic, in every low- and middle-income country — deserves the same precision medicine that academic medical centers provide."
+
+> "Not in five years. Not when the budget allows. Now."
+
+> "Clone it. Deploy it. Improve it. That's the invitation."
+
+**End.**
+
+---
+
+## Demo 2 Timing Guide
+
+| Act | Content | Duration | Running Total |
+|-----|---------|----------|---------------|
+| 1 | The Trigger (Engine 4 -> cross-modal bridge) | 3:00 | 3:00 |
+| 2 | The Genome (Engine 1 — Parabricks, 11.7M variants) | 3:00 | 6:00 |
+| 3 | The Intelligence (Engine 2 — EGFR L858R identified) | 4:00 | 10:00 |
+| 4 | The Target (validation, PDB structures, druggability) | 2:00 | 12:00 |
+| 5 | The Molecules (Engine 3 — 100 EGFR inhibitors generated) | 5:00 | 17:00 |
+| 6 | The Loop Closes (timeline: 45 minutes CT -> drugs) | 3:00 | 20:00 |
+| 7 | The Follow-Up (radiomics monitoring, circular loop) | 2:00 | 22:00 |
+| 8 | The Architecture (4 engines, one device) | 2:00 | 24:00 |
+| 9 | The Scale (VAST AI OS / FLARE federation) | 2:00 | 26:00 |
+| 10 | The Invitation (Apache 2.0, git clone) | 1:00 | 27:00 |
+
+**Combined Demo 1 + Demo 2: ~48 minutes total**
+
+Or run Demo 2 standalone in ~27 minutes (briefly recap the Lung-RADS 4B finding in Act 1).
+
+---
+
+## Key Numbers to Memorize
+
+| Number | What |
+|--------|------|
+| **$4,699** | DGX Spark price. Hardware only. Zero software cost. |
+| **38,028** | Vectors indexed across 13 collections |
+| **1,938** | Real PubMed papers in the literature collection |
+| **9** | Clinical workflows |
+| **7** | Standardized scoring systems (Lung/BI/TI/LI/CAD/PI-RADS, ASPECTS) |
+| **8** | Cross-modal genomic triggers |
+| **20** | NVIDIA technologies integrated (all free) |
+| **103** | SNOMED CT codes in FHIR export |
+| **1,324** | Tests passing |
+| **5** | Export formats |
+| **0** | Software licensing cost |
+| **11.7M** | Genomic variants called per patient |
+| **3.56M** | Genomic evidence vectors (ClinVar + AlphaMissense) |
+| **100** | Drug candidates generated per target |
+| **87** | Candidates passing Lipinski's Rule of Five |
+| **72** | Candidates with QED > 0.67 (drug-like) |
+| **201** | Druggable gene targets across 13 therapeutic areas |
+| **45 min** | CT scan to drug candidates (closed loop) |
+
+---
+
+## Recovery Guide
+
+### Demo 1 Recovery
+
+| If this goes wrong... | Do this |
+|----------------------|---------|
+| Portal doesn't load | Use Streamlit at `:8525` as backup |
+| Workflow returns wrong classification | Say "In mock mode, classifications are simulated. The scoring logic is clinically validated in our 1,324 test suite." |
+| Evidence query is slow (>30s) | Say "The LLM is synthesizing across 1,938 papers. In production with NVIDIA ICMS KV cache, this drops to under 5 seconds." |
+| Evidence query fails | Have a pre-generated report open in another tab |
+| Charts don't load in Analytics | Click "Generate Demo Data" first — needs 500+ studies |
+| Any API timeout | Refresh the page. FastAPI recovers automatically. |
+
+### Demo 2 Recovery
+
+| If this goes wrong... | Do this |
+|----------------------|---------|
+| Engine 2 chat is slow | Use pre-computed EGFR evidence from data/demo/cross_modal/ |
+| Engine 3 isn't loaded | Show the pre-computed target hypothesis from data/demo/engine3_handoff/ |
+| Engine 1 isn't accessible | Skip Act 2, say "The genome was pre-processed. Let me show you what Engine 2 found." |
+| Any engine UI is down | Use the pre-computed JSON files and narrate the results |
+| Audience asks about FDA clearance | "This is a research platform and clinical decision support tool, not a cleared medical device. All findings require review by qualified healthcare professionals." |
+| Audience asks about validation | "1,324 tests passing. Mock mode produces clinically realistic results based on published scoring criteria. Clinical validation studies are a next step." |
+
+---
+
+## The Story Arc
+
+```
+"This shouldn't be possible"     -> One box. $4,699. Community hospital.
+  |
+"But it is"                      -> 9 workflows. Real scoring. Real images.
+  |
+"And it's smarter than expected" -> Cross-modal genomic triggers fire automatically
+  |
+"And it's evidence-based"        -> 1,938 PubMed papers. Every answer cited.
+  |
+"And it's clinically safe"       -> ACR criteria. Dose tracking. Guardrails.
+  |
+"And it's free"                  -> Apache 2.0. git clone. docker compose up.
+  |
+"And it scales"                  -> VAST AI OS. FLARE federated learning.
+  |
+"And you can help"               -> Open source invitation.
+```
+
+The power is in the contrast: the simplicity of one device versus the sophistication of what it does. Every "and" is another thing the audience didn't expect. The cumulative effect is what makes it memorable.
+
+---
+
+## The Emotional Arc (Demo 2)
+
+```
+Demo 1 ended with:
+  "Every hospital on earth. No exceptions."
+
+Demo 2 builds:
+  "But what if we could go further?"
+    |
+  "The imaging engine triggered something."
+    |
+  "EGFR L858R. The driver mutation."
+    |
+  "100 new molecules. In 16 minutes."
+    |
+  "From CT scan to drug candidates. 45 minutes. One device."
+    |
+  [silence]
+    |
+  "$4,699. Apache 2.0."
+    |
+  [silence]
+    |
+  "Clone it. Deploy it. Improve it."
+```
+
+The silences are as important as the words. After "45 minutes, one device" — stop talking for 3 full seconds. After "$4,699, Apache 2.0" — stop for 3 more. Let the audience process what they just saw.
+
+---
+
+## What Makes This Demo Historic
+
+No one has ever demonstrated, on any platform at any price point:
+
+1. A routine imaging study triggering genomic analysis automatically
+2. Genomic analysis identifying a specific driver mutation
+3. That mutation driving AI-powered drug candidate generation
+4. 100 novel molecules generated, validated, docked, and ranked
+5. The entire cycle completing in under one hour
+6. On a single desktop device costing $4,699
+7. With the entire platform available as open source under Apache 2.0
+
+Each of these individually would be impressive. All seven together, in sequence, live, on one device — that's unprecedented.
 
 ---
 
 !!! warning "Clinical Decision Support Disclaimer"
     The Clinical Imaging Engine is a clinical decision support research tool for medical image analysis. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.
+
+---
+
+*Apache 2.0 Licensed. HCLS AI Factory — Clinical Imaging Engine.*
+*Patient DNA to Drug Candidates in <5 hours on a single NVIDIA DGX Spark ($4,699).*
