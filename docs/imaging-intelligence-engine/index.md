@@ -2,26 +2,42 @@
 
 ![Clinical Imaging Engine Architecture Infographic](infographic.jpg)
 
-**Source:** [github.com/ajones1923/imaging-intelligence-engine](https://github.com/ajones1923/imaging-intelligence-engine)
+**Engine 4 of the HCLS AI Factory** | **Apache 2.0** | **NVIDIA DGX Spark ($4,699)**
 
-> **Part of the [Precision Intelligence Network](../engines/precision-intelligence.md)** — one of 11 specialized agents sharing a common molecular foundation within the HCLS AI Factory.
-
-Automated detection, segmentation, longitudinal tracking, and clinical triage of CT, MRI, and chest X-ray studies on NVIDIA DGX Spark. Part of the [HCLS AI Factory](https://github.com/ajones1923/hcls-ai-factory).
+> The most comprehensive open-source medical imaging AI platform available. 9 clinical workflows, 7 standardized scoring systems, 20 NVIDIA technologies, cross-modal genomic integration — all on a single device for $4,699.
 
 ## Overview
 
-The Clinical Imaging Engine processes medical imaging studies using MONAI models and NVIDIA NIM microservices on DGX Spark hardware. A 9-tab Streamlit interface backed by 876 seed vectors across 10 Milvus collections provides evidence-grounded clinical reasoning, while six reference workflows run real pretrained model weights across 4 demo cases (DEMO-001 through DEMO-004). The Image Gallery showcases 9 AI-annotated medical images with a 3D Volume Slice Viewer and Before/After AI toggle. Cross-modal triggers connect imaging findings to 3.5M genomic variant vectors for precision medicine enrichment. Output is exported as Markdown, JSON, NVIDIA-branded PDF, or FHIR R4 DiagnosticReport Bundles with SNOMED CT, LOINC, and DICOM coding.
+The Clinical Imaging Engine (Engine 4) processes medical imaging studies across CT, MRI, X-ray, mammography, and ultrasound using 20 NVIDIA technologies on DGX Spark hardware. It delivers:
 
-## Six Reference Workflows
+- **9 clinical workflows** with 7 standardized scoring systems (Lung-RADS, BI-RADS, TI-RADS, LI-RADS, CAD-RADS, PI-RADS, ASPECTS)
+- **38,028 indexed vectors** across 13 Milvus collections, including 1,938 real PubMed research papers
+- **8 cross-modal genomic triggers** that automatically connect imaging findings to 35,678 genomic variant vectors
+- **9 NIM clients** with 3-tier fallback (local → cloud → mock)
+- **~1,500 radiomics features** per segmented region via PyRadiomics-CUDA
+- **Agentic reasoning** (Plan/Execute/Reflect/Refine) via NVIDIA AIQ Toolkit
+- **Clinical safety guardrails** via NeMo Guardrails (PII detection, evidence grounding, disclaimer injection)
+- **5 export formats** (Markdown, JSON, PDF, FHIR R4 with 103 SNOMED codes, DICOM SR)
+- **Real-time streaming** for ultrasound and endoscopy via NVIDIA Holoscan (30fps)
+- **9 MONAI Deploy Application Packages** (MAPs) for portable clinical AI deployment
+- **Interactive annotation** via MONAI Label with NVIDIA FLARE federated learning bridge
+- **React portal** (clinical-grade UI) + Streamlit (developer workbench)
+- **1,324 tests passing** with comprehensive mock mode for GPU-free development
+- **3-tier deployment:** Community (free), Enterprise (+ AI Enterprise NIMs), Research (+ noncommercial models)
 
-| Workflow | Modality | Model (Pretrained Weights) | Key Output |
-|---|---|---|---|
-| **Hemorrhage Triage** | CT Head | SegResNet (MONAI `wholeBody_ct_segmentation`) | Volume (mL), midline shift (mm), urgency routing |
-| **Lung Nodule Tracking** | CT Chest | RetinaNet + SegResNet (MONAI `lung_nodule_ct_detection`) | Lung-RADS 1--4B classification |
-| **Coronary Angiography** | CT Heart | Calcium scoring + stenosis grading | Agatston score, stenosis severity |
-| **Rapid Findings** | CXR | DenseNet-121 (torchxrayvision `densenet121-res224-all`, CheXpert) | Multi-label classification + GradCAM heatmaps |
-| **MS Lesion Tracking** | MRI Brain | UNEST (MONAI `wholeBrainSeg_Large_UNEST_segmentation`) | Lesion count, disease activity (Stable/Active/Highly Active) |
-| **Prostate PI-RADS** | MRI Prostate | Prostate lesion detection + PI-RADS v2.1 | PI-RADS 1--5 scoring |
+## Nine Clinical Workflows
+
+| Workflow | Modality | Scoring System | Key Output | Cross-Modal Trigger |
+|---|---|---|---|---|
+| **CT Head Hemorrhage** | CT | ASPECTS / BTF | Volume, midline shift, urgency | → APOE, COL3A1, ACE |
+| **CT Chest Lung Nodule** | CT | Lung-RADS v2022 | Nodule size, VDT, classification | → EGFR, ALK, ROS1, KRAS |
+| **CT Coronary Angiography** | CT | CAD-RADS 2.0 | Stenosis %, calcium score, plaque | → LDLR, PCSK9, APOB |
+| **CXR Rapid Findings** | CXR | Multi-label | Consolidation, effusion, pneumothorax | → TLR4, MBL2 |
+| **MRI Brain MS Lesion** | MRI | MS Activity | Lesion count, volume, activity | → HLA-DRB1, IL7R |
+| **MRI Prostate PI-RADS** | MRI | PI-RADS v2.1 | Lesion PI-RADS score, ADC, zone | → BRCA2, HOXB13, ATM |
+| **Breast BI-RADS** | Mammography | BI-RADS 5th Ed | Mass/calcification, BI-RADS 0-6 | → BRCA1, BRCA2, PALB2 |
+| **Thyroid TI-RADS** | Ultrasound | ACR TI-RADS | Nodule TI-RADS TR1-5, FNA rec | → BRAF, RAS, RET/PTC |
+| **Liver LI-RADS** | CT/MRI | LI-RADS v2018 | APHE, washout, capsule, LR-1 to LR-5 | → TP53, CTNNB1, TERT |
 
 ## Architecture
 
@@ -29,104 +45,130 @@ The Clinical Imaging Engine processes medical imaging studies using MONAI models
 DICOM Study Arrives (Orthanc 8042/4242)
     |
     v
-[Webhook Router] ── CT+head / CT+chest / CT+heart / CR+chest / MR+brain / MR+prostate
+[Webhook Router] ── 9 workflow routing rules by modality + body region
     |
     v
-[Clinical Workflow] (6 workflows)
-(SegResNet / RetinaNet / DenseNet-121 / UNEST / Calcium Scoring / PI-RADS)
+[Clinical Workflow] (9 workflows with standardized scoring)
+(SegResNet / RetinaNet / DenseNet-121 / UNEST / BI-RADS / TI-RADS / LI-RADS)
     |
     v
 [Post-Processing + Cross-Modal Trigger]
-Volume, midline shift, Lung-RADS, GradCAM, Agatston, PI-RADS
-Lung-RADS 4A+ → genomic variant queries (3.5M vectors)
+8 triggers: Lung-RADS 4A+ → EGFR | BI-RADS 4+ → BRCA | TI-RADS 4+ → BRAF | LI-RADS 4+ → TP53 | ...
     |
     v
-[RAG Engine + Claude Sonnet 4.6 / Llama-3 NIM]
-10 imaging collections (876 seed vectors) + genomic_evidence (read-only)
+[RAG Engine + Agentic Reasoning (AIQ)]
+13 collections (38,028 vectors) + genomic_evidence (35,678 vectors)
+Plan → Execute → Reflect → Refine cycle with 6 registered tools
     |
     v
-[9-Tab Streamlit UI]
-Evidence Explorer | Workflow Runner | Image Gallery | Protocol Advisor
-Device & AI Ecosystem | Dose Intelligence | Reports & Export | Patient 360
-Benchmarks & Validation
+[Safety Guardrails (NeMo Guardrails)]
+PII detection | Evidence grounding | Clinical disclaimer | Contraindication check
     |
     v
-[Clinical Output]
-Markdown | JSON | NVIDIA-branded PDF | FHIR R4 DiagnosticReport Bundle
+[Clinical Output — 5 Formats]
+Markdown | JSON | PDF | FHIR R4 (103 SNOMED codes) | DICOM SR (TID 1500)
+    |
+    v
+[React Portal (8550) + Streamlit (8525)]
+10 pages: Dashboard, Workflows, Evidence, Protocol, Dose, Analytics, Reports, Benchmarks, Compare
 ```
 
-Built on the HCLS AI Factory platform:
+## 20 NVIDIA Technologies (All Free)
 
-- **LLM:** Claude Sonnet 4.6 (Anthropic) primary, Llama-3 NIM fallback
-- **RAG Engine:** Multi-collection Milvus vector search + LLM synthesis
-- **Embeddings:** BGE-small-en-v1.5 (384-dim, IVF_FLAT, COSINE)
-- **Database:** Milvus 2.4 (10 imaging collections + `genomic_evidence` read-only)
-- **NIM Services:** VISTA-3D (segmentation), MAISI (synthetic CT), VILA-M3 (VLM), Llama-3 8B (LLM)
-- **Cloud NIMs:** `meta/llama-3.1-8b-instruct` + `meta/llama-3.2-11b-vision-instruct` via `integrate.api.nvidia.com`
-- **DICOM Server:** Orthanc (webhook auto-routing to 6 workflows)
-- **UI:** Streamlit 9-tab interface (port 8525)
-- **API:** FastAPI (port 8524)
-- **Export:** Markdown, JSON, NVIDIA-branded PDF, FHIR R4 DiagnosticReport Bundle
-- **Federated Learning:** NVIDIA FLARE (3 job configs)
-- **Hardware target:** NVIDIA DGX Spark ($4,699)
+| # | Technology | Category | License |
+|---|---|---|---|
+| 1 | MONAI Core | Medical AI Framework | Apache 2.0 |
+| 2 | MONAI Deploy SDK (MAPs) | Clinical Packaging | Apache 2.0 |
+| 3 | MONAI Label | Interactive Annotation | Apache 2.0 |
+| 4 | NVIDIA FLARE | Federated Learning | Apache 2.0 |
+| 5 | NVIDIA AIQ Toolkit | Agentic AI | Open source |
+| 6 | NeMo Guardrails | Clinical Safety | Apache 2.0 |
+| 7 | RAPIDS cuDF/cuML | GPU Analytics | Apache 2.0 |
+| 8 | cuVS (CAGRA) | Vector Search | Apache 2.0 |
+| 9 | cuCIM | Image Processing | Apache 2.0 |
+| 10 | NVIDIA DALI | Data Loading | Apache 2.0 |
+| 11 | Triton Inference Server | Model Serving | BSD 3-Clause |
+| 12 | TensorRT | Inference Optimization | Free SDK |
+| 13 | NVIDIA Dynamo | LLM Serving | Apache 2.0 |
+| 14 | Holoscan SDK | Real-time Streaming | Apache 2.0 |
+| 15 | NV-Segment-CT | Segmentation (132 classes) | Open Model |
+| 16 | Llama-3 8B | On-device LLM | Meta Community |
+| 17 | PyRadiomics-CUDA | Radiomics | BSD |
+| 18 | torchxrayvision | CXR Classification | Apache 2.0 |
+| 19 | Nemotron Nano | Edge LLM | Open weights |
+| 20 | NV-Generate CT/MR | Synthetic Data | Check release |
 
 ## Knowledge Base
 
-| Source | Records |
-|---|---|
-| Seed imaging vectors | 876 across 10 owned collections |
-| Genomic evidence vectors (read-only) | 3,561,170 vectors |
-
-620 unit tests, 9/9 end-to-end checks. 6 workflows, 4 demo cases, 9 Streamlit tabs.
-
-## Demo Highlights (March 2026)
-
-- **Image Gallery:** 5 CXR pathology showcase (Normal, Consolidation, Effusion, Cardiomegaly, Pneumothorax), cross-modality gallery, 3D Volume Slice Viewer with HU windowing, Before/After AI toggle
-- **Workflow Runner:** Annotated AI images in 55/45 layout with 6-step pipeline animation (3.2s total) and 4 download formats
-- **Patient 360:** Interactive Plotly network graph (3-layer: Case green, Findings orange, Genes cyan) with live Milvus genomic query
-- **Evidence Explorer:** 4 pre-filled example query buttons and Plotly donut chart showing collection contribution
-- **Protocol Advisor:** 4 pre-filled example indication buttons
-- **Sidebar:** Guided tour expander (9-step demo flow), OHIF Viewer link, Demo Mode button
-- **9 AI-annotated medical images:** 5 CXR (1024x1024) + 3 CT (512x512) + 1 bilateral pneumonia CXR
-
-## Cross-Modal Integration
-
-The Imaging Agent connects into the broader HCLS AI Factory genomics pipeline:
-
-- **Lung-RADS 4A+** triggers EGFR/ALK/ROS1/KRAS genomic variant queries against 3.5M genomic vectors
-- **CXR urgent findings** (consolidation, critical severity) trigger infection genomics queries
-- **Brain lesion high activity** triggers neurological genomics queries (HLA-DRB1, demyelination markers)
-- All cross-modal results are included in FHIR R4 export with SNOMED CT, LOINC, and DICOM coding
-
-## Clinical Output
-
-| Output | Format | Usage |
+| Collection | Vectors | Description |
 |---|---|---|
-| Clinical Report | Markdown | Human-readable structured report |
-| Structured Data | JSON | Programmatic consumption, dashboards |
-| Printable Report | PDF | Clinical documentation, patient records |
-| Interoperability | FHIR R4 DiagnosticReport Bundle | EHR integration (SNOMED CT + LOINC + DICOM coded) |
+| imaging_literature | 1,938 | Real PubMed research papers (AI + medical imaging) |
+| imaging_trials | 47 | ClinicalTrials.gov imaging AI studies |
+| imaging_findings | 80 | Imaging finding templates and patterns |
+| imaging_protocols | 55 | Acquisition protocols and parameters |
+| imaging_devices | 50 | FDA-cleared AI/ML medical devices |
+| imaging_anatomy | 40 | Anatomical structure references |
+| imaging_benchmarks | 45 | Model performance benchmarks |
+| imaging_guidelines | 35 | ACR, RSNA, ESR clinical guidelines |
+| imaging_report_templates | 30 | Structured radiology report templates |
+| imaging_datasets | 30 | Public datasets (TCIA, PhysioNet) |
+| imaging_radiomics | — | PyRadiomics feature vectors |
+| imaging_reports | — | Parsed radiology reports |
+| genomic_evidence | 35,678 | Shared genomic variant evidence (read-only) |
+| **Total** | **38,028** | |
+
+## Demo Guides
+
+| Demo | Duration | Description | Download |
+|---|---|---|---|
+| **Demo 1: Imaging Engine** | 21 min | Engine 4 standalone — 9 workflows, 3D visualization, cross-modal triggers, evidence RAG, protocol optimization | [:material-download: Demo Guide 1](Clinical_Imaging_Engine_Demo_Guide_1_(1_eng).docx) |
+| **Demo 2: Closed Loop** | 27 min | CT scan → genomic analysis → 100 drug candidates — all 4 engines on one device | [:material-download: Demo Guide 2](Clinical_Imaging_Engine_Demo_Guide_2_(mult_eng).docx) |
 
 ## Services
 
-| Port | Service |
+| Port | Service | Description |
+|---|---|---|
+| 8550 | React Portal | Clinical-grade UI (10 pages) |
+| 8525 | Streamlit UI | Developer workbench (10 tabs) |
+| 8524 | FastAPI REST API | 33+ endpoints |
+| 8520 | Llama-3 8B NIM | On-device LLM |
+| 8527 | MONAI Label | Interactive annotation |
+| 8530 | VISTA-3D NIM | 3D segmentation |
+| 8531 | MAISI NIM | Synthetic CT generation |
+| 8532 | VILA-M3 NIM | Vision-language model |
+| 8534 | NV-Segment-CT | 132-class CT segmentation |
+| 19530 | Milvus gRPC | Vector database |
+| 8042 | Orthanc REST | DICOM server |
+| 4242 | Orthanc DICOM | C-STORE/C-FIND |
+| 3000 | Grafana | Monitoring dashboards |
+| 9099 | Prometheus | Metrics |
+
+## Key Numbers
+
+| Metric | Value |
 |---|---|
-| 8524 | FastAPI REST Server |
-| 8525 | Streamlit Chat UI |
-| 8520 | NIM LLM (Llama-3 8B) |
-| 8530 | NIM VISTA-3D |
-| 8531 | NIM MAISI |
-| 8532 | NIM VILA-M3 |
-| 19530 | Milvus (gRPC) |
-| 8042 | Orthanc REST API |
-| 4242 | Orthanc DICOM C-STORE |
+| NVIDIA technologies | 20 (all free) |
+| Clinical workflows | 9 |
+| Scoring systems | 7 |
+| Cross-modal triggers | 8 |
+| Vector collections | 13 |
+| Indexed vectors | 38,028 |
+| PubMed papers | 1,938 |
+| SNOMED CT codes | 103 |
+| Export formats | 5 |
+| Tests passing | 1,324 |
+| Demo cases | 9 |
+| Hardware | DGX Spark ($4,699) |
+| Software cost | $0 |
+| License | Apache 2.0 |
 
 ## Credits
 
-- **Adam Jones**
+- **Adam Jones** — Author
 - **Apache 2.0 License**
+- Part of the [HCLS AI Factory](https://github.com/ajones1923/hcls-ai-factory)
 
 ---
 
 !!! warning "Clinical Decision Support Disclaimer"
-    This agent is a clinical decision support research tool. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.
+    The Clinical Imaging Engine is a clinical decision support research tool. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

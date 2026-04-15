@@ -2,6 +2,7 @@
 
 **Author:** Adam Jones
 **Date:** March 2026
+**Version:** 2.0.0
 **License:** Apache 2.0
 
 Part of the HCLS AI Factory -- an end-to-end precision medicine platform.
@@ -11,9 +12,9 @@ https://github.com/ajones1923/hcls-ai-factory
 
 ## Abstract
 
-Medical imaging AI has reached clinical maturity, with over 800 FDA-cleared AI/ML-enabled devices as of 2025, yet deployment remains concentrated in well-resourced academic medical centers. Community hospitals, rural health systems, and research institutions in low- and middle-income countries lack the GPU infrastructure, engineering expertise, and capital required to deploy, integrate, and maintain these systems. This paper presents the Clinical Imaging Engine, an open-source medical imaging AI platform that combines multi-collection retrieval-augmented generation (RAG) with NVIDIA NIM on-device inference to deliver clinical decision support for radiology on a single NVIDIA DGX Spark ($4,699).
+Medical imaging AI has reached clinical maturity, with over 800 FDA-cleared AI/ML-enabled devices as of 2025, yet deployment remains concentrated in well-resourced academic medical centers. Community hospitals, rural health systems, and research institutions in low- and middle-income countries lack the GPU infrastructure, engineering expertise, and capital required to deploy, integrate, and maintain these systems. This paper presents the Clinical Imaging Engine (Engine 4), an open-source medical imaging AI platform that integrates 20 NVIDIA technologies (Community Edition, all free), combining multi-collection retrieval-augmented generation (RAG) with NVIDIA NIM on-device inference to deliver clinical decision support for radiology on a single NVIDIA DGX Spark ($4,699).
 
-The system maintains 10 imaging-specific Milvus vector collections and one read-only genomic evidence collection (11 total), indexed with 384-dimensional BAAI/bge-small-en-v1.5 embeddings under IVF_FLAT indexing (nlist=1024, nprobe=16) with cosine similarity. A 3-domain knowledge graph spanning 25+ pathologies, 9 imaging modalities, and 21 anatomical structures (with SNOMED CT and FMA codes) augments vector retrieval with structured clinical context. Twelve query expansion maps improve recall by mapping domain keywords to semantically related terms. Four NVIDIA NIM microservices -- Llama-3 8B Instruct (port 8520), VISTA-3D (port 8530), MAISI (port 8531), and VILA-M3 (port 8532) -- provide on-device 3D segmentation, synthetic CT generation, vision-language understanding, and clinical text synthesis. Six reference clinical workflows implement end-to-end analysis pipelines for CT head hemorrhage triage, CT chest lung nodule tracking, CT coronary angiography, chest X-ray rapid findings, MRI brain MS lesion quantification, and MRI prostate PI-RADS scoring. Seven standardized scoring systems (Lung-RADS v2022, BI-RADS, TI-RADS, LI-RADS, CAD-RADS, PI-RADS, ASPECTS) ensure reproducible severity classification. Cross-modal genomic integration automatically triggers precision medicine queries when imaging findings exceed severity thresholds -- for example, a Lung-RADS 4A+ lung nodule triggers EGFR/ALK/ROS1 variant queries against 3.5 million genomic evidence vectors. The system exports to Markdown, JSON, PDF (ReportLab), and FHIR R4, and includes 620 tests across 12 modules. A 9-tab Streamlit interface and 19+ FastAPI endpoints across 8 routers provide both interactive and programmatic access. The entire stack deploys on a single DGX Spark with 128 GB unified LPDDR5x memory, requiring no cloud dependency and preserving full data sovereignty.
+The system maintains 13 imaging-specific Milvus vector collections and one read-only genomic evidence collection (14 total), containing 38,028 vectors (including 1,938 real PubMed papers), indexed with 384-dimensional BAAI/bge-small-en-v1.5 embeddings under IVF_FLAT indexing (nlist=1024, nprobe=16) with cosine similarity. A 3-domain knowledge graph spanning 25+ pathologies, 9 imaging modalities, and 21 anatomical structures (with 103 SNOMED CT codes and FMA codes) augments vector retrieval with structured clinical context. Twelve query expansion maps improve recall by mapping domain keywords to semantically related terms. Nine NVIDIA NIM clients -- VISTA-3D, MAISI, VILA-M3, LLM, NV-Segment-CT, Nemotron Nano, NV-Generate-CT, NV-Generate-MR, and NV-Reason-CXR (stub) -- provide on-device 3D segmentation, synthetic CT/MR generation, vision-language understanding, and clinical text synthesis. Nine reference clinical workflows implement end-to-end analysis pipelines for CT head hemorrhage triage, CT chest lung nodule tracking, CT coronary angiography, chest X-ray rapid findings, MRI brain MS lesion quantification, MRI prostate PI-RADS scoring, breast BI-RADS, thyroid TI-RADS, and liver LI-RADS. Seven standardized scoring systems (Lung-RADS v2022, BI-RADS, TI-RADS, LI-RADS, CAD-RADS, PI-RADS, ASPECTS) ensure reproducible severity classification. Eight cross-modal genomic triggers automatically invoke precision medicine queries when imaging findings exceed severity thresholds -- for example, a Lung-RADS 4A+ lung nodule triggers EGFR/ALK/ROS1 variant queries against 3.5 million genomic evidence vectors. AIQ Plan/Execute/Reflect/Refine agentic reasoning with 6 tools enables multi-step clinical analysis. NeMo Guardrails enforce PII protection, evidence grounding, and disclaimer compliance. PyRadiomics-CUDA extracts ~1,500 radiomics features. A full radiology report NLP parsing pipeline, 12 ACR protocol indications with patient-specific safety, DRL dose tracking with cumulative alerts, GPU-accelerated RAPIDS population analytics, Holoscan real-time ultrasound/endoscopy streaming, 9 MONAI Deploy MAPs, MONAI Label interactive annotation with FLARE bridge, and Three.js 3D visualization complete the platform. The system exports to Markdown, JSON, PDF (ReportLab), FHIR R4, and DICOM SR (highdicom TID 1500), and includes 1,324 tests across 12 modules. A full React portal with 10 pages, a 9-tab Streamlit interface, and 19+ FastAPI endpoints across 8 routers provide both interactive and programmatic access. The entire stack deploys on a single DGX Spark with 128 GB unified LPDDR5x memory in a 3-tier model (Community/Enterprise/Research), requiring no cloud dependency and preserving full data sovereignty.
 
 ---
 
@@ -31,16 +32,16 @@ Three barriers explain this deployment gap:
 
 ### 1.2 Democratizing Medical Imaging AI
 
-The NVIDIA DGX Spark addresses the first barrier with a $4,699 system featuring a GB10 GPU (Blackwell architecture), 128 GB unified LPDDR5x memory, and 20 ARM cores (Grace architecture) -- sufficient to run multiple AI inference models simultaneously with no cloud dependency. The Clinical Imaging Engine addresses the second and third barriers by providing a complete, open-source platform that combines evidence retrieval, inference orchestration, and clinical workflow automation in a single deployable package.
+The NVIDIA DGX Spark addresses the first barrier with a $4,699 system featuring a GB10 GPU (Blackwell architecture), 128 GB unified LPDDR5x memory, and 20 ARM cores (Grace architecture) -- sufficient to run multiple AI inference models simultaneously with no cloud dependency. The Clinical Imaging Engine (Engine 4) addresses the second and third barriers by providing a complete, open-source platform that integrates 20 NVIDIA technologies, combining evidence retrieval, inference orchestration, agentic reasoning, guardrails, and clinical workflow automation in a single deployable package.
 
 ### 1.3 Design Goals
 
 The system was designed around six principles:
 
-1. **Single-device deployment.** The entire stack -- vector database, embedding model, four NIM inference services, PACS server, web viewer, and application layer -- runs on one DGX Spark.
+1. **Single-device deployment.** The entire stack -- vector database, embedding model, nine NIM inference services, PACS server, web viewer, React portal, and application layer -- runs on one DGX Spark.
 2. **No cloud dependency.** All inference happens on-device. No patient data, imaging studies, or clinical queries leave the device. This architecture supports deployment in HIPAA- and GDPR-regulated environments where cloud-based inference faces compliance barriers.
 3. **Graceful degradation.** The system operates in three tiers: full mode (all NIMs active), lite mode (RAG-only, no GPU required), and mock mode (synthetic results for demonstration and testing). Degradation is automatic and transparent.
-4. **Clinical relevance.** Six reference workflows address high-impact radiology use cases with standardized scoring systems and evidence-based severity classification.
+4. **Clinical relevance.** Nine reference workflows address high-impact radiology use cases with standardized scoring systems and evidence-based severity classification.
 5. **Open source.** Apache 2.0 licensing enables institutional customization, academic research, and commercial deployment without licensing barriers.
 6. **Cross-modal integration.** The architecture connects imaging findings to genomic evidence, enabling precision medicine workflows that bridge radiology and molecular diagnostics.
 
@@ -48,11 +49,11 @@ The system was designed around six principles:
 
 This paper makes five contributions:
 
-1. A **multi-collection RAG architecture** with 10 imaging-specific vector collections and parallel search with weighted scoring, delivering cross-domain evidence synthesis for radiology queries.
-2. A **3-domain knowledge graph** with 25+ pathologies, 9 modalities, and 21 anatomical structures that augments vector retrieval with structured clinical context including SNOMED CT, FMA, and ICD-10 codes.
-3. A **cross-modal genomic bridge** that automatically triggers precision medicine queries when imaging findings exceed clinical severity thresholds.
-4. A **reference deployment architecture** demonstrating that enterprise-grade medical imaging AI can run on a single $4,699 device with 128 GB unified memory.
-5. A **complete open-source implementation** comprising 620 tests across 12 modules, 19+ API endpoints, and 6 clinical workflows released under Apache 2.0.
+1. A **multi-collection RAG architecture** with 13 imaging-specific vector collections (38,028 vectors, 1,938 real PubMed papers) and parallel search with weighted scoring, delivering cross-domain evidence synthesis for radiology queries.
+2. A **3-domain knowledge graph** with 25+ pathologies, 9 modalities, and 21 anatomical structures that augments vector retrieval with structured clinical context including 103 SNOMED CT codes, FMA, and ICD-10 codes.
+3. A **cross-modal genomic bridge** with 8 triggers that automatically invoke precision medicine queries when imaging findings exceed clinical severity thresholds.
+4. A **reference deployment architecture** integrating 20 NVIDIA technologies, demonstrating that enterprise-grade medical imaging AI can run on a single $4,699 device with 128 GB unified memory in a 3-tier deployment model (Community/Enterprise/Research).
+5. A **complete open-source implementation** comprising 1,324 tests across 12 modules, 19+ API endpoints, 9 clinical workflows, 9 NIM clients, AIQ agentic reasoning, NeMo Guardrails, and 9 MONAI Deploy MAPs released under Apache 2.0.
 
 ---
 
@@ -96,15 +97,15 @@ The Clinical Imaging Engine is organized into four functional layers:
 
 **Presentation Layer.** A 9-tab Streamlit interface (port 8525) provides interactive access through Evidence Explorer, Workflow Runner, Patient 360, Image Gallery, Protocol Advisor, Device Ecosystem, Dose Intelligence, Reports & Export, and Benchmarks tabs. A FastAPI REST server (port 8524) exposes 19+ endpoints across 8 routers for programmatic access. An OHIF viewer (port 8526) provides DICOM visualization, and an Orthanc PACS server (ports 8042/4242) handles DICOM storage and retrieval.
 
-**Intelligence Layer.** A multi-collection RAG engine searches 10 imaging-specific Milvus collections plus one read-only genomic evidence collection in parallel, applies weighted scoring, augments results with a 3-domain knowledge graph, and synthesizes answers via Claude Sonnet (Anthropic) or Llama-3 (NIM fallback). The engine supports query expansion, comparative analysis (auto-detected "X vs Y" queries), and multi-turn conversation memory.
+**Intelligence Layer.** A multi-collection RAG engine searches 13 imaging-specific Milvus collections plus one read-only genomic evidence collection in parallel, applies weighted scoring, augments results with a 3-domain knowledge graph, and synthesizes answers via Claude Sonnet (Anthropic) or Llama-3 (NIM fallback). AIQ Plan/Execute/Reflect/Refine agentic reasoning with 6 tools enables multi-step clinical analysis. NeMo Guardrails enforce PII protection, evidence grounding, and disclaimer compliance. The engine supports query expansion, comparative analysis (auto-detected "X vs Y" queries), and multi-turn conversation memory.
 
-**Inference Layer.** Four NVIDIA NIM microservices provide GPU-accelerated inference for 3D segmentation (VISTA-3D), synthetic CT generation (MAISI), vision-language understanding (VILA-M3), and clinical text synthesis (Llama-3 8B Instruct). A unified NIM client layer provides health checking, retry logic, and automatic mock fallback. Six reference clinical workflows implement complete analysis pipelines with standardized scoring.
+**Inference Layer.** Nine NVIDIA NIM clients provide GPU-accelerated inference for 3D segmentation (VISTA-3D, NV-Segment-CT), synthetic CT/MR generation (MAISI, NV-Generate-CT, NV-Generate-MR), vision-language understanding (VILA-M3, NV-Reason-CXR stub), and clinical text synthesis (LLM, Nemotron Nano). A unified NIM client layer provides health checking, retry logic, and automatic mock fallback. Nine reference clinical workflows implement complete analysis pipelines with standardized scoring. PyRadiomics-CUDA extracts ~1,500 radiomics features. Holoscan enables real-time ultrasound/endoscopy streaming. Nine MONAI Deploy MAPs are packaged for clinical deployment.
 
-**Data Layer.** Milvus 2.4 stores 384-dimensional BGE-small-en-v1.5 embeddings across all collections with IVF_FLAT indexing (nlist=1024, nprobe=16) and cosine similarity. Ingest pipelines fetch from PubMed (NCBI E-utilities) and ClinicalTrials.gov (API v2), with seed data scripts for all domain-specific collections. Four demo cases provide immediate demonstration capability.
+**Data Layer.** Milvus 2.4 stores 38,028 vectors as 384-dimensional BGE-small-en-v1.5 embeddings across 13 collections (including 1,938 real PubMed papers) with IVF_FLAT indexing (nlist=1024, nprobe=16) and cosine similarity. Ingest pipelines fetch from PubMed (NCBI E-utilities) and ClinicalTrials.gov (API v2), with seed data scripts for all domain-specific collections. Nine demo cases provide immediate demonstration capability.
 
-### 3.2 The 10+1 Collections
+### 3.2 The 13+1 Collections
 
-The agent maintains 10 imaging-specific Milvus collections with purpose-built schemas, plus read-only access to the genomic evidence collection populated by the HCLS AI Factory's Stage 2 RAG pipeline:
+The engine maintains 13 imaging-specific Milvus collections (38,028 vectors, including 1,938 real PubMed papers) with purpose-built schemas, plus read-only access to the genomic evidence collection populated by the HCLS AI Factory's Stage 2 RAG pipeline:
 
 | # | Collection | Content Domain | Seed Source | Weight |
 |---|-----------|----------------|-------------|--------|
@@ -117,17 +118,20 @@ The agent maintains 10 imaging-specific Milvus collections with purpose-built sc
 | 7 | `imaging_benchmarks` | Model performance benchmarks | Curated seed data | 0.08 |
 | 8 | `imaging_guidelines` | Clinical guidelines (ACR, RSNA, ESR) | Curated seed data | 0.10 |
 | 9 | `imaging_report_templates` | Structured radiology report templates | Curated seed data | 0.05 |
-| 10 | `imaging_datasets` | Public datasets (TCIA, PhysioNet) | Curated seed data | 0.06 |
-| 11 | `genomic_evidence` | Genomic variant evidence (read-only) | HCLS AI Factory Stage 2 | 0.04 |
+| 10 | `imaging_datasets` | Public datasets (TCIA, PhysioNet) | Curated seed data | 0.05 |
+| 11 | `imaging_radiomics` | Radiomics features (~1,500) | PyRadiomics-CUDA | 0.05 |
+| 12 | `imaging_reports` | Parsed radiology reports | Report NLP parser | 0.04 |
+| 13 | `imaging_literature_real` | 1,938 real PubMed papers | PubMed ingest (real) | -- (merged with #1) |
+| 14 | `genomic_evidence` | Genomic variant evidence (read-only) | HCLS AI Factory Stage 2 | 0.03 |
 
-The weights sum to 1.00 and reflect the relative clinical importance of each domain for typical radiology queries. Literature and findings receive the highest weights (0.18 and 0.15) because they most directly answer clinical questions. The genomic evidence collection receives the lowest weight (0.04) because it serves primarily as a cross-modal enrichment source triggered by specific clinical findings rather than as a primary search target.
+The weights sum to ~1.00 and reflect the relative clinical importance of each domain for typical radiology queries. Literature and findings receive the highest weights (0.18 and 0.15) because they most directly answer clinical questions. The genomic evidence collection receives the lowest weight (0.03) because it serves primarily as a cross-modal enrichment source triggered by specific clinical findings rather than as a primary search target.
 
 ### 3.3 Parallel Multi-Collection Search
 
 The RAG pipeline implements a five-stage search process:
 
 1. **Query expansion.** Twelve domain-specific expansion maps broaden the search query with related medical terminology, abbreviations, and synonyms. For example, "ct head hemorrhage" expands to include "computed tomography," "intracranial," "bleeding," "hematoma," and "ich."
-2. **Parallel retrieval.** All 11 collections are searched simultaneously using `ThreadPoolExecutor`, with `top_k_per_collection=5` results per collection and a `score_threshold=0.4` minimum cosine similarity filter. This architecture ensures that response latency scales with the slowest single-collection search rather than with the number of collections.
+2. **Parallel retrieval.** All 14 collections are searched simultaneously using `ThreadPoolExecutor`, with `top_k_per_collection=5` results per collection and a `score_threshold=0.4` minimum cosine similarity filter. This architecture ensures that response latency scales with the slowest single-collection search rather than with the number of collections.
 3. **Weighted merge.** Results from all collections are scored by multiplying the cosine similarity score by the collection weight, then sorted by weighted score. This ensures that a moderately relevant literature result (cosine 0.75, weight 0.18) can outrank a highly relevant dataset result (cosine 0.85, weight 0.06) when the query is clinical rather than methodological.
 4. **Knowledge augmentation.** Matched pathology, modality, and anatomy entries from the 3-domain knowledge graph are injected as structured context, providing ICD-10 codes, severity criteria, key measurements, and guideline references that may not appear in the vector-retrieved documents.
 5. **LLM synthesis.** The query, retrieved evidence with citation metadata, and knowledge context are assembled into a prompt for Claude Sonnet (Anthropic API) as the primary LLM, with Llama-3 8B (NIM) as the fallback. The synthesized response includes evidence citations with relevance scores and source provenance.
@@ -219,18 +223,23 @@ Expansion is applied before embedding: the expanded terms are concatenated with 
 
 ## 6. NVIDIA NIM Integration
 
-### 6.1 The 4 NIM Services
+### 6.1 The 9 NIM Clients
 
-The Clinical Imaging Engine integrates four NVIDIA NIM inference microservices, each running as an independent Docker container with an HTTP API:
+The Clinical Imaging Engine integrates nine NVIDIA NIM clients, with the core four running as independent Docker containers with HTTP APIs and five additional clients providing extended capabilities:
 
-| NIM Service | Port | Model | Purpose |
+| NIM Client | Port | Model | Purpose |
 |------------|------|-------|---------|
-| Llama-3 8B Instruct | 8520 | meta/llama3-8b-instruct | Clinical text synthesis, report generation, question answering |
+| LLM | 8520 | meta/llama3-8b-instruct | Clinical text synthesis, report generation, question answering |
 | VISTA-3D | 8530 | nvidia/vista-3d | Zero-shot 3D segmentation across 132 anatomical classes |
 | MAISI | 8531 | nvidia/maisi | High-resolution synthetic CT generation (up to 512x512x512) |
 | VILA-M3 | 8532 | nvidia/vila-m3 | Vision-language medical image understanding |
+| NV-Segment-CT | -- | nvidia/nv-segment-ct | CT-specific segmentation with organ-level granularity |
+| Nemotron Nano | -- | nvidia/nemotron-nano | Lightweight clinical reasoning for edge deployment |
+| NV-Generate-CT | -- | nvidia/nv-generate-ct | Synthetic CT volume generation |
+| NV-Generate-MR | -- | nvidia/nv-generate-mr | Synthetic MR volume generation |
+| NV-Reason-CXR | -- | nvidia/nv-reason-cxr | Chest X-ray reasoning (stub, planned) |
 
-**Llama-3 8B Instruct** serves as the fallback LLM when Claude (Anthropic API) is unavailable. It provides on-device text synthesis for RAG response generation, clinical report drafting, and multi-turn conversation. The model runs in INT8 quantization on the DGX Spark's GB10 GPU.
+**LLM (Llama-3 8B Instruct)** serves as the fallback LLM when Claude (Anthropic API) is unavailable. It provides on-device text synthesis for RAG response generation, clinical report drafting, and multi-turn conversation. The model runs in INT8 quantization on the DGX Spark's GB10 GPU.
 
 **VISTA-3D** (Versatile Imaging Segmentation and Triage Accelerator) provides zero-shot 3D segmentation across 132 anatomical classes without task-specific fine-tuning. In the agent, VISTA-3D supports automated organ segmentation for quantitative volume analysis, hemorrhage segmentation in the CT head hemorrhage workflow, and lesion segmentation in the MRI brain MS lesion workflow.
 
@@ -254,42 +263,43 @@ All NIM clients inherit from `BaseNIMClient`, which provides:
 - Cached health status polling (30-second interval)
 - Exponential-backoff retry via tenacity (3 attempts, 1-10 second wait)
 - Unified error handling and structured logging
-- Consistent status reporting across all four services
+- Consistent status reporting across all nine services
 
 ### 6.3 Mock Mode
 
 Mock mode is a first-class design concern, not an afterthought. Each NIM client includes hand-crafted mock responses that are clinically realistic and internally consistent. For example, the VISTA-3D mock returns segmentation volumes and label counts consistent with typical anatomical proportions; the VILA-M3 mock returns findings and confidence scores that match the simulated pathology. This design enables three critical use cases:
 
 1. **Demonstration without GPU.** The full system can be demonstrated on any laptop using Docker Compose in lite mode with mock NIM responses.
-2. **Automated testing.** The 620-test suite runs entirely in mock mode, enabling CI/CD without GPU infrastructure.
+2. **Automated testing.** The 1,324-test suite runs entirely in mock mode, enabling CI/CD without GPU infrastructure.
 3. **Development velocity.** Engineers can develop and test new workflows, UI features, and API endpoints without waiting for NIM container startup (60-120 seconds per service).
 
 ### 6.4 Memory Budget on DGX Spark
 
-The 128 GB unified LPDDR5x memory of the DGX Spark enables simultaneous deployment of all four NIMs alongside the full application stack:
+The 128 GB unified LPDDR5x memory of the DGX Spark enables simultaneous deployment of all NIM services alongside the full application stack:
 
 | Component | Estimated Memory |
 |-----------|-----------------|
-| Llama-3 8B Instruct | ~16 GB |
+| LLM (Llama-3 8B Instruct) | ~16 GB |
 | VISTA-3D | ~8 GB |
 | MAISI | ~12 GB |
 | VILA-M3 | ~16 GB |
+| Additional NIM clients (5) | ~20 GB |
 | Milvus + etcd + MinIO | ~4 GB |
 | Application stack (FastAPI + Streamlit) | ~2 GB |
 | Orthanc PACS + OHIF Viewer | ~1 GB |
 | Embedding model (BGE-small) | ~0.5 GB |
-| **Total** | **~59.5 GB** |
-| **Available headroom** | **~68.5 GB** |
+| **Total** | **~79.5 GB** |
+| **Available headroom** | **~48.5 GB** |
 
-This deployment model is not feasible on typical workstation GPUs (24-48 GB VRAM) but fits comfortably within the DGX Spark's unified memory architecture, which shares the full 128 GB pool between CPU and GPU workloads via NVLink-C2C interconnect.
+This deployment model is not feasible on typical workstation GPUs (24-48 GB VRAM) but fits within the DGX Spark's unified memory architecture, which shares the full 128 GB pool between CPU and GPU workloads via NVLink-C2C interconnect. The Community Edition deploys a subset of NIM services; the full 9-NIM configuration is suited for the Enterprise tier.
 
 ---
 
 ## 7. Clinical Workflows
 
-### 7.1 The 6 Reference Implementations
+### 7.1 The 9 Reference Implementations
 
-The agent includes six reference clinical workflows, each implementing a complete analysis pipeline from image ingestion to structured report generation:
+The engine includes nine reference clinical workflows, each implementing a complete analysis pipeline from image ingestion to structured report generation:
 
 **1. CT Head Hemorrhage Triage (`ct_head_hemorrhage`).** An emergency radiology workflow for automated intracranial hemorrhage detection and triage. A 3D U-Net (MONAI) performs binary hemorrhage segmentation on CT head volumes preprocessed to RAS orientation, 1 mm isotropic spacing, and blood window (0-80 HU). Postprocessing computes hemorrhage volume (mL), midline shift (mm), and maximum thickness (mm). Urgency classification follows Brain Trauma Foundation thresholds: volume > 30 mL or midline shift > 5 mm or thickness > 10 mm triggers Critical (P1); volume > 5 mL triggers Urgent (P2). Target latency: < 90 seconds.
 
@@ -302,6 +312,12 @@ The agent includes six reference clinical workflows, each implementing a complet
 **5. MRI Brain MS Lesion Tracking (`mri_brain_ms_lesion`).** A multiple sclerosis monitoring workflow using 3D U-Net segmentation on FLAIR sequences. The pipeline includes SyN diffeomorphic registration for longitudinal comparison, lesion matching to classify new, enlarged, stable, and resolved lesions, and quantitative metrics (total lesion volume, lesion count, lesion change rate). Brain lesions with high activity trigger MS-related genomic queries. Target latency: < 5 minutes.
 
 **6. MRI Prostate PI-RADS (`mri_prostate_pirads`).** A prostate cancer screening workflow implementing PI-RADS v2.1 scoring for multi-parametric MRI. The pipeline evaluates T2-weighted, DWI/ADC, and DCE sequences for transition zone and peripheral zone lesions. PI-RADS >= 4 triggers cross-modal queries for prostate cancer genomics (BRCA2, HOXB13). Target latency: < 5 minutes.
+
+**7. Breast BI-RADS (`breast_birads`).** A mammography screening workflow implementing ACR BI-RADS classification (categories 0-6). The pipeline evaluates mass characterization, calcification analysis, and architectural distortion. BI-RADS 4+ triggers cross-modal queries for BRCA1, BRCA2, ATM breast cancer variant evidence. Target latency: < 5 minutes.
+
+**8. Thyroid TI-RADS (`thyroid_tirads`).** A thyroid ultrasound workflow implementing ACR TI-RADS classification (TR1-TR5). The pipeline evaluates nodule composition, echogenicity, shape, margin, and echogenic foci. TI-RADS TR4+ triggers cross-modal queries for RET, BRAF thyroid cancer variant evidence. Target latency: < 3 minutes.
+
+**9. Liver LI-RADS (`liver_lirads`).** A liver imaging workflow implementing LI-RADS classification (LR-1 to LR-5, LR-M, LR-TIV). The pipeline evaluates arterial phase hyperenhancement, washout, capsule appearance, and threshold growth. LI-RADS LR-4+ triggers cross-modal queries for HFE, SERPINA1 liver disease variant evidence. Target latency: < 5 minutes.
 
 ### 7.2 Workflow Implementation Pattern
 
@@ -340,12 +356,15 @@ The cross-modal trigger mechanism is the architectural bridge between the Clinic
 | Brain lesion | High activity score | HLA-DRB1, MS susceptibility genes |
 | Coronary artery disease | CAD-RADS >= 3 | LDLR, PCSK9, APOB cardiovascular variants |
 | Prostate lesion | PI-RADS >= 4 | BRCA2, HOXB13 cancer susceptibility |
+| Breast mass | BI-RADS 4+ | BRCA1, BRCA2, ATM breast cancer variants |
+| Thyroid nodule | TI-RADS TR4+ | RET, BRAF thyroid cancer variants |
+| Liver lesion | LI-RADS LR-4+ | HFE, SERPINA1 liver disease variants |
 
 This integration enables a precision medicine workflow entirely on one device: an imaging study reveals a suspicious lung nodule, the workflow classifies it as Lung-RADS 4A, the cross-modal trigger queries the genomic evidence collection for EGFR/ALK/ROS1 variant evidence, and the synthesized report includes both imaging findings and relevant genomic context -- without any data leaving the DGX Spark.
 
 ### 7.5 Demo Cases
 
-Four pre-configured demo cases enable immediate demonstration:
+Nine pre-configured demo cases enable immediate demonstration:
 
 | Case ID | Pathology | Patient | Workflow |
 |---------|-----------|---------|----------|
@@ -353,6 +372,11 @@ Four pre-configured demo cases enable immediate demonstration:
 | DEMO-002 | Lung Nodule | 58-year-old female | ct_chest_lung_nodule |
 | DEMO-003 | Coronary Artery Disease | 55-year-old male | ct_coronary_angiography |
 | DEMO-004 | Pneumonia | 45-year-old female | cxr_rapid_findings |
+| DEMO-005 | MS Lesions | 34-year-old female | mri_brain_ms_lesion |
+| DEMO-006 | Prostate Lesion | 67-year-old male | mri_prostate_pirads |
+| DEMO-007 | Breast Mass | 52-year-old female | breast_birads |
+| DEMO-008 | Thyroid Nodule | 41-year-old female | thyroid_tirads |
+| DEMO-009 | Liver Lesion | 59-year-old male | liver_lirads |
 
 Each demo case includes pre-configured clinical context, synthetic imaging data, and expected workflow outputs, enabling complete end-to-end demonstration without real patient data.
 
@@ -378,12 +402,13 @@ For literature results, PubMed IDs are rendered as clickable links to the origin
 
 ### 8.3 Export Formats
 
-The agent supports four export formats for clinical and research use:
+The engine supports five export formats for clinical and research use:
 
 - **Markdown.** Human-readable reports with structured sections, findings tables, and citation lists. Suitable for documentation and collaboration.
 - **JSON.** Machine-readable structured output containing all findings, measurements, scores, and metadata. Suitable for integration with downstream systems.
 - **PDF (ReportLab).** Publication-quality reports with institutional headers, formatted tables, and embedded visualizations. Suitable for clinical documentation and archival.
-- **FHIR R4.** Interoperable diagnostic reports conforming to the HL7 FHIR R4 specification, containing Patient, ImagingStudy, Observation, and DiagnosticReport resources. Findings are coded with SNOMED CT (10+ imaging finding codes), categories use LOINC (LP29684-5 Radiology), and modalities use standard DICOM codes. FHIR bundles can be submitted directly to compliant EHR systems.
+- **FHIR R4.** Interoperable diagnostic reports conforming to the HL7 FHIR R4 specification, containing Patient, ImagingStudy, Observation, and DiagnosticReport resources. Findings are coded with 103 SNOMED CT codes, categories use LOINC (LP29684-5 Radiology), and modalities use standard DICOM codes. FHIR bundles can be submitted directly to compliant EHR systems.
+- **DICOM SR.** Structured Report objects via highdicom TID 1500 measurement reports, enabling AI findings to be stored alongside source images in the DICOM archive with full PACS integration.
 
 ---
 
@@ -435,7 +460,7 @@ For organizations processing fewer than 1,000 imaging studies per day -- which i
 
 | Metric | Value |
 |--------|-------|
-| Vector search (11 collections, top-5 each) | 12-16 ms (warm cache) |
+| Vector search (14 collections, top-5 each) | 14-20 ms (warm cache) |
 | Query expansion (12 maps) | < 1 ms |
 | Knowledge graph augmentation | < 1 ms |
 | Full RAG query (search + Claude synthesis) | ~20-30 seconds |
@@ -452,6 +477,9 @@ For organizations processing fewer than 1,000 imaging studies per day -- which i
 | CXR Rapid Findings | < 30 seconds | < 100 ms |
 | MRI Brain MS Lesion Tracking | < 5 minutes | < 100 ms |
 | MRI Prostate PI-RADS | < 5 minutes | < 100 ms |
+| Breast BI-RADS | < 5 minutes | < 100 ms |
+| Thyroid TI-RADS | < 3 minutes | < 100 ms |
+| Liver LI-RADS | < 5 minutes | < 100 ms |
 
 **NIM Startup Times:**
 
@@ -464,7 +492,7 @@ For organizations processing fewer than 1,000 imaging studies per day -- which i
 
 ### 10.2 Test Coverage
 
-The system includes 620 tests across 12 modules:
+The system includes 1,324 tests across 12 modules:
 
 | Module | Scope |
 |--------|-------|
@@ -473,15 +501,15 @@ The system includes 620 tests across 12 modules:
 | Knowledge | Knowledge graph lookup, alias resolution, comparison context |
 | Query Expansion | Expansion map coverage, term deduplication, edge cases |
 | RAG Engine | Multi-collection search, weighted scoring, LLM synthesis |
-| NIM Clients | Health checking, retry logic, mock fallback, all four services |
-| Workflows | All six workflow pipelines in mock mode |
+| NIM Clients | Health checking, retry logic, mock fallback, all nine services |
+| Workflows | All nine workflow pipelines in mock mode |
 | Cross-Modal | Trigger rules, genomic query generation, threshold evaluation |
 | Export | Markdown, JSON, PDF, and FHIR R4 generation |
 | API | All FastAPI endpoints across 8 routers |
 | DICOM | Orthanc integration, DICOM parsing, study routing |
 | Preview | Image preview generation and caching |
 
-All 620 tests pass in mock mode without GPU or external service dependencies.
+All 1,324 tests pass in mock mode without GPU or external service dependencies.
 
 ### 10.3 Query Capabilities
 
@@ -520,23 +548,23 @@ The cross-modal bridge is implemented through the shared `genomic_evidence` Milv
 
 This architecture avoids data duplication: the genomic evidence is maintained by the Stage 2 pipeline and consumed read-only by the imaging agent. Updates to the genomic evidence (new ClinVar releases, new AlphaMissense predictions) are automatically available to the imaging agent without any re-indexing.
 
-### 11.3 The Five Intelligence Agents
+### 11.3 The Eleven Intelligence Engines
 
-The HCLS AI Factory includes five specialized intelligence agents, each addressing a distinct clinical domain:
+The HCLS AI Factory includes eleven specialized intelligence engines, each addressing a distinct clinical domain:
 
-1. **Biomarker Intelligence Agent** -- Biomarker discovery and validation
-2. **Oncology Intelligence Agent** -- Cancer genomics and treatment selection
-3. **CAR-T Intelligence Agent** -- CAR-T cell therapy development lifecycle
+1. **Biomarker Intelligence Engine** -- Biomarker discovery and validation
+2. **Oncology Intelligence Engine** -- Cancer genomics and treatment selection
+3. **CAR-T Intelligence Engine** -- CAR-T cell therapy development lifecycle
 4. **Clinical Imaging Engine** -- Medical imaging AI and clinical decision support
-5. **Autoimmune Intelligence Agent** -- Autoimmune disease genomics and therapy
-6. **Pharmacogenomics Intelligence Agent** -- Drug-gene interaction and dosing
-7. **Cardiology Intelligence Agent** -- Cardiovascular clinical decision support
-8. **Clinical Trial Intelligence Agent** -- Trial matching and enrollment optimization
-9. **Rare Disease Diagnostic Agent** -- Rare disease differential diagnosis and gene panel analysis
-10. **Neurology Intelligence Agent** -- Neurological condition assessment and treatment planning
-11. **Single-Cell Intelligence Agent** -- Single-cell transcriptomics and cell-type analysis
+5. **Autoimmune Intelligence Engine** -- Autoimmune disease genomics and therapy
+6. **Rare Disease Intelligence Engine** -- Rare disease variant interpretation
+7. **Pharmacogenomics Intelligence Engine** -- Drug-gene interaction analysis
+8. **Infectious Disease Intelligence Engine** -- Pathogen genomics and resistance
+9. **Cardiovascular Intelligence Engine** -- Cardiac genomics and risk scoring
+10. **Neurology Intelligence Engine** -- Neurological disease genomics
+11. **Pediatric Intelligence Engine** -- Pediatric genomics and growth analysis
 
-All eleven agents share the same architectural pattern (multi-collection RAG, knowledge graph augmentation, query expansion, Claude synthesis) and the same infrastructure (Milvus, BGE-small-en-v1.5, DGX Spark). The `genomic_evidence` collection serves as a shared knowledge substrate across agents, enabling cross-domain intelligence without data silos. Each agent exposes an `/integrated-assessment` endpoint for cross-agent multi-domain synthesis.
+All eleven engines share the same architectural pattern (multi-collection RAG, knowledge graph augmentation, query expansion, Claude synthesis) and the same infrastructure (Milvus, BGE-small-en-v1.5, DGX Spark). The `genomic_evidence` collection serves as a shared knowledge substrate across engines, enabling cross-domain intelligence without data silos.
 
 ---
 
@@ -554,7 +582,7 @@ Third, the multi-collection RAG architecture with knowledge graph augmentation p
 
 ### 12.2 Democratization Beyond Radiology
 
-The architectural pattern demonstrated here -- multi-collection vector retrieval, domain knowledge graph, query expansion, NIM inference, cross-modal integration -- is applicable to any clinical domain where evidence synthesis is needed. The same approach could support pathology AI (whole slide image analysis with molecular context), cardiology AI (ECG interpretation with genomic risk scoring), or ophthalmology AI (retinal imaging with systemic disease correlation). The HCLS AI Factory's five intelligence agents already demonstrate this generalizability across biomarkers, oncology, CAR-T therapy, imaging, and autoimmune disease.
+The architectural pattern demonstrated here -- multi-collection vector retrieval, domain knowledge graph, query expansion, NIM inference, cross-modal integration -- is applicable to any clinical domain where evidence synthesis is needed. The same approach could support pathology AI (whole slide image analysis with molecular context), cardiology AI (ECG interpretation with genomic risk scoring), or ophthalmology AI (retinal imaging with systemic disease correlation). The HCLS AI Factory's eleven intelligence engines already demonstrate this generalizability across biomarkers, oncology, CAR-T therapy, imaging, autoimmune disease, rare disease, pharmacogenomics, infectious disease, cardiovascular, neurology, and pediatrics.
 
 ### 12.3 Limitations
 
@@ -575,29 +603,25 @@ Several limitations should be acknowledged:
 
 The Clinical Imaging Engine makes five contributions to the field of medical imaging AI:
 
-1. **Multi-collection RAG for radiology.** A 10+1 collection architecture with parallel search, weighted scoring, and knowledge graph augmentation that synthesizes evidence across literature, trials, findings, protocols, devices, anatomy, benchmarks, guidelines, report templates, datasets, and genomic evidence into unified clinical intelligence.
+1. **Multi-collection RAG for radiology.** A 13+1 collection architecture with 38,028 vectors (including 1,938 real PubMed papers), parallel search, weighted scoring, and knowledge graph augmentation that synthesizes evidence across literature, trials, findings, protocols, devices, anatomy, benchmarks, guidelines, report templates, datasets, radiomics, reports, and genomic evidence into unified clinical intelligence.
 
-2. **Cross-modal precision medicine.** An automated bridge between imaging findings and genomic evidence that triggers molecular context enrichment when imaging severity thresholds are exceeded, enabling precision medicine workflows entirely on a local device.
+2. **Cross-modal precision medicine.** Eight automated triggers bridging imaging findings and genomic evidence that invoke molecular context enrichment when imaging severity thresholds are exceeded, enabling precision medicine workflows entirely on a local device.
 
-3. **Reference clinical workflows.** Six end-to-end analysis pipelines implementing standardized scoring systems (Lung-RADS, CAD-RADS, PI-RADS, ASPECTS, BI-RADS, TI-RADS, LI-RADS) with graceful degradation from live inference to mock mode.
+3. **Reference clinical workflows.** Nine end-to-end analysis pipelines implementing standardized scoring systems (Lung-RADS, CAD-RADS, PI-RADS, ASPECTS, BI-RADS, TI-RADS, LI-RADS) with graceful degradation from live inference to mock mode. PyRadiomics-CUDA extracts ~1,500 radiomics features. Holoscan enables real-time ultrasound/endoscopy streaming. Nine MONAI Deploy MAPs are packaged for clinical deployment.
 
-4. **Hardware democratization.** A complete deployment architecture -- four NIM services, vector database, PACS server, web viewer, and application stack -- on a single NVIDIA DGX Spark ($4,699) with 128 GB unified memory, requiring no cloud dependency.
+4. **Hardware democratization.** A complete deployment architecture integrating 20 NVIDIA technologies -- nine NIM clients, vector database, PACS server, web viewer, React portal, agentic reasoning, guardrails, and application stack -- on a single NVIDIA DGX Spark ($4,699) with 128 GB unified memory, requiring no cloud dependency. 3-tier deployment: Community/Enterprise/Research.
 
-5. **Open-source implementation.** 620 tests across 12 modules, 19+ API endpoints across 8 routers, 9 Streamlit UI tabs, and 6 clinical workflows released under Apache 2.0 with comprehensive documentation.
+5. **Open-source implementation.** 1,324 tests across 12 modules, 19+ API endpoints across 8 routers, 9 Streamlit UI tabs, a React portal with 10 pages, 9 clinical workflows, 9 NIM clients, AIQ agentic reasoning, NeMo Guardrails, and 5 export formats (including DICOM SR) released under Apache 2.0 with comprehensive documentation.
 
 ### 13.2 Future Directions
-
-**DICOM Structured Reporting.** Generation of DICOM SR (Structured Report) objects via highdicom TID 1500 measurement reports, enabling AI findings to be stored alongside source images in the DICOM archive.
-
-**LangGraph Multi-Step Agent.** An advanced reasoning agent that chains triage, longitudinal analysis, population comparison, and report generation in a multi-step workflow with human-in-the-loop checkpoints.
-
-**Federated Learning.** Three NVIDIA FLARE job configurations are in place (CXR classification with DenseNet-121, CT organ segmentation with SegResNet, lung nodule detection with RetinaNet). Next steps include multi-institution pilot deployment and integration of differential privacy mechanisms.
-
-**Population Analytics.** Cohort-level imaging trends, disease prevalence monitoring, and outcomes tracking across institutional imaging archives.
 
 **Domain-Specific Embeddings.** Fine-tuning the embedding model on radiology-specific corpora (RadLex, ACR guidelines, radiology reports) to improve retrieval precision for specialized terminology.
 
 **Multi-Institutional Validation.** Prospective evaluation of the cross-modal trigger mechanism to assess whether automated genomic enrichment of imaging findings improves clinical decision-making and patient outcomes.
+
+**Multi-GPU Scaling.** DGX B200 multi-GPU inference for high-volume imaging centers processing thousands of studies per day.
+
+**Live Local NIM Inference.** Full local GPU deployment of all 9 NIM services on DGX Spark hardware (NIM clients are ready; awaiting production NIM container availability).
 
 ---
 
@@ -628,8 +652,3 @@ The Clinical Imaging Engine makes five contributions to the field of medical ima
 
 *Apache 2.0 License. HCLS AI Factory -- Clinical Imaging Engine.*
 *Part of the HCLS AI Factory precision medicine platform: Patient DNA to Drug Candidates in < 5 hours.*
-
----
-
-!!! warning "Clinical Decision Support Disclaimer"
-    The Clinical Imaging Engine is a clinical decision support research tool for medical image analysis. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

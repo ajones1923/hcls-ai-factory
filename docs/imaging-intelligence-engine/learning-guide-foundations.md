@@ -1,6 +1,6 @@
 # Learning Guide -- Foundations
 
-**Clinical Imaging Engine | HCLS AI Factory**
+**Clinical Imaging Engine (Engine 4) | HCLS AI Factory**
 
 Author: Adam Jones
 Date: March 2026
@@ -18,7 +18,7 @@ This guide is written for three audiences:
 
 - **Radiologists and clinicians** who know medical imaging but are new to AI/ML, vector databases, and retrieval-augmented generation.
 - **Data scientists and ML engineers** who know embeddings and LLMs but are new to radiology, DICOM, imaging physics, and clinical scoring systems.
-- **Software developers** who want to understand how the system works end to end -- from the Streamlit UI with its 9 specialized tabs, through Milvus vector search, to NIM-powered inference with VISTA-3D and MAISI.
+- **Software developers** who want to understand how the system works end to end -- from the React portal (port 8550) and Streamlit UI with its 9 specialized tabs, through Milvus vector search with 13 collections, to 9 NIM-powered inference clients including VISTA-3D, MAISI, and NV-Segment-CT.
 
 You do not need to be an expert in all three areas. The whole point of this guide is to bring you up to speed on whichever parts are new to you.
 
@@ -29,9 +29,9 @@ By the end of this guide, you will understand:
 1. What medical imaging AI is and why it matters
 2. Why data fragmentation is the central challenge in imaging AI
 3. How Retrieval-Augmented Generation (RAG) works, from first principles
-4. How this system searches 11 collections simultaneously
+4. How this system searches 13 collections simultaneously (38,028 vectors)
 5. How to use the UI to ask questions, run workflows, and interpret results
-6. What each of the 11 data collections contains and why it exists
+6. What each of the 13 data collections contains and why it exists
 7. How the knowledge graph covers 3 domains: pathologies, modalities, and anatomy
 8. How query expansion improves search recall with synonyms and aliases
 9. How to set up and run the system locally
@@ -173,12 +173,12 @@ The Clinical Imaging Engine solves this by:
 
 1. **Ingesting** data from all of these sources into a single system
 2. **Embedding** every piece of text as a 384-dimensional vector (a list of 384 numbers that captures the meaning of the text)
-3. **Storing** these vectors in 11 purpose-built Milvus collections
-4. **Searching** all 11 collections simultaneously when you ask a question
+3. **Storing** these vectors in 13 purpose-built Milvus collections (38,028 vectors total)
+4. **Searching** all 13 collections simultaneously when you ask a question
 5. **Augmenting** the search results with structured knowledge from a hand-curated knowledge graph covering 25 pathologies, 9 modalities, and 21 anatomy structures
 6. **Synthesizing** a grounded answer using an LLM, with citations back to the original sources
 
-The result: you ask one question, and the system searches all 11 collections in parallel, augments the results with domain knowledge and query expansion, and produces a cross-functional answer that cites published papers, clinical trials, FDA-cleared devices, guidelines, protocols, and benchmark data -- all in one response.
+The result: you ask one question, and the system searches all 13 collections in parallel, augments the results with domain knowledge and query expansion, and produces a cross-functional answer that cites published papers, clinical trials, FDA-cleared devices, guidelines, protocols, and benchmark data -- all in one response.
 
 ---
 
@@ -276,19 +276,21 @@ User types: "What is the best AI model for detecting intracranial hemorrhage?"
     This asymmetric prefix improves retrieval quality.
   |
   v
-[2] SEARCH ALL 11 COLLECTIONS (in parallel)
-    The query vector is sent to Milvus, which searches all 11
+[2] SEARCH ALL 13 COLLECTIONS (in parallel)
+    The query vector is sent to Milvus, which searches all 13
     collections simultaneously using ThreadPoolExecutor:
       - imaging_literature
       - imaging_trials
       - imaging_findings
       - imaging_protocols
       - imaging_devices
-      - imaging_anatomy
+      - imaging_anatomy (103 SNOMED codes)
       - imaging_benchmarks
       - imaging_guidelines
       - imaging_report_templates
       - imaging_datasets
+      - imaging_radiomics (~1,500 PyRadiomics features)
+      - imaging_reports (NLP-parsed radiology reports)
       - genomic_evidence (read-only, shared)
 
     Each collection returns its top results.
@@ -349,12 +351,12 @@ User types: "What is the best AI model for detecting intracranial hemorrhage?"
 
 ### Architecture at a high level
 
-The Clinical Imaging Engine has five main layers:
+The Clinical Imaging Engine (Engine 4) has six main layers:
 
 ```
 ┌───────────────────────────────────────────────────────────────┐
 │                       USER INTERFACE                          │
-│              Streamlit (port 8525) + FastAPI (8524)            │
+│  React Portal (8550) + Streamlit (8525) + FastAPI (8524)      │
 │  9 tabs: Evidence | Workflows | Patient 360 | Gallery |       │
 │          Protocol | Devices | Dose | Reports | Benchmarks     │
 └──────────────────────────┬────────────────────────────────────┘
@@ -374,7 +376,7 @@ The Clinical Imaging Engine has five main layers:
                v                       v
 ┌─────────────────────────┐  ┌──────────────────────────┐
 │   MILVUS VECTOR DB      │  │   KNOWLEDGE GRAPH        │
-│   11 Collections        │  │   3 Domains:             │
+│   13 Collections        │  │   3 Domains:             │
 │   IVF_FLAT / COSINE     │  │   - 25 Pathologies       │
 │   384 dimensions        │  │   - 9 Modalities         │
 │   (BGE-small-en-v1.5)   │  │   - 21 Anatomy structs   │
@@ -382,24 +384,26 @@ The Clinical Imaging Engine has five main layers:
                |
                v
 ┌───────────────────────────────────────────────────────────────┐
-│                     NIM SERVICES                              │
-│  4 services:                                                  │
+│                  NIM SERVICES (9 clients)                     │
 │  - LLM (Llama 3 8B) -- text generation                       │
 │  - VISTA-3D -- 3D medical image segmentation                  │
 │  - MAISI -- medical AI synthetic imaging                      │
 │  - VILA-M3 -- multimodal medical vision-language              │
+│  - NV-Segment-CT -- CT organ segmentation                     │
+│  + MONAI Label, NeMo Guardrails, Holoscan, RAPIDS             │
+│  9 MONAI Deploy MAPs | 5 export formats (incl. DICOM SR)     │
 └───────────────────────────────────────────────────────────────┘
 ```
 
 ### How the pieces connect
 
-1. **The user** interacts with the Streamlit UI (port 8525) or sends requests to the FastAPI REST API (port 8524).
-2. **The RAG engine** embeds the question using BGE-small-en-v1.5, searches all 11 Milvus collections in parallel, expands the query using 12 domain-specific expansion maps, and retrieves knowledge graph context.
+1. **The user** interacts with the React portal (port 8550), Streamlit UI (port 8525), or sends requests to the FastAPI REST API (port 8524).
+2. **The RAG engine** embeds the question using BGE-small-en-v1.5, searches all 13 Milvus collections (38,028 vectors) in parallel, expands the query using 12 domain-specific expansion maps, and retrieves knowledge graph context. NeMo Guardrails validates all inputs and outputs for safety.
 3. **Milvus** (port 19530) performs fast cosine-similarity search using IVF_FLAT indexes, returning the most relevant evidence from each collection.
-4. **The knowledge graph** adds structured facts (pathology characteristics, modality physics, anatomical relationships, scoring system criteria) that complement the vector search results.
-5. **NIM services** provide inference capabilities: Llama 3 8B generates text responses, VISTA-3D segments 3D medical images, MAISI generates synthetic imaging data, and VILA-M3 handles multimodal vision-language tasks.
+4. **The knowledge graph** adds structured facts (pathology characteristics, modality physics, anatomical relationships, scoring system criteria, 103 SNOMED codes) that complement the vector search results.
+5. **NIM services** provide inference capabilities via 9 clients: Llama 3 8B generates text responses, VISTA-3D and NV-Segment-CT segment 3D medical images, MAISI generates synthetic imaging data, VILA-M3 handles multimodal vision-language tasks, MONAI Label provides interactive annotation, Holoscan enables real-time streaming, and RAPIDS powers population analytics. Protocol optimization covers 12 ACR indications with DRL dose comparison.
 
-### The 11 collections as "specialized libraries"
+### The 13 collections as "specialized libraries"
 
 Think of each collection as a specialized library shelf:
 
@@ -413,9 +417,11 @@ Think of each collection as a specialized library shelf:
 - **Guidelines** is the clinical standards shelf -- ACR, Fleischner, NCCN, and other society guidelines with evidence levels and key recommendations
 - **Report Templates** is the structured reporting library -- standardized templates for radiology reports organized by modality and finding type
 - **Datasets** is the data catalog -- public and semi-public imaging datasets with download links, licenses, and annotation details
+- **Radiomics** is the quantitative imaging lab -- ~1,500 PyRadiomics features per study (shape, intensity, texture, wavelet) enabling radiomics-based outcome prediction
+- **Reports** is the NLP reading room -- parsed radiology reports with extracted entities, structured findings, and clinical impressions
 - **Genomic Evidence** is the genome center -- shared variant-level data enabling cross-modal imaging-to-genomic queries (read-only)
 
-When you ask a question, the system does not just search one library -- it searches all eleven simultaneously and then cross-references the findings. A question about lung nodule detection might pull evidence from literature (published AI studies), devices (FDA-cleared nodule detection products), benchmarks (model performance on LIDC-IDRI), guidelines (Fleischner Society recommendations), protocols (low-dose CT acquisition parameters), and datasets (available training data).
+When you ask a question, the system does not just search one library -- it searches all thirteen simultaneously and then cross-references the findings. A question about lung nodule detection might pull evidence from literature (published AI studies), devices (FDA-cleared nodule detection products), benchmarks (model performance on LIDC-IDRI), guidelines (Fleischner Society recommendations), protocols (low-dose CT acquisition parameters), and datasets (available training data).
 
 ---
 
@@ -501,7 +507,7 @@ The sidebar gives you fine-grained control over searches:
 - **Collection toggles**: Enable or disable specific collections. Each toggle shows the live record count.
 - **Demo Cases**: Load a prebuilt patient scenario for guided exploration.
 
-### The six predefined workflows
+### The nine predefined workflows
 
 From the **Workflow Runner** tab, you can launch predefined clinical workflows:
 
@@ -513,12 +519,15 @@ From the **Workflow Runner** tab, you can launch predefined clinical workflows:
 | `cxr_rapid_findings` | Rapid triage of chest X-ray findings (pneumonia, pneumothorax, effusion) |
 | `mri_brain_ms_lesion` | Detect and quantify multiple sclerosis lesions on brain MRI |
 | `mri_prostate_pirads` | Evaluate prostate lesions with PI-RADS scoring on multiparametric MRI |
+| `breast_birads` | Breast imaging assessment with BI-RADS scoring (mammography, ultrasound, MRI) |
+| `thyroid_tirads` | Thyroid nodule evaluation with TI-RADS scoring on ultrasound |
+| `liver_lirads` | Liver lesion assessment with LI-RADS scoring for HCC screening (CT, MRI) |
 
 Each workflow orchestrates a multi-step pipeline: retrieve relevant evidence, apply the appropriate scoring system, consult guidelines, and generate a structured report.
 
-### The four demo cases
+### The nine demo cases
 
-The system includes four demo patient cases for guided exploration:
+The system includes nine demo patient cases for guided exploration:
 
 | Case ID | Description | Key Finding |
 |---------|-------------|-------------|
@@ -526,6 +535,11 @@ The system includes four demo patient cases for guided exploration:
 | **DEMO-002** | 58-year-old female | Lung nodule |
 | **DEMO-003** | 55-year-old male | Coronary artery disease (CAD) |
 | **DEMO-004** | 45-year-old female | Pneumonia |
+| **DEMO-005** | 52-year-old female | Breast mass (BI-RADS) |
+| **DEMO-006** | 38-year-old female | Thyroid nodule (TI-RADS) |
+| **DEMO-007** | 61-year-old male | Liver lesion (LI-RADS) |
+| **DEMO-008** | 70-year-old male | MS lesion progression |
+| **DEMO-009** | 48-year-old male | Prostate lesion (PI-RADS) |
 
 Load any demo case from the Patient 360 tab or the sidebar to see how the system integrates findings, protocols, guidelines, and device recommendations for a specific clinical scenario.
 
@@ -536,12 +550,14 @@ After each query or workflow run, you can export results:
 - **Markdown**: A formatted `.md` file with the query, response, evidence, and metadata
 - **JSON**: A structured `.json` file suitable for programmatic processing
 - **PDF**: A formatted PDF report suitable for clinical documentation
+- **FHIR R4**: A standards-compliant FHIR DiagnosticReport resource for EHR integration
+- **DICOM SR**: A DICOM Structured Report for PACS integration
 
 ---
 
 ## Chapter 6: Understanding Collections
 
-### The 11 collections at a glance
+### The 13 collections at a glance
 
 | # | Collection | Purpose | Source |
 |---|-----------|---------|--------|
@@ -550,14 +566,16 @@ After each query or workflow run, you can export results:
 | 3 | `imaging_findings` | Structured radiology findings | Clinical knowledge bases |
 | 4 | `imaging_protocols` | Imaging acquisition protocols | Institutional protocols, ACR |
 | 5 | `imaging_devices` | FDA-cleared AI/ML devices | FDA database, manufacturer data |
-| 6 | `imaging_anatomy` | Anatomical structures and labels | SNOMED CT, FMA, VISTA-3D |
+| 6 | `imaging_anatomy` | Anatomical structures and labels (103 SNOMED codes) | SNOMED CT, FMA, VISTA-3D |
 | 7 | `imaging_benchmarks` | AI model performance data | RSNA, MICCAI, published studies |
 | 8 | `imaging_guidelines` | Clinical imaging guidelines | ACR, Fleischner, NCCN, AHA |
 | 9 | `imaging_report_templates` | Structured reporting templates | ACR, RadLex, institutional |
 | 10 | `imaging_datasets` | Public imaging datasets | NIH, TCIA, Kaggle, grand challenges |
-| 11 | `genomic_evidence` | Patient variant data (shared) | VCF data from rag-chat-pipeline |
+| 11 | `imaging_radiomics` | Quantitative imaging features (~1,500 per study) | PyRadiomics extraction |
+| 12 | `imaging_reports` | Parsed radiology reports (NLP entities) | Report NLP pipeline |
+| 13 | `genomic_evidence` | Patient variant data (shared) | VCF data from rag-chat-pipeline |
 
-**10 imaging-specific collections + 1 shared genomic collection (read-only) = 11 total**
+**12 imaging-specific collections + 1 shared genomic collection (read-only) = 13 total (38,028 vectors)**
 
 ### Collection details
 
@@ -691,7 +709,33 @@ After each query or workflow run, you can export results:
 
 **Key fields:** `text_summary`, `dataset_name`, `source`, `modality`, `body_region`, `num_studies`, `num_images`, `disease_labels`, `annotation_type`, `license_type`, `download_url`
 
-#### 11. genomic_evidence (read-only)
+#### 11. imaging_radiomics
+
+**What it contains:** Quantitative imaging features extracted from medical images using PyRadiomics. Each record captures approximately 1,500 features per study, including shape features (volume, surface area, sphericity), first-order intensity statistics (mean, median, skewness, kurtosis), texture features (GLCM, GLRLM, GLSZM, GLDM, NGTDM), and wavelet-decomposed features.
+
+**Why it matters:** Radiomics bridges the gap between visual image interpretation and quantitative analysis. Features that are invisible to the human eye -- subtle texture patterns, intensity distributions, and shape characteristics -- can predict treatment response, disease progression, and patient outcomes. The radiomics collection enables correlation between quantitative features and clinical outcomes across the patient population.
+
+**Example questions it helps answer:**
+- "What texture features correlate with malignancy in solitary pulmonary nodules?"
+- "How do radiomics features differ between grade 2 and grade 4 gliomas on MRI?"
+- "Which shape features best predict response to immunotherapy in lung cancer?"
+
+**Key fields:** `text_summary`, `study_id`, `modality`, `body_region`, `feature_class`, `feature_name`, `feature_value`, `roi_label`, `extraction_params`
+
+#### 12. imaging_reports
+
+**What it contains:** Radiology reports parsed by the report NLP pipeline. Each record captures the original report text along with NLP-extracted entities including findings, measurements, anatomical locations, laterality, severity assessments, comparison references, and clinical impressions.
+
+**Why it matters:** Radiology reports contain a wealth of structured and unstructured clinical information. The NLP pipeline extracts structured entities from free-text reports, enabling semantic search across clinical observations, trend analysis over time, and correlation with imaging features and genomic data.
+
+**Example questions it helps answer:**
+- "How frequently are incidental thyroid nodules reported on chest CT?"
+- "What is the typical language used to describe stable vs growing lung nodules?"
+- "What follow-up recommendations are most commonly given for BI-RADS 3 findings?"
+
+**Key fields:** `text_summary`, `report_text`, `modality`, `body_region`, `findings`, `impressions`, `measurements`, `laterality`, `comparison_date`, `referring_physician`, `coding_system`
+
+#### 13. genomic_evidence (read-only)
 
 **What it contains:** Patient-level variant data from whole-genome sequencing, shared from the HCLS AI Factory's rag-chat-pipeline. This collection is read-only -- the Clinical Imaging Engine can query it but does not write to it.
 
@@ -967,7 +1011,7 @@ curl http://localhost:19530/v1/vector/collections
 python3 scripts/setup_collections.py
 ```
 
-This creates all 10 imaging-specific Milvus collections with IVF_FLAT indexes (384 dimensions, COSINE metric). The shared `genomic_evidence` collection is not created here -- it is managed by the rag-chat-pipeline.
+This creates all 12 imaging-specific Milvus collections with IVF_FLAT indexes (384 dimensions, COSINE metric). The shared `genomic_evidence` collection is not created here -- it is managed by the rag-chat-pipeline.
 
 ### Step 5: Seed domain-specific data
 
@@ -1045,13 +1089,13 @@ The API documentation is automatically available at `http://localhost:8524/docs`
 
 ### Step 11: (Optional) Start NIM services
 
-If you have an NVIDIA GPU, you can start the four NIM services:
+If you have an NVIDIA GPU, you can start the NIM services:
 
 ```bash
 python3 scripts/test_nim_services.py
 ```
 
-This verifies connectivity to the LLM (Llama 3 8B), VISTA-3D, MAISI, and VILA-M3 NIM endpoints.
+This verifies connectivity to all 9 NIM clients: LLM (Llama 3 8B), VISTA-3D, MAISI, VILA-M3, NV-Segment-CT, MONAI Label, NeMo Guardrails, Holoscan, and RAPIDS.
 
 ### Docker Lite: minimal setup
 
@@ -1136,8 +1180,8 @@ Expected response:
 ```json
 {
   "status": "healthy",
-  "collections": 11,
-  "version": "1.0.0"
+  "collections": 13,
+  "version": "2.0.0"
 }
 ```
 
@@ -1161,9 +1205,11 @@ Expected response:
     {"name": "imaging_benchmarks", "record_count": 95},
     {"name": "imaging_guidelines", "record_count": 60},
     {"name": "imaging_report_templates", "record_count": 30},
-    {"name": "imaging_datasets", "record_count": 45}
+    {"name": "imaging_datasets", "record_count": 45},
+    {"name": "imaging_radiomics", "record_count": 1500},
+    {"name": "imaging_reports", "record_count": 320}
   ],
-  "total": 11
+  "total": 13
 }
 ```
 
@@ -1245,7 +1291,12 @@ Expected response:
     {"name": "llm", "model": "meta/llama-3-8b-instruct", "status": "available"},
     {"name": "vista3d", "model": "nvidia/vista-3d", "status": "available"},
     {"name": "maisi", "model": "nvidia/maisi", "status": "available"},
-    {"name": "vilam3", "model": "nvidia/vila-m3", "status": "available"}
+    {"name": "vilam3", "model": "nvidia/vila-m3", "status": "available"},
+    {"name": "segment_ct", "model": "nvidia/nv-segment-ct", "status": "available"},
+    {"name": "monai_label", "model": "nvidia/monai-label", "status": "available"},
+    {"name": "guardrails", "model": "nvidia/nemo-guardrails", "status": "available"},
+    {"name": "holoscan", "model": "nvidia/holoscan", "status": "available"},
+    {"name": "rapids", "model": "nvidia/rapids", "status": "available"}
   ]
 }
 ```
@@ -1264,7 +1315,12 @@ Expected response:
     {"id": "DEMO-001", "description": "62M, intracranial hemorrhage"},
     {"id": "DEMO-002", "description": "58F, lung nodule"},
     {"id": "DEMO-003", "description": "55M, coronary artery disease"},
-    {"id": "DEMO-004", "description": "45F, pneumonia"}
+    {"id": "DEMO-004", "description": "45F, pneumonia"},
+    {"id": "DEMO-005", "description": "52F, breast mass (BI-RADS)"},
+    {"id": "DEMO-006", "description": "38F, thyroid nodule (TI-RADS)"},
+    {"id": "DEMO-007", "description": "61M, liver lesion (LI-RADS)"},
+    {"id": "DEMO-008", "description": "70M, MS lesion progression"},
+    {"id": "DEMO-009", "description": "48M, prostate lesion (PI-RADS)"}
   ]
 }
 ```
@@ -1280,7 +1336,7 @@ curl -X POST http://localhost:8524/find-related \
   }'
 ```
 
-This returns everything the system knows about intracranial hemorrhage across all 11 collections -- literature, trials, findings, devices, guidelines, benchmarks, anatomy, and more.
+This returns everything the system knows about intracranial hemorrhage across all 13 collections -- literature, trials, findings, devices, guidelines, benchmarks, anatomy, and more.
 
 ### API documentation
 
@@ -1302,14 +1358,14 @@ imaging_intelligence_agent/agent/
 ├── src/                              # Core source code (the engine)
 │   ├── __init__.py
 │   ├── models.py                     # Pydantic data models (728 lines)
-│   ├── collections.py                # 11 Milvus collection schemas + manager (1,420 lines)
+│   ├── collections.py                # 13 Milvus collection schemas + manager
 │   ├── knowledge.py                  # Knowledge graph: 3 domains (1,843 lines)
 │   ├── query_expansion.py            # 12 expansion maps
 │   ├── rag_engine.py                 # Multi-collection RAG engine (690 lines)
 │   ├── agent.py                      # Autonomous agent: plan-search-synthesize (283 lines)
 │   ├── cross_modal.py                # Imaging <-> genomic cross-modal queries (401 lines)
-│   ├── export.py                     # Markdown, JSON, PDF export (691 lines)
-│   ├── demo_cases.py                 # 4 demo patient cases
+│   ├── export.py                     # Markdown, JSON, PDF, FHIR R4, DICOM SR export
+│   ├── demo_cases.py                 # 9 demo patient cases
 │   ├── protocol_optimizer.py         # Protocol recommendation engine
 │   ├── scheduler.py                  # Automated data refresh
 │   ├── imaging/
@@ -1320,7 +1376,12 @@ imaging_intelligence_agent/agent/
 │   │   ├── vista3d_client.py         # VISTA-3D segmentation client
 │   │   ├── maisi_client.py           # MAISI synthetic imaging client
 │   │   ├── vilam3_client.py          # VILA-M3 vision-language client
-│   │   └── service_manager.py        # NIM service orchestration
+│   │   ├── segment_ct_client.py     # NV-Segment-CT client
+│   │   ├── monai_label_client.py    # MONAI Label client
+│   │   ├── guardrails_client.py     # NeMo Guardrails client
+│   │   ├── holoscan_client.py       # Holoscan streaming client
+│   │   ├── rapids_client.py         # RAPIDS analytics client
+│   │   └── service_manager.py        # NIM service orchestration (9 clients)
 │   ├── ingest/                       # Data ingestion parsers
 │   │   ├── base.py                   # Base ingest pipeline
 │   │   ├── literature_parser.py      # PubMed NCBI E-utilities
@@ -1334,14 +1395,17 @@ imaging_intelligence_agent/agent/
 │   │   ├── report_template_parser.py # Report templates
 │   │   ├── dataset_parser.py         # Public datasets
 │   │   └── dicom_watcher.py          # DICOM file monitoring
-│   ├── workflows/                    # 6 clinical workflows
+│   ├── workflows/                    # 9 clinical workflows
 │   │   ├── base.py                   # Base workflow class
 │   │   ├── ct_head_hemorrhage.py     # ICH detection and classification
 │   │   ├── ct_chest_lung_nodule.py   # Lung nodule with Lung-RADS
 │   │   ├── ct_coronary_angiography.py # CAD-RADS scoring
 │   │   ├── cxr_rapid_findings.py     # CXR triage
 │   │   ├── mri_brain_ms_lesion.py    # MS lesion detection
-│   │   └── mri_prostate_pirads.py    # PI-RADS scoring
+│   │   ├── mri_prostate_pirads.py    # PI-RADS scoring
+│   │   ├── breast_birads.py          # BI-RADS scoring
+│   │   ├── thyroid_tirads.py         # TI-RADS scoring
+│   │   └── liver_lirads.py           # LI-RADS scoring
 │   └── utils/
 │       └── pubmed_client.py          # NCBI E-utilities HTTP client
 ├── app/
@@ -1392,7 +1456,7 @@ imaging_intelligence_agent/agent/
 │   ├── generate_annotated_images.py
 │   ├── download_real_data.py
 │   └── validate_real_data.py
-├── tests/                            # 620 tests across 12 modules
+├── tests/                            # 1,324 tests across 18 modules
 │   ├── conftest.py
 │   ├── test_knowledge.py
 │   ├── test_query_expansion.py
@@ -1432,7 +1496,7 @@ Key settings:
 All Pydantic data models used throughout the system. Contains:
 
 - **Enums** for modality types, body regions, AI tasks, severity levels, regulatory statuses, trial phases, and evidence levels
-- **10 collection models** (one per owned collection): `ImagingLiterature`, `ImagingTrial`, `ImagingFinding`, `ImagingProtocol`, `ImagingDevice`, `ImagingAnatomy`, `ImagingBenchmark`, `ImagingGuideline`, `ImagingReportTemplate`, `ImagingDataset`
+- **12 collection models** (one per owned collection): `ImagingLiterature`, `ImagingTrial`, `ImagingFinding`, `ImagingProtocol`, `ImagingDevice`, `ImagingAnatomy`, `ImagingBenchmark`, `ImagingGuideline`, `ImagingReportTemplate`, `ImagingDataset`, `ImagingRadiomics`, `ImagingReport`
 - **Search result models:** `SearchHit`, `CrossCollectionResult`, `ComparativeResult`
 - **Agent models:** `AgentQuery`, `AgentResponse`
 - **Workflow models:** workflow input and output schemas
@@ -1441,9 +1505,9 @@ Each collection model has a `to_embedding_text()` method that generates the text
 
 #### src/collections.py (1,420 lines)
 
-Manages the 11 Milvus collections. Contains:
+Manages the 13 Milvus collections. Contains:
 
-- **Schema definitions** for all 11 collections, defining every field's name, data type, and constraints
+- **Schema definitions** for all 13 collections, defining every field's name, data type, and constraints
 - **COLLECTION_SCHEMAS** registry mapping collection names to their schemas
 - **ImagingCollectionManager** class with methods for:
   - `connect()` / `disconnect()`: Milvus connection lifecycle
@@ -1453,7 +1517,7 @@ Manages the 11 Milvus collections. Contains:
   - `search()`: Single-collection vector similarity search
   - `search_all()`: Parallel search across ALL collections using `ThreadPoolExecutor`
 
-The `search_all()` method is the workhorse of the system. It launches concurrent searches across all 11 collections and merges the results.
+The `search_all()` method is the workhorse of the system. It launches concurrent searches across all 13 collections and merges the results.
 
 #### src/rag_engine.py (690 lines)
 
@@ -1500,18 +1564,20 @@ The autonomous Clinical Imaging Engine. Implements the plan-search-synthesize pa
 Cross-modal query engine that bridges imaging and genomic evidence. Enables questions like "Are there genomic markers associated with the imaging phenotype of ground-glass opacity in lung adenocarcinoma?" by:
 
 1. Extracting imaging features from the question
-2. Querying the 10 imaging collections for relevant evidence
+2. Querying the 12 imaging collections for relevant evidence
 3. Translating imaging features into genomic search terms
 4. Querying the shared `genomic_evidence` collection
 5. Merging and correlating the cross-modal results
 
 #### src/export.py (691 lines)
 
-Export engine for generating downloadable reports in multiple formats:
+Export engine for generating downloadable reports in 5 formats:
 
 - **Markdown export**: Formatted `.md` file with query, response, evidence, and metadata
 - **JSON export**: Structured `.json` file for programmatic processing
 - **PDF export**: Formatted PDF report using ReportLab with headers, tables, and citations
+- **FHIR R4 export**: Standards-compliant DiagnosticReport resource for EHR integration
+- **DICOM SR export**: DICOM Structured Report for PACS integration and archival
 
 #### app/imaging_ui.py (entry point)
 
@@ -1524,7 +1590,7 @@ When you type "What Lung-RADS score should be assigned to a 10mm part-solid nodu
 1. `app/tabs/evidence_explorer.py` receives the input
 2. The tab calls `engine.retrieve()` which:
    - Embeds the query via BGE-small-en-v1.5
-   - Searches all 11 collections in parallel via `collections.search_all()`
+   - Searches all 13 collections in parallel via `collections.search_all()`
    - Runs `query_expansion.expand_query()` which detects "lung-rads" and expands with Lung-RADS scoring terms, and detects "nodule" expanding with "pulmonary nodule", "lung nodule", "SPN", etc.
 3. The RAG engine detects "lung_nodule" in the knowledge graph and adds structured context:
    - Severity criteria: "Lung-RADS 4A, size 8-15 mm or growing" for a 10mm part-solid nodule
@@ -1562,7 +1628,7 @@ Now that you understand the foundations, here are pathways for further learning:
 - Look at `api/main.py` and the route modules in `api/routes/` to see how the 19+ endpoints are implemented
 - Explore the ingest parsers in `src/ingest/` to understand how data flows from PubMed, ClinicalTrials.gov, and DICOM files into the vector database
 - Study the workflow implementations in `src/workflows/` to understand how clinical pipelines are orchestrated
-- Run the test suite: `pytest tests/ -v` (620 tests across 12 modules)
+- Run the test suite: `pytest tests/ -v` (1,324 tests across 18 modules)
 - Read `src/export.py` to understand PDF report generation with ReportLab
 
 **If you are a healthcare IT administrator:**
@@ -1583,7 +1649,11 @@ The Clinical Imaging Engine is open-source under the Apache 2.0 license. Contrib
 - **NIM integration**: Connecting additional NVIDIA NIM services as they become available
 - **UI enhancements**: Better visualization, DICOM viewer integration, measurement tools
 - **Performance optimization**: Faster search, better caching, reduced latency
-- **Testing**: Additional tests to improve coverage (currently 620 tests across 12 modules)
+- **Radiomics**: PyRadiomics feature engineering, outcome prediction models
+- **Report NLP**: Radiology report parsing, entity extraction, impression summarization
+- **Guardrails**: NeMo Guardrails configuration for safety and compliance validation
+- **MONAI Deploy**: Additional MONAI Application Packages (MAPs) for clinical workflows
+- **Testing**: Additional tests to improve coverage (currently 1,324 tests across 18 modules)
 
 ### Resources for learning more
 
@@ -1633,7 +1703,7 @@ The Clinical Imaging Engine is open-source under the Apache 2.0 license. Contrib
 | **Body region** | An anatomical area of the body targeted by an imaging study. This system covers 16 body regions including head, neck, chest, abdomen, pelvis, spine, extremity, cardiac, breast, shoulder, and musculoskeletal. |
 | **CAD-RADS** | Coronary Artery Disease Reporting and Data System. A standardized reporting system for coronary CT angiography. Categories range from 0 (no stenosis) to 5 (total occlusion). |
 | **Classification** | In imaging AI, the task of assigning a category or score to an imaging finding (e.g., benign vs. malignant, Lung-RADS 1 vs. 4A). |
-| **Collection** | In Milvus, a collection is a table that stores vectors and their associated metadata. This system has 11 collections (10 imaging-specific + 1 shared genomic). |
+| **Collection** | In Milvus, a collection is a table that stores vectors and their associated metadata. This system has 13 collections (12 imaging-specific + 1 shared genomic). |
 | **Contrast agent** | A substance administered to a patient (intravenous, oral, or rectal) to enhance the visibility of specific structures or pathologies on imaging. Common agents include iodinated contrast (for CT) and gadolinium-based contrast (for MRI). |
 | **Cosine similarity** | A measure of similarity between two vectors based on the angle between them. Ranges from 0 (completely different) to 1 (identical direction). Used to find relevant evidence in the vector database. |
 | **Cross-modal query** | A query that bridges two data domains, such as searching imaging collections and genomic collections simultaneously. Enables radiogenomics research. |
@@ -1660,7 +1730,7 @@ The Clinical Imaging Engine is open-source under the Apache 2.0 license. Contrib
 | **MAISI** | Medical AI Synthetic Imaging. An NVIDIA NIM service for generating synthetic medical images for training and augmentation. |
 | **Milvus** | An open-source vector database designed for similarity search on large-scale embedding datasets. This system uses Milvus 2.4 on port 19530. |
 | **Modality** | An imaging technique or technology used to create medical images. This system covers 9 modalities: CT, MRI, X-ray, CXR, PET, PET/CT, ultrasound, mammography, and fluoroscopy. |
-| **NIM** | NVIDIA Inference Microservices. Containerized AI model inference services. This system uses 4 NIM services: LLM (Llama 3 8B), VISTA-3D, MAISI, and VILA-M3. |
+| **NIM** | NVIDIA Inference Microservices. Containerized AI model inference services. This system uses 9 NIM clients: LLM (Llama 3 8B), VISTA-3D, MAISI, VILA-M3, NV-Segment-CT, MONAI Label, NeMo Guardrails, Holoscan, and RAPIDS. |
 | **PI-RADS** | Prostate Imaging Reporting and Data System. A standardized scoring system for multiparametric MRI of the prostate. Categories range from 1 (very low suspicion) to 5 (very high suspicion for clinically significant cancer). |
 | **PMA** | Premarket Approval. The most rigorous FDA regulatory pathway, required for Class III medical devices. Requires clinical evidence of safety and effectiveness. |
 | **Protocol** | A standardized set of imaging acquisition parameters (e.g., slice thickness, kVp, mAs, contrast timing) optimized for a specific clinical indication. |
@@ -1677,15 +1747,10 @@ The Clinical Imaging Engine is open-source under the Apache 2.0 license. Contrib
 | **Triage** | In imaging AI, the automated prioritization of imaging studies based on urgency. For example, flagging a CT head with suspected ICH for immediate radiologist review. |
 | **Vector** | In the context of this system, a list of numbers (384 floating-point values) that represents the meaning of a piece of text. |
 | **Vector database** | A database optimized for storing and searching high-dimensional vectors. Enables fast similarity search across millions of embeddings. |
-| **VILA-M3** | A multimodal vision-language model from NVIDIA designed for medical imaging. One of the 4 NIM services used by this system. |
+| **VILA-M3** | A multimodal vision-language model from NVIDIA designed for medical imaging. One of the 9 NIM clients used by this system. |
 | **VISTA-3D** | An NVIDIA NIM service for interactive 3D medical image segmentation. Supports multiple organ and lesion segmentation tasks. |
-| **Workflow** | A predefined multi-step clinical pipeline that orchestrates evidence retrieval, scoring system application, guideline consultation, and report generation for a specific clinical scenario. This system includes 6 workflows. |
+| **Workflow** | A predefined multi-step clinical pipeline that orchestrates evidence retrieval, scoring system application, guideline consultation, and report generation for a specific clinical scenario. This system includes 9 workflows. |
 
 ---
 
-*Clinical Imaging Engine | HCLS AI Factory | Apache 2.0 | Adam Jones | March 2026*
-
----
-
-!!! warning "Clinical Decision Support Disclaimer"
-    The Clinical Imaging Engine is a clinical decision support research tool for medical image analysis. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.
+*Clinical Imaging Engine (Engine 4) | HCLS AI Factory | Apache 2.0 | Adam Jones | April 2026*
