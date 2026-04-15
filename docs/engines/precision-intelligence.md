@@ -1,13 +1,13 @@
 ---
-title: Precision Intelligence Network
+title: Precision Intelligence Engine
 description: 11 domain-specialized AI agents sharing a common molecular foundation
 ---
 
-# Precision Intelligence Network
+# Precision Intelligence Engine
 
 **Stage 2 of the HCLS AI Factory Pipeline**
 
-The Precision Intelligence Network is a coordinated system of 11 domain-specialized intelligence agents, each built on RAG (Retrieval-Augmented Generation) architecture with Milvus vector search and Claude AI. All 11 agents share read-only access to the `genomic_evidence` collection (3.56M vectors) produced by the [Genomic Foundation Engine](genomic-foundation.md), while maintaining their own domain-specific vector collections.
+The Precision Intelligence Engine is a coordinated system of 11 domain-specialized intelligence agents, each built on RAG (Retrieval-Augmented Generation) architecture with Milvus vector search and Claude AI. All 11 agents share read-only access to the `genomic_evidence` collection (3.56M vectors) produced by the [Genomic Foundation Engine](genomic-foundation.md), while maintaining their own domain-specific vector collections.
 
 ## What It Does
 
@@ -108,4 +108,4 @@ User Query / Patient Data
 ---
 
 !!! warning "Clinical Decision Support Disclaimer"
-    The Precision Intelligence Network agents are clinical decision support research tools. They are not FDA-cleared and are not intended as standalone diagnostic devices. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.
+    The Precision Intelligence Engine agents are clinical decision support research tools. They are not FDA-cleared and are not intended as standalone diagnostic devices. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

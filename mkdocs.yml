@@ -111,7 +111,7 @@ nav:
     - "Learning Guide \u2014 Unified Advanced": HCLS_AI_FACTORY_LEARNING_GUIDE_ADVANCED_UNIFIED.md
   - Engines:
     - Genomic Foundation Engine: stage-1-genomics.md
-    - Precision Intelligence Network: stage-2-rag.md
+    - Precision Intelligence Engine: stage-2-rag.md
     - Therapeutic Discovery Engine: stage-3-drug-discovery.md
     - Clinical Imaging Engine:
       - Overview: clinical-imaging-engine/index.md

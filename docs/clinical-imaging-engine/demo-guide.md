@@ -556,7 +556,7 @@ The Genomics Pipeline portal showing the completed genomic analysis. If showing 
 
 **What the audience sees:**
 
-The Precision Intelligence Network — a chat interface backed by Milvus with 3.56 million indexed vectors from ClinVar (4.1M clinical variants), AlphaMissense (71M AI pathogenicity predictions), and a curated knowledge base of 201 genes across 13 therapeutic areas.
+The Precision Intelligence Engine — a chat interface backed by Milvus with 3.56 million indexed vectors from ClinVar (4.1M clinical variants), AlphaMissense (71M AI pathogenicity predictions), and a curated knowledge base of 201 genes across 13 therapeutic areas.
 
 **Action:** Type or paste: "What EGFR variants does this patient carry and what is their clinical significance for non-small cell lung cancer treatment?"
 
@@ -566,7 +566,7 @@ The RAG engine searches the genomic evidence collection. The answer identifies E
 
 **Script:**
 
-> "Engine 2 is the Precision Intelligence Network. It searched 3.56 million genomic evidence vectors — ClinVar clinical annotations, AlphaMissense AI pathogenicity predictions, and a curated knowledge base of 201 druggable genes."
+> "Engine 2 is the Precision Intelligence Engine. It searched 3.56 million genomic evidence vectors — ClinVar clinical annotations, AlphaMissense AI pathogenicity predictions, and a curated knowledge base of 201 druggable genes."
 
 *Wait for the answer to appear:*
 

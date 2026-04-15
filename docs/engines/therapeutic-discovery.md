@@ -7,7 +7,7 @@ description: AI-driven generative drug design, molecular docking, and drug-liken
 
 **Stage 3 of the HCLS AI Factory Pipeline**
 
-The Therapeutic Discovery Engine transforms validated protein targets from the [Precision Intelligence Network](precision-intelligence.md) into ranked drug candidates using NVIDIA BioNeMo generative chemistry, DiffDock molecular docking, and RDKit drug-likeness scoring. It closes the loop from patient DNA to novel therapeutic candidates.
+The Therapeutic Discovery Engine transforms validated protein targets from the [Precision Intelligence Engine](precision-intelligence.md) into ranked drug candidates using NVIDIA BioNeMo generative chemistry, DiffDock molecular docking, and RDKit drug-likeness scoring. It closes the loop from patient DNA to novel therapeutic candidates.
 
 ## What It Does
 
@@ -16,7 +16,7 @@ Protein target → BioNeMo MolMIM generative design → DiffDock molecular docki
 ## Pipeline Flow
 
 ```
-Validated Target (from Precision Intelligence Network)
+Validated Target (from Precision Intelligence Engine)
     |
     v
 [Target Preparation]
@@ -55,7 +55,7 @@ Ranked Drug Candidates (PDF report with structures)
 
 ## How It Connects
 
-The Therapeutic Discovery Engine receives validated targets from the Precision Intelligence Network:
+The Therapeutic Discovery Engine receives validated targets from the Precision Intelligence Engine:
 
 - **Precision Oncology Agent** identifies actionable mutations (BRAF V600E, EGFR T790M) with therapy gaps
 - **CAR-T Intelligence Agent** flags targets for novel CAR construct design

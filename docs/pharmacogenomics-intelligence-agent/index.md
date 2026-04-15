@@ -4,7 +4,7 @@
 
 **Source:** [github.com/ajones1923/pharmacogenomics-intelligence-agent](https://github.com/ajones1923/pharmacogenomics-intelligence-agent)
 
-> **Part of the [Precision Intelligence Network](../engines/precision-intelligence.md)** — one of 11 specialized agents sharing a common molecular foundation within the HCLS AI Factory.
+> **Part of the [Precision Intelligence Engine](../engines/precision-intelligence.md)** — one of 11 specialized agents sharing a common molecular foundation within the HCLS AI Factory.
 
 The **Pharmacogenomics Intelligence Agent** is a domain-specialized retrieval-augmented generation (RAG) system that translates patient genetic data into actionable drug prescribing recommendations. It searches 15 Milvus vector collections containing pharmacogene references, CPIC/DPWG clinical guidelines, drug-gene interactions, HLA hypersensitivity associations, phenoconversion models, validated dosing algorithms, clinical evidence, and population allele frequency data.
 

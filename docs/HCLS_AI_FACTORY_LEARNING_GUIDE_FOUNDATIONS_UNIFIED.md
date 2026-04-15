@@ -54,7 +54,7 @@ By the end of this two-part guide you will be able to:
 2. Describe the NVIDIA DGX Spark hardware and why GPU acceleration matters
    for genomics, AI, and molecular simulation.
 3. Trace a patient's DNA through the three-engine pipeline: Genomic Foundation Engine,
-   Precision Intelligence Network, and Therapeutic Discovery Engine.
+   Precision Intelligence Engine, and Therapeutic Discovery Engine.
 4. Read and interpret FASTQ, VCF, SMILES, and PDB file formats at a
    conceptual level.
 5. Explain how RAG (Retrieval-Augmented Generation) combines a vector
@@ -170,7 +170,7 @@ The HCLS AI Factory compresses this timeline:
   =========================
 
   Stage 1: Genomic Foundation Engine      2-4 hours (GPU-accelerated)
-  Stage 2: Precision Intelligence Network < 5 seconds (RAG query)
+  Stage 2: Precision Intelligence Engine < 5 seconds (RAG query)
   Stage 3: Therapeutic Discovery Engine   8-16 minutes (generative AI)
   -----------------------------------------------
   Total:                           < 5 hours
@@ -676,7 +676,7 @@ intelligence agents can query using natural language.
 
 ---
 
-# Chapter 4: Stage 2 -- Precision Intelligence Network (RAG/Chat)
+# Chapter 4: Stage 2 -- Precision Intelligence Engine (RAG/Chat)
 
 ## 4.1 The Data Challenge
 
@@ -1626,7 +1626,7 @@ example queries, and output interpretation.
 11. Describe the annotation funnel: how many variants survive each
     filtering step?
 
-### Chapter 4: Precision Intelligence Network
+### Chapter 4: Precision Intelligence Engine
 
 12. What does RAG stand for, and what are its two core technologies?
 13. Why is vector search better than keyword search for medical queries?

@@ -4,7 +4,7 @@
 
 **Source:** [github.com/ajones1923/precision-biomarker-agent](https://github.com/ajones1923/precision-biomarker-agent)
 
-> **Part of the [Precision Intelligence Network](../engines/precision-intelligence.md)** — one of 11 specialized agents sharing a common molecular foundation within the HCLS AI Factory.
+> **Part of the [Precision Intelligence Engine](../engines/precision-intelligence.md)** — one of 11 specialized agents sharing a common molecular foundation within the HCLS AI Factory.
 
 Genomics-informed biomarker interpretation with 9 clinical analysis engines. Part of the [HCLS AI Factory](https://github.com/ajones1923/hcls-ai-factory).
 

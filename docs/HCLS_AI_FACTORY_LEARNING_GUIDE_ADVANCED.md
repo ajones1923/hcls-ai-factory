@@ -87,7 +87,7 @@ Google DeepVariant reframes variant calling as an image classification problem. 
 
 ---
 
-## Chapter 2: Precision Intelligence Network — Variant Annotation and Multi-Database Integration
+## Chapter 2: Precision Intelligence Engine — Variant Annotation and Multi-Database Integration
 
 ### 2.1 ClinVar: Clinical Variant Classification
 
@@ -150,7 +150,7 @@ VCF (11.7M variants)
 
 ---
 
-## Chapter 3: Precision Intelligence Network — Vector Database Architecture and RAG
+## Chapter 3: Precision Intelligence Engine — Vector Database Architecture and RAG
 
 ### 3.1 Milvus Schema Design
 
@@ -440,7 +440,7 @@ Oxford Nanopore and PacBio long-read technologies can detect structural variants
 
 ### 8.4 Pharmacogenomics Integration
 
-The Precision Intelligence Network includes 11 intelligence agents covering oncology, biomarkers, CAR-T therapy, imaging, autoimmune disease, pharmacogenomics, cardiology, clinical trials, rare disease, neurology, and single-cell analysis. The knowledge base includes 11 pharmacogenomics genes (CYP2D6, CYP2C19, CYP3A4, DPYD, TPMT, etc.). Future extensions could:
+The Precision Intelligence Engine includes 11 intelligence agents covering oncology, biomarkers, CAR-T therapy, imaging, autoimmune disease, pharmacogenomics, cardiology, clinical trials, rare disease, neurology, and single-cell analysis. The knowledge base includes 11 pharmacogenomics genes (CYP2D6, CYP2C19, CYP3A4, DPYD, TPMT, etc.). Future extensions could:
 - Star allele calling with PharmCAT
 - Drug-drug interaction prediction
 - Dosing recommendations based on metabolizer status

@@ -36,7 +36,7 @@ The HCLS AI Factory transforms patient DNA into ranked novel drug candidates in 
 - Input: ~200 GB FASTQ (30x WGS, HG002)
 - Output: **~11.7 million variants**, **3.56 million annotated variant** embeddings in Milvus
 
-### Engine 2: Precision Intelligence Network (Interactive)
+### Engine 2: Precision Intelligence Engine (Interactive)
 - **10 intelligence agents** sharing read-only access to 3.56M annotated variant vectors
 - **139 Milvus collections** containing **~47,691 agent-owned vectors** across all domains
 - **Anthropic Claude** (RAG-grounded reasoning) powers each agent

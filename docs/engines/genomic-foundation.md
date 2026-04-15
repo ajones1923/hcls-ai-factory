@@ -26,7 +26,7 @@ Patient DNA → BWA-MEM2 alignment → DeepVariant variant calling → ClinVar/A
 
 ## How It Connects
 
-The `genomic_evidence` collection is shared read-only with all 11 intelligence agents in the Precision Intelligence Network. Each agent queries this molecular foundation for domain-specific insights:
+The `genomic_evidence` collection is shared read-only with all 11 intelligence agents in the Precision Intelligence Engine. Each agent queries this molecular foundation for domain-specific insights:
 
 - **Precision Oncology Agent** queries cancer-associated variants for MTB packet generation
 - **CAR-T Intelligence Agent** links genomic targets to cell therapy development

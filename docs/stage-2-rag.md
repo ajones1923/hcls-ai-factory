@@ -158,9 +158,9 @@ This variant becomes the input for [Stage 3: Drug Discovery](stage-3-drug-discov
 
 ---
 
-## The Precision Intelligence Network — 11 Agents
+## The Precision Intelligence Engine — 11 Agents
 
-Stage 2 is more than a search engine. It powers the **Precision Intelligence Network** — a constellation of **11 intelligence agents**, each specialized for a clinical domain. All agents share read-only access to the 3.56 million annotated variant vectors in the `genomic_evidence` collection and follow a common five-phase reasoning loop: plan, search, evaluate, synthesize, report.
+Stage 2 is more than a search engine. It powers the **Precision Intelligence Engine** — a constellation of **11 intelligence agents**, each specialized for a clinical domain. All agents share read-only access to the 3.56 million annotated variant vectors in the `genomic_evidence` collection and follow a common five-phase reasoning loop: plan, search, evaluate, synthesize, report.
 
 | # | Agent | Port | Domain |
 |---|-------|------|--------|
@@ -200,4 +200,4 @@ The RAG pipeline delivers:
 ---
 
 !!! warning "Clinical Decision Support Disclaimer"
-    The Precision Intelligence Network and its 11 intelligence agents are clinical decision support research tools. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.
+    The Precision Intelligence Engine and its 11 intelligence agents are clinical decision support research tools. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.
