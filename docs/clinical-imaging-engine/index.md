@@ -17,7 +17,7 @@ The Clinical Imaging Engine (Engine 4) processes medical imaging studies across 
 - **~1,500 radiomics features** per segmented region via PyRadiomics-CUDA
 - **Agentic reasoning** (Plan/Execute/Reflect/Refine) via NVIDIA AIQ Toolkit
 - **Clinical safety guardrails** via NeMo Guardrails (PII detection, evidence grounding, disclaimer injection)
-- **5 export formats** (Markdown, JSON, PDF, FHIR R4 with 103 SNOMED codes, DICOM SR)
+- **5 export formats** (Markdown, JSON, PDF, FHIR R4 with 54 SNOMED CT codes, DICOM SR)
 - **Real-time streaming** for ultrasound and endoscopy via NVIDIA Holoscan (30fps)
 - **9 MONAI Deploy Application Packages** (MAPs) for portable clinical AI deployment
 - **Interactive annotation** via MONAI Label with NVIDIA FLARE federated learning bridge
@@ -66,7 +66,7 @@ PII detection | Evidence grounding | Clinical disclaimer | Contraindication chec
     |
     v
 [Clinical Output — 5 Formats]
-Markdown | JSON | PDF | FHIR R4 (103 SNOMED codes) | DICOM SR (TID 1500)
+Markdown | JSON | PDF | FHIR R4 (54 SNOMED CT codes) | DICOM SR (TID 1500)
     |
     v
 [React Portal (8550) + Streamlit (8525)]
@@ -130,7 +130,7 @@ Markdown | JSON | PDF | FHIR R4 (103 SNOMED codes) | DICOM SR (TID 1500)
 |---|---|---|
 | 8550 | React Portal | Clinical-grade UI (10 pages) |
 | 8525 | Streamlit UI | Developer workbench (10 tabs) |
-| 8524 | FastAPI REST API | 33+ endpoints |
+| 8524 | FastAPI REST API | 46+ endpoints |
 | 8520 | Llama-3 8B NIM | On-device LLM |
 | 8527 | MONAI Label | Interactive annotation |
 | 8530 | VISTA-3D NIM | 3D segmentation |

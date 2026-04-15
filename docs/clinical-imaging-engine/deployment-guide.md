@@ -303,7 +303,9 @@ IMAGING_MONAI_LABEL_URL=http://monai-label:8000
 # NeMo Guardrails
 IMAGING_GUARDRAILS_URL=http://nemo-guardrails:8540
 
-# React Portal
+# React Portal (built separately, served as static files)
+# Build: cd portal && npx vite build
+# Serve: cd portal/dist && python3 -m http.server 8550 --bind 0.0.0.0
 IMAGING_PORTAL_PORT=8550
 
 # Milvus
@@ -874,7 +876,7 @@ and COSINE distance metric.
 | 3 | `imaging_findings` | Imaging finding templates and patterns | Seed data |
 | 4 | `imaging_protocols` | Acquisition protocols and parameters | Seed data |
 | 5 | `imaging_devices` | FDA-cleared AI/ML medical devices | Seed data |
-| 6 | `imaging_anatomy` | Anatomical structure references (103 SNOMED codes) | Seed data |
+| 6 | `imaging_anatomy` | Anatomical structure references (54 SNOMED CT codes) | Seed data |
 | 7 | `imaging_benchmarks` | Model performance benchmarks | Seed data |
 | 8 | `imaging_guidelines` | Clinical practice guidelines (ACR, RSNA, NCCN) | Seed data |
 | 9 | `imaging_report_templates` | Structured radiology report templates | Seed data |

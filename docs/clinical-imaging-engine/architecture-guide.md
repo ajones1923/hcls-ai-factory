@@ -533,7 +533,7 @@ CROSS_MODAL_ENABLED: bool = True  # Active
 
 ### 10.2 Export Architecture (5 Formats)
 
-The export system supports 5 formats: Markdown, JSON, PDF (ReportLab), FHIR R4, and DICOM SR (Structured Report via highdicom TID 1500). The `export_fhir()` function generates FHIR R4 DiagnosticReport Bundles with 103 SNOMED codes:
+The export system supports 5 formats: Markdown, JSON, PDF (ReportLab), FHIR R4, and DICOM SR (Structured Report via highdicom TID 1500). The `export_fhir()` function generates FHIR R4 DiagnosticReport Bundles with 54 SNOMED CT codes:
 
 ```
 FHIR Bundle (type: collection)

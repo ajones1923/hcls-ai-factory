@@ -369,7 +369,7 @@ An 11,000+ character markdown report generates with headers, sections, evidence 
 
 **Script:**
 
-> "Five export formats. Markdown for documentation. JSON for downstream systems. PDF for printing. FHIR R4 with 103 SNOMED CT codes for EHR integration. And DICOM Structured Report — the AI findings stored back in PACS alongside the source images, viewable in any DICOM viewer."
+> "Five export formats. Markdown for documentation. JSON for downstream systems. PDF for printing. FHIR R4 with 54 SNOMED CT codes (103 mapped findings) for EHR integration. And DICOM Structured Report — the AI findings stored back in PACS alongside the source images, viewable in any DICOM viewer."
 
 ---
 
@@ -424,7 +424,7 @@ Four benchmark cards showing clinical accuracy metrics (Lung: 94.2% sensitivity,
 | Software license cost | $0 |
 | Hardware cost | $4,699 |
 
-> "Twenty NVIDIA technologies. Nine workflows. Seven scoring systems. Thirteen knowledge collections with 38,000 vectors. 1,324 tests. Five export formats. 103 SNOMED codes. Apache 2.0."
+> "Twenty NVIDIA technologies. Nine workflows. Seven scoring systems. Thirteen knowledge collections with 38,000 vectors. 1,324 tests. Five export formats. 54 SNOMED CT codes. Apache 2.0."
 
 > "Total cost: $4,699. The price of the hardware. Zero software licensing. Zero cloud subscription. Zero vendor lock-in."
 
