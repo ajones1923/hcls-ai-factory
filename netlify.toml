@@ -44,3 +44,10 @@
   from = "/*"
   to = "/404.html"
   status = 404
+
+# Redirect old engine URL to new
+[[redirects]]
+  from = "/imaging-intelligence-engine/*"
+  to = "/clinical-imaging-engine/:splat"
+  status = 301
+  force = true

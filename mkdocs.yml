@@ -114,15 +114,15 @@ nav:
     - Precision Intelligence Network: stage-2-rag.md
     - Therapeutic Discovery Engine: stage-3-drug-discovery.md
     - Clinical Imaging Engine:
-      - Overview: imaging-intelligence-engine/index.md
-      - White Paper: imaging-intelligence-engine/white-paper.md
-      - Project Bible: imaging-intelligence-engine/project-bible.md
-      - Design Document: imaging-intelligence-engine/design.md
-      - Architecture Guide: imaging-intelligence-engine/architecture-guide.md
-      - Demo Guides: imaging-intelligence-engine/demo-guide.md
-      - Deployment Guide: imaging-intelligence-engine/deployment-guide.md
-      - "Learning Guide \u2014 Foundations": imaging-intelligence-engine/learning-guide-foundations.md
-      - "Learning Guide \u2014 Advanced": imaging-intelligence-engine/learning-guide-advanced.md
+      - Overview: clinical-imaging-engine/index.md
+      - White Paper: clinical-imaging-engine/white-paper.md
+      - Project Bible: clinical-imaging-engine/project-bible.md
+      - Design Document: clinical-imaging-engine/design.md
+      - Architecture Guide: clinical-imaging-engine/architecture-guide.md
+      - Demo Guides: clinical-imaging-engine/demo-guide.md
+      - Deployment Guide: clinical-imaging-engine/deployment-guide.md
+      - "Learning Guide \u2014 Foundations": clinical-imaging-engine/learning-guide-foundations.md
+      - "Learning Guide \u2014 Advanced": clinical-imaging-engine/learning-guide-advanced.md
     - Technical Docs:
       - Genomics Pipeline: genomics-pipeline/README.md
       - Genomics Pipeline Overview: genomics-pipeline/PIPELINE_OVERVIEW.md
