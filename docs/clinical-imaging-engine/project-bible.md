@@ -625,6 +625,7 @@ All configuration via Pydantic `BaseSettings` in `config/settings.py`. Environme
 | 3D Visualization | Three.js rotating point cloud | Implemented |
 | React Portal | Full React portal with 10 pages | Implemented |
 | 20 NVIDIA Technologies | Community Edition, all free | Implemented |
+| Live DICOM Analysis | Real GPU inference with DenseNet-121 (CXR) + 6 MONAI bundles (1.87 GB), drag-and-drop upload | Implemented |
 | 3-Tier Deployment | Community/Enterprise/Research | Implemented |
 
 ### Planned (Phase 3)
