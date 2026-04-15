@@ -4,7 +4,7 @@
 
 **Engine 4 of the HCLS AI Factory** | **Apache 2.0** | **NVIDIA DGX Spark ($4,699)**
 
-> The most comprehensive open-source medical imaging AI platform available. 9 clinical workflows, 7 standardized scoring systems, 20 NVIDIA technologies, cross-modal genomic integration — all on a single device for $4,699.
+> The most comprehensive open-source medical imaging AI platform available. 9 clinical workflows, 7 standardized scoring systems, 20 NVIDIA technologies, cross-modal genomic integration — all on a single DGX Spark.
 
 ## Overview
 
@@ -158,7 +158,7 @@ Markdown | JSON | PDF | FHIR R4 (103 SNOMED codes) | DICOM SR (TID 1500)
 | Export formats | 5 |
 | Tests passing | 1,324 |
 | Demo cases | 9 |
-| Hardware | DGX Spark ($4,699) |
+| Hardware | DGX Spark |
 | Software cost | $0 |
 | License | Apache 2.0 |
 

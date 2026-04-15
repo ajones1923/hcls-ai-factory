@@ -1711,7 +1711,7 @@ The Clinical Imaging Engine is open-source under the Apache 2.0 license. Contrib
 | **CXR** | Chest X-Ray. A plain radiograph of the chest, the most commonly performed imaging study worldwide. Used for pneumonia, pneumothorax, pleural effusion, and cardiac silhouette assessment. |
 | **De Novo** | An FDA regulatory pathway for novel medical devices that have no substantially equivalent predicate. Creates a new device classification. |
 | **Detection** | In imaging AI, the task of identifying the presence and location of an abnormality in a medical image (e.g., detecting a lung nodule on CT). |
-| **DGX Spark** | An NVIDIA desktop computer with a GB10 GPU, 128 GB unified LPDDR5x memory, and 20 ARM cores. The hardware target for this system ($4,699). |
+| **DGX Spark** | An NVIDIA desktop computer with a GB10 GPU, 128 GB unified LPDDR5x memory, and 20 ARM cores. The hardware target for this system. |
 | **DICOM** | Digital Imaging and Communications in Medicine. The international standard for storing, transmitting, and displaying medical images. Every clinical imaging study produces DICOM files. |
 | **Embedding** | A numerical representation of text as a vector (list of numbers) in a high-dimensional space. Similar texts have similar embeddings. This system uses 384-dimensional embeddings. |
 | **FastAPI** | A modern Python web framework for building REST APIs. Used for the Clinical Imaging Engine's API server on port 8524. |
