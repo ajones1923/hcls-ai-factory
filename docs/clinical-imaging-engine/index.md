@@ -122,7 +122,7 @@ Markdown | JSON | PDF | FHIR R4 (103 SNOMED codes) | DICOM SR (TID 1500)
 | Demo | Duration | Description | Download |
 |---|---|---|---|
 | **Demo 1: Imaging Engine** | 21 min | Engine 4 standalone — 9 workflows, 3D visualization, cross-modal triggers, evidence RAG, protocol optimization | [:material-download: Demo Guide 1](Clinical_Imaging_Engine_Demo_Guide_1_(1_eng).docx) |
-| **Demo 2: Closed Loop** | 27 min | CT scan → genomic analysis → 100 drug candidates — all 4 engines on one device | [:material-download: Demo Guide 2](Clinical_Imaging_Engine_Demo_Guide_2_(mult_eng).docx) |
+| **Demo 2: Closed Loop** | 27 min | CT scan → genomic analysis → 100 drug candidates — all 6 engines on one device | [:material-download: Demo Guide 2](Clinical_Imaging_Engine_Demo_Guide_2_(mult_eng).docx) |
 
 ## Services
 

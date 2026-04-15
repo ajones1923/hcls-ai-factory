@@ -22,7 +22,7 @@ tags:
 | Demo | Description | Download |
 |------|-------------|----------|
 | **Demo 1: Imaging Engine** | Engine 4 standalone. 9 workflows, 7 scoring systems, cross-modal genomic triggers, 3D visualization, evidence search across 1,938 PubMed papers. 21 minutes, 12 acts. | [:material-download: Demo Guide 1 (.docx)](Clinical_Imaging_Engine_Demo_Guide_1_(1_eng).docx){ .md-button } |
-| **Demo 2: Closed Loop (4 Engines)** | CT scan to genomic analysis to drug candidate generation. All 4 engines working together. 27 minutes, 10 acts. | [:material-download: Demo Guide 2 (.docx)](Clinical_Imaging_Engine_Demo_Guide_2_(mult_eng).docx){ .md-button } |
+| **Demo 2: Closed Loop (6 Engines)** | CT scan to genomic analysis to drug candidate generation. All 6 engines working together. 27 minutes, 10 acts. | [:material-download: Demo Guide 2 (.docx)](Clinical_Imaging_Engine_Demo_Guide_2_(mult_eng).docx){ .md-button } |
 
 ---
 
@@ -757,7 +757,7 @@ git clone https://github.com/ajones1923/hcls-ai-factory.git
 | 5 | The Molecules (Engine 3 — 100 EGFR inhibitors generated) | 5:00 | 17:00 |
 | 6 | The Loop Closes (timeline: 45 minutes CT -> drugs) | 3:00 | 20:00 |
 | 7 | The Follow-Up (radiomics monitoring, circular loop) | 2:00 | 22:00 |
-| 8 | The Architecture (4 engines, one device) | 2:00 | 24:00 |
+| 8 | The Architecture (6 engines, one device) | 2:00 | 24:00 |
 | 9 | The Scale (VAST AI OS / FLARE federation) | 2:00 | 26:00 |
 | 10 | The Invitation (Apache 2.0, git clone) | 1:00 | 27:00 |
 
