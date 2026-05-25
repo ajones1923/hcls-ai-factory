@@ -17,28 +17,28 @@
 
 ---
 
-## Three Engines. One Pipeline.
+## Six Engines. Eight Intelligence Agents. One Platform.
 
-The HCLS AI Factory is built on three coordinated engines that form a continuous pipeline from raw DNA to drug candidates:
+The HCLS AI Factory is built on six coordinated engines and eight specialized agents that share a common genomic and molecular foundation.
 
-| Engine | Stage | What It Does |
-|--------|-------|-------------|
+| Engine | # | What It Does |
+|--------|---|-------------|
 | **[Genomic Foundation Engine](docs/engines/genomic-foundation.md)** | 1 | GPU-accelerated variant calling and annotation. FASTQ → 3.5M annotated variant vectors via Parabricks, DeepVariant, ClinVar, and AlphaMissense. |
-| **[Precision Intelligence Network](docs/engines/precision-intelligence.md)** | 2 | 11 domain-specialized AI agents sharing a common molecular foundation. RAG-powered clinical interpretation across oncology, neurology, cardiology, rare disease, and 9 more domains. |
+| **[Precision Intelligence Engine](docs/engines/precision-intelligence.md)** | 2 | RAG-powered clinical interpretation over the shared variant foundation. Coordinates the eight domain-specialized agents listed below. |
 | **[Therapeutic Discovery Engine](docs/engines/therapeutic-discovery.md)** | 3 | Generative drug design via BioNeMo MolMIM, molecular docking via DiffDock, and drug-likeness scoring via RDKit. Validated targets become ranked drug candidates. |
+| **[Clinical Imaging Engine](docs/clinical-imaging-engine/index.md)** | 4 | Live DICOM analysis with VISTA-3D, MAISI, and VILA-M3 workflows. FHIR R4 export and cross-modality reasoning over images and genomics. Port 8525. |
+| **[Precision Oncology Engine](docs/precision-oncology-agent/index.md)** | 5 | MTB packet generation, therapy ranking, and trial matching. Cross-modal joins to imaging, biomarker, and trial agents. Port 8526. |
+| **[Cardiology Intelligence Engine](docs/cardiology-intelligence-agent/index.md)** | 6 | 11 clinical workflows and 6 risk calculators spanning prevention, intervention, and rhythm management. Port 8536. |
 
-### The 11 Intelligence Agents
+### The 8 Intelligence Agents
 
 | Agent | Domain | Port | Key Capabilities |
 |-------|--------|------|------------------|
-| [Precision Oncology](docs/precision-oncology-agent/index.md) | Cancer | 8526 | MTB packet generation, therapy ranking, trial matching |
 | [CAR-T Intelligence](docs/cart-intelligence-agent/index.md) | Cell Therapy | 8521 | Cross-collection evidence, comparative analysis, deep research |
-| [Imaging Intelligence](docs/imaging-intelligence-agent/index.md) | Medical Imaging | 8525 | VISTA-3D, MAISI, VILA-M3 workflows, FHIR R4 export |
 | [Precision Biomarker](docs/precision-biomarker-agent/index.md) | Biomarkers | 8528 | PhenoAge/GrimAge, 9-domain risk, genotype-aware interpretation |
 | [Pharmacogenomics](docs/pharmacogenomics-intelligence-agent/index.md) | Drug-Gene | 8507 | Star allele calling, CPIC guidelines, 9 dosing algorithms |
 | [Precision Autoimmune](docs/precision-autoimmune-agent/index.md) | Autoimmune | 8531 | Autoantibody interpretation, HLA analysis, flare prediction |
 | [Neurology Intelligence](docs/neurology-intelligence-agent/index.md) | Neurology | 8529 | Stroke triage, dementia evaluation, EDSS scoring |
-| [Cardiology Intelligence](docs/cardiology-intelligence-agent/index.md) | Cardiovascular | 8536 | 11 clinical workflows, 6 risk calculators |
 | [Clinical Trial Intelligence](docs/clinical-trial-intelligence-agent/index.md) | Clinical Trials | 8128 | Trial optimization, adaptive design, biomarker strategy |
 | [Rare Disease Diagnostic](docs/rare-disease-diagnostic-agent/index.md) | Rare Disease | 8544 | HPO matching, ACMG classification, gene therapy tracking |
 | [Single-Cell Intelligence](docs/single-cell-intelligence-agent/index.md) | Single-Cell | 8130 | Cell type annotation, TME profiling, drug response |
@@ -64,7 +64,7 @@ The HCLS AI Factory is built on three coordinated engines that form a continuous
 ## Full HCLS AI Factory
 
 <p align="center">
-  <img src="images/hcls-ai-factory-architecture-infographic.jpg" alt="The HCLS AI Factory — 3 Engine and 11 Agents Architecture" width="900">
+  <img src="images/hcls-ai-factory-architecture-infographic.jpg" alt="The HCLS AI Factory — 6 Engines and 8 Agents Architecture" width="900">
 </p>
 
 ---
@@ -150,13 +150,16 @@ Take it. Use it. Make it better.
 
 ## What It Does
 
-| Stage | Engine | Input | Output | Key Technology |
-|-------|--------|-------|--------|----------------|
+| # | Engine | Input | Output | Key Technology |
+|---|--------|-------|--------|----------------|
 | 1 | **[Genomic Foundation](docs/engines/genomic-foundation.md)** | FASTQ (raw sequences) | 3.5M variant vectors | NVIDIA Parabricks, DeepVariant, ClinVar, AlphaMissense |
-| 2 | **[Precision Intelligence](docs/engines/precision-intelligence.md)** | Variant vectors + natural language | Clinical intelligence | 11 RAG agents, Milvus, Claude AI |
+| 2 | **[Precision Intelligence](docs/engines/precision-intelligence.md)** | Variant vectors + natural language | Clinical intelligence | RAG over 8 agents, Milvus, Claude AI |
 | 3 | **[Therapeutic Discovery](docs/engines/therapeutic-discovery.md)** | Protein target | Ranked drug candidates | BioNeMo MolMIM, DiffDock, RDKit |
+| 4 | **[Clinical Imaging](docs/clinical-imaging-engine/index.md)** | DICOM, multi-modality imaging | Segmentations, FHIR R4 reports | VISTA-3D, MAISI, VILA-M3 |
+| 5 | **[Precision Oncology](docs/precision-oncology-agent/index.md)** | Patient genomics + clinical context | MTB packets, ranked therapies | Cross-modal joins, trial matching |
+| 6 | **[Cardiology Intelligence](docs/cardiology-intelligence-agent/index.md)** | Patient profile + variants | Risk scores, workflow output | 11 workflows, 6 risk calculators |
 
-Each of the 11 intelligence agents extends the core platform with domain-specific RAG, cross-modal triggers linking to the shared genomic evidence base (3.5M vectors), and Streamlit UIs for interactive exploration.
+Each of the 8 intelligence agents extends the core platform with domain-specific RAG, cross-modal triggers linking to the shared genomic evidence base (3.5M vectors), and Streamlit UIs for interactive exploration.
 
 ### Performance
 
@@ -173,11 +176,11 @@ Each of the 11 intelligence agents extends the core platform with domain-specifi
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                    HCLS AI FACTORY — Foundation. Intelligence. Discovery.    │
 ├─────────────────┬─────────────────┬─────────────────────────────────────────┤
-│  STAGE 1        │  STAGE 2        │  STAGE 3                                │
+│  ENGINE 1       │  ENGINE 2       │  ENGINE 3                               │
 │  GENOMIC        │  PRECISION      │  THERAPEUTIC                            │
 │  FOUNDATION     │  INTELLIGENCE   │  DISCOVERY                              │
-│                 │  NETWORK        │  ENGINE                                 │
-│  FASTQ → 3.5M  │  11 Agents      │  Target → Molecules                     │
+│                 │  ENGINE         │  ENGINE                                 │
+│  FASTQ → 3.5M  │  8 Agents       │  Target → Molecules                     │
 │  variant vectors│                 │                                         │
 │  • Parabricks   │  • Milvus       │  • BioNeMo MolMIM                       │
 │  • BWA-MEM2     │  • Claude AI    │  • BioNeMo DiffDock                     │
@@ -189,11 +192,20 @@ Each of the 11 intelligence agents extends the core platform with domain-specifi
    Web Portal:8080   Chat UI:8501              Discovery UI:8505
 
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                  PRECISION INTELLIGENCE NETWORK (11 Agents)                  │
+│           DOMAIN ENGINES — Promoted from Agents (full-platform scope)        │
+├─────────────────────────┬──────────────────────────┬────────────────────────┤
+│  ENGINE 4               │  ENGINE 5                │  ENGINE 6              │
+│  CLINICAL IMAGING       │  PRECISION ONCOLOGY      │  CARDIOLOGY INTEL.     │
+│  :8525                  │  :8526                   │  :8536                 │
+│  VISTA-3D, MAISI,       │  MTB packets, therapy    │  11 workflows,         │
+│  VILA-M3, FHIR R4       │  ranking, trial matching │  6 risk calculators    │
+└─────────────────────────┴──────────────────────────┴────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                       8 INTELLIGENCE AGENTS                                  │
 ├──────────────────┬──────────────────┬───────────────────────────────────────┤
-│  Oncology :8526  │  CAR-T :8521     │  Imaging :8525    Biomarker :8528     │
-│  PGx :8507       │  Autoimmune :8531│  Neurology :8529  Cardiology :8536    │
-│  Trials :8128    │  Rare Dis :8544  │  Single-Cell :8130                    │
+│  CAR-T :8521     │  Biomarker :8528 │  PGx :8507        Autoimmune :8531    │
+│  Neurology :8529 │  Trials :8128    │  Rare Dis :8544   Single-Cell :8130   │
 └──────────────────┴──────────────────┴───────────────────────────────────────┘
          ▲                 ▲                           ▲
          └─────────────────┴───────────────────────────┘
