@@ -1,0 +1,24 @@
+[project]
+name = "precision-autoimmune-agent"
+version = "1.0.0"
+description = "Autoimmune Intelligence Agent for HCLS AI Factory"
+requires-python = ">=3.10"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+addopts = "-v --tb=short"
+markers = [
+    "slow: marks tests as slow",
+    "integration: requires external services",
+]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = ["E501"]
