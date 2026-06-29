@@ -1,0 +1,71 @@
+{
+  "format_version": 2,
+  "servers": [
+    {
+      "name": "server",
+      "service": {
+        "target": "0.0.0.0:8003",
+        "scheme": "grpc"
+      },
+      "admin_host": "0.0.0.0",
+      "admin_port": 8103
+    }
+  ],
+  "snapshot_persistor": {
+    "path": "nvflare.app_common.state_persistors.storage_state_persistor.StorageStatePersistor",
+    "args": {
+      "uri_root": "/tmp/nvflare/snapshot-storage",
+      "storage": {
+        "path": "nvflare.app_common.storages.filesystem_storage.FilesystemStorage",
+        "args": {
+          "root_dir": "/tmp/nvflare/snapshot-storage"
+        }
+      }
+    }
+  },
+  "components": [
+    {
+      "id": "job_scheduler",
+      "path": "nvflare.app_common.job_schedulers.job_scheduler.DefaultJobScheduler",
+      "args": {
+        "max_jobs": 4
+      }
+    },
+    {
+      "id": "job_manager",
+      "path": "nvflare.apis.impl.job_def_manager.SimpleJobDefManager",
+      "args": {
+        "uri_root": "/tmp/nvflare/jobs-storage",
+        "job_store": {
+          "path": "nvflare.app_common.storages.filesystem_storage.FilesystemStorage",
+          "args": {
+            "root_dir": "/tmp/nvflare/jobs-storage"
+          }
+        }
+      }
+    }
+  ],
+  "logging": {
+    "log_level": "INFO",
+    "log_file": "/tmp/nvflare/log/server.log",
+    "log_config": null
+  },
+  "heartbeat": {
+    "interval": 10,
+    "timeout": 600
+  },
+  "security": {
+    "authorization": {
+      "path": "nvflare.apis.impl.authz_security.AuthzSecurity",
+      "args": {
+        "policy_config_file_name": "authorization.json"
+      }
+    },
+    "ssl": {
+      "enabled": true,
+      "cert_path": "ssl/server.crt",
+      "key_path": "ssl/server.key",
+      "root_cert_path": "ssl/rootCA.pem"
+    }
+  }
+}

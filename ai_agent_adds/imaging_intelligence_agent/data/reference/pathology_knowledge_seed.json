@@ -1,0 +1,82 @@
+{
+  "emphysema": {
+    "display_name": "Emphysema",
+    "icd10": "J43.9",
+    "modalities": ["ct", "cxr"],
+    "body_region": "chest",
+    "key_features": "Permanent enlargement of airspaces distal to terminal bronchioles with destruction of alveolar walls. Classified as centrilobular (smoking-related, upper lobe predominant), panlobular (alpha-1 antitrypsin deficiency, lower lobe predominant), or paraseptal (subpleural, associated with spontaneous pneumothorax). CT demonstrates low-attenuation areas without defined walls. Quantitative CT densitometry can measure percent emphysema (%LAA below -950 HU).",
+    "ai_relevance": "AI quantification of emphysema volume and distribution on CT using density thresholding. Automated COPD phenotyping and severity grading. Longitudinal progression tracking with volumetric analysis. VISTA-3D can segment emphysematous regions for quantitative assessment."
+  },
+  "lymphadenopathy": {
+    "display_name": "Lymphadenopathy",
+    "icd10": "R59.9",
+    "modalities": ["ct", "pet_ct", "ultrasound"],
+    "body_region": "whole_body",
+    "key_features": "Pathologically enlarged lymph nodes exceeding size thresholds (short axis >10mm in most regions, >15mm in inguinal). Morphologic features suggesting malignancy include round shape, necrotic center, loss of fatty hilum, and irregular enhancement. PET avidity with SUVmax >2.5 increases concern for malignancy. Distribution pattern (localized vs generalized) helps narrow differential diagnosis.",
+    "ai_relevance": "Automated lymph node detection, measurement, and characterization on CT and PET/CT. AI-assisted staging per RECIST 1.1 criteria. Longitudinal tracking of nodal size for treatment response assessment. Deep learning segmentation for volumetric measurement replacing short-axis diameter."
+  },
+  "breast_mass": {
+    "display_name": "Breast Mass",
+    "icd10": "N63.0",
+    "modalities": ["mammography", "ultrasound", "mri"],
+    "body_region": "breast",
+    "key_features": "Space-occupying lesion in the breast characterized by shape (oval, round, irregular), margin (circumscribed, obscured, microlobulated, indistinct, spiculated), and density (fat-containing, low, equal, high). BI-RADS lexicon provides standardized characterization. Spiculated margins and high density are most suspicious for malignancy. Ultrasound further characterizes as solid vs cystic.",
+    "ai_relevance": "AI-assisted mammographic mass detection with BI-RADS classification. Deep learning CAD systems (e.g., iCAD ProFound AI) detect masses with sensitivity comparable to radiologists. AI triage systems flag suspicious masses for priority reading. Automated density assessment impacts screening sensitivity."
+  },
+  "thyroid_nodule": {
+    "display_name": "Thyroid Nodule",
+    "icd10": "E04.1",
+    "modalities": ["ultrasound", "ct"],
+    "body_region": "neck",
+    "key_features": "Discrete lesion within the thyroid gland distinguishable from surrounding parenchyma. Evaluated by ultrasound using ACR TI-RADS criteria: composition (cystic to solid), echogenicity (anechoic to very hypoechoic), shape (wider-than-tall vs taller-than-wide), margin (smooth vs irregular/extrathyroidal extension), and echogenic foci (none, comet-tail, macrocalcifications, peripheral rim, punctate). Malignancy risk ranges from <2% (TR1-2) to >20% (TR5).",
+    "ai_relevance": "AI-powered thyroid nodule detection and TI-RADS classification on ultrasound. Automated point scoring for risk stratification. Deep learning models can differentiate benign from malignant nodules with AUC >0.90. Computer-aided diagnosis reduces unnecessary fine-needle aspiration biopsies."
+  },
+  "pancreatic_mass": {
+    "display_name": "Pancreatic Mass",
+    "icd10": "C25.9",
+    "modalities": ["ct", "mri"],
+    "body_region": "abdomen",
+    "key_features": "Focal lesion in the pancreas, most commonly pancreatic ductal adenocarcinoma (hypoattenuating on CT, 85% of cases). Key features include size, location (head/body/tail), vascular involvement (SMA, celiac, SMV, portal vein), pancreatic duct dilatation, and distant metastases. Double-duct sign (dilated CBD and pancreatic duct) suggests periampullary malignancy. Pancreatic protocol CT with arterial and portal venous phases is the standard imaging evaluation.",
+    "ai_relevance": "AI detection of pancreatic masses on CT, including early-stage tumors that are subtle and easily missed. Deep learning models for vascular involvement assessment to determine resectability. Automated segmentation for treatment planning. Radiomics features predictive of prognosis and chemotherapy response."
+  },
+  "bowel_obstruction": {
+    "display_name": "Bowel Obstruction",
+    "icd10": "K56.69",
+    "modalities": ["ct", "cxr"],
+    "body_region": "abdomen",
+    "key_features": "Mechanical obstruction characterized by dilated proximal bowel (small bowel >3cm, colon >6cm, cecum >9cm) with decompressed distal bowel and a transition point. Small bowel obstruction causes include adhesions (60%), hernia (15%), and tumor (10%). CT findings: dilated fluid-filled loops, air-fluid levels, small bowel feces sign, and mesenteric congestion. Closed-loop obstruction and strangulation are surgical emergencies with ischemia signs including wall thickening, poor enhancement, and pneumatosis.",
+    "ai_relevance": "AI-assisted detection of bowel obstruction on CT with automated identification of transition point. Deep learning models for differentiation of adhesive vs malignant obstruction. Automated bowel diameter measurement and detection of strangulation signs. Triage prioritization for emergency radiology workflow."
+  },
+  "appendicitis": {
+    "display_name": "Appendicitis",
+    "icd10": "K35.80",
+    "modalities": ["ct", "ultrasound"],
+    "body_region": "abdomen",
+    "key_features": "Inflammation of the vermiform appendix presenting as a dilated (>6mm), fluid-filled, non-compressible appendix with wall thickening and periappendiceal fat stranding on CT. Appendicolith present in 25-30% of cases. Complications include perforation (wall defect, abscess, extraluminal air) and phlegmon. Ultrasound is preferred in children and pregnant patients showing non-compressible blind-ending tube >6mm with target sign on cross-section.",
+    "ai_relevance": "AI detection of appendicitis on CT with automated identification and measurement of the appendix. Deep learning models achieve sensitivity >95% for appendicitis detection. Automated complication detection (perforation, abscess). Potential to reduce unnecessary appendectomy rates through improved diagnostic specificity."
+  },
+  "coronary_calcification": {
+    "display_name": "Coronary Artery Calcification",
+    "icd10": "I25.10",
+    "modalities": ["ct"],
+    "body_region": "cardiac",
+    "key_features": "Calcified atherosclerotic plaque in coronary arteries quantified by Agatston scoring on non-contrast ECG-gated CT. Categories: 0 (no calcification), 1-100 (mild), 101-400 (moderate), >400 (severe). Higher scores correlate with increased coronary event risk. Distribution across LAD, LCx, RCA, and left main provides additional prognostic value. Calcium score of 0 confers very low 10-year cardiovascular event risk (<2%).",
+    "ai_relevance": "Automated Agatston calcium scoring from ECG-gated CT and opportunistic screening from non-gated chest CT. AI can identify and quantify coronary calcium on routine chest CTs performed for other indications. Deep learning models achieve correlation >0.95 with manual Agatston scoring. Enables population-level cardiovascular risk screening from existing imaging data."
+  },
+  "osteoporosis": {
+    "display_name": "Osteoporosis",
+    "icd10": "M81.0",
+    "modalities": ["ct", "cxr"],
+    "body_region": "spine",
+    "key_features": "Systemic skeletal disease characterized by low bone mass and microarchitectural deterioration. Imaging findings include decreased bone density, vertebral compression fractures (anterior wedging, biconcave deformity), cortical thinning, and trabecular rarefaction. DEXA T-score <= -2.5 is diagnostic. CT-derived bone mineral density from vertebral body HU values (L1 <110 HU suggests osteoporosis, <160 HU suggests osteopenia) enables opportunistic screening.",
+    "ai_relevance": "Opportunistic AI screening for osteoporosis from routine CT scans using vertebral body attenuation values. Automated vertebral fracture assessment on lateral CXR and CT. Zebra Medical Bone Health is an FDA-cleared AI device for this application. Deep learning models can estimate bone mineral density from CT without calibration phantoms."
+  },
+  "degenerative_disc": {
+    "display_name": "Degenerative Disc Disease",
+    "icd10": "M51.36",
+    "modalities": ["mri", "ct"],
+    "body_region": "spine",
+    "key_features": "Progressive degeneration of intervertebral discs characterized by desiccation (decreased T2 signal on MRI), disc height loss, annular fissures, disc bulging or herniation, endplate changes (Modic types I-III), and osteophyte formation. Pfirrmann grading (I-V) classifies disc degeneration severity on sagittal T2 MRI. Can lead to spinal stenosis, foraminal narrowing, and nerve root compression. Most common at L4-L5 and L5-S1 levels.",
+    "ai_relevance": "AI-automated disc grading using Pfirrmann classification on MRI with high inter-observer agreement. Automated measurement of disc height, canal diameter, and foraminal dimensions. Deep learning segmentation of disc, vertebral body, and neural structures. Spinal stenosis grading automation to reduce radiologist reporting burden."
+  }
+}

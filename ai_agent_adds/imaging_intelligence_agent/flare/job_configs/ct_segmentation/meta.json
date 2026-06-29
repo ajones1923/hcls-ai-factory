@@ -1,0 +1,25 @@
+{
+  "name": "ct_segmentation_federated",
+  "resource_spec": {
+    "server": {
+      "num_gpus": 0,
+      "mem_per_gpu_in_GiB": 0
+    },
+    "client": {
+      "num_gpus": 1,
+      "mem_per_gpu_in_GiB": 32
+    }
+  },
+  "deploy_map": {
+    "app_server": ["server"],
+    "app_client": ["hospital_a", "hospital_b"]
+  },
+  "min_clients": 2,
+  "mandatory_clients": [],
+  "description": "Federated 3D SegResNet for multi-organ CT segmentation across hospital sites. Trained on TotalSegmentator-format data with 14 organ labels using DiceCE loss and FedAvg aggregation. Requires 32GB GPU memory per client for 96x96x96 volume crops.",
+  "controller_type": "server",
+  "approach": "scatter_and_gather",
+  "data_kind": "WEIGHT_DIFF",
+  "num_rounds": 100,
+  "key_metric": "val_mean_dice"
+}

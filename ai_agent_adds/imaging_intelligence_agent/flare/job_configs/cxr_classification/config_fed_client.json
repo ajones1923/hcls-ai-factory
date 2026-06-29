@@ -1,0 +1,111 @@
+{
+  "format_version": 2,
+  "executors": [
+    {
+      "tasks": ["train", "submit_model", "validate"],
+      "executor": {
+        "path": "nvflare.app_common.executors.learner_executor.LearnerExecutor",
+        "args": {
+          "learner_id": "cxr_learner"
+        }
+      }
+    }
+  ],
+  "task_result_filters": [],
+  "task_data_filters": [],
+  "components": [
+    {
+      "id": "cxr_learner",
+      "path": "nvflare.app_opt.pt.learners.cifar10_learner.CIFAR10Learner",
+      "name": "CXRClassificationLearner",
+      "args": {
+        "lr": 0.0001,
+        "epochs": 5,
+        "analytic_sender_id": "analytic_sender"
+      }
+    },
+    {
+      "id": "analytic_sender",
+      "path": "nvflare.app_opt.tracking.tb.tb_receiver.TBAnalyticsSender",
+      "args": {}
+    },
+    {
+      "id": "model_registry",
+      "path": "nvflare.app_common.widgets.model_registry.ModelRegistry",
+      "args": {}
+    }
+  ],
+  "training": {
+    "model": {
+      "path": "torchvision.models.densenet121",
+      "args": {
+        "weights": null,
+        "num_classes": 18
+      }
+    },
+    "optimizer": {
+      "path": "torch.optim.Adam",
+      "args": {
+        "lr": 0.0001,
+        "weight_decay": 0.00001
+      }
+    },
+    "loss": {
+      "path": "torch.nn.BCEWithLogitsLoss",
+      "args": {}
+    },
+    "scheduler": {
+      "path": "torch.optim.lr_scheduler.CosineAnnealingLR",
+      "args": {
+        "T_max": 50,
+        "eta_min": 0.000001
+      }
+    },
+    "batch_size": 32,
+    "num_workers": 4,
+    "dataset": {
+      "name": "CheXpert",
+      "num_classes": 18,
+      "labels": [
+        "No Finding", "Enlarged Cardiomediastinum", "Cardiomegaly",
+        "Lung Opacity", "Lung Lesion", "Edema", "Consolidation",
+        "Pneumonia", "Atelectasis", "Pneumothorax", "Pleural Effusion",
+        "Pleural Other", "Fracture", "Support Devices", "Emphysema",
+        "Fibrosis", "Mass", "Nodule"
+      ],
+      "image_size": [224, 224]
+    },
+    "transforms": {
+      "train": [
+        {"name": "LoadImage", "args": {"image_only": true}},
+        {"name": "EnsureChannelFirst", "args": {}},
+        {"name": "ScaleIntensity", "args": {}},
+        {"name": "Resize", "args": {"spatial_size": [224, 224]}},
+        {"name": "RandRotate", "args": {"range_x": 0.174, "prob": 0.5}},
+        {"name": "RandFlip", "args": {"spatial_axis": 1, "prob": 0.5}},
+        {"name": "RandAdjustContrast", "args": {"gamma": [0.8, 1.2], "prob": 0.3}},
+        {"name": "ToTensor", "args": {"dtype": "float32"}}
+      ],
+      "val": [
+        {"name": "LoadImage", "args": {"image_only": true}},
+        {"name": "EnsureChannelFirst", "args": {}},
+        {"name": "ScaleIntensity", "args": {}},
+        {"name": "Resize", "args": {"spatial_size": [224, 224]}},
+        {"name": "ToTensor", "args": {"dtype": "float32"}}
+      ]
+    }
+  },
+  "privacy": {
+    "differential_privacy": {
+      "enabled": false,
+      "mechanism": "gaussian",
+      "epsilon": 8.0,
+      "delta": 0.00001,
+      "max_grad_norm": 1.0
+    },
+    "sparse_update": {
+      "enabled": false,
+      "top_k_percent": 10
+    }
+  }
+}

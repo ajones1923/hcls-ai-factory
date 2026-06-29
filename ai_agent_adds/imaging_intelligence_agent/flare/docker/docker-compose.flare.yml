@@ -1,0 +1,187 @@
+# =============================================================================
+# NVIDIA FLARE Federated Learning -- Docker Compose
+# HCLS AI Factory / Imaging Intelligence Agent
+#
+# Services:
+#   flare-server      FL aggregation server (port 8003 gRPC, 8103 admin)
+#   flare-hospital-a  Client for Hospital A (simulated site)
+#   flare-hospital-b  Client for Hospital B (simulated site)
+#   flare-admin       Admin console for job submission
+#   tensorboard       TensorBoard for FL training visualization (port 6006)
+#
+# Usage:
+#   # 1. Provision first (generates startup kits):
+#   nvflare provision -p ../provision/project.yml -w /tmp/nvflare/workspace
+#
+#   # 2. Launch FL environment:
+#   docker compose -f docker-compose.flare.yml up -d
+#
+#   # 3. Submit a job (from admin console):
+#   nvflare job submit -j ../job_configs/cxr_classification
+#
+# Author: Adam Jones
+# Date:   February 2026
+# =============================================================================
+
+version: "3.8"
+
+services:
+  # ── FLARE Server (FL aggregator / coordinator) ────────────────────────────
+  flare-server:
+    image: nvcr.io/nvidia/nvflare:2.5.0
+    container_name: flare-server
+    hostname: flare-server
+    ports:
+      - "8003:8003"       # gRPC FL communication
+      - "8103:8103"       # Admin console port
+    volumes:
+      - ../provision/workspace/server/startup:/workspace/server/startup:ro
+      - ../job_configs:/workspace/jobs:ro
+      - flare_server_transfer:/tmp/nvflare/transfer
+      - flare_server_logs:/tmp/nvflare/log
+      - flare_models:/tmp/nvflare/models
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=void
+    command: >
+      /workspace/server/startup/start.sh
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c 'import socket; s=socket.socket(); s.settimeout(2); s.connect((\"localhost\",8003)); s.close()'"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 5
+    networks:
+      - flare-network
+      - imaging-network
+    restart: unless-stopped
+
+  # ── FLARE Client: Hospital A ──────────────────────────────────────────────
+  flare-hospital-a:
+    image: nvcr.io/nvidia/nvflare:2.5.0
+    container_name: flare-hospital-a
+    hostname: hospital-a
+    volumes:
+      - ../provision/workspace/hospital_a/startup:/workspace/hospital_a/startup:ro
+      - ../site_configs/site_hospital_a:/workspace/hospital_a/local:ro
+      - hospital_a_data:/data/hospital_a
+      - flare_hospital_a_logs:/tmp/nvflare/log
+      - flare_hospital_a_transfer:/tmp/nvflare/transfer
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - CUDA_VISIBLE_DEVICES=0
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    command: >
+      /workspace/hospital_a/startup/start.sh
+    depends_on:
+      flare-server:
+        condition: service_healthy
+    networks:
+      - flare-network
+      - imaging-network
+    restart: unless-stopped
+
+  # ── FLARE Client: Hospital B ──────────────────────────────────────────────
+  flare-hospital-b:
+    image: nvcr.io/nvidia/nvflare:2.5.0
+    container_name: flare-hospital-b
+    hostname: hospital-b
+    volumes:
+      - ../provision/workspace/hospital_b/startup:/workspace/hospital_b/startup:ro
+      - ../site_configs/site_hospital_b:/workspace/hospital_b/local:ro
+      - hospital_b_data:/data/hospital_b
+      - flare_hospital_b_logs:/tmp/nvflare/log
+      - flare_hospital_b_transfer:/tmp/nvflare/transfer
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - CUDA_VISIBLE_DEVICES=0
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    command: >
+      /workspace/hospital_b/startup/start.sh
+    depends_on:
+      flare-server:
+        condition: service_healthy
+    networks:
+      - flare-network
+      - imaging-network
+    restart: unless-stopped
+
+  # ── FLARE Admin Console ───────────────────────────────────────────────────
+  flare-admin:
+    image: nvcr.io/nvidia/nvflare:2.5.0
+    container_name: flare-admin
+    hostname: flare-admin
+    volumes:
+      - ../provision/workspace/admin@hcls-ai-factory/startup:/workspace/admin/startup:ro
+      - ../job_configs:/workspace/jobs:ro
+      - flare_admin_transfer:/tmp/nvflare/transfer
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=void
+    command: >
+      bash -c "echo 'Admin console ready. Use: docker exec -it flare-admin bash' && sleep infinity"
+    depends_on:
+      flare-server:
+        condition: service_healthy
+    networks:
+      - flare-network
+    restart: unless-stopped
+
+  # ── TensorBoard (FL training visualization) ───────────────────────────────
+  tensorboard:
+    image: tensorflow/tensorflow:2.15.0
+    container_name: flare-tensorboard
+    ports:
+      - "6006:6006"
+    volumes:
+      - flare_server_logs:/logs/server:ro
+      - flare_hospital_a_logs:/logs/hospital_a:ro
+      - flare_hospital_b_logs:/logs/hospital_b:ro
+    command: >
+      tensorboard --logdir=/logs --host=0.0.0.0 --port=6006
+    networks:
+      - flare-network
+      - imaging-network
+    restart: unless-stopped
+
+# ── Volumes ──────────────────────────────────────────────────────────────────
+volumes:
+  flare_server_transfer:
+    driver: local
+  flare_server_logs:
+    driver: local
+  flare_models:
+    driver: local
+  flare_hospital_a_logs:
+    driver: local
+  flare_hospital_a_transfer:
+    driver: local
+  flare_hospital_b_logs:
+    driver: local
+  flare_hospital_b_transfer:
+    driver: local
+  flare_admin_transfer:
+    driver: local
+  hospital_a_data:
+    driver: local
+  hospital_b_data:
+    driver: local
+
+# ── Networks ─────────────────────────────────────────────────────────────────
+networks:
+  flare-network:
+    name: flare-network
+    driver: bridge
+  imaging-network:
+    external: true
+    name: imaging-network

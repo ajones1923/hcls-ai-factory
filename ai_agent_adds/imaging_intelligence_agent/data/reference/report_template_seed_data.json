@@ -1,0 +1,112 @@
+[
+  {
+    "id": "TMPL-001",
+    "text_summary": "Structured report template for CT head non-contrast evaluation of intracranial hemorrhage. Includes systematic assessment of extra-axial spaces, parenchyma, ventricles, and midline shift.",
+    "template_name": "CT Head Hemorrhage Report",
+    "modality": "ct",
+    "body_region": "head",
+    "finding_type": "hemorrhage",
+    "structured_fields": "hemorrhage_type,location,max_thickness_mm,midline_shift_mm,ventricular_extension,hydrocephalus,herniation,skull_fracture,clinical_correlation",
+    "example_report": "FINDINGS: Acute right temporal epidural hematoma measuring 18mm in maximal thickness with 6mm leftward midline shift. No intraventricular extension. Early right uncal herniation with effacement of the ipsilateral perimesencephalic cistern. Linear non-displaced right temporal bone fracture. IMPRESSION: 1. Acute right epidural hematoma with mass effect and early uncal herniation. Emergent neurosurgical consultation recommended. 2. Right temporal bone fracture.",
+    "coding_system": "RadLex"
+  },
+  {
+    "id": "TMPL-002",
+    "text_summary": "Structured report template for CT chest lung nodule evaluation per Lung-RADS criteria. Includes nodule characterization, measurement, comparison with prior, and Lung-RADS category assignment.",
+    "template_name": "CT Chest Lung Nodule Report",
+    "modality": "ct",
+    "body_region": "chest",
+    "finding_type": "pulmonary_nodule",
+    "structured_fields": "nodule_location,nodule_type,max_diameter_mm,volume_mm3,margin,calcification,ground_glass_component,prior_comparison,growth_rate,lung_rads_category,recommendation",
+    "example_report": "FINDINGS: Solid nodule in the right upper lobe measuring 8mm (previously 6mm on prior study dated 2025-06-15). Smooth margins, no calcification. Volume doubling time estimated at 380 days. Lung-RADS 4A. IMPRESSION: 1. Growing 8mm solid right upper lobe nodule, Lung-RADS 4A. Recommend 3-month follow-up LDCT or PET/CT.",
+    "coding_system": "Lung-RADS"
+  },
+  {
+    "id": "TMPL-003",
+    "text_summary": "Standard structured template for posteroanterior and lateral chest radiograph interpretation. Systematic evaluation of lungs, heart, mediastinum, pleura, and bones.",
+    "template_name": "CXR Standard Report",
+    "modality": "cxr",
+    "body_region": "chest",
+    "finding_type": "general_chest",
+    "structured_fields": "technique,lung_fields,cardiac_silhouette,cardiothoracic_ratio,mediastinum,hilum,pleura,costophrenic_angles,bones,soft_tissues,lines_tubes",
+    "example_report": "TECHNIQUE: PA and lateral chest radiograph. FINDINGS: Lungs are clear bilaterally without focal consolidation, effusion, or pneumothorax. Cardiac silhouette is normal in size with cardiothoracic ratio of 0.45. Mediastinal contours are within normal limits. Costophrenic angles are sharp. No acute bony abnormality. IMPRESSION: No acute cardiopulmonary abnormality.",
+    "coding_system": "RadLex"
+  },
+  {
+    "id": "TMPL-004",
+    "text_summary": "MRI brain MS protocol structured report template for documenting demyelinating disease burden, active vs chronic lesions, and comparison with prior per McDonald criteria.",
+    "template_name": "MRI Brain MS Report",
+    "modality": "mri",
+    "body_region": "brain",
+    "finding_type": "demyelination",
+    "structured_fields": "total_lesion_count,new_lesions,enlarging_lesions,enhancing_lesions,periventricular_lesions,juxtacortical_lesions,infratentorial_lesions,spinal_cord_lesions,brain_volume,prior_comparison,mcdonald_dis,mcdonald_dit",
+    "example_report": "FINDINGS: Multiple T2/FLAIR hyperintense lesions in typical MS distribution including periventricular (9 lesions), juxtacortical (4 lesions), and infratentorial (2 lesions). Two new lesions compared to prior dated 2025-03-10. One periventricular lesion demonstrates ring enhancement on post-contrast T1. No significant brain volume loss. IMPRESSION: 1. Active multiple sclerosis with 2 new lesions and 1 enhancing lesion consistent with disease activity despite current therapy. 2. McDonald criteria for DIS and DIT fulfilled.",
+    "coding_system": "SNOMED-CT"
+  },
+  {
+    "id": "TMPL-005",
+    "text_summary": "Structured report template for CT abdomen and pelvis with contrast. Covers systematic evaluation of all solid and hollow viscera, vasculature, lymph nodes, and musculoskeletal structures.",
+    "template_name": "CT Abdomen/Pelvis Report",
+    "modality": "ct",
+    "body_region": "abdomen",
+    "finding_type": "general_abdomen",
+    "structured_fields": "liver,gallbladder,pancreas,spleen,adrenals,kidneys,ureters,bladder,bowel,appendix,mesentery,lymph_nodes,vasculature,pelvis_organs,bones,free_fluid",
+    "example_report": "FINDINGS: Liver: Homogeneous enhancement, no focal lesion. Gallbladder: Normal, no stones. Pancreas: Normal. Spleen: Normal size. Adrenals: Normal. Kidneys: Simple 2cm left renal cyst (Bosniak I). Right kidney unremarkable. Bowel: Normal caliber, no obstruction. Appendix: Normal. No lymphadenopathy. Aorta and IVC normal. No free fluid. IMPRESSION: 1. Simple left renal cyst, Bosniak I, no follow-up needed. 2. Otherwise unremarkable CT abdomen and pelvis.",
+    "coding_system": "RadLex"
+  },
+  {
+    "id": "TMPL-006",
+    "text_summary": "Mammography screening and diagnostic report template following BI-RADS standardized lexicon with structured assessment of breast composition, findings, and final BI-RADS category.",
+    "template_name": "Mammography BI-RADS Report",
+    "modality": "mammography",
+    "body_region": "breast",
+    "finding_type": "breast_lesion",
+    "structured_fields": "breast_composition,mass_shape,mass_margin,mass_density,calcification_morphology,calcification_distribution,architectural_distortion,asymmetry,skin_changes,lymph_nodes,associated_features,birads_category,recommendation",
+    "example_report": "FINDINGS: Breast composition: Heterogeneously dense (ACR C). Right breast: 1.2cm oval, circumscribed, isodense mass at 10 o'clock middle depth, likely fibroadenoma. Left breast: No suspicious mass, calcification, or architectural distortion. Axillary lymph nodes: Normal bilaterally. ASSESSMENT: BI-RADS 3 - Probably benign. RECOMMENDATION: Short-interval 6-month follow-up mammogram of the right breast.",
+    "coding_system": "BI-RADS"
+  },
+  {
+    "id": "TMPL-007",
+    "text_summary": "CT chest pulmonary embolism report template for CTPA studies. Structured documentation of thrombus location, extent, right heart strain markers, and associated findings.",
+    "template_name": "CT Chest PE Report",
+    "modality": "ct",
+    "body_region": "chest",
+    "finding_type": "pulmonary_embolism",
+    "structured_fields": "thrombus_location,thrombus_extent,rv_lv_ratio,pa_diameter_mm,interventricular_septum,contrast_reflux_ivc,lung_infarct,pleural_effusion,dvt_if_included,right_heart_strain",
+    "example_report": "FINDINGS: Filling defects consistent with acute pulmonary embolism in the right main pulmonary artery extending into the right upper and lower lobe segmental branches. Left lower lobe subsegmental PE. RV/LV ratio 1.2 (normal <1.0) suggesting right heart strain. Interventricular septum bowing leftward. Contrast reflux into the IVC and hepatic veins. Small right pleural effusion. IMPRESSION: 1. Bilateral acute pulmonary embolism with right heart strain markers. 2. Consider systemic thrombolysis or catheter-directed therapy given right heart strain.",
+    "coding_system": "RadLex"
+  },
+  {
+    "id": "TMPL-008",
+    "text_summary": "Template for reporting a normal chest radiograph with systematic structured documentation confirming absence of acute findings.",
+    "template_name": "Normal CXR Report",
+    "modality": "cxr",
+    "body_region": "chest",
+    "finding_type": "normal",
+    "structured_fields": "technique,heart_size,mediastinum,lungs,pleura,bones,devices",
+    "example_report": "TECHNIQUE: Single PA chest radiograph. COMPARISON: None. FINDINGS: Heart size normal. Mediastinal contours unremarkable. Lungs are clear without focal airspace opacity. No pleural effusion or pneumothorax. No acute osseous abnormality. No lines or tubes. IMPRESSION: Normal chest radiograph.",
+    "coding_system": "RadLex"
+  },
+  {
+    "id": "TMPL-009",
+    "text_summary": "CT spine trauma report template for evaluation of acute vertebral fractures including assessment of alignment, fracture classification, canal compromise, and stability.",
+    "template_name": "CT Spine Trauma Report",
+    "modality": "ct",
+    "body_region": "spine",
+    "finding_type": "fracture",
+    "structured_fields": "spine_level,fracture_type,vertebral_body_height_loss,retropulsion,canal_compromise_percent,posterior_element_involvement,alignment,listhesis,disc_herniation,soft_tissue_injury,stability_classification,recommendation",
+    "example_report": "FINDINGS: Acute burst fracture of L1 with 40% anterior height loss and 3mm retropulsion of a posterior body fragment causing approximately 25% canal compromise. Fracture extends through the superior endplate. Bilateral pars interarticularis intact. Mild adjacent prevertebral soft tissue swelling. No malalignment. IMPRESSION: 1. Acute L1 burst fracture with 25% canal compromise. TLICS score 4 (burst morphology 2, intact PLC 0, neurological status pending). MRI recommended for PLC assessment and cord evaluation.",
+    "coding_system": "SNOMED-CT"
+  },
+  {
+    "id": "TMPL-010",
+    "text_summary": "Thyroid ultrasound report template using ACR TI-RADS lexicon for structured nodule characterization and risk stratification with biopsy recommendations.",
+    "template_name": "Thyroid Ultrasound TI-RADS Report",
+    "modality": "ultrasound",
+    "body_region": "neck",
+    "finding_type": "thyroid_nodule",
+    "structured_fields": "thyroid_size,nodule_location,nodule_dimensions,composition,echogenicity,shape,margin,echogenic_foci,tirads_points,tirads_category,vascularity,lymph_nodes,recommendation",
+    "example_report": "FINDINGS: Right thyroid lobe: 4.8 x 1.8 x 2.0 cm. Left thyroid lobe: 4.5 x 1.6 x 1.8 cm. Isthmus: 3mm. Right lobe: 1.5 x 1.2 x 1.0 cm solid (2 pts), hypoechoic (2 pts), wider-than-tall (0 pts), smooth margin (0 pts), punctate echogenic foci (3 pts). Total: 7 points, ACR TI-RADS TR5 (highly suspicious). IMPRESSION: 1. Right thyroid nodule, ACR TI-RADS TR5. FNA recommended given size >= 1.0 cm.",
+    "coding_system": "TI-RADS"
+  }
+]
