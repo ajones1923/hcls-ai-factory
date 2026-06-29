@@ -1,0 +1,137 @@
+{
+  "fullres_cxr": {
+    "dataset": "fullres_cxr",
+    "model": "torchxrayvision",
+    "n_samples": 5,
+    "resolution": "1024x1024 (native full-resolution)",
+    "per_image_results": [
+      {
+        "filename": "fullres_cxr_synth_000.png",
+        "resolution": "1024x1024",
+        "source": "synthetic",
+        "expected_pathology": "normal",
+        "inference_time_ms": 236.5,
+        "class_probabilities": {
+          "pneumothorax": 0.621,
+          "consolidation": 0.6246,
+          "pleural_effusion": 0.6459,
+          "cardiomegaly": 0.542,
+          "fracture": 0.5758
+        },
+        "positive_findings": [
+          "pneumothorax=0.621",
+          "consolidation=0.625",
+          "pleural_effusion=0.646",
+          "fracture=0.576"
+        ]
+      },
+      {
+        "filename": "fullres_cxr_synth_001.png",
+        "resolution": "1024x1024",
+        "source": "synthetic",
+        "expected_pathology": "consolidation",
+        "inference_time_ms": 245.7,
+        "class_probabilities": {
+          "pneumothorax": 0.6078,
+          "consolidation": 0.6255,
+          "pleural_effusion": 0.6346,
+          "cardiomegaly": 0.5533,
+          "fracture": 0.5871
+        },
+        "positive_findings": [
+          "pneumothorax=0.608",
+          "consolidation=0.625",
+          "pleural_effusion=0.635",
+          "fracture=0.587"
+        ]
+      },
+      {
+        "filename": "fullres_cxr_synth_002.png",
+        "resolution": "1024x1024",
+        "source": "synthetic",
+        "expected_pathology": "effusion",
+        "inference_time_ms": 225.5,
+        "class_probabilities": {
+          "pneumothorax": 0.6225,
+          "consolidation": 0.6239,
+          "pleural_effusion": 0.6544,
+          "cardiomegaly": 0.5509,
+          "fracture": 0.5721
+        },
+        "positive_findings": [
+          "pneumothorax=0.623",
+          "consolidation=0.624",
+          "pleural_effusion=0.654",
+          "fracture=0.572"
+        ]
+      },
+      {
+        "filename": "fullres_cxr_synth_003.png",
+        "resolution": "1024x1024",
+        "source": "synthetic",
+        "expected_pathology": "cardiomegaly",
+        "inference_time_ms": 185.5,
+        "class_probabilities": {
+          "pneumothorax": 0.5945,
+          "consolidation": 0.625,
+          "pleural_effusion": 0.6481,
+          "cardiomegaly": 0.5426,
+          "fracture": 0.5562
+        },
+        "positive_findings": [
+          "pneumothorax=0.595",
+          "consolidation=0.625",
+          "pleural_effusion=0.648",
+          "fracture=0.556"
+        ]
+      },
+      {
+        "filename": "fullres_cxr_synth_004.png",
+        "resolution": "1024x1024",
+        "source": "synthetic",
+        "expected_pathology": "pneumothorax",
+        "inference_time_ms": 141.0,
+        "class_probabilities": {
+          "pneumothorax": 0.6064,
+          "consolidation": 0.625,
+          "pleural_effusion": 0.6439,
+          "cardiomegaly": 0.5465,
+          "fracture": 0.5773
+        },
+        "positive_findings": [
+          "pneumothorax=0.606",
+          "consolidation=0.625",
+          "pleural_effusion=0.644",
+          "fracture=0.577"
+        ]
+      }
+    ],
+    "timing": {
+      "mean_ms": 206.8,
+      "median_ms": 225.5,
+      "min_ms": 141.0,
+      "max_ms": 245.7,
+      "total_ms": 1034.2
+    },
+    "mean_probabilities": {
+      "pneumothorax": 0.6104,
+      "consolidation": 0.6248,
+      "pleural_effusion": 0.6454,
+      "cardiomegaly": 0.5471,
+      "fracture": 0.5737
+    },
+    "prob_std": {
+      "pneumothorax": 0.0103,
+      "consolidation": 0.0005,
+      "pleural_effusion": 0.0064,
+      "cardiomegaly": 0.0045,
+      "fracture": 0.0101
+    },
+    "n_positive_findings_total": 20,
+    "medmnist_comparison": {
+      "medmnist_mean_ms": 227.3,
+      "fullres_mean_ms": 206.8,
+      "ratio": 1.1
+    }
+  }
+}

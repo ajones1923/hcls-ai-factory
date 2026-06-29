@@ -1,0 +1,59 @@
+{
+  "format_version": 2,
+  "client": {
+    "name": "hospital_a",
+    "server": {
+      "target": "flare-server:8003",
+      "scheme": "grpc"
+    },
+    "retry_timeout": 30,
+    "heartbeat_interval": 10
+  },
+  "data": {
+    "data_root": "/data/hospital_a",
+    "dataset_config": {
+      "cxr_classification": {
+        "train_list": "/data/hospital_a/cxr/train.csv",
+        "val_list": "/data/hospital_a/cxr/val.csv",
+        "image_dir": "/data/hospital_a/cxr/images"
+      },
+      "ct_segmentation": {
+        "train_list": "/data/hospital_a/ct_seg/train_data.json",
+        "val_list": "/data/hospital_a/ct_seg/val_data.json",
+        "data_dir": "/data/hospital_a/ct_seg"
+      },
+      "lung_nodule_detection": {
+        "train_list": "/data/hospital_a/lung_nodule/train_data.json",
+        "val_list": "/data/hospital_a/lung_nodule/val_data.json",
+        "data_dir": "/data/hospital_a/lung_nodule"
+      }
+    }
+  },
+  "resources": {
+    "gpu_ids": [0],
+    "num_workers": 4,
+    "memory_limit_gb": 128
+  },
+  "logging": {
+    "log_level": "INFO",
+    "log_file": "/tmp/nvflare/log/hospital_a.log",
+    "log_config": null
+  },
+  "security": {
+    "ssl": {
+      "enabled": true,
+      "cert_path": "ssl/client.crt",
+      "key_path": "ssl/client.key",
+      "root_cert_path": "ssl/rootCA.pem"
+    }
+  },
+  "privacy": {
+    "scope": "hospital_a_privacy",
+    "policies": {
+      "min_dataset_size": 100,
+      "max_model_size_mb": 500,
+      "allowed_tasks": ["train", "validate", "submit_model"],
+      "blocked_data_fields": ["patient_id", "patient_name", "dob", "mrn"]
+    }
+  }
+}

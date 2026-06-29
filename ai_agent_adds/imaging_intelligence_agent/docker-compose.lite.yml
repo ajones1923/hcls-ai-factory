@@ -1,0 +1,211 @@
+# =============================================================================
+# Imaging Intelligence Agent — Docker Compose (Lite)
+# HCLS AI Factory / ai_agent_adds / imaging_intelligence_agent
+#
+# Lightweight stack for demo/testing WITHOUT GPU or NVIDIA NIM containers.
+# All NIM-dependent features run in mock mode, returning synthetic responses.
+#
+# Services:
+#   milvus-etcd              etcd key-value store for Milvus metadata
+#   milvus-minio             MinIO object storage for Milvus log/index data
+#   milvus-standalone        Milvus 2.4 vector database (ports 19530, 9091)
+#   imaging-streamlit        Streamlit chat UI (port 8525)
+#   imaging-api              FastAPI REST server (port 8524)
+#   imaging-setup            One-shot: create collections + seed all data
+#
+# Usage:
+#   cp .env.example .env          # add ANTHROPIC_API_KEY
+#   docker compose -f docker-compose.lite.yml up -d
+#   docker compose -f docker-compose.lite.yml logs -f imaging-setup
+#
+# Author: Adam Jones
+# Date:   February 2026
+# =============================================================================
+
+# version removed (obsolete in Compose v2)
+
+services:
+  # ── etcd (Milvus metadata store) ──────────────────────────────────────────
+  milvus-etcd:
+    image: quay.io/coreos/etcd:v3.5.5
+    container_name: imaging-milvus-etcd
+    environment:
+      ETCD_AUTO_COMPACTION_MODE: revision
+      ETCD_AUTO_COMPACTION_RETENTION: "1000"
+      ETCD_QUOTA_BACKEND_BYTES: "4294967296"        # 4 GB
+      ETCD_SNAPSHOT_COUNT: "50000"
+    volumes:
+      - etcd_data:/etcd
+    command:
+      - etcd
+      - --advertise-client-urls=http://127.0.0.1:2379
+      - --listen-client-urls=http://0.0.0.0:2379
+      - --data-dir=/etcd
+      - --auto-compaction-mode=revision
+      - --auto-compaction-retention=1000
+      - --snapshot-count=50000
+    healthcheck:
+      test: ["CMD", "etcdctl", "endpoint", "health"]
+      interval: 30s
+      timeout: 20s
+      retries: 5
+    networks:
+      - imaging-network
+    restart: unless-stopped
+
+  # ── MinIO (Milvus object storage) ────────────────────────────────────────
+  milvus-minio:
+    image: minio/minio:RELEASE.2023-03-20T20-16-18Z
+    container_name: imaging-milvus-minio
+    environment:
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+    volumes:
+      - minio_data:/minio_data
+    command: minio server /minio_data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 5
+    networks:
+      - imaging-network
+    restart: unless-stopped
+
+  # ── Milvus Standalone ────────────────────────────────────────────────────
+  milvus-standalone:
+    image: milvusdb/milvus:v2.4.17
+    container_name: imaging-milvus-standalone
+    command: ["milvus", "run", "standalone"]
+    security_opt:
+      - seccomp:unconfined
+    environment:
+      ETCD_ENDPOINTS: milvus-etcd:2379
+      MINIO_ADDRESS: milvus-minio:9000
+    ports:
+      - "19530:19530"             # gRPC client port
+      - "9091:9091"               # Metrics / health endpoint
+    volumes:
+      - milvus_data:/var/lib/milvus
+    depends_on:
+      milvus-etcd:
+        condition: service_healthy
+      milvus-minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9091/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+    networks:
+      - imaging-network
+    restart: unless-stopped
+
+  # ── Imaging Streamlit UI (mock NIM mode) ────────────────────────────────
+  imaging-streamlit:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: imaging-streamlit
+    ports:
+      - "8525:8525"
+    environment:
+      IMAGING_MILVUS_HOST: milvus-standalone
+      IMAGING_MILVUS_PORT: "19530"
+      IMAGING_STREAMLIT_PORT: "8525"
+      IMAGING_NIM_MODE: mock              # No real NIM endpoints — use synthetic responses
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+    depends_on:
+      milvus-standalone:
+        condition: service_healthy
+    networks:
+      - imaging-network
+    restart: unless-stopped
+
+  # ── Imaging FastAPI Server (mock NIM mode) ──────────────────────────────
+  imaging-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: imaging-api
+    ports:
+      - "8524:8524"
+    environment:
+      IMAGING_MILVUS_HOST: milvus-standalone
+      IMAGING_MILVUS_PORT: "19530"
+      IMAGING_API_PORT: "8524"
+      IMAGING_NIM_MODE: mock              # No real NIM endpoints — use synthetic responses
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+    command:
+      - uvicorn
+      - api.main:app
+      - --host=0.0.0.0
+      - --port=8524
+      - --workers=2
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8524/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+    depends_on:
+      milvus-standalone:
+        condition: service_healthy
+    networks:
+      - imaging-network
+    restart: unless-stopped
+
+  # ── Imaging Setup (one-shot: create collections + seed data) ───────────
+  imaging-setup:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: imaging-setup
+    environment:
+      IMAGING_MILVUS_HOST: milvus-standalone
+      IMAGING_MILVUS_PORT: "19530"
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+    command: >
+      bash -c "
+        echo '===== Imaging Agent Setup: Creating collections =====' &&
+        python scripts/setup_collections.py --drop-existing &&
+        echo '===== Seeding findings =====' &&
+        python scripts/seed_findings.py &&
+        echo '===== Seeding protocols =====' &&
+        python scripts/seed_protocols.py &&
+        echo '===== Seeding devices =====' &&
+        python scripts/seed_devices.py &&
+        echo '===== Seeding anatomy =====' &&
+        python scripts/seed_anatomy.py &&
+        echo '===== Seeding benchmarks =====' &&
+        python scripts/seed_benchmarks.py &&
+        echo '===== Seeding guidelines =====' &&
+        python scripts/seed_guidelines.py &&
+        echo '===== Seeding report templates =====' &&
+        python scripts/seed_report_templates.py &&
+        echo '===== Seeding datasets =====' &&
+        python scripts/seed_datasets.py &&
+        echo '===== Imaging Agent Setup complete! ====='
+      "
+    depends_on:
+      milvus-standalone:
+        condition: service_healthy
+    networks:
+      - imaging-network
+    restart: "no"
+
+# ── Volumes ──────────────────────────────────────────────────────────────────
+volumes:
+  etcd_data:
+    driver: local
+  minio_data:
+    driver: local
+  milvus_data:
+    driver: local
+
+# ── Network ──────────────────────────────────────────────────────────────────
+networks:
+  imaging-network:
+    name: imaging-network
+    driver: bridge

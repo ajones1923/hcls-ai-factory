@@ -1,0 +1,25 @@
+{
+  "name": "lung_nodule_detection_federated",
+  "resource_spec": {
+    "server": {
+      "num_gpus": 0,
+      "mem_per_gpu_in_GiB": 0
+    },
+    "client": {
+      "num_gpus": 1,
+      "mem_per_gpu_in_GiB": 32
+    }
+  },
+  "deploy_map": {
+    "app_server": ["server"],
+    "app_client": ["hospital_a", "hospital_b"]
+  },
+  "min_clients": 2,
+  "mandatory_clients": [],
+  "description": "Federated 3D RetinaNet for lung nodule detection and localization across hospital sites. Trained on LUNA16-format data with FocalLoss and SmoothL1Loss for classification and bounding box regression respectively. Evaluated using FROC metric at standard false positive rates.",
+  "controller_type": "server",
+  "approach": "scatter_and_gather",
+  "data_kind": "WEIGHT_DIFF",
+  "num_rounds": 80,
+  "key_metric": "val_froc"
+}
