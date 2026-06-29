@@ -1,0 +1,252 @@
+[
+  {
+    "id": "FDA_abacavir_HLA_B",
+    "drug": "abacavir",
+    "gene": "HLA-B",
+    "labeling_section": "Boxed Warning, Contraindications, Warnings and Precautions",
+    "text_chunk": "FDA label for abacavir: BOXED WARNING — Serious and sometimes fatal hypersensitivity reactions have been associated with abacavir. HLA-B*57:01 allele is a risk factor. Patients who carry the HLA-B*57:01 allele are at a higher risk for abacavir hypersensitivity reactions. Prior to initiating therapy with abacavir, screening for the HLA-B*57:01 allele is recommended. CONTRAINDICATION: Abacavir is contraindicated in patients with a prior hypersensitivity reaction to abacavir and in HLA-B*57:01-positive patients.",
+    "label_type": "testing required",
+    "requirement_level": "required",
+    "last_updated": "2023-06-01"
+  },
+  {
+    "id": "FDA_codeine_CYP2D6",
+    "drug": "codeine",
+    "gene": "CYP2D6",
+    "labeling_section": "Boxed Warning, Contraindications, Warnings and Precautions",
+    "text_chunk": "FDA label for codeine: BOXED WARNING — Death related to ultra-rapid metabolism of codeine to morphine. Respiratory depression and death have occurred in children who received codeine following tonsillectomy and/or adenoidectomy and had evidence of being ultra-rapid metabolizers of codeine due to a CYP2D6 polymorphism. CONTRAINDICATION: Codeine is contraindicated in children younger than 12 years of age and in children younger than 18 years following tonsillectomy and/or adenoidectomy. Use in breastfeeding mothers not recommended due to potential for serious adverse reactions in nursing infants.",
+    "label_type": "actionable PGx",
+    "requirement_level": "recommended",
+    "last_updated": "2023-01-01"
+  },
+  {
+    "id": "FDA_clopidogrel_CYP2C19",
+    "drug": "clopidogrel",
+    "gene": "CYP2C19",
+    "labeling_section": "Boxed Warning, Clinical Pharmacology, Dosage and Administration",
+    "text_chunk": "FDA label for clopidogrel: BOXED WARNING — Diminished effectiveness in CYP2C19 poor metabolizers. Effectiveness of Plavix depends on conversion to an active metabolite by the cytochrome P450 system, principally CYP2C19. Poor metabolizers treated with Plavix at recommended doses exhibit higher cardiovascular event rates following acute coronary syndrome or percutaneous coronary intervention than patients with normal CYP2C19 function. Tests are available to identify patients who are CYP2C19 poor metabolizers. Consider use of another platelet P2Y12 inhibitor in patients identified as CYP2C19 poor metabolizers.",
+    "label_type": "actionable PGx",
+    "requirement_level": "recommended",
+    "last_updated": "2022-05-01"
+  },
+  {
+    "id": "FDA_warfarin_CYP2C9_VKORC1",
+    "drug": "warfarin",
+    "gene": "CYP2C9, VKORC1",
+    "labeling_section": "Clinical Pharmacology, Dosage and Administration",
+    "text_chunk": "FDA label for warfarin: Lower initiation doses should be considered for patients with certain genetic variations in CYP2C9 and VKORC1 enzymes. CYP2C9 and VKORC1 genotype information, when available, can assist in selection of the initial dose of warfarin. Expected maintenance dose ranges are provided based on CYP2C9 and VKORC1 genotype combinations, ranging from 0.5-2 mg/day (*2/*3 or *3/*3 + VKORC1 AA) to 5-7 mg/day (*1/*1 + VKORC1 GG).",
+    "label_type": "actionable PGx",
+    "requirement_level": "informational",
+    "last_updated": "2021-01-01"
+  },
+  {
+    "id": "FDA_carbamazepine_HLA_B",
+    "drug": "carbamazepine",
+    "gene": "HLA-B, HLA-A",
+    "labeling_section": "Boxed Warning, Warnings and Precautions",
+    "text_chunk": "FDA label for carbamazepine: BOXED WARNING — Serious dermatologic reactions including SJS and TEN have been reported. These reactions are estimated to occur in 1-6 per 10,000 new users in countries with mainly Caucasian populations. However, the risk in some Asian countries is estimated to be about 10 times higher. HLA-B*15:02 allele carriers are at significantly increased risk. Patients with ancestry in genetically at-risk populations should be screened for the presence of HLA-B*15:02 prior to initiating treatment. Patients testing positive should not be treated with carbamazepine unless the benefit clearly outweighs the risk.",
+    "label_type": "testing required",
+    "requirement_level": "required",
+    "last_updated": "2022-01-01"
+  },
+  {
+    "id": "FDA_fluorouracil_DPYD",
+    "drug": "fluorouracil",
+    "gene": "DPYD",
+    "labeling_section": "Warnings and Precautions, Dosage and Administration",
+    "text_chunk": "FDA label for fluorouracil: Patients with certain homozygous or compound heterozygous mutations in the DPD gene that result in complete or near complete absence of DPD activity are at increased risk for acute early-onset of toxicity and severe, life-threatening, or fatal adverse reactions. Withhold or permanently discontinue fluorouracil in patients with evidence of acute early-onset or unusually severe toxicity, which may indicate near complete or total absence of DPD activity. No dose of fluorouracil has been proven safe in patients with absent DPD activity.",
+    "label_type": "actionable PGx",
+    "requirement_level": "recommended",
+    "last_updated": "2023-02-01"
+  },
+  {
+    "id": "FDA_irinotecan_UGT1A1",
+    "drug": "irinotecan",
+    "gene": "UGT1A1",
+    "labeling_section": "Dosage and Administration, Warnings and Precautions, Clinical Pharmacology",
+    "text_chunk": "FDA label for irinotecan: A reduction in the starting dose by at least one level should be considered for patients known to be homozygous for the UGT1A1*28 allele. Heterozygous patients (UGT1A1*1/*28) may be at increased risk for neutropenia; however, clinical results have been variable and such patients have been shown to tolerate normal starting doses. Patients homozygous for UGT1A1*28 allele are at increased risk for grade 4 neutropenia following initiation of irinotecan treatment.",
+    "label_type": "actionable PGx",
+    "requirement_level": "recommended",
+    "last_updated": "2022-06-01"
+  },
+  {
+    "id": "FDA_azathioprine_TPMT_NUDT15",
+    "drug": "azathioprine",
+    "gene": "TPMT, NUDT15",
+    "labeling_section": "Dosage and Administration, Warnings and Precautions",
+    "text_chunk": "FDA label for azathioprine: Consider genotyping or phenotyping patients for TPMT and NUDT15 deficiency before azathioprine treatment initiation. Patients with intermediate TPMT or NUDT15 activity may require dose reduction. Patients with low or absent TPMT or NUDT15 activity are at increased risk for severe, life-threatening myelotoxicity if receiving conventional doses and may require substantial dose reductions.",
+    "label_type": "actionable PGx",
+    "requirement_level": "recommended",
+    "last_updated": "2022-12-01"
+  },
+  {
+    "id": "FDA_tamoxifen_CYP2D6",
+    "drug": "tamoxifen",
+    "gene": "CYP2D6",
+    "labeling_section": "Clinical Pharmacology",
+    "text_chunk": "FDA label for tamoxifen: Tamoxifen is a substrate of CYP3A4, CYP2C9, and CYP2D6, and an inhibitor of P-glycoprotein. Tamoxifen is metabolized primarily by CYP2D6 to endoxifen, the most active metabolite. In patients who are CYP2D6 poor metabolizers, endoxifen concentrations are approximately 75% lower. Concomitant use of strong CYP2D6 inhibitors may reduce endoxifen plasma concentrations to a level that may potentially reduce tamoxifen activity.",
+    "label_type": "informative PGx",
+    "requirement_level": "informational",
+    "last_updated": "2021-06-01"
+  },
+  {
+    "id": "FDA_simvastatin_SLCO1B1",
+    "drug": "simvastatin",
+    "gene": "SLCO1B1",
+    "labeling_section": "Warnings and Precautions, Dosage and Administration",
+    "text_chunk": "FDA label for simvastatin: Myopathy/Rhabdomyolysis — Predisposing factors for myopathy include advanced age (>=65), female sex, uncontrolled hypothyroidism, and renal impairment. The 80-mg dose of simvastatin should be used only in patients who have been taking simvastatin 80 mg chronically without evidence of muscle toxicity. A SLCO1B1 variant (c.521T>C) has been associated with increased risk of myopathy. Patients carrying the C allele of rs4149056 may be at increased risk of myopathy when treated with higher doses of simvastatin.",
+    "label_type": "informative PGx",
+    "requirement_level": "informational",
+    "last_updated": "2022-01-01"
+  },
+  {
+    "id": "FDA_escitalopram_CYP2C19",
+    "drug": "escitalopram",
+    "gene": "CYP2C19",
+    "labeling_section": "Dosage and Administration, Clinical Pharmacology",
+    "text_chunk": "FDA label for escitalopram: For CYP2C19 poor metabolizers, the recommended dose is 10 mg/day. The maximum recommended dose of escitalopram is 10 mg/day for patients who are CYP2C19 poor metabolizers, due to the risk of QT prolongation. Coadministration of escitalopram with CYP2C19 inhibitors may increase the risk of adverse reactions.",
+    "label_type": "actionable PGx",
+    "requirement_level": "recommended",
+    "last_updated": "2022-03-01"
+  },
+  {
+    "id": "FDA_citalopram_CYP2C19",
+    "drug": "citalopram",
+    "gene": "CYP2C19",
+    "labeling_section": "Dosage and Administration, Warnings and Precautions",
+    "text_chunk": "FDA label for citalopram: The maximum recommended dose of citalopram is 20 mg per day for patients who are CYP2C19 poor metabolizers. CYP2C19 poor metabolizers have approximately 2-fold higher citalopram plasma levels, increasing the risk of QTc prolongation and Torsade de Pointes. Citalopram exposure is dose-proportional and linear within the recommended dosage range.",
+    "label_type": "actionable PGx",
+    "requirement_level": "recommended",
+    "last_updated": "2022-03-01"
+  },
+  {
+    "id": "FDA_voriconazole_CYP2C19",
+    "drug": "voriconazole",
+    "gene": "CYP2C19",
+    "labeling_section": "Clinical Pharmacology",
+    "text_chunk": "FDA label for voriconazole: CYP2C19 exhibits genetic polymorphism. Approximately 15-20% of Asian populations may be expected to be poor metabolizers. For Caucasians and Blacks, the prevalence of poor metabolizers is 3-5%. Studies in Caucasian and Japanese healthy subjects have shown that poor metabolizers have, on average, 4-fold higher voriconazole exposure than their homozygous extensive metabolizer counterparts.",
+    "label_type": "informative PGx",
+    "requirement_level": "informational",
+    "last_updated": "2021-01-01"
+  },
+  {
+    "id": "FDA_allopurinol_HLA_B",
+    "drug": "allopurinol",
+    "gene": "HLA-B",
+    "labeling_section": "Warnings and Precautions",
+    "text_chunk": "FDA label for allopurinol: HLA-B*58:01 allele is a risk factor for development of allopurinol-related SJS/TEN. The frequency of HLA-B*58:01 allele is higher in patients of Korean, Han Chinese, African American, and Thai descent. Prior to starting allopurinol, testing for HLA-B*58:01 should be considered in patient populations where the prevalence of this allele is elevated.",
+    "label_type": "actionable PGx",
+    "requirement_level": "recommended",
+    "last_updated": "2023-01-01"
+  },
+  {
+    "id": "FDA_atomoxetine_CYP2D6",
+    "drug": "atomoxetine",
+    "gene": "CYP2D6",
+    "labeling_section": "Dosage and Administration, Clinical Pharmacology",
+    "text_chunk": "FDA label for atomoxetine: In CYP2D6 poor metabolizers, atomoxetine plasma concentrations are approximately 10-fold higher and clearance is approximately 10-fold lower compared with patients with normal CYP2D6 activity. For patients known to be CYP2D6 PMs, initial target dosing should remain at 0.5 mg/kg/day and only increase to 1.2 mg/kg/day if symptoms fail to improve after 4 weeks.",
+    "label_type": "actionable PGx",
+    "requirement_level": "recommended",
+    "last_updated": "2021-06-01"
+  },
+  {
+    "id": "FDA_phenytoin_CYP2C9_HLA_B",
+    "drug": "phenytoin",
+    "gene": "CYP2C9, HLA-B",
+    "labeling_section": "Warnings and Precautions, Dosage and Administration",
+    "text_chunk": "FDA label for phenytoin: HLA-B*15:02 — patients of Asian ancestry who have been found to be positive for HLA-B*15:02 should not be treated with phenytoin. The occurrence of phenytoin-induced SJS/TEN is higher in HLA-B*15:02-positive patients. CYP2C9 — phenytoin is metabolized by CYP2C9. Patients who are known to be CYP2C9 poor metabolizers may require reduced doses of phenytoin to avoid drug accumulation and toxicity.",
+    "label_type": "actionable PGx",
+    "requirement_level": "recommended",
+    "last_updated": "2022-09-01"
+  },
+  {
+    "id": "FDA_rasburicase_G6PD",
+    "drug": "rasburicase",
+    "gene": "G6PD",
+    "labeling_section": "Boxed Warning, Contraindications",
+    "text_chunk": "FDA label for rasburicase: BOXED WARNING — Do not administer rasburicase to patients with glucose-6-phosphate dehydrogenase (G6PD) deficiency. Immediately and permanently discontinue rasburicase in any patient developing hemolysis. Screen patients at higher risk for G6PD deficiency (e.g., patients of African or Mediterranean ancestry) prior to starting rasburicase. CONTRAINDICATION: Rasburicase is contraindicated in patients with G6PD deficiency.",
+    "label_type": "testing required",
+    "requirement_level": "required",
+    "last_updated": "2023-03-01"
+  },
+  {
+    "id": "FDA_tacrolimus_CYP3A5",
+    "drug": "tacrolimus",
+    "gene": "CYP3A5",
+    "labeling_section": "Clinical Pharmacology",
+    "text_chunk": "FDA label for tacrolimus: CYP3A5 — patients who express CYP3A5 (carriers of at least one CYP3A5*1 allele) generally have lower tacrolimus trough concentrations compared with patients who do not express CYP3A5 (those homozygous for CYP3A5*3). The prevalence of CYP3A5 non-expressers varies among racial/ethnic groups. Dose adjustments may be needed based on CYP3A5 genotype status.",
+    "label_type": "informative PGx",
+    "requirement_level": "informational",
+    "last_updated": "2021-01-01"
+  },
+  {
+    "id": "FDA_eliglustat_CYP2D6",
+    "drug": "eliglustat",
+    "gene": "CYP2D6",
+    "labeling_section": "Dosage and Administration, Contraindications",
+    "text_chunk": "FDA label for eliglustat: CYP2D6 genotyping is required prior to initiation of treatment with eliglustat. Recommended dosage is based on CYP2D6 metabolizer status: Extensive metabolizers (EM): 84 mg twice daily. Intermediate metabolizers (IM): 84 mg twice daily. Poor metabolizers (PM): 84 mg once daily. Ultra-rapid metabolizers (UM): eliglustat is not recommended. CYP2D6 indeterminate metabolizers: eliglustat is not recommended.",
+    "label_type": "testing required",
+    "requirement_level": "required",
+    "last_updated": "2022-06-01"
+  },
+  {
+    "id": "FDA_capecitabine_DPYD",
+    "drug": "capecitabine",
+    "gene": "DPYD",
+    "labeling_section": "Warnings and Precautions, Dosage and Administration",
+    "text_chunk": "FDA label for capecitabine: Patients with certain homozygous or compound heterozygous mutations in the DPD gene that result in complete or near complete absence of DPD activity are at increased risk for acute early-onset of toxicity and severe, life-threatening, or fatal adverse reactions. No dose has been proven safe in patients with complete absence of DPD activity. Withhold or permanently discontinue in patients with evidence of acute early-onset or unusually severe toxicity.",
+    "label_type": "actionable PGx",
+    "requirement_level": "recommended",
+    "last_updated": "2023-02-01"
+  },
+  {
+    "id": "FDA_ondansetron_CYP2D6",
+    "drug": "ondansetron",
+    "gene": "CYP2D6",
+    "labeling_section": "Clinical Pharmacology",
+    "text_chunk": "FDA label for ondansetron: Based on limited data, no dosage adjustment for ondansetron is recommended for patients who are CYP2D6 poor metabolizers. Ondansetron does not appear to induce or inhibit the cytochrome P-450 drug-metabolizing enzyme system. CYP2D6 polymorphism may affect the exposure to ondansetron, but no dose adjustment is currently required.",
+    "label_type": "informative PGx",
+    "requirement_level": "informational",
+    "last_updated": "2021-01-01"
+  },
+  {
+    "id": "FDA_tramadol_CYP2D6",
+    "drug": "tramadol",
+    "gene": "CYP2D6",
+    "labeling_section": "Boxed Warning, Warnings and Precautions",
+    "text_chunk": "FDA label for tramadol: BOXED WARNING — Life-threatening respiratory depression in children who received tramadol. Tramadol is subject to abuse and addiction. Respiratory depression and death have occurred in children receiving tramadol. Tramadol is contraindicated in children younger than 12 years and in children younger than 18 years following tonsillectomy and/or adenoidectomy. Avoid use in adolescents 12-18 years who have other risk factors for respiratory depression. Ultra-rapid metabolism of tramadol via CYP2D6 can result in excessive O-desmethyltramadol levels.",
+    "label_type": "actionable PGx",
+    "requirement_level": "recommended",
+    "last_updated": "2023-01-01"
+  },
+  {
+    "id": "FDA_mercaptopurine_TPMT_NUDT15",
+    "drug": "mercaptopurine",
+    "gene": "TPMT, NUDT15",
+    "labeling_section": "Dosage and Administration, Warnings and Precautions",
+    "text_chunk": "FDA label for mercaptopurine: Consider testing for TPMT and NUDT15 deficiency in patients who experience severe bone marrow toxicities or repeated episodes of myelosuppression. Homozygous-deficient patients may require a dose reduction of up to 90% of the usual dose. Heterozygous patients may require a dose reduction of approximately 50%. The optimal starting dose for patients known to have homozygous or heterozygous deficiency has not been established.",
+    "label_type": "actionable PGx",
+    "requirement_level": "recommended",
+    "last_updated": "2022-12-01"
+  },
+  {
+    "id": "FDA_efavirenz_CYP2B6",
+    "drug": "efavirenz",
+    "gene": "CYP2B6",
+    "labeling_section": "Clinical Pharmacology",
+    "text_chunk": "FDA label for efavirenz: Efavirenz is principally metabolized by CYP2B6 and to a lesser extent by CYP3A4. CYP2B6 polymorphisms impact the clearance of efavirenz and may increase the risk of adverse events. Patients who are homozygous for the CYP2B6 516G>T polymorphism (*6/*6) may have higher efavirenz plasma levels and increased risk of central nervous system adverse reactions.",
+    "label_type": "informative PGx",
+    "requirement_level": "informational",
+    "last_updated": "2021-06-01"
+  },
+  {
+    "id": "FDA_oxcarbazepine_HLA_B",
+    "drug": "oxcarbazepine",
+    "gene": "HLA-B",
+    "labeling_section": "Warnings and Precautions",
+    "text_chunk": "FDA label for oxcarbazepine: Serious dermatologic reactions, including SJS and TEN, have been reported in association with oxcarbazepine use. HLA-B*15:02 may be a risk factor for developing SJS/TEN. Consider testing for HLA-B*15:02 before starting treatment in patients with ancestry in genetically at-risk populations. Avoid use in HLA-B*15:02 positive patients unless the benefit clearly outweighs the risk.",
+    "label_type": "actionable PGx",
+    "requirement_level": "recommended",
+    "last_updated": "2022-01-01"
+  }
+]
