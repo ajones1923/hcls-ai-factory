@@ -1,0 +1,256 @@
+[
+  {
+    "id": "disc_ferritin_low_tsat_high",
+    "name": "Contradictory Iron Studies",
+    "biomarker_a": "Ferritin",
+    "biomarker_b": "Transferrin Saturation (TSAT)",
+    "condition": "Ferritin LOW and TSAT HIGH",
+    "expected_relationship": "Ferritin and TSAT typically move in the same direction; low ferritin with high TSAT is physiologically contradictory.",
+    "differential_diagnosis": [
+      "Specimen mislabeling or pre-analytical error",
+      "Acute hepatocellular necrosis releasing ferritin stores with concurrent iron release",
+      "Recent parenteral iron infusion with incomplete incorporation",
+      "Hereditary hemochromatosis with concurrent inflammation suppressing ferritin"
+    ],
+    "agent_handoff": [
+      "lab_quality_agent",
+      "iron_metabolism_agent"
+    ],
+    "priority": "high",
+    "text_chunk": "Ferritin and transferrin saturation normally trend concordantly: both low in iron deficiency, both elevated in iron overload. When ferritin is low but TSAT is elevated, this discordance is physiologically contradictory and should raise suspicion for specimen error or a complex pathophysiological state. Acute hepatocellular injury can release stored iron, temporarily elevating TSAT while inflammatory cytokines suppress ferritin. Recent parenteral iron administration may also produce this pattern before reticuloendothelial incorporation is complete. This combination warrants repeat specimen collection and clinical correlation before diagnostic conclusions."
+  },
+  {
+    "id": "disc_ft3_high_tsh_normal",
+    "name": "Thyroid Hormone-TSH Discordance",
+    "biomarker_a": "Free T3",
+    "biomarker_b": "TSH",
+    "condition": "Free T3 HIGH and TSH NORMAL",
+    "expected_relationship": "Elevated Free T3 should suppress TSH via negative feedback on the hypothalamic-pituitary-thyroid axis.",
+    "differential_diagnosis": [
+      "TSH-secreting pituitary adenoma (thyrotropinoma)",
+      "Thyroid hormone resistance syndrome (THRB mutation)",
+      "Assay interference (heterophilic antibodies, biotin)",
+      "T3-predominant early Graves disease with delayed TSH suppression",
+      "Familial dysalbuminemic hyperthyroxinemia (FDH)"
+    ],
+    "agent_handoff": [
+      "endocrine_agent",
+      "pituitary_agent"
+    ],
+    "priority": "high",
+    "text_chunk": "Elevated Free T3 with a non-suppressed (normal) TSH violates the expected negative feedback relationship of the hypothalamic-pituitary-thyroid axis. In normal physiology, elevated thyroid hormones suppress TSH to below the reference range. This discordance pattern is characteristic of TSH-secreting pituitary adenomas (central hyperthyroidism) or thyroid hormone resistance syndrome caused by THRB gene mutations. Assay interference from heterophilic antibodies or biotin supplementation must be excluded by running the sample on an alternative platform. A pituitary MRI and alpha-subunit measurement are indicated if TSH-secreting adenoma is suspected. Thyroid hormone resistance is confirmed by genetic testing for THRB mutations."
+  },
+  {
+    "id": "disc_ggt_isolated_high",
+    "name": "Isolated GGT Elevation",
+    "biomarker_a": "GGT",
+    "biomarker_b": "AST/ALT/ALP",
+    "condition": "GGT HIGH and AST, ALT, ALP all NORMAL",
+    "expected_relationship": "GGT elevation from hepatobiliary disease is typically accompanied by elevation of at least one other liver enzyme.",
+    "differential_diagnosis": [
+      "Alcohol use (GGT is the most sensitive marker of alcohol consumption)",
+      "Enzyme-inducing medications (phenytoin, barbiturates, carbamazepine)",
+      "Non-alcoholic fatty liver disease (early stage)",
+      "Pancreatic disease",
+      "Metabolic syndrome and obesity"
+    ],
+    "agent_handoff": [
+      "hepatology_agent",
+      "substance_use_agent"
+    ],
+    "priority": "medium",
+    "text_chunk": "Isolated GGT elevation without concomitant AST, ALT, or ALP abnormalities most commonly reflects alcohol consumption, as GGT is the most sensitive (though not specific) biomarker of alcohol use with a half-life of 14-26 days. Enzyme-inducing medications including phenytoin, barbiturates, and carbamazepine upregulate GGT without causing hepatocellular injury. Early non-alcoholic fatty liver disease may present with isolated GGT before transaminase elevation becomes apparent. Pancreatic pathology (chronic pancreatitis, pancreatic carcinoma) can elevate GGT independently of liver enzymes. Clinical correlation with medication history, alcohol screening questionnaires (AUDIT-C), and hepatic ultrasound guides further evaluation."
+  },
+  {
+    "id": "disc_fibrinogen_high_crp_normal",
+    "name": "Acute Phase Reactant Discordance",
+    "biomarker_a": "Fibrinogen",
+    "biomarker_b": "hs-CRP",
+    "condition": "Fibrinogen HIGH and hs-CRP NORMAL",
+    "expected_relationship": "Both are acute phase reactants that typically elevate concurrently during inflammatory states.",
+    "differential_diagnosis": [
+      "Estrogen effect (oral contraceptives, pregnancy, hormone replacement therapy)",
+      "Nephrotic syndrome (hepatic overproduction of fibrinogen)",
+      "Smoking (isolated fibrinogen elevation)",
+      "Residual fibrinogen elevation after resolved inflammation (slower clearance than CRP)",
+      "Genetic polymorphisms in FGB gene causing constitutively elevated fibrinogen"
+    ],
+    "agent_handoff": [
+      "coagulation_agent",
+      "inflammation_agent"
+    ],
+    "priority": "medium",
+    "text_chunk": "Fibrinogen and hs-CRP are both hepatic acute phase reactants that typically rise in parallel during systemic inflammation. When fibrinogen is elevated but hs-CRP remains normal, non-inflammatory causes of fibrinogen elevation should be considered. Estrogen states (pregnancy, oral contraceptives, HRT) potently stimulate hepatic fibrinogen synthesis without triggering CRP production. Nephrotic syndrome drives compensatory hepatic protein synthesis including fibrinogen. Fibrinogen has a longer half-life (4-5 days) than CRP (19 hours), so discordance may represent resolving inflammation where CRP has normalized but fibrinogen remains elevated. FGB gene polymorphisms can cause constitutively elevated fibrinogen levels without inflammatory significance."
+  },
+  {
+    "id": "disc_cystatin_c_high_egfr_normal",
+    "name": "Renal Filtration Marker Discordance",
+    "biomarker_a": "Cystatin C",
+    "biomarker_b": "eGFR (Creatinine-based)",
+    "condition": "Cystatin C HIGH and eGFR (creatinine-based) NORMAL",
+    "expected_relationship": "Both markers should reflect the same glomerular filtration rate; discordance suggests one marker is confounded.",
+    "differential_diagnosis": [
+      "Creatinine underestimating renal impairment due to low muscle mass (sarcopenia, cachexia, amputation)",
+      "Early diabetic nephropathy (cystatin C rises before creatinine)",
+      "Thyroid dysfunction (hyperthyroidism increases cystatin C independently)",
+      "High-dose corticosteroid therapy (elevates cystatin C non-renally)",
+      "Obesity (adipose tissue produces cystatin C)"
+    ],
+    "agent_handoff": [
+      "nephrology_agent",
+      "geriatric_agent"
+    ],
+    "priority": "high",
+    "text_chunk": "Elevated cystatin C with a normal creatinine-based eGFR suggests occult renal impairment masked by low creatinine generation, a scenario common in elderly patients with sarcopenia, amputees, and cachectic patients with chronic illness. Cystatin C is produced at a constant rate by all nucleated cells and is not influenced by muscle mass, diet, or tubular secretion, making it a more reliable filtration marker in these populations. Early diabetic nephropathy may elevate cystatin C before creatinine rises, providing an opportunity for earlier intervention. However, non-renal confounders of cystatin C must be considered: hyperthyroidism, high-dose corticosteroids, and obesity can elevate cystatin C independently of GFR. The CKD-EPI cystatin C or combined creatinine-cystatin C equation should be used for more accurate GFR estimation."
+  },
+  {
+    "id": "disc_adiponectin_high_hdlp_low",
+    "name": "Metabolic Discordance",
+    "biomarker_a": "Adiponectin",
+    "biomarker_b": "HDL Particle Number (HDL-P)",
+    "condition": "Adiponectin HIGH and HDL-P LOW",
+    "expected_relationship": "Adiponectin normally promotes HDL biogenesis via ABCA1 upregulation; high adiponectin should correlate with high HDL-P.",
+    "differential_diagnosis": [
+      "Adiponectin resistance (receptor downregulation despite high ligand)",
+      "ABCA1 loss-of-function variants impairing HDL biogenesis",
+      "Advanced chronic kidney disease (impaired adiponectin clearance with independent HDL suppression)",
+      "Anorexia nervosa or severe caloric restriction (elevated adiponectin, depleted lipoproteins)",
+      "Heart failure (adiponectin paradox -- elevated levels associated with worse prognosis)"
+    ],
+    "agent_handoff": [
+      "metabolic_agent",
+      "cardiovascular_risk_agent"
+    ],
+    "priority": "medium",
+    "text_chunk": "Adiponectin normally stimulates hepatic HDL biogenesis through ABCA1 pathway upregulation, so elevated adiponectin with low HDL particle number is metabolically discordant. This pattern may indicate adiponectin resistance, analogous to insulin resistance, where elevated ligand concentrations fail to produce the expected downstream effects. ABCA1 loss-of-function genetic variants (as seen in Tangier disease spectrum) impair HDL formation regardless of adiponectin signaling. In advanced CKD, impaired renal clearance raises adiponectin while uremia independently suppresses HDL production. The adiponectin paradox in heart failure, where higher levels paradoxically predict worse outcomes, may also present with this discordance pattern. Genetic testing for ABCA1 variants and assessment of renal function help clarify the underlying mechanism."
+  },
+  {
+    "id": "disc_hba1c_normal_glucose_critical",
+    "name": "Glycemic Discordance",
+    "biomarker_a": "HbA1c",
+    "biomarker_b": "Fasting Glucose",
+    "condition": "HbA1c NORMAL and Fasting Glucose CRITICAL HIGH (>250 mg/dL)",
+    "expected_relationship": "HbA1c reflects 2-3 month average glycemia; a critically elevated fasting glucose should be accompanied by elevated HbA1c unless the hyperglycemia is acute.",
+    "differential_diagnosis": [
+      "New-onset diabetes mellitus (hyperglycemia too recent to affect HbA1c)",
+      "Stress hyperglycemia (acute illness, surgery, corticosteroid-induced)",
+      "Hemoglobin variants (HbS, HbC, HbE) causing falsely low HbA1c",
+      "Hemolytic anemia or recent blood loss reducing HbA1c (shortened RBC lifespan)",
+      "Recent blood transfusion diluting glycated hemoglobin"
+    ],
+    "agent_handoff": [
+      "endocrine_agent",
+      "glycemic_management_agent"
+    ],
+    "priority": "high",
+    "text_chunk": "A normal HbA1c in the setting of critically elevated fasting glucose (>250 mg/dL) represents a clinically important discordance requiring careful interpretation. The most benign explanation is new-onset hyperglycemia too recent to impact the 2-3 month HbA1c average, as seen in stress hyperglycemia from acute illness, surgery, or corticosteroid administration. However, conditions that falsely lower HbA1c must be excluded: hemoglobin variants (HbS, HbC, HbE) interfere with many HbA1c assays, and hemolytic anemias shorten red blood cell lifespan reducing glycation time. Recent blood transfusion can dilute glycated hemoglobin with donor cells. Fructosamine (reflecting 2-3 week glycemic average) can serve as an alternative glycation marker when HbA1c is unreliable. This discordance should never lead to dismissal of the acute hyperglycemia."
+  },
+  {
+    "id": "disc_ldlc_apob_discordant",
+    "name": "Lipid Particle Discordance",
+    "biomarker_a": "LDL-C",
+    "biomarker_b": "ApoB",
+    "condition": "LDL-C DISCORDANT with ApoB (low LDL-C with high ApoB or vice versa)",
+    "expected_relationship": "LDL-C and ApoB typically correlate, as each LDL particle carries one ApoB molecule. Discordance indicates abnormal particle composition.",
+    "differential_diagnosis": [
+      "Small dense LDL phenotype (high ApoB, low/normal LDL-C -- each particle carries less cholesterol)",
+      "Metabolic syndrome and insulin resistance (drives small dense LDL formation)",
+      "Hypertriglyceridemia causing Friedewald LDL-C underestimation",
+      "Familial hypobetalipoproteinemia (low ApoB, variable LDL-C)",
+      "PCSK9 gain-of-function variants (high ApoB relative to LDL-C)"
+    ],
+    "agent_handoff": [
+      "cardiovascular_risk_agent",
+      "lipid_agent"
+    ],
+    "priority": "high",
+    "text_chunk": "Discordance between LDL-C and ApoB has significant implications for cardiovascular risk stratification. When ApoB is elevated but LDL-C is normal or low, the patient has a high number of cholesterol-depleted small dense LDL particles, each carrying one ApoB molecule but less cholesterol per particle. This pattern, common in metabolic syndrome and insulin resistance, means LDL-C underestimates true atherogenic particle burden. Mendelian randomization studies confirm that ApoB (particle number) is the primary causal driver of atherosclerosis, not cholesterol content per se. Conversely, high LDL-C with low ApoB indicates fewer but cholesterol-enriched large buoyant particles, which may carry lower risk. When Friedewald-calculated LDL-C is used with triglycerides >150 mg/dL, LDL-C is systematically underestimated, making ApoB the preferred risk metric. Treatment decisions should be guided by ApoB when discordant with LDL-C."
+  },
+  {
+    "id": "disc_platelet_inr_compound",
+    "name": "Compound Hemorrhage Risk",
+    "biomarker_a": "Platelet Count",
+    "biomarker_b": "INR",
+    "condition": "Platelet Count CRITICAL LOW (<50) and INR CRITICAL HIGH (>4.0)",
+    "expected_relationship": "Independent coagulation defects; their co-occurrence compounds hemorrhage risk multiplicatively.",
+    "differential_diagnosis": [
+      "Disseminated intravascular coagulation (DIC)",
+      "Severe liver failure (impaired thrombopoietin and clotting factor synthesis)",
+      "Massive transfusion coagulopathy (dilutional)",
+      "Heparin-induced thrombocytopenia with concurrent warfarin overlap",
+      "Thrombotic microangiopathy with superimposed anticoagulation"
+    ],
+    "agent_handoff": [
+      "hematology_agent",
+      "critical_care_agent",
+      "transfusion_agent"
+    ],
+    "priority": "high",
+    "text_chunk": "The simultaneous occurrence of critical thrombocytopenia (platelet count <50 x10^9/L) and critical coagulopathy (INR >4.0) represents a compound hemorrhage emergency where bleeding risk is multiplicatively increased. This dual defect impairs both primary hemostasis (platelet plug formation) and secondary hemostasis (fibrin clot stabilization). Disseminated intravascular coagulation (DIC) is the most dangerous etiology, characterized by consumptive coagulopathy with simultaneous thrombosis and hemorrhage. Severe hepatic failure produces this pattern through combined thrombopoietin deficiency and impaired clotting factor synthesis. Fibrinogen, D-dimer, and peripheral smear for schistocytes are essential for distinguishing DIC from other causes. Management requires simultaneous attention to both defects: platelet transfusion, FFP or PCC for coagulopathy, and treatment of the underlying trigger."
+  },
+  {
+    "id": "disc_tsh_ft4_discordant",
+    "name": "TSH-Free T4 Axis Discordance",
+    "biomarker_a": "TSH",
+    "biomarker_b": "Free T4",
+    "condition": "TSH and Free T4 moving in the same direction (both elevated or both suppressed) instead of the expected inverse relationship",
+    "expected_relationship": "TSH and Free T4 have an inverse log-linear relationship via hypothalamic-pituitary-thyroid negative feedback.",
+    "differential_diagnosis": [
+      "TSH-secreting pituitary adenoma (both elevated)",
+      "Thyroid hormone resistance syndrome (both elevated, THRB mutation)",
+      "Central hypothyroidism (both low -- pituitary or hypothalamic failure)",
+      "Non-thyroidal illness / euthyroid sick syndrome (both low in severe illness)",
+      "Assay interference (biotin, heterophilic antibodies)",
+      "Recent thyroid hormone dose adjustment (TSH lags Free T4 by 6-8 weeks)"
+    ],
+    "agent_handoff": [
+      "endocrine_agent",
+      "pituitary_agent"
+    ],
+    "priority": "high",
+    "text_chunk": "The TSH-Free T4 relationship is the cornerstone of thyroid function assessment, with a well-characterized inverse log-linear feedback loop. When TSH and Free T4 move in the same direction (both elevated or both suppressed), this discordance indicates either a central axis defect or assay artifact. Both elevated: consider TSH-secreting pituitary adenoma (thyrotropinoma) or thyroid hormone resistance syndrome, both rare but clinically significant diagnoses requiring pituitary MRI and genetic testing respectively. Both suppressed: suggests central (secondary) hypothyroidism from pituitary or hypothalamic disease, or non-thyroidal illness syndrome in acutely ill patients. Biotin supplementation causes predictable assay interference (falsely low TSH, falsely high Free T4 on streptavidin-biotin platforms). A 48-hour biotin washout and repeat testing should precede extensive workup. Recent levothyroxine dose changes cause transient discordance as TSH equilibration lags 6-8 weeks behind Free T4 changes."
+  },
+  {
+    "id": "disc_b12_normal_mma_high",
+    "name": "Functional B12 Deficiency",
+    "biomarker_a": "Vitamin B12",
+    "biomarker_b": "Methylmalonic Acid (MMA)",
+    "condition": "Vitamin B12 NORMAL and MMA ELEVATED",
+    "expected_relationship": "Normal B12 should provide adequate cofactor for methylmalonyl-CoA mutase, keeping MMA in normal range.",
+    "differential_diagnosis": [
+      "Functional (cellular) B12 deficiency despite normal serum levels",
+      "B12 bound to inactive carriers (haptocorrin) rather than active transcobalamin (holotranscobalamin)",
+      "Renal insufficiency (impaired MMA excretion)",
+      "Intestinal bacterial overgrowth (propionate metabolism increasing MMA)",
+      "Methylmalonic acidemia (inborn error of metabolism, rare in adults)"
+    ],
+    "agent_handoff": [
+      "hematology_agent",
+      "nutrition_agent"
+    ],
+    "priority": "medium",
+    "text_chunk": "Elevated methylmalonic acid (MMA) with a normal serum B12 level indicates functional (tissue-level) B12 deficiency, a condition increasingly recognized as clinically significant. Serum B12 measures total cobalamin bound to both active transcobalamin II (holoTC, ~20%) and inactive haptocorrin (~80%). A patient may have normal total B12 but insufficient active holoTC, resulting in cellular B12 deficiency detectable only by metabolic markers (MMA, homocysteine). HoloTC (active B12) is a more specific marker and should be measured when this discordance is identified. Renal insufficiency must be excluded as a confounder, since impaired renal excretion elevates MMA independent of B12 status. A therapeutic trial of B12 supplementation with MMA normalization confirms functional deficiency. This discordance is common in elderly patients with subclinical B12 depletion and in patients on metformin or proton pump inhibitors."
+  },
+  {
+    "id": "disc_vitd_normal_pth_high",
+    "name": "Secondary Hyperparathyroidism",
+    "biomarker_a": "25-Hydroxyvitamin D",
+    "biomarker_b": "PTH (Intact)",
+    "condition": "25-Hydroxyvitamin D NORMAL and PTH ELEVATED",
+    "expected_relationship": "Adequate vitamin D should suppress PTH via calcium-mediated negative feedback; elevated PTH with normal vitamin D suggests autonomous parathyroid activity or calcium sensing defect.",
+    "differential_diagnosis": [
+      "Primary hyperparathyroidism (autonomous parathyroid adenoma or hyperplasia)",
+      "Chronic kidney disease (impaired 1,25-dihydroxyvitamin D production despite normal 25-OH-D)",
+      "Calcium malabsorption (celiac disease, bariatric surgery, chronic pancreatitis)",
+      "Lithium-induced hyperparathyroidism (altered calcium set point)",
+      "Familial hypocalciuric hypercalcemia (CaSR mutation)"
+    ],
+    "agent_handoff": [
+      "endocrine_agent",
+      "nephrology_agent",
+      "bone_metabolism_agent"
+    ],
+    "priority": "medium",
+    "text_chunk": "Elevated PTH with normal 25-hydroxyvitamin D levels creates a diagnostic challenge that requires systematic evaluation. In primary hyperparathyroidism, one or more parathyroid glands autonomously secrete PTH independent of calcium and vitamin D status, making this the most common cause in outpatient settings. Serum calcium (usually elevated in primary, normal or low in secondary) is the key differentiating test. In chronic kidney disease, although 25-OH vitamin D (the storage form) may be normal, the kidney fails to convert it to active 1,25-dihydroxyvitamin D, leading to calcium malabsorption and compensatory PTH elevation. Post-bariatric surgery patients and those with celiac disease may have calcium malabsorption despite normal vitamin D, stimulating secondary PTH elevation. Lithium therapy alters the calcium-sensing receptor set point, requiring higher calcium levels to suppress PTH. A comprehensive workup includes serum calcium, phosphorus, 1,25-dihydroxyvitamin D, 24-hour urine calcium, and renal function."
+  }
+]

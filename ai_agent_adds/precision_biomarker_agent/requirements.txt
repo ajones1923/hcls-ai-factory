@@ -1,0 +1,47 @@
+# =============================================================================
+# Biomarker Intelligence Agent — Python Dependencies
+# HCLS AI Factory / ai_agent_adds / precision_biomarker_agent
+#
+# Author: Adam Jones
+# Date:   March 2026
+# =============================================================================
+
+# -- Core Framework --
+pydantic>=2.0,<3.0
+pydantic-settings>=2.7,<3.0
+loguru>=0.7.0,<1.0
+
+# -- Vector Database --
+pymilvus>=2.4.0,<2.6
+
+# -- Embeddings --
+sentence-transformers>=2.2.0,<3.0
+
+# -- LLM --
+anthropic>=0.18.0,<1.0
+
+# -- Web / API --
+streamlit>=1.30.0,<2.0
+fastapi>=0.109.0,<1.0
+uvicorn[standard]>=0.27.0,<1.0
+python-multipart>=0.0.6,<1.0
+
+# -- Export / Reporting --
+reportlab>=4.0.0,<5.0
+
+# -- Utilities --
+numpy>=1.24.0,<3.0
+pandas>=2.0.0,<3.0
+plotly>=5.18.0,<6.0
+tqdm>=4.65.0,<5.0
+python-dotenv>=1.0.0,<2.0
+
+# -- Monitoring --
+prometheus-client>=0.20.0,<1.0
+
+# -- Testing --
+pytest>=7.0,<8.0
+pytest-asyncio>=0.21,<1.0
+
+# Development
+pytest-cov>=4.0,<5.0

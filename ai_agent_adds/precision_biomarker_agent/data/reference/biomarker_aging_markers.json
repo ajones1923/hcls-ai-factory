@@ -1,0 +1,182 @@
+[
+  {
+    "id": "aging_phenoage_albumin",
+    "marker_name": "Albumin",
+    "clock_type": "PhenoAge",
+    "coefficient": -0.0336,
+    "unit": "g/dL",
+    "interpretation": "Albumin is a negative contributor to PhenoAge: higher albumin levels are associated with younger biological age. Albumin reflects hepatic synthetic function, nutritional status, and systemic inflammation (it is a negative acute-phase reactant that decreases during inflammatory states). Normal range is 3.5-5.5 g/dL. Values below 3.5 g/dL significantly accelerate PhenoAge, indicating liver dysfunction, malnutrition, chronic inflammation, or nephrotic syndrome. Albumin is the strongest protective factor in the PhenoAge algorithm. Interventions to maintain albumin include adequate protein intake (1.0-1.2 g/kg/day), anti-inflammatory strategies, and liver health optimization.",
+    "text_chunk": "PhenoAge marker: Albumin (coefficient: -0.0336, unit: g/dL). Albumin is a key negative contributor to biological age estimation in the PhenoAge clock developed by Levine et al. (Aging, 2018). Higher serum albumin levels correlate with younger biological age and reduced mortality risk. Albumin reflects hepatic protein synthesis capacity, nutritional adequacy, and absence of systemic inflammation. As a negative acute-phase reactant, albumin decreases during chronic inflammatory states, infections, and liver disease. Each 0.1 g/dL decrease in albumin contributes to approximately 0.34 years of biological age acceleration in the PhenoAge model."
+  },
+  {
+    "id": "aging_phenoage_creatinine",
+    "marker_name": "Creatinine",
+    "clock_type": "PhenoAge",
+    "coefficient": 0.0095,
+    "unit": "mg/dL",
+    "interpretation": "Creatinine is a positive contributor to PhenoAge: higher creatinine is associated with older biological age. Serum creatinine primarily reflects glomerular filtration rate (GFR) and kidney function, though it is also influenced by muscle mass, diet, and hydration. Elevated creatinine indicates declining renal function, a hallmark of biological aging. Normal range is 0.7-1.3 mg/dL for men and 0.6-1.1 mg/dL for women. The coefficient is relatively small (0.0095), reflecting creatinine's modest independent contribution to mortality prediction. Creatinine should be interpreted alongside eGFR and cystatin C for accurate renal aging assessment.",
+    "text_chunk": "PhenoAge marker: Creatinine (coefficient: 0.0095, unit: mg/dL). Creatinine contributes positively to biological age in the PhenoAge algorithm. Elevated creatinine reflects decreased glomerular filtration rate, a hallmark of renal aging. Kidney function declines approximately 1 mL/min/1.73m2 per year after age 30. While the coefficient is modest, sustained creatinine elevation indicates chronic kidney disease progression, which independently increases cardiovascular mortality and accelerates systemic aging through uremic toxin accumulation, phosphate retention, and secondary hyperparathyroidism."
+  },
+  {
+    "id": "aging_phenoage_glucose",
+    "marker_name": "Glucose (log-transformed)",
+    "clock_type": "PhenoAge",
+    "coefficient": 0.1953,
+    "unit": "mg/dL",
+    "interpretation": "Glucose (log-transformed) is one of the largest positive contributors to PhenoAge, reflecting the powerful impact of glycemic control on biological aging. The coefficient of 0.1953 means that even modest glucose elevations substantially increase biological age. Elevated fasting glucose drives aging through multiple mechanisms: advanced glycation end-product (AGE) formation, mitochondrial reactive oxygen species (ROS) production, protein kinase C activation, and hexosamine pathway flux. Normal fasting glucose is 70-99 mg/dL. Pre-diabetic levels (100-125 mg/dL) accelerate PhenoAge by 1-3 years. Glucose control is one of the most modifiable PhenoAge components.",
+    "text_chunk": "PhenoAge marker: Glucose, log-transformed (coefficient: 0.1953, unit: mg/dL). Glucose is among the most influential positive contributors to PhenoAge. The log transformation captures the nonlinear relationship between glucose and mortality risk. Elevated fasting glucose accelerates biological aging through advanced glycation end-product (AGE) formation crosslinking collagen and elastin, mitochondrial ROS generation, polyol pathway activation, and epigenetic aging via O-GlcNAcylation of histones. Glucose is highly modifiable through diet, exercise, and pharmacotherapy, making it a primary target for biological age reduction."
+  },
+  {
+    "id": "aging_phenoage_crp",
+    "marker_name": "ln(CRP)",
+    "clock_type": "PhenoAge",
+    "coefficient": 0.0954,
+    "unit": "ln(mg/L)",
+    "interpretation": "C-reactive protein (natural log-transformed) is a significant positive contributor to PhenoAge, capturing systemic inflammation's role in biological aging. CRP is produced by the liver in response to IL-6 and is the most widely used clinical biomarker of systemic inflammation. Optimal CRP is <1.0 mg/L; levels >3.0 mg/L indicate high cardiovascular risk (AHA/CDC). Chronic low-grade inflammation (inflammaging) is a central driver of age-related diseases. The log transformation captures CRP's right-skewed distribution. Interventions include omega-3 fatty acids, exercise, weight loss, and anti-inflammatory dietary patterns (Mediterranean diet).",
+    "text_chunk": "PhenoAge marker: ln(CRP) (coefficient: 0.0954, unit: ln(mg/L)). Natural log of C-reactive protein captures the contribution of systemic inflammation (inflammaging) to biological age acceleration. CRP is an acute-phase reactant synthesized by hepatocytes in response to IL-6. Chronic elevation reflects ongoing inflammation from visceral adiposity, periodontitis, chronic infections, autoimmune conditions, or cellular senescence-driven SASP (senescence-associated secretory phenotype). Each doubling of CRP increases PhenoAge by approximately 0.066 years. CRP is modifiable through omega-3 supplementation, exercise, weight loss, and Mediterranean dietary pattern."
+  },
+  {
+    "id": "aging_phenoage_lymphocyte_pct",
+    "marker_name": "Lymphocyte Percentage",
+    "clock_type": "PhenoAge",
+    "coefficient": -0.012,
+    "unit": "%",
+    "interpretation": "Lymphocyte percentage is a negative contributor to PhenoAge: higher lymphocyte percentage indicates younger biological age. This marker captures immune system competence, particularly adaptive immunity. Age-related thymic involution reduces naive T-cell output, shifting the lymphocyte composition toward memory/effector cells and reducing overall lymphocyte percentage. Normal range is 20-40% of total WBC. Low lymphocyte percentage (lymphopenia) is associated with increased susceptibility to infections, reduced vaccine responses, and higher all-cause mortality. Relative lymphopenia also reflects chronic stress (cortisol-mediated lymphocyte redistribution) and chronic inflammation.",
+    "text_chunk": "PhenoAge marker: Lymphocyte Percentage (coefficient: -0.012, unit: %). Lymphocyte percentage is a negative contributor reflecting immune system aging (immunosenescence). Aging causes thymic involution, reducing naive T-cell production and shifting the balance toward terminally differentiated effector memory cells and CD28-null senescent T-cells. Lower lymphocyte percentage indicates immunosenescence, chronic infection burden, or chronic stress-mediated cortisol suppression. This marker captures the adaptive immune component of biological aging, complementing CRP (innate inflammation) and WBC (innate immunity) in the PhenoAge composite."
+  },
+  {
+    "id": "aging_phenoage_mcv",
+    "marker_name": "Mean Corpuscular Volume (MCV)",
+    "clock_type": "PhenoAge",
+    "coefficient": 0.0268,
+    "unit": "fL",
+    "interpretation": "Mean corpuscular volume (MCV) is a positive contributor to PhenoAge: higher MCV is associated with older biological age. While MCV is traditionally viewed as a marker of red blood cell size (normal 80-100 fL), its inclusion in PhenoAge reflects multiple aging-associated processes. Macrocytosis (MCV >100 fL) can indicate B12 or folate deficiency (impaired DNA synthesis), liver disease (altered membrane lipid composition), hypothyroidism, myelodysplastic syndrome, or alcohol use. MCV naturally increases slightly with age. Elevated MCV also correlates with DNA hypomethylation, linking it to epigenetic aging. MCV is modifiable through B12/folate supplementation, liver health, and alcohol reduction.",
+    "text_chunk": "PhenoAge marker: Mean Corpuscular Volume, MCV (coefficient: 0.0268, unit: fL). MCV reflects red blood cell size and contributes positively to biological age. Elevated MCV (macrocytosis) indicates impaired erythropoiesis from B12/folate deficiency (defective DNA synthesis), liver disease (membrane lipid alterations), myelodysplasia (clonal hematopoiesis), hypothyroidism, or chronic alcohol use. MCV increases approximately 1 fL per decade of life. Its inclusion in PhenoAge captures nutritional, hepatic, and hematopoietic dimensions of aging not captured by other markers in the panel."
+  },
+  {
+    "id": "aging_phenoage_rdw",
+    "marker_name": "Red Cell Distribution Width (RDW)",
+    "clock_type": "PhenoAge",
+    "coefficient": 0.3306,
+    "unit": "%",
+    "interpretation": "Red cell distribution width (RDW) has the largest positive coefficient in the PhenoAge algorithm (0.3306), making it the single most influential positive aging marker. RDW measures the variation in red blood cell size (anisocytosis). Normal range is 11.5-14.5%. Elevated RDW reflects oxidative stress, chronic inflammation, nutritional deficiencies (iron, B12, folate), ineffective erythropoiesis, and impaired red cell maturation. Multiple large cohort studies (NHANES, Framingham) have demonstrated RDW as an independent predictor of all-cause mortality, cardiovascular mortality, and cancer mortality across all age groups. RDW captures systemic dysregulation not captured by individual biomarkers.",
+    "text_chunk": "PhenoAge marker: Red Cell Distribution Width, RDW (coefficient: 0.3306, unit: %). RDW has the highest positive coefficient in the PhenoAge model, making it the most powerful positive predictor of biological age acceleration. RDW measures anisocytosis (variation in erythrocyte size), reflecting oxidative stress-induced membrane damage, chronic inflammation, ineffective erythropoiesis, and nutritional deficiencies. Each 1% increase in RDW increases PhenoAge by approximately 0.33 years. Large cohort studies demonstrate RDW independently predicts all-cause mortality, cardiovascular events, cancer incidence, and cognitive decline. RDW is modifiable through iron/B12/folate repletion, inflammation reduction, and antioxidant support."
+  },
+  {
+    "id": "aging_phenoage_alp",
+    "marker_name": "Alkaline Phosphatase (ALP)",
+    "clock_type": "PhenoAge",
+    "coefficient": 0.0019,
+    "unit": "U/L",
+    "interpretation": "Alkaline phosphatase (ALP) is a positive contributor to PhenoAge with a small but significant coefficient. ALP is a group of isoenzymes from liver (biliary), bone, intestine, and placenta. Elevated ALP in the aging context primarily reflects hepatobiliary dysfunction (cholestasis, liver fibrosis) or bone turnover (Paget disease, osteoporosis, metastatic bone disease). Normal range is 44-147 U/L in adults. ALP naturally increases slightly with age, particularly in postmenopausal women (bone isoenzyme). The small coefficient (0.0019) means ALP contributes modestly to PhenoAge per unit increase, but at high values (>200 U/L), the cumulative contribution becomes clinically meaningful.",
+    "text_chunk": "PhenoAge marker: Alkaline Phosphatase, ALP (coefficient: 0.0019, unit: U/L). ALP contributes positively to PhenoAge, reflecting hepatobiliary and skeletal aging. Elevated liver ALP indicates biliary obstruction, hepatic fibrosis, or cholestatic liver disease. Elevated bone ALP reflects increased osteoclast activity or bone turnover (osteoporosis, Paget disease). ALP increases with age, especially post-menopause. While the per-unit coefficient is small, ALP values range widely (44-147 U/L normal), so pathological elevations (200-500 U/L) contribute meaningfully to biological age acceleration."
+  },
+  {
+    "id": "aging_phenoage_wbc",
+    "marker_name": "White Blood Cell Count (WBC)",
+    "clock_type": "PhenoAge",
+    "coefficient": 0.0554,
+    "unit": "10^3/uL",
+    "interpretation": "White blood cell count is a positive contributor to PhenoAge: higher WBC is associated with older biological age. While WBC elevation (leukocytosis) traditionally indicates acute infection, chronic mild leukocytosis reflects systemic low-grade inflammation (inflammaging), visceral adiposity, chronic stress, and smoking. Normal range is 4.5-11.0 x 10^3/uL. Even within the normal range, WBC in the upper quartile (>7.0) is associated with increased cardiovascular risk and mortality. WBC complements CRP in the PhenoAge algorithm by capturing the cellular immune component of inflammation. Interventions include weight management, smoking cessation, stress reduction, and anti-inflammatory nutrition.",
+    "text_chunk": "PhenoAge marker: White Blood Cell Count, WBC (coefficient: 0.0554, unit: 10^3/uL). WBC contributes positively to PhenoAge, reflecting innate immune activation and chronic inflammation. Elevated WBC within the normal range (above 7.0 x 10^3/uL) independently predicts cardiovascular events and all-cause mortality. Chronic mild leukocytosis reflects inflammaging, visceral adipose tissue macrophage activation, chronic psychological stress (cortisol-mediated neutrophilia), and smoking-induced inflammation. WBC complements CRP in the PhenoAge panel: CRP captures hepatic acute-phase response while WBC captures circulating immune cell mobilization. Both are modifiable through lifestyle interventions."
+  },
+  {
+    "id": "aging_phenoage_chronological_age",
+    "marker_name": "Chronological Age",
+    "clock_type": "PhenoAge",
+    "coefficient": 0.0804,
+    "unit": "years",
+    "interpretation": "Chronological age itself is included as a component in the PhenoAge algorithm with a positive coefficient of 0.0804. This reflects the baseline aging trajectory that all individuals follow regardless of biomarker values. The PhenoAge calculation uses chronological age as an anchor point, with the nine blood biomarkers modifying the estimate upward (accelerated aging) or downward (decelerated aging) relative to the chronological baseline. The difference between PhenoAge and chronological age (age acceleration) is the clinically meaningful metric. Negative age acceleration (biological age younger than chronological age) is associated with reduced mortality, lower cancer incidence, and preserved cognitive function.",
+    "text_chunk": "PhenoAge marker: Chronological Age (coefficient: 0.0804, unit: years). Chronological age is an integral component of the PhenoAge composite algorithm developed by Levine et al. (Aging, 2018). It serves as the baseline aging trajectory, with nine blood-based biomarkers adjusting the estimate relative to this baseline. The clinically meaningful output is age acceleration: PhenoAge minus chronological age. Positive age acceleration indicates faster biological aging and higher mortality risk. Negative age acceleration indicates slower aging. The PhenoAge composite predicts remaining lifespan, healthspan, and disease risk better than chronological age alone, capturing inter-individual variation in aging rate."
+  },
+  {
+    "id": "aging_grimage_gdf15",
+    "marker_name": "GDF-15 (Growth Differentiation Factor 15)",
+    "clock_type": "GrimAge",
+    "coefficient": 0.0,
+    "unit": "pg/mL",
+    "interpretation": "GDF-15 is a surrogate DNAm marker in the GrimAge epigenetic clock. Higher plasma GDF-15 levels are associated with older biological age. GDF-15 is a stress-response cytokine belonging to the TGF-beta superfamily, produced by cells under mitochondrial stress, inflammation, and tissue injury. It is one of the strongest protein predictors of all-cause mortality. Normal levels increase with age from ~200 pg/mL (young adults) to ~600-1200 pg/mL (elderly). Elevated GDF-15 is associated with cardiovascular disease, cancer, chronic kidney disease, and mitochondrial dysfunction. GDF-15 is used as a DNA methylation surrogate in GrimAge, where CpG sites that predict GDF-15 levels are incorporated into the clock.",
+    "text_chunk": "GrimAge surrogate marker: GDF-15 (Growth Differentiation Factor 15). GDF-15 is a TGF-beta superfamily cytokine that serves as a DNA methylation surrogate in the GrimAge epigenetic clock developed by Lu et al. (Aging, 2019). GrimAge uses CpG methylation sites that predict plasma GDF-15 levels (DNAm GDF-15) rather than direct protein measurement. Higher DNAm GDF-15 indicates older biological age. GDF-15 is produced by cells under mitochondrial stress, hypoxia, and inflammation. It is one of the strongest circulating protein predictors of mortality across multiple large cohorts (Framingham, WHI, InCHIANTI). Elevated GDF-15 reflects systemic cellular stress and is associated with cardiovascular disease, cancer, CKD, and sarcopenia."
+  },
+  {
+    "id": "aging_grimage_cystatin_c",
+    "marker_name": "Cystatin C",
+    "clock_type": "GrimAge",
+    "coefficient": 0.0,
+    "unit": "mg/L",
+    "interpretation": "Cystatin C is a surrogate DNAm marker in GrimAge where higher levels indicate older biological age. Cystatin C is a cysteine protease inhibitor produced at a constant rate by all nucleated cells, making it a superior marker of glomerular filtration rate compared to creatinine (not affected by muscle mass, diet, or sex). Normal range is 0.6-1.0 mg/L. Elevated cystatin C indicates reduced kidney function, a key dimension of biological aging. Cystatin C also predicts cardiovascular events and all-cause mortality independently of traditional risk factors. In GrimAge, CpG sites predicting cystatin C levels capture the renal aging component of biological age.",
+    "text_chunk": "GrimAge surrogate marker: Cystatin C. Cystatin C serves as a DNA methylation surrogate in the GrimAge clock, where CpG sites predicting plasma cystatin C levels (DNAm Cystatin C) contribute to biological age estimation. Higher DNAm Cystatin C indicates older biological age. Cystatin C is superior to creatinine for GFR estimation because its production rate is constant across age, sex, and muscle mass. As kidney function declines with aging, cystatin C rises, reflecting the progressive nephron loss that occurs at approximately 1% per year after age 30. Cystatin C also independently predicts cardiovascular mortality and heart failure, making it a multi-dimensional aging biomarker."
+  },
+  {
+    "id": "aging_grimage_leptin",
+    "marker_name": "Leptin",
+    "clock_type": "GrimAge",
+    "coefficient": 0.0,
+    "unit": "ng/mL",
+    "interpretation": "Leptin is a surrogate DNAm marker in GrimAge where higher levels are associated with metabolically older biological age. Leptin is an adipokine produced primarily by white adipose tissue, proportional to fat mass. While leptin's physiological role is satiety signaling, chronic hyperleptinemia in obesity leads to leptin resistance, pro-inflammatory signaling, and metabolic dysfunction. Normal range varies by sex and BMI: 2-5 ng/mL (lean males), 5-15 ng/mL (lean females), rising dramatically with adiposity. In GrimAge, DNAm leptin captures the metabolic/adiposity dimension of biological aging, linking visceral fat accumulation to epigenetic age acceleration.",
+    "text_chunk": "GrimAge surrogate marker: Leptin. Leptin is used as a DNA methylation surrogate in GrimAge, with CpG sites predicting plasma leptin levels contributing to biological age. Higher DNAm Leptin indicates metabolically accelerated aging. Leptin is an adipocyte-derived hormone that signals energy reserves to the hypothalamus. In obesity, chronic hyperleptinemia causes leptin resistance and shifts leptin's role toward pro-inflammatory signaling: activating macrophages, promoting Th1 cytokine production, and driving vascular inflammation. DNAm Leptin in GrimAge captures the adiposity and metabolic syndrome component of biological aging, reflecting the well-established link between visceral obesity and accelerated epigenetic aging."
+  },
+  {
+    "id": "aging_grimage_pai1",
+    "marker_name": "PAI-1 (Plasminogen Activator Inhibitor 1)",
+    "clock_type": "GrimAge",
+    "coefficient": 0.0,
+    "unit": "ng/mL",
+    "interpretation": "PAI-1 is a surrogate DNAm marker in GrimAge and is considered the single most important component of the clock for mortality prediction. Higher PAI-1 is associated with older biological age. PAI-1 is a serine protease inhibitor that blocks tissue plasminogen activator (tPA) and urokinase (uPA), inhibiting fibrinolysis. PAI-1 is also a key senescence-associated secretory phenotype (SASP) factor, produced by senescent cells. Elevated PAI-1 promotes thrombosis, fibrosis, and cellular senescence spread. PAI-1 levels increase with age, obesity, insulin resistance, and senescent cell burden. Interventions targeting senescent cell clearance (senolytics) reduce PAI-1 levels.",
+    "text_chunk": "GrimAge surrogate marker: PAI-1 (Plasminogen Activator Inhibitor 1). PAI-1 is the most influential DNA methylation surrogate in the GrimAge clock and the strongest predictor of time to death. Higher DNAm PAI-1 indicates older biological age and increased mortality risk. PAI-1 inhibits fibrinolysis by blocking tPA and uPA, promoting thrombotic events. Critically, PAI-1 is a hallmark senescence-associated secretory phenotype (SASP) factor: senescent cells secrete PAI-1 as both a paracrine senescence spreader and autocrine senescence maintainer. PAI-1 levels correlate with senescent cell burden, linking GrimAge to cellular senescence biology. Senolytic therapies (dasatinib + quercetin) may reduce PAI-1."
+  },
+  {
+    "id": "aging_grimage_timp1",
+    "marker_name": "TIMP1 (Tissue Inhibitor of Metalloproteinases 1)",
+    "clock_type": "GrimAge",
+    "coefficient": 0.0,
+    "unit": "ng/mL",
+    "interpretation": "TIMP1 is a surrogate DNAm marker in GrimAge where higher levels indicate older biological age. TIMP1 inhibits matrix metalloproteinases (MMPs), regulating extracellular matrix (ECM) turnover. Elevated TIMP1 shifts the MMP/TIMP balance toward reduced ECM degradation, promoting fibrosis in liver, lung, heart, and kidney. TIMP1 is also a SASP component and increases with cellular senescence. TIMP1 is an independent predictor of cardiovascular mortality, liver fibrosis progression, and cancer prognosis. In GrimAge, DNAm TIMP1 captures the tissue remodeling and fibrotic dimension of biological aging.",
+    "text_chunk": "GrimAge surrogate marker: TIMP1 (Tissue Inhibitor of Metalloproteinases 1). TIMP1 serves as a DNA methylation surrogate in GrimAge. Higher DNAm TIMP1 levels indicate accelerated biological aging. TIMP1 inhibits matrix metalloproteinases (MMPs), shifting the ECM turnover balance toward fibrosis when chronically elevated. Age-related fibrosis in liver (cirrhosis), lung (pulmonary fibrosis), heart (cardiac fibrosis), and kidney (glomerulosclerosis) is driven partly by TIMP1 elevation. TIMP1 is also part of the SASP, linking it to cellular senescence accumulation. As a GrimAge component, TIMP1 captures the tissue remodeling and fibrotic progression dimension of biological aging."
+  },
+  {
+    "id": "aging_grimage_adrenomedullin",
+    "marker_name": "Adrenomedullin (ADM)",
+    "clock_type": "GrimAge",
+    "coefficient": 0.0,
+    "unit": "pg/mL",
+    "interpretation": "Adrenomedullin is a surrogate DNAm marker in GrimAge where higher levels are associated with cardiovascular aging. ADM is a vasodilatory peptide produced by vascular endothelial and smooth muscle cells in response to hypoxia, inflammation, and hemodynamic stress. ADM has cardioprotective effects acutely (vasodilation, natriuresis, anti-inflammatory), but chronic elevation indicates ongoing cardiovascular stress and endothelial dysfunction. Elevated ADM independently predicts heart failure, myocardial infarction, and cardiovascular mortality. In GrimAge, DNAm ADM captures the cardiovascular aging dimension, reflecting chronic vascular stress and endothelial senescence.",
+    "text_chunk": "GrimAge surrogate marker: Adrenomedullin (ADM). Adrenomedullin is used as a DNA methylation surrogate in GrimAge, with higher DNAm ADM indicating cardiovascular aging. ADM is a 52-amino acid vasoactive peptide produced by endothelial cells, vascular smooth muscle cells, and cardiomyocytes under hemodynamic stress, hypoxia, and inflammatory stimulation. While ADM has acute cardioprotective properties (vasodilation via cAMP/NO pathway, anti-inflammatory, anti-apoptotic), chronic ADM elevation indicates sustained cardiovascular stress, endothelial dysfunction, and heart failure. DNAm ADM in GrimAge captures the cardiovascular dimension of biological aging, complementing the metabolic (leptin), renal (cystatin C), and inflammatory (GDF-15, PAI-1) components."
+  },
+  {
+    "id": "aging_telomere_length",
+    "marker_name": "Telomere Length",
+    "clock_type": "PhenoAge",
+    "coefficient": 0.0,
+    "unit": "kb",
+    "interpretation": "Telomere length is not a component of PhenoAge or GrimAge clocks but is a widely studied aging biomarker. Telomeres are repetitive TTAGGG sequences capping chromosome ends, shortening by 50-200 bp per cell division due to the end-replication problem. Average leukocyte telomere length (LTL) decreases from approximately 10-11 kb at birth to 5-7 kb in the elderly. Short telomeres trigger cellular senescence via p53/p21 pathway activation. LTL is associated with cardiovascular disease, type 2 diabetes, cancer risk, and all-cause mortality. However, LTL has high inter-individual variability and is not as predictive as composite clocks (PhenoAge, GrimAge) for mortality. Telomere attrition rate may be more informative than static length.",
+    "text_chunk": "Aging biomarker: Telomere Length (unit: kb). Telomere length is a well-known aging correlate but is not part of the PhenoAge or GrimAge clock algorithms. Telomeres (TTAGGG repeats) protect chromosome ends and shorten with each cell division. When critically short (Hayflick limit, approximately 4-5 kb), cells enter replicative senescence. Leukocyte telomere length (LTL) decreases approximately 20-50 bp/year in adults. Short LTL is associated with cardiovascular disease, diabetes, infection susceptibility, and mortality. However, LTL explains only 5-10% of mortality variance compared to 15-20% for PhenoAge and 20-25% for GrimAge, limiting its standalone utility as a biological age clock."
+  },
+  {
+    "id": "aging_nad_ratio",
+    "marker_name": "NAD+/NADH Ratio",
+    "clock_type": "GrimAge",
+    "coefficient": 0.0,
+    "unit": "ratio",
+    "interpretation": "The NAD+/NADH ratio is an emerging metabolic aging biomarker not yet formally incorporated into validated epigenetic clocks but increasingly recognized as a central regulator of biological aging. NAD+ (nicotinamide adenine dinucleotide) declines 40-60% between ages 30 and 70 in most tissues. NAD+ is consumed by sirtuins (SIRT1-7, deacetylases regulating longevity pathways), PARPs (DNA repair enzymes), and CD38 (ectoenzyme that increases with inflammation). Declining NAD+ impairs mitochondrial function, DNA repair, and sirtuin-mediated epigenetic regulation. NAD+ precursor supplementation (NR, NMN) is being actively investigated for aging reversal. Measurement is challenging, requiring specialized assays.",
+    "text_chunk": "Aging biomarker: NAD+/NADH Ratio (unit: ratio). NAD+ is a critical metabolic cofactor that declines 40-60% with aging, driving mitochondrial dysfunction, impaired DNA repair, and reduced sirtuin activity. NAD+ is consumed by three main enzyme families: sirtuins (SIRT1-7, longevity-associated deacetylases), PARPs (PARP1/2, DNA damage repair), and CD38 (ectoenzyme whose expression increases with age-related inflammation). Declining NAD+ creates a vicious cycle: reduced SIRT1 activity impairs mitochondrial biogenesis (via PGC-1alpha), increasing ROS, causing more DNA damage, consuming more NAD+ via PARP activation. NAD+ precursors (NR, NMN) restore NAD+ levels in preclinical models and early human trials."
+  },
+  {
+    "id": "aging_p16ink4a",
+    "marker_name": "p16INK4a Expression",
+    "clock_type": "GrimAge",
+    "coefficient": 0.0,
+    "unit": "relative expression",
+    "interpretation": "p16INK4a (CDKN2A) expression is a biomarker of cellular senescence burden, not a formal epigenetic clock component but increasingly recognized as a marker of biological age. p16INK4a is a cyclin-dependent kinase inhibitor that enforces irreversible cell cycle arrest (senescence) by maintaining Rb in its hypophosphorylated, growth-suppressive state. p16INK4a expression in peripheral blood T-cells increases exponentially with age, doubling approximately every 10 years. Higher p16INK4a expression correlates with reduced physical performance, increased frailty, and age-related disease burden. Senolytic therapies targeting p16-high cells are in clinical trials for multiple age-related conditions.",
+    "text_chunk": "Aging biomarker: p16INK4a Expression (unit: relative expression). p16INK4a (encoded by CDKN2A at the INK4a/ARF locus) is the most widely studied molecular marker of cellular senescence. p16 inhibits CDK4/6, maintaining Rb in its active growth-suppressive state and enforcing irreversible G1 cell cycle arrest. p16 expression in peripheral blood T-lymphocytes increases exponentially with age, approximately doubling every 8-10 years after age 30. Elevated p16 reflects accumulated senescent cell burden across tissues. SASP-producing senescent cells drive inflammaging, tissue dysfunction, and age-related diseases. Senolytic drugs (dasatinib + quercetin, fisetin, navitoclax) selectively eliminate p16-high senescent cells."
+  },
+  {
+    "id": "aging_inflammaging_ratio",
+    "marker_name": "IL-6/TNF-alpha Ratio (Inflammaging Index)",
+    "clock_type": "GrimAge",
+    "coefficient": 0.0,
+    "unit": "ratio",
+    "interpretation": "The IL-6/TNF-alpha ratio is an emerging inflammaging index that captures the chronic, sterile, low-grade inflammation characteristic of biological aging. IL-6 is a pleiotropic cytokine that drives CRP production and systemic inflammation; TNF-alpha is a pro-inflammatory cytokine produced by macrophages, adipocytes, and senescent cells. Both increase with age, but their ratio may reflect the balance between systemic (IL-6) and tissue-level (TNF-alpha) inflammation. Elevated levels of both cytokines are core components of the SASP and are produced by senescent cells. This ratio is being investigated as a composite inflammaging metric that may better predict age-related outcomes than either cytokine alone.",
+    "text_chunk": "Aging biomarker: IL-6/TNF-alpha Ratio, Inflammaging Index (unit: ratio). Inflammaging is the chronic, sterile, low-grade inflammation that accompanies biological aging. IL-6 and TNF-alpha are the two central cytokines driving this process. IL-6 activates hepatic acute-phase response (CRP, fibrinogen, hepcidin), drives sarcopenia, and promotes insulin resistance. TNF-alpha induces endothelial activation, adipocyte insulin resistance, and osteoclastogenesis. Both are key SASP cytokines produced by senescent cells. The IL-6/TNF-alpha ratio captures the inflammaging burden and may serve as a composite metric for biological age estimation, complementing CRP (downstream effector) and GDF-15 (mitochondrial stress). Anti-inflammaging strategies include exercise, Mediterranean diet, omega-3s, and senolytic interventions."
+  }
+]

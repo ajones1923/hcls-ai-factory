@@ -1,0 +1,242 @@
+[
+  {
+    "id": "mon_prediabetes_tcf7l2",
+    "condition": "Pre-diabetes with TCF7L2 risk variant (CT/TT)",
+    "biomarker_panel": "HbA1c, fasting glucose, fasting insulin, HOMA-IR, C-peptide",
+    "frequency": "every 3 months",
+    "trigger_values": "{\"HbA1c\": \">5.4%\", \"fasting_glucose\": \">90 mg/dL\", \"HOMA_IR\": \">2.5\", \"fasting_insulin\": \">12 uIU/mL\"}",
+    "text_chunk": "Monitoring protocol for pre-diabetes with TCF7L2 rs7903146 risk variant (CT or TT). TCF7L2 is the strongest common genetic risk factor for type 2 diabetes, conferring 1.3-1.4x increased risk per T allele. Quarterly monitoring of HbA1c, fasting glucose, fasting insulin, and HOMA-IR enables early detection of glycemic deterioration. Trigger thresholds are genotype-adjusted: HbA1c >5.4% (vs standard 5.7%), fasting glucose >90 mg/dL (vs standard 100). HOMA-IR >2.5 indicates insulin resistance requiring lifestyle intervention. C-peptide tracks beta-cell secretory capacity over time. Early intervention at these thresholds can reduce diabetes conversion by 58% (DPP trial)."
+  },
+  {
+    "id": "mon_t2d_management",
+    "condition": "Type 2 diabetes management",
+    "biomarker_panel": "HbA1c, fasting glucose, postprandial glucose, fructosamine, lipid panel, renal function, urine albumin-to-creatinine ratio",
+    "frequency": "quarterly HbA1c; monthly glucose",
+    "trigger_values": "{\"HbA1c\": \">7.0%\", \"fasting_glucose\": \">130 mg/dL\", \"postprandial_glucose_2h\": \">180 mg/dL\", \"eGFR_decline\": \">5 mL/min/year\", \"UACR\": \">30 mg/g\"}",
+    "text_chunk": "Monitoring protocol for type 2 diabetes management. HbA1c every 3 months (target <7.0% per ADA, individualized 6.5-8.0% based on age, comorbidities, hypoglycemia risk). Monthly self-monitoring of fasting and postprandial glucose. Annual complications screening: dilated eye exam (retinopathy), foot exam (neuropathy), renal function panel (eGFR, UACR for nephropathy), lipid panel (cardiovascular risk), and liver function (NAFLD/NASH). Trigger for therapy intensification: HbA1c >7.0% on current regimen. eGFR decline >5 mL/min/year or UACR >30 mg/g triggers nephroprotective therapy (SGLT2i or GLP-1 RA)."
+  },
+  {
+    "id": "mon_cv_risk_apoe_e4",
+    "condition": "Cardiovascular risk with APOE E4 carrier status",
+    "biomarker_panel": "LDL-C, HDL-C, triglycerides, ApoB, Lp(a), hsCRP, LDL particle number, coronary calcium score",
+    "frequency": "lipids annual; ApoB semi-annual",
+    "trigger_values": "{\"LDL_C\": \">100 mg/dL\", \"ApoB\": \">90 mg/dL\", \"Lpa\": \">50 mg/dL\", \"hsCRP\": \">2.0 mg/L\", \"CAC_score\": \">100\"}",
+    "text_chunk": "Monitoring protocol for cardiovascular risk in APOE E4 carriers (E3/E4 or E4/E4). APOE4 increases LDL cholesterol via enhanced intestinal cholesterol absorption and reduced LDL receptor expression. Annual comprehensive lipid panel including LDL-C (target <100 mg/dL for E3/E4, <70 mg/dL for E4/E4), HDL-C, triglycerides. Semi-annual ApoB (superior to LDL-C for risk prediction, target <90 mg/dL). Baseline Lp(a) measurement (genetically determined, one-time test). hsCRP for inflammation assessment. Coronary artery calcium (CAC) score at age 45-50 for risk stratification. ApoB >90 or Lp(a) >50 triggers consideration of PCSK9 inhibitor therapy."
+  },
+  {
+    "id": "mon_nafld_pnpla3_gg",
+    "condition": "NAFLD with PNPLA3 rs738409 GG genotype",
+    "biomarker_panel": "ALT, AST, GGT, FIB-4 score, NAFLD fibrosis score, platelet count, albumin",
+    "frequency": "quarterly LFTs; semi-annual FIB-4",
+    "trigger_values": "{\"ALT\": \">45 U/L\", \"FIB4\": \">1.3\", \"NAFLD_fibrosis_score\": \">-1.455\", \"platelets\": \"<150 x10^3/uL\", \"albumin\": \"<3.5 g/dL\"}",
+    "text_chunk": "Monitoring protocol for NAFLD with PNPLA3 rs738409 GG genotype (3.2x NAFLD risk, 5x cirrhosis risk). Quarterly ALT/AST monitoring with genotype-adjusted reference (ALT upper limit 45 U/L for GG). Semi-annual FIB-4 score calculation (age x AST / platelets x sqrt(ALT)) for fibrosis staging: <1.3 low risk, 1.3-2.67 indeterminate, >2.67 high risk. Annual liver imaging: ultrasound (steatosis detection) or transient elastography/FibroScan (fibrosis quantification). Trigger for hepatology referral: FIB-4 >1.3, rising ALT trend, declining platelets (<150), or declining albumin (<3.5). Weight management is the most effective NAFLD intervention in PNPLA3 GG carriers."
+  },
+  {
+    "id": "mon_hypothyroid_dio2_tt",
+    "condition": "Hypothyroidism with DIO2 rs225014 TT genotype",
+    "biomarker_panel": "TSH, Free T4, Free T3, anti-TPO antibodies, anti-thyroglobulin antibodies",
+    "frequency": "TSH/FT3/FT4 every 3 months; antibodies annually",
+    "trigger_values": "{\"TSH\": \">3.0 mIU/L\", \"Free_T3\": \"<3.0 pg/mL\", \"Free_T4\": \"<0.9 ng/dL\", \"anti_TPO\": \">35 IU/mL\"}",
+    "text_chunk": "Monitoring protocol for hypothyroidism with DIO2 rs225014 TT genotype (impaired T4-to-T3 conversion). Quarterly monitoring of TSH (adjusted target 0.5-3.0 mIU/L), Free T3 (adjusted optimal >3.0 pg/mL), and Free T4. Free T3 is the most clinically relevant marker in DIO2 TT carriers because serum T4 and TSH may appear normal while tissue T3 is deficient. Annual thyroid antibody testing (anti-TPO, anti-thyroglobulin) to detect autoimmune thyroiditis progression. Trigger for combination T4/T3 therapy consideration: persistent Free T3 <3.0 pg/mL or residual hypothyroid symptoms (fatigue, cognitive fog, cold intolerance, weight gain) despite normal TSH on T4 monotherapy."
+  },
+  {
+    "id": "mon_iron_overload_hfe_c282y",
+    "condition": "Iron overload with HFE C282Y homozygous (AA)",
+    "biomarker_panel": "Ferritin, transferrin saturation, serum iron, TIBC, liver enzymes, hemoglobin",
+    "frequency": "quarterly ferritin/TSAT; annual liver",
+    "trigger_values": "{\"ferritin\": \">50 ng/mL\", \"transferrin_saturation\": \">45%\", \"ALT\": \">45 U/L\", \"hemoglobin_pre_phlebotomy\": \"<12.5 g/dL\"}",
+    "text_chunk": "Monitoring protocol for hereditary hemochromatosis (HFE C282Y homozygous). Quarterly ferritin and transferrin saturation (TSAT) during phlebotomy therapy. Therapeutic target: ferritin <50 ng/mL, TSAT <50%. Phlebotomy induction: 500 mL every 1-2 weeks until target ferritin reached. Maintenance: phlebotomy every 2-4 months. Check hemoglobin before each phlebotomy; defer if <12.5 g/dL. Annual liver assessment: ALT/AST, FIB-4 score, and hepatic iron quantification by MRI if ferritin has been >1000 ng/mL. Liver biopsy if ferritin >1000 or elevated liver enzymes to assess fibrosis stage. Screen first-degree relatives for HFE genotype."
+  },
+  {
+    "id": "mon_methylation_mthfr_tt",
+    "condition": "Methylation impairment with MTHFR C677T TT genotype",
+    "biomarker_panel": "Homocysteine, serum folate, serum B12, methylmalonic acid, RBC folate",
+    "frequency": "every 3 months",
+    "trigger_values": "{\"homocysteine\": \">10 umol/L\", \"serum_folate\": \"<10 ng/mL\", \"serum_B12\": \"<400 pg/mL\", \"methylmalonic_acid\": \">0.4 umol/L\"}",
+    "text_chunk": "Monitoring protocol for methylation impairment with MTHFR C677T TT genotype. Quarterly monitoring of homocysteine (target <8 umol/L, alert at >10), serum folate (target >15 ng/mL), serum B12 (target >500 pg/mL), and methylmalonic acid (MMA, functional B12 marker, target <0.4 umol/L). RBC folate provides 120-day average folate status (target >400 ng/mL). Homocysteine above 10 umol/L despite supplementation triggers dose escalation: methylfolate to 1000 mcg, B12 to 2000 mcg, add TMG 1000-3000 mg. Persistently elevated MMA with normal B12 suggests functional B12 deficiency requiring injectable methylcobalamin."
+  },
+  {
+    "id": "mon_omega3_fads1_tt",
+    "condition": "Omega-3 deficiency with FADS1 rs174547 TT genotype",
+    "biomarker_panel": "Omega-3 index, EPA level, DHA level, AA/EPA ratio, triglycerides",
+    "frequency": "every 6 months",
+    "trigger_values": "{\"omega3_index\": \"<8%\", \"EPA\": \"<60 ug/mL\", \"AA_EPA_ratio\": \">10\", \"triglycerides\": \">150 mg/dL\"}",
+    "text_chunk": "Monitoring protocol for omega-3 deficiency with FADS1 rs174547 TT genotype (poor ALA-to-EPA/DHA converter). Semi-annual omega-3 index testing (target >8%, adjusted minimum >5% on ALA alone). EPA and DHA levels measured separately to guide formulation selection. AA/EPA ratio assesses inflammatory balance (target <5, optimal <3). Triglycerides as an indirect marker of omega-3 status and efficacy. TT carriers require preformed EPA/DHA 2-4 g/day and cannot rely on plant-based ALA sources. Dose titration guided by omega-3 index response. If omega-3 index remains <8% on 2 g/day, increase to 4 g/day and recheck in 3 months."
+  },
+  {
+    "id": "mon_cyp2d6_pm_opioids",
+    "condition": "CYP2D6 poor metabolizer on opioid therapy",
+    "biomarker_panel": "ALT, AST, GGT, alkaline phosphatase, total bilirubin, pain assessment score, sedation score",
+    "frequency": "every month",
+    "trigger_values": "{\"ALT\": \">40 U/L\", \"AST\": \">40 U/L\", \"pain_score\": \">6/10\", \"sedation_score\": \">2/4\"}",
+    "text_chunk": "Monitoring protocol for CYP2D6 poor metabolizers on opioid therapy. Monthly liver function monitoring (ALT, AST, GGT, ALP, bilirubin) to detect hepatotoxicity from parent drug accumulation. Monthly pain assessment to evaluate analgesic efficacy (CYP2D6 PMs have reduced activation of prodrug opioids like codeine and tramadol). Monthly sedation scoring for non-prodrug opioids where PM status increases plasma levels. CYP2D6 PMs should avoid codeine and tramadol (prodrugs with no analgesic effect in PMs). Alternatives: morphine, hydromorphone, oxymorphone (not CYP2D6-dependent). If on metoprolol or tamoxifen concurrently, monitor for increased drug levels."
+  },
+  {
+    "id": "mon_cyp2c19_pm_ppi",
+    "condition": "CYP2C19 poor metabolizer on chronic PPI therapy",
+    "biomarker_panel": "Serum B12, serum magnesium, calcium, bone density (DEXA), CBC, iron studies",
+    "frequency": "B12/magnesium annually; bone density every 2 years",
+    "trigger_values": "{\"B12\": \"<300 pg/mL\", \"magnesium\": \"<1.8 mg/dL\", \"calcium\": \"<8.5 mg/dL\", \"T_score\": \"<-1.5\"}",
+    "text_chunk": "Monitoring protocol for CYP2C19 poor metabolizers on chronic PPI therapy. CYP2C19 PMs have 5-12x higher PPI exposure, increasing long-term adverse effect risk. Annual B12 monitoring (PPIs reduce B12 absorption by reducing gastric acid; PMs have more profound acid suppression). Annual serum magnesium (PPI-associated hypomagnesemia can cause arrhythmias, seizures). Annual calcium monitoring. DEXA bone density every 2 years (PPIs increase fracture risk, particularly hip and vertebral). Iron studies annually (acid suppression reduces non-heme iron absorption). Consider PPI dose reduction or switch to H2RA. Rabeprazole is the least CYP2C19-dependent PPI if continued therapy needed."
+  },
+  {
+    "id": "mon_slco1b1_statin",
+    "condition": "SLCO1B1 poor function on statin therapy",
+    "biomarker_panel": "Creatine kinase (CK), ALT, AST, total bilirubin, myalgia assessment",
+    "frequency": "every 3 months",
+    "trigger_values": "{\"CK\": \">5x ULN (>1000 U/L)\", \"ALT\": \">3x ULN (>120 U/L)\", \"myalgia_score\": \">3/10\"}",
+    "text_chunk": "Monitoring protocol for SLCO1B1 poor function (*5/*5 or *5/*15) on statin therapy. SLCO1B1 reduced function impairs hepatic statin uptake, increasing systemic exposure and myopathy risk (17x for simvastatin). Quarterly CK monitoring: >5x ULN (>1000 U/L) mandates statin discontinuation and evaluation for rhabdomyolysis. Quarterly liver enzymes: ALT >3x ULN triggers statin dose reduction or switch. Subjective myalgia assessment at each visit. SLCO1B1 PF patients should avoid simvastatin >20 mg and atorvastatin >40 mg. Preferred alternatives: pravastatin, rosuvastatin (5 mg start), pitavastatin. Consider ezetimibe or PCSK9i as non-statin LDL-lowering options."
+  },
+  {
+    "id": "mon_statin_general",
+    "condition": "Statin therapy monitoring (general population)",
+    "biomarker_panel": "Lipid panel (TC, LDL, HDL, TG), ALT, AST, CK, fasting glucose, HbA1c",
+    "frequency": "baseline, 6 weeks, then annually",
+    "trigger_values": "{\"LDL_C\": \"not at target\", \"ALT\": \">3x ULN\", \"CK\": \">5x ULN\", \"HbA1c\": \">6.5%\"}",
+    "text_chunk": "Standard statin monitoring protocol. Baseline: fasting lipid panel, hepatic function (ALT/AST), CK, fasting glucose/HbA1c. Six-week follow-up: repeat lipid panel to assess LDL response (expect 30-50% reduction depending on statin intensity). Annual monitoring: lipid panel (verify sustained LDL target achievement), liver enzymes (ALT >3x ULN triggers dose reduction), CK (only if symptomatic), glucose/HbA1c (statins increase diabetes risk by 9-12%, especially rosuvastatin). LDL targets: <130 low risk, <100 intermediate/high risk, <70 very high risk/established CVD, <55 ACC/AHA secondary prevention. ApoB <90 as alternative target."
+  },
+  {
+    "id": "mon_warfarin_vkorc1",
+    "condition": "Warfarin therapy with VKORC1 variant (AA genotype)",
+    "biomarker_panel": "INR, PT, CBC, hemoglobin, stool guaiac",
+    "frequency": "weekly INR initially; monthly stable",
+    "trigger_values": "{\"INR\": \">3.5 or <1.5\", \"hemoglobin_drop\": \">2 g/dL from baseline\", \"any_bleeding\": \"true\"}",
+    "text_chunk": "Monitoring protocol for warfarin therapy in VKORC1 AA genotype patients (high sensitivity, requiring 40-50% lower doses). Weekly INR monitoring during initiation and dose titration (first 2-4 weeks). VKORC1 AA patients typically require 2-3 mg/day (vs 5 mg standard starting dose). Target INR 2.0-3.0 for most indications (AFib, DVT/PE), 2.5-3.5 for mechanical heart valves. Monthly INR once stable (3 consecutive values in range). CBC and hemoglobin quarterly to detect occult bleeding. Educate on dietary vitamin K consistency (not avoidance). Drug interactions: monitor closely when adding/removing CYP2C9 inhibitors (fluconazole, amiodarone) or inducers (rifampin). Supratherapeutic INR >3.5 requires dose reduction and close follow-up."
+  },
+  {
+    "id": "mon_methotrexate_mthfr",
+    "condition": "Methotrexate therapy with MTHFR variant",
+    "biomarker_panel": "CBC with differential, ALT, AST, albumin, creatinine, serum folate, homocysteine",
+    "frequency": "monthly",
+    "trigger_values": "{\"WBC\": \"<3.0 x10^3/uL\", \"platelets\": \"<100 x10^3/uL\", \"ALT\": \">2x ULN\", \"creatinine\": \">1.5 mg/dL\", \"homocysteine\": \">15 umol/L\"}",
+    "text_chunk": "Monitoring protocol for methotrexate therapy in MTHFR variant carriers. Methotrexate inhibits dihydrofolate reductase, and MTHFR variants compound folate pathway impairment. Monthly CBC with differential: methotrexate causes dose-dependent myelosuppression; MTHFR TT carriers have increased susceptibility. Monthly liver enzymes (ALT/AST): methotrexate hepatotoxicity risk is additive with MTHFR-related homocysteine elevation. Monthly creatinine: methotrexate is renally cleared; impaired renal function increases toxicity. Folate supplementation (leucovorin or methylfolate) is mandatory: 1 mg/day folic acid or 5-15 mg leucovorin 24h post-dose. Homocysteine monitoring quarterly to assess methylation adequacy. Liver biopsy or FibroScan after cumulative dose reaches 1.5g."
+  },
+  {
+    "id": "mon_biological_age_phenoage",
+    "condition": "Biological age monitoring (PhenoAge panel)",
+    "biomarker_panel": "Albumin, creatinine, glucose, hsCRP, CBC with differential (lymphocyte%, WBC, MCV, RDW), alkaline phosphatase",
+    "frequency": "annually",
+    "trigger_values": "{\"PhenoAge_acceleration\": \">+3 years\", \"albumin\": \"<3.5 g/dL\", \"RDW\": \">14.5%\", \"hsCRP\": \">3.0 mg/L\", \"glucose\": \">100 mg/dL\"}",
+    "text_chunk": "Biological age monitoring protocol using the PhenoAge panel (Levine et al., Aging 2018). Annual measurement of all 9 blood biomarkers comprising PhenoAge: albumin, creatinine, glucose (fasting), C-reactive protein (hsCRP), lymphocyte percentage, mean corpuscular volume (MCV), red cell distribution width (RDW), alkaline phosphatase (ALP), and white blood cell count (WBC). Combined with chronological age to compute PhenoAge. Age acceleration >+3 years triggers comprehensive intervention: anti-inflammatory nutrition (Mediterranean diet), regular exercise (150 min/week moderate), sleep optimization (7-9 hours), stress management, and targeted supplementation addressing the highest-contributing biomarkers (e.g., omega-3 for CRP, methylfolate for MCV)."
+  },
+  {
+    "id": "mon_grimage_panel",
+    "condition": "GrimAge monitoring panel",
+    "biomarker_panel": "GDF-15, cystatin C, PAI-1, leptin, TIMP1, adrenomedullin",
+    "frequency": "annually",
+    "trigger_values": "{\"GDF15\": \">1200 pg/mL\", \"cystatin_C\": \">1.0 mg/L\", \"PAI1\": \">40 ng/mL\", \"leptin_male\": \">12 ng/mL\", \"leptin_female\": \">25 ng/mL\"}",
+    "text_chunk": "GrimAge monitoring protocol using surrogate plasma protein biomarkers. Annual measurement of GDF-15 (mitochondrial/cellular stress), cystatin C (renal aging), PAI-1 (senescence/thrombotic aging), leptin (metabolic/adiposity aging), TIMP1 (tissue remodeling/fibrotic aging), and adrenomedullin (cardiovascular aging). These protein biomarkers serve as surrogates for the DNA methylation markers used in the GrimAge epigenetic clock. GDF-15 >1200 pg/mL indicates significant cellular stress and elevated mortality risk. PAI-1 >40 ng/mL suggests high senescent cell burden, potentially amenable to senolytic interventions. Leptin elevation indicates metabolic aging from visceral adiposity. Trends over time are more informative than single values."
+  },
+  {
+    "id": "mon_comprehensive_metabolic_baseline",
+    "condition": "Comprehensive metabolic baseline screening",
+    "biomarker_panel": "CMP (glucose, BUN, creatinine, sodium, potassium, chloride, CO2, calcium, albumin, total protein, ALT, AST, ALP, bilirubin), CBC with differential, lipid panel (TC, LDL, HDL, TG, ApoB), TSH, Free T4, iron panel (ferritin, iron, TIBC, TSAT), vitamin D, B12, folate, magnesium, HbA1c, hsCRP, insulin, homocysteine",
+    "frequency": "annually",
+    "trigger_values": "{\"any_value_outside_reference\": \"flag for review\"}",
+    "text_chunk": "Comprehensive metabolic baseline screening protocol for annual health assessment. Includes CMP (14 analytes covering glucose metabolism, renal function, electrolytes, liver function, protein status), CBC with differential (red cell, white cell, and platelet assessment), complete lipid panel with ApoB (cardiovascular risk), thyroid panel (TSH, Free T4), iron panel (ferritin, iron, TIBC, transferrin saturation), vitamin D 25(OH)D, B12, folate, serum magnesium, HbA1c (3-month glucose average), hsCRP (inflammation), fasting insulin (insulin resistance), and homocysteine (methylation status). This panel enables comprehensive physiological profiling and serves as the foundation for genotype-adjusted interpretation."
+  },
+  {
+    "id": "mon_cancer_screening_biomarkers",
+    "condition": "Cancer screening biomarker monitoring",
+    "biomarker_panel": "PSA (prostate), CA-125 (ovarian), CEA (colorectal), AFP (liver), CA 19-9 (pancreatic)",
+    "frequency": "PSA annual after 50; risk-based",
+    "trigger_values": "{\"PSA\": \">4.0 ng/mL\", \"PSA_velocity\": \">0.75 ng/mL/year\", \"CA125\": \">35 U/mL\", \"CEA\": \">5.0 ng/mL\", \"AFP\": \">20 ng/mL\"}",
+    "text_chunk": "Cancer screening biomarker monitoring protocol. PSA (prostate-specific antigen): annual screening for men age 50+ (age 40+ for high-risk: African American, family history, BRCA2). PSA >4.0 ng/mL or PSA velocity >0.75 ng/mL/year triggers prostate biopsy consideration; free PSA ratio helps distinguish BPH from cancer. CA-125: not recommended for general screening; used for monitoring ovarian cancer treatment response and recurrence. CEA: not for screening; used for colorectal cancer recurrence monitoring post-surgery (>5.0 triggers imaging). AFP: surveillance for hepatocellular carcinoma in cirrhosis patients every 6 months. CA 19-9: pancreatic cancer monitoring. All tumor markers have limited specificity; interpret in clinical context."
+  },
+  {
+    "id": "mon_autoimmune",
+    "condition": "Autoimmune disease monitoring",
+    "biomarker_panel": "ANA, anti-TPO, anti-thyroglobulin, RF, anti-CCP, ESR, hsCRP, complement C3/C4, immunoglobulins",
+    "frequency": "annually; more frequently during flares",
+    "trigger_values": "{\"ANA_titer\": \">1:160\", \"anti_TPO\": \">100 IU/mL\", \"RF\": \">20 IU/mL\", \"anti_CCP\": \">20 U/mL\", \"ESR\": \">30 mm/hr\", \"C3\": \"<80 mg/dL\"}",
+    "text_chunk": "Autoimmune disease monitoring protocol. ANA (antinuclear antibody): screening for systemic lupus erythematosus, Sjogren, mixed connective tissue disease. Titer >1:160 with symptoms warrants subspecialty referral. Anti-TPO and anti-thyroglobulin: Hashimoto thyroiditis and Graves disease monitoring; rising titers indicate disease progression. RF (rheumatoid factor) and anti-CCP (anti-cyclic citrullinated peptide): rheumatoid arthritis diagnosis and prognosis; anti-CCP is more specific (95% vs 85% for RF). ESR and hsCRP: disease activity markers for SLE, RA, and vasculitis. Complement C3/C4: low levels indicate immune complex consumption in active SLE or vasculitis. Annual monitoring in stable disease; monthly during flares or medication changes."
+  },
+  {
+    "id": "mon_kidney_function",
+    "condition": "Kidney function decline monitoring",
+    "biomarker_panel": "eGFR (CKD-EPI), serum creatinine, cystatin C, urine albumin-to-creatinine ratio, BUN, electrolytes, phosphorus, PTH",
+    "frequency": "every 3 months",
+    "trigger_values": "{\"eGFR\": \"<60 mL/min/1.73m2\", \"eGFR_decline\": \">5 mL/min/year\", \"UACR\": \">30 mg/g\", \"potassium\": \">5.0 mEq/L\", \"phosphorus\": \">4.5 mg/dL\"}",
+    "text_chunk": "Monitoring protocol for kidney function decline. Quarterly eGFR using CKD-EPI equation (creatinine-based, or combined creatinine-cystatin C for improved accuracy). Track eGFR trajectory: decline >5 mL/min/year is rapid progression requiring nephrology referral. UACR (urine albumin-to-creatinine ratio): first morning void, >30 mg/g is albuminuria indicating glomerular damage, triggers RAAS blockade (ACEi/ARB) and consideration of SGLT2 inhibitor. Serum potassium monitoring essential with RAAS blockade (hyperkalemia risk). Phosphorus and PTH monitoring when eGFR <45 (CKD stage 3b+) to detect secondary hyperparathyroidism. Cystatin C provides muscle-mass-independent GFR estimation, superior in elderly, sarcopenic, or obese patients."
+  },
+  {
+    "id": "mon_heart_failure",
+    "condition": "Heart failure monitoring",
+    "biomarker_panel": "BNP or NT-proBNP, high-sensitivity troponin, creatinine, eGFR, sodium, potassium, magnesium, hemoglobin",
+    "frequency": "every 1-3 months depending on stability",
+    "trigger_values": "{\"BNP\": \">400 pg/mL\", \"NT_proBNP\": \">900 pg/mL\", \"troponin_rise\": \">50% from baseline\", \"eGFR_decline\": \">5 mL/min/year\", \"sodium\": \"<135 mEq/L\", \"potassium\": \">5.5 mEq/L\"}",
+    "text_chunk": "Heart failure monitoring protocol. BNP (B-type natriuretic peptide) or NT-proBNP (N-terminal pro-BNP): primary biomarker for HF diagnosis, severity, and treatment response. BNP >400 pg/mL or NT-proBNP >900 pg/mL indicates significant volume overload requiring therapy adjustment. Trending is more valuable than single values; >30% rise from dry baseline suggests decompensation. High-sensitivity troponin: chronic elevation indicates ongoing myocardial injury; rising levels suggest disease progression. Renal function (creatinine, eGFR): cardiorenal syndrome monitoring, guide diuretic and RAAS blocker dosing. Electrolytes: hyponatremia (<135) indicates poor prognosis; hyperkalemia risk with RAAS blockade and MRA (spironolactone, eplerenone). Hemoglobin: anemia (Hb <10) worsens HF symptoms."
+  },
+  {
+    "id": "mon_osteoporosis",
+    "condition": "Osteoporosis monitoring and bone health",
+    "biomarker_panel": "Vitamin D (25-OH), calcium (total and ionized), PTH, P1NP (bone formation), CTX (bone resorption), magnesium, phosphorus",
+    "frequency": "annually; DEXA every 2 years",
+    "trigger_values": "{\"vitamin_D\": \"<30 ng/mL\", \"calcium_total\": \"<8.5 mg/dL\", \"PTH\": \">65 pg/mL\", \"CTX\": \">0.584 ng/mL\", \"T_score\": \"<-2.5\"}",
+    "text_chunk": "Osteoporosis monitoring protocol. Annual serum 25(OH) vitamin D (target 30-50 ng/mL), calcium (rule out hypo/hypercalcemia), PTH (detect secondary hyperparathyroidism from vitamin D deficiency), and bone turnover markers. P1NP (procollagen type I N-terminal propeptide) is the preferred bone formation marker; CTX (C-terminal telopeptide) is the preferred bone resorption marker. Rising CTX indicates active bone loss. DEXA scan every 2 years for T-score monitoring. Bisphosphonate therapy: assess CTX suppression (target <0.25 ng/mL) to confirm efficacy. Magnesium and phosphorus for mineral metabolism assessment. Supplement protocol: vitamin D 2000-4000 IU + K2 200 mcg + calcium 500-600 mg + magnesium 400 mg daily."
+  },
+  {
+    "id": "mon_prostate_health",
+    "condition": "Prostate health monitoring",
+    "biomarker_panel": "Total PSA, free PSA, free/total PSA ratio, testosterone, DHT",
+    "frequency": "annually starting age 50 (age 40 for high-risk)",
+    "trigger_values": "{\"PSA\": \">4.0 ng/mL\", \"free_PSA_ratio\": \"<0.15\", \"PSA_velocity\": \">0.75 ng/mL/year\", \"PSA_doubling_time\": \"<3 years\"}",
+    "text_chunk": "Prostate health monitoring protocol. Annual total PSA starting at age 50 (age 40 for African American men, BRCA2 carriers, or those with first-degree relative with prostate cancer). PSA >4.0 ng/mL: evaluate with free PSA ratio (free/total <0.15 suggests cancer, >0.25 suggests BPH), consider prostate MRI (PI-RADS scoring), and urology referral. PSA velocity >0.75 ng/mL/year even with PSA <4.0 warrants investigation. PSA doubling time <3 years post-treatment indicates biochemical recurrence. 5-alpha reductase inhibitors (finasteride, dutasteride) reduce PSA by ~50%; double the measured PSA for interpretation. Free/total ratio is not affected by 5-ARI therapy."
+  },
+  {
+    "id": "mon_hormonal",
+    "condition": "Hormonal balance monitoring",
+    "biomarker_panel": "Morning cortisol, DHEA-S, total testosterone, free testosterone, SHBG, estradiol, progesterone, IGF-1",
+    "frequency": "quarterly; annually when stable",
+    "trigger_values": "{\"morning_cortisol\": \">20 or <5 ug/dL\", \"DHEA_S_low\": \"below age/sex range\", \"testosterone_male\": \"<300 ng/dL\", \"testosterone_female\": \">70 ng/dL\", \"SHBG_male\": \">50 nmol/L\"}",
+    "text_chunk": "Hormonal balance monitoring protocol. Morning cortisol (8-10 AM): assess adrenal function (low <5 ug/dL suggests adrenal insufficiency; high >20 ug/dL suggests Cushing syndrome). DHEA-S: adrenal androgen precursor that declines with age (adrenopause); low levels correlate with aging, immune decline, and reduced vitality. Total and free testosterone (males): <300 ng/dL total indicates hypogonadism (with symptoms); free testosterone more clinically relevant. SHBG: elevated SHBG reduces free testosterone bioavailability. Estradiol: monitor in both sexes (deficiency in women: bone loss, cardiovascular risk; excess in men: gynecomastia, mood changes). IGF-1: growth hormone axis marker, declines with age (somatopause). Quarterly monitoring during hormone optimization; annually when stable."
+  },
+  {
+    "id": "mon_pregnancy",
+    "condition": "Pregnancy-related monitoring",
+    "biomarker_panel": "hCG (beta-HCG), progesterone, TSH, Free T4, CBC, iron panel, vitamin D, folate, glucose challenge test",
+    "frequency": "per trimester; GCT at 24-28 weeks",
+    "trigger_values": "{\"hCG_doubling_time\": \">72 hours\", \"progesterone\": \"<10 ng/mL first trimester\", \"TSH\": \">2.5 mIU/L first trimester\", \"hemoglobin\": \"<10 g/dL\", \"GCT_1hr\": \">140 mg/dL\"}",
+    "text_chunk": "Pregnancy-related biomarker monitoring protocol. Early pregnancy (weeks 4-8): serial beta-hCG (should double every 48-72 hours; failure suggests ectopic or nonviable pregnancy) and progesterone (>10 ng/mL supports viable pregnancy). Thyroid: TSH each trimester with pregnancy-specific targets (first trimester <2.5, second/third <3.0 mIU/L); Free T4 for dose adjustment. CBC each trimester: hemoglobin <10 g/dL requires iron supplementation. Iron panel: ferritin target >30 ng/mL throughout pregnancy. Vitamin D: target >30 ng/mL (supplement 2000-4000 IU/day). Folate: ensure methylfolate 800 mcg/day (especially MTHFR carriers). Glucose challenge test (GCT) at 24-28 weeks: 1-hour value >140 mg/dL triggers 3-hour OGTT for gestational diabetes diagnosis."
+  },
+  {
+    "id": "mon_post_bariatric",
+    "condition": "Post-bariatric surgery nutritional monitoring",
+    "biomarker_panel": "Vitamin B12, folate, iron panel (ferritin, TSAT), vitamin D, calcium, PTH, zinc, copper, vitamin A, thiamine, albumin, prealbumin",
+    "frequency": "quarterly year 1; semi-annual after",
+    "trigger_values": "{\"B12\": \"<300 pg/mL\", \"ferritin\": \"<20 ng/mL\", \"vitamin_D\": \"<30 ng/mL\", \"calcium\": \"<8.5 mg/dL\", \"PTH\": \">65 pg/mL\", \"zinc\": \"<60 ug/dL\", \"albumin\": \"<3.5 g/dL\", \"thiamine\": \"<70 nmol/L\"}",
+    "text_chunk": "Post-bariatric surgery nutritional monitoring protocol. Malabsorptive procedures (Roux-en-Y gastric bypass, biliopancreatic diversion) cause predictable nutrient deficiencies requiring lifelong monitoring. Quarterly for the first year, then semi-annually: B12 (bypass of IF-producing parietal cells; sublingual or injectable methylcobalamin required), iron panel (reduced acid-dependent absorption; ferrous bisglycinate preferred), vitamin D + calcium + PTH (malabsorbed calcium, secondary hyperparathyroidism risk), zinc and copper (proximal jejunal malabsorption), vitamin A (fat-soluble, requires bile acid), thiamine (deficiency causes Wernicke encephalopathy in rapid weight loss). Albumin and prealbumin assess protein nutrition. Lifelong supplementation is mandatory: multivitamin with iron, calcium citrate 1200-1500 mg, D3 3000-5000 IU, B12 1000-2000 mcg."
+  },
+  {
+    "id": "mon_chronic_liver_disease",
+    "condition": "Chronic liver disease monitoring",
+    "biomarker_panel": "ALT, AST, GGT, alkaline phosphatase, total/direct bilirubin, albumin, INR, platelet count, FIB-4 score, AFP",
+    "frequency": "quarterly LFTs; semi-annual FIB-4",
+    "trigger_values": "{\"ALT\": \">2x ULN\", \"albumin\": \"<3.5 g/dL\", \"INR\": \">1.3\", \"platelets\": \"<150 x10^3/uL\", \"FIB4\": \">2.67\", \"AFP\": \">20 ng/mL\", \"bilirubin\": \">2.0 mg/dL\"}",
+    "text_chunk": "Chronic liver disease monitoring protocol. Quarterly hepatic function panel: ALT/AST (hepatocellular injury), GGT/ALP (cholestatic/biliary injury), bilirubin (conjugation/excretion capacity), albumin (synthetic function), INR (coagulation factor synthesis). Platelet count as non-invasive fibrosis marker (thrombocytopenia from portal hypertension/splenic sequestration). Semi-annual FIB-4 score: <1.3 excludes advanced fibrosis; >2.67 suggests advanced fibrosis/cirrhosis. In established cirrhosis: semi-annual ultrasound + AFP for hepatocellular carcinoma (HCC) surveillance. MELD score calculation (bilirubin, INR, creatinine) for transplant prioritization if decompensated. Variceal screening endoscopy if platelets <150 or FIB-4 >2.67."
+  },
+  {
+    "id": "mon_rheumatoid_arthritis",
+    "condition": "Rheumatoid arthritis monitoring",
+    "biomarker_panel": "CRP, ESR, RF, anti-CCP, CBC with differential, ALT, AST, creatinine",
+    "frequency": "CRP/ESR quarterly; CBC monthly on DMARDs",
+    "trigger_values": "{\"CRP\": \">1.0 mg/dL\", \"ESR\": \">30 mm/hr\", \"WBC\": \"<3.0 x10^3/uL\", \"platelets\": \"<100 x10^3/uL\", \"ALT\": \">2x ULN\", \"hemoglobin\": \"<10 g/dL\"}",
+    "text_chunk": "Rheumatoid arthritis monitoring protocol. Quarterly disease activity assessment: CRP and ESR as inflammatory markers (target normalization indicates disease control), RF and anti-CCP titers for seropositive disease prognosis. Monthly CBC on DMARDs: methotrexate, leflunomide, and biologics cause myelosuppression (leukopenia, thrombocytopenia, anemia). Monthly liver enzymes on methotrexate and leflunomide. Creatinine monthly on methotrexate (renally cleared). Disease activity scoring: DAS28-CRP or CDAI at each visit to guide treat-to-target strategy. Biologic therapy monitoring: TB screening before initiation, hepatitis B/C screening, annual infection surveillance. Cardiovascular risk assessment annually (RA increases CV risk 1.5-2x)."
+  },
+  {
+    "id": "mon_post_transplant",
+    "condition": "Post-transplant monitoring",
+    "biomarker_panel": "Immunosuppressant drug levels (tacrolimus/cyclosporine), creatinine, eGFR, CBC, liver enzymes, CMV PCR, BK virus PCR, glucose, lipids",
+    "frequency": "daily to weekly to monthly",
+    "trigger_values": "{\"tacrolimus_trough\": \"<5 or >15 ng/mL\", \"creatinine_rise\": \">25% from baseline\", \"WBC\": \"<3.0 x10^3/uL\", \"CMV_viral_load\": \">1000 copies/mL\", \"BK_viral_load\": \">10000 copies/mL\"}",
+    "text_chunk": "Post-transplant monitoring protocol. Frequency: daily labs first week post-transplant, weekly for first month, biweekly months 2-3, monthly months 4-12, then every 2-3 months long-term. Immunosuppressant drug levels: tacrolimus trough target 8-12 ng/mL (first 3 months), 5-8 ng/mL (maintenance); out-of-range levels indicate rejection risk (low) or toxicity (high). Renal function: creatinine/eGFR trend (>25% rise suggests acute rejection or calcineurin inhibitor nephrotoxicity). CBC: leukopenia from mycophenolate or viral infection. CMV PCR: weekly for 3-6 months (CMV reactivation, pre-emptive therapy if >1000 copies). BK virus PCR: monthly for 12 months (BK nephropathy, reduce immunosuppression if >10,000 copies). Metabolic: glucose (new-onset diabetes), lipids (immunosuppressant-induced dyslipidemia)."
+  },
+  {
+    "id": "mon_pediatric_growth",
+    "condition": "Pediatric growth and development monitoring",
+    "biomarker_panel": "IGF-1, IGF-BP3, TSH, Free T4, vitamin D, iron panel, CBC, celiac panel (anti-tTG IgA), alkaline phosphatase",
+    "frequency": "annually",
+    "trigger_values": "{\"IGF1\": \"below age/sex -2 SD\", \"TSH\": \">5.0 mIU/L\", \"ferritin\": \"<15 ng/mL\", \"vitamin_D\": \"<20 ng/mL\", \"anti_tTG_IgA\": \">positive\", \"growth_velocity\": \"<4 cm/year after age 4\"}",
+    "text_chunk": "Pediatric growth and development monitoring protocol. Annual assessment for children with growth concerns or chronic conditions. IGF-1 and IGFBP-3: growth hormone axis screening (both should be within age/sex-appropriate ranges; low values suggest GH deficiency, requiring GH stimulation testing). TSH and Free T4: hypothyroidism is a common reversible cause of poor growth. Iron panel and CBC: iron deficiency anemia is the most common nutritional deficiency in children, impairing growth and cognitive development. Vitamin D: target >30 ng/mL for bone mineralization. Celiac panel (anti-tissue transglutaminase IgA + total IgA): screen for celiac disease, which causes growth failure from malabsorption. ALP: elevated in normal growth (bone isoenzyme from active growth plates); very low ALP suggests hypophosphatasia. Growth velocity <4 cm/year after age 4 is the most sensitive indicator of pathological growth failure."
+  }
+]

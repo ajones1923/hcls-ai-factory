@@ -1,0 +1,224 @@
+# =============================================================================
+# Biomarker Intelligence Agent -- CI/CD
+# HCLS AI Factory / ai_agent_adds / precision_biomarker_agent
+#
+# Triggers on push/PR to main; also callable via workflow_dispatch.
+# Jobs: lint, test, integration (optional), security, docker build.
+#
+# Author: Adam Jones
+# Date:   March 2026
+# =============================================================================
+
+name: Biomarker Intelligence Agent CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: "3.12"
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Lint & Type Check
+  # ---------------------------------------------------------------------------
+  lint:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install linting tools
+        run: |
+          pip install --upgrade pip
+          pip install ruff pyright
+
+      - name: Install project dependencies
+        run: pip install -r requirements.txt
+
+      - name: Ruff lint
+        run: ruff check src/ api/ app/ tests/
+
+      - name: Ruff format check
+        run: ruff format --check src/ api/ app/ tests/ || true
+
+      - name: Python syntax validation
+        run: |
+          python -c "
+          import ast, glob, sys
+          errors = []
+          for pattern in ['src/**/*.py', 'api/**/*.py', 'app/**/*.py']:
+              for f in glob.glob(pattern, recursive=True):
+                  try:
+                      ast.parse(open(f).read())
+                  except SyntaxError as e:
+                      errors.append(f'{f}: {e}')
+          if errors:
+              print('Syntax errors found:')
+              for e in errors:
+                  print(f'  {e}')
+              sys.exit(1)
+          print('All files passed syntax check.')
+          "
+
+  # ---------------------------------------------------------------------------
+  # Unit Tests & Coverage
+  # ---------------------------------------------------------------------------
+  test:
+    name: Unit Tests & Coverage
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest-cov
+
+      - name: Run unit tests with coverage
+        run: |
+          python -m pytest tests/ \
+            -v --tb=short \
+            -m "not integration and not slow" \
+            --cov=src --cov=api --cov=app \
+            --cov-report=term-missing \
+            --cov-report=xml:coverage.xml
+
+      - name: Check coverage threshold (50%)
+        run: |
+          python -m pytest tests/ \
+            -m "not integration and not slow" \
+            --cov=src --cov=api --cov=app \
+            --cov-fail-under=50 -q \
+          || echo "::warning::Coverage below 50% threshold"
+
+      - name: Upload coverage artifact
+        if: always() && matrix.python-version == '3.12'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
+
+  # ---------------------------------------------------------------------------
+  # Integration Tests (runs only when test files with integration marker exist)
+  # ---------------------------------------------------------------------------
+  integration:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Check for integration tests
+        id: check
+        run: |
+          if grep -rl '@pytest.mark.integration' tests/ 2>/dev/null; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "found=false" >> "$GITHUB_OUTPUT"
+            echo "No integration-marked tests found; skipping."
+          fi
+
+      - name: Run integration tests
+        if: steps.check.outputs.found == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          MILVUS_HOST: ${{ secrets.MILVUS_HOST || 'localhost' }}
+          MILVUS_PORT: ${{ secrets.MILVUS_PORT || '19530' }}
+        run: |
+          python -m pytest tests/ \
+            -v --tb=short \
+            -m integration
+
+  # ---------------------------------------------------------------------------
+  # Security Scan
+  # ---------------------------------------------------------------------------
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install bandit pip-audit
+
+      - name: Bandit security scan
+        run: |
+          bandit -r src/ api/ -ll --skip B101 \
+            -f json -o bandit-report.json || true
+          bandit -r src/ api/ -ll --skip B101 || true
+
+      - name: pip-audit dependency check
+        run: pip-audit -r requirements.txt || true
+
+      - name: Upload Bandit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bandit-report
+          path: bandit-report.json
+          if-no-files-found: ignore
+
+  # ---------------------------------------------------------------------------
+  # Docker Build
+  # ---------------------------------------------------------------------------
+  docker:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    needs: [lint, test]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          tags: |
+            precision-biomarker-agent:${{ github.sha }}
+            precision-biomarker-agent:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Verify image
+        run: |
+          docker buildx build -t precision-biomarker-agent:verify --load .
+          docker run --rm precision-biomarker-agent:verify python -c "import src; print('Image OK')"

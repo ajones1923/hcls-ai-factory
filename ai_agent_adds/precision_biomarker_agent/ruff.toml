@@ -1,0 +1,13 @@
+target-version = "py312"
+
+[lint]
+ignore = [
+    "E402",
+    "F401",
+    "C901",
+    "E702",
+]
+
+[lint.per-file-ignores]
+"scripts/*" = ["E402", "F401"]
+"tests/*" = ["F841"]

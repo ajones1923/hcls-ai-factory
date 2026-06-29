@@ -1,0 +1,452 @@
+[
+  {
+    "id": "nutr_folate_mthfr_tt",
+    "nutrient": "Folate (5-MTHF)",
+    "genetic_context": "MTHFR C677T homozygous (TT)",
+    "recommended_form": "L-methylfolate (5-MTHF)",
+    "dose_range": "800-1000 mcg/day",
+    "evidence_summary": "MTHFR 677TT reduces enzyme activity by ~70%, severely impairing conversion of folic acid to active 5-MTHF. Supplementation with pre-methylated folate bypasses the defective enzyme. Meta-analyses show methylfolate normalizes homocysteine more effectively than folic acid in TT carriers. Dose of 800-1000 mcg/day recommended based on homocysteine-lowering trials.",
+    "text_chunk": "MTHFR C677T homozygous TT genotype requires L-methylfolate (5-MTHF) supplementation at 800-1000 mcg/day. The TT genotype reduces MTHFR enzyme activity by approximately 70%, severely impairing the conversion of synthetic folic acid to the biologically active 5-methyltetrahydrofolate. This leads to elevated homocysteine levels, impaired DNA methylation, and increased risk for neural tube defects, cardiovascular disease, and depression. Direct supplementation with L-methylfolate bypasses the enzymatic block entirely."
+  },
+  {
+    "id": "nutr_folate_mthfr_ct",
+    "nutrient": "Folate (5-MTHF)",
+    "genetic_context": "MTHFR C677T heterozygous (CT)",
+    "recommended_form": "L-methylfolate (5-MTHF)",
+    "dose_range": "400-800 mcg/day",
+    "evidence_summary": "MTHFR 677CT reduces enzyme activity by ~35%, causing moderate impairment of folate metabolism. Methylfolate is preferred over folic acid to ensure adequate active folate status. 400-800 mcg/day is sufficient for most heterozygous carriers, with the higher end recommended if homocysteine is elevated or during pregnancy.",
+    "text_chunk": "MTHFR C677T heterozygous CT genotype benefits from L-methylfolate (5-MTHF) at 400-800 mcg/day. The CT genotype reduces MTHFR enzyme activity by approximately 35%, causing moderate impairment of folic acid conversion. While less severe than TT, this reduction can still lead to mildly elevated homocysteine, especially under folate-deficient dietary conditions. Methylfolate supplementation ensures adequate active folate availability without relying on the partially impaired enzyme."
+  },
+  {
+    "id": "nutr_folate_mthfr_cc",
+    "nutrient": "Folate",
+    "genetic_context": "MTHFR C677T wild-type (CC)",
+    "recommended_form": "Folic acid or dietary folate",
+    "dose_range": "400 mcg/day",
+    "evidence_summary": "Individuals with the wild-type CC genotype at MTHFR C677T have normal MTHFR enzyme activity and can efficiently convert folic acid to 5-MTHF. Standard folic acid supplementation at 400 mcg/day is adequate. No preferential need for methylfolate, though it remains a valid alternative.",
+    "text_chunk": "MTHFR C677T wild-type CC genotype has normal MTHFR enzyme function. Standard folic acid supplementation at 400 mcg/day (the RDA for non-pregnant adults) is sufficient. The enzyme efficiently converts folic acid to active 5-methyltetrahydrofolate. Either folic acid or methylfolate forms are appropriate. Higher doses of 600-800 mcg/day are recommended during pregnancy regardless of genotype."
+  },
+  {
+    "id": "nutr_methylation_combo",
+    "nutrient": "Methylation Support Complex",
+    "genetic_context": "MTHFR variant + elevated homocysteine",
+    "recommended_form": "L-methylfolate + methylcobalamin + pyridoxal-5-phosphate (P5P)",
+    "dose_range": "Methylfolate 800-1000 mcg + B12 1000 mcg + P5P 50 mg daily",
+    "evidence_summary": "When MTHFR variants are accompanied by elevated homocysteine (>10 umol/L), a triple B-vitamin approach is most effective. Methylfolate provides the active folate cofactor, methylcobalamin supports methionine synthase (remethylation), and P5P supports cystathionine beta-synthase (transsulfuration). This combination addresses both the remethylation and transsulfuration pathways of homocysteine metabolism.",
+    "text_chunk": "MTHFR variants combined with elevated homocysteine require a comprehensive methylation support protocol: L-methylfolate 800-1000 mcg, methylcobalamin 1000 mcg, and pyridoxal-5-phosphate (P5P) 50 mg daily. This addresses homocysteine through both the remethylation pathway (methylfolate + B12 as cofactors for methionine synthase) and the transsulfuration pathway (P5P as cofactor for cystathionine beta-synthase). Target homocysteine below 8 umol/L for optimal cardiovascular and neurological protection."
+  },
+  {
+    "id": "nutr_b12_general",
+    "nutrient": "Vitamin B12 (Cobalamin)",
+    "genetic_context": "General supplementation",
+    "recommended_form": "Methylcobalamin or hydroxocobalamin",
+    "dose_range": "500-1000 mcg/day sublingual or 1000-2000 mcg/day oral",
+    "evidence_summary": "Vitamin B12 is essential for methionine synthase (homocysteine remethylation), DNA synthesis, and neurological function. Methylcobalamin is the bioactive form used directly in the methionine cycle. Hydroxocobalamin has longer tissue retention. Cyanocobalamin requires conversion and is less preferred for MTHFR variant carriers. Sublingual delivery improves absorption, especially in those with low intrinsic factor or gastric acid.",
+    "text_chunk": "Vitamin B12 supplementation is recommended as methylcobalamin or hydroxocobalamin at 500-1000 mcg/day sublingual or 1000-2000 mcg/day oral. B12 is a critical cofactor for methionine synthase, which remethylates homocysteine to methionine. Deficiency causes megaloblastic anemia, peripheral neuropathy, and cognitive decline. Methylcobalamin is directly bioactive in the methylation cycle, while hydroxocobalamin has superior tissue retention. Sublingual administration bypasses potential gastrointestinal absorption issues."
+  },
+  {
+    "id": "nutr_b6_p5p_mthfr",
+    "nutrient": "Vitamin B6 (Pyridoxal-5-Phosphate)",
+    "genetic_context": "MTHFR variants (CT or TT)",
+    "recommended_form": "Pyridoxal-5-phosphate (P5P)",
+    "dose_range": "25-50 mg/day",
+    "evidence_summary": "P5P is the active form of vitamin B6 and serves as a cofactor for cystathionine beta-synthase (CBS) in the transsulfuration pathway, converting homocysteine to cystathionine and ultimately glutathione. In MTHFR variant carriers where the remethylation pathway is impaired, the transsulfuration pathway becomes critical for homocysteine clearance. P5P also supports over 100 enzymatic reactions including neurotransmitter synthesis.",
+    "text_chunk": "Vitamin B6 as pyridoxal-5-phosphate (P5P) at 25-50 mg/day is recommended for MTHFR variant carriers. P5P is the bioactive form of B6 and is a cofactor for cystathionine beta-synthase (CBS), which diverts homocysteine into the transsulfuration pathway when the remethylation pathway (dependent on MTHFR) is impaired. This pathway converts homocysteine to cystathionine, then to cysteine and glutathione. P5P is preferred over pyridoxine HCl as it does not require hepatic conversion."
+  },
+  {
+    "id": "nutr_riboflavin_mthfr_tt",
+    "nutrient": "Riboflavin (Vitamin B2)",
+    "genetic_context": "MTHFR C677T homozygous (TT)",
+    "recommended_form": "Riboflavin-5-phosphate (active) or riboflavin",
+    "dose_range": "25-50 mg/day",
+    "evidence_summary": "Riboflavin (as FAD) is a cofactor for the MTHFR enzyme. The C677T variant destabilizes the MTHFR-FAD binding, and supplemental riboflavin can partially restore enzyme function by increasing FAD availability. The RIBOFOL trial demonstrated that riboflavin 1.6 mg/day lowered blood pressure in MTHFR 677TT hypertensive patients by 5-13 mmHg. Higher doses of 25-50 mg may further stabilize the thermolabile enzyme.",
+    "text_chunk": "Riboflavin (vitamin B2) at 25-50 mg/day specifically benefits MTHFR C677T TT carriers. FAD (flavin adenine dinucleotide, derived from riboflavin) is a cofactor for MTHFR. The 677TT mutation destabilizes the MTHFR-FAD binding, and riboflavin supplementation increases intracellular FAD, partially rescuing enzyme activity. The RIBOFOL trial showed riboflavin lowered systolic blood pressure by 5-13 mmHg in TT hypertensive subjects. Riboflavin also synergizes with methylfolate for homocysteine reduction."
+  },
+  {
+    "id": "nutr_tmg_betaine",
+    "nutrient": "Trimethylglycine (TMG/Betaine)",
+    "genetic_context": "Elevated homocysteine, MTHFR variants",
+    "recommended_form": "Betaine anhydrous (TMG)",
+    "dose_range": "500-3000 mg/day",
+    "evidence_summary": "TMG (betaine) serves as an alternative methyl donor via betaine-homocysteine methyltransferase (BHMT), remethylating homocysteine to methionine independently of the MTHFR-dependent folate pathway. This provides a bypass route when MTHFR is impaired. Doses of 1.5-6 g/day have been shown to reduce homocysteine by 12-20% in clinical studies. TMG also supports hepatic SAMe production and osmotic regulation.",
+    "text_chunk": "Trimethylglycine (TMG/betaine) at 500-3000 mg/day provides an MTHFR-independent pathway for homocysteine remethylation via betaine-homocysteine methyltransferase (BHMT). This is particularly valuable for MTHFR TT carriers where the folate-dependent remethylation pathway is impaired. TMG donates a methyl group directly to homocysteine, converting it to methionine without requiring 5-MTHF. Clinical studies show 1.5-6 g/day reduces homocysteine by 12-20%. TMG also supports hepatic S-adenosylmethionine (SAMe) production."
+  },
+  {
+    "id": "nutr_omega3_fads1_tt",
+    "nutrient": "Omega-3 Fatty Acids (EPA/DHA)",
+    "genetic_context": "FADS1 rs174547 TT (poor converter)",
+    "recommended_form": "Preformed EPA/DHA (fish oil or algal oil)",
+    "dose_range": "2-4 g/day EPA+DHA",
+    "evidence_summary": "FADS1 rs174547 TT genotype results in significantly reduced delta-5 desaturase activity, impairing conversion of ALA (alpha-linolenic acid) to EPA and DHA by up to 70%. These individuals cannot rely on plant-based omega-3 sources and require preformed EPA/DHA. Higher doses of 2-4 g/day are needed to achieve therapeutic omega-3 index levels (>8%). Triglyceride-form fish oil has superior bioavailability over ethyl ester forms.",
+    "text_chunk": "FADS1 rs174547 TT genotype requires preformed EPA/DHA at 2-4 g/day. The TT genotype reduces delta-5 desaturase (FADS1) activity by up to 70%, severely impairing the endogenous conversion of plant-derived ALA to the long-chain omega-3 fatty acids EPA and DHA. These individuals have significantly lower blood omega-3 levels on standard diets and cannot achieve adequate omega-3 status from flaxseed, chia, or walnuts alone. Preformed EPA/DHA from fish oil or algal oil is essential. Triglyceride-form supplements have better bioavailability."
+  },
+  {
+    "id": "nutr_omega3_fads1_ct",
+    "nutrient": "Omega-3 Fatty Acids (EPA/DHA)",
+    "genetic_context": "FADS1 rs174547 CT (intermediate converter)",
+    "recommended_form": "EPA/DHA (fish oil or algal oil)",
+    "dose_range": "1-2 g/day EPA+DHA",
+    "evidence_summary": "FADS1 rs174547 CT heterozygotes have intermediate delta-5 desaturase activity, with approximately 30-40% reduction in ALA-to-EPA/DHA conversion. These individuals benefit from direct EPA/DHA supplementation at moderate doses of 1-2 g/day. Some endogenous conversion capacity remains, so combined ALA + EPA/DHA intake can be effective. Omega-3 index testing recommended to verify adequacy.",
+    "text_chunk": "FADS1 rs174547 CT genotype benefits from EPA/DHA supplementation at 1-2 g/day. Heterozygous carriers have intermediate delta-5 desaturase activity with approximately 30-40% reduced ALA-to-EPA/DHA conversion. While some endogenous conversion occurs, it is insufficient for optimal omega-3 status in most individuals. Combined approach of dietary ALA sources plus direct EPA/DHA supplementation is recommended. Target omega-3 index of 8% or above with periodic testing to verify adequacy."
+  },
+  {
+    "id": "nutr_omega3_fads1_cc",
+    "nutrient": "Omega-3 Fatty Acids",
+    "genetic_context": "FADS1 rs174547 CC (normal converter)",
+    "recommended_form": "ALA-rich foods or EPA/DHA supplement",
+    "dose_range": "1 g/day EPA+DHA or 2-3 g/day ALA",
+    "evidence_summary": "FADS1 rs174547 CC carriers have normal delta-5 desaturase activity and can convert ALA to EPA/DHA at standard efficiency (~5-10% conversion rate). Both plant-based ALA sources (flaxseed, walnuts, chia) and direct EPA/DHA supplementation are viable options. Standard 1 g/day EPA+DHA or adequate ALA intake is sufficient for general cardiovascular and neurological health.",
+    "text_chunk": "FADS1 rs174547 CC genotype has normal delta-5 desaturase function. Standard omega-3 supplementation of 1 g/day EPA+DHA or dietary ALA intake of 2-3 g/day is adequate. CC carriers convert ALA to EPA at approximately 5-10% efficiency, which is the normal physiological rate. Both plant-based sources (flaxseed oil, walnuts, chia seeds) and marine sources (fatty fish, fish oil, algal oil) can contribute to adequate omega-3 status. An omega-3 index above 8% is the target for cardiovascular protection."
+  },
+  {
+    "id": "nutr_omega3_apoe_e4",
+    "nutrient": "DHA (Docosahexaenoic Acid)",
+    "genetic_context": "APOE E4 carriers (E3/E4 or E4/E4)",
+    "recommended_form": "High-DHA fish oil or algal DHA",
+    "dose_range": "1-2 g/day DHA specifically",
+    "evidence_summary": "APOE E4 carriers have altered brain lipid metabolism with reduced DHA transport across the blood-brain barrier via impaired LRP1-mediated uptake. Higher DHA intake may partially compensate for reduced brain DHA accretion. Observational data suggests high fish intake is associated with reduced Alzheimer risk specifically in E4 carriers. DHA-rich (vs EPA-rich) formulations are preferred for neuroprotective effects.",
+    "text_chunk": "APOE E4 carriers (E3/E4 or E4/E4) benefit from high-dose DHA at 1-2 g/day for neuroprotection. APOE4 impairs DHA transport across the blood-brain barrier, leading to lower brain DHA levels despite normal plasma concentrations. Higher dietary DHA intake may partially compensate for this transport deficit. DHA is critical for neuronal membrane integrity, synaptic function, and neuroinflammation resolution. Observational studies show high fish consumption is associated with reduced Alzheimer disease risk specifically in E4 carriers. DHA-predominant formulations are preferred over EPA-predominant ones for cognitive endpoints."
+  },
+  {
+    "id": "nutr_omega3_cv_reduceit",
+    "nutrient": "EPA (Icosapent Ethyl)",
+    "genetic_context": "Cardiovascular risk, elevated triglycerides",
+    "recommended_form": "Icosapent ethyl (Vascepa) or high-purity EPA",
+    "dose_range": "1.8-4 g/day EPA",
+    "evidence_summary": "The REDUCE-IT trial demonstrated that icosapent ethyl 4 g/day (delivering ~3.6 g EPA) reduced major adverse cardiovascular events by 25% in statin-treated patients with elevated triglycerides. The JELIS trial showed EPA 1.8 g/day reduced coronary events by 19%. EPA acts through multiple mechanisms: triglyceride reduction, anti-inflammatory effects, membrane stabilization, and anti-thrombotic properties. Pure EPA formulations showed benefit while EPA+DHA combinations (STRENGTH trial) did not.",
+    "text_chunk": "EPA supplementation at 1.8-4 g/day for cardiovascular risk reduction follows the REDUCE-IT protocol. Icosapent ethyl 4 g/day reduced MACE (major adverse cardiovascular events) by 25% in statin-treated patients with triglycerides 135-499 mg/dL. EPA lowers triglycerides, reduces arterial inflammation (measured by hsCRP), stabilizes cell membranes, and has anti-thrombotic effects. Importantly, pure EPA demonstrated benefit while mixed EPA+DHA (STRENGTH trial, OMEMI trial) did not reach primary endpoints, suggesting EPA-specific mechanisms beyond triglyceride lowering."
+  },
+  {
+    "id": "nutr_omega3_tg_management",
+    "nutrient": "Omega-3 Fatty Acids (EPA+DHA)",
+    "genetic_context": "Hypertriglyceridemia management",
+    "recommended_form": "Prescription-grade omega-3 or high-dose fish oil",
+    "dose_range": "3-4 g/day combined EPA+DHA",
+    "evidence_summary": "Prescription omega-3 fatty acids at 3-4 g/day reduce triglycerides by 20-50% in a dose-dependent manner. This is an FDA-approved indication for severe hypertriglyceridemia (>500 mg/dL) to reduce pancreatitis risk. The mechanism involves reduced hepatic VLDL production, increased lipoprotein lipase activity, and enhanced beta-oxidation of fatty acids. Both EPA-only and EPA+DHA formulations effectively lower triglycerides, though EPA-only may have superior cardiovascular outcome benefits.",
+    "text_chunk": "Combined EPA+DHA at 3-4 g/day for triglyceride management reduces serum triglycerides by 20-50%. This is the FDA-approved dose for severe hypertriglyceridemia (TG >500 mg/dL) to reduce pancreatitis risk. The mechanisms include reduced hepatic VLDL synthesis, enhanced lipoprotein lipase-mediated TG clearance, increased fatty acid beta-oxidation, and reduced lipogenesis via SREBP-1c suppression. Prescription omega-3 products (Lovaza, Vascepa, Epanova) provide standardized EPA/DHA content. Over-the-counter fish oil quality varies; third-party tested products recommended."
+  },
+  {
+    "id": "nutr_vitd_vdr_tt",
+    "nutrient": "Vitamin D3 (Cholecalciferol)",
+    "genetic_context": "VDR rs2228570 TT (less responsive receptor)",
+    "recommended_form": "Cholecalciferol (D3) with K2 (MK-7)",
+    "dose_range": "4000-5000 IU/day",
+    "evidence_summary": "VDR rs2228570 TT genotype produces a less responsive vitamin D receptor, requiring higher circulating 25(OH)D levels to achieve equivalent biological effects. These individuals may not respond adequately to standard 1000-2000 IU/day dosing. Target serum 25(OH)D of 40-60 ng/mL (vs standard 30-50 ng/mL). Co-supplementation with vitamin K2 (MK-7) is recommended to direct calcium to bone and prevent arterial calcification.",
+    "text_chunk": "VDR rs2228570 TT genotype requires higher vitamin D3 supplementation at 4000-5000 IU/day. The TT genotype at rs2228570 (FokI polymorphism) produces a longer, less transcriptionally active vitamin D receptor protein. This reduces the biological response to 1,25(OH)2D at the receptor level, necessitating higher circulating 25(OH)D concentrations to achieve comparable downstream effects on calcium absorption, bone metabolism, and immune regulation. Target serum 25(OH)D of 40-60 ng/mL. Always co-supplement with K2 (MK-7, 100-200 mcg) to ensure proper calcium handling."
+  },
+  {
+    "id": "nutr_vitd_gc_aa",
+    "nutrient": "Vitamin D3 (Cholecalciferol)",
+    "genetic_context": "GC rs2282679 AA (low vitamin D binding protein)",
+    "recommended_form": "Cholecalciferol (D3), split dosing preferred",
+    "dose_range": "3000-5000 IU/day",
+    "evidence_summary": "GC rs2282679 AA genotype is associated with reduced production of vitamin D binding protein (VDBP/GC-globulin), the primary transport protein for 25(OH)D in the bloodstream. This leads to lower total serum 25(OH)D levels but potentially normal free 25(OH)D. Higher supplementation doses are needed to maintain adequate total 25(OH)D. Split dosing or more frequent administration may improve steady-state levels due to reduced binding capacity and faster clearance.",
+    "text_chunk": "GC rs2282679 AA genotype causes reduced vitamin D binding protein (VDBP) production, requiring 3000-5000 IU/day vitamin D3. The GC gene encodes vitamin D binding protein (group-specific component), which transports 25(OH)D in plasma. The AA genotype reduces VDBP levels, leading to lower total serum 25(OH)D measurements even with adequate supplementation. Free (unbound) 25(OH)D may be normal despite low total levels. Split dosing (e.g., 2500 IU twice daily) may maintain more stable levels given reduced binding capacity and faster metabolic clearance."
+  },
+  {
+    "id": "nutr_vitd_standard",
+    "nutrient": "Vitamin D3 (Cholecalciferol)",
+    "genetic_context": "General population, no VDR/GC variants",
+    "recommended_form": "Cholecalciferol (D3)",
+    "dose_range": "1000-2000 IU/day",
+    "evidence_summary": "Standard vitamin D3 supplementation of 1000-2000 IU/day maintains serum 25(OH)D in the optimal range of 30-50 ng/mL for most adults without relevant genetic variants. The Endocrine Society recommends 1500-2000 IU/day for adults at risk of deficiency. Vitamin D3 is preferred over D2 (ergocalciferol) due to superior bioavailability and longer half-life. Seasonal variation, skin pigmentation, latitude, and sun exposure affect individual requirements.",
+    "text_chunk": "Standard vitamin D3 supplementation of 1000-2000 IU/day is recommended for the general population without VDR or GC genetic variants. This maintains serum 25(OH)D in the optimal range of 30-50 ng/mL. Cholecalciferol (D3) is preferred over ergocalciferol (D2) due to 87% greater potency in raising and maintaining 25(OH)D. The Endocrine Society guidelines recommend 1500-2000 IU/day for adults at risk of deficiency. Factors increasing requirements include dark skin pigmentation, northern latitude, obesity, aging, and limited sun exposure."
+  },
+  {
+    "id": "nutr_vitd_k2",
+    "nutrient": "Vitamin K2 (Menaquinone-7)",
+    "genetic_context": "Co-supplementation with vitamin D",
+    "recommended_form": "MK-7 (menaquinone-7)",
+    "dose_range": "100-200 mcg/day",
+    "evidence_summary": "Vitamin K2 (MK-7) activates osteocalcin (directing calcium to bone) and matrix Gla protein (preventing arterial calcification). When vitamin D increases intestinal calcium absorption, K2 ensures calcium is deposited in bone rather than soft tissue. The combination of D3 + K2 reduces fracture risk more than D3 alone. MK-7 has the longest half-life among K2 forms (72 hours vs 1-2 hours for MK-4), enabling once-daily dosing. Caution with warfarin users.",
+    "text_chunk": "Vitamin K2 as MK-7 (menaquinone-7) at 100-200 mcg/day should accompany vitamin D supplementation. K2 activates matrix Gla protein (MGP), which inhibits arterial calcification, and osteocalcin, which directs calcium into bone matrix. Without adequate K2, vitamin D-enhanced calcium absorption may lead to vascular calcification. MK-7 has a 72-hour half-life enabling once-daily dosing, compared to MK-4 which requires three-times-daily dosing. Important contraindication: patients on warfarin or other vitamin K antagonists should consult their physician before K2 supplementation."
+  },
+  {
+    "id": "nutr_vitd_magnesium",
+    "nutrient": "Magnesium",
+    "genetic_context": "Vitamin D activation cofactor",
+    "recommended_form": "Magnesium glycinate or citrate",
+    "dose_range": "200-400 mg elemental magnesium/day",
+    "evidence_summary": "Magnesium is an essential cofactor for both 25-hydroxylase (CYP2R1) and 1-alpha-hydroxylase (CYP27B1), the enzymes that convert vitamin D to its active 1,25(OH)2D form. Magnesium deficiency impairs vitamin D metabolism, and many individuals with refractory vitamin D deficiency are actually magnesium-deficient. Correcting magnesium status can increase 25(OH)D by 5-10 ng/mL without changing vitamin D intake. An estimated 50% of the US population is magnesium-insufficient.",
+    "text_chunk": "Magnesium at 200-400 mg/day is an essential cofactor for vitamin D activation. Magnesium is required by CYP2R1 (25-hydroxylase, converting D3 to 25(OH)D in the liver) and CYP27B1 (1-alpha-hydroxylase, converting 25(OH)D to active 1,25(OH)2D in the kidney). Without adequate magnesium, vitamin D remains inactive regardless of supplementation dose. Correcting magnesium deficiency alone can raise 25(OH)D levels by 5-10 ng/mL. Magnesium glycinate is preferred for absorption and tolerability; magnesium citrate is an alternative with mild laxative effect."
+  },
+  {
+    "id": "nutr_iron_hfe_c282y_hom",
+    "nutrient": "Iron",
+    "genetic_context": "HFE C282Y homozygous (AA)",
+    "recommended_form": "AVOID iron supplements",
+    "dose_range": "No supplemental iron; limit dietary heme iron",
+    "evidence_summary": "HFE C282Y homozygosity causes hereditary hemochromatosis type 1, with progressive iron overload due to inappropriately low hepcidin production. Iron supplements are strictly contraindicated. Dietary recommendations include limiting red meat, avoiding vitamin C with meals (enhances iron absorption), avoiding iron-fortified foods, and consuming tea/coffee with meals (inhibits absorption). Regular phlebotomy is the mainstay of treatment once ferritin exceeds 200 ng/mL (males) or 150 ng/mL (females).",
+    "text_chunk": "HFE C282Y homozygous (AA) genotype: AVOID all iron supplements. This genotype causes hereditary hemochromatosis type 1 with progressive iron overload due to dysregulated hepcidin-ferroportin axis. Excess iron deposits in the liver (cirrhosis risk), heart (cardiomyopathy), pancreas (diabetes), and joints (arthropathy). Dietary modifications: limit heme iron from red meat, avoid iron-fortified cereals, avoid vitamin C supplements with meals (enhances non-heme iron absorption), consume tannin-rich beverages with meals to inhibit absorption. Therapeutic phlebotomy when ferritin >200 ng/mL (M) or >150 ng/mL (F)."
+  },
+  {
+    "id": "nutr_iron_hfe_c282y_het",
+    "nutrient": "Iron",
+    "genetic_context": "HFE C282Y heterozygous (GA)",
+    "recommended_form": "Monitor ferritin; avoid routine supplementation",
+    "dose_range": "Supplement only if documented iron deficiency",
+    "evidence_summary": "HFE C282Y heterozygous carriers have a mildly increased risk of iron accumulation but rarely develop clinical hemochromatosis (penetrance <1%). Routine iron supplementation is not recommended. Ferritin should be monitored annually, with action if ferritin exceeds 300 ng/mL (males) or 200 ng/mL (females). Iron supplementation should only be given for documented iron deficiency anemia with low ferritin, and should be stopped once ferritin normalizes.",
+    "text_chunk": "HFE C282Y heterozygous (GA) carriers should monitor ferritin levels and avoid routine iron supplementation. While clinical hemochromatosis penetrance is less than 1% in heterozygotes, mildly elevated iron stores can occur, especially in males and postmenopausal females. Annual ferritin and transferrin saturation monitoring is recommended. Supplemental iron should only be used for documented iron deficiency (ferritin <20 ng/mL with anemia) and discontinued once stores are replete. Upper ferritin targets: 200 ng/mL (males), 100 ng/mL (females)."
+  },
+  {
+    "id": "nutr_iron_hfe_h63d",
+    "nutrient": "Iron",
+    "genetic_context": "HFE H63D compound heterozygous (C282Y/H63D)",
+    "recommended_form": "Moderate iron awareness; monitor periodically",
+    "dose_range": "Supplement only if deficient; limit to 18 mg/day",
+    "evidence_summary": "Compound heterozygosity for HFE C282Y/H63D confers moderate risk for iron overload, with approximately 1-2% penetrance for clinical hemochromatosis. Iron stores should be monitored every 6-12 months. Supplemental iron should be limited and only used for documented deficiency. Co-factors that increase risk include male sex, alcohol use, metabolic syndrome, and hepatitis C co-infection. Dietary moderation of heme iron is prudent but strict restriction is not necessary.",
+    "text_chunk": "HFE C282Y/H63D compound heterozygotes have moderate iron overload risk requiring periodic monitoring. Approximately 1-2% develop clinical hemochromatosis, typically requiring additional cofactors such as alcohol use, viral hepatitis, or metabolic syndrome. Monitor ferritin and transferrin saturation every 6-12 months. Avoid routine iron supplementation; if deficiency is documented, use low-dose ferrous bisglycinate and stop when ferritin reaches 50 ng/mL. Moderate dietary heme iron rather than strictly restrict. Avoid excess alcohol as it potentiates hepatic iron toxicity."
+  },
+  {
+    "id": "nutr_iron_deficiency",
+    "nutrient": "Iron (Ferrous Bisglycinate)",
+    "genetic_context": "Iron deficiency without HFE mutations",
+    "recommended_form": "Ferrous bisglycinate chelate",
+    "dose_range": "25-50 mg elemental iron/day",
+    "evidence_summary": "For iron deficiency without HFE-related hemochromatosis risk, ferrous bisglycinate is the preferred supplemental form due to superior absorption (3-4x ferrous sulfate), minimal GI side effects, and no interference from phytates or tannins. Alternate-day dosing may improve fractional absorption due to hepcidin kinetics. Co-administration with vitamin C (100-200 mg) enhances non-heme iron absorption. Target ferritin of 50-100 ng/mL for optimal iron status.",
+    "text_chunk": "Iron supplementation as ferrous bisglycinate chelate at 25-50 mg elemental iron/day for iron deficiency without HFE mutations. Ferrous bisglycinate has 3-4 times greater bioavailability than ferrous sulfate with significantly fewer gastrointestinal side effects (constipation, nausea, cramping). It is absorbed via the amino acid transport pathway rather than the DMT1 iron pathway, bypassing interference from phytates, tannins, and calcium. Alternate-day dosing may paradoxically improve absorption due to the 24-hour hepcidin refractory period after iron ingestion."
+  },
+  {
+    "id": "nutr_iron_overload_phlebotomy",
+    "nutrient": "Iron (Overload Management)",
+    "genetic_context": "Hereditary hemochromatosis, elevated ferritin",
+    "recommended_form": "Phlebotomy protocol, not supplements",
+    "dose_range": "Phlebotomy 500 mL every 1-2 weeks until ferritin <50 ng/mL",
+    "evidence_summary": "Therapeutic phlebotomy is the standard of care for iron overload in hereditary hemochromatosis. Each unit (500 mL) removes approximately 200-250 mg iron. Induction phase: phlebotomy every 1-2 weeks until ferritin falls below 50 ng/mL. Maintenance phase: phlebotomy every 2-4 months to keep ferritin between 25-50 ng/mL. Transferrin saturation should be maintained below 50%. Dietary adjuncts include iron absorption inhibitors (tea, calcium with meals) and avoiding vitamin C supplements.",
+    "text_chunk": "Iron overload management via therapeutic phlebotomy for hereditary hemochromatosis. Induction: remove 500 mL whole blood (approximately 200-250 mg iron) every 1-2 weeks, monitoring ferritin and hemoglobin before each session. Continue until ferritin is below 50 ng/mL. Maintenance: phlebotomy every 2-4 months to keep ferritin 25-50 ng/mL and transferrin saturation below 50%. Hemoglobin should remain above 12.5 g/dL; defer phlebotomy if below. Dietary guidance: consume tannin-rich beverages with meals, calcium supplements with meals, avoid vitamin C supplements, limit red meat to 2-3 servings per week."
+  },
+  {
+    "id": "nutr_magnesium",
+    "nutrient": "Magnesium",
+    "genetic_context": "General supplementation",
+    "recommended_form": "Magnesium glycinate (absorption), magnesium citrate (constipation)",
+    "dose_range": "200-400 mg elemental magnesium/day",
+    "evidence_summary": "Magnesium is involved in over 600 enzymatic reactions including ATP production, DNA/RNA synthesis, muscle contraction, and nervous system regulation. An estimated 50% of the US population is magnesium-insufficient. Magnesium glycinate (bis-glycinate chelate) has superior bioavailability and minimal GI side effects, making it ideal for general supplementation. Magnesium citrate has good bioavailability with an osmotic laxative effect, useful for those with constipation. Avoid magnesium oxide (poor absorption, <4% bioavailability).",
+    "text_chunk": "Magnesium supplementation at 200-400 mg elemental magnesium/day. Magnesium glycinate (bis-glycinate chelate) is the preferred form for general supplementation due to high bioavailability, excellent GI tolerability, and calming neurological effects (glycine is an inhibitory neurotransmitter). Magnesium citrate is an alternative with good absorption and mild osmotic laxative properties, beneficial for those with constipation. Magnesium is a cofactor for over 600 enzymatic reactions including ATP synthesis, vitamin D activation, glutathione production, and neurotransmitter function. Signs of deficiency include muscle cramps, insomnia, anxiety, and arrhythmias."
+  },
+  {
+    "id": "nutr_zinc",
+    "nutrient": "Zinc (Picolinate)",
+    "genetic_context": "General supplementation",
+    "recommended_form": "Zinc picolinate or zinc bisglycinate",
+    "dose_range": "15-30 mg/day",
+    "evidence_summary": "Zinc is essential for immune function (T-cell maturation, NK cell activity), wound healing, thyroid hormone metabolism, and over 300 metalloenzymes. Zinc picolinate has demonstrated superior absorption in clinical studies compared to zinc gluconate, citrate, and oxide. Doses above 40 mg/day for extended periods can induce copper deficiency by competing for intestinal absorption via metallothionein. If zinc intake exceeds 50 mg/day, copper supplementation (2 mg/day) is recommended.",
+    "text_chunk": "Zinc supplementation as zinc picolinate at 15-30 mg/day. Zinc picolinate demonstrates superior bioavailability compared to other zinc forms in clinical absorption studies. Zinc is critical for immune cell function (thymic hormone production, T-cell differentiation, NK cell activity), wound healing, taste/smell perception, and over 300 metalloenzyme cofactor roles. Important interaction: zinc competes with copper for intestinal absorption via metallothionein induction. Supplementation above 50 mg/day for more than 2 weeks requires concurrent copper supplementation (2 mg/day) to prevent copper-deficiency anemia and neutropenia."
+  },
+  {
+    "id": "nutr_selenium",
+    "nutrient": "Selenium (Selenomethionine)",
+    "genetic_context": "Thyroid support, antioxidant defense",
+    "recommended_form": "Selenomethionine or selenium yeast",
+    "dose_range": "200 mcg/day",
+    "evidence_summary": "Selenium is essential for thyroid function (deiodinase enzymes converting T4 to T3), glutathione peroxidase (antioxidant defense), and thioredoxin reductase. Selenomethionine is the best-absorbed organic form, incorporated into body proteins as a selenium reservoir. The SELECT trial showed 200 mcg/day was safe. Selenium reduces thyroid antibody levels (anti-TPO) in Hashimoto thyroiditis. Upper tolerable limit is 400 mcg/day; excess causes selenosis (garlic breath, hair loss, nail brittleness).",
+    "text_chunk": "Selenium as selenomethionine at 200 mcg/day for thyroid support and antioxidant defense. Selenium is an essential trace mineral incorporated into 25 selenoproteins including glutathione peroxidases (GPx1-4), thioredoxin reductases (TrxR), and iodothyronine deiodinases (DIO1, DIO2, DIO3) that convert T4 to active T3. Selenomethionine is the preferred supplemental form due to high bioavailability and storage in body proteins as a selenium reserve. Clinical trials in Hashimoto thyroiditis show selenium 200 mcg/day reduces anti-TPO antibodies by 20-40%. Do not exceed 400 mcg/day total (dietary + supplemental)."
+  },
+  {
+    "id": "nutr_copper",
+    "nutrient": "Copper",
+    "genetic_context": "Zinc supplementation >50 mg/day",
+    "recommended_form": "Copper bisglycinate",
+    "dose_range": "2 mg/day",
+    "evidence_summary": "Copper supplementation at 2 mg/day is recommended when zinc intake exceeds 50 mg/day to prevent zinc-induced copper deficiency. Copper is essential for ceruloplasmin (iron metabolism), superoxide dismutase (SOD, antioxidant), lysyl oxidase (connective tissue), cytochrome c oxidase (mitochondrial energy), and dopamine beta-hydroxylase (catecholamine synthesis). Copper deficiency manifests as microcytic anemia (iron-refractory), neutropenia, and myelopathy.",
+    "text_chunk": "Copper supplementation at 2 mg/day as copper bisglycinate is recommended when zinc intake exceeds 50 mg/day. High-dose zinc induces intestinal metallothionein, which binds copper and prevents its absorption, leading to copper deficiency. Copper is required for ceruloplasmin (mobilizing iron from stores), Cu/Zn superoxide dismutase (SOD1, antioxidant defense), lysyl oxidase (collagen/elastin cross-linking), cytochrome c oxidase (mitochondrial electron transport), and dopamine beta-hydroxylase (norepinephrine synthesis). Copper deficiency causes iron-refractory microcytic anemia, neutropenia, and myeloneuropathy resembling B12 deficiency."
+  },
+  {
+    "id": "nutr_iodine",
+    "nutrient": "Iodine",
+    "genetic_context": "Thyroid hormone synthesis",
+    "recommended_form": "Kelp extract or potassium iodide",
+    "dose_range": "150-300 mcg/day",
+    "evidence_summary": "Iodine is a substrate for thyroid hormone synthesis (T3 and T4 contain 3 and 4 iodine atoms, respectively). The RDA is 150 mcg/day for adults, 220 mcg during pregnancy, and 290 mcg during lactation. Deficiency causes hypothyroidism and goiter. Excess iodine (>1100 mcg/day) can paradoxically suppress thyroid function (Wolff-Chaikoff effect) or trigger thyrotoxicosis in susceptible individuals (Jod-Basedow effect). Caution in Hashimoto thyroiditis: excess iodine may exacerbate autoimmunity.",
+    "text_chunk": "Iodine supplementation at 150-300 mcg/day via kelp extract or potassium iodide for thyroid hormone synthesis. Iodine is the essential substrate for thyroperoxidase (TPO)-catalyzed synthesis of thyroid hormones T3 (triiodothyronine) and T4 (thyroxine). RDA: 150 mcg/day adults, 220 mcg pregnancy, 290 mcg lactation. Sources: iodized salt, seaweed, dairy, eggs. Caution: excessive iodine (>1100 mcg/day UL) can trigger Wolff-Chaikoff effect (hypothyroidism) or Jod-Basedow effect (thyrotoxicosis). Patients with Hashimoto thyroiditis should limit supplemental iodine to 150-200 mcg/day to avoid exacerbating autoimmune inflammation."
+  },
+  {
+    "id": "nutr_chromium",
+    "nutrient": "Chromium (Picolinate)",
+    "genetic_context": "Insulin sensitivity, metabolic support",
+    "recommended_form": "Chromium picolinate",
+    "dose_range": "200-1000 mcg/day",
+    "evidence_summary": "Chromium enhances insulin receptor signaling by potentiating insulin-stimulated tyrosine kinase activity via chromodulin (low-molecular-weight chromium-binding substance). Meta-analyses show chromium picolinate at 200-1000 mcg/day reduces fasting glucose by 8-15 mg/dL and HbA1c by 0.3-0.5% in type 2 diabetes. Higher doses (1000 mcg) show more consistent effects. Chromium picolinate is the best-studied and most bioavailable form. Safe at doses up to 1000 mcg/day in clinical trials.",
+    "text_chunk": "Chromium picolinate at 200-1000 mcg/day for insulin sensitivity and metabolic support. Chromium enhances insulin signaling by potentiating insulin receptor tyrosine kinase activity through chromodulin, a low-molecular-weight chromium-binding oligopeptide. Meta-analyses demonstrate fasting glucose reduction of 8-15 mg/dL and HbA1c reduction of 0.3-0.5% in type 2 diabetic patients. The picolinate form has the highest bioavailability among chromium supplements. Doses of 500-1000 mcg/day show the most consistent clinical effects. Chromium also supports lipid metabolism, reducing total cholesterol and triglycerides in some studies."
+  },
+  {
+    "id": "nutr_coq10",
+    "nutrient": "Coenzyme Q10 (Ubiquinol)",
+    "genetic_context": "Statin therapy, mitochondrial support",
+    "recommended_form": "Ubiquinol (reduced form)",
+    "dose_range": "100-200 mg/day",
+    "evidence_summary": "CoQ10 is essential for mitochondrial electron transport chain (Complex I-III) and is a potent lipophilic antioxidant. Statins inhibit HMG-CoA reductase, which also produces CoQ10 via the mevalonate pathway, reducing CoQ10 levels by 20-40%. Ubiquinol (reduced form) has 3-4x greater bioavailability than ubiquinone (oxidized form). Doses of 100-200 mg/day improve statin-related myopathy symptoms, support cardiac function (Q-SYMBIO trial showed 43% reduction in cardiac events), and may improve exercise tolerance.",
+    "text_chunk": "Coenzyme Q10 as ubiquinol at 100-200 mg/day, especially during statin therapy. CoQ10 is critical for mitochondrial electron transport (shuttle between Complex I/II and Complex III) and serves as a lipid-soluble antioxidant protecting cell membranes from peroxidation. Statin drugs inhibit the mevalonate pathway, reducing CoQ10 synthesis by 20-40% alongside cholesterol reduction. Ubiquinol (reduced form) has 3-4x greater bioavailability than ubiquinone. The Q-SYMBIO trial demonstrated 100 mg ubiquinone three times daily reduced cardiovascular mortality by 43% in heart failure patients. For statin myopathy: 100-200 mg/day ubiquinol reduces muscle pain and weakness in most patients."
+  },
+  {
+    "id": "nutr_nac",
+    "nutrient": "N-Acetylcysteine (NAC)",
+    "genetic_context": "Glutathione support, liver health",
+    "recommended_form": "N-Acetylcysteine",
+    "dose_range": "600-1200 mg/day",
+    "evidence_summary": "NAC is the most effective oral precursor to glutathione (GSH), the body's primary intracellular antioxidant and phase II detoxification conjugate. NAC provides cysteine, the rate-limiting amino acid for GSH synthesis, in a stable, bioavailable form. Clinical applications include acetaminophen toxicity (IV NAC is the standard antidote), mucolytic therapy, COPD, psychiatric disorders (adjunctive for OCD, bipolar), liver protection (NAFLD, alcohol-related), and heavy metal chelation support. Doses above 1200 mg/day may cause GI upset.",
+    "text_chunk": "N-Acetylcysteine (NAC) at 600-1200 mg/day for glutathione synthesis and liver support. NAC provides cysteine, the rate-limiting substrate for glutathione (GSH) synthesis by glutamate-cysteine ligase. GSH is the body's primary intracellular antioxidant and essential for phase II hepatic detoxification (glutathione S-transferase conjugation). NAC also has direct mucolytic, anti-inflammatory, and chelating properties. Clinical evidence supports NAC for NAFLD (reduces ALT, hepatic steatosis), acetaminophen toxicity (standard of care), psychiatric conditions (adjunctive for OCD, trichotillomania, bipolar), and COPD (reduces exacerbations). Take on empty stomach for best absorption."
+  },
+  {
+    "id": "nutr_vita_bcmo1_tt",
+    "nutrient": "Vitamin A (Retinol)",
+    "genetic_context": "BCMO1 rs12934922 TT (poor beta-carotene converter)",
+    "recommended_form": "Preformed retinol (retinyl palmitate or acetate)",
+    "dose_range": "2500-5000 IU/day preformed vitamin A",
+    "evidence_summary": "BCMO1 (beta-carotene oxygenase 1) rs12934922 TT genotype reduces conversion of beta-carotene to retinol by approximately 60-70%. These individuals cannot rely on plant-based provitamin A carotenoids (carrots, sweet potatoes) for vitamin A status and require preformed retinol from animal sources or supplements. Retinyl palmitate or retinyl acetate at 2500-5000 IU/day ensures adequate retinol status. Upper limit is 10,000 IU/day preformed retinol; excess is teratogenic in pregnancy.",
+    "text_chunk": "BCMO1 rs12934922 TT genotype requires preformed vitamin A (retinol) at 2500-5000 IU/day instead of beta-carotene. BCMO1 encodes beta-carotene 15,15'-monooxygenase, the enzyme that cleaves beta-carotene into two molecules of retinal. The TT genotype reduces this conversion by 60-70%, making plant-based provitamin A sources inadequate. Affected individuals may show signs of vitamin A insufficiency (dry eyes, night vision difficulty, impaired immunity) despite adequate carotenoid intake. Preformed retinol from liver, egg yolks, dairy, or supplements (retinyl palmitate) is required. Pregnancy caution: do not exceed 10,000 IU/day preformed retinol due to teratogenicity risk."
+  },
+  {
+    "id": "nutr_ala_metabolic",
+    "nutrient": "Alpha-Lipoic Acid (R-ALA)",
+    "genetic_context": "Metabolic support, insulin sensitivity",
+    "recommended_form": "R-alpha-lipoic acid (R-ALA, the natural enantiomer)",
+    "dose_range": "300-600 mg/day",
+    "evidence_summary": "Alpha-lipoic acid (ALA) is a mitochondrial cofactor for pyruvate dehydrogenase and alpha-ketoglutarate dehydrogenase and a potent antioxidant that regenerates vitamins C and E, CoQ10, and glutathione. R-ALA (the biologically active enantiomer) has superior bioavailability over racemic ALA. Clinical trials demonstrate improved insulin sensitivity (ALADIN, SYDNEY studies), reduced diabetic neuropathy symptoms, and hepatoprotective effects. ALA also chelates heavy metals (mercury, arsenic, lead).",
+    "text_chunk": "Alpha-lipoic acid (R-ALA) at 300-600 mg/day for metabolic support and insulin sensitivity. ALA is a cofactor for mitochondrial pyruvate dehydrogenase complex and alpha-ketoglutarate dehydrogenase, central to energy metabolism. As an antioxidant, it is unique in being both water- and lipid-soluble, and it regenerates other antioxidants (glutathione, vitamin C, vitamin E, CoQ10). The ALADIN and SYDNEY trials showed 600 mg/day ALA improved diabetic neuropathy symptoms. R-ALA (natural enantiomer) is preferred over racemic R,S-ALA due to superior absorption and biological activity. Take on empty stomach 30 minutes before meals."
+  },
+  {
+    "id": "nutr_resveratrol",
+    "nutrient": "Resveratrol/Pterostilbene",
+    "genetic_context": "SIRT1 activation, longevity pathway support",
+    "recommended_form": "Trans-resveratrol or pterostilbene",
+    "dose_range": "150-500 mg resveratrol or 50-100 mg pterostilbene/day",
+    "evidence_summary": "Resveratrol activates SIRT1 (sirtuin 1), a NAD+-dependent deacetylase involved in cellular stress resistance, mitochondrial biogenesis, and longevity pathways. Pterostilbene is a dimethylated analog with 4x greater oral bioavailability and longer half-life. Both compounds activate AMPK, improve insulin sensitivity, reduce inflammation (NF-kB inhibition), and enhance mitochondrial function. Clinical trials show modest improvements in metabolic parameters at doses of 150-500 mg/day resveratrol.",
+    "text_chunk": "Resveratrol (trans-resveratrol) at 150-500 mg/day or pterostilbene at 50-100 mg/day for SIRT1/AMPK pathway activation. Resveratrol activates SIRT1 (sirtuin 1), stimulating PGC-1alpha-mediated mitochondrial biogenesis and enhancing cellular stress resistance. Pterostilbene, a dimethylated analog found in blueberries, has 4x greater oral bioavailability and a longer half-life than resveratrol while maintaining similar biological activity. Both compounds inhibit NF-kB-mediated inflammation, improve insulin sensitivity via AMPK activation, and have shown anti-aging effects in preclinical models. Clinical evidence is moderate; best used as part of a comprehensive longevity protocol."
+  },
+  {
+    "id": "nutr_curcumin",
+    "nutrient": "Curcumin",
+    "genetic_context": "Inflammation, NF-kB modulation",
+    "recommended_form": "Curcumin with piperine (BioPerine) or phytosomal curcumin (Meriva)",
+    "dose_range": "500-1000 mg curcumin/day",
+    "evidence_summary": "Curcumin is the principal curcuminoid in turmeric with potent anti-inflammatory activity via NF-kB and COX-2 inhibition, as well as antioxidant (Nrf2 activation) and immunomodulatory effects. Native curcumin has extremely poor bioavailability (<1% absorbed). Piperine (black pepper extract) increases curcumin bioavailability by 2000% by inhibiting hepatic and intestinal glucuronidation. Phytosomal formulations (Meriva) show 29x improved absorption. Meta-analyses show significant CRP reduction (0.5-1.0 mg/L) in inflammatory conditions.",
+    "text_chunk": "Curcumin at 500-1000 mg/day with piperine (BioPerine) or as phytosomal curcumin (Meriva) for inflammation modulation. Curcumin inhibits NF-kB transcription factor, reducing expression of pro-inflammatory cytokines (TNF-alpha, IL-1beta, IL-6), COX-2, and iNOS. It also activates Nrf2, upregulating antioxidant response element (ARE) genes including glutathione S-transferases, heme oxygenase-1, and NAD(P)H quinone oxidoreductase. Piperine co-administration increases bioavailability by 2000% via glucuronidation inhibition. Drug interaction caution: curcumin inhibits CYP3A4, CYP1A2, and CYP2C9; may increase levels of substrates of these enzymes."
+  },
+  {
+    "id": "nutr_berberine",
+    "nutrient": "Berberine",
+    "genetic_context": "Metabolic syndrome, glucose and lipid management",
+    "recommended_form": "Berberine HCl or dihydroberberine",
+    "dose_range": "500-1500 mg/day in divided doses",
+    "evidence_summary": "Berberine activates AMPK (AMP-activated protein kinase), the master metabolic sensor, producing effects comparable to metformin on glucose metabolism. Meta-analyses show berberine reduces fasting glucose by 15-25 mg/dL, HbA1c by 0.5-0.9%, LDL by 20-25 mg/dL, and triglycerides by 35-45 mg/dL. CAUTION: berberine inhibits CYP2D6, CYP2C9, CYP3A4, and P-glycoprotein, causing significant drug interactions with many pharmaceuticals. Dihydroberberine has improved bioavailability at lower doses.",
+    "text_chunk": "Berberine HCl at 500-1500 mg/day in divided doses for metabolic syndrome. Berberine activates AMPK, increasing glucose uptake (via GLUT4 translocation), enhancing insulin sensitivity, reducing hepatic gluconeogenesis, and promoting fatty acid oxidation. Clinical evidence shows comparable glucose-lowering to metformin in type 2 diabetes. Also reduces LDL cholesterol (LDLR upregulation via PCSK9 inhibition) and triglycerides. CRITICAL CAUTION: berberine is a potent inhibitor of CYP2D6, CYP2C9, CYP3A4, and P-glycoprotein, creating major drug interactions with statins, warfarin, SSRIs, opioids, and many other medications. Always review drug interactions before recommending."
+  },
+  {
+    "id": "nutr_sulforaphane",
+    "nutrient": "Sulforaphane",
+    "genetic_context": "NRF2 pathway activation, detoxification",
+    "recommended_form": "Broccoli sprout extract (standardized sulforaphane glucosinolate) or myrosinase-activated",
+    "dose_range": "30-60 mg sulforaphane/day",
+    "evidence_summary": "Sulforaphane is the most potent natural inducer of the Nrf2 (nuclear factor erythroid 2-related factor 2) pathway, which upregulates over 200 cytoprotective genes involved in phase II detoxification (glutathione S-transferases, UDP-glucuronosyltransferases), antioxidant defense (thioredoxin, heme oxygenase-1), and anti-inflammatory responses. Broccoli sprouts contain 20-100x more glucoraphanin than mature broccoli. Myrosinase enzyme (from mustard seed powder) is required for conversion of glucoraphanin to active sulforaphane.",
+    "text_chunk": "Sulforaphane at 30-60 mg/day from broccoli sprout extract for NRF2 pathway activation. Sulforaphane is the most potent dietary activator of Nrf2, stabilizing the transcription factor by modifying KEAP1 cysteine residues. This induces phase II detoxification enzymes (glutathione S-transferases, NQO1, UGTs), antioxidant proteins (thioredoxin reductase, heme oxygenase-1), and anti-inflammatory responses. Broccoli sprout extract should contain myrosinase or be co-administered with mustard seed powder for conversion of glucoraphanin to active sulforaphane. Clinical evidence supports benefits in air pollution detoxification, H. pylori eradication, and autism spectrum disorder symptoms."
+  },
+  {
+    "id": "nutr_pqq",
+    "nutrient": "Pyrroloquinoline Quinone (PQQ)",
+    "genetic_context": "Mitochondrial biogenesis",
+    "recommended_form": "PQQ disodium salt (BioPQQ)",
+    "dose_range": "10-20 mg/day",
+    "evidence_summary": "PQQ activates PGC-1alpha and CREB signaling pathways, stimulating mitochondrial biogenesis and increasing mitochondrial density. PQQ also protects mitochondria from oxidative damage, supports nerve growth factor (NGF) synthesis, and has neuroprotective properties. Clinical studies show PQQ 20 mg/day improves cognitive function (attention, working memory) and sleep quality. PQQ synergizes with CoQ10 for enhanced mitochondrial support. It is found naturally in kiwi, parsley, green pepper, and human breast milk.",
+    "text_chunk": "Pyrroloquinoline quinone (PQQ) at 10-20 mg/day for mitochondrial biogenesis. PQQ activates the PGC-1alpha/NRF1/TFAM signaling cascade, the master pathway for mitochondrial biogenesis, increasing both mitochondrial number and function. PQQ also acts as a redox cofactor with 5,000 catalytic cycles before degradation (compared to 4 for vitamin C). It promotes nerve growth factor (NGF) synthesis, supporting neuronal health and neuroplasticity. Clinical trials demonstrate improved attention, working memory, and sleep quality at 20 mg/day. PQQ synergizes with CoQ10: CoQ10 optimizes existing mitochondria while PQQ generates new ones. Take in the morning with food."
+  },
+  {
+    "id": "nutr_fiber_psyllium",
+    "nutrient": "Psyllium Fiber",
+    "genetic_context": "Lipid management, glycemic control",
+    "recommended_form": "Psyllium husk powder (unflavored, sugar-free)",
+    "dose_range": "5-15 g/day in divided doses",
+    "evidence_summary": "Psyllium is a soluble viscous fiber that forms a gel matrix in the intestinal lumen, trapping bile acids and promoting fecal excretion. This upregulates hepatic LDL receptors (via increased bile acid synthesis from cholesterol), reducing LDL by 5-15%. Psyllium also slows glucose absorption, reducing postprandial glucose spikes by 10-20%. FDA-approved health claim for cardiovascular risk reduction. Meta-analyses support 7-10 g/day for optimal LDL lowering. Adequate hydration is essential to prevent GI obstruction.",
+    "text_chunk": "Psyllium fiber at 5-15 g/day for lipid and glycemic management. Psyllium husk is a viscous soluble fiber that forms a gel in the intestinal lumen, providing multiple metabolic benefits. LDL reduction: psyllium traps bile acids, forcing the liver to use circulating LDL cholesterol for new bile acid synthesis, reducing LDL by 5-15% (FDA-approved health claim). Glycemic control: the gel matrix slows carbohydrate digestion and glucose absorption, reducing postprandial glucose spikes by 10-20%. Gut health: psyllium is a prebiotic fiber supporting beneficial Bifidobacteria and short-chain fatty acid production. Always take with 8+ ounces of water. Start low and titrate up to minimize bloating."
+  },
+  {
+    "id": "nutr_protocol_prediabetes",
+    "nutrient": "Pre-Diabetes Nutritional Protocol",
+    "genetic_context": "Pre-diabetes with metabolic risk factors",
+    "recommended_form": "Chromium picolinate + berberine HCl + magnesium glycinate + EPA/DHA",
+    "dose_range": "Chromium 500-1000 mcg + berberine 500 mg TID + magnesium 400 mg + omega-3 2g/day",
+    "evidence_summary": "Comprehensive pre-diabetes nutritional protocol combining four evidence-based supplements targeting insulin sensitivity through complementary mechanisms. Chromium enhances insulin receptor signaling. Berberine activates AMPK and GLUT4 translocation. Magnesium is a cofactor for insulin signaling cascade (PI3K/Akt pathway) and improves insulin sensitivity. Omega-3 fatty acids reduce inflammation and improve adipocyte insulin sensitivity. This combination can reduce fasting glucose by 15-30 mg/dL and HbA1c by 0.3-0.8% over 3-6 months.",
+    "text_chunk": "Pre-diabetes nutritional protocol: chromium picolinate 500-1000 mcg, berberine HCl 500 mg three times daily, magnesium glycinate 400 mg, and omega-3 (EPA/DHA) 2 g/day. This protocol targets insulin resistance through four complementary mechanisms: chromium potentiates insulin receptor tyrosine kinase, berberine activates AMPK/GLUT4 pathway (comparable to metformin), magnesium supports PI3K/Akt insulin signaling cascade, and omega-3 resolves adipose tissue inflammation that drives insulin resistance. Expected outcomes: fasting glucose reduction 15-30 mg/dL, HbA1c reduction 0.3-0.8% over 3-6 months. Must be combined with dietary modification and exercise."
+  },
+  {
+    "id": "nutr_protocol_cardiovascular",
+    "nutrient": "Cardiovascular Support Protocol",
+    "genetic_context": "Cardiovascular risk, statin therapy support",
+    "recommended_form": "EPA/DHA + CoQ10 ubiquinol + magnesium glycinate + K2 (MK-7)",
+    "dose_range": "EPA/DHA 2-4g + CoQ10 200mg + magnesium 400mg + K2 200mcg/day",
+    "evidence_summary": "Cardiovascular support protocol addressing lipid management, endothelial function, anti-inflammation, and vascular protection. EPA reduces cardiovascular events by 25% (REDUCE-IT). CoQ10 supports myocardial energetics and reduces statin myopathy; the Q-SYMBIO trial showed 43% reduction in cardiac events with CoQ10. Magnesium prevents arrhythmias and supports vascular tone. K2 (MK-7) activates matrix Gla protein, preventing arterial calcification. This combination synergistically supports cardiovascular function.",
+    "text_chunk": "Cardiovascular support protocol: EPA/DHA 2-4 g/day, CoQ10 (ubiquinol) 200 mg/day, magnesium glycinate 400 mg/day, vitamin K2 (MK-7) 200 mcg/day. EPA reduces MACE by 25% (REDUCE-IT trial), lowers triglycerides, and stabilizes atherosclerotic plaques. CoQ10 is essential for myocardial ATP production and protects LDL from oxidation; statin users are particularly depleted. Magnesium maintains cardiac rhythm (cofactor for Na/K-ATPase and calcium channels), prevents vasospasm, and reduces blood pressure by 3-5 mmHg. K2 activates matrix Gla protein (MGP), the most potent inhibitor of vascular calcification, protecting coronary arteries."
+  },
+  {
+    "id": "nutr_protocol_liver",
+    "nutrient": "Liver Support Protocol",
+    "genetic_context": "NAFLD, hepatic detoxification support",
+    "recommended_form": "NAC + milk thistle (silymarin) + alpha-lipoic acid",
+    "dose_range": "NAC 1200mg + silymarin 420mg + R-ALA 600mg/day",
+    "evidence_summary": "Liver support protocol combining three hepatoprotective agents with synergistic mechanisms. NAC replenishes hepatic glutathione (depleted in NAFLD and toxic exposure), directly conjugating reactive metabolites. Silymarin (milk thistle) stabilizes hepatocyte membranes, inhibits NF-kB-mediated hepatic inflammation, and promotes hepatocyte regeneration via RNA polymerase I stimulation. Alpha-lipoic acid enhances mitochondrial function in hepatocytes and chelates hepatotoxic metals. This triad addresses oxidative stress, inflammation, and detoxification capacity.",
+    "text_chunk": "Liver support protocol: NAC 1200 mg/day, milk thistle (silymarin) 420 mg/day, alpha-lipoic acid (R-ALA) 600 mg/day. NAC replenishes hepatic glutathione stores, the liver's primary detoxification conjugate, reducing ALT by 20-30% in NAFLD studies. Silymarin (silibinin) stabilizes hepatocyte membranes, blocks TNF-alpha-mediated apoptosis, inhibits hepatic stellate cell activation (anti-fibrotic), and stimulates ribosomal RNA synthesis for liver regeneration. Alpha-lipoic acid supports hepatic mitochondrial function, chelates heavy metals, and regenerates hepatic vitamins C and E. This combination addresses the three pillars of liver disease: oxidative stress, inflammation, and impaired detoxification."
+  },
+  {
+    "id": "nutr_protocol_thyroid",
+    "nutrient": "Thyroid Support Protocol",
+    "genetic_context": "Hypothyroidism, subclinical thyroid dysfunction",
+    "recommended_form": "Selenomethionine + potassium iodide + zinc picolinate + ferrous bisglycinate",
+    "dose_range": "Selenium 200mcg + iodine 150-200mcg + zinc 15mg + iron 25mg/day",
+    "evidence_summary": "Thyroid support protocol addressing the four essential mineral cofactors for thyroid hormone synthesis, conversion, and function. Selenium: cofactor for deiodinase enzymes (T4-to-T3 conversion) and glutathione peroxidase (thyroid H2O2 detoxification); reduces anti-TPO in Hashimoto. Iodine: substrate for thyroid hormone synthesis. Zinc: required for TRH synthesis and T3 binding to nuclear receptors. Iron: cofactor for thyroid peroxidase (TPO), essential for iodide oxidation. Deficiency of any one impairs thyroid function.",
+    "text_chunk": "Thyroid support protocol: selenium 200 mcg, iodine 150-200 mcg, zinc 15 mg, iron 25 mg/day. This addresses all four essential mineral cofactors for thyroid function. Selenium is required by deiodinase enzymes (DIO1/DIO2 for T4-to-T3 conversion) and glutathione peroxidase (detoxifies H2O2 generated during thyroid hormone synthesis); also reduces anti-TPO antibodies in Hashimoto thyroiditis. Iodine provides the substrate atoms for T3 and T4 synthesis by thyroid peroxidase. Zinc is needed for TRH (thyrotropin-releasing hormone) production and T3 nuclear receptor binding. Iron is a cofactor for thyroid peroxidase; iron deficiency impairs thyroid hormone synthesis independently."
+  },
+  {
+    "id": "nutr_protocol_methylation",
+    "nutrient": "Methylation Support Protocol",
+    "genetic_context": "MTHFR variants, impaired methylation",
+    "recommended_form": "L-methylfolate + methylcobalamin + P5P + TMG",
+    "dose_range": "Methylfolate 800-1000mcg + B12 1000mcg + P5P 50mg + TMG 1000mg/day",
+    "evidence_summary": "Comprehensive methylation support for MTHFR variant carriers addressing all three pathways of homocysteine metabolism. Methylfolate provides the active folate cofactor for MTHFR-impaired remethylation. Methylcobalamin supports methionine synthase. P5P supports cystathionine beta-synthase in the transsulfuration pathway. TMG provides an MTHFR-independent remethylation route via BHMT. This quadruple approach ensures robust homocysteine clearance and adequate SAMe production for methylation-dependent reactions (DNA methylation, neurotransmitter synthesis, phospholipid metabolism).",
+    "text_chunk": "Methylation support protocol for MTHFR variants: L-methylfolate 800-1000 mcg, methylcobalamin 1000 mcg, pyridoxal-5-phosphate (P5P) 50 mg, and trimethylglycine (TMG) 1000 mg/day. This addresses all three homocysteine disposal pathways: (1) folate-dependent remethylation via methionine synthase (methylfolate + B12), (2) betaine-dependent remethylation via BHMT (TMG), and (3) transsulfuration via cystathionine beta-synthase (P5P). Target homocysteine below 8 umol/L. Adequate methylation is essential for DNA methylation (epigenetic regulation), neurotransmitter synthesis (serotonin, dopamine, norepinephrine), phosphatidylcholine synthesis, and creatine production."
+  },
+  {
+    "id": "nutr_protocol_bone",
+    "nutrient": "Bone Health Protocol",
+    "genetic_context": "Osteopenia, osteoporosis prevention",
+    "recommended_form": "Vitamin D3 + K2 (MK-7) + calcium citrate + magnesium glycinate",
+    "dose_range": "D3 2000-4000 IU + K2 200mcg + calcium 500-600mg + magnesium 400mg/day",
+    "evidence_summary": "Bone health protocol addressing the four pillars of skeletal metabolism. Vitamin D3 enhances intestinal calcium absorption (from 10-15% to 30-40%) and supports osteoblast differentiation. K2 (MK-7) activates osteocalcin, directing calcium into bone matrix, and matrix Gla protein, preventing ectopic calcification. Calcium citrate provides bioavailable calcium without requiring stomach acid (unlike calcium carbonate). Magnesium is incorporated into the hydroxyapatite crystal lattice, comprising ~1% of bone mineral, and activates alkaline phosphatase for bone mineralization.",
+    "text_chunk": "Bone health protocol: vitamin D3 2000-4000 IU, vitamin K2 (MK-7) 200 mcg, calcium citrate 500-600 mg, magnesium glycinate 400 mg/day. This addresses the complete bone metabolism axis. Vitamin D3 increases intestinal calcium absorption from 10-15% to 30-40% and promotes osteoblast differentiation. K2 carboxylates osteocalcin (bone-building protein) and matrix Gla protein (prevents arterial calcification), ensuring calcium goes to bone, not arteries. Calcium citrate is well-absorbed regardless of gastric pH (superior for elderly/PPI users). Magnesium comprises 1% of bone mineral, activates alkaline phosphatase, and converts vitamin D to its active form. Split calcium doses (<500 mg per dose) for optimal absorption."
+  },
+  {
+    "id": "nutr_protocol_immune",
+    "nutrient": "Immune Support Protocol",
+    "genetic_context": "Immune optimization, infection prevention",
+    "recommended_form": "Vitamin D3 + zinc picolinate + selenomethionine + vitamin C",
+    "dose_range": "D3 2000-5000 IU + zinc 30mg + selenium 200mcg + vitamin C 500-1000mg/day",
+    "evidence_summary": "Immune support protocol targeting innate and adaptive immunity through four essential micronutrients. Vitamin D activates cathelicidin (antimicrobial peptide), modulates T-cell differentiation (promoting Treg, suppressing Th17), and enhances macrophage function. Zinc supports thymulin (thymic hormone for T-cell maturation), NK cell activity, and over 100 immune-related enzymes. Selenium optimizes neutrophil function, antibody production, and lymphocyte proliferation via selenoprotein-dependent pathways. Vitamin C supports neutrophil chemotaxis, phagocytosis, and lymphocyte proliferation while protecting immune cells from oxidative damage.",
+    "text_chunk": "Immune support protocol: vitamin D3 2000-5000 IU, zinc picolinate 30 mg, selenomethionine 200 mcg, vitamin C 500-1000 mg/day. Vitamin D induces cathelicidin and defensin antimicrobial peptides, modulates T-cell balance (promoting regulatory T-cells, suppressing inflammatory Th17 cells), and enhances macrophage pathogen killing. Zinc is essential for thymulin activity (thymic hormone for T-cell development), NK cell cytotoxicity, and neutrophil oxidative burst. Selenium supports selenoprotein-dependent lymphocyte proliferation and antibody response. Vitamin C accumulates 100-fold in leukocytes, supporting neutrophil chemotaxis, phagocytosis, and ROS generation, while protecting against oxidative self-damage."
+  },
+  {
+    "id": "nutr_protocol_gut",
+    "nutrient": "Gut Health Protocol",
+    "genetic_context": "Intestinal permeability, microbiome support",
+    "recommended_form": "Multi-strain probiotics + L-glutamine + zinc carnosine",
+    "dose_range": "Probiotics 25-50 billion CFU + glutamine 5g + zinc carnosine 75mg BID",
+    "evidence_summary": "Gut health protocol addressing three complementary aspects of intestinal integrity. Multi-strain probiotics (Lactobacillus + Bifidobacterium species) restore microbial diversity, produce short-chain fatty acids (butyrate, propionate), and modulate mucosal immune responses. L-glutamine is the primary fuel source for enterocytes, supporting tight junction protein expression (ZO-1, occludin, claudin) and mucosal barrier integrity. Zinc carnosine (Polaprezinc) directly stabilizes mucosal surfaces, accelerates ulcer healing, and reduces intestinal permeability.",
+    "text_chunk": "Gut health protocol: multi-strain probiotics 25-50 billion CFU, L-glutamine 5 g/day, zinc carnosine 75 mg twice daily. Probiotics containing Lactobacillus rhamnosus GG, L. plantarum, Bifidobacterium lactis, and Saccharomyces boulardii restore microbial diversity, produce butyrate (colonocyte fuel and HDAC inhibitor), and modulate secretory IgA. L-glutamine is the primary energy source for small intestinal enterocytes and is essential for tight junction protein (ZO-1, occludin, claudin-1) expression, maintaining intestinal barrier integrity. Zinc carnosine (Polaprezinc) adheres to damaged mucosa, accelerates healing, and is clinically proven for H. pylori-associated gastritis and NSAID-induced gut injury."
+  },
+  {
+    "id": "nutr_protocol_adrenal",
+    "nutrient": "Adrenal Support Protocol",
+    "genetic_context": "Chronic stress, HPA axis support",
+    "recommended_form": "Vitamin C + pantothenic acid (B5) + magnesium glycinate + adaptogenic herbs",
+    "dose_range": "Vitamin C 1000-2000mg + B5 500mg + magnesium 400mg + ashwagandha 600mg/day",
+    "evidence_summary": "Adrenal support protocol for HPA axis regulation during chronic stress. Vitamin C is concentrated in adrenal glands at 50x plasma levels, consumed during cortisol synthesis via dopamine beta-hydroxylase; adrenal stores deplete rapidly under stress. Pantothenic acid (B5) is a precursor to coenzyme A, essential for cortisol and aldosterone synthesis. Magnesium modulates HPA axis sensitivity and counters stress-induced magnesium depletion. Ashwagandha (Withania somnifera) is classified as an adaptogen, modulating cortisol rhythm and reducing perceived stress by 23-44% in clinical trials.",
+    "text_chunk": "Adrenal support protocol: vitamin C 1000-2000 mg, pantothenic acid (B5) 500 mg, magnesium glycinate 400 mg, ashwagandha (Withania somnifera) 600 mg/day. Vitamin C is concentrated in adrenal cortex at 50x plasma levels, directly consumed during cortisol biosynthesis; stress depletes adrenal vitamin C rapidly. Pantothenic acid provides coenzyme A, required for the first step of steroidogenesis (cholesterol to pregnenolone conversion by CYP11A1). Magnesium reduces HPA axis hyperactivation and counters stress-induced urinary magnesium excretion. Ashwagandha root extract (KSM-66) reduces serum cortisol by 14-28% and perceived stress by 23-44% in randomized controlled trials via GABAergic modulation."
+  },
+  {
+    "id": "nutr_protocol_cognitive",
+    "nutrient": "Cognitive Support Protocol",
+    "genetic_context": "Cognitive optimization, neurological health",
+    "recommended_form": "DHA + phosphatidylserine + B-vitamin complex",
+    "dose_range": "DHA 1-2g + phosphatidylserine 300mg + B-complex (methylated forms)",
+    "evidence_summary": "Cognitive support protocol targeting neuronal membrane composition, synaptic function, and neurotransmitter synthesis. DHA comprises 40% of polyunsaturated fatty acids in brain phospholipids, critical for membrane fluidity, synaptic vesicle dynamics, and BDNF expression. Phosphatidylserine is a membrane phospholipid concentrated at synaptic terminals, supporting neurotransmitter release, receptor sensitivity, and cortisol modulation. B-vitamins (methylfolate, methylcobalamin, P5P) support SAMe-dependent neurotransmitter synthesis (serotonin, dopamine, norepinephrine) and prevent homocysteine-mediated neurotoxicity.",
+    "text_chunk": "Cognitive support protocol: DHA 1-2 g/day, phosphatidylserine 300 mg/day, methylated B-vitamin complex. DHA constitutes 40% of brain phospholipid polyunsaturated fatty acids, essential for synaptic membrane fluidity, BDNF (brain-derived neurotrophic factor) expression, and neuroinflammation resolution via resolvins and protectins. Phosphatidylserine supports synaptic vesicle formation, neurotransmitter release (acetylcholine, dopamine), and cortisol regulation; clinical studies show 300 mg/day improves memory and attention in age-related cognitive decline. Methylated B-vitamins (methylfolate, methylcobalamin, P5P) provide cofactors for neurotransmitter synthesis and prevent homocysteine-mediated neuronal damage (VITACOG trial showed 53% reduction in brain atrophy rate)."
+  }
+]

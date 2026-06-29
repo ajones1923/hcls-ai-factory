@@ -1,0 +1,759 @@
+{
+  "schema_version": "1.0",
+  "description": "Multi-lab reference range comparison for biomarker interpretation across lab providers",
+  "labs": {
+    "quest_diagnostics": {
+      "name": "Quest Diagnostics",
+      "ranges": {
+        "glucose_fasting": {
+          "name": "Glucose, Fasting",
+          "min": 65,
+          "max": 99,
+          "unit": "mg/dL"
+        },
+        "hemoglobin_a1c": {
+          "name": "Hemoglobin A1c (HbA1c)",
+          "min": 4.8,
+          "max": 5.6,
+          "unit": "%"
+        },
+        "insulin_fasting": {
+          "name": "Insulin, Fasting",
+          "min": 2.6,
+          "max": 24.9,
+          "unit": "uIU/mL"
+        },
+        "homa_ir": {
+          "name": "HOMA-IR",
+          "min": null,
+          "max": 2.5,
+          "unit": "index"
+        },
+        "ferritin": {
+          "name": "Ferritin",
+          "min": 30,
+          "max": 400,
+          "unit": "ng/mL"
+        },
+        "transferrin_saturation": {
+          "name": "Transferrin Saturation",
+          "min": 15,
+          "max": 55,
+          "unit": "%"
+        },
+        "iron_total": {
+          "name": "Iron, Total",
+          "min": 38,
+          "max": 169,
+          "unit": "ug/dL"
+        },
+        "tibc": {
+          "name": "Total Iron Binding Capacity (TIBC)",
+          "min": 250,
+          "max": 370,
+          "unit": "ug/dL"
+        },
+        "free_t3": {
+          "name": "Free T3",
+          "min": 2.0,
+          "max": 4.4,
+          "unit": "pg/mL"
+        },
+        "free_t4": {
+          "name": "Free T4",
+          "min": 0.82,
+          "max": 1.77,
+          "unit": "ng/dL"
+        },
+        "tsh": {
+          "name": "TSH",
+          "min": 0.45,
+          "max": 4.5,
+          "unit": "uIU/mL"
+        },
+        "ldl_cholesterol": {
+          "name": "LDL Cholesterol",
+          "min": null,
+          "max": 99,
+          "unit": "mg/dL"
+        },
+        "hdl_cholesterol": {
+          "name": "HDL Cholesterol",
+          "min": 39,
+          "max": null,
+          "unit": "mg/dL"
+        },
+        "total_cholesterol": {
+          "name": "Total Cholesterol",
+          "min": 100,
+          "max": 199,
+          "unit": "mg/dL"
+        },
+        "triglycerides": {
+          "name": "Triglycerides",
+          "min": null,
+          "max": 149,
+          "unit": "mg/dL"
+        },
+        "apolipoprotein_b": {
+          "name": "Apolipoprotein B (ApoB)",
+          "min": null,
+          "max": 90,
+          "unit": "mg/dL"
+        },
+        "lipoprotein_a": {
+          "name": "Lipoprotein(a)",
+          "min": null,
+          "max": 75,
+          "unit": "nmol/L"
+        },
+        "hs_crp": {
+          "name": "High-Sensitivity C-Reactive Protein (hs-CRP)",
+          "min": null,
+          "max": 3.0,
+          "unit": "mg/L"
+        },
+        "homocysteine": {
+          "name": "Homocysteine",
+          "min": null,
+          "max": 10.4,
+          "unit": "umol/L"
+        },
+        "cystatin_c": {
+          "name": "Cystatin C",
+          "min": 0.53,
+          "max": 0.95,
+          "unit": "mg/L"
+        },
+        "vitamin_d_25oh": {
+          "name": "Vitamin D, 25-Hydroxy",
+          "min": 30,
+          "max": 100,
+          "unit": "ng/mL"
+        },
+        "vitamin_b12": {
+          "name": "Vitamin B12",
+          "min": 232,
+          "max": 1245,
+          "unit": "pg/mL"
+        },
+        "folate": {
+          "name": "Folate",
+          "min": 2.7,
+          "max": 17.0,
+          "unit": "ng/mL"
+        },
+        "omega_3_index": {
+          "name": "Omega-3 Index",
+          "min": 4.0,
+          "max": null,
+          "unit": "%"
+        },
+        "magnesium_rbc": {
+          "name": "Magnesium, RBC",
+          "min": 4.2,
+          "max": 6.8,
+          "unit": "mg/dL"
+        },
+        "ggt": {
+          "name": "Gamma-Glutamyl Transferase (GGT)",
+          "min": null,
+          "max": 65,
+          "unit": "U/L"
+        },
+        "alt": {
+          "name": "Alanine Aminotransferase (ALT)",
+          "min": null,
+          "max": 44,
+          "unit": "U/L"
+        },
+        "ast": {
+          "name": "Aspartate Aminotransferase (AST)",
+          "min": null,
+          "max": 40,
+          "unit": "U/L"
+        },
+        "uric_acid": {
+          "name": "Uric Acid",
+          "min": 3.7,
+          "max": 8.6,
+          "unit": "mg/dL"
+        },
+        "creatinine": {
+          "name": "Creatinine",
+          "min": 0.76,
+          "max": 1.27,
+          "unit": "mg/dL"
+        },
+        "bun": {
+          "name": "Blood Urea Nitrogen (BUN)",
+          "min": 6,
+          "max": 24,
+          "unit": "mg/dL"
+        },
+        "egfr": {
+          "name": "Estimated GFR",
+          "min": 60,
+          "max": null,
+          "unit": "mL/min/1.73m2"
+        },
+        "albumin": {
+          "name": "Albumin",
+          "min": 3.5,
+          "max": 5.5,
+          "unit": "g/dL"
+        },
+        "total_protein": {
+          "name": "Total Protein",
+          "min": 6.0,
+          "max": 8.5,
+          "unit": "g/dL"
+        },
+        "white_blood_cells": {
+          "name": "White Blood Cells (WBC)",
+          "min": 3.4,
+          "max": 10.8,
+          "unit": "x10E3/uL"
+        },
+        "hemoglobin": {
+          "name": "Hemoglobin",
+          "min": 12.6,
+          "max": 17.7,
+          "unit": "g/dL"
+        },
+        "platelets": {
+          "name": "Platelets",
+          "min": 150,
+          "max": 379,
+          "unit": "x10E3/uL"
+        },
+        "dhea_s": {
+          "name": "DHEA-Sulfate",
+          "min": 44,
+          "max": 332,
+          "unit": "ug/dL"
+        },
+        "cortisol_am": {
+          "name": "Cortisol, AM",
+          "min": 6.2,
+          "max": 19.4,
+          "unit": "ug/dL"
+        },
+        "testosterone_total": {
+          "name": "Testosterone, Total",
+          "min": 264,
+          "max": 916,
+          "unit": "ng/dL"
+        },
+        "estradiol": {
+          "name": "Estradiol",
+          "min": 7.6,
+          "max": 42.6,
+          "unit": "pg/mL"
+        }
+      }
+    },
+    "labcorp": {
+      "name": "LabCorp",
+      "ranges": {
+        "glucose_fasting": {
+          "name": "Glucose, Fasting",
+          "min": 70,
+          "max": 100,
+          "unit": "mg/dL"
+        },
+        "hemoglobin_a1c": {
+          "name": "Hemoglobin A1c (HbA1c)",
+          "min": null,
+          "max": 5.7,
+          "unit": "%"
+        },
+        "insulin_fasting": {
+          "name": "Insulin, Fasting",
+          "min": 2.6,
+          "max": 24.9,
+          "unit": "uIU/mL"
+        },
+        "homa_ir": {
+          "name": "HOMA-IR",
+          "min": null,
+          "max": 2.5,
+          "unit": "index"
+        },
+        "ferritin": {
+          "name": "Ferritin",
+          "min": 22,
+          "max": 322,
+          "unit": "ng/mL"
+        },
+        "transferrin_saturation": {
+          "name": "Transferrin Saturation",
+          "min": 15,
+          "max": 55,
+          "unit": "%"
+        },
+        "iron_total": {
+          "name": "Iron, Total",
+          "min": 38,
+          "max": 169,
+          "unit": "ug/dL"
+        },
+        "tibc": {
+          "name": "Total Iron Binding Capacity (TIBC)",
+          "min": 250,
+          "max": 370,
+          "unit": "ug/dL"
+        },
+        "free_t3": {
+          "name": "Free T3",
+          "min": 2.0,
+          "max": 4.4,
+          "unit": "pg/mL"
+        },
+        "free_t4": {
+          "name": "Free T4",
+          "min": 0.82,
+          "max": 1.77,
+          "unit": "ng/dL"
+        },
+        "tsh": {
+          "name": "TSH",
+          "min": 0.45,
+          "max": 4.5,
+          "unit": "uIU/mL"
+        },
+        "ldl_cholesterol": {
+          "name": "LDL Cholesterol",
+          "min": null,
+          "max": 100,
+          "unit": "mg/dL"
+        },
+        "hdl_cholesterol": {
+          "name": "HDL Cholesterol",
+          "min": 40,
+          "max": null,
+          "unit": "mg/dL"
+        },
+        "total_cholesterol": {
+          "name": "Total Cholesterol",
+          "min": 100,
+          "max": 199,
+          "unit": "mg/dL"
+        },
+        "triglycerides": {
+          "name": "Triglycerides",
+          "min": null,
+          "max": 150,
+          "unit": "mg/dL"
+        },
+        "apolipoprotein_b": {
+          "name": "Apolipoprotein B (ApoB)",
+          "min": null,
+          "max": 90,
+          "unit": "mg/dL"
+        },
+        "lipoprotein_a": {
+          "name": "Lipoprotein(a)",
+          "min": null,
+          "max": 75,
+          "unit": "nmol/L"
+        },
+        "hs_crp": {
+          "name": "High-Sensitivity C-Reactive Protein (hs-CRP)",
+          "min": null,
+          "max": 3.0,
+          "unit": "mg/L"
+        },
+        "homocysteine": {
+          "name": "Homocysteine",
+          "min": null,
+          "max": 11.4,
+          "unit": "umol/L"
+        },
+        "cystatin_c": {
+          "name": "Cystatin C",
+          "min": 0.53,
+          "max": 0.95,
+          "unit": "mg/L"
+        },
+        "vitamin_d_25oh": {
+          "name": "Vitamin D, 25-Hydroxy",
+          "min": 30,
+          "max": 100,
+          "unit": "ng/mL"
+        },
+        "vitamin_b12": {
+          "name": "Vitamin B12",
+          "min": 232,
+          "max": 1245,
+          "unit": "pg/mL"
+        },
+        "folate": {
+          "name": "Folate",
+          "min": 2.7,
+          "max": 17.0,
+          "unit": "ng/mL"
+        },
+        "omega_3_index": {
+          "name": "Omega-3 Index",
+          "min": 4.0,
+          "max": null,
+          "unit": "%"
+        },
+        "magnesium_rbc": {
+          "name": "Magnesium, RBC",
+          "min": 4.2,
+          "max": 6.8,
+          "unit": "mg/dL"
+        },
+        "ggt": {
+          "name": "Gamma-Glutamyl Transferase (GGT)",
+          "min": null,
+          "max": 65,
+          "unit": "U/L"
+        },
+        "alt": {
+          "name": "Alanine Aminotransferase (ALT)",
+          "min": null,
+          "max": 44,
+          "unit": "U/L"
+        },
+        "ast": {
+          "name": "Aspartate Aminotransferase (AST)",
+          "min": null,
+          "max": 40,
+          "unit": "U/L"
+        },
+        "uric_acid": {
+          "name": "Uric Acid",
+          "min": 3.7,
+          "max": 8.6,
+          "unit": "mg/dL"
+        },
+        "creatinine": {
+          "name": "Creatinine",
+          "min": 0.76,
+          "max": 1.27,
+          "unit": "mg/dL"
+        },
+        "bun": {
+          "name": "Blood Urea Nitrogen (BUN)",
+          "min": 6,
+          "max": 24,
+          "unit": "mg/dL"
+        },
+        "egfr": {
+          "name": "Estimated GFR",
+          "min": 60,
+          "max": null,
+          "unit": "mL/min/1.73m2"
+        },
+        "albumin": {
+          "name": "Albumin",
+          "min": 3.5,
+          "max": 5.5,
+          "unit": "g/dL"
+        },
+        "total_protein": {
+          "name": "Total Protein",
+          "min": 6.0,
+          "max": 8.5,
+          "unit": "g/dL"
+        },
+        "white_blood_cells": {
+          "name": "White Blood Cells (WBC)",
+          "min": 3.4,
+          "max": 10.8,
+          "unit": "x10E3/uL"
+        },
+        "hemoglobin": {
+          "name": "Hemoglobin",
+          "min": 12.6,
+          "max": 17.7,
+          "unit": "g/dL"
+        },
+        "platelets": {
+          "name": "Platelets",
+          "min": 150,
+          "max": 379,
+          "unit": "x10E3/uL"
+        },
+        "dhea_s": {
+          "name": "DHEA-Sulfate",
+          "min": 44,
+          "max": 332,
+          "unit": "ug/dL"
+        },
+        "cortisol_am": {
+          "name": "Cortisol, AM",
+          "min": 6.2,
+          "max": 19.4,
+          "unit": "ug/dL"
+        },
+        "testosterone_total": {
+          "name": "Testosterone, Total",
+          "min": 264,
+          "max": 916,
+          "unit": "ng/dL"
+        },
+        "estradiol": {
+          "name": "Estradiol",
+          "min": 7.6,
+          "max": 42.6,
+          "unit": "pg/mL"
+        }
+      }
+    },
+    "function_health_optimal": {
+      "name": "Function Health Optimal",
+      "ranges": {
+        "glucose_fasting": {
+          "name": "Glucose, Fasting",
+          "min": 72,
+          "max": 90,
+          "unit": "mg/dL"
+        },
+        "hemoglobin_a1c": {
+          "name": "Hemoglobin A1c (HbA1c)",
+          "min": null,
+          "max": 5.2,
+          "unit": "%"
+        },
+        "insulin_fasting": {
+          "name": "Insulin, Fasting",
+          "min": 2.0,
+          "max": 5.0,
+          "unit": "uIU/mL"
+        },
+        "homa_ir": {
+          "name": "HOMA-IR",
+          "min": null,
+          "max": 1.0,
+          "unit": "index"
+        },
+        "ferritin": {
+          "name": "Ferritin",
+          "min": 40,
+          "max": 200,
+          "unit": "ng/mL"
+        },
+        "transferrin_saturation": {
+          "name": "Transferrin Saturation",
+          "min": 20,
+          "max": 45,
+          "unit": "%"
+        },
+        "iron_total": {
+          "name": "Iron, Total",
+          "min": 60,
+          "max": 150,
+          "unit": "ug/dL"
+        },
+        "tibc": {
+          "name": "Total Iron Binding Capacity (TIBC)",
+          "min": 250,
+          "max": 350,
+          "unit": "ug/dL"
+        },
+        "free_t3": {
+          "name": "Free T3",
+          "min": 3.0,
+          "max": 4.0,
+          "unit": "pg/mL"
+        },
+        "free_t4": {
+          "name": "Free T4",
+          "min": 1.0,
+          "max": 1.5,
+          "unit": "ng/dL"
+        },
+        "tsh": {
+          "name": "TSH",
+          "min": 1.0,
+          "max": 2.5,
+          "unit": "uIU/mL"
+        },
+        "ldl_cholesterol": {
+          "name": "LDL Cholesterol",
+          "min": null,
+          "max": 70,
+          "unit": "mg/dL"
+        },
+        "hdl_cholesterol": {
+          "name": "HDL Cholesterol",
+          "min": 60,
+          "max": null,
+          "unit": "mg/dL"
+        },
+        "total_cholesterol": {
+          "name": "Total Cholesterol",
+          "min": 100,
+          "max": 180,
+          "unit": "mg/dL"
+        },
+        "triglycerides": {
+          "name": "Triglycerides",
+          "min": null,
+          "max": 80,
+          "unit": "mg/dL"
+        },
+        "apolipoprotein_b": {
+          "name": "Apolipoprotein B (ApoB)",
+          "min": null,
+          "max": 80,
+          "unit": "mg/dL"
+        },
+        "lipoprotein_a": {
+          "name": "Lipoprotein(a)",
+          "min": null,
+          "max": 30,
+          "unit": "nmol/L"
+        },
+        "hs_crp": {
+          "name": "High-Sensitivity C-Reactive Protein (hs-CRP)",
+          "min": null,
+          "max": 0.5,
+          "unit": "mg/L"
+        },
+        "homocysteine": {
+          "name": "Homocysteine",
+          "min": null,
+          "max": 7.0,
+          "unit": "umol/L"
+        },
+        "cystatin_c": {
+          "name": "Cystatin C",
+          "min": 0.55,
+          "max": 0.85,
+          "unit": "mg/L"
+        },
+        "vitamin_d_25oh": {
+          "name": "Vitamin D, 25-Hydroxy",
+          "min": 50,
+          "max": 80,
+          "unit": "ng/mL"
+        },
+        "vitamin_b12": {
+          "name": "Vitamin B12",
+          "min": 500,
+          "max": 1000,
+          "unit": "pg/mL"
+        },
+        "folate": {
+          "name": "Folate",
+          "min": 10.0,
+          "max": 25.0,
+          "unit": "ng/mL"
+        },
+        "omega_3_index": {
+          "name": "Omega-3 Index",
+          "min": 8.0,
+          "max": null,
+          "unit": "%"
+        },
+        "magnesium_rbc": {
+          "name": "Magnesium, RBC",
+          "min": 5.0,
+          "max": 6.5,
+          "unit": "mg/dL"
+        },
+        "ggt": {
+          "name": "Gamma-Glutamyl Transferase (GGT)",
+          "min": 10,
+          "max": 40,
+          "unit": "U/L"
+        },
+        "alt": {
+          "name": "Alanine Aminotransferase (ALT)",
+          "min": null,
+          "max": 25,
+          "unit": "U/L"
+        },
+        "ast": {
+          "name": "Aspartate Aminotransferase (AST)",
+          "min": null,
+          "max": 25,
+          "unit": "U/L"
+        },
+        "uric_acid": {
+          "name": "Uric Acid",
+          "min": 3.5,
+          "max": 5.5,
+          "unit": "mg/dL"
+        },
+        "creatinine": {
+          "name": "Creatinine",
+          "min": 0.7,
+          "max": 1.1,
+          "unit": "mg/dL"
+        },
+        "bun": {
+          "name": "Blood Urea Nitrogen (BUN)",
+          "min": 10,
+          "max": 20,
+          "unit": "mg/dL"
+        },
+        "egfr": {
+          "name": "Estimated GFR",
+          "min": 90,
+          "max": null,
+          "unit": "mL/min/1.73m2"
+        },
+        "albumin": {
+          "name": "Albumin",
+          "min": 4.2,
+          "max": 5.0,
+          "unit": "g/dL"
+        },
+        "total_protein": {
+          "name": "Total Protein",
+          "min": 6.5,
+          "max": 7.5,
+          "unit": "g/dL"
+        },
+        "white_blood_cells": {
+          "name": "White Blood Cells (WBC)",
+          "min": 4.0,
+          "max": 7.0,
+          "unit": "x10E3/uL"
+        },
+        "hemoglobin": {
+          "name": "Hemoglobin",
+          "min": 13.5,
+          "max": 16.0,
+          "unit": "g/dL"
+        },
+        "platelets": {
+          "name": "Platelets",
+          "min": 175,
+          "max": 300,
+          "unit": "x10E3/uL"
+        },
+        "dhea_s": {
+          "name": "DHEA-Sulfate",
+          "min": 150,
+          "max": 300,
+          "unit": "ug/dL"
+        },
+        "cortisol_am": {
+          "name": "Cortisol, AM",
+          "min": 10,
+          "max": 15,
+          "unit": "ug/dL"
+        },
+        "testosterone_total": {
+          "name": "Testosterone, Total",
+          "min": 500,
+          "max": 900,
+          "unit": "ng/dL"
+        },
+        "estradiol": {
+          "name": "Estradiol",
+          "min": 20,
+          "max": 35,
+          "unit": "pg/mL"
+        }
+      }
+    }
+  }
+}

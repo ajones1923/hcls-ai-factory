@@ -1,0 +1,425 @@
+[
+  {
+    "id": "HCLS-BIO-2026-00001",
+    "demographics": {
+      "sex": "Male",
+      "age": 45,
+      "height_cm": 183,
+      "weight_kg": 79.4,
+      "bmi": 23.7,
+      "ethnicity": "Ashkenazi Jewish",
+      "genome": "HG002 (NA24385)"
+    },
+    "clinical_context": {
+      "medications": [
+        {
+          "name": "Atorvastatin",
+          "dose": "10mg daily",
+          "indication": "Lipid management (ApoE E4 carrier)",
+          "biomarker_effects": [
+            "LDL",
+            "Total Cholesterol",
+            "CoQ10",
+            "GGT"
+          ]
+        },
+        {
+          "name": "Lisinopril",
+          "dose": "10mg daily",
+          "indication": "Hypertension",
+          "biomarker_effects": [
+            "Potassium",
+            "Creatinine",
+            "BUN"
+          ]
+        },
+        {
+          "name": "L-Methylfolate",
+          "dose": "15mg daily",
+          "indication": "MTHFR C677T support",
+          "biomarker_effects": [
+            "Homocysteine",
+            "Folate"
+          ]
+        },
+        {
+          "name": "Fish Oil",
+          "dose": "2g EPA/DHA daily",
+          "indication": "CV protection",
+          "biomarker_effects": [
+            "Triglycerides",
+            "INR",
+            "Omega-3 Index"
+          ]
+        },
+        {
+          "name": "Vitamin D3",
+          "dose": "5000 IU daily",
+          "indication": "Vitamin D optimization",
+          "biomarker_effects": [
+            "Vitamin D",
+            "Calcium",
+            "PTH"
+          ]
+        },
+        {
+          "name": "Methylcobalamin",
+          "dose": "1000 mcg daily",
+          "indication": "Active B12 for MTHFR",
+          "biomarker_effects": [
+            "Vitamin B12",
+            "MMA"
+          ]
+        },
+        {
+          "name": "CoQ10",
+          "dose": "200mg daily",
+          "indication": "Statin depletion prevention",
+          "biomarker_effects": [
+            "CoQ10"
+          ]
+        }
+      ],
+      "family_history": [
+        {
+          "relation": "Father",
+          "condition": "MI at age 58",
+          "genetic_note": "ApoE E4 carrier",
+          "relevance": "Familial hyperlipidemia"
+        },
+        {
+          "relation": "Mother",
+          "condition": "Type 2 DM at age 52",
+          "genetic_note": null,
+          "relevance": "Metabolic syndrome"
+        },
+        {
+          "relation": "Paternal Grandmother",
+          "condition": "Alzheimer disease at age 74",
+          "genetic_note": "ApoE E4/E4 homozygous (post-mortem)",
+          "relevance": "Multi-generational AD"
+        },
+        {
+          "relation": "Maternal Uncle",
+          "condition": "Colorectal cancer at age 61",
+          "genetic_note": null,
+          "relevance": "AJ elevated CRC risk"
+        },
+        {
+          "relation": "Paternal Grandfather",
+          "condition": "CAD at age 55",
+          "genetic_note": null,
+          "relevance": "Premature CAD pattern"
+        },
+        {
+          "relation": "Sister",
+          "condition": "Gaucher Disease carrier",
+          "genetic_note": "GBA N370S heterozygous",
+          "relevance": "AJ 1/15 carrier rate"
+        },
+        {
+          "relation": "Brother",
+          "condition": "No known conditions",
+          "genetic_note": null,
+          "relevance": null
+        }
+      ],
+      "symptoms": [
+        {
+          "description": "Occasional fatigue",
+          "duration": "6 months",
+          "severity": 3,
+          "related_biomarkers": [
+            "Ferritin",
+            "Vitamin D",
+            "Free T3"
+          ]
+        },
+        {
+          "description": "Mild morning joint stiffness",
+          "duration": "3 months",
+          "severity": 2,
+          "related_biomarkers": [
+            "hs-CRP",
+            "RF",
+            "ESR"
+          ]
+        },
+        {
+          "description": "Intermittent brain fog",
+          "duration": "4 months",
+          "severity": 2,
+          "related_biomarkers": [
+            "ApoE Genotype",
+            "Homocysteine",
+            "Omega-3 Index"
+          ]
+        },
+        {
+          "description": "Occasional easy bruising",
+          "duration": "2 months",
+          "severity": 2,
+          "related_biomarkers": [
+            "Platelet Count",
+            "PT/INR",
+            "Fibrinogen"
+          ]
+        },
+        {
+          "description": "Cold extremities",
+          "duration": "12 months",
+          "severity": 2,
+          "related_biomarkers": [
+            "Free T3",
+            "Ferritin",
+            "Hemoglobin"
+          ]
+        }
+      ],
+      "lifestyle": {
+        "diet": "Mediterranean-leaning, AJ traditions",
+        "exercise": "3x/week resistance + walking",
+        "alcohol": "3-5 glasses red wine/week",
+        "sleep_hours": 7.25,
+        "smoking": "Never",
+        "stress_level": 6,
+        "occupation": "Software engineer"
+      }
+    },
+    "genetic_markers": {
+      "apoe": "E3/E4",
+      "mthfr_c677t": "CT (Heterozygous)",
+      "mthfr_a1298c": "AA (Wild-type)",
+      "gba": "N370S (Heterozygous carrier)"
+    },
+    "biomarkers": {
+      "wbc": 5.8, "lymphocyte_pct": 32.0, "rdw": 13.2, "mcv": 89.5, "platelets": 225,
+      "albumin": 4.5, "creatinine": 0.95, "glucose": 98, "alt": 28, "ast": 24, "alkaline_phosphatase": 62,
+      "total_cholesterol": 218, "ldl_c": 138, "hdl_c": 52, "triglycerides": 142, "lpa": 85,
+      "tsh": 2.1, "free_t4": 1.15, "free_t3": 3.1,
+      "ferritin": 145, "transferrin_saturation": 32,
+      "hs_crp": 1.8,
+      "hba1c": 5.6, "fasting_insulin": 8.2, "homa_ir": 1.98,
+      "vitamin_d": 38, "vitamin_b12": 680, "folate": 18.5, "omega3_index": 5.8, "magnesium": 2.1, "zinc": 85
+    },
+    "genotypes": {
+      "APOE": "E3/E4", "MTHFR_rs1801133": "CT", "TCF7L2_rs7903146": "CT",
+      "PNPLA3_rs738409": "CC", "HFE_rs1800562": "GA", "DIO2_rs225014": "GA"
+    },
+    "star_alleles": {
+      "CYP2D6": "*1/*4", "CYP2C19": "*1/*2", "TPMT": "*1/*1"
+    },
+    "panels_included": [
+      "Annual Membership",
+      "Extended Heart & Metabolic",
+      "Extended Thyroid",
+      "MTHFR Gene",
+      "Galleri (GRAIL)",
+      "Extended Vitamins/Minerals",
+      "Extended Autoimmunity",
+      "ApoE Genotype"
+    ],
+    "total_biomarkers": 257,
+    "collection_date": "2026-03-02",
+    "fasting": true,
+    "lab_partner": "Quest Diagnostics"
+  },
+  {
+    "id": "HCLS-BIO-2026-00002",
+    "demographics": {
+      "sex": "Female",
+      "age": 38,
+      "height_cm": 168,
+      "weight_kg": 63.5,
+      "bmi": 22.6,
+      "ethnicity": "Ashkenazi Jewish",
+      "genome": null
+    },
+    "clinical_context": {
+      "medications": [
+        {
+          "name": "OCP (ethinyl estradiol/norgestimate)",
+          "dose": "0.035/0.25mg daily",
+          "indication": "Contraception",
+          "biomarker_effects": [
+            "SHBG",
+            "TBG",
+            "Total T4",
+            "Free Testosterone",
+            "Triglycerides",
+            "Fibrinogen"
+          ]
+        },
+        {
+          "name": "L-Methylfolate",
+          "dose": "15mg daily",
+          "indication": "MTHFR support",
+          "biomarker_effects": [
+            "Homocysteine",
+            "Folate"
+          ]
+        },
+        {
+          "name": "Vitamin D3",
+          "dose": "2000 IU daily",
+          "indication": "Vitamin D optimization",
+          "biomarker_effects": [
+            "Vitamin D",
+            "Calcium",
+            "PTH"
+          ]
+        },
+        {
+          "name": "Iron bisglycinate",
+          "dose": "25mg EOD",
+          "indication": "Iron repletion",
+          "biomarker_effects": [
+            "Ferritin",
+            "Iron",
+            "TIBC",
+            "Hemoglobin"
+          ]
+        },
+        {
+          "name": "Prenatal DHA",
+          "dose": "600mg daily",
+          "indication": "Preconception omega-3 support",
+          "biomarker_effects": [
+            "Omega-3 Index",
+            "DHA"
+          ]
+        }
+      ],
+      "family_history": [
+        {
+          "relation": "Mother",
+          "condition": "Breast cancer ER+ at age 48",
+          "genetic_note": "BRCA1 185delAG confirmed",
+          "relevance": "Hereditary breast/ovarian cancer syndrome"
+        },
+        {
+          "relation": "Maternal Aunt",
+          "condition": "Ovarian cancer at age 55",
+          "genetic_note": "BRCA1-related",
+          "relevance": "Hereditary breast/ovarian cancer syndrome"
+        },
+        {
+          "relation": "Father",
+          "condition": "Type 2 DM at age 58",
+          "genetic_note": null,
+          "relevance": "Metabolic syndrome risk"
+        },
+        {
+          "relation": "Paternal Grandmother",
+          "condition": "Gaucher Disease Type 1 at age 35",
+          "genetic_note": "GBA homozygous",
+          "relevance": "AJ Gaucher prevalence"
+        },
+        {
+          "relation": "Sister",
+          "condition": "Healthy",
+          "genetic_note": "BRCA1 negative",
+          "relevance": null
+        }
+      ],
+      "symptoms": [
+        {
+          "description": "Heavy menstrual periods",
+          "duration": "2 years",
+          "severity": 4,
+          "related_biomarkers": [
+            "Ferritin",
+            "Iron",
+            "Hemoglobin",
+            "TIBC"
+          ]
+        },
+        {
+          "description": "Breast tenderness cyclical",
+          "duration": "6 months",
+          "severity": 2,
+          "related_biomarkers": [
+            "Estradiol",
+            "Progesterone",
+            "Prolactin"
+          ]
+        },
+        {
+          "description": "Anxiety mild",
+          "duration": "6 months",
+          "severity": 3,
+          "related_biomarkers": [
+            "TSH",
+            "Free T4",
+            "Cortisol",
+            "GABA"
+          ]
+        },
+        {
+          "description": "Fatigue mid-cycle",
+          "duration": "1 year",
+          "severity": 3,
+          "related_biomarkers": [
+            "Ferritin",
+            "Vitamin D",
+            "Free T3",
+            "Hemoglobin"
+          ]
+        }
+      ],
+      "ob_gyn": {
+        "menarche": 12,
+        "cycle_days": "28-30 on OCP",
+        "gravida_para": "G0P0",
+        "preconception_planning": "ACTIVE - 12-18 months",
+        "brca1_status": "NOT YET TESTED - URGENT",
+        "mammography": "Not yet (age <40)"
+      },
+      "lifestyle": {
+        "diet": "Mediterranean-leaning, AJ traditions",
+        "exercise": "Yoga 3x/week, walking daily",
+        "alcohol": "Rare, social only",
+        "sleep_hours": 7.5,
+        "smoking": "Never",
+        "stress_level": 5,
+        "occupation": "Genetic counselor"
+      }
+    },
+    "genetic_markers": {
+      "apoe": "Unknown",
+      "mthfr_c677t": "Unknown",
+      "mthfr_a1298c": "Unknown",
+      "gba": "50% carrier risk (Father obligate carrier)"
+    },
+    "biomarkers": {
+      "wbc": 6.2, "lymphocyte_pct": 35.0, "rdw": 14.1, "mcv": 86.0, "platelets": 268,
+      "albumin": 4.3, "creatinine": 0.72, "glucose": 88, "alt": 19, "ast": 21, "alkaline_phosphatase": 55,
+      "total_cholesterol": 195, "ldl_c": 112, "hdl_c": 68, "triglycerides": 95,
+      "tsh": 3.4, "free_t4": 1.05, "free_t3": 2.8,
+      "ferritin": 28, "transferrin_saturation": 18,
+      "hs_crp": 0.9,
+      "hba1c": 5.2, "fasting_insulin": 6.1, "homa_ir": 1.32,
+      "vitamin_d": 32, "vitamin_b12": 520, "folate": 15.2, "omega3_index": 4.9, "magnesium": 1.9, "zinc": 72
+    },
+    "genotypes": {
+      "MTHFR_rs1801133": "CC", "TCF7L2_rs7903146": "TT",
+      "PNPLA3_rs738409": "CG", "DIO2_rs225014": "GG"
+    },
+    "star_alleles": {
+      "CYP2D6": "*1/*1", "CYP2C19": "*1/*1", "TPMT": "*1/*1"
+    },
+    "panels_included": [
+      "Annual Membership",
+      "Extended Heart & Metabolic",
+      "Extended Thyroid",
+      "MTHFR Gene",
+      "Extended Vitamins/Minerals",
+      "Extended Autoimmunity",
+      "Women's Health Panel"
+    ],
+    "total_biomarkers": 215,
+    "collection_date": "2026-03-02",
+    "fasting": true,
+    "lab_partner": "Quest Diagnostics"
+  }
+]
