@@ -1,0 +1,78 @@
+###############################################################################
+# Precision Autoimmune Intelligence Agent — Docker Compose
+#
+# Services:
+#   autoimmune-streamlit  — Streamlit UI (port 8531)
+#   autoimmune-api        — FastAPI (port 8532)
+#   autoimmune-setup      — One-shot: create collections + seed knowledge
+#
+# Depends on shared Milvus stack from main docker-compose.dgx-spark.yml
+###############################################################################
+
+version: "3.8"
+
+services:
+  autoimmune-streamlit:
+    build: .
+    container_name: autoimmune-streamlit
+    ports:
+      - "8531:8531"
+    environment:
+      - AUTO_MILVUS_HOST=milvus-standalone
+      - AUTO_MILVUS_PORT=19530
+      - AUTO_STREAMLIT_PORT=8531
+      - AUTO_API_PORT=8532
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    volumes:
+      - ./demo_data:/app/demo_data:ro
+      - ./data:/app/data
+    networks:
+      - hcls-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://localhost:8531/_stcore/health')"]
+      interval: 30s
+      timeout: 5s
+      start_period: 60s
+      retries: 3
+
+  autoimmune-api:
+    build: .
+    container_name: autoimmune-api
+    command: ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8532", "--workers", "2"]
+    ports:
+      - "8532:8532"
+    environment:
+      - AUTO_MILVUS_HOST=milvus-standalone
+      - AUTO_MILVUS_PORT=19530
+      - AUTO_API_PORT=8532
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    volumes:
+      - ./demo_data:/app/demo_data:ro
+      - ./data:/app/data
+    networks:
+      - hcls-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://localhost:8532/healthz')"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+
+  autoimmune-setup:
+    build: .
+    container_name: autoimmune-setup
+    command: ["python", "scripts/setup_collections.py", "--seed"]
+    environment:
+      - AUTO_MILVUS_HOST=milvus-standalone
+      - AUTO_MILVUS_PORT=19530
+    networks:
+      - hcls-network
+    restart: "no"
+
+networks:
+  hcls-network:
+    external: true
