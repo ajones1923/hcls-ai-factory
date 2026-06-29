@@ -1,0 +1,47 @@
+[
+  {
+    "id": "PP_001_CYP2D6_UM",
+    "patient_id": "PGX-DEMO-001",
+    "gene": "CYP2D6",
+    "diplotype": "*1/*2xN",
+    "phenotype": "ultra-rapid metabolizer",
+    "activity_score": 3.0,
+    "text_chunk": "Patient PGX-DEMO-001: CYP2D6 ultra-rapid metabolizer (*1/*2xN, activity score 3.0). Additional genotypes: CYP2C19 *1/*1 (normal metabolizer), CYP2C9 *1/*1 (normal metabolizer), SLCO1B1 c.521 TT (normal function), VKORC1 -1639 GG (normal warfarin sensitivity), DPYD *1/*1 (normal DPD activity), TPMT *1/*1 (normal), NUDT15 *1/*1 (normal), HLA-B*57:01 negative, HLA-B*15:02 negative. Current medications: ibuprofen PRN. Alerts: AVOID codeine, tramadol, and hydrocodone due to CYP2D6 UM status — risk of respiratory depression from rapid conversion to active opioid metabolites. Ondansetron may have reduced antiemetic efficacy; consider granisetron alternative. If antidepressant needed, avoid TCAs; consider desvenlafaxine or mirtazapine."
+  },
+  {
+    "id": "PP_002_CYP2C19_PM",
+    "patient_id": "PGX-DEMO-002",
+    "gene": "CYP2C19",
+    "diplotype": "*2/*2",
+    "phenotype": "poor metabolizer",
+    "activity_score": 0.0,
+    "text_chunk": "Patient PGX-DEMO-002: CYP2C19 poor metabolizer (*2/*2, activity score 0). Additional genotypes: CYP2D6 *1/*4 (intermediate metabolizer, AS 1.0), CYP2C9 *1/*2 (intermediate metabolizer), SLCO1B1 c.521 TC (intermediate function), VKORC1 -1639 GA (intermediate warfarin sensitivity), DPYD *1/*1 (normal), TPMT *1/*1 (normal), NUDT15 *1/*1 (normal), HLA-B*57:01 negative, HLA-B*15:02 negative. Current medications: aspirin 81mg daily, atorvastatin 20mg daily. Alerts: CRITICAL — Do NOT use clopidogrel; use prasugrel or ticagrelor for any antiplatelet indication. Escitalopram/citalopram max dose 10mg/day (QTc risk). Voriconazole: reduce dose 50% with TDM or use isavuconazole. PPIs may have elevated levels; consider rabeprazole. Atorvastatin: monitor for myopathy (SLCO1B1 intermediate + CYP2C19 PM)."
+  },
+  {
+    "id": "PP_003_DPYD_deficient",
+    "patient_id": "PGX-DEMO-003",
+    "gene": "DPYD",
+    "diplotype": "*1/*2A",
+    "phenotype": "intermediate metabolizer (DPD activity score 1.0)",
+    "activity_score": 1.0,
+    "text_chunk": "Patient PGX-DEMO-003: DPYD intermediate metabolizer (*1/*2A, activity score 1.0). Additional genotypes: CYP2D6 *1/*1 (normal metabolizer, AS 2.0), CYP2C19 *1/*17 (rapid metabolizer), CYP2C9 *1/*1 (normal), UGT1A1 *1/*28 (intermediate), TPMT *1/*3A (intermediate metabolizer), NUDT15 *1/*1 (normal), HLA-B*57:01 negative, HLA-B*15:02 negative, HLA-B*58:01 negative. Current medications: none active oncology. Alerts: CRITICAL — If fluoropyrimidine chemotherapy (5-FU, capecitabine) required, REDUCE starting dose by 50% per CPIC. Monitor CBC and GI toxicity closely. If thiopurine needed, REDUCE dose to 30-70% (TPMT intermediate). UGT1A1 *1/*28: if irinotecan prescribed, reduced SN-38 glucuronidation may increase toxicity risk — monitor closely. CYP2C19 RM: PPIs may have reduced efficacy; consider higher doses for H. pylori eradication."
+  },
+  {
+    "id": "PP_004_HLA_positive",
+    "patient_id": "PGX-DEMO-004",
+    "gene": "HLA-B",
+    "diplotype": "HLA-B*57:01 positive, HLA-B*15:02 negative",
+    "phenotype": "HLA-B*57:01 carrier",
+    "activity_score": null,
+    "text_chunk": "Patient PGX-DEMO-004: HLA-B*57:01 positive. Additional genotypes: CYP2D6 *4/*4 (poor metabolizer, AS 0), CYP2C19 *1/*2 (intermediate metabolizer), CYP2C9 *1/*3 (intermediate metabolizer), CYP3A5 *3/*3 (non-expresser), SLCO1B1 c.521 CC (poor function), VKORC1 -1639 AA (high warfarin sensitivity), DPYD *1/*1 (normal), TPMT *1/*1 (normal), NUDT15 *1/*1 (normal), HLA-B*58:01 negative. Current medications: lisinopril 10mg, metformin 1000mg BID. Alerts: CRITICAL — Abacavir CONTRAINDICATED (HLA-B*57:01+); use tenofovir if NRTI needed. CRITICAL — Codeine/tramadol INEFFECTIVE (CYP2D6 PM); use morphine or non-opioid. Tamoxifen: reduced endoxifen; consider AI alternative. Warfarin: start ~1mg/day (CYP2C9 IM + VKORC1 AA); DOACs preferred. Simvastatin AVOID (SLCO1B1 CC); use pravastatin/rosuvastatin. Metoprolol: reduce dose 75% or use bisoprolol."
+  },
+  {
+    "id": "PP_005_multi_gene",
+    "patient_id": "PGX-DEMO-005",
+    "gene": "CYP2D6",
+    "diplotype": "*1/*41",
+    "phenotype": "normal to intermediate metabolizer (AS 1.5)",
+    "activity_score": 1.5,
+    "text_chunk": "Patient PGX-DEMO-005: CYP2D6 normal-to-intermediate metabolizer (*1/*41, AS 1.5). Additional genotypes: CYP2C19 *1/*1 (normal metabolizer), CYP2C9 *1/*1 (normal), CYP3A5 *1/*3 (CYP3A5 expresser), SLCO1B1 c.521 TT (normal function), VKORC1 -1639 GA (intermediate warfarin sensitivity), DPYD *1/*1 (normal DPD), TPMT *1/*1 (normal), NUDT15 *1/*3 (intermediate, AS 1.0), UGT1A1 *1/*1 (normal), G6PD normal (B variant), HLA-B*57:01 negative, HLA-B*15:02 negative, HLA-B*58:01 negative. Current medications: omeprazole 20mg daily. Alerts: CYP3A5 expresser: if tacrolimus needed post-transplant, start at higher dose (0.3 mg/kg/day) with TDM. NUDT15 intermediate: if thiopurine prescribed, REDUCE dose to 30-70% regardless of normal TPMT status. CYP2D6 AS 1.5: codeine/tramadol expected to work at standard doses. Omeprazole: standard dosing appropriate (CYP2C19 NM)."
+  }
+]

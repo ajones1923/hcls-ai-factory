@@ -1,0 +1,202 @@
+[
+  {
+    "id": "ALT_codeine_CYP2D6_UM",
+    "primary_drug": "codeine",
+    "gene": "CYP2D6",
+    "phenotype": "ultra-rapid metabolizer",
+    "alternative_drug": "morphine",
+    "rationale": "Morphine does not require CYP2D6 activation and provides predictable analgesia independent of CYP2D6 genotype. Avoids excessive morphine production from CYP2D6-mediated codeine conversion.",
+    "evidence_level": "1A",
+    "text_chunk": "Alternative to codeine for CYP2D6 ultra-rapid metabolizers: Morphine is recommended because its analgesic effect is not dependent on CYP2D6-mediated bioactivation. Other non-CYP2D6 alternatives include oxycodone (partially CYP2D6 but effective regardless), ketorolac, or non-opioid analgesics. Tramadol should also be avoided in UMs for the same reason as codeine."
+  },
+  {
+    "id": "ALT_codeine_CYP2D6_PM",
+    "primary_drug": "codeine",
+    "gene": "CYP2D6",
+    "phenotype": "poor metabolizer",
+    "alternative_drug": "morphine",
+    "rationale": "Codeine is ineffective in CYP2D6 PMs due to inability to convert codeine to morphine. Morphine provides direct mu-opioid receptor agonism independent of CYP2D6.",
+    "evidence_level": "1A",
+    "text_chunk": "Alternative to codeine for CYP2D6 poor metabolizers: Morphine is the direct alternative as it bypasses the CYP2D6-dependent activation step. Non-opioid alternatives (acetaminophen, NSAIDs) should also be considered depending on pain severity."
+  },
+  {
+    "id": "ALT_clopidogrel_CYP2C19_PM",
+    "primary_drug": "clopidogrel",
+    "gene": "CYP2C19",
+    "phenotype": "poor metabolizer",
+    "alternative_drug": "prasugrel or ticagrelor",
+    "rationale": "Prasugrel and ticagrelor do not require CYP2C19-mediated bioactivation. They provide more consistent and potent platelet inhibition independent of CYP2C19 genotype. Prasugrel is contraindicated in patients >75 years, <60 kg, or with prior stroke/TIA.",
+    "evidence_level": "1A",
+    "text_chunk": "Alternatives to clopidogrel for CYP2C19 poor metabolizers: Prasugrel (10mg daily, loading 60mg) provides rapid, complete, and consistent platelet inhibition. Ticagrelor (90mg BID) is a reversible P2Y12 inhibitor that does not require metabolic activation. Both have Level A evidence supporting their use in CYP2C19 LOF carriers."
+  },
+  {
+    "id": "ALT_tamoxifen_CYP2D6_PM",
+    "primary_drug": "tamoxifen",
+    "gene": "CYP2D6",
+    "phenotype": "poor metabolizer",
+    "alternative_drug": "aromatase inhibitor (anastrozole, letrozole, exemestane)",
+    "rationale": "Aromatase inhibitors do not require CYP2D6 activation and are effective first-line endocrine therapy for postmenopausal ER+ breast cancer. For premenopausal patients, ovarian suppression + AI may be considered.",
+    "evidence_level": "1A",
+    "text_chunk": "Alternative to tamoxifen for CYP2D6 poor metabolizers: Aromatase inhibitors (AIs) are recommended for postmenopausal women. AIs act by a different mechanism (blocking estrogen synthesis) and are not dependent on CYP2D6. For premenopausal patients where AIs alone are ineffective, GnRH agonist-mediated ovarian suppression combined with AI is an option."
+  },
+  {
+    "id": "ALT_simvastatin_SLCO1B1_PF",
+    "primary_drug": "simvastatin",
+    "gene": "SLCO1B1",
+    "phenotype": "poor function (c.521 CC)",
+    "alternative_drug": "pravastatin or rosuvastatin",
+    "rationale": "Pravastatin and rosuvastatin are less dependent on SLCO1B1 for hepatic uptake and have lower myopathy risk in SLCO1B1 variant carriers. Fluvastatin and pitavastatin are also alternatives with minimal SLCO1B1 dependence.",
+    "evidence_level": "1A",
+    "text_chunk": "Alternatives to simvastatin for SLCO1B1 poor function: Pravastatin is the safest alternative as it is minimally affected by SLCO1B1 genotype and has the lowest myopathy risk. Rosuvastatin is another option, though ABCG2 Q141K carriers may have increased rosuvastatin exposure. Fluvastatin and pitavastatin are additional low-risk alternatives."
+  },
+  {
+    "id": "ALT_allopurinol_HLA_B5801",
+    "primary_drug": "allopurinol",
+    "gene": "HLA-B",
+    "phenotype": "HLA-B*58:01 positive",
+    "alternative_drug": "febuxostat",
+    "rationale": "Febuxostat is a xanthine oxidase inhibitor with different chemical structure than allopurinol. While rare cross-reactivity reports exist, febuxostat is generally considered safe for HLA-B*58:01 carriers. Probenecid is an alternative uricosuric agent.",
+    "evidence_level": "1A",
+    "text_chunk": "Alternative to allopurinol for HLA-B*58:01 positive patients: Febuxostat is the primary alternative xanthine oxidase inhibitor. Probenecid (uricosuric) or pegloticase (recombinant uricase) are options if febuxostat is contraindicated or ineffective. Note that febuxostat has a cardiovascular safety warning (CARES trial)."
+  },
+  {
+    "id": "ALT_abacavir_HLA_B5701",
+    "primary_drug": "abacavir",
+    "gene": "HLA-B",
+    "phenotype": "HLA-B*57:01 positive",
+    "alternative_drug": "tenofovir alafenamide (TAF)",
+    "rationale": "TAF provides effective NRTI backbone activity without HLA-mediated hypersensitivity risk. TAF has an improved renal and bone safety profile compared to tenofovir disoproxil fumarate (TDF).",
+    "evidence_level": "1A",
+    "text_chunk": "Alternative to abacavir for HLA-B*57:01 positive patients: Tenofovir alafenamide (TAF) is the preferred alternative NRTI. It is effective across diverse HIV-1 subtypes and has a favorable safety profile. TDF is another option but has higher rates of renal tubular dysfunction and bone mineral density loss."
+  },
+  {
+    "id": "ALT_carbamazepine_HLA_B1502",
+    "primary_drug": "carbamazepine",
+    "gene": "HLA-B",
+    "phenotype": "HLA-B*15:02 positive",
+    "alternative_drug": "levetiracetam",
+    "rationale": "Levetiracetam has no known HLA-associated hypersensitivity risk and is effective as monotherapy for focal and generalized seizures. No hepatic metabolism or significant drug interactions.",
+    "evidence_level": "1A",
+    "text_chunk": "Alternatives to carbamazepine for HLA-B*15:02 positive patients: Levetiracetam is the preferred alternative due to absence of HLA-associated risk and broad anticonvulsant spectrum. Valproate, lamotrigine (with caution), lacosamide, and topiramate are additional options. Oxcarbazepine should be avoided as it shares SJS/TEN risk with carbamazepine."
+  },
+  {
+    "id": "ALT_warfarin_CYP2C9_PM_VKORC1",
+    "primary_drug": "warfarin",
+    "gene": "CYP2C9",
+    "phenotype": "CYP2C9 poor metabolizer + VKORC1 AA",
+    "alternative_drug": "apixaban or rivaroxaban",
+    "rationale": "Direct oral anticoagulants (DOACs) have predictable pharmacokinetics without need for genotype-guided dosing or INR monitoring. DOACs are now preferred first-line for most atrial fibrillation and VTE indications.",
+    "evidence_level": "1B",
+    "text_chunk": "Alternative to warfarin for CYP2C9 PM + VKORC1 AA patients: Direct oral anticoagulants (apixaban, rivaroxaban, edoxaban, dabigatran) provide predictable anticoagulation without pharmacogenomic dosing requirements. They are preferred over warfarin for most AF and VTE indications per current guidelines. Warfarin remains necessary for mechanical heart valves and antiphospholipid syndrome."
+  },
+  {
+    "id": "ALT_escitalopram_CYP2C19_PM",
+    "primary_drug": "escitalopram",
+    "gene": "CYP2C19",
+    "phenotype": "poor metabolizer",
+    "alternative_drug": "desvenlafaxine",
+    "rationale": "Desvenlafaxine undergoes glucuronidation (UGT) rather than CYP2C19 metabolism, making its pharmacokinetics independent of CYP2C19 genotype. Effective for MDD with predictable dosing.",
+    "evidence_level": "2A",
+    "text_chunk": "Alternatives to escitalopram for CYP2C19 poor metabolizers: Desvenlafaxine is the preferred alternative as it bypasses CYP2C19 metabolism entirely. Bupropion (CYP2B6-dependent, minimal CYP2C19 involvement) and mirtazapine (primarily CYP1A2/CYP3A4) are additional options. If an SSRI is preferred, sertraline has less CYP2C19 dependence than escitalopram/citalopram."
+  },
+  {
+    "id": "ALT_metoprolol_CYP2D6_PM",
+    "primary_drug": "metoprolol",
+    "gene": "CYP2D6",
+    "phenotype": "poor metabolizer",
+    "alternative_drug": "bisoprolol",
+    "rationale": "Bisoprolol is a beta-1 selective blocker not dependent on CYP2D6 for metabolism. It undergoes balanced hepatic/renal elimination and provides consistent beta-blockade regardless of CYP2D6 genotype.",
+    "evidence_level": "1B",
+    "text_chunk": "Alternative to metoprolol for CYP2D6 poor metabolizers: Bisoprolol is the preferred alternative beta-blocker. It has comparable beta-1 selectivity, is not CYP2D6-dependent, and has extensive clinical trial evidence in heart failure (CIBIS-II). Atenolol (renally eliminated) is another option. Carvedilol is partially CYP2D6-dependent and less ideal."
+  },
+  {
+    "id": "ALT_ondansetron_CYP2D6_UM",
+    "primary_drug": "ondansetron",
+    "gene": "CYP2D6",
+    "phenotype": "ultra-rapid metabolizer",
+    "alternative_drug": "granisetron",
+    "rationale": "Granisetron is a 5-HT3 receptor antagonist that is not metabolized by CYP2D6, providing reliable antiemetic effect independent of CYP2D6 genotype.",
+    "evidence_level": "1B",
+    "text_chunk": "Alternative to ondansetron for CYP2D6 ultra-rapid metabolizers: Granisetron undergoes N-demethylation by CYP3A4, not CYP2D6. Palonosetron (CYP2D6-metabolized but with long half-life) is another option. NK1 receptor antagonists (aprepitant, fosaprepitant) can be added to enhance antiemetic efficacy."
+  },
+  {
+    "id": "ALT_voriconazole_CYP2C19_UM",
+    "primary_drug": "voriconazole",
+    "gene": "CYP2C19",
+    "phenotype": "ultra-rapid metabolizer",
+    "alternative_drug": "isavuconazole",
+    "rationale": "Isavuconazole provides broad-spectrum antifungal coverage (including Aspergillus and Mucorales) with predominantly non-CYP2C19 metabolism and a wider therapeutic window, reducing the need for therapeutic drug monitoring.",
+    "evidence_level": "2A",
+    "text_chunk": "Alternative to voriconazole for CYP2C19 ultra-rapid metabolizers: Isavuconazole is the preferred alternative triazole antifungal. It has activity against Aspergillus comparable to voriconazole (SECURE trial) with a more predictable PK profile. Posaconazole (oral suspension or IV) and liposomal amphotericin B are additional alternatives for invasive aspergillosis."
+  },
+  {
+    "id": "ALT_fluorouracil_DPYD_PM",
+    "primary_drug": "fluorouracil",
+    "gene": "DPYD",
+    "phenotype": "poor metabolizer (activity score 0)",
+    "alternative_drug": "raltitrexed (Tomudex)",
+    "rationale": "Raltitrexed is a thymidylate synthase inhibitor not dependent on DPD for metabolism. It can substitute for 5-FU in colorectal cancer regimens for DPD-deficient patients, though efficacy data are less robust than for fluoropyrimidines.",
+    "evidence_level": "2B",
+    "text_chunk": "Alternative to fluorouracil for DPYD poor metabolizers: Raltitrexed is the only approved thymidylate synthase inhibitor that bypasses DPD metabolism entirely. However, its clinical efficacy is less well-established than 5-FU-based regimens. For many patients, alternative chemotherapy regimens (e.g., FOLFOX replaced with oxaliplatin + irinotecan) may be considered. TAS-102 (trifluridine/tipiracil) is partially DPD-dependent and may have attenuated risk."
+  },
+  {
+    "id": "ALT_propafenone_CYP2D6_PM",
+    "primary_drug": "propafenone",
+    "gene": "CYP2D6",
+    "phenotype": "poor metabolizer",
+    "alternative_drug": "sotalol",
+    "rationale": "Sotalol is a class III antiarrhythmic with combined beta-blocker and potassium channel blocking properties, renally eliminated without CYP2D6 dependence. Effective for atrial fibrillation and ventricular arrhythmias.",
+    "evidence_level": "2A",
+    "text_chunk": "Alternative to propafenone for CYP2D6 poor metabolizers: Sotalol is a suitable alternative antiarrhythmic that is renally eliminated and not CYP-dependent. Dronedarone is another option for atrial fibrillation. Amiodarone is highly effective but has substantial long-term toxicity. Catheter ablation should be considered for appropriate candidates."
+  },
+  {
+    "id": "ALT_azathioprine_TPMT_PM",
+    "primary_drug": "azathioprine",
+    "gene": "TPMT",
+    "phenotype": "poor metabolizer",
+    "alternative_drug": "mycophenolate mofetil",
+    "rationale": "Mycophenolate mofetil is an alternative immunosuppressant not metabolized by TPMT. It inhibits inosine monophosphate dehydrogenase (IMPDH) via a different mechanism than thiopurines and provides effective immunosuppression for autoimmune conditions and transplant.",
+    "evidence_level": "2A",
+    "text_chunk": "Alternative to azathioprine for TPMT poor metabolizers: Mycophenolate mofetil (MMF) is the preferred alternative for immunosuppression in transplant and autoimmune disease. For IBD patients, methotrexate or biologic agents (infliximab, adalimumab) can substitute for thiopurines. Note that if thiopurines are required (e.g., ALL maintenance), extreme dose reduction (10%) with monitoring may be attempted."
+  },
+  {
+    "id": "ALT_pantoprazole_CYP2C19_UM",
+    "primary_drug": "pantoprazole",
+    "gene": "CYP2C19",
+    "phenotype": "ultra-rapid metabolizer",
+    "alternative_drug": "rabeprazole",
+    "rationale": "Rabeprazole is primarily metabolized by non-enzymatic thioether reduction rather than CYP2C19, making its pharmacokinetics less dependent on CYP2C19 genotype compared to other PPIs.",
+    "evidence_level": "2A",
+    "text_chunk": "Alternative to pantoprazole for CYP2C19 ultra-rapid metabolizers: Rabeprazole has the least CYP2C19 dependence among PPIs, as it undergoes primarily non-enzymatic reduction. Other options include using higher PPI doses (e.g., pantoprazole 40mg BID instead of 40mg daily) or switching to vonoprazan (potassium-competitive acid blocker, available in Japan and some countries) which is not CYP2C19-dependent."
+  },
+  {
+    "id": "ALT_amitriptyline_CYP2D6_PM",
+    "primary_drug": "amitriptyline",
+    "gene": "CYP2D6",
+    "phenotype": "poor metabolizer",
+    "alternative_drug": "nortriptyline (with dose reduction) or non-TCA antidepressant",
+    "rationale": "If a TCA is required, nortriptyline is preferred as it is a secondary amine with somewhat simpler metabolism. However, dose reduction is still needed for CYP2D6 PMs. Non-TCA alternatives (desvenlafaxine, bupropion, mirtazapine) bypass CYP2D6 entirely.",
+    "evidence_level": "1A",
+    "text_chunk": "Alternative to amitriptyline for CYP2D6 poor metabolizers: For depression, non-TCA antidepressants (desvenlafaxine, bupropion, mirtazapine) are preferred as they are minimally CYP2D6-dependent. If a TCA is required for neuropathic pain or migraine prophylaxis, nortriptyline with 50% dose reduction and TDM is an option. Gabapentin or pregabalin can substitute for neuropathic pain indications."
+  },
+  {
+    "id": "ALT_irinotecan_UGT1A1_PM",
+    "primary_drug": "irinotecan",
+    "gene": "UGT1A1",
+    "phenotype": "poor metabolizer (*28/*28)",
+    "alternative_drug": "oxaliplatin-based regimen",
+    "rationale": "In colorectal cancer, oxaliplatin-based regimens (FOLFOX, CAPOX) provide comparable efficacy without UGT1A1-dependent toxicity risk. Irinotecan can still be used with dose reduction if specifically required.",
+    "evidence_level": "2A",
+    "text_chunk": "Alternative to irinotecan for UGT1A1 poor metabolizers: For colorectal cancer, oxaliplatin-based regimens (FOLFOX) provide comparable efficacy to irinotecan-based regimens (FOLFIRI) as first-line therapy. If irinotecan is specifically required (e.g., second-line after oxaliplatin), at least 30% dose reduction with close monitoring is recommended per CPIC guidelines."
+  },
+  {
+    "id": "ALT_phenytoin_CYP2C9_PM",
+    "primary_drug": "phenytoin",
+    "gene": "CYP2C9",
+    "phenotype": "poor metabolizer",
+    "alternative_drug": "levetiracetam or lacosamide",
+    "rationale": "Levetiracetam and lacosamide have no significant CYP-mediated metabolism, no HLA-associated hypersensitivity risk, and minimal drug interactions, making them ideal alternatives for CYP2C9 PM patients.",
+    "evidence_level": "1B",
+    "text_chunk": "Alternative to phenytoin for CYP2C9 poor metabolizers: Levetiracetam is the preferred alternative due to its renal elimination, absence of CYP metabolism, and broad-spectrum efficacy. Lacosamide is another option for focal seizures. Valproate is effective but has teratogenicity concerns. If phenytoin must be used, 50% dose reduction with TDM is required."
+  }
+]

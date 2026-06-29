@@ -1,0 +1,192 @@
+# =============================================================================
+# Pharmacogenomics Intelligence Agent — Docker Compose
+# HCLS AI Factory / ai_agent_adds / pharmacogenomics_intelligence_agent
+#
+# Services:
+#   milvus-etcd          etcd key-value store for Milvus metadata
+#   milvus-minio         MinIO object storage for Milvus log/index data
+#   milvus-standalone    Milvus 2.4 vector database (ports 19530, 9091)
+#   pgx-streamlit        Streamlit chat UI (port 8507)
+#   pgx-api              FastAPI REST server (port 8107)
+#   pgx-setup            One-shot: create collections + seed all data
+#
+# Usage:
+#   cp .env.example .env          # add ANTHROPIC_API_KEY
+#   docker compose up -d          # start all services
+#   docker compose logs -f pgx-setup  # watch seed progress
+#
+# Author: Adam Jones
+# Date:   March 2026
+# =============================================================================
+
+version: "3.8"
+
+services:
+  # ── etcd (Milvus metadata store) ──────────────────────────────────────────
+  milvus-etcd:
+    image: quay.io/coreos/etcd:v3.5.5
+    container_name: pgx-milvus-etcd
+    environment:
+      ETCD_AUTO_COMPACTION_MODE: revision
+      ETCD_AUTO_COMPACTION_RETENTION: "1000"
+      ETCD_QUOTA_BACKEND_BYTES: "4294967296"        # 4 GB
+      ETCD_SNAPSHOT_COUNT: "50000"
+    volumes:
+      - etcd_data:/etcd
+    command:
+      - etcd
+      - --advertise-client-urls=http://127.0.0.1:2379
+      - --listen-client-urls=http://0.0.0.0:2379
+      - --data-dir=/etcd
+      - --auto-compaction-mode=revision
+      - --auto-compaction-retention=1000
+      - --snapshot-count=50000
+    healthcheck:
+      test: ["CMD", "etcdctl", "endpoint", "health"]
+      interval: 30s
+      timeout: 20s
+      retries: 5
+    networks:
+      - pgx-network
+    restart: unless-stopped
+
+  # ── MinIO (Milvus object storage) ────────────────────────────────────────
+  milvus-minio:
+    image: minio/minio:RELEASE.2023-03-20T20-16-18Z
+    container_name: pgx-milvus-minio
+    environment:
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+    volumes:
+      - minio_data:/minio_data
+    command: minio server /minio_data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 5
+    networks:
+      - pgx-network
+    restart: unless-stopped
+
+  # ── Milvus Standalone ────────────────────────────────────────────────────
+  milvus-standalone:
+    image: milvusdb/milvus:v2.4-latest
+    container_name: pgx-milvus-standalone
+    command: ["milvus", "run", "standalone"]
+    security_opt:
+      - seccomp:unconfined
+    environment:
+      ETCD_ENDPOINTS: milvus-etcd:2379
+      MINIO_ADDRESS: milvus-minio:9000
+    ports:
+      - "19530:19530"             # gRPC client port
+      - "9091:9091"               # Metrics / health endpoint
+    volumes:
+      - milvus_data:/var/lib/milvus
+    depends_on:
+      milvus-etcd:
+        condition: service_healthy
+      milvus-minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9091/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+    networks:
+      - pgx-network
+    restart: unless-stopped
+
+  # ── PGx Streamlit UI ───────────────────────────────────────────────────
+  pgx-streamlit:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pgx-streamlit
+    ports:
+      - "8507:8507"
+    environment:
+      PGX_MILVUS_HOST: milvus-standalone
+      PGX_MILVUS_PORT: "19530"
+      PGX_STREAMLIT_PORT: "8507"
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+    depends_on:
+      milvus-standalone:
+        condition: service_healthy
+    networks:
+      - pgx-network
+    restart: unless-stopped
+
+  # ── PGx FastAPI Server ─────────────────────────────────────────────────
+  pgx-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pgx-api
+    ports:
+      - "8107:8107"
+    environment:
+      PGX_MILVUS_HOST: milvus-standalone
+      PGX_MILVUS_PORT: "19530"
+      PGX_API_PORT: "8107"
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+    command:
+      - uvicorn
+      - src.api_server:app
+      - --host=0.0.0.0
+      - --port=8107
+      - --workers=2
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8107/health"]
+      interval: 30s
+      timeout: 10s
+      start-period: 30s
+      retries: 3
+    depends_on:
+      milvus-standalone:
+        condition: service_healthy
+    networks:
+      - pgx-network
+    restart: unless-stopped
+
+  # ── PGx Setup (one-shot: create collections + seed data) ──────────────
+  pgx-setup:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pgx-setup
+    environment:
+      PGX_MILVUS_HOST: milvus-standalone
+      PGX_MILVUS_PORT: "19530"
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+    command: >
+      bash -c "
+        echo '===== PGx Setup: Creating collections =====' &&
+        python scripts/setup_collections.py --drop-existing --seed &&
+        echo '===== Seeding knowledge base =====' &&
+        python scripts/seed_knowledge.py &&
+        echo '===== PGx Setup complete! ====='
+      "
+    depends_on:
+      milvus-standalone:
+        condition: service_healthy
+    networks:
+      - pgx-network
+    restart: "no"
+
+# ── Volumes ──────────────────────────────────────────────────────────────────
+volumes:
+  etcd_data:
+    driver: local
+  minio_data:
+    driver: local
+  milvus_data:
+    driver: local
+
+# ── Network ──────────────────────────────────────────────────────────────────
+networks:
+  pgx-network:
+    name: pgx-network
+    driver: bridge
