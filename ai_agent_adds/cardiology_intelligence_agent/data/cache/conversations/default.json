@@ -1,0 +1,36 @@
+{
+  "session_id": "default",
+  "updated": "2026-03-27T21:17:54.580919+00:00",
+  "messages": [
+    {
+      "role": "user",
+      "content": "What are the genetic causes of hypertrophic cardiomyopathy?",
+      "timestamp": "2026-03-27T18:44:37Z"
+    },
+    {
+      "role": "assistant",
+      "content": "# Hypertrophic Cardiomyopathy (HCM): Genetic Causes & Clinical Implications\n\n> **\u2695\ufe0f Clinical Decision Support Notice:** This response is based on established cardiovascular genetics literature, ACC/AHA/ESC guidelines, and landmark publications. No records were retrieved from the local knowledge base. All recommendations require clinical correlation and physician judgment. Specialist referral to a cardiovascular genetics program is strongly recommended for all confirmed or suspected HCM cases.\n\n-",
+      "timestamp": "2026-03-27T18:44:37Z"
+    },
+    {
+      "role": "user",
+      "content": "What causes hypertrophic cardiomyopathy?",
+      "timestamp": "2026-03-27T21:16:20Z"
+    },
+    {
+      "role": "assistant",
+      "content": "# Hypertrophic Cardiomyopathy (HCM): Genetic Causes & Clinical Implications\n\n> **\u2695\ufe0f Clinical Decision Support Notice:** This response is based on established cardiovascular genetics literature, ACC/AHA/ESC guidelines, and landmark publications. No records were retrieved from the local knowledge base. All recommendations require clinical correlation and physician judgment.\n\n---\n\n## Overview\n\nHypertrophic cardiomyopathy (HCM) is the **most common inherited cardiac condition**, affecting approximat",
+      "timestamp": "2026-03-27T21:16:20Z"
+    },
+    {
+      "role": "user",
+      "content": "HCM genetics",
+      "timestamp": "2026-03-27T21:17:54Z"
+    },
+    {
+      "role": "assistant",
+      "content": "# Hypertrophic Cardiomyopathy (HCM): Etiology & Pathogenesis\n\n> **\u2695\ufe0f Clinical Decision Support Notice:** This response is based on established cardiovascular genetics literature and ACC/AHA/ESC guidelines. No records were retrieved from the local knowledge base for this query. All recommendations require clinical correlation and physician oversight.\n\n---\n\n## Overview\n\nHypertrophic Cardiomyopathy (HCM) is defined as **unexplained left ventricular hypertrophy (LVH)** with a wall thickness \u226515 mm (",
+      "timestamp": "2026-03-27T21:17:54Z"
+    }
+  ]
+}

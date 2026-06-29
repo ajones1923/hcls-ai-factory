@@ -1,0 +1,53 @@
+# =============================================================================
+# Cardiology Intelligence Agent — Python Dependencies
+# HCLS AI Factory / ai_agent_adds / cardiology_intelligence_agent
+#
+# Author: Adam Jones
+# Date:   March 2026
+# =============================================================================
+
+# ── Core Framework ──
+pydantic>=2.0
+pydantic-settings>=2.7
+loguru>=0.7.0
+
+# ── Vector Database ──
+pymilvus>=2.4.0
+
+# ── Embeddings ──
+sentence-transformers>=2.2.0
+
+# ── LLM ──
+anthropic>=0.18.0
+
+# ── Web / API ──
+streamlit>=1.30.0
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+python-multipart>=0.0.6
+
+# ── Data Ingest ──
+requests>=2.31.0
+lxml>=5.0.0                   # PubMed XML parsing
+biopython>=1.83               # NCBI E-utilities
+
+# ── Scheduling ──
+apscheduler>=3.10.0
+
+# ── Monitoring ──
+prometheus-client>=0.20.0
+
+# ── Observability / Tracing ──
+opentelemetry-api>=1.29.0
+opentelemetry-sdk>=1.29.0
+
+# ── Export / Reporting ──
+reportlab>=4.0.0
+
+# ── Visualization ──
+pyvis>=0.3.0
+
+# ── Utilities ──
+numpy>=1.24.0
+tqdm>=4.65.0
+python-dotenv>=1.0.0
