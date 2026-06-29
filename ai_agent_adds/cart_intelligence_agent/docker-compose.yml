@@ -1,0 +1,206 @@
+# =============================================================================
+# CAR-T Intelligence Agent — Docker Compose
+# HCLS AI Factory / ai_agent_adds / cart_intelligence_agent
+#
+# Services:
+#   milvus-etcd          etcd key-value store for Milvus metadata
+#   milvus-minio         MinIO object storage for Milvus log/index data
+#   milvus-standalone    Milvus 2.4 vector database (ports 19530, 9091)
+#   cart-streamlit       Streamlit chat UI (port 8521)
+#   cart-api             FastAPI REST server (port 8522)
+#   cart-setup           One-shot: create collections + seed all data
+#
+# Usage:
+#   cp .env.example .env          # add ANTHROPIC_API_KEY
+#   docker compose up -d          # start all services
+#   docker compose logs -f cart-setup  # watch seed progress
+#
+# Author: Adam Jones
+# Date:   February 2026
+# =============================================================================
+
+version: "3.8"
+
+services:
+  # ── etcd (Milvus metadata store) ──────────────────────────────────────────
+  milvus-etcd:
+    image: quay.io/coreos/etcd:v3.5.5
+    container_name: cart-milvus-etcd
+    environment:
+      ETCD_AUTO_COMPACTION_MODE: revision
+      ETCD_AUTO_COMPACTION_RETENTION: "1000"
+      ETCD_QUOTA_BACKEND_BYTES: "4294967296"        # 4 GB
+      ETCD_SNAPSHOT_COUNT: "50000"
+    volumes:
+      - etcd_data:/etcd
+    command:
+      - etcd
+      - --advertise-client-urls=http://127.0.0.1:2379
+      - --listen-client-urls=http://0.0.0.0:2379
+      - --data-dir=/etcd
+      - --auto-compaction-mode=revision
+      - --auto-compaction-retention=1000
+      - --snapshot-count=50000
+    healthcheck:
+      test: ["CMD", "etcdctl", "endpoint", "health"]
+      interval: 30s
+      timeout: 20s
+      retries: 5
+    networks:
+      - cart-network
+    restart: unless-stopped
+
+  # ── MinIO (Milvus object storage) ────────────────────────────────────────
+  milvus-minio:
+    image: minio/minio:RELEASE.2023-03-20T20-16-18Z
+    container_name: cart-milvus-minio
+    environment:
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+    volumes:
+      - minio_data:/minio_data
+    command: minio server /minio_data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 5
+    networks:
+      - cart-network
+    restart: unless-stopped
+
+  # ── Milvus Standalone ────────────────────────────────────────────────────
+  milvus-standalone:
+    image: milvusdb/milvus:v2.4-latest
+    container_name: cart-milvus-standalone
+    command: ["milvus", "run", "standalone"]
+    security_opt:
+      - seccomp:unconfined
+    environment:
+      ETCD_ENDPOINTS: milvus-etcd:2379
+      MINIO_ADDRESS: milvus-minio:9000
+    ports:
+      - "19530:19530"             # gRPC client port
+      - "9091:9091"               # Metrics / health endpoint
+    volumes:
+      - milvus_data:/var/lib/milvus
+    depends_on:
+      milvus-etcd:
+        condition: service_healthy
+      milvus-minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9091/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+    networks:
+      - cart-network
+    restart: unless-stopped
+
+  # ── CAR-T Streamlit UI ───────────────────────────────────────────────────
+  cart-streamlit:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cart-streamlit
+    ports:
+      - "8521:8521"
+    environment:
+      CART_MILVUS_HOST: milvus-standalone
+      CART_MILVUS_PORT: "19530"
+      CART_STREAMLIT_PORT: "8521"
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+    depends_on:
+      milvus-standalone:
+        condition: service_healthy
+    networks:
+      - cart-network
+    restart: unless-stopped
+
+  # ── CAR-T FastAPI Server ─────────────────────────────────────────────────
+  cart-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cart-api
+    ports:
+      - "8522:8522"
+    environment:
+      CART_MILVUS_HOST: milvus-standalone
+      CART_MILVUS_PORT: "19530"
+      CART_API_PORT: "8522"
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+    command:
+      - uvicorn
+      - src.api_server:app
+      - --host=0.0.0.0
+      - --port=8522
+      - --workers=2
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8522/health"]
+      interval: 30s
+      timeout: 10s
+      start-period: 30s
+      retries: 3
+    depends_on:
+      milvus-standalone:
+        condition: service_healthy
+    networks:
+      - cart-network
+    restart: unless-stopped
+
+  # ── CAR-T Setup (one-shot: create collections + seed data) ──────────────
+  cart-setup:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cart-setup
+    environment:
+      CART_MILVUS_HOST: milvus-standalone
+      CART_MILVUS_PORT: "19530"
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+    command: >
+      bash -c "
+        echo '===== CAR-T Setup: Creating collections =====' &&
+        python scripts/setup_collections.py --drop-existing --seed-constructs &&
+        echo '===== Seeding knowledge base =====' &&
+        python scripts/seed_knowledge.py &&
+        echo '===== Seeding assays =====' &&
+        python scripts/seed_assays.py &&
+        echo '===== Seeding manufacturing =====' &&
+        python scripts/seed_manufacturing.py &&
+        echo '===== Seeding safety data =====' &&
+        python scripts/seed_safety.py &&
+        echo '===== Seeding biomarkers =====' &&
+        python scripts/seed_biomarkers.py &&
+        echo '===== Seeding regulatory data =====' &&
+        python scripts/seed_regulatory.py &&
+        echo '===== Seeding sequences =====' &&
+        python scripts/seed_sequences.py &&
+        echo '===== Seeding real-world evidence =====' &&
+        python scripts/seed_realworld.py &&
+        echo '===== CAR-T Setup complete! ====='
+      "
+    depends_on:
+      milvus-standalone:
+        condition: service_healthy
+    networks:
+      - cart-network
+    restart: "no"
+
+# ── Volumes ──────────────────────────────────────────────────────────────────
+volumes:
+  etcd_data:
+    driver: local
+  minio_data:
+    driver: local
+  milvus_data:
+    driver: local
+
+# ── Network ──────────────────────────────────────────────────────────────────
+networks:
+  cart-network:
+    name: cart-network
+    driver: bridge
