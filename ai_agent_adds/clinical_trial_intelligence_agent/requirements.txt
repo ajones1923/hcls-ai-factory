@@ -1,0 +1,46 @@
+# =============================================================================
+# Clinical Trial Intelligence Agent -- Python Dependencies
+# HCLS AI Factory / ai_agent_adds / clinical_trial_intelligence_agent
+#
+# Author: Adam Jones
+# Date:   March 2026
+# =============================================================================
+
+# -- Core Framework --
+pydantic-settings==2.2.1
+pydantic==2.7.4
+loguru==0.7.2
+
+# -- Vector Database --
+pymilvus==2.4.1
+
+# -- Embeddings --
+sentence-transformers==2.7.0
+
+# -- LLM --
+anthropic==0.25.0
+
+# -- Web / API --
+streamlit==1.33.0
+fastapi==0.111.0
+uvicorn==0.29.0
+python-multipart==0.0.9
+
+# -- Data Ingest / HTTP --
+requests==2.31.0
+httpx==0.27.0
+lxml==5.2.1
+
+# -- Scheduling --
+apscheduler==3.10.4
+
+# -- Monitoring --
+prometheus-client==0.20.0
+
+# -- Export / Reporting --
+python-docx==1.1.0
+
+# -- Utilities --
+numpy>=1.24.0
+tqdm>=4.65.0
+python-dotenv>=1.0.0
