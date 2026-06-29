@@ -1,0 +1,377 @@
+[
+  {
+    "id": "crit_platelet_very_low",
+    "biomarker": "Platelet Count",
+    "loinc_code": "777-3",
+    "critical_low": 50.0,
+    "critical_high": null,
+    "severity": "critical",
+    "escalation_target": "hematology_oncall",
+    "clinical_action": "Hold all anticoagulants and antiplatelets. Order stat peripheral smear. Evaluate for DIC, TTP/HUS, or marrow failure. Consider platelet transfusion if active bleeding or planned procedure.",
+    "cross_checks": [
+      "INR",
+      "Fibrinogen",
+      "D-Dimer",
+      "LDH",
+      "Haptoglobin"
+    ],
+    "text_chunk": "A platelet count below 50 x10^9/L represents a critical thrombocytopenia requiring immediate evaluation. Spontaneous bleeding risk increases significantly below this threshold, and surgical hemostasis cannot be assured. Common etiologies include DIC, TTP/HUS, heparin-induced thrombocytopenia, bone marrow failure, and massive transfusion dilution. Cross-check with coagulation studies and hemolysis markers to differentiate consumptive from production-failure causes."
+  },
+  {
+    "id": "crit_platelet_low",
+    "biomarker": "Platelet Count",
+    "loinc_code": "777-3",
+    "critical_low": 100.0,
+    "critical_high": null,
+    "severity": "warning",
+    "escalation_target": "ordering_provider",
+    "clinical_action": "Review medication list for offending agents. Repeat CBC to confirm. Evaluate trend. Consider hematology consult if declining trend.",
+    "cross_checks": [
+      "INR",
+      "Fibrinogen",
+      "Mean Platelet Volume"
+    ],
+    "text_chunk": "A platelet count below 100 x10^9/L indicates mild-to-moderate thrombocytopenia warranting monitoring and medication review. While spontaneous bleeding is uncommon at this level, a declining trend may signal evolving pathology such as immune thrombocytopenia, drug-induced marrow suppression, or early DIC. Mean platelet volume can help distinguish destruction (high MPV) from underproduction (low MPV). Serial monitoring and trend analysis guide urgency of intervention."
+  },
+  {
+    "id": "crit_glucose_high",
+    "biomarker": "Glucose",
+    "loinc_code": "2345-7",
+    "critical_low": null,
+    "critical_high": 250.0,
+    "severity": "urgent",
+    "escalation_target": "endocrinology_oncall",
+    "clinical_action": "Check serum ketones and arterial blood gas. Evaluate for DKA or HHS. Initiate IV insulin protocol if confirmed. Monitor electrolytes every 2 hours.",
+    "cross_checks": [
+      "HbA1c",
+      "Serum Ketones",
+      "Bicarbonate",
+      "Anion Gap",
+      "Serum Osmolality"
+    ],
+    "text_chunk": "A blood glucose exceeding 250 mg/dL is an urgent finding that may indicate diabetic ketoacidosis (DKA) or hyperosmolar hyperglycemic state (HHS). Immediate evaluation should include serum ketones, arterial blood gas, and electrolyte panel to classify the hyperglycemic emergency. Concurrent HbA1c helps distinguish new-onset diabetes from chronic poor control. Prompt insulin therapy and aggressive fluid resuscitation reduce morbidity and mortality."
+  },
+  {
+    "id": "crit_glucose_low",
+    "biomarker": "Glucose",
+    "loinc_code": "2345-7",
+    "critical_low": 50.0,
+    "critical_high": null,
+    "severity": "critical",
+    "escalation_target": "rapid_response_team",
+    "clinical_action": "Administer IV dextrose (D50) immediately. Check insulin and C-peptide levels before correction if etiology unclear. Monitor glucose every 15 minutes until stable above 100 mg/dL.",
+    "cross_checks": [
+      "Insulin",
+      "C-Peptide",
+      "Cortisol",
+      "Beta-Hydroxybutyrate"
+    ],
+    "text_chunk": "A blood glucose below 50 mg/dL is a critical hypoglycemic emergency with imminent risk of seizures, loss of consciousness, and permanent neurological injury. Whipple's triad (symptoms, documented low glucose, resolution with treatment) confirms clinical significance. Etiologies include insulin overdose, sulfonylurea use, insulinoma, adrenal insufficiency, and sepsis. Paired insulin and C-peptide drawn before glucose correction help determine the underlying cause."
+  },
+  {
+    "id": "crit_potassium_high",
+    "biomarker": "Potassium",
+    "loinc_code": "2823-3",
+    "critical_low": null,
+    "critical_high": 6.0,
+    "severity": "critical",
+    "escalation_target": "rapid_response_team",
+    "clinical_action": "Obtain stat 12-lead ECG. Administer IV calcium gluconate for cardiac membrane stabilization. Initiate insulin-glucose infusion and nebulized albuterol for potassium shifting. Evaluate for hemolysis artifact.",
+    "cross_checks": [
+      "Creatinine",
+      "eGFR",
+      "Bicarbonate",
+      "ECG"
+    ],
+    "text_chunk": "A serum potassium above 6.0 mEq/L is a life-threatening hyperkalemia with risk of fatal cardiac arrhythmia including ventricular fibrillation and asystole. ECG changes (peaked T waves, widened QRS, sine wave pattern) indicate myocardial toxicity requiring emergent treatment. Common causes include acute kidney injury, potassium-sparing diuretics, ACE inhibitors, rhabdomyolysis, and tumor lysis syndrome. Pseudohyperkalemia from hemolyzed specimens must be excluded before initiating aggressive therapy."
+  },
+  {
+    "id": "crit_potassium_low",
+    "biomarker": "Potassium",
+    "loinc_code": "2823-3",
+    "critical_low": 3.0,
+    "critical_high": null,
+    "severity": "urgent",
+    "escalation_target": "ordering_provider",
+    "clinical_action": "Obtain stat ECG. Begin IV potassium replacement with cardiac monitoring. Check magnesium level concurrently as hypomagnesemia impairs potassium repletion.",
+    "cross_checks": [
+      "Magnesium",
+      "Bicarbonate",
+      "Digoxin Level",
+      "ECG"
+    ],
+    "text_chunk": "A serum potassium below 3.0 mEq/L is a significant hypokalemia that predisposes to life-threatening cardiac arrhythmias, particularly in patients on digoxin. ECG findings may include U waves, ST depression, and T wave flattening. Concurrent hypomagnesemia must be corrected as it prevents effective potassium repletion. Common causes include diuretic therapy, vomiting, diarrhea, and renal tubular acidosis. IV replacement with cardiac monitoring is required at this severity."
+  },
+  {
+    "id": "crit_inr_high",
+    "biomarker": "INR",
+    "loinc_code": "6301-6",
+    "critical_low": null,
+    "critical_high": 4.0,
+    "severity": "critical",
+    "escalation_target": "hematology_oncall",
+    "clinical_action": "Hold warfarin. Assess for active bleeding. Consider vitamin K (IV or oral) based on bleeding risk. For life-threatening bleeding, administer 4-factor PCC or FFP. Recheck INR in 6 hours.",
+    "cross_checks": [
+      "Platelet Count",
+      "Hemoglobin",
+      "Fibrinogen",
+      "Liver Function Tests"
+    ],
+    "text_chunk": "An INR above 4.0 represents a critical coagulopathy with markedly elevated bleeding risk, particularly intracranial and gastrointestinal hemorrhage. In warfarin-treated patients, this indicates supratherapeutic anticoagulation requiring immediate dose adjustment or reversal. Hepatic dysfunction, drug interactions (azole antifungals, amiodarone, fluoroquinolones), and vitamin K deficiency are common contributing factors. Cross-referencing platelet count and fibrinogen helps assess overall hemostatic capacity and guides transfusion decisions."
+  },
+  {
+    "id": "crit_sodium_high",
+    "biomarker": "Sodium",
+    "loinc_code": "2951-2",
+    "critical_low": null,
+    "critical_high": 150.0,
+    "severity": "urgent",
+    "escalation_target": "nephrology_oncall",
+    "clinical_action": "Assess volume status and urine osmolality. Calculate free water deficit. Correct sodium no faster than 10 mEq/L per 24 hours to avoid cerebral edema. Evaluate for diabetes insipidus.",
+    "cross_checks": [
+      "Urine Osmolality",
+      "Urine Sodium",
+      "Serum Osmolality",
+      "ADH Level"
+    ],
+    "text_chunk": "A serum sodium above 150 mEq/L indicates significant hypernatremia, most commonly from free water deficit due to inadequate intake, diabetes insipidus, or excessive insensible losses. Rapid correction risks cerebral edema, so sodium should be lowered no faster than 10 mEq/L per 24 hours. Urine osmolality distinguishes central diabetes insipidus (dilute urine) from dehydration (concentrated urine). Elderly and critically ill patients with impaired thirst mechanisms are at highest risk."
+  },
+  {
+    "id": "crit_sodium_low",
+    "biomarker": "Sodium",
+    "loinc_code": "2951-2",
+    "critical_low": 125.0,
+    "critical_high": null,
+    "severity": "critical",
+    "escalation_target": "rapid_response_team",
+    "clinical_action": "Assess neurological status. For symptomatic hyponatremia, administer 3% hypertonic saline (100 mL bolus over 10 min, may repeat twice). Correct no faster than 8 mEq/L in 24 hours to avoid osmotic demyelination syndrome.",
+    "cross_checks": [
+      "Urine Osmolality",
+      "Urine Sodium",
+      "Serum Osmolality",
+      "TSH",
+      "Cortisol"
+    ],
+    "text_chunk": "A serum sodium below 125 mEq/L is a critical hyponatremia with risk of cerebral edema, seizures, and respiratory arrest. Acute symptomatic hyponatremia requires emergent treatment with hypertonic saline, but correction must not exceed 8 mEq/L in 24 hours to prevent osmotic demyelination syndrome (central pontine myelinolysis). Etiologies include SIADH, heart failure, cirrhosis, thiazide diuretics, and adrenal insufficiency. Urine studies (osmolality and sodium) are essential for determining the underlying mechanism."
+  },
+  {
+    "id": "crit_hemoglobin_low",
+    "biomarker": "Hemoglobin",
+    "loinc_code": "718-7",
+    "critical_low": 7.0,
+    "critical_high": null,
+    "severity": "critical",
+    "escalation_target": "rapid_response_team",
+    "clinical_action": "Type and crossmatch for 2 units pRBCs. Assess hemodynamic stability. Identify bleeding source. Activate massive transfusion protocol if ongoing hemorrhage with hemodynamic instability.",
+    "cross_checks": [
+      "Reticulocyte Count",
+      "Haptoglobin",
+      "LDH",
+      "MCV",
+      "Iron Studies"
+    ],
+    "text_chunk": "A hemoglobin below 7 g/dL is a critical anemia requiring transfusion consideration per restrictive transfusion guidelines, and mandatory transfusion in the setting of active hemorrhage or hemodynamic instability. Reticulocyte count distinguishes hypoproliferative (marrow failure, iron/B12 deficiency) from hyperproliferative (hemolysis, acute blood loss) etiologies. Hemolysis workup (haptoglobin, LDH, indirect bilirubin) should be performed if reticulocyte count is elevated. Rapid clinical assessment of perfusion and oxygenation guides transfusion urgency."
+  },
+  {
+    "id": "crit_calcium_high",
+    "biomarker": "Calcium (Total)",
+    "loinc_code": "17861-6",
+    "critical_low": null,
+    "critical_high": 12.0,
+    "severity": "urgent",
+    "escalation_target": "endocrinology_oncall",
+    "clinical_action": "Initiate aggressive IV normal saline hydration (200-300 mL/hr). Measure PTH, PTHrP, and 1,25-dihydroxyvitamin D. Consider IV bisphosphonate (zoledronic acid) if malignancy-related. Monitor ECG for shortened QT.",
+    "cross_checks": [
+      "PTH",
+      "PTHrP",
+      "Phosphorus",
+      "Albumin",
+      "Ionized Calcium",
+      "Vitamin D"
+    ],
+    "text_chunk": "A total serum calcium above 12 mg/dL constitutes significant hypercalcemia with risk of cardiac arrhythmias, renal injury, and altered mental status. The two most common causes are primary hyperparathyroidism (elevated PTH) and malignancy (suppressed PTH with elevated PTHrP or 1,25-vitamin D). Ionized calcium should be checked to confirm true hypercalcemia, as total calcium is affected by albumin levels. Aggressive IV hydration is the first-line treatment regardless of etiology."
+  },
+  {
+    "id": "crit_calcium_low",
+    "biomarker": "Calcium (Total)",
+    "loinc_code": "17861-6",
+    "critical_low": 7.0,
+    "critical_high": null,
+    "severity": "critical",
+    "escalation_target": "rapid_response_team",
+    "clinical_action": "Obtain stat ionized calcium. If confirmed, administer IV calcium gluconate with cardiac monitoring. Check magnesium and replete if low. Evaluate PTH and vitamin D levels.",
+    "cross_checks": [
+      "Ionized Calcium",
+      "Magnesium",
+      "Phosphorus",
+      "PTH",
+      "Vitamin D",
+      "Albumin"
+    ],
+    "text_chunk": "A total serum calcium below 7 mg/dL is a critical hypocalcemia with risk of tetany, laryngospasm, seizures, and cardiac arrest from prolonged QT interval. Ionized calcium confirms true hypocalcemia versus pseudohypocalcemia from hypoalbuminemia. Common causes include post-thyroidectomy hypoparathyroidism, severe vitamin D deficiency, magnesium depletion, and acute pancreatitis. IV calcium gluconate with cardiac monitoring is required for symptomatic or severe cases."
+  },
+  {
+    "id": "crit_troponin_i_high",
+    "biomarker": "Troponin I (High-Sensitivity)",
+    "loinc_code": "89579-7",
+    "critical_low": null,
+    "critical_high": 26.0,
+    "severity": "critical",
+    "escalation_target": "cardiology_oncall",
+    "clinical_action": "Activate STEMI/NSTEMI protocol. Obtain stat 12-lead ECG. Administer aspirin, heparin, and consider P2Y12 inhibitor. Arrange emergent cardiac catheterization if ECG shows ST changes.",
+    "cross_checks": [
+      "BNP",
+      "CK-MB",
+      "ECG",
+      "D-Dimer",
+      "Creatinine"
+    ],
+    "text_chunk": "A high-sensitivity troponin I above 26 ng/L (above the 99th percentile upper reference limit) indicates myocardial injury and is the cornerstone biomarker for diagnosing acute myocardial infarction when combined with a rise-and-fall pattern. Serial measurements at 0 and 3 hours establish the kinetic pattern. Non-ACS causes of troponin elevation include myocarditis, pulmonary embolism, sepsis, heart failure exacerbation, and renal failure. ECG correlation and clinical context are essential for distinguishing type 1 MI from type 2 MI and non-ischemic myocardial injury."
+  },
+  {
+    "id": "crit_wbc_high",
+    "biomarker": "WBC Count",
+    "loinc_code": "6690-2",
+    "critical_low": null,
+    "critical_high": 30.0,
+    "severity": "urgent",
+    "escalation_target": "hematology_oncall",
+    "clinical_action": "Order stat peripheral blood smear with manual differential. Evaluate for leukemia, leukemoid reaction, or severe infection. If blasts present, arrange emergent hematology consultation.",
+    "cross_checks": [
+      "Differential Count",
+      "Peripheral Smear",
+      "LDH",
+      "Uric Acid",
+      "CRP"
+    ],
+    "text_chunk": "A WBC count above 30 x10^9/L is an urgent finding requiring peripheral smear review to distinguish reactive leukocytosis from hematologic malignancy. Leukemoid reactions (WBC >50) can occur with severe infections, burns, and corticosteroid use. Presence of blasts or immature cells on smear mandates emergent hematology evaluation for acute leukemia. LDH and uric acid elevation in the context of high WBC raises concern for tumor lysis syndrome."
+  },
+  {
+    "id": "crit_wbc_low",
+    "biomarker": "WBC Count",
+    "loinc_code": "6690-2",
+    "critical_low": 2.0,
+    "critical_high": null,
+    "severity": "critical",
+    "escalation_target": "hematology_oncall",
+    "clinical_action": "Obtain absolute neutrophil count (ANC). If ANC <500, initiate neutropenic fever precautions. Reverse isolation if indicated. Evaluate for drug-induced agranulocytosis, aplastic anemia, or marrow infiltration.",
+    "cross_checks": [
+      "ANC",
+      "Differential Count",
+      "Reticulocyte Count",
+      "Peripheral Smear"
+    ],
+    "text_chunk": "A WBC count below 2 x10^9/L indicates severe leukopenia with high risk of life-threatening infections, particularly if the absolute neutrophil count (ANC) falls below 500 cells/uL (severe neutropenia). Common causes include chemotherapy-induced myelosuppression, drug-induced agranulocytosis (clozapine, methimazole, carbimazole), aplastic anemia, and viral bone marrow suppression. Neutropenic precautions and empiric broad-spectrum antibiotics at the first sign of fever are essential to prevent sepsis-related mortality."
+  },
+  {
+    "id": "crit_creatinine_high",
+    "biomarker": "Creatinine",
+    "loinc_code": "2160-0",
+    "critical_low": null,
+    "critical_high": 4.0,
+    "severity": "urgent",
+    "escalation_target": "nephrology_oncall",
+    "clinical_action": "Assess volume status and urine output. Obtain renal ultrasound to exclude obstruction. Review nephrotoxic medications. Check potassium, bicarbonate, and phosphorus. Evaluate for emergent dialysis indications.",
+    "cross_checks": [
+      "eGFR",
+      "BUN",
+      "Potassium",
+      "Bicarbonate",
+      "Phosphorus",
+      "Urinalysis"
+    ],
+    "text_chunk": "A serum creatinine above 4.0 mg/dL indicates severe renal impairment (estimated GFR typically <15 mL/min) and requires urgent nephrology evaluation. Emergent dialysis indications include refractory hyperkalemia, severe metabolic acidosis, volume overload unresponsive to diuretics, and uremic encephalopathy or pericarditis. Renal ultrasound is essential to exclude obstructive uropathy. All nephrotoxic medications (NSAIDs, aminoglycosides, contrast agents) must be immediately discontinued."
+  },
+  {
+    "id": "crit_bilirubin_total_high",
+    "biomarker": "Total Bilirubin",
+    "loinc_code": "1975-2",
+    "critical_low": null,
+    "critical_high": 10.0,
+    "severity": "urgent",
+    "escalation_target": "gastroenterology_oncall",
+    "clinical_action": "Fractionate to direct and indirect bilirubin. Obtain liver function panel (AST, ALT, ALP, GGT, albumin). Order right upper quadrant ultrasound. Evaluate for biliary obstruction, acute hepatitis, or hemolytic crisis.",
+    "cross_checks": [
+      "Direct Bilirubin",
+      "AST",
+      "ALT",
+      "ALP",
+      "GGT",
+      "Albumin",
+      "INR"
+    ],
+    "text_chunk": "A total bilirubin above 10 mg/dL indicates severe hyperbilirubinemia requiring urgent evaluation for biliary obstruction, acute hepatic failure, or massive hemolysis. Fractionation into direct (conjugated) and indirect (unconjugated) bilirubin guides the differential diagnosis. Predominantly direct hyperbilirubinemia suggests biliary obstruction or hepatocellular injury, while indirect predominance indicates hemolysis or Gilbert syndrome exacerbation. Concurrent evaluation of liver synthetic function (INR, albumin) assesses severity of hepatic impairment."
+  },
+  {
+    "id": "crit_egfr_low",
+    "biomarker": "eGFR (CKD-EPI)",
+    "loinc_code": "98979-8",
+    "critical_low": 15.0,
+    "critical_high": null,
+    "severity": "critical",
+    "escalation_target": "nephrology_oncall",
+    "clinical_action": "Urgent nephrology referral for dialysis planning or transplant evaluation. Review and adjust all renally cleared medications. Assess for uremic symptoms. Evaluate vascular access options.",
+    "cross_checks": [
+      "Creatinine",
+      "BUN",
+      "Potassium",
+      "Phosphorus",
+      "PTH",
+      "Hemoglobin"
+    ],
+    "text_chunk": "An eGFR below 15 mL/min/1.73m2 represents Stage 5 chronic kidney disease (kidney failure) and necessitates urgent nephrology involvement for renal replacement therapy planning. Patients at this stage are at high risk for uremic complications including encephalopathy, pericarditis, coagulopathy, and severe electrolyte derangements. All renally cleared medications require dose adjustment or discontinuation. Concurrent anemia (erythropoietin deficiency) and secondary hyperparathyroidism are expected complications requiring management."
+  },
+  {
+    "id": "crit_free_t4_high",
+    "biomarker": "Free T4",
+    "loinc_code": "3024-7",
+    "critical_low": null,
+    "critical_high": 5.0,
+    "severity": "critical",
+    "escalation_target": "endocrinology_oncall",
+    "clinical_action": "Evaluate for thyroid storm (Burch-Wartofsky score). Initiate PTU or methimazole, beta-blocker, and stress-dose corticosteroids if thyroid storm suspected. Check TSH, Free T3, and thyroid antibodies.",
+    "cross_checks": [
+      "TSH",
+      "Free T3",
+      "Anti-TPO",
+      "TSI",
+      "Thyroglobulin"
+    ],
+    "text_chunk": "A free T4 above 5 ng/dL represents severe thyrotoxicosis with risk of thyroid storm, a life-threatening endocrine emergency with mortality exceeding 20% if untreated. Clinical features include hyperthermia, tachycardia, altered mental status, and heart failure. The Burch-Wartofsky Point Scale quantifies thyroid storm severity. Treatment requires multi-modal therapy: thionamides to block new hormone synthesis, iodine to block release, beta-blockers for adrenergic symptoms, and corticosteroids to inhibit T4-to-T3 conversion."
+  },
+  {
+    "id": "crit_tsh_high",
+    "biomarker": "TSH",
+    "loinc_code": "11580-8",
+    "critical_low": null,
+    "critical_high": 50.0,
+    "severity": "urgent",
+    "escalation_target": "endocrinology_oncall",
+    "clinical_action": "Check Free T4 and Free T3. Evaluate for myxedema coma if altered mental status, hypothermia, or bradycardia present. Initiate IV levothyroxine if myxedema coma suspected. Start oral levothyroxine replacement.",
+    "cross_checks": [
+      "Free T4",
+      "Free T3",
+      "Anti-TPO",
+      "Cortisol"
+    ],
+    "text_chunk": "A TSH above 50 mIU/L indicates severe primary hypothyroidism with profound thyroid hormone deficiency. If accompanied by altered mental status, hypothermia, and bradycardia, myxedema coma must be considered -- a medical emergency with mortality rates of 30-60%. Cortisol should be checked before initiating thyroid replacement, as coexistent adrenal insufficiency (Schmidt syndrome) requires concurrent glucocorticoid therapy. Most cases result from autoimmune thyroiditis (Hashimoto disease) confirmed by anti-TPO antibodies."
+  },
+  {
+    "id": "crit_lactate_high",
+    "biomarker": "Lactate",
+    "loinc_code": "2524-7",
+    "critical_low": null,
+    "critical_high": 4.0,
+    "severity": "critical",
+    "escalation_target": "critical_care_oncall",
+    "clinical_action": "Assess tissue perfusion and hemodynamic status. Initiate aggressive fluid resuscitation if sepsis suspected. Identify and treat underlying cause of tissue hypoxia. Serial lactate measurements every 2-4 hours to guide resuscitation adequacy.",
+    "cross_checks": [
+      "Bicarbonate",
+      "Anion Gap",
+      "Base Excess",
+      "Procalcitonin",
+      "Blood Cultures"
+    ],
+    "text_chunk": "A serum lactate above 4.0 mmol/L indicates severe tissue hypoperfusion or impaired lactate clearance and is associated with significantly increased mortality, particularly in sepsis where it defines septic shock per the Sepsis-3 criteria. Type A lactic acidosis results from tissue hypoxia (shock, severe anemia, cardiac arrest), while Type B occurs without overt hypoxia (hepatic failure, malignancy, medication effects such as metformin or linezolid). Serial lactate clearance (>10% reduction per 2 hours) is a validated resuscitation target and predictor of survival. Concurrent metabolic acidosis with elevated anion gap supports the clinical significance of the lactate elevation."
+  }
+]

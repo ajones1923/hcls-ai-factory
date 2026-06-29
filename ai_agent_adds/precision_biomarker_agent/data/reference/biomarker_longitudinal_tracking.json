@@ -1,0 +1,758 @@
+{
+  "patient_id": "HCLS-BIO-2026-00001",
+  "schema_version": "1.0",
+  "visits": [
+    {
+      "visit_number": 1,
+      "date": "2025-03-01",
+      "label": "Baseline"
+    },
+    {
+      "visit_number": 2,
+      "date": "2025-09-01",
+      "label": "6-Month Follow-up"
+    },
+    {
+      "visit_number": 3,
+      "date": "2026-03-02",
+      "label": "12-Month Follow-up"
+    }
+  ],
+  "tracked_biomarkers": [
+    {
+      "biomarker": "LDL Cholesterol",
+      "unit": "mg/dL",
+      "loinc_code": "13457-7",
+      "values": [
+        118,
+        95,
+        82
+      ],
+      "trend": "improving",
+      "pct_change_total": -30.5,
+      "flag_v1": "Borderline High",
+      "flag_v3": "Optimal",
+      "clinical_note": "Statin + lifestyle approach effective; ApoE E4 carrier target <100 achieved"
+    },
+    {
+      "biomarker": "ApoB",
+      "unit": "mg/dL",
+      "loinc_code": "1884-6",
+      "values": [
+        95,
+        80,
+        72
+      ],
+      "trend": "improving",
+      "pct_change_total": -24.2,
+      "flag_v1": "Borderline High",
+      "flag_v3": "Optimal",
+      "clinical_note": "Better discriminator than LDL for E4 carriers; target <80 achieved"
+    },
+    {
+      "biomarker": "Omega-3 Index",
+      "unit": "%",
+      "loinc_code": "82810-0",
+      "values": [
+        5.8,
+        7.2,
+        8.5
+      ],
+      "trend": "improving",
+      "pct_change_total": 46.6,
+      "flag_v1": "Suboptimal",
+      "flag_v3": "Optimal",
+      "clinical_note": "Fish oil 2g/day achieving cardioprotective range >8%"
+    },
+    {
+      "biomarker": "AA/EPA Ratio",
+      "unit": "ratio",
+      "loinc_code": "LP35579-3",
+      "values": [
+        7.1,
+        4.5,
+        2.8
+      ],
+      "trend": "improving",
+      "pct_change_total": -60.6,
+      "flag_v1": "High",
+      "flag_v3": "Optimal",
+      "clinical_note": "Anti-inflammatory balance improving with omega-3 supplementation"
+    },
+    {
+      "biomarker": "hs-CRP",
+      "unit": "mg/L",
+      "loinc_code": "30522-7",
+      "values": [
+        0.9,
+        0.5,
+        0.3
+      ],
+      "trend": "improving",
+      "pct_change_total": -66.7,
+      "flag_v1": "Low Risk",
+      "flag_v3": "Optimal",
+      "clinical_note": "Systemic inflammation well controlled; CV risk minimal"
+    },
+    {
+      "biomarker": "Homocysteine",
+      "unit": "umol/L",
+      "loinc_code": "2160-0",
+      "values": [
+        9.2,
+        7.5,
+        6.5
+      ],
+      "trend": "improving",
+      "pct_change_total": -29.3,
+      "flag_v1": "Borderline",
+      "flag_v3": "Optimal",
+      "clinical_note": "L-Methylfolate 15mg normalizing despite MTHFR C677T heterozygous"
+    },
+    {
+      "biomarker": "Vitamin D, 25-OH",
+      "unit": "ng/mL",
+      "loinc_code": "1989-3",
+      "values": [
+        42,
+        55,
+        65
+      ],
+      "trend": "improving",
+      "pct_change_total": 54.8,
+      "flag_v1": "Adequate",
+      "flag_v3": "Optimal",
+      "clinical_note": "5000 IU D3 daily achieving functional medicine target 60-80"
+    },
+    {
+      "biomarker": "Insulin, Fasting",
+      "unit": "uIU/mL",
+      "loinc_code": "1979-3",
+      "values": [
+        7.2,
+        5.8,
+        4.5
+      ],
+      "trend": "improving",
+      "pct_change_total": -37.5,
+      "flag_v1": "Normal",
+      "flag_v3": "Optimal",
+      "clinical_note": "Insulin sensitivity improving with resistance training and Mediterranean diet"
+    },
+    {
+      "biomarker": "HOMA-IR",
+      "unit": "index",
+      "loinc_code": "LP73414-6",
+      "values": [
+        1.64,
+        1.2,
+        0.95
+      ],
+      "trend": "improving",
+      "pct_change_total": -42.1,
+      "flag_v1": "Normal",
+      "flag_v3": "Optimal",
+      "clinical_note": "Insulin resistance resolving; target <1.0 nearly achieved"
+    },
+    {
+      "biomarker": "HbA1c",
+      "unit": "%",
+      "loinc_code": "4548-4",
+      "values": [
+        5.4,
+        5.2,
+        5.1
+      ],
+      "trend": "improving",
+      "pct_change_total": -5.6,
+      "flag_v1": "Normal",
+      "flag_v3": "Optimal",
+      "clinical_note": "Glycemic control excellent; maternal T2D risk being mitigated"
+    },
+    {
+      "biomarker": "Non-HDL Cholesterol",
+      "unit": "mg/dL",
+      "loinc_code": "43396-1",
+      "values": [
+        140,
+        110,
+        90
+      ],
+      "trend": "improving",
+      "pct_change_total": -35.7,
+      "flag_v1": "Borderline High",
+      "flag_v3": "Optimal",
+      "clinical_note": "Comprehensive atherogenic particle reduction on track"
+    },
+    {
+      "biomarker": "HDL Cholesterol",
+      "unit": "mg/dL",
+      "loinc_code": "2085-9",
+      "values": [
+        55,
+        58,
+        62
+      ],
+      "trend": "improving",
+      "pct_change_total": 12.7,
+      "flag_v1": "Normal",
+      "flag_v3": "Optimal",
+      "clinical_note": "HDL rising with exercise and omega-3; cardioprotective trend"
+    },
+    {
+      "biomarker": "LDL Particle Number",
+      "unit": "nmol/L",
+      "loinc_code": "49132-4",
+      "values": [
+        1180,
+        950,
+        780
+      ],
+      "trend": "improving",
+      "pct_change_total": -33.9,
+      "flag_v1": "Borderline High",
+      "flag_v3": "Optimal",
+      "clinical_note": "Advanced lipid particle count normalizing; concordant with ApoB improvement"
+    },
+    {
+      "biomarker": "Total Cholesterol",
+      "unit": "mg/dL",
+      "loinc_code": "2093-3",
+      "values": [
+        195,
+        178,
+        165
+      ],
+      "trend": "improving",
+      "pct_change_total": -15.4,
+      "flag_v1": "Borderline High",
+      "flag_v3": "Desirable",
+      "clinical_note": "Overall lipid burden reducing with multi-modal intervention"
+    },
+    {
+      "biomarker": "Triglycerides",
+      "unit": "mg/dL",
+      "loinc_code": "2571-8",
+      "values": [
+        110,
+        90,
+        75
+      ],
+      "trend": "improving",
+      "pct_change_total": -31.8,
+      "flag_v1": "Normal",
+      "flag_v3": "Optimal",
+      "clinical_note": "Fish oil and carb moderation driving TG reduction"
+    },
+    {
+      "biomarker": "ApoE Protein",
+      "unit": "mg/dL",
+      "loinc_code": "1871-3",
+      "values": [
+        5.2,
+        5.0,
+        4.8
+      ],
+      "trend": "improving",
+      "pct_change_total": -7.7,
+      "flag_v1": "Normal",
+      "flag_v3": "Normal",
+      "clinical_note": "ApoE protein stable-low; genotype E3/E4 confirmed separately"
+    },
+    {
+      "biomarker": "Omega-6/3 Ratio",
+      "unit": "ratio",
+      "loinc_code": "LP35578-5",
+      "values": [
+        4.2,
+        3.5,
+        2.8
+      ],
+      "trend": "improving",
+      "pct_change_total": -33.3,
+      "flag_v1": "Elevated",
+      "flag_v3": "Optimal",
+      "clinical_note": "Inflammatory balance improving; target <3:1 achieved"
+    },
+    {
+      "biomarker": "Copper/Zinc Ratio",
+      "unit": "ratio",
+      "loinc_code": "LP73415-3",
+      "values": [
+        1.34,
+        1.1,
+        0.95
+      ],
+      "trend": "improving",
+      "pct_change_total": -29.1,
+      "flag_v1": "Elevated",
+      "flag_v3": "Optimal",
+      "clinical_note": "Oxidative stress marker normalizing; zinc supplementation effective"
+    },
+    {
+      "biomarker": "Platelet Count",
+      "unit": "x10^3/uL",
+      "loinc_code": "777-3",
+      "values": [
+        245,
+        238,
+        42
+      ],
+      "trend": "crisis",
+      "pct_change_total": -82.9,
+      "flag_v1": "Normal",
+      "flag_v3": "CRITICAL LOW",
+      "clinical_note": "CRITICAL: Severe thrombocytopenia; rule out ITP, TTP, HIT, bone marrow suppression"
+    },
+    {
+      "biomarker": "INR",
+      "unit": "ratio",
+      "loinc_code": "6301-6",
+      "values": [
+        1.0,
+        1.0,
+        4.8
+      ],
+      "trend": "crisis",
+      "pct_change_total": 380.0,
+      "flag_v1": "Normal",
+      "flag_v3": "CRITICAL HIGH",
+      "clinical_note": "CRITICAL: Severely elevated INR without anticoagulation; evaluate hepatic synthetic function, DIC"
+    },
+    {
+      "biomarker": "Glucose, Fasting",
+      "unit": "mg/dL",
+      "loinc_code": "1558-6",
+      "values": [
+        92,
+        88,
+        285
+      ],
+      "trend": "crisis",
+      "pct_change_total": 209.8,
+      "flag_v1": "Normal",
+      "flag_v3": "CRITICAL HIGH",
+      "clinical_note": "CRITICAL: New-onset hyperglycemia; rule out DKA, steroid-induced, pancreatic pathology"
+    },
+    {
+      "biomarker": "Free T3",
+      "unit": "pg/mL",
+      "loinc_code": "3051-0",
+      "values": [
+        3.1,
+        3.2,
+        5.8
+      ],
+      "trend": "crisis",
+      "pct_change_total": 87.1,
+      "flag_v1": "Normal",
+      "flag_v3": "CRITICAL HIGH",
+      "clinical_note": "CRITICAL: Thyrotoxicosis level; rule out thyroid storm, exogenous T3, Graves disease"
+    },
+    {
+      "biomarker": "Fibrinogen",
+      "unit": "mg/dL",
+      "loinc_code": "3255-7",
+      "values": [
+        285,
+        270,
+        480
+      ],
+      "trend": "crisis",
+      "pct_change_total": 68.4,
+      "flag_v1": "Normal",
+      "flag_v3": "CRITICAL HIGH",
+      "clinical_note": "CRITICAL: Acute phase reactant markedly elevated; correlate with DIC panel, infection"
+    },
+    {
+      "biomarker": "Ferritin",
+      "unit": "ng/mL",
+      "loinc_code": "2276-4",
+      "values": [
+        125,
+        115,
+        12
+      ],
+      "trend": "crisis",
+      "pct_change_total": -90.4,
+      "flag_v1": "Normal",
+      "flag_v3": "CRITICAL LOW",
+      "clinical_note": "CRITICAL: Severe iron depletion; evaluate acute blood loss, malabsorption, occult GI bleeding"
+    },
+    {
+      "biomarker": "Cystatin C",
+      "unit": "mg/L",
+      "loinc_code": "33863-2",
+      "values": [
+        0.82,
+        0.8,
+        1.15
+      ],
+      "trend": "crisis",
+      "pct_change_total": 40.2,
+      "flag_v1": "Normal",
+      "flag_v3": "HIGH",
+      "clinical_note": "CRITICAL: Acute kidney injury marker; more reliable than creatinine; evaluate nephrotoxic exposure"
+    },
+    {
+      "biomarker": "GGT",
+      "unit": "U/L",
+      "loinc_code": "2324-2",
+      "values": [
+        22,
+        28,
+        85
+      ],
+      "trend": "crisis",
+      "pct_change_total": 286.4,
+      "flag_v1": "Normal",
+      "flag_v3": "HIGH",
+      "clinical_note": "CRITICAL: Hepatobiliary injury; evaluate drug-induced (statin), alcohol, biliary obstruction"
+    },
+    {
+      "biomarker": "Potassium",
+      "unit": "mEq/L",
+      "loinc_code": "2823-3",
+      "values": [
+        4.3,
+        4.2,
+        6.2
+      ],
+      "trend": "crisis",
+      "pct_change_total": 44.2,
+      "flag_v1": "Normal",
+      "flag_v3": "CRITICAL HIGH",
+      "clinical_note": "CRITICAL: Life-threatening hyperkalemia; evaluate renal function, ACEi effect, hemolysis artifact"
+    },
+    {
+      "biomarker": "WBC",
+      "unit": "x10^3/uL",
+      "loinc_code": "6690-2",
+      "values": [
+        5.8,
+        5.5,
+        5.8
+      ],
+      "trend": "stable",
+      "pct_change_total": 0.0,
+      "flag_v1": "Normal",
+      "flag_v3": "Normal",
+      "clinical_note": "White cell count stable within reference range"
+    },
+    {
+      "biomarker": "RBC",
+      "unit": "x10^6/uL",
+      "loinc_code": "789-8",
+      "values": [
+        4.95,
+        4.9,
+        4.95
+      ],
+      "trend": "stable",
+      "pct_change_total": 0.0,
+      "flag_v1": "Normal",
+      "flag_v3": "Normal",
+      "clinical_note": "Red cell mass stable; no evidence of polycythemia or anemia"
+    },
+    {
+      "biomarker": "Hemoglobin",
+      "unit": "g/dL",
+      "loinc_code": "718-7",
+      "values": [
+        15.2,
+        15.0,
+        15.2
+      ],
+      "trend": "stable",
+      "pct_change_total": 0.0,
+      "flag_v1": "Normal",
+      "flag_v3": "Normal",
+      "clinical_note": "Hemoglobin stable despite ferritin crisis; may reflect early iron depletion before anemia"
+    },
+    {
+      "biomarker": "Hematocrit",
+      "unit": "%",
+      "loinc_code": "4544-3",
+      "values": [
+        44.8,
+        44.5,
+        44.8
+      ],
+      "trend": "stable",
+      "pct_change_total": 0.0,
+      "flag_v1": "Normal",
+      "flag_v3": "Normal",
+      "clinical_note": "Hematocrit tracking with hemoglobin; stable"
+    },
+    {
+      "biomarker": "TSH",
+      "unit": "mIU/L",
+      "loinc_code": "3016-3",
+      "values": [
+        2.1,
+        2.0,
+        2.1
+      ],
+      "trend": "stable",
+      "pct_change_total": 0.0,
+      "flag_v1": "Normal",
+      "flag_v3": "Normal",
+      "clinical_note": "TSH paradoxically normal despite elevated Free T3; evaluate for TSH-secreting adenoma"
+    },
+    {
+      "biomarker": "Free T4",
+      "unit": "ng/dL",
+      "loinc_code": "3024-7",
+      "values": [
+        1.25,
+        1.22,
+        1.25
+      ],
+      "trend": "stable",
+      "pct_change_total": 0.0,
+      "flag_v1": "Normal",
+      "flag_v3": "Normal",
+      "clinical_note": "Free T4 normal despite Free T3 elevation; possible T3 thyrotoxicosis pattern"
+    },
+    {
+      "biomarker": "Sodium",
+      "unit": "mEq/L",
+      "loinc_code": "2951-2",
+      "values": [
+        140,
+        141,
+        140
+      ],
+      "trend": "stable",
+      "pct_change_total": 0.0,
+      "flag_v1": "Normal",
+      "flag_v3": "Normal",
+      "clinical_note": "Sodium stable; no dilutional or depletional abnormalities"
+    },
+    {
+      "biomarker": "Creatinine",
+      "unit": "mg/dL",
+      "loinc_code": "2160-0",
+      "values": [
+        1.02,
+        1.0,
+        1.02
+      ],
+      "trend": "stable",
+      "pct_change_total": 0.0,
+      "flag_v1": "Normal",
+      "flag_v3": "Normal",
+      "clinical_note": "Creatinine stable but may lag behind cystatin C in detecting AKI"
+    },
+    {
+      "biomarker": "eGFR",
+      "unit": "mL/min/1.73m2",
+      "loinc_code": "33914-3",
+      "values": [
+        95,
+        96,
+        95
+      ],
+      "trend": "stable",
+      "pct_change_total": 0.0,
+      "flag_v1": "Normal",
+      "flag_v3": "Normal",
+      "clinical_note": "eGFR stable but cystatin C-based eGFR may show decline; recommend cystatin C-based calculation"
+    },
+    {
+      "biomarker": "Albumin",
+      "unit": "g/dL",
+      "loinc_code": "1751-7",
+      "values": [
+        4.5,
+        4.5,
+        4.5
+      ],
+      "trend": "stable",
+      "pct_change_total": 0.0,
+      "flag_v1": "Normal",
+      "flag_v3": "Normal",
+      "clinical_note": "Albumin stable; hepatic synthetic function preserved despite GGT elevation"
+    },
+    {
+      "biomarker": "Calcium",
+      "unit": "mg/dL",
+      "loinc_code": "17861-6",
+      "values": [
+        9.6,
+        9.5,
+        9.6
+      ],
+      "trend": "stable",
+      "pct_change_total": 0.0,
+      "flag_v1": "Normal",
+      "flag_v3": "Normal",
+      "clinical_note": "Calcium stable on vitamin D supplementation; no hypercalcemia"
+    },
+    {
+      "biomarker": "Total Protein",
+      "unit": "g/dL",
+      "loinc_code": "2885-2",
+      "values": [
+        7.1,
+        7.0,
+        7.1
+      ],
+      "trend": "stable",
+      "pct_change_total": 0.0,
+      "flag_v1": "Normal",
+      "flag_v3": "Normal",
+      "clinical_note": "Total protein stable; no evidence of paraprotein or depletion"
+    },
+    {
+      "biomarker": "AST",
+      "unit": "U/L",
+      "loinc_code": "1920-8",
+      "values": [
+        24,
+        22,
+        24
+      ],
+      "trend": "stable",
+      "pct_change_total": 0.0,
+      "flag_v1": "Normal",
+      "flag_v3": "Normal",
+      "clinical_note": "AST stable; hepatocellular function preserved despite GGT rise"
+    },
+    {
+      "biomarker": "ALT",
+      "unit": "U/L",
+      "loinc_code": "1742-6",
+      "values": [
+        28,
+        26,
+        28
+      ],
+      "trend": "stable",
+      "pct_change_total": 0.0,
+      "flag_v1": "Normal",
+      "flag_v3": "Normal",
+      "clinical_note": "ALT stable; isolated GGT elevation suggests biliary rather than hepatocellular process"
+    },
+    {
+      "biomarker": "Magnesium, RBC",
+      "unit": "mg/dL",
+      "loinc_code": "19123-9",
+      "values": [
+        5.2,
+        5.3,
+        5.2
+      ],
+      "trend": "stable",
+      "pct_change_total": 0.0,
+      "flag_v1": "Normal",
+      "flag_v3": "Normal",
+      "clinical_note": "Intracellular magnesium stable; superior to serum magnesium for status assessment"
+    },
+    {
+      "biomarker": "Zinc",
+      "unit": "ug/dL",
+      "loinc_code": "2601-3",
+      "values": [
+        82,
+        85,
+        82
+      ],
+      "trend": "stable",
+      "pct_change_total": 0.0,
+      "flag_v1": "Normal",
+      "flag_v3": "Normal",
+      "clinical_note": "Zinc stable; copper/zinc ratio improvement driven by copper reduction"
+    },
+    {
+      "biomarker": "Vitamin B12",
+      "unit": "pg/mL",
+      "loinc_code": "2132-9",
+      "values": [
+        620,
+        650,
+        620
+      ],
+      "trend": "stable",
+      "pct_change_total": 0.0,
+      "flag_v1": "Normal",
+      "flag_v3": "Normal",
+      "clinical_note": "B12 well-maintained on methylcobalamin 1000 mcg; active form for MTHFR support"
+    },
+    {
+      "biomarker": "Folate",
+      "unit": "ng/mL",
+      "loinc_code": "2284-8",
+      "values": [
+        15.8,
+        16.5,
+        15.8
+      ],
+      "trend": "stable",
+      "pct_change_total": 0.0,
+      "flag_v1": "Normal",
+      "flag_v3": "Normal",
+      "clinical_note": "Folate optimal on L-methylfolate 15mg; bypassing MTHFR enzyme deficiency"
+    },
+    {
+      "biomarker": "Selenium",
+      "unit": "ug/L",
+      "loinc_code": "2823-3",
+      "values": [
+        135,
+        138,
+        135
+      ],
+      "trend": "stable",
+      "pct_change_total": 0.0,
+      "flag_v1": "Normal",
+      "flag_v3": "Normal",
+      "clinical_note": "Selenium adequate; supports glutathione peroxidase and thyroid function"
+    },
+    {
+      "biomarker": "ApoE Genotype",
+      "unit": "genotype",
+      "loinc_code": "33640-4",
+      "values": [
+        "E3/E4",
+        "E3/E4",
+        "E3/E4"
+      ],
+      "trend": "stable",
+      "pct_change_total": null,
+      "flag_v1": "Risk Allele Present",
+      "flag_v3": "Risk Allele Present",
+      "clinical_note": "E4 allele confirmed; increased AD and CVD risk; guides statin and lifestyle intensity"
+    },
+    {
+      "biomarker": "MTHFR C677T",
+      "unit": "genotype",
+      "loinc_code": "53576-8",
+      "values": [
+        "CT",
+        "CT",
+        "CT"
+      ],
+      "trend": "stable",
+      "pct_change_total": null,
+      "flag_v1": "Heterozygous",
+      "flag_v3": "Heterozygous",
+      "clinical_note": "Heterozygous C677T; ~35% reduced enzyme activity; methylfolate supplementation indicated"
+    },
+    {
+      "biomarker": "GBA N370S",
+      "unit": "genotype",
+      "loinc_code": "55197-1",
+      "values": [
+        null,
+        null,
+        "Heterozygous"
+      ],
+      "trend": "stable",
+      "pct_change_total": null,
+      "flag_v1": "Not Tested",
+      "flag_v3": "Carrier Identified",
+      "clinical_note": "NEW at V3: GBA N370S carrier confirmed; AJ 1/15 carrier frequency; sister also carrier; Gaucher and Parkinson risk counseling indicated"
+    }
+  ]
+}
