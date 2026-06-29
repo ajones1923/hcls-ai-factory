@@ -1,0 +1,197 @@
+# =============================================================================
+# Clinical Trial Intelligence Agent -- Docker Compose (Standalone)
+# HCLS AI Factory / ai_agent_adds / clinical_trial_intelligence_agent
+#
+# Standalone deployment with its own Milvus instance.
+# For integrated deployment, use the top-level docker-compose.dgx-spark.yml
+# which connects to the shared Milvus instance.
+#
+# Services:
+#   milvus-etcd          etcd key-value store for Milvus metadata
+#   milvus-minio         MinIO object storage for Milvus log/index data
+#   milvus-standalone    Milvus 2.4 vector database (ports 39530, 39091)
+#   trial-streamlit      Streamlit chat UI (port 8128)
+#   trial-api            FastAPI REST server (port 8538)
+#   trial-setup          One-shot: create collections + seed all data
+#
+# Usage:
+#   cp .env.example .env          # add ANTHROPIC_API_KEY
+#   docker compose up -d          # start all services
+#   docker compose logs -f trial-setup  # watch seed progress
+#
+# Author: Adam Jones
+# Date:   March 2026
+# =============================================================================
+
+version: "3.8"
+
+services:
+  # -- etcd (Milvus metadata store) ------------------------------------------
+  milvus-etcd:
+    image: quay.io/coreos/etcd:v3.5.5
+    container_name: trial-milvus-etcd
+    environment:
+      ETCD_AUTO_COMPACTION_MODE: revision
+      ETCD_AUTO_COMPACTION_RETENTION: "1000"
+      ETCD_QUOTA_BACKEND_BYTES: "4294967296"
+      ETCD_SNAPSHOT_COUNT: "50000"
+    volumes:
+      - etcd_data:/etcd
+    command:
+      - etcd
+      - --advertise-client-urls=http://127.0.0.1:2379
+      - --listen-client-urls=http://0.0.0.0:2379
+      - --data-dir=/etcd
+      - --auto-compaction-mode=revision
+      - --auto-compaction-retention=1000
+      - --snapshot-count=50000
+    healthcheck:
+      test: ["CMD", "etcdctl", "endpoint", "health"]
+      interval: 30s
+      timeout: 20s
+      retries: 5
+    networks:
+      - trial-network
+    restart: unless-stopped
+
+  # -- MinIO (Milvus object storage) -----------------------------------------
+  milvus-minio:
+    image: minio/minio:RELEASE.2023-03-20T20-16-18Z
+    container_name: trial-milvus-minio
+    environment:
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+    volumes:
+      - minio_data:/minio_data
+    command: minio server /minio_data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 5
+    networks:
+      - trial-network
+    restart: unless-stopped
+
+  # -- Milvus Standalone ------------------------------------------------------
+  milvus-standalone:
+    image: milvusdb/milvus:v2.4-latest
+    container_name: trial-milvus-standalone
+    command: ["milvus", "run", "standalone"]
+    security_opt:
+      - seccomp:unconfined
+    environment:
+      ETCD_ENDPOINTS: milvus-etcd:2379
+      MINIO_ADDRESS: milvus-minio:9000
+    ports:
+      - "39530:19530"
+      - "39091:9091"
+    volumes:
+      - milvus_data:/var/lib/milvus
+    depends_on:
+      milvus-etcd:
+        condition: service_healthy
+      milvus-minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9091/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+    networks:
+      - trial-network
+    restart: unless-stopped
+
+  # -- Trial Streamlit UI -----------------------------------------------------
+  trial-streamlit:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: trial-streamlit
+    ports:
+      - "8128:8128"
+    environment:
+      TRIAL_MILVUS_HOST: milvus-standalone
+      TRIAL_MILVUS_PORT: "19530"
+      TRIAL_STREAMLIT_PORT: "8128"
+      TRIAL_API_BASE: "http://trial-api:8538"
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+    depends_on:
+      milvus-standalone:
+        condition: service_healthy
+    networks:
+      - trial-network
+    restart: unless-stopped
+
+  # -- Trial FastAPI Server ---------------------------------------------------
+  trial-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: trial-api
+    ports:
+      - "8538:8538"
+    environment:
+      TRIAL_MILVUS_HOST: milvus-standalone
+      TRIAL_MILVUS_PORT: "19530"
+      TRIAL_API_PORT: "8538"
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+    command:
+      - uvicorn
+      - api.main:app
+      - --host=0.0.0.0
+      - --port=8538
+      - --workers=2
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8538/health"]
+      interval: 30s
+      timeout: 10s
+      start-period: 30s
+      retries: 3
+    depends_on:
+      milvus-standalone:
+        condition: service_healthy
+    networks:
+      - trial-network
+    restart: unless-stopped
+
+  # -- Trial Setup (one-shot: create collections + seed data) -----------------
+  trial-setup:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: trial-setup
+    environment:
+      TRIAL_MILVUS_HOST: milvus-standalone
+      TRIAL_MILVUS_PORT: "19530"
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+    command: >
+      bash -c "
+        echo '===== Trial Setup: Creating collections =====' &&
+        python scripts/setup_collections.py --drop-existing --seed &&
+        echo '===== Seeding knowledge base =====' &&
+        python scripts/seed_knowledge.py &&
+        echo '===== Trial Setup complete! ====='
+      "
+    depends_on:
+      milvus-standalone:
+        condition: service_healthy
+    networks:
+      - trial-network
+    restart: "no"
+
+# -- Volumes ------------------------------------------------------------------
+volumes:
+  etcd_data:
+    driver: local
+  minio_data:
+    driver: local
+  milvus_data:
+    driver: local
+
+# -- Network ------------------------------------------------------------------
+networks:
+  trial-network:
+    name: trial-network
+    driver: bridge
