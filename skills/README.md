@@ -20,8 +20,27 @@ skills/
 │   └── SKILL.md                       #   best-practices checklist for every build
 ├── demo-foundation-alignment/         # invocable skill — WHAT we build (to the demo portfolio)
 │   └── SKILL.md                       #   anchors development to the D1–D7 demos + coverage matrix
-├── personas/                          # audience-awareness / messaging skills
-│   └── broad-general-persona/SKILL.md #   the 5 personas + guardrails for any outreach
+├── development/                       # building & shipping capabilities
+│   ├── capability-delivery-playbook/SKILL.md   # end-to-end "ship a capability" checklist
+│   ├── disease-program-authoring/SKILL.md      # add a disease-program vertical (TSC template)
+│   └── model-integration/SKILL.md              # add a model / NIM / frontier model cleanly
+├── governance/                        # honesty & compliance
+│   ├── clinical-claim-honesty/SKILL.md         # verify + label every clinical claim before it ships
+│   └── regulatory-compliance-posture/SKILL.md  # not-a-device, Part 11, HIPAA/GDPR, synthetic-only
+├── clinical/                          # clinical-domain grounding (keep claims correct)
+│   ├── clinical-genomics-standards/SKILL.md     # ACMG/ClinVar/AlphaMissense, mosaicism, ACMG SF
+│   ├── pharmacogenomics-cpic/SKILL.md           # star alleles → CPIC dosing / safety interlocks
+│   └── oncology-mtb/SKILL.md                    # MTB packets, fusion-first pediatric, trial match
+├── communication/                     # telling the story
+│   ├── demo-script-authoring/SKILL.md           # write a demo to weight→compression→hope + two-cut
+│   └── release-and-site-publishing/SKILL.md     # cut a release → Netlify → hcls-ai-factory.org
+├── personas/                          # audience-awareness / messaging
+│   ├── broad-general-persona/SKILL.md           # the 5 personas + guardrails for any outreach
+│   ├── persona-ai-curious-public/SKILL.md
+│   ├── persona-domain-experts/SKILL.md
+│   ├── persona-builders-oss/SKILL.md
+│   ├── persona-patients-families/SKILL.md
+│   └── persona-skeptics/SKILL.md
 └── architecture/                      # one invocable skill per Core Pillar (16)
     ├── 01-compute-dgx-spark-remote-gpus/SKILL.md
     ├── 02-storage-and-data-layer/SKILL.md
@@ -69,12 +88,34 @@ a checklist so each capability earns a demo home and keeps the coverage matrix g
 when planning or reviewing any capability. It is the bridge between the north star (*why*) and
 `build-housekeeping-standards` (*how*).
 
+### `development/`
+Building & shipping capabilities. `capability-delivery-playbook` is the end-to-end "ship a
+capability" checklist that ties the whole framework together (mission → demo home → build →
+register → verify → honesty → docs → gate). `disease-program-authoring` covers adding a new
+disease-program vertical (TSC as template). `model-integration` covers adding a model / NIM /
+frontier model cleanly (serving mode, license gate, honest status, verification).
+
+### `governance/`
+Honesty & compliance. `clinical-claim-honesty` is the active discipline for verifying and labeling
+every clinical claim before it ships anywhere (the honesty ledger). `regulatory-compliance-posture`
+holds the conservative posture: not a medical device, decision-support-not-diagnosis, 21 CFR Part
+11 reproducibility, HIPAA/GDPR, synthetic-and-public-data-only.
+
+### `clinical/`
+Clinical-domain grounding that keeps the factory's claims correct: `clinical-genomics-standards`
+(ACMG/ClinVar/AlphaMissense, mosaicism, ACMG SF), `pharmacogenomics-cpic` (star alleles → CPIC
+dosing + safety interlocks), and `oncology-mtb` (MTB packets, fusion-first pediatric, trial match).
+Consult the relevant one when building or reviewing that clinical area.
+
+### `communication/`
+Telling the story. `demo-script-authoring` (write a demo to the weight→compression→hope arc + the
+two-cut principle) and `release-and-site-publishing` (cut a release → Netlify → hcls-ai-factory.org).
+
 ### `personas/`
-Audience-awareness and messaging skills for outreach and communication. `broad-general-persona`
-carries the five audience personas (AI-curious public, domain experts, builders/OSS,
-patients/families, skeptics), the universal guardrails, the two-cut principle, and the honesty
-discipline — consult it for **any** artifact people outside the codebase will read or watch
-(promo, README, talks, social, decks, docs). Per-persona drill-down skills can be added here later.
+Audience-awareness and messaging skills for outreach. `broad-general-persona` carries all five
+personas + guardrails — consult it for **any** artifact people outside the codebase will read or
+watch. Five per-persona drill-downs go deeper: `persona-ai-curious-public`, `persona-domain-experts`,
+`persona-builders-oss`, `persona-patients-families`, `persona-skeptics`.
 
 ### `architecture/`
 One invocable skill per **Core Pillar** — 16 in total, numbered `01`–`16` to match
