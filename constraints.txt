@@ -1,0 +1,40 @@
+# HCLS AI Factory — shared dependency baseline (Python 3.11+)
+#
+# One coherent set of versions for the packages shared across the platform, so
+# components install into mutually-compatible ranges instead of the three
+# divergent "eras" that had accumulated (numpy 1.x vs 2.x, pymilvus <2.6 vs
+# 2.6.x, anthropic 0.18 vs 0.75, sentence-transformers 2.x vs 5.x).
+#
+# Use it as a constraints file on top of any component's requirements:
+#     pip install -r requirements.txt -c ../../constraints.txt
+# and for the shared library / new work:
+#     pip install -e "lib/hcls_common[dev]" -c constraints.txt
+#
+# This pins ranges, not exact versions — a per-component lockfile (pip-compile)
+# is the next step for byte-for-byte reproducibility. Components still on the
+# older era (anthropic 0.18 / sentence-transformers 2.x message APIs) are
+# migrated onto this baseline as each is touched; until then install them
+# without -c.
+
+# --- core / data ---
+numpy>=2.0,<3
+pydantic>=2.7,<3
+pydantic-settings>=2.0,<3
+requests>=2.28
+loguru>=0.7
+
+# --- web / serving ---
+fastapi>=0.111,<1
+uvicorn>=0.30
+streamlit>=1.33,<2
+prometheus-client>=0.17
+
+# --- vector db / LLM / embeddings ---
+pymilvus>=2.4,<2.7
+anthropic>=0.40
+sentence-transformers>=2.7
+
+# --- test / tooling ---
+pytest>=8,<10
+pytest-asyncio>=0.21
+ruff>=0.3

@@ -11,7 +11,7 @@ license = {text = "Apache-2.0"}
 authors = [
     {name = "Adam Jones"},
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 
 dependencies = [
     "pydantic>=2.0",
@@ -86,14 +86,14 @@ hcls_common = "."
 hcls_common = ["*.json"]
 
 [tool.ruff]
-target-version = "py310"
+target-version = "py311"
 line-length = 100
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "B"]
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.11"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true

@@ -23,7 +23,7 @@ Open a [GitHub issue](https://github.com/ajones1923/hcls-ai-factory/issues/new?t
 
 ### Prerequisites
 
-- **Python 3.10+**
+- **Python 3.11+**
 - **Docker** and **Docker Compose**
 - **NVIDIA GPU** with CUDA 12.x (optional; required only for the genomics pipeline)
 
@@ -171,10 +171,21 @@ verify gate. `cart` is the reference implementation.
 
 ### Python
 
+- Target **Python 3.11+**.
 - Use **type hints** on all function signatures.
 - Use **Pydantic models** for configuration, request/response schemas, and data validation.
 - Use **loguru** for logging (not the stdlib `logging` module).
 - Keep functions focused; prefer composition over inheritance.
+
+### Dependencies
+
+- New code and the shared library follow the baseline in the root
+  [`constraints.txt`](constraints.txt). Install with it applied:
+  `pip install -r requirements.txt -c ../../constraints.txt`.
+- Prefer compatible-release ranges (`>=X,<X+1`) in `requirements.txt`; keep exact pins in
+  the constraints/lockfile, not scattered across components.
+- Gate heavy/GPU stacks (torch, monai, scanpy, bionemo) behind optional extras where
+  possible, as `hcls_common` does — don't make them hard requirements of light services.
 
 ### Testing
 
