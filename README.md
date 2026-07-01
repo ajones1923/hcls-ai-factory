@@ -4,7 +4,7 @@
 
 **Patient DNA → therapeutic candidates, in hours, on a single box.**
 
-Six Engines · Eight Intelligence Agents · One Platform — open-source (Apache-2.0),
+Eight Engines · Eight Intelligence Agents · One Platform — open-source (Apache-2.0),
 running end-to-end on one NVIDIA DGX Spark ($4,699). No cloud lock-in.
 
 </div>
@@ -26,10 +26,11 @@ run — every step on real models, all on one machine.
 | 2 | **Precision Intelligence** | Variant annotation (VEP / ClinVar / AlphaMissense) + RAG over a clinical knowledge base → druggable targets |
 | 3 | **Therapeutic Discovery** | Target → ranked candidates: generation (MolMIM + BRICS), docking (DiffDock), and **real ADMET/tox** (104 endpoints) |
 
-…plus the **Clinical Imaging**, **Precision Oncology**, and **Cardiology** engines, and the
-**Tuberous Sclerosis** disease-program engine.
+…plus five more engines — **Clinical Imaging** (4), **Precision Oncology** (5),
+**Cardiology** (6), **Large-Molecule / Structural Biology** (7), and **Single-Cell** (8) —
+and the **Tuberous Sclerosis** disease-program built on top of them. **Eight engines in all.**
 
-## Protein & single-cell (this platform does real compute, not just retrieval)
+## Engines 7 & 8 — real compute, not just retrieval
 
 - **Proteins** — structure prediction (ESMFold), ESM-2 embeddings + similarity search over your
   vector DB, and developability scoring + a developability-guided design optimizer.
@@ -85,21 +86,29 @@ PY
 ## Repository map
 
 ```
-genomics-pipeline/        Engine 1 — variant calling + variant store (src/variant_store.py)
-rag-chat-pipeline/        Engine 2 — annotation + RAG
-drug-discovery-pipeline/  Engine 3 — generation, docking, real ADMET
-large-molecule-pipeline/  Proteins — ESMFold, ESM-2 search, developability + design
-single-cell-pipeline/     Single-cell — scanpy compute + annotation
-small-molecule-pipeline/  Molecule generation (BRICS + SAFE)
-ai_agent_adds/            The intelligence agents + the TSC engine
-hls-orchestrator/         Nextflow + the cross-stage trigger fabric
-lib/hcls_common/          Shared library: capability registry, MCP, composer, MLOps, governance
-deploy / monitoring / docs / scripts
+core/
+├── engines/                     # 8 engines — horizontal capabilities
+│   ├── genomic-foundation/      #  1  GPU variant calling + variant store
+│   ├── precision-intelligence/  #  2  annotation + clinical RAG
+│   ├── therapeutic-discovery/   #  3  generation, docking, real ADMET
+│   ├── clinical-imaging/        #  4  DICOM analysis (VISTA-3D / MAISI / VILA-M3)
+│   ├── precision-oncology/      #  5  MTB packets, therapy ranking, trial matching
+│   ├── cardiology/              #  6  clinical workflows + risk calculators
+│   ├── structural-biology/      #  7  ESMFold, ESM-2 search, ProteinMPNN, developability
+│   └── single-cell/             #  8  scanpy compute → cell-type annotation
+├── agents/                      # 8 intelligence agents — clinical decision support
+│   ├── cart · precision-biomarker · pharmacogenomics · precision-autoimmune
+│   └── neurology · clinical-trial · rare-disease-diagnostic · single-cell
+└── disease-programs/            # verticals composing the engines + agents
+    └── tuberous-sclerosis/      #  first clinical beachhead
+lib/hcls_common/                 # Shared platform: Capability Registry, MCP, Composer, MLOps, governance
+hcls-orchestrator/               # Nextflow + the cross-stage trigger fabric
+monitoring · docs · scripts · demo · data   ·   docker-compose.dgx-spark.yml · Caddyfile
 ```
 
-> **Structure note:** the engines/agents are being consolidated under `engines/` + `agents/`
-> groupings as a deliberate migration (the live services bind to current paths); see
-> `docs/STRUCTURE.md` for the target layout and cutover plan.
+> **Structure:** engines and agents live under `core/engines/` and `core/agents/`, disease
+> verticals under `core/disease-programs/`, and the shared platform layer in `lib/hcls_common/`.
+> See `docs/STRUCTURE.md` for the full layout.
 
 ## License
 

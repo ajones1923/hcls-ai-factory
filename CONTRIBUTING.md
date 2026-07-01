@@ -6,11 +6,11 @@ Thank you for your interest in contributing to the HCLS AI Factory. This is a pr
 
 ### Report Bugs
 
-Open a [GitHub issue](https://github.com/your-org/hcls-ai-factory/issues/new?template=bug_report.md) using the **Bug Report** template. Include the agent or component affected, steps to reproduce, and your environment details.
+Open a [GitHub issue](https://github.com/ajones1923/hcls-ai-factory/issues/new?template=bug_report.md) using the **Bug Report** template. Include the agent or component affected, steps to reproduce, and your environment details.
 
 ### Suggest Features
 
-Open a [GitHub issue](https://github.com/your-org/hcls-ai-factory/issues/new?template=feature_request.md) using the **Feature Request** template. Describe the use case and any clinical impact.
+Open a [GitHub issue](https://github.com/ajones1923/hcls-ai-factory/issues/new?template=feature_request.md) using the **Feature Request** template. Describe the use case and any clinical impact.
 
 ### Submit Code Changes
 
@@ -30,8 +30,12 @@ Open a [GitHub issue](https://github.com/your-org/hcls-ai-factory/issues/new?tem
 ### Clone and Install
 
 ```bash
-git clone https://github.com/your-org/hcls-ai-factory.git
+git clone https://github.com/ajones1923/hcls-ai-factory.git
 cd hcls-ai-factory
+
+# Install the pre-commit guard (blocks large files, secrets, and non-neutral material)
+./scripts/install-hooks.sh
+# optional, for the full framework hooks:  pip install pre-commit && pre-commit install
 
 # Create a virtual environment
 python -m venv .venv && source .venv/bin/activate
@@ -40,7 +44,7 @@ python -m venv .venv && source .venv/bin/activate
 pip install -e lib/hcls_common/
 
 # Install agent dependencies (example: clinical trial agent)
-cd ai_agent_adds/clinical_trial_intelligence_agent
+cd core/agents/clinical-trial
 pip install -r requirements.txt
 ```
 
@@ -49,33 +53,39 @@ pip install -r requirements.txt
 Each agent has its own test suite:
 
 ```bash
-cd ai_agent_adds/{agent_name}
+cd core/agents/{agent_name}
 pytest tests/
 ```
 
 ## Architecture Overview
 
-The platform consists of three core engines and eleven intelligence agents:
+The platform consists of eight engines and eight intelligence agents, plus disease-programs:
 
-**Engines:**
-1. **Genomics Pipeline** -- Parabricks, DeepVariant, BWA-MEM2 (FASTQ to VCF)
-2. **RAG/Chat Pipeline** -- Milvus vector DB + Claude AI for variant interpretation
-3. **Drug Discovery Pipeline** -- BioNeMo MolMIM, DiffDock, RDKit for compound generation
+**Engines** (in `core/engines/`):
+1. **genomic-foundation** -- Parabricks, DeepVariant, BWA-MEM2 (FASTQ to VCF) + variant store
+2. **precision-intelligence** -- Milvus vector DB + Claude for variant interpretation (RAG)
+3. **therapeutic-discovery** -- MolMIM, DiffDock, RDKit + real ADMET for compound generation
+4. **clinical-imaging** -- DICOM analysis (VISTA-3D / MAISI / VILA-M3)
+5. **precision-oncology** -- MTB packets, therapy ranking, trial matching
+6. **cardiology** -- clinical workflows + risk calculators
+7. **structural-biology** -- ESMFold, ESM-2 search, ProteinMPNN, developability
+8. **single-cell** -- scanpy compute → cell-type annotation
 
-**Intelligence Agents** (in `ai_agent_adds/`):
-- `precision_biomarker_agent` -- Biomarker analysis and reporting
-- `precision_oncology_agent` -- Oncology variant interpretation
-- `precision_autoimmune_agent` -- Autoimmune disease analysis
-- `cart_intelligence_agent` -- CAR-T therapy design
-- `imaging_intelligence_agent` -- Medical imaging analysis
-- `clinical_trial_intelligence_agent` -- Trial matching and eligibility
-- `cardiology_intelligence_agent` -- Cardiovascular genomics
-- `neurology_intelligence_agent` -- Neurological variant analysis
-- `pharmacogenomics_intelligence_agent` -- Drug-gene interactions
-- `rare_disease_diagnostic_agent` -- Rare disease diagnosis
-- `single_cell_intelligence_agent` -- Single-cell transcriptomics
+**Intelligence Agents** (in `core/agents/`):
+- `cart` -- CAR-T therapy design
+- `precision-biomarker` -- Biomarker analysis and reporting
+- `pharmacogenomics` -- Drug-gene interactions
+- `precision-autoimmune` -- Autoimmune disease analysis
+- `neurology` -- Neurological variant analysis
+- `clinical-trial` -- Trial matching and eligibility
+- `rare-disease-diagnostic` -- Rare disease diagnosis
+- `single-cell` -- Single-cell transcriptomics
 
-**Shared library:** `lib/hcls_common/` (configuration, Milvus client, LLM wrappers, security utilities).
+**Disease-programs** (in `core/disease-programs/`): vertical solutions composing the engines and
+agents for one condition -- starting with `tuberous-sclerosis`.
+
+**Shared library:** `lib/hcls_common/` (capability registry, MCP tool-surface, workflow composer,
+MLOps, governance gates, Milvus client, LLM wrappers, security utilities).
 
 Each agent follows this directory structure:
 
@@ -91,7 +101,7 @@ agent_name/
 
 ## How to Add a New Agent
 
-1. **Create the directory structure** under `ai_agent_adds/your_agent_name/` following the layout above.
+1. **Create the directory structure** under `core/agents/your_agent_name/` following the layout above.
 
 2. **Implement core modules:**
    - `config/settings.py` -- Pydantic `Settings` class with agent-specific configuration

@@ -1,0 +1,20 @@
+# Pre-commit hooks for the HCLS AI Factory.
+#   pip install pre-commit && pre-commit install
+# (or run scripts/install-hooks.sh, which also installs a dependency-free native hook)
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-added-large-files      # block accidental data/weights commits
+        args: ["--maxkb=5120"]
+      - id: detect-private-key
+      - id: check-merge-conflict
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-yaml
+      - id: check-json
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.21.2
+    hooks:
+      - id: gitleaks                      # secret scanning
