@@ -58,8 +58,8 @@ services:
     image: minio/minio:RELEASE.2023-03-20T20-16-18Z
     container_name: neuro-milvus-minio
     environment:
-      MINIO_ACCESS_KEY: minioadmin
-      MINIO_SECRET_KEY: minioadmin
+      MINIO_ACCESS_KEY: ${HCLS_MINIO_USER:-minioadmin}
+      MINIO_SECRET_KEY: ${HCLS_MINIO_PASSWORD:-minioadmin}
     volumes:
       - minio_data:/minio_data
     command: minio server /minio_data --console-address ":9001"
