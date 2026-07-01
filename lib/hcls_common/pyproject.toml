@@ -18,6 +18,7 @@ dependencies = [
     "pydantic-settings>=2.0",
     "numpy>=1.24",
     "requests>=2.28",
+    "loguru>=0.7",
 ]
 
 [project.optional-dependencies]
@@ -73,9 +74,16 @@ dev = [
     "mypy>=1.5",
 ]
 
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["hcls_common*"]
+# The package lives flat in this directory (this dir IS the hcls_common package),
+# so map it explicitly rather than using find() (which would look for a nested subdir).
+[tool.setuptools]
+packages = ["hcls_common"]
+
+[tool.setuptools.package-dir]
+hcls_common = "."
+
+[tool.setuptools.package-data]
+hcls_common = ["*.json"]
 
 [tool.ruff]
 target-version = "py310"
