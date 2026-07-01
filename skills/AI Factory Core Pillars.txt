@@ -1,0 +1,18 @@
+1 — Compute, DGX Spark, and Remote GPUs (Runpod)
+2 — Storage & the Data Layer
+3 — Networking & Ingress
+4 — Containers & the Orchestration Runtime
+5 — Structured Databases
+6 — Vector Databases & Embeddings
+7 — Message Bus & Async
+8 — Inference Serving (Local, Opus, Chai, NIMS, Etc.)
+9 — AI Orchestration
+10 — Observability
+11 — Security & Secrets
+12 — Cost & Economics
+13 — Reliability & Operations
+14 - Ease of Deployment (Since Apache 2.0 Open-Source Project) User Needs to be Able to Understand and Deploy the HCLS AI Factory as Easy/Fast as Possible
+15 - GitHub Structure, Visability/Presentablity
+16 - GitHub to Netlify to https://hcls-ai-factory.org
+
+
