@@ -3,9 +3,14 @@
 
 ![Architecture Infographic](docs/images/infographic.jpg)
 
-*Source: [single-cell-intelligence-agent](https://github.com/ajones1923/single-cell-intelligence-agent)*
-
 RAG-powered single-cell genomics clinical decision support agent for the HCLS AI Factory.
+
+> **Agent vs. Engine — not a duplicate.** This **agent** (`core/agents/single-cell/`, :8130,
+> registry `single-cell-intelligence-agent`) is the RAG *reasoning* layer: it clinically
+> interprets single-cell results (TME profiling, drug response, subclonal architecture) over the
+> literature. The *compute* that produces the cell-type clusters lives in the separate
+> **Single-Cell Engine** (`core/engines/single-cell/`, :8573, registry `singlecell-compute`).
+> **The engine computes; the agent interprets.**
 
 ## Features
 
