@@ -20,6 +20,8 @@ skills/
 │   └── SKILL.md                       #   best-practices checklist for every build
 ├── demo-foundation-alignment/         # invocable skill — WHAT we build (to the demo portfolio)
 │   └── SKILL.md                       #   anchors development to the D1–D7 demos + coverage matrix
+├── personas/                          # audience-awareness / messaging skills
+│   └── broad-general-persona/SKILL.md #   the 5 personas + guardrails for any outreach
 └── architecture/                      # one invocable skill per Core Pillar (16)
     ├── 01-compute-dgx-spark-remote-gpus/SKILL.md
     ├── 02-storage-and-data-layer/SKILL.md
@@ -66,6 +68,13 @@ matrix. It carries the portfolio structure, the shock-and-hope principle, the ho
 a checklist so each capability earns a demo home and keeps the coverage matrix green. Consult it
 when planning or reviewing any capability. It is the bridge between the north star (*why*) and
 `build-housekeeping-standards` (*how*).
+
+### `personas/`
+Audience-awareness and messaging skills for outreach and communication. `broad-general-persona`
+carries the five audience personas (AI-curious public, domain experts, builders/OSS,
+patients/families, skeptics), the universal guardrails, the two-cut principle, and the honesty
+discipline — consult it for **any** artifact people outside the codebase will read or watch
+(promo, README, talks, social, decks, docs). Per-persona drill-down skills can be added here later.
 
 ### `architecture/`
 One invocable skill per **Core Pillar** — 16 in total, numbered `01`–`16` to match
