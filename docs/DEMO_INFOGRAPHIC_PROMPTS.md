@@ -330,7 +330,7 @@ Step 4 — "Top 3 candidates ranked"
 **Bottom banner (green, spanning full width):**
 "The standard drug would have harmed a growing child. The platform generated safe alternatives in minutes."
 
-**Final line:** "3 Engines. 5 Agents. 500 Candidates. 3 Safe for a Child. Open Source."
+**Final line:** "8 Engines. 8 Agents. 500 Candidates. 3 Safe for a Child. Open Source."
 
 ---
 

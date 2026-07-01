@@ -380,7 +380,7 @@ This communicates the three-engine architecture in four words.
 This communicates the equity mission and the accessibility of the $4,699 hardware target.
 
 **Conference tagline (GTC Europe, NVIDIA partner materials):**
-> "11 Intelligence Agents. 3 Engines. One Mission."
+> "8 Intelligence Agents. 8 Engines. One Mission."
 
 This communicates scale and unity — impressive numbers with singular purpose.
 
