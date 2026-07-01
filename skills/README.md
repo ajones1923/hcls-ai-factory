@@ -16,8 +16,10 @@ skills/
 ├── hcls-core-vision-mission/          # ⭐ NORTH STAR — consult first, on every task
 │   └── SKILL.md                       #   the founding mission, vision, and principles
 ├── AI Factory Core Pillars.txt        # the 16 foundational pillars (strategic reference)
-├── build-housekeeping-standards/      # invocable skill
+├── build-housekeeping-standards/      # invocable skill — HOW we build
 │   └── SKILL.md                       #   best-practices checklist for every build
+├── demo-foundation-alignment/         # invocable skill — WHAT we build (to the demo portfolio)
+│   └── SKILL.md                       #   anchors development to the D1–D7 demos + coverage matrix
 └── architecture/                      # one invocable skill per Core Pillar (16)
     ├── 01-compute-dgx-spark-remote-gpus/SKILL.md
     ├── 02-storage-and-data-layer/SKILL.md
@@ -56,6 +58,14 @@ dependency baseline, neutrality/secret/path/data hygiene, docs-stay-true, and ve
 discipline. Reference it whenever adding or modifying an engine, agent, capability, dependency,
 test, or doc. It maps back to the Core Pillars (esp. Security, Reliability, Ease of Deployment,
 and GitHub Structure).
+
+### `demo-foundation-alignment/SKILL.md`
+The standing rule for **what** we build: every new engine, agent, model, or capability must be
+anchored to the **demonstration foundation** — the D1–D7 demo portfolio and its capability-coverage
+matrix. It carries the portfolio structure, the shock-and-hope principle, the honesty ledger, and
+a checklist so each capability earns a demo home and keeps the coverage matrix green. Consult it
+when planning or reviewing any capability. It is the bridge between the north star (*why*) and
+`build-housekeeping-standards` (*how*).
 
 ### `architecture/`
 One invocable skill per **Core Pillar** — 16 in total, numbered `01`–`16` to match
