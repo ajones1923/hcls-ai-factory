@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint (real-bug rules)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install ruff
+      # High-signal rules only: syntax errors, undefined names, redefinitions,
+      # bad return/yield. Style + unused-import cleanup is a separate
+      # `ruff check --fix` pass, not a merge gate.
+      - run: ruff check --select E9,F82,F811,F706,F707 core lib scripts
+
+  platform:
+    name: Platform library (hcls_common)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+    defaults:
+      run:
+        working-directory: lib/hcls_common
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: pip install -e ".[dev]"
+      - run: pytest -q
+
+  registry:
+    name: Capability registry validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -e lib/hcls_common
+      - run: python scripts/validate_registry.py
+
+  # NOTE: per-component test jobs (path-filtered matrix over core/engines and
+  # core/agents) land with the dependency-pinning work (constraints + extras),
+  # so their heavy ML stacks install reproducibly. Until then, the platform
+  # library, real-bug lint, and registry validation are the merge gate — all
+  # run for real (no `|| true`).
