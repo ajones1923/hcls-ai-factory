@@ -16,7 +16,23 @@ skills/
 ├── AI Factory Core Pillars.txt        # the 16 foundational pillars (strategic reference)
 ├── build-housekeeping-standards/      # invocable skill
 │   └── SKILL.md                       #   best-practices checklist for every build
-└── architecture/                      # (placeholder) architecture skills / notes
+└── architecture/                      # one invocable skill per Core Pillar (16)
+    ├── 01-compute-dgx-spark-remote-gpus/SKILL.md
+    ├── 02-storage-and-data-layer/SKILL.md
+    ├── 03-networking-and-ingress/SKILL.md
+    ├── 04-containers-and-orchestration-runtime/SKILL.md
+    ├── 05-structured-databases/SKILL.md
+    ├── 06-vector-databases-and-embeddings/SKILL.md
+    ├── 07-message-bus-and-async/SKILL.md
+    ├── 08-inference-serving/SKILL.md
+    ├── 09-ai-orchestration/SKILL.md
+    ├── 10-observability/SKILL.md
+    ├── 11-security-and-secrets/SKILL.md
+    ├── 12-cost-and-economics/SKILL.md
+    ├── 13-reliability-and-operations/SKILL.md
+    ├── 14-ease-of-deployment/SKILL.md
+    ├── 15-github-structure-and-presentation/SKILL.md
+    └── 16-github-netlify-site/SKILL.md
 ```
 
 ### `AI Factory Core Pillars.txt`
@@ -34,8 +50,13 @@ test, or doc. It maps back to the Core Pillars (esp. Security, Reliability, Ease
 and GitHub Structure).
 
 ### `architecture/`
-Reserved for architecture-focused skills and notes (diagrams, design decisions, extension
-patterns). Empty for now — add a `SKILL.md` here when an architecture skill is written.
+One invocable skill per **Core Pillar** — 16 in total, numbered `01`–`16` to match
+`AI Factory Core Pillars.txt`. Each is a best-practice standard for that pillar (compute, storage,
+networking, containers, structured databases, vector databases + embeddings, messaging/async,
+inference serving, AI orchestration, observability, security, cost, reliability, ease of
+deployment, GitHub structure, and the Netlify site), grounded in the real factory stack. Reference
+the relevant pillar skill when designing, building, operating, or reviewing that layer;
+`build-housekeeping-standards` is the cross-cutting "how we build" skill that ties them together.
 
 ## Skill convention
 
