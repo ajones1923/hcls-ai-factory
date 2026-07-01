@@ -6,6 +6,7 @@ End-to-end flow: Target Hypothesis → Structural Evidence → Molecule Generati
 """
 import streamlit as st
 import json
+import os
 import sys
 from pathlib import Path
 from typing import List, Dict, Any, Optional
@@ -18,8 +19,9 @@ from cryoem_evidence import CryoEMEvidenceManager, CryoEMStructure
 from molecule_generator import MoleculeGenerator, GeneratedMolecule
 from structure_viewer import StructureViewer, HAS_STMOL
 
-# Default paths for Stage 2 export
-RAG_EXPORT_PATH = Path("/home/adam/projects/hcls-ai-factory/core/engines/precision-intelligence/data/targets/targets_for_phase5.json")
+# Default paths for Stage 2 export (repo-root relative; override with $HCLS_ROOT)
+_REPO_ROOT = Path(os.environ.get("HCLS_ROOT", Path(__file__).resolve().parents[4]))
+RAG_EXPORT_PATH = _REPO_ROOT / "core/engines/precision-intelligence/data/targets/targets_for_phase5.json"
 
 
 def load_targets_from_export() -> List[Dict[str, Any]]:

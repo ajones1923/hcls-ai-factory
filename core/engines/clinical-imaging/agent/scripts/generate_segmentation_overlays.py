@@ -14,7 +14,7 @@ Outputs:
   data/demo/segmentation/brain_flair_overlay.png — Best slice with segmentation
 
 Usage:
-  /home/adam/jupyterlab/.venv/bin/python3 scripts/generate_segmentation_overlays.py
+  python33 scripts/generate_segmentation_overlays.py
 """
 
 import os

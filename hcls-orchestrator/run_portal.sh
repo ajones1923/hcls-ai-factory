@@ -14,8 +14,8 @@ echo ""
 # Check for virtual environment
 if [ -d "${SCRIPT_DIR}/venv" ]; then
     source "${SCRIPT_DIR}/venv/bin/activate"
-elif [ -d "/home/adam/projects/hcls-ai-factory/core/engines/therapeutic-discovery/venv" ]; then
-    source "/home/adam/projects/hcls-ai-factory/core/engines/therapeutic-discovery/venv/bin/activate"
+elif [ -d "${SCRIPT_DIR}/../core/engines/therapeutic-discovery/venv" ]; then
+    source "${SCRIPT_DIR}/../core/engines/therapeutic-discovery/venv/bin/activate"
 fi
 
 # Install requirements if needed

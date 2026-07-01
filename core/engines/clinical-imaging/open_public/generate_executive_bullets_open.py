@@ -406,6 +406,6 @@ add_styled_table(
 add_footer_line()
 
 # ── Save ───────────────────────────────────────────────────
-out = "/home/adam/projects/hcls-ai-factory/core/engines/clinical-imaging/open_public/NVIDIA_DGX_Spark_Imaging_Executive_Bullets.docx"
+out = "core/engines/clinical-imaging/open_public/NVIDIA_DGX_Spark_Imaging_Executive_Bullets.docx"
 doc.save(out)
 print(f"Executive bullets saved to {out}")

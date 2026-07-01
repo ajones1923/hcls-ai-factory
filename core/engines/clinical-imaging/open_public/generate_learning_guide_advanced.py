@@ -2085,6 +2085,6 @@ body_rich([
 # SAVE
 # ==============================================================
 
-OUT = "/home/adam/projects/hcls-ai-factory/core/engines/clinical-imaging/open_public/HCLS_Imaging_AI_Agent_Learning_Guide_Advanced.docx"
+OUT = "core/engines/clinical-imaging/open_public/HCLS_Imaging_AI_Agent_Learning_Guide_Advanced.docx"
 doc.save(OUT)
 print(f"Saved: {OUT}")

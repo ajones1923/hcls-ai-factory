@@ -744,6 +744,6 @@ R(p, "  |  Open Source (Apache 2.0)  |  NVIDIA DGX Spark  |  02/2026  |  v1.0",
   size=9, color=GRAY_META)
 
 # ── Save ─────────────────────────────────────────────────────
-path = "/home/adam/projects/hcls-ai-factory/core/engines/clinical-imaging/open_public/HCLS_Imaging_AI_Agent_White_Paper_DGX_Spark.docx"
+path = "core/engines/clinical-imaging/open_public/HCLS_Imaging_AI_Agent_White_Paper_DGX_Spark.docx"
 doc.save(path)
 print(f"White paper saved to {path}")
