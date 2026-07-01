@@ -13,7 +13,7 @@ the next generation of the platform. Two kinds of thing live here:
 ```
 skills/
 ├── README.md                          # this file
-├── HCLS-Core-Vision-Mission/          # ⭐ NORTH STAR — consult first, on every task
+├── hcls-core-vision-mission/          # ⭐ NORTH STAR — consult first, on every task
 │   └── SKILL.md                       #   the founding mission, vision, and principles
 ├── AI Factory Core Pillars.txt        # the 16 foundational pillars (strategic reference)
 ├── build-housekeeping-standards/      # invocable skill
@@ -37,7 +37,7 @@ skills/
     └── 16-github-netlify-site/SKILL.md
 ```
 
-### `HCLS-Core-Vision-Mission/SKILL.md` ⭐ (north star)
+### `hcls-core-vision-mission/SKILL.md` ⭐ (north star)
 The founding **mission, vision, and principles** — *"No one should die of a disease we could have
 understood in time."* This is the guiding context for **all** work: it governs what to build, how
 to frame it, and what to promise, and every other skill exists to serve it. **Consult it first, on

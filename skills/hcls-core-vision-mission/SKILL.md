@@ -1,5 +1,5 @@
 ---
-name: HCLS-Core-Vision-Mission
+name: hcls-core-vision-mission
 description: >-
   The north star for the HCLS AI Factory — its founding mission, vision, and principles. ALWAYS
   consult this first, on every task, before any other skill: it governs WHAT to build, HOW to
