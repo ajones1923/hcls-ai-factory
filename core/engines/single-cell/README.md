@@ -3,6 +3,16 @@
 Single-cell transcriptomics compute for the HCLS AI Factory — the compute layer that
 feeds the Single-Cell Intelligence Agent. Default port **8573**.
 
+> **Engine vs. Agent — not a duplicate.** "Single-cell" is the one capability that exists as
+> both an **engine** and an **agent**, on purpose. This **engine** (`core/engines/single-cell/`,
+> :8573, registry `singlecell-compute`) is deterministic scanpy *compute* — it turns a raw
+> expression matrix into cell-type clusters. The **agent**
+> (`core/agents/single-cell/`, :8130, registry `single-cell-intelligence-agent`) is the RAG
+> *reasoning* layer that clinically interprets those clusters (TME profiling, drug response,
+> subclonal architecture). **The engine computes; the agent interprets.** The engine is also a
+> shared service other components call (e.g. oncology TME, the multi-omics join) — which is
+> exactly why it's a horizontal engine, not folded into the agent.
+
 ## What it does
 Runs the standard [scanpy](https://scanpy.readthedocs.io/) workflow over an `.h5ad`
 expression matrix: **QC → normalize → HVG → PCA/neighbors → Leiden clustering →
