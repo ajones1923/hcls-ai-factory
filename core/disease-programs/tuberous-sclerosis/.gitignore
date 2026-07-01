@@ -1,0 +1,21 @@
+# Secrets — NEVER commit
+.env
+*.key
+secrets/
+
+# Engine state / generated data
+data/
+*.db
+*.sqlite
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+.venv/
+venv/
+
+# OS
+.DS_Store

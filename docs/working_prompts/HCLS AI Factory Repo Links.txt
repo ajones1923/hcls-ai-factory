@@ -1,0 +1,27 @@
+
+Three-Engine Architecture
+
+-Genomic Foundation Engine (https://github.com/ajones1923/hcls-ai-factory)
+-Precision Intelligence Network (https://github.com/ajones1923/hcls-ai-factory)
+-Therapeutic Discovery Engine (https://github.com/ajones1923/hcls-ai-factory)
+
+Eleven Intelligence Agents
+
+Oncology & Immunotherapy
+-Precision Oncology Agent (https://github.com/ajones1923/precision-oncology-agent)
+-CAR-T Intelligence Agent (https://github.com/ajones1923/cart-intelligence-agent)
+-Precision Biomarker Agent (https://github.com/ajones1923/precision-biomarker-agent)
+
+Specialty Medicine
+-Cardiology Intelligence Agent (https://github.com/ajones1923/cardiology-intelligence-agent)
+-Neurology Intelligence Agent (https://github.com/ajones1923/neurology-intelligence-agent)
+-Precision Autoimmune Agent (https://github.com/ajones1923/precision-autoimmune-agent)
+
+Diagnostics & Genomics
+-Rare Disease Diagnostic Agent (https://github.com/ajones1923/rare-disease-diagnostic-agent)
+-Pharmacogenomics Intelligence Agent (https://github.com/ajones1923/pharmacogenomics-intelligence-agent
+-Imaging Intelligence Agent (https://github.com/ajones1923/imaging-intelligence-agent)
+-Single-Cell Intelligence Agent (https://github.com/ajones1923/single-cell-intelligence-agent)
+
+Clinical Operations
+-Clinical Trial Intelligence Agent (https://github.com/ajones1923/clinical-trial-intelligence-agent)

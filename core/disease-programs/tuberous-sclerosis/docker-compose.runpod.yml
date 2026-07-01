@@ -1,0 +1,16 @@
+# RunPod burst overlay (PRD §2.7). Use ONLY for the GPU-bound / embarrassingly-parallel
+# spikes — Parabricks-equivalent blinded variant calling and parallel cohort generation —
+# not for steady-state operation (that runs on the Spark). Apply on a RunPod GPU host:
+#   docker compose -f docker-compose.yml -f docker-compose.runpod.yml run --rm cohort-build
+services:
+  cohort-build:
+    build: .
+    command: python scripts/regen_cohort.py
+    environment:
+      TSC_USE_GPU_CALLING: "1"          # BAMSurgeon -> Parabricks/GATK blinded calling
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - {driver: nvidia, count: all, capabilities: [gpu]}
+    volumes: ["./data:/app/data"]

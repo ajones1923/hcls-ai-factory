@@ -1,0 +1,22 @@
+# Embedded-etcd overrides for Milvus standalone (Phase-0 fix, 2026-06-29).
+# Mounted to /milvus/configs/embedEtcd.yaml. Root cause of the historic ~80k-restart
+# crash loop: etcd's built-in defaults = 2 GiB quota + NO auto-compaction, so the meta
+# db grew unbounded to the quota and wedged (NOSPACE), and `restart: unless-stopped`
+# relaunched it forever. This raises the quota and enables revision-based auto-compaction
+# so the db is bounded and the loop cannot recur.
+# NOTE: Milvus only loads this file when pointed at it via etcd.config.path
+# (env ETCD_CONFIG_PATH=/milvus/configs/embedEtcd.yaml), set in docker-compose.yml.
+name: default
+data-dir: /var/lib/milvus/etcd          # reuse existing metadata (must match ETCD_DATA_DIR)
+listen-client-urls: http://0.0.0.0:2379
+advertise-client-urls: http://0.0.0.0:2379
+listen-peer-urls: http://localhost:2380
+initial-advertise-peer-urls: http://localhost:2380
+# quota-backend-bytes IS honored from this file (no Milvus param controls embedded-etcd
+# quota) and is the load-bearing fix: 4 GiB gives ~2x headroom over the current ~2.1 GB
+# meta db, so etcd can no longer hit the wall and wedge. Milvus controls the compaction
+# MODE itself (forces revision-mode auto-compaction, which is ON) so the values below are
+# a documented intent; the quota is what actually prevents recurrence.
+quota-backend-bytes: 4294967296        # 4 GiB (was etcd default 2 GiB) — THE fix
+auto-compaction-mode: revision         # (Milvus-controlled; auto-compaction is ON)
+auto-compaction-retention: '1000'

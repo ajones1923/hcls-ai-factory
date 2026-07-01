@@ -1,0 +1,34 @@
+# Drug Discovery Pipeline Requirements
+
+# Core
+pydantic==2.12.5
+loguru==0.7.3
+requests==2.32.5
+numpy==2.4.1
+reportlab==4.4.0
+
+# CLI
+typer==0.21.1
+rich==14.2.0
+
+# Chemistry
+rdkit==2025.9.3
+
+# Web UI
+streamlit==1.52.2
+pillow==12.1.0
+
+# 3D Molecular Visualization
+stmol==0.0.9
+py3Dmol==2.5.3
+
+# Observability / Tracing
+opentelemetry-api>=1.29.0
+opentelemetry-sdk>=1.29.0
+
+# Testing
+pytest==9.0.2
+pytest-cov==7.0.0
+
+# Optional: BioNeMo integration (requires NGC container or pip install)
+# bionemo

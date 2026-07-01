@@ -1,166 +1,125 @@
-# ================================================================
-# HCLS AI Factory - .gitignore
-# ================================================================
+# ═══════════════════════════════════════════════════════════════════════════
+# HCLS AI Factory — .gitignore  (single source of truth → github.com/ajones1923/hcls-ai-factory)
+# The 711 G working tree lives on the DGX Spark; only code + docs are published.
+# ═══════════════════════════════════════════════════════════════════════════
 
-# ================================================================
-# INTERNAL DOCUMENTATION - Development only, not for public
-# ================================================================
-HCLS_AI_FACTORY_ENVIRONMENT_GUIDE.md
-
-# ================================================================
-# MkDocs build output and cache
-# ================================================================
-site/
-.cache/
-
-# ================================================================
-# Documentation binaries (use web docs instead)
-# ================================================================
-docs/*.pdf
-docs/*.docx
-!docs/diagrams/**/*.pdf
-primary-docs/
-
-# ================================================================
-# CREDENTIALS & SECRETS - NEVER COMMIT THESE
-# ================================================================
-.env
-.env.local
-.env.*.local
-*.pem
-*.key
-*credentials*
-*secret*
-!scripts/check-secrets.sh
-.ngc/
-.anthropic/
-
-# ================================================================
-# Python
-# ================================================================
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-venv/
-env/
-.venv/
-ENV/
-.eggs/
-*.egg-info/
-dist/
-build/
-
-# ================================================================
-# Test Outputs
-# ================================================================
-test_outputs/
-**/test_outputs/
-
-# ================================================================
-# Large Data Files - Users download separately
-# ================================================================
+# ── BIG DATA (the 534 G genomics + all data dirs) — never publish ─────────────
+data/
+hcls-ai-factory-core-data/
+*.bam
+*.bai
+*.cram
+*.crai
+*.sam
 *.fastq
 *.fastq.gz
 *.fq
 *.fq.gz
-*.bam
-*.bai
-*.vcf
-*.vcf.gz
-*.vcf.gz.tbi
-*.sam
-*.cram
-*.fasta
-*.fa
-*.fasta.gz
-*.fa.gz
+# reference-genome files & indices
+*.fa.bwt
+*.fa.pac
+*.fa.sa
+*.fa.amb
+*.fa.ann
+*.fa.fai
 *.dict
-*.amb
-*.ann
-*.bwt
-*.pac
-*.sa
-*.fai
+GRCh3?*
+*.2bit
 
-# Annotation databases (large)
-*.tsv.gz
-*.tsv.gz.tbi
+# ── MODEL WEIGHTS (recreate/download) ────────────────────────────────────────
+*.pt
+*.pth
+*.safetensors
+*.ckpt
+*.onnx
+*.h5
+*.pb
+*.bin
 
-# ================================================================
-# Data Directories
-# ================================================================
-data/input/
-data/output/
-data/cache/
-data/ref/
-data/annotations/
+# ── VENDORED EXTERNAL REPOS (recreate via git clone; also carry their own .git)─
+vendor_*/
+**/vendor_*/
 
-# ================================================================
-# Milvus / Vector DB
-# ================================================================
-milvus_data/
-volumes/
+# ── PYTHON ENVIRONMENTS & CACHES ─────────────────────────────────────────────
+venv/
+.venv/
+env/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+node_modules/
+build/
+dist/
 
-# ================================================================
-# IDE & Editors
-# ================================================================
-.idea/
-.vscode/
-*.swp
-*.swo
-*~
-.project
-.settings/
+# ── SEPARATE REPOS (their own git; not part of this monorepo) ────────────────
+landing-page/
 
-# ================================================================
-# OS Files
-# ================================================================
-.DS_Store
-.DS_Store?
-._*
-Thumbs.db
-ehthumbs.db
-
-# ================================================================
-# Logs
-# ================================================================
+# ── LOGS & RUNTIME ───────────────────────────────────────────────────────────
 *.log
 logs/
-*.out
+*.pid
 
-# ================================================================
-# Testing & Coverage
-# ================================================================
-.pytest_cache/
-.coverage
-htmlcov/
-.tox/
-.nox/
-.ruff_cache/
-.mypy_cache/
+# ── ARCHIVES / large media ───────────────────────────────────────────────────
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+*.mp4
+*.mov
+*.webm
 
-# ================================================================
-# Jupyter
-# ================================================================
-.ipynb_checkpoints/
-*.ipynb_checkpoints
+# ── SECRETS & LOCAL CONFIG ───────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+secrets/
 
-# ================================================================
-# Docker (local volumes)
-# ================================================================
-docker-compose.override.yml
+# ── Vendor / edition-specific builds — never publish (keep OSS repo neutral) ──
+other-versions/
+aios/
+*VAST*
+*vast*
+*AI_OS*
+*ai_os*
+*AI-OS*
+*ai-os*
 
-# ================================================================
-# Data Setup State
-# ================================================================
-.data-setup-state
+# ── LOCAL TOOLING (per-machine; not part of the repo) ────────────────────────
+.claude/
 
-# ================================================================
-# Nextflow
-# ================================================================
-.nextflow/
-.nextflow.log*
-work/
-results/
+# ── OS / EDITOR ──────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.swp
+
+# ── Config env files (publish only .env.example templates) ───────────────────
+*.env
+
+# ── Image / design binaries (keep docs as markdown; use Git LFS/Releases) ────
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+*.tiff
+*.webp
+*.psd
+*.ai
+*.emmx
+*.mmx
+media/infographics-updates/
+
+# keep the tiny demo fixture (small VCF + readme for reproducibility)
+!data/demo/
+!data/demo/**
+
+# ── Agent sub-repos (their own GitHub repos; not part of this monorepo) ───────
+core/engines/clinical-imaging/agent
+core/engines/precision-oncology/agent
+
+# scratch notes — not for publish
+tmp/

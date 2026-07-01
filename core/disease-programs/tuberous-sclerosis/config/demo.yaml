@@ -1,0 +1,47 @@
+# Demonstration configuration (PRD §10; master paper §15).
+# The 50-patient synthetic cohort composition and the three featured patients.
+
+cohort:
+  size: 50
+  composition:
+    tsc2_germline: 30      # 60%
+    tsc1_germline: 12      # 24%
+    tsc2_mosaic: 5         # 10%  (featured in Act One)
+    tsc1_mosaic: 2         # 4%
+    no_mutation_identified: 1  # 2%
+  mosaic_vaf_range: [0.04, 0.12]
+  germline_vaf: 0.50
+  seed: 20260601           # deterministic regeneration
+
+featured_patients:
+  A:                       # Act One — mosaic recovery (live)
+    age: 4
+    sex: F
+    genotype: TSC2 frameshift, somatic mosaic
+    tissue_vaf: 0.083
+    germline_test: negative
+    expected_acmg: "Likely Pathogenic (PVS1, PM2, PP4)"
+    tissue: resected tuber (epilepsy surgery)
+  B:                       # Act Two — longitudinal dashboard
+    age: 12
+    sex: M
+    genotype: "TSC2 c.3037C>T p.Arg1013Ter (germline)"
+    sega_series_cm: [0.8, 1.1, 1.3]   # 2y ago, 1y ago, current; foramen of Monro
+    aml_max_cm: 2.8
+    seizures: well-controlled focal
+    tand: scattered under-recognized signals
+  C:                       # Act Two — therapeutics
+    age: 18
+    sex: F
+    genotype: TSC1 (germline)
+    therapy: partial everolimus response, dose-reduced for mucositis
+    aml_max_cm: 4.0
+    seizures: refractory focal
+
+demo:
+  watermark_required: true
+  acts:
+    - {name: opening, minutes: 3}
+    - {name: act_one_mosaic_recovery, minutes: 8, patient: A}
+    - {name: act_two_longitudinal, minutes: 12, patients: [B, C]}
+    - {name: act_three_infrastructure, minutes: 5}

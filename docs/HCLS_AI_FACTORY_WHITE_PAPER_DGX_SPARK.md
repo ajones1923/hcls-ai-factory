@@ -10,13 +10,13 @@ tags:
 
 > **From Patient DNA to Novel Drug Candidates in Under Five Hours**
 >
-> License: Apache 2.0 | Date: March 2026
+> License: Apache 2.0 | Date: February 2026
 
 ---
 
 ## 1. Executive Summary
 
-The HCLS AI Factory follows a reusable pattern: identify a canonical artifact, build a persistent data model around it, and let agentic workflows operate continuously on that model. In genomics, the canonical artifact is the VCF — a structured record of every genomic variant identified in a patient's DNA. This white paper describes an end-to-end platform that processes raw DNA sequencing data through GPU-accelerated variant calling, RAG-grounded clinical reasoning, and AI-driven drug discovery — all on a single NVIDIA DGX Spark desktop workstation.
+The HCLS AI Factory follows a reusable pattern: identify a canonical artifact, build a persistent data model around it, and let agentic workflows operate continuously on that model. In genomics, the canonical artifact is the VCF — a structured record of every genomic variant identified in a patient's DNA. This white paper describes an end-to-end platform that processes raw DNA sequencing data through GPU-accelerated variant calling, RAG-grounded clinical reasoning, and AI-driven drug discovery — all on a single NVIDIA DGX Spark desktop workstation. A primary use case is pediatric oncology, where rapid turnaround from tumor sequencing to actionable therapeutic candidates can be life-saving — but the architecture generalizes across all 13 therapeutic areas.
 
 The platform transforms patient FASTQ files (~200 GB of raw sequencing data from a 30× whole-genome study) into 100 ranked novel drug candidates in under 5 hours. Three stages execute sequentially: NVIDIA Parabricks performs GPU-accelerated alignment and variant calling (120-240 min), producing ~11.7 million variants. A RAG pipeline annotates variants with ClinVar, AlphaMissense, and VEP, indexes 3.56 million high-quality variants in a Milvus vector database, and uses Anthropic Claude to identify druggable gene targets. Finally, BioNeMo NIM services (MolMIM and DiffDock) generate novel molecules, predict binding affinities, and rank candidates by a composite drug-likeness score.
 
@@ -55,7 +55,7 @@ The HCLS AI Factory processes data through three sequential engines:
 | Engine | Technology | Duration | Input | Output |
 |---|---|---|---|---|
 | 1 — Genomic Foundation Engine | Parabricks 4.6 (BWA-MEM2 + DeepVariant) | 120-240 min | FASTQ (~200 GB) | VCF (~11.7M variants) |
-| 2 — Precision Intelligence Engine | Milvus + BGE + Claude + 11 intelligence agents | Interactive | VCF | Target gene + evidence |
+| 2 — Precision Intelligence Network | Milvus + BGE + Claude + 11 intelligence agents | Interactive | VCF | Target gene + evidence |
 | 3 — Therapeutic Discovery Engine | MolMIM + DiffDock + RDKit | 8-16 min | Target gene | 100 ranked drug candidates |
 
 ### Technology Stack
@@ -73,7 +73,7 @@ The HCLS AI Factory processes data through three sequential engines:
 
 ### Service Architecture
 
-The platform runs 21 services across 21 ports:
+The platform runs 14 services across 14 ports:
 
 - **Orchestration:** Landing page (8080) with 10-service health monitor
 - **Stage 1:** Genomics portal (5000)
@@ -108,7 +108,7 @@ The VCF contains ~11.7 million variants: ~4.2 million SNPs, ~1.0 million indels,
 
 ---
 
-## 5. Stage 2 — Precision Intelligence Engine (RAG-Grounded Target Identification)
+## 5. Stage 2 — Precision Intelligence Network (RAG-Grounded Target Identification)
 
 ### Variant Annotation
 
@@ -254,6 +254,14 @@ Cross-modal triggers connect imaging findings to genomic analysis:
 - **Genomics → Drug Discovery:** Pathogenic variants in druggable genes trigger targeted molecule generation
 - **Drug Discovery → Imaging:** Drug candidates are combined with imaging findings in integrated clinical reports
 
+### Cross-Agent Integration and Integrated Assessment
+
+Each agent exposes a `/integrated-assessment` endpoint that synthesizes evidence from multiple peer agents into a unified clinical report. For example, a pediatric oncology case can trigger the Precision Oncology Agent, which queries the Biomarker, Pharmacogenomics, Clinical Trial, and Imaging agents in parallel, then merges their outputs into a single multi-domain assessment. This cross-agent integration enables molecular tumor board workflows where a single query produces a comprehensive treatment plan spanning variant interpretation, drug-gene interactions, open trial matches, and imaging correlation — without manual curation across separate tools.
+
+### Pediatric Oncology Use Case
+
+Pediatric oncology exemplifies the platform's value proposition. Childhood cancers are genomically distinct from adult cancers, with lower mutational burden but higher prevalence of fusion genes, germline predisposition variants, and epigenetic drivers. The three-engine pipeline compresses the traditional weeks-long path from tumor biopsy to molecular tumor board recommendation into a single session: the Genomic Foundation Engine processes the tumor/normal pair, the Precision Intelligence Network identifies actionable variants across pediatric-specific gene panels (TP53, ALK, NTRK, BRAF, RAS pathway), and the Therapeutic Discovery Engine generates candidate molecules against the identified target. The 11 intelligence agents provide complementary context — pharmacogenomics for dosing in pediatric populations, clinical trial matching for open pediatric studies, and rare disease diagnostics for germline predisposition syndromes.
+
 ### NVIDIA FLARE for Federated Learning
 
 Phase 3 deployments use NVIDIA FLARE for federated learning across institutions. Models train locally; only gradient updates are shared. Patient genomic data never leaves the originating institution.
@@ -272,7 +280,7 @@ Phase 3 deployments use NVIDIA FLARE for federated learning across institutions.
 
 ### Phase 1: DGX Spark Proof Build
 
-A single DGX Spark runs the complete pipeline: GB10 GPU handles Parabricks, Milvus, MolMIM, and DiffDock sequentially. Docker Compose manages all 21 services. The 128 GB unified memory accommodates all stages without swapping. Total cost: $4,699 hardware + API keys (Anthropic, NGC).
+A single DGX Spark runs the complete pipeline: GB10 GPU handles Parabricks, Milvus, MolMIM, and DiffDock sequentially. Docker Compose manages all 14 services. The 128 GB unified memory accommodates all stages without swapping. Total cost: $4,699 hardware + API keys (Anthropic, NGC).
 
 ### Phase 2: Departmental Scale
 
@@ -288,15 +296,10 @@ DGX SuperPOD deployments with InfiniBand fabric, NVIDIA FLARE for federated lear
 
 The HCLS AI Factory demonstrates that the full precision medicine pipeline — from raw DNA to novel drug candidates — can run on a single desktop workstation. GPU acceleration collapses genomics from days to hours. Vector databases and LLM reasoning transform annotation from manual curation to interactive exploration. Generative chemistry and molecular docking automate the target-to-lead transition that traditionally takes months.
 
-The three-engine architecture (Genomic Foundation Engine → Precision Intelligence Engine → Therapeutic Discovery Engine) provides a reproducible, auditable, and scalable framework. The same Nextflow pipelines that run on a $4,699 DGX Spark scale to DGX SuperPOD for enterprise deployments. All HCLS AI Factory code is Apache 2.0; NVIDIA components are free for development on DGX Spark, with enterprise licensing required at scale (see [Licensing & Cost Guide](licensing.md)).
+The three-engine architecture (Genomic Foundation Engine → Precision Intelligence Network → Therapeutic Discovery Engine) provides a reproducible, auditable, and scalable framework. The same Nextflow pipelines that run on a $4,699 DGX Spark scale to DGX SuperPOD for enterprise deployments. All HCLS AI Factory code is Apache 2.0; NVIDIA components are free for development on DGX Spark, with enterprise licensing required at scale (see [Licensing & Cost Guide](licensing.md)).
 
 This is precision medicine as a continuous, computable workflow — not a disconnected collection of tools, but an integrated factory that transforms patient data into therapeutic hypotheses in a single session.
 
 ---
 
-*HCLS AI Factory — Apache 2.0 | March 2026*
-
----
-
-!!! warning "Clinical Decision Support Disclaimer"
-    The HCLS AI Factory platform and all intelligence agents described in this document are clinical decision support research tools. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.
+*HCLS AI Factory — Apache 2.0 | February 2026*

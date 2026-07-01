@@ -1,0 +1,36 @@
+# Per-agent model-tier policy (PRD §2.2, master paper §16).
+# Tiers map to concrete model IDs; each agent step names a tier.
+# "right tool for the job": deterministic/classical where predictability matters,
+# frontier reasoning where it adds value.
+
+models:
+  haiku: claude-haiku-4-5-20251001
+  # sonnet 4.6 is the current/latest Sonnet (a valid model ID) and is the deliberate
+  # choice here — NOT drift to be "fixed" by downgrading to 4-5 (INFER-1 audit note).
+  sonnet: claude-sonnet-4-6
+  opus: claude-opus-4-8
+  local: llama-3.1-70b-instruct        # Ollama fallback (offline / privacy / budget cap)
+
+agents:
+  variant_curator:
+    variant_calling: deterministic       # Parabricks/GATK — NO LLM
+    annotation: deterministic            # snpEff/VEP — NO LLM
+    evidence_aggregation: sonnet
+    acmg_synthesis: opus                 # highest-stakes; validated vs combinatorial rules
+  phenome_mapper:
+    note_extraction: sonnet
+    structured_normalization: haiku      # ICD-10/lab -> HPO
+    conflict_resolution: opus            # rare
+  trajectory_modeler:
+    forecasting: classical               # mixed-effects / GP / survival — NO LLM
+    prose_summary: haiku
+    unusual_interpretation: sonnet
+  tand_surveillance:
+    discourse_analysis: sonnet           # per-note, over the 6 TAND clusters
+    aggregation_scoring: deterministic   # tunable thresholds
+    briefing_summary: opus
+  therapeutics_strategist:
+    field_extraction: haiku
+    rag_orchestration: sonnet
+    eligibility_matching: sonnet
+    options_brief: opus                  # non-negotiable Opus-class

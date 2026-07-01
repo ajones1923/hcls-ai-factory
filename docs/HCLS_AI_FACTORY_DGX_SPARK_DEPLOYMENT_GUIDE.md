@@ -15,7 +15,7 @@ tags:
 >
 > The HCLS AI Factory is a three-stage precision medicine pipeline that transforms raw genomic sequencing data (FASTQ) into actionable drug discovery candidates. Stage 1 performs GPU-accelerated genomics alignment and variant calling with NVIDIA Parabricks. Stage 2 annotates variants against clinical databases, embeds them into a Milvus vector store, and provides a RAG-powered conversational interface using Anthropic Claude. Stage 3 leverages NVIDIA BioNeMo NIM microservices for structure-aware molecule generation and molecular docking, producing ranked drug candidates with composite scores. The entire platform runs on a single NVIDIA DGX Spark desktop workstation — a $4,699 system powered by the GB10 Grace Blackwell Superchip with 128 GB unified LPDDR5x memory. This guide covers the public fork: everything you need to clone, configure, and deploy the full stack using Docker Compose.
 >
-> License: Apache 2.0 | Date: March 2026
+> License: Apache 2.0 | Date: February 2026
 
 ---
 
@@ -29,7 +29,7 @@ tags:
 6. [Reference Data Preparation](#6-reference-data-preparation)
 7. [Docker Compose Configuration](#7-docker-compose-configuration)
 8. [Deploy Genomic Foundation Engine (Stage 1)](#8-deploy-genomic-foundation-engine-stage-1)
-9. [Deploy Precision Intelligence Engine (Stage 2)](#9-deploy-precision-intelligence-network-stage-2)
+9. [Deploy Precision Intelligence Network (Stage 2)](#9-deploy-precision-intelligence-network-stage-2)
 10. [Deploy Therapeutic Discovery Engine (Stage 3)](#10-deploy-therapeutic-discovery-engine-stage-3)
 11. [Nextflow Orchestration](#11-nextflow-orchestration)
 12. [Service Startup and Health](#12-service-startup-and-health)
@@ -106,9 +106,9 @@ Variants are annotated from multiple sources:
 
 Annotated variants are converted to 384-dimensional dense vectors using the BGE-small-en-v1.5 embedding model and stored in Milvus. Retrieval-Augmented Generation (RAG) queries Milvus for relevant genomic evidence, then passes the results as context to Anthropic Claude for natural-language clinical interpretation.
 
-#### 1.5.5 Drug Discovery Pipeline
+#### 1.5.5 Therapeutic Discovery Engine
 
-The 10-stage drug discovery pipeline transforms a genomic target into ranked drug candidates:
+The 10-stage Therapeutic Discovery Engine transforms a genomic target into ranked drug candidates:
 
 | Stage | Name | Description |
 |---|---|---|
@@ -144,7 +144,7 @@ The HCLS AI Factory comprises three application pipeline stages running on a sin
 | Stage | Engine Name | Function |
 |---|---|---|
 | Stage 1 | Genomic Foundation Engine | FASTQ alignment and variant calling with GPU-accelerated Parabricks |
-| Stage 2 | Precision Intelligence Engine | Variant annotation, vector embedding, Claude-powered conversational AI, and 11 intelligence agents |
+| Stage 2 | Precision Intelligence Network | Variant annotation, vector embedding, Claude-powered conversational AI, and 11 intelligence agents |
 | Stage 3 | Therapeutic Discovery Engine | Structure-aware molecule generation, docking, and composite ranking |
 
 ### 2.2 Technology Stack
@@ -174,13 +174,13 @@ The platform deploys 13 services across 13 ports:
 | # | Service | Port | Protocol | Description |
 |---|---|---|---|---|
 | 1 | Landing Page | 8080 | HTTP | Platform entry point and service directory |
-| 2 | Genomics Portal | 5000 | HTTP | Genomics pipeline UI and results viewer |
+| 2 | Genomics Portal | 5000 | HTTP | Genomic Foundation Engine UI and results viewer |
 | 3 | RAG API | 5001 | HTTP | REST API for variant queries and RAG |
 | 4 | Milvus | 19530 | gRPC | Vector database for genomic evidence |
 | 5 | Streamlit Chat | 8501 | HTTP | Conversational AI interface for variant analysis |
 | 6 | MolMIM NIM | 8001 | HTTP | BioNeMo molecule generation microservice |
 | 7 | DiffDock NIM | 8002 | HTTP | BioNeMo molecular docking microservice |
-| 8 | Discovery UI | 8505 | HTTP | Drug discovery pipeline interface |
+| 8 | Discovery UI | 8505 | HTTP | Therapeutic Discovery Engine interface |
 | 9 | Discovery Portal | 8510 | HTTP | Drug discovery results and reporting portal |
 | 10 | Grafana | 3000 | HTTP | Monitoring dashboards |
 | 11 | Prometheus | 9099 | HTTP | Metrics collection and storage |
@@ -207,7 +207,7 @@ The platform deploys 13 services across 13 ports:
 │  FASTQ ──► Parabricks fq2bam ──► BAM ──► DeepVariant ──► VCF         │
 │  (200 GB)   (20-45 min)         (100 GB)   (10-35 min)    (11.7M)    │
 │                                                                        │
-│  Stage 2 — Precision Intelligence Engine                              │
+│  Stage 2 — Precision Intelligence Network                              │
 │  VCF ──► ClinVar + AlphaMissense ──► VEP ──► Annotated VCF           │
 │  Annotated ──► BGE-small ──► Milvus (384-dim, COSINE)                 │
 │  Milvus ──► Claude (sonnet-4, temp=0.3) ──► Target Hypothesis         │
@@ -453,7 +453,7 @@ hcls-ai-factory/
 │       ├── bam/                    # Alignment output
 │       └── vcf/                    # Variant call output
 │
-├── rag/                            # Stage 2: Precision Intelligence Engine
+├── rag/                            # Stage 2: Precision Intelligence Network
 │   ├── api/                        # RAG API (Port 5001)
 │   │   └── app.py
 │   ├── chat/                       # Streamlit Chat (Port 8501)
@@ -470,7 +470,7 @@ hcls-ai-factory/
 │       ├── clinvar/                # ClinVar database
 │       └── alphamissense/          # AlphaMissense predictions
 │
-├── discovery/                      # Stage 3: Drug Discovery Pipeline
+├── discovery/                      # Stage 3: Therapeutic Discovery Engine
 │   ├── pipeline/                   # 10-stage discovery pipeline
 │   │   ├── __init__.py
 │   │   ├── initialize.py           # Stage 1: Initialize
@@ -1020,7 +1020,7 @@ Access the Genomics Portal at `http://<dgx-spark-ip>:5000` to browse VCF results
 
 ---
 
-## 9. Deploy Precision Intelligence Engine (Stage 2)
+## 9. Deploy Precision Intelligence Network (Stage 2)
 
 ### 9.1 Milvus Vector Database Setup
 
@@ -1485,7 +1485,7 @@ The HCLS AI Factory uses Nextflow DSL2 for pipeline orchestration. Each pipeline
 | `target` | Start from target gene (skip genomics) | 2 + 3 |
 | `drug` | Drug discovery only (pre-existing target) | 3 only |
 | `demo` | VCP demo with pre-loaded data | 1 + 2 + 3 (demo subset) |
-| `genomics_only` | Genomics pipeline only | 1 only |
+| `genomics_only` | Genomic Foundation Engine only | 1 only |
 
 ### 11.3 Execution Profiles
 
@@ -2205,7 +2205,7 @@ For multi-institutional deployments, NVIDIA FLARE enables federated learning acr
 
 ## 19.5 Intelligence Agent Deployment
 
-The Precision Intelligence Engine includes 11 intelligence agents. Each agent provides a Streamlit frontend and a FastAPI backend:
+The Precision Intelligence Network includes 11 intelligence agents. Each agent provides a Streamlit frontend and a FastAPI backend:
 
 | # | Agent | Streamlit Port | API Port | Domain |
 |---|---|---|---|---|
@@ -2722,8 +2722,3 @@ docker build --platform linux/arm64 -t my-service:latest ./my-service/
 *This deployment guide is maintained as part of the HCLS AI Factory open project. For updates, issues, and contributions, visit the project repository on GitHub.*
 
 *Copyright 2026 Adam Jones. Licensed under the Apache License, Version 2.0.*
-
----
-
-!!! warning "Clinical Decision Support Disclaimer"
-    The HCLS AI Factory platform and all intelligence agents described in this document are clinical decision support research tools. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.

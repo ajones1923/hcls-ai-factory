@@ -1,0 +1,108 @@
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#76B900', 'primaryTextColor': '#fff', 'lineColor': '#333'}}}%%
+
+flowchart TB
+    subgraph EXTERNAL["☁️ External Data Sources"]
+        NCBI[("🌐 NCBI GIAB FTP<br/>ftp-trace.ncbi.nlm.nih.gov")]
+        S3[("🌐 AWS S3<br/>Parabricks Sample Bundle")]
+    end
+
+    subgraph DOWNLOAD["📥 Download Phase"]
+        direction TB
+        IDX["📋 Index File<br/>hg002_illumina_2x250.index.tsv"]
+        LANES["📦 Lane Files<br/>L001-L008 × R1/R2<br/>~200GB total"]
+        BUNDLE["📦 Reference Bundle<br/>parabricks_sample.tar.gz<br/>~11GB"]
+    end
+
+    subgraph PREP["🔧 Preparation Phase"]
+        direction TB
+        MERGE["🔀 Lane Merging<br/>zcat | gzip"]
+        EXTRACT["📂 Extraction<br/>tar -xzf"]
+    end
+
+    subgraph INPUT["📂 Input Files"]
+        direction TB
+        R1[("📄 HG002_R1.fastq.gz<br/>Forward Reads<br/>~100GB<br/>~400M reads")]
+        R2[("📄 HG002_R2.fastq.gz<br/>Reverse Reads<br/>~100GB<br/>~400M reads")]
+        REF[("📄 GRCh38.fa<br/>Reference Genome<br/>~3GB<br/>3.1B bases")]
+        BWA_IDX[("📄 GRCh38.fa.*<br/>BWA Index Files<br/>~6GB")]
+    end
+
+    subgraph FQ2BAM["🧬 fq2bam Processing"]
+        direction TB
+        subgraph ALIGN["Step 1: Alignment"]
+            A1["🔍 Seeding<br/>Find exact matches"]
+            A2["🔗 Chaining<br/>Connect seeds"]
+            A3["📐 Smith-Waterman<br/>Optimal alignment"]
+            A4["📊 Scoring<br/>MAPQ calculation"]
+        end
+        subgraph SORT["Step 2: Sorting"]
+            SORT1["📊 Coordinate Sort<br/>chr:position ordering"]
+        end
+        subgraph DEDUP["Step 3: Deduplication"]
+            DEDUP1["🔖 Mark Duplicates<br/>PCR artifact flagging"]
+        end
+        A1 --> A2 --> A3 --> A4 --> SORT1 --> DEDUP1
+    end
+
+    subgraph BAM_OUT["📁 BAM Output"]
+        BAM[("📄 HG002.genome.bam<br/>Aligned Reads<br/>~100GB")]
+        BAI[("📄 HG002.genome.bam.bai<br/>BAM Index<br/>~10MB")]
+        FLAGSTAT["📊 Flagstat Report<br/>Mapping: 99.5%<br/>Duplicates: 15%<br/>Properly Paired: 98%"]
+    end
+
+    subgraph DEEPVAR["🧠 DeepVariant Processing"]
+        direction TB
+        PILEUP["🖼️ Pileup Generation<br/>Visual encoding of reads"]
+        CNN["🧠 CNN Inference<br/>Inception-v3 model<br/>Genotype classification"]
+        GENO["📝 Genotyping<br/>0/0, 0/1, 1/1<br/>Quality scoring"]
+        PILEUP --> CNN --> GENO
+    end
+
+    subgraph VCF_OUT["📁 VCF Output"]
+        VCF[("📄 HG002.genome.vcf.gz<br/>Variant Calls<br/>~1-2GB<br/>~4M variants")]
+        TBI[("📄 HG002.genome.vcf.gz.tbi<br/>Tabix Index<br/>~2MB")]
+    end
+
+    subgraph VARIANTS["📊 Variant Summary"]
+        SNV["🔹 SNVs<br/>~3.5M single nucleotide"]
+        INDEL["🔸 Indels<br/>~500K insertions/deletions"]
+    end
+
+    %% Data Flow Connections
+    NCBI --> IDX --> LANES
+    S3 --> BUNDLE
+    LANES --> MERGE --> R1 & R2
+    BUNDLE --> EXTRACT --> REF & BWA_IDX
+
+    R1 --> FQ2BAM
+    R2 --> FQ2BAM
+    REF --> FQ2BAM
+    BWA_IDX --> FQ2BAM
+
+    FQ2BAM --> BAM
+    BAM --> BAI
+    BAM --> FLAGSTAT
+
+    BAM --> DEEPVAR
+    REF --> DEEPVAR
+
+    DEEPVAR --> VCF
+    VCF --> TBI
+    VCF --> SNV & INDEL
+
+    %% Styling
+    classDef externalClass fill:#E3F2FD,stroke:#1976D2,stroke-width:2px
+    classDef downloadClass fill:#E8F5E9,stroke:#388E3C,stroke-width:2px
+    classDef prepClass fill:#FFF3E0,stroke:#F57C00,stroke-width:2px
+    classDef inputClass fill:#B3E5FC,stroke:#0288D1,stroke-width:2px
+    classDef processClass fill:#76B900,stroke:#5a8f00,stroke-width:2px,color:#fff
+    classDef outputClass fill:#FFE082,stroke:#FFA000,stroke-width:2px
+    classDef summaryClass fill:#F3E5F5,stroke:#7B1FA2,stroke-width:2px
+
+    class EXTERNAL externalClass
+    class DOWNLOAD downloadClass
+    class PREP prepClass
+    class INPUT inputClass
+    class FQ2BAM,DEEPVAR processClass
+    class BAM_OUT,VCF_OUT outputClass
+    class VARIANTS summaryClass

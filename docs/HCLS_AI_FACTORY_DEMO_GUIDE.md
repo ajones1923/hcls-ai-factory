@@ -12,7 +12,7 @@ tags:
 
 > **Step-by-step walkthrough for demonstrating the HCLS AI Factory on DGX Spark.**
 >
-> License: Apache 2.0 | Date: March 2026
+> License: Apache 2.0 | Date: February 2026
 
 ---
 
@@ -138,7 +138,7 @@ ls rag-chat-pipeline/data/annotations/                # ClinVar + AlphaMissense
 
 - "This is the HCLS AI Factory — a platform that transforms patient DNA into novel drug candidates in under 5 hours."
 - "Everything runs on this single DGX Spark — a $4,699 desktop workstation."
-- "Three engines: the Genomic Foundation Engine for GPU-accelerated genomics, the Precision Intelligence Engine for RAG-grounded target identification with 10 intelligence agents, and the Therapeutic Discovery Engine for AI-driven drug discovery."
+- "Three engines: the Genomic Foundation Engine for GPU-accelerated genomics, the Precision Intelligence Network for RAG-grounded target identification with 11 intelligence agents, and the Therapeutic Discovery Engine for AI-driven drug discovery."
 
 **Show:** Landing page at http://localhost:8080 — highlight the 10-service health grid.
 
@@ -172,7 +172,7 @@ python run_pipeline.py --mode demo
 
 ---
 
-### Precision Intelligence Engine (Stage 2) — 5-6 minutes
+### Precision Intelligence Network (Stage 2) — 5-6 minutes
 
 #### Show Annotation Pipeline
 
@@ -297,7 +297,7 @@ Claude will identify VCP as the primary target with:
 | Phase 2 | DGX B200 | Department — multiple concurrent patients |
 | Phase 3 | DGX SuperPOD | Enterprise — thousands concurrent, federated |
 
-**8 Specialized Agents:**
+**11 Intelligence Agents:**
 
 - "The platform includes 11 specialized intelligence agents spanning oncology, biomarkers, CAR-T, imaging, autoimmune, pharmacogenomics, cardiology, clinical trials, rare disease, neurology, and single-cell analysis."
 
@@ -413,9 +413,4 @@ watch -n 1 nvidia-smi
 
 ---
 
-*HCLS AI Factory — Apache 2.0 | March 2026*
-
----
-
-!!! warning "Clinical Decision Support Disclaimer"
-    The HCLS AI Factory platform and all intelligence agents described in this document are clinical decision support research tools. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.
+*HCLS AI Factory — Apache 2.0 | February 2026*

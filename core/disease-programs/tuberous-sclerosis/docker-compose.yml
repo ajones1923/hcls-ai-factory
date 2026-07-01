@@ -1,0 +1,110 @@
+# TSC Intelligence Engine — Spark-local production stack (PRD §2.4, §2.7).
+# Brings up the data substrate (PostgreSQL/Redis/MinIO/Milvus), the local-LLM fallback
+# (Ollama), and the engine API + three clinician surfaces. All synthetic-data; no PHI.
+#   docker compose up -d
+# Set TSC_ANTHROPIC_API_KEY in .env to enable frontier reasoning (else local Llama / stubs).
+
+x-engine-env: &engine-env
+  TSC_POSTGRES_DSN: postgresql://tsc:${TSC_POSTGRES_PASSWORD:?set TSC_POSTGRES_PASSWORD in .env}@postgres:5432/tsc
+  TSC_USE_REDIS: "1"
+  TSC_REDIS_URL: redis://redis:6379/0
+  TSC_USE_MINIO: "1"
+  TSC_MINIO_USER: ${TSC_MINIO_USER:?set TSC_MINIO_USER in .env}
+  TSC_MINIO_PASSWORD: ${TSC_MINIO_PASSWORD:?set TSC_MINIO_PASSWORD in .env}
+  TSC_USE_MILVUS: "1"
+  TSC_MILVUS_URI: http://milvus:19530
+  TSC_OLLAMA_URL: http://ollama:11434
+  TSC_ANTHROPIC_API_KEY: ${TSC_ANTHROPIC_API_KEY:-}
+
+services:
+  postgres:
+    image: postgres:16
+    environment: {POSTGRES_USER: tsc, POSTGRES_PASSWORD: "${TSC_POSTGRES_PASSWORD:?set TSC_POSTGRES_PASSWORD in .env}", POSTGRES_DB: tsc}
+    volumes: ["pg:/var/lib/postgresql/data"]
+    ports: ["127.0.0.1:5432:5432"]
+    healthcheck: {test: ["CMD-SHELL", "pg_isready -U tsc"], interval: 10s, retries: 5}
+
+  redis:
+    image: redis:7
+    ports: ["127.0.0.1:6379:6379"]
+    healthcheck: {test: ["CMD", "redis-cli", "ping"], interval: 10s, retries: 5}
+
+  minio:
+    image: minio/minio:RELEASE.2024-10-13T13-34-11Z   # P2-5: pinned (was :latest)
+    command: server /data --console-address ":9001"
+    environment: {MINIO_ROOT_USER: "${TSC_MINIO_USER:?set TSC_MINIO_USER in .env}", MINIO_ROOT_PASSWORD: "${TSC_MINIO_PASSWORD:?set TSC_MINIO_PASSWORD in .env}"}
+    volumes: ["minio:/data"]
+    ports: ["127.0.0.1:9000:9000", "127.0.0.1:9001:9001"]
+    healthcheck: {test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"], interval: 15s, retries: 5}
+
+  etcd:
+    image: quay.io/coreos/etcd:v3.5.5
+    environment: {ETCD_AUTO_COMPACTION_MODE: revision, ETCD_QUOTA_BACKEND_BYTES: "4294967296"}
+    command: etcd -advertise-client-urls=http://etcd:2379 -listen-client-urls http://0.0.0.0:2379 --data-dir /etcd
+    volumes: ["etcd:/etcd"]
+    healthcheck: {test: ["CMD", "etcdctl", "endpoint", "health"], interval: 10s, retries: 5}   # P2-12
+
+  milvus:
+    image: milvusdb/milvus:v2.4.17
+    command: ["milvus", "run", "standalone"]
+    environment: {ETCD_ENDPOINTS: etcd:2379, MINIO_ADDRESS: minio:9000}
+    depends_on:                                          # P2-12: wait for readiness, not just start
+      etcd: {condition: service_healthy}
+      minio: {condition: service_healthy}
+    ports: ["127.0.0.1:19530:19530"]
+    healthcheck: {test: ["CMD", "curl", "-f", "http://localhost:9091/healthz"], interval: 30s, start_period: 60s, retries: 5}   # P2-12
+
+  ollama:
+    image: ollama/ollama:latest   # P2-5 TODO: pin to a specific ollama/ollama version before prod (no tag pulled locally to confirm)
+    volumes: ["ollama:/root/.ollama"]
+    ports: ["127.0.0.1:11434:11434"]
+    restart: unless-stopped                              # P3-4
+    # P3-4: GPU reservation enabled for the DGX Spark / a GPU host (needs nvidia runtime).
+    # Comment this out if deploying on a CPU-only host.
+    deploy: {resources: {reservations: {devices: [{driver: nvidia, count: 1, capabilities: [gpu]}]}}}
+
+  engine-api:
+    build: .
+    command: uvicorn api.main:app --host 0.0.0.0 --port 8560
+    environment: *engine-env
+    depends_on:                                          # P2-12: gate on data-tier readiness
+      postgres: {condition: service_healthy}
+      redis: {condition: service_healthy}
+      minio: {condition: service_healthy}
+      milvus: {condition: service_healthy}
+    ports: ["8560:8560"]
+    healthcheck: {test: ["CMD", "curl", "-f", "http://localhost:8560/health"], interval: 15s, start_period: 30s, retries: 5}   # P2-12
+    restart: unless-stopped                              # P3-4
+
+  briefing:
+    build: .
+    command: streamlit run app/briefing_app.py --server.port 8561 --server.address 0.0.0.0
+    environment: *engine-env
+    depends_on:
+      engine-api: {condition: service_healthy}           # P2-12
+    ports: ["8561:8561"]
+    restart: unless-stopped                              # P3-4
+
+  dashboard:
+    build: .
+    command: streamlit run app/dashboard_app.py --server.port 8562 --server.address 0.0.0.0
+    environment: *engine-env
+    depends_on:
+      engine-api: {condition: service_healthy}           # P2-12
+    ports: ["8562:8562"]
+    restart: unless-stopped                              # P3-4
+
+  alerts:
+    build: .
+    command: streamlit run app/alerts_app.py --server.port 8563 --server.address 0.0.0.0
+    environment: *engine-env
+    depends_on:
+      engine-api: {condition: service_healthy}           # P2-12
+    ports: ["8563:8563"]
+    restart: unless-stopped                              # P3-4
+
+volumes:
+  pg: {}
+  minio: {}
+  etcd: {}
+  ollama: {}

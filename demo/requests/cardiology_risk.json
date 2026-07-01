@@ -1,0 +1,11 @@
+{
+  "age": 45,
+  "sex": "female",
+  "race": "white",
+  "total_cholesterol": 210,
+  "hdl_cholesterol": 55,
+  "systolic_bp": 128,
+  "bp_treatment": false,
+  "diabetes": false,
+  "smoker": false
+}

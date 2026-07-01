@@ -1,0 +1,112 @@
+{
+  "dashboard": {
+    "id": null,
+    "uid": "hcls-pipeline-health",
+    "title": "HCLS AI Factory - Pipeline Health",
+    "tags": ["hcls", "precision-medicine", "dgx-spark"],
+    "timezone": "browser",
+    "refresh": "10s",
+    "time": {"from": "now-1h", "to": "now"},
+    "panels": [
+      {
+        "id": 1,
+        "title": "Agent Service Status",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 24, "x": 0, "y": 0},
+        "targets": [{"expr": "up{job=~\"biomarker|oncology|cart|imaging|autoimmune\"}", "legendFormat": "{{job}}"}],
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [{"type": "value", "options": {"0": {"text": "DOWN", "color": "red"}, "1": {"text": "UP", "color": "green"}}}],
+            "thresholds": {"steps": [{"value": 0, "color": "red"}, {"value": 1, "color": "green"}]}
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "GPU Utilization",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4},
+        "targets": [{"expr": "DCGM_FI_DEV_GPU_UTIL", "legendFormat": "GPU {{gpu}}"}],
+        "fieldConfig": {"defaults": {"unit": "percent", "max": 100, "thresholds": {"steps": [{"value": 0, "color": "green"}, {"value": 70, "color": "yellow"}, {"value": 90, "color": "red"}]}}}
+      },
+      {
+        "id": 3,
+        "title": "GPU Memory Usage",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4},
+        "targets": [{"expr": "DCGM_FI_DEV_FB_USED / (DCGM_FI_DEV_FB_USED + DCGM_FI_DEV_FB_FREE) * 100", "legendFormat": "GPU Memory %"}],
+        "fieldConfig": {"defaults": {"unit": "percent", "max": 100}}
+      },
+      {
+        "id": 4,
+        "title": "Pipeline Stage Latency",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12},
+        "targets": [
+          {"expr": "histogram_quantile(0.95, rate(pipeline_stage_duration_seconds_bucket[5m]))", "legendFormat": "p95 {{stage}}"},
+          {"expr": "histogram_quantile(0.50, rate(pipeline_stage_duration_seconds_bucket[5m]))", "legendFormat": "p50 {{stage}}"}
+        ],
+        "fieldConfig": {"defaults": {"unit": "s"}}
+      },
+      {
+        "id": 5,
+        "title": "Cross-Agent Events",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 12},
+        "targets": [{"expr": "rate(agent_events_total[5m])", "legendFormat": "{{event_type}} from {{source}}"}],
+        "fieldConfig": {"defaults": {"unit": "ops"}}
+      },
+      {
+        "id": 6,
+        "title": "System Resources",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 20},
+        "targets": [
+          {"expr": "100 - (avg by(instance) (rate(node_cpu_seconds_total{mode='idle'}[5m])) * 100)", "legendFormat": "CPU Usage %"},
+          {"expr": "(1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100", "legendFormat": "Memory Usage %"}
+        ],
+        "fieldConfig": {"defaults": {"unit": "percent", "max": 100}}
+      },
+      {
+        "id": 7,
+        "title": "GPU Temperature",
+        "type": "gauge",
+        "gridPos": {"h": 8, "w": 6, "x": 12, "y": 20},
+        "targets": [{"expr": "DCGM_FI_DEV_GPU_TEMP", "legendFormat": "GPU Temp"}],
+        "fieldConfig": {"defaults": {"unit": "celsius", "min": 0, "max": 100, "thresholds": {"steps": [{"value": 0, "color": "green"}, {"value": 60, "color": "yellow"}, {"value": 80, "color": "red"}]}}}
+      },
+      {
+        "id": 8,
+        "title": "GPU Power Draw",
+        "type": "gauge",
+        "gridPos": {"h": 8, "w": 6, "x": 18, "y": 20},
+        "targets": [{"expr": "DCGM_FI_DEV_POWER_USAGE", "legendFormat": "GPU Power"}],
+        "fieldConfig": {"defaults": {"unit": "watt", "min": 0, "max": 200, "thresholds": {"steps": [{"value": 0, "color": "green"}, {"value": 100, "color": "yellow"}, {"value": 150, "color": "red"}]}}}
+      },
+      {
+        "id": 9,
+        "title": "Milvus Vector Operations",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 28},
+        "targets": [
+          {"expr": "rate(milvus_proxy_search_vectors_count[5m])", "legendFormat": "Search ops/s"},
+          {"expr": "rate(milvus_proxy_insert_vectors_count[5m])", "legendFormat": "Insert ops/s"}
+        ],
+        "fieldConfig": {"defaults": {"unit": "ops"}}
+      },
+      {
+        "id": 10,
+        "title": "Agent Request Rate",
+        "type": "bargauge",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 28},
+        "targets": [{"expr": "rate(http_requests_total{job=~\"biomarker|oncology|cart|imaging\"}[5m])", "legendFormat": "{{job}}"}],
+        "fieldConfig": {"defaults": {"unit": "reqps"}}
+      }
+    ],
+    "templating": {
+      "list": [
+        {"name": "agent", "type": "custom", "current": {"text": "All", "value": "$__all"}, "options": [{"text": "All", "value": "$__all"}, {"text": "biomarker", "value": "biomarker"}, {"text": "oncology", "value": "oncology"}, {"text": "cart", "value": "cart"}, {"text": "imaging", "value": "imaging"}]}
+      ]
+    }
+  }
+}

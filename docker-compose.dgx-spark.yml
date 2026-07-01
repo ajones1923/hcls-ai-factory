@@ -1,0 +1,440 @@
+# =====================================================================
+# HCLS AI Factory -- Unified Docker Compose for NVIDIA DGX Spark
+# =====================================================================
+# Patient DNA -> Drug Candidates in <5 hours on a $4,699 machine.
+#
+# Services:
+#   - Milvus (vector DB for all agents)
+#   - 6 Intelligence Agents (Biomarker, Oncology, CAR-T, Imaging, Autoimmune, PGx)
+#   - Drug Discovery Pipeline
+#   - Landing Page / Portal
+#   - Observability (Prometheus + Grafana)
+#
+# Hardware target: DGX Spark -- GB10 GPU, 128GB unified LPDDR5x,
+#                  20 ARM cores (Grace CPU), NVLink-C2C
+#
+# Usage:
+#   docker compose -f docker-compose.dgx-spark.yml up -d
+#   Open http://localhost:8080 for the landing page
+#
+# NOTE (CONT-5, 2026-06-29): this compose is the CONTAINERIZED target. In the current
+# live deployment the intelligence agents run as NATIVE host processes (Python/Streamlit)
+# supervised by health-monitor.sh via cron, NOT as these containers. Treat the agent
+# services here as the declarative/portable target; the running system is host-process based.
+# =====================================================================
+
+
+x-common-env: &common-env
+  MILVUS_HOST: milvus
+  MILVUS_PORT: "19530"
+  ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+  EMBEDDING_MODEL: BAAI/bge-small-en-v1.5
+  LOG_LEVEL: INFO
+
+x-agent-healthcheck: &agent-healthcheck
+  interval: 30s
+  timeout: 10s
+  retries: 3
+  start_period: 30s
+
+services:
+  # -------------------------------------------------------------------
+  # Infrastructure
+  # -------------------------------------------------------------------
+
+  milvus-etcd:
+    image: quay.io/coreos/etcd:v3.5.11
+    restart: unless-stopped
+    environment:
+      ETCD_AUTO_COMPACTION_MODE: revision
+      ETCD_AUTO_COMPACTION_RETENTION: "1000"
+      ETCD_QUOTA_BACKEND_BYTES: "4294967296"
+    command: etcd -advertise-client-urls=http://127.0.0.1:2379 -listen-client-urls http://0.0.0.0:2379 --data-dir /etcd
+    volumes:
+      - etcd_data:/etcd
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  milvus-minio:
+    image: minio/minio:RELEASE.2024-01-01T16-36-33Z
+    restart: unless-stopped
+    environment:
+      MINIO_ACCESS_KEY: ${HCLS_MINIO_USER:?set HCLS_MINIO_USER in .env}
+      MINIO_SECRET_KEY: ${HCLS_MINIO_PASSWORD:?set HCLS_MINIO_PASSWORD in .env}
+    command: minio server /minio_data --console-address ":9001"
+    volumes:
+      - minio_data:/minio_data
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  milvus:
+    image: milvusdb/milvus:v2.4.0
+    restart: unless-stopped
+    environment:
+      ETCD_ENDPOINTS: milvus-etcd:2379
+      MINIO_ADDRESS: milvus-minio:9000
+    ports:
+      - "19530:19530"
+      - "9091:9091"
+    depends_on:
+      - milvus-etcd
+      - milvus-minio
+    volumes:
+      - milvus_data:/var/lib/milvus
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9091/healthz"]
+      <<: *agent-healthcheck
+
+  # -------------------------------------------------------------------
+  # Intelligence Agents
+  # -------------------------------------------------------------------
+
+  precision-biomarker-agent:
+    build:
+      context: ./core/agents/precision-biomarker
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8502:8501"  # Streamlit UI
+      - "8102:8000"  # FastAPI
+    environment:
+      <<: *common-env
+      AGENT_NAME: precision-biomarker-agent
+    depends_on:
+      milvus:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      <<: *agent-healthcheck
+
+  precision-oncology-agent:
+    build:
+      context: ./core/engines/precision-oncology/agent
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8503:8501"
+      - "8103:8000"
+    environment:
+      <<: *common-env
+      AGENT_NAME: precision-oncology-agent
+    depends_on:
+      milvus:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      <<: *agent-healthcheck
+
+  cart-intelligence-agent:
+    build:
+      context: ./core/agents/cart
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8504:8501"
+      - "8104:8000"
+    environment:
+      <<: *common-env
+      AGENT_NAME: cart-intelligence-agent
+    depends_on:
+      milvus:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      <<: *agent-healthcheck
+
+  imaging-intelligence-agent:
+    build:
+      context: ./core/engines/clinical-imaging/agent
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8505:8501"
+      - "8105:8000"
+    environment:
+      <<: *common-env
+      AGENT_NAME: imaging-intelligence-agent
+    depends_on:
+      milvus:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 8G  # Imaging models need more memory
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      <<: *agent-healthcheck
+
+  precision-autoimmune-agent:
+    build:
+      context: ./core/agents/precision-autoimmune
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8506:8501"
+      - "8106:8000"
+    environment:
+      <<: *common-env
+      AGENT_NAME: precision-autoimmune-agent
+    depends_on:
+      milvus:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      <<: *agent-healthcheck
+
+  cardiology-intelligence-agent:
+    build:
+      context: ./core/engines/cardiology
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8536:8536"  # Streamlit UI
+      - "8126:8126"  # FastAPI
+    environment:
+      <<: *common-env
+      AGENT_NAME: cardiology-intelligence-agent
+      CARDIO_MILVUS_HOST: milvus
+      CARDIO_MILVUS_PORT: "19530"
+      CARDIO_API_PORT: "8126"
+      CARDIO_STREAMLIT_PORT: "8536"
+    depends_on:
+      milvus:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8126/health')"]
+      <<: *agent-healthcheck
+
+  clinical-trial-intelligence-agent:
+    build:
+      context: ./core/agents/clinical-trial
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8128:8128"  # Streamlit UI
+      - "8538:8538"  # FastAPI
+    environment:
+      <<: *common-env
+      AGENT_NAME: clinical-trial-intelligence-agent
+      TRIAL_MILVUS_HOST: milvus
+      TRIAL_MILVUS_PORT: "19530"
+      TRIAL_API_PORT: "8538"
+      TRIAL_STREAMLIT_PORT: "8128"
+    depends_on:
+      milvus:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8538/health')"]
+      <<: *agent-healthcheck
+
+  rare-disease-diagnostic-agent:
+    build:
+      context: ./core/agents/rare-disease-diagnostic
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8544:8544"
+      - "8134:8134"
+    environment:
+      <<: *common-env
+      AGENT_NAME: rare-disease-diagnostic-agent
+      RD_MILVUS_HOST: milvus
+      RD_MILVUS_PORT: "19530"
+      RD_API_PORT: "8134"
+      RD_STREAMLIT_PORT: "8544"
+    depends_on:
+      milvus:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8134/health')"]
+      <<: *agent-healthcheck
+
+  neurology-intelligence-agent:
+    build:
+      context: ./core/agents/neurology
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8529:8529"
+      - "8528:8528"
+    environment:
+      <<: *common-env
+      AGENT_NAME: neurology-intelligence-agent
+      NEURO_MILVUS_HOST: milvus
+      NEURO_MILVUS_PORT: "19530"
+      NEURO_API_PORT: "8528"
+      NEURO_STREAMLIT_PORT: "8529"
+    depends_on:
+      milvus:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8528/health')"]
+      <<: *agent-healthcheck
+
+  single-cell-intelligence-agent:
+    build:
+      context: ./core/agents/single-cell
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8130:8130"
+      - "8540:8540"
+    environment:
+      <<: *common-env
+      AGENT_NAME: single-cell-intelligence-agent
+      SC_MILVUS_HOST: milvus
+      SC_MILVUS_PORT: "19530"
+      SC_API_PORT: "8540"
+      SC_STREAMLIT_PORT: "8130"
+    depends_on:
+      milvus:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8540/health')"]
+      <<: *agent-healthcheck
+
+  pharmacogenomics-intelligence-agent:
+    build:
+      context: ./core/agents/pharmacogenomics
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8107:8107"  # FastAPI
+      - "8507:8507"  # Streamlit UI
+    environment:
+      <<: *common-env
+      AGENT_NAME: pharmacogenomics-intelligence-agent
+      PGX_MILVUS_HOST: milvus
+      PGX_MILVUS_PORT: "19530"
+      PGX_API_PORT: "8107"
+      PGX_STREAMLIT_PORT: "8507"
+    depends_on:
+      milvus:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8107/health"]
+      <<: *agent-healthcheck
+
+  # -------------------------------------------------------------------
+  # Landing Page
+  # -------------------------------------------------------------------
+
+  landing-page:
+    build:
+      context: ./landing-page
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      BIOMARKER_URL: http://precision-biomarker-agent:8000
+      ONCOLOGY_URL: http://precision-oncology-agent:8000
+      CART_URL: http://cart-intelligence-agent:8000
+      IMAGING_URL: http://imaging-intelligence-agent:8000
+      AUTOIMMUNE_URL: http://precision-autoimmune-agent:8000
+      CARDIOLOGY_URL: http://cardiology-intelligence-agent:8126
+      TRIAL_URL: http://clinical-trial-intelligence-agent:8538
+      RD_URL: http://rare-disease-diagnostic-agent:8134
+      NEURO_URL: http://neurology-intelligence-agent:8528
+      SC_URL: http://single-cell-intelligence-agent:8540
+      PGX_URL: http://pharmacogenomics-intelligence-agent:8107
+    depends_on:
+      - precision-biomarker-agent
+      - precision-oncology-agent
+      - cardiology-intelligence-agent
+      - clinical-trial-intelligence-agent
+      - rare-disease-diagnostic-agent
+      - neurology-intelligence-agent
+      - single-cell-intelligence-agent
+      - pharmacogenomics-intelligence-agent
+
+  # -------------------------------------------------------------------
+  # Observability
+  # -------------------------------------------------------------------
+
+  prometheus:
+    image: prom/prometheus:v2.49.1
+    restart: unless-stopped
+    ports:
+      - "9099:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  grafana:
+    image: grafana/grafana:10.3.1
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:?GRAFANA_PASSWORD must be set in .env}
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/hcls-overview.json
+    volumes:
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+volumes:
+  etcd_data:
+  minio_data:
+  milvus_data:
+  prometheus_data:
+  grafana_data:

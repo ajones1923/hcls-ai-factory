@@ -1,0 +1,33 @@
+{
+	auto_https disable_redirects
+}
+
+# HCLS AI Factory — TLS edge (SEC-11, wired 2026-06-29).
+# HTTPS terminates TLS and reverse-proxies to the landing page (:8080), which fronts
+# the whole factory. The site is addressed by its real names so Caddy's managed internal
+# CA issues a cert covering the LAN IP you reach it by (192.168.68.107) plus localhost.
+# :80 redirects to HTTPS so plain-http hits still land.
+#
+# TLS: `tls internal` = Caddy's self-signed internal CA, stored in /var/lib/caddy (readable
+# by the caddy service user). The repo cert at certs/cert.pem (CN/SAN 192.168.68.107, valid
+# to 2027) is NOT used because its key.pem is mode 600 owned by adam (unreadable by caddy);
+# to use it instead, copy both to a caddy-readable path and replace `tls internal` with:
+#   tls /etc/caddy/certs/cert.pem /etc/caddy/certs/key.pem
+
+192.168.68.107, localhost, 127.0.0.1 {
+	tls internal
+	reverse_proxy localhost:8080
+}
+
+# TSC Intelligence Engine (Engine 7) — TLS edge on a dedicated HTTPS port (SEC-11/P3-5).
+# Dedicated port (not a subpath) so the FastAPI API proxies cleanly. The TSC stack is
+# run on demand (scripts/serve.sh); this block is dormant-but-ready and proxies once the
+# engine API (:8560) is up. Address `https://192.168.68.107:8543`.
+192.168.68.107:8543, localhost:8543, 127.0.0.1:8543 {
+	tls internal
+	reverse_proxy localhost:8560
+}
+
+:80 {
+	redir https://{host}{uri}
+}

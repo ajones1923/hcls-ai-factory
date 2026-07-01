@@ -1,0 +1,18 @@
+{
+  "phenotypes": [
+    {"id": "HP:0001875", "label": "Neutropenia", "onset": "infantile", "severity": "severe"},
+    {"id": "HP:0001903", "label": "Anemia", "onset": "infantile"},
+    {"id": "HP:0001744", "label": "Splenomegaly"},
+    {"id": "HP:0002240", "label": "Hepatomegaly"},
+    {"id": "HP:0001973", "label": "Autoimmune thrombocytopenia"}
+  ],
+  "variants": [
+    {"gene": "PAX5", "variant": "c.547C>T", "zygosity": "heterozygous"},
+    {"gene": "IKZF1", "variant": "del(7p12.2)", "zygosity": "heterozygous"}
+  ],
+  "age_years": 8,
+  "sex": "female",
+  "family_history": "No family history of hematologic malignancies",
+  "clinical_notes": "Pediatric B-cell ALL with ETV6-RUNX1 fusion. Presenting with fatigue, pallor, petechiae, and bone pain.",
+  "max_diagnoses": 5
+}

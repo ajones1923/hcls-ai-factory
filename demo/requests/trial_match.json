@@ -1,0 +1,11 @@
+{
+  "age": 8,
+  "sex": "female",
+  "diagnosis": "B-cell Acute Lymphoblastic Leukemia",
+  "biomarkers": ["CD19+", "CD22+", "ETV6-RUNX1 fusion", "MRD negative"],
+  "medications": ["Daunorubicin", "Vincristine", "PEG-asparaginase", "Dexamethasone"],
+  "genomic_variants": ["PAX5 c.547C>T", "IKZF1 del(7p12.2)"],
+  "comorbidities": [],
+  "therapeutic_area": "pediatric_oncology",
+  "max_results": 5
+}
