@@ -101,7 +101,7 @@ agent_name/
 
 ## How to Add a New Agent
 
-1. **Create the directory structure** under `core/agents/your_agent_name/` following the layout above.
+1. **Create the directory structure** under `core/agents/your-agent-name/` (kebab-case) following the layout above.
 
 2. **Implement core modules:**
    - `config/settings.py` -- Pydantic `Settings` class with agent-specific configuration
@@ -110,12 +110,62 @@ agent_name/
    - `src/rag_engine.py` -- RAG retrieval and response generation
 
 3. **Add the API and UI:**
-   - `api/routes.py` -- FastAPI endpoints for the agent
-   - `app/streamlit_app.py` -- Streamlit interface for interactive use
+   - `api/main.py` + `api/routes/` -- FastAPI app and endpoint routers
+   - `app/{name}_ui.py` -- Streamlit interface for interactive use
 
-4. **Write tests** in `tests/` covering core logic and API routes.
+4. **Wire in governance** (see "Governance" below) and **register a capability** (see "Register a Capability").
 
-5. **Register the agent** in `docker-compose.dgx-spark.yml` with appropriate port, volume mounts, and health check.
+5. **Write tests** in `tests/` covering core logic and API routes; add a `.env.example`.
+
+6. **Register the service** in `docker-compose.dgx-spark.yml` with a port, volume mounts, and health check.
+
+## How to Add an Engine
+
+Engines live under `core/engines/your-engine-name/` (kebab-case) and follow the same
+self-contained layout as agents (`src/`, `api/`, `tests/`, `config/`, `README.md`,
+`requirements.txt`, `Dockerfile`). Use the `cardiology` engine as the canonical template.
+
+1. **Scaffold** the directory from the cardiology layout.
+2. **Build a pre-governed FastAPI app** so the gates are inherited by construction:
+   ```python
+   from hcls_common.api_gate import create_governed_app
+   app = create_governed_app("your-engine", capability_id="your-engine-id")
+   ```
+3. **Register a capability** for the engine (below) — CI will fail if the new engine
+   directory has no registered capability.
+4. **Add a `README.md`** describing the engine, its port, and how to run it.
+5. **Add tests** and wire the service into `docker-compose.dgx-spark.yml`.
+
+## Register a Capability
+
+Every engine/agent must appear in the capability registry so it is discoverable, wireable
+by the workflow composer, and governed. This is enforced in CI.
+
+1. **Add an entry** to `lib/hcls_common/capabilities.json` with a unique `id`, a `type`
+   (`engine`/`agent`/`model`/`nim`/`stage`/`service`), typed `inputs`/`outputs` ports, an
+   `endpoint`, and a `status` (`live`/`planned`). A `live` capability may **never** be
+   `mock`-served — the registry rejects it.
+2. **Map the directory** in `scripts/validate_registry.py` (`COVERAGE`) to the capability id(s).
+3. **Validate:** `python scripts/validate_registry.py` (also runs in CI) must print `OK`.
+
+## Governance
+
+The platform's input-validation and output-honesty gates live in `hcls_common.api_gate`.
+Wire them into every service so governance is real, not optional:
+
+```python
+# In api/main.py — one line adds the /governance surface + request-id/timing:
+from hcls_common.api_gate import install_governance
+install_governance(app, service="cart", capability_id="cart-intelligence-agent")
+
+# In POST handlers:
+from hcls_common.api_gate import require_valid_input, honesty_flags
+payload = require_valid_input("cart-intelligence-agent", payload)   # 422 on bad input
+flags = honesty_flags(answer_text)                                  # deterministic overclaim scan
+```
+
+For send-ready clinical text, use `assert_publishable(text, llm=...)` to run the full
+verify gate. `cart` is the reference implementation.
 
 ## Code Standards
 
