@@ -1,0 +1,12 @@
+define flow check clinical safety
+  if user query contains diagnostic request
+    bot inform "I provide clinical decision support, not definitive diagnoses. All findings should be reviewed by a qualified radiologist."
+
+define flow add clinical disclaimer
+  bot response
+  bot append "Clinical Decision Support: This analysis is for informational purposes. Not a substitute for professional medical judgment."
+
+define flow check patient privacy
+  if bot response contains PII pattern
+    bot sanitize response
+    bot warn "Patient identifiable information was detected and removed."

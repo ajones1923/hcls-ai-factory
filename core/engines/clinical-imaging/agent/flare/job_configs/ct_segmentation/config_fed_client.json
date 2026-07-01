@@ -1,0 +1,143 @@
+{
+  "format_version": 2,
+  "executors": [
+    {
+      "tasks": ["train", "submit_model", "validate"],
+      "executor": {
+        "path": "nvflare.app_common.executors.learner_executor.LearnerExecutor",
+        "args": {
+          "learner_id": "ct_seg_learner"
+        }
+      }
+    }
+  ],
+  "task_result_filters": [],
+  "task_data_filters": [],
+  "components": [
+    {
+      "id": "ct_seg_learner",
+      "path": "nvflare.app_opt.pt.learners.cifar10_learner.CIFAR10Learner",
+      "name": "CTSegmentationLearner",
+      "args": {
+        "lr": 0.0002,
+        "epochs": 3,
+        "analytic_sender_id": "analytic_sender"
+      }
+    },
+    {
+      "id": "analytic_sender",
+      "path": "nvflare.app_opt.tracking.tb.tb_receiver.TBAnalyticsSender",
+      "args": {}
+    },
+    {
+      "id": "model_registry",
+      "path": "nvflare.app_common.widgets.model_registry.ModelRegistry",
+      "args": {}
+    }
+  ],
+  "training": {
+    "model": {
+      "path": "monai.networks.nets.SegResNet",
+      "args": {
+        "spatial_dims": 3,
+        "in_channels": 1,
+        "out_channels": 14,
+        "init_filters": 32,
+        "blocks_down": [1, 2, 2, 4],
+        "blocks_up": [1, 1, 1],
+        "dropout_prob": 0.2
+      }
+    },
+    "optimizer": {
+      "path": "torch.optim.AdamW",
+      "args": {
+        "lr": 0.0002,
+        "weight_decay": 0.00001
+      }
+    },
+    "loss": {
+      "path": "monai.losses.DiceCELoss",
+      "args": {
+        "to_onehot_y": true,
+        "softmax": true,
+        "squared_pred": true,
+        "batch": true
+      }
+    },
+    "scheduler": {
+      "path": "torch.optim.lr_scheduler.PolynomialLR",
+      "args": {
+        "total_iters": 100,
+        "power": 0.9
+      }
+    },
+    "batch_size": 2,
+    "num_workers": 4,
+    "dataset": {
+      "name": "TotalSegmentator",
+      "num_classes": 14,
+      "labels": {
+        "0": "background",
+        "1": "liver",
+        "2": "spleen",
+        "3": "left_kidney",
+        "4": "right_kidney",
+        "5": "stomach",
+        "6": "gallbladder",
+        "7": "esophagus",
+        "8": "pancreas",
+        "9": "left_adrenal_gland",
+        "10": "right_adrenal_gland",
+        "11": "left_lung_upper_lobe",
+        "12": "left_lung_lower_lobe",
+        "13": "right_lung"
+      },
+      "roi_size": [96, 96, 96],
+      "spacing": [1.5, 1.5, 2.0]
+    },
+    "transforms": {
+      "train": [
+        {"name": "LoadImaged", "args": {"keys": ["image", "label"]}},
+        {"name": "EnsureChannelFirstd", "args": {"keys": ["image", "label"]}},
+        {"name": "Orientationd", "args": {"keys": ["image", "label"], "axcodes": "RAS"}},
+        {"name": "Spacingd", "args": {"keys": ["image", "label"], "pixdim": [1.5, 1.5, 2.0], "mode": ["bilinear", "nearest"]}},
+        {"name": "ScaleIntensityRanged", "args": {"keys": ["image"], "a_min": -175, "a_max": 250, "b_min": 0.0, "b_max": 1.0, "clip": true}},
+        {"name": "CropForegroundd", "args": {"keys": ["image", "label"], "source_key": "image"}},
+        {"name": "RandCropByPosNegLabeld", "args": {"keys": ["image", "label"], "label_key": "label", "spatial_size": [96, 96, 96], "pos": 1, "neg": 1, "num_samples": 4}},
+        {"name": "RandFlipd", "args": {"keys": ["image", "label"], "spatial_axis": [0], "prob": 0.1}},
+        {"name": "RandFlipd", "args": {"keys": ["image", "label"], "spatial_axis": [1], "prob": 0.1}},
+        {"name": "RandFlipd", "args": {"keys": ["image", "label"], "spatial_axis": [2], "prob": 0.1}},
+        {"name": "RandRotate90d", "args": {"keys": ["image", "label"], "prob": 0.1, "max_k": 3}},
+        {"name": "RandShiftIntensityd", "args": {"keys": ["image"], "offsets": 0.1, "prob": 0.5}}
+      ],
+      "val": [
+        {"name": "LoadImaged", "args": {"keys": ["image", "label"]}},
+        {"name": "EnsureChannelFirstd", "args": {"keys": ["image", "label"]}},
+        {"name": "Orientationd", "args": {"keys": ["image", "label"], "axcodes": "RAS"}},
+        {"name": "Spacingd", "args": {"keys": ["image", "label"], "pixdim": [1.5, 1.5, 2.0], "mode": ["bilinear", "nearest"]}},
+        {"name": "ScaleIntensityRanged", "args": {"keys": ["image"], "a_min": -175, "a_max": 250, "b_min": 0.0, "b_max": 1.0, "clip": true}}
+      ],
+      "post": [
+        {"name": "AsDiscreted", "args": {"keys": ["pred", "label"], "argmax": [true, false], "to_onehot": [14, 14]}}
+      ]
+    },
+    "sliding_window_inference": {
+      "roi_size": [96, 96, 96],
+      "sw_batch_size": 4,
+      "overlap": 0.5
+    }
+  },
+  "privacy": {
+    "differential_privacy": {
+      "enabled": false,
+      "mechanism": "gaussian",
+      "epsilon": 10.0,
+      "delta": 0.00001,
+      "max_grad_norm": 1.0
+    },
+    "sparse_update": {
+      "enabled": false,
+      "top_k_percent": 10
+    }
+  }
+}

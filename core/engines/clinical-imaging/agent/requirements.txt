@@ -1,0 +1,96 @@
+# ═══════════════════════════════════════════════════════════════════
+# Imaging Intelligence Agent — Python Dependencies
+# ═══════════════════════════════════════════════════════════════════
+
+# Core Framework
+pydantic>=2.0
+pydantic-settings>=2.7
+loguru>=0.7.0
+
+# Vector Database
+pymilvus>=2.4.0
+
+# Embeddings
+sentence-transformers>=2.2.0
+
+# LLM
+anthropic>=0.18.0
+openai>=1.0.0
+
+# MONAI (transforms, networks, GradCAM)
+monai>=1.3.0
+monai-deploy-app-sdk>=0.6.0
+torchvision>=0.15.0
+
+# CXR pathology classification (CheXpert-trained DenseNet-121)
+torchxrayvision>=1.2.0
+
+# Radiomics Feature Extraction
+pyradiomics>=3.1.0
+
+# Medical Imaging
+pydicom>=2.4.0
+highdicom>=0.22.0
+nibabel>=5.0.0
+SimpleITK>=2.3.0
+
+# Web / API
+streamlit>=1.30.0
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+python-multipart>=0.0.6
+
+# Data Ingest
+requests>=2.31.0
+lxml>=5.0.0
+biopython>=1.83
+
+# Scheduling
+apscheduler>=3.10.0
+
+# Monitoring
+prometheus-client>=0.20.0
+
+# Observability
+opentelemetry-api>=1.29.0
+opentelemetry-sdk>=1.29.0
+
+# Export / Reporting
+reportlab>=4.0.0
+
+# Visualization
+pyvis>=0.3.0
+
+# Animation / Preview Generation
+imageio>=2.28.0
+imageio-ffmpeg>=0.4.9
+matplotlib>=3.7.0
+
+# Scientific Computing
+numpy>=1.24.0
+scipy>=1.11.0
+pandas>=2.0.0
+
+# GPU-Accelerated Analytics (optional — falls back to pandas)
+# cudf-cu12>=24.04    # Uncomment on systems with NVIDIA RAPIDS installed
+
+# GPU-Accelerated Preprocessing (optional — falls back to numpy/scipy)
+# nvidia-dali-cuda120>=1.35.0   # Uncomment on systems with NVIDIA DALI
+# cucim-cu12>=24.04             # Uncomment on systems with NVIDIA RAPIDS
+scikit-image>=0.21.0
+
+# MONAI Label (interactive annotation, Apache 2.0)
+# monailabel>=0.8.0  # Optional — graceful degradation when absent
+
+# Safety / Guardrails
+nemoguardrails>=0.10.0
+
+# Utilities
+tqdm>=4.65.0
+python-dotenv>=1.0.0
+tenacity>=8.2.0
+
+# Inference Optimization (optional — graceful degradation when absent)
+# tritonclient[http]>=2.42.0
+# torch-tensorrt>=2.0.0
+# nvidia-dynamo>=0.1.0

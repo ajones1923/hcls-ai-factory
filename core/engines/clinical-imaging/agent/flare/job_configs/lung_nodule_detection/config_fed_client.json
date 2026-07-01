@@ -1,0 +1,146 @@
+{
+  "format_version": 2,
+  "executors": [
+    {
+      "tasks": ["train", "submit_model", "validate"],
+      "executor": {
+        "path": "nvflare.app_common.executors.learner_executor.LearnerExecutor",
+        "args": {
+          "learner_id": "lung_nodule_learner"
+        }
+      }
+    }
+  ],
+  "task_result_filters": [],
+  "task_data_filters": [],
+  "components": [
+    {
+      "id": "lung_nodule_learner",
+      "path": "nvflare.app_opt.pt.learners.cifar10_learner.CIFAR10Learner",
+      "name": "LungNoduleDetectionLearner",
+      "args": {
+        "lr": 0.0001,
+        "epochs": 5,
+        "analytic_sender_id": "analytic_sender"
+      }
+    },
+    {
+      "id": "analytic_sender",
+      "path": "nvflare.app_opt.tracking.tb.tb_receiver.TBAnalyticsSender",
+      "args": {}
+    },
+    {
+      "id": "model_registry",
+      "path": "nvflare.app_common.widgets.model_registry.ModelRegistry",
+      "args": {}
+    }
+  ],
+  "training": {
+    "model": {
+      "path": "monai.networks.nets.RetinaNet",
+      "args": {
+        "spatial_dims": 3,
+        "num_classes": 2,
+        "num_anchors": 6,
+        "feature_extractor": {
+          "path": "monai.networks.nets.resnet.ResNet",
+          "args": {
+            "block": "bottleneck",
+            "layers": [3, 4, 6, 3],
+            "block_inplanes": [64, 128, 256, 512],
+            "spatial_dims": 3,
+            "n_input_channels": 1
+          }
+        }
+      }
+    },
+    "optimizer": {
+      "path": "torch.optim.SGD",
+      "args": {
+        "lr": 0.0001,
+        "momentum": 0.9,
+        "weight_decay": 0.0001
+      }
+    },
+    "loss": {
+      "classification_loss": {
+        "path": "monai.losses.FocalLoss",
+        "args": {
+          "gamma": 2.0,
+          "alpha": 0.25,
+          "reduction": "sum"
+        }
+      },
+      "regression_loss": {
+        "path": "torch.nn.SmoothL1Loss",
+        "args": {
+          "beta": 0.11,
+          "reduction": "sum"
+        }
+      }
+    },
+    "scheduler": {
+      "path": "torch.optim.lr_scheduler.MultiStepLR",
+      "args": {
+        "milestones": [40, 60],
+        "gamma": 0.1
+      }
+    },
+    "batch_size": 4,
+    "num_workers": 4,
+    "dataset": {
+      "name": "LUNA16",
+      "num_classes": 2,
+      "labels": {
+        "0": "background",
+        "1": "nodule"
+      },
+      "patch_size": [128, 128, 128],
+      "spacing": [0.7, 0.7, 1.25],
+      "anchor_sizes": [[5, 10, 20], [10, 20, 40], [20, 40, 80]],
+      "anchor_ratios": [[1.0, 0.5, 2.0]],
+      "detection_threshold": 0.5,
+      "nms_iou_threshold": 0.3,
+      "max_detections_per_image": 150
+    },
+    "transforms": {
+      "train": [
+        {"name": "LoadImaged", "args": {"keys": ["image"]}},
+        {"name": "EnsureChannelFirstd", "args": {"keys": ["image"]}},
+        {"name": "Orientationd", "args": {"keys": ["image"], "axcodes": "RAS"}},
+        {"name": "Spacingd", "args": {"keys": ["image"], "pixdim": [0.7, 0.7, 1.25], "mode": ["bilinear"]}},
+        {"name": "ScaleIntensityRanged", "args": {"keys": ["image"], "a_min": -1024, "a_max": 300, "b_min": 0.0, "b_max": 1.0, "clip": true}},
+        {"name": "RandCropByPosNegLabeld", "args": {"keys": ["image"], "label_key": "box_label", "spatial_size": [128, 128, 128], "pos": 2, "neg": 1, "num_samples": 2}},
+        {"name": "RandFlipd", "args": {"keys": ["image"], "spatial_axis": [0, 1, 2], "prob": 0.5}},
+        {"name": "RandRotate90d", "args": {"keys": ["image"], "prob": 0.5, "max_k": 3}},
+        {"name": "RandGaussianNoised", "args": {"keys": ["image"], "prob": 0.2, "mean": 0.0, "std": 0.05}},
+        {"name": "RandGaussianSmoothd", "args": {"keys": ["image"], "prob": 0.2, "sigma_x": [0.5, 1.0], "sigma_y": [0.5, 1.0], "sigma_z": [0.5, 1.0]}}
+      ],
+      "val": [
+        {"name": "LoadImaged", "args": {"keys": ["image"]}},
+        {"name": "EnsureChannelFirstd", "args": {"keys": ["image"]}},
+        {"name": "Orientationd", "args": {"keys": ["image"], "axcodes": "RAS"}},
+        {"name": "Spacingd", "args": {"keys": ["image"], "pixdim": [0.7, 0.7, 1.25], "mode": ["bilinear"]}},
+        {"name": "ScaleIntensityRanged", "args": {"keys": ["image"], "a_min": -1024, "a_max": 300, "b_min": 0.0, "b_max": 1.0, "clip": true}}
+      ]
+    },
+    "evaluation": {
+      "froc_fp_rates": [0.125, 0.25, 0.5, 1, 2, 4, 8],
+      "iou_threshold": 0.3,
+      "score_threshold": 0.3
+    }
+  },
+  "privacy": {
+    "differential_privacy": {
+      "enabled": false,
+      "mechanism": "gaussian",
+      "epsilon": 8.0,
+      "delta": 0.00001,
+      "max_grad_norm": 1.0
+    },
+    "sparse_update": {
+      "enabled": false,
+      "top_k_percent": 10
+    }
+  }
+}

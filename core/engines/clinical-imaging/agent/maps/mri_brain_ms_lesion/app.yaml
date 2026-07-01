@@ -1,0 +1,80 @@
+# ═══════════════════════════════════════════════════════════════════
+# MRI Brain MS Lesion Detection — MONAI Application Package Manifest
+# ═══════════════════════════════════════════════════════════════════
+#
+# MONAI Deploy App SDK application descriptor.
+# Used by `monai-deploy package` to build the MAP container.
+#
+# License: Apache 2.0
+
+application:
+  title: MRI Brain MS Lesion Detection
+  version: 1.0.0
+  description: >
+    GPU-accelerated MRI brain white matter lesion detection and volumetry
+    for multiple sclerosis monitoring. Segments lesions on FLAIR/T2,
+    quantifies lesion burden, detects new/enlarging lesions, and classifies
+    disease activity. Generates DICOM SR output with TID 1500 Measurement Report.
+
+  # Entry point
+  command: python -m maps.mri_brain_ms_lesion
+
+  # Clinical metadata
+  clinical_domain: neuroradiology
+  body_region: brain
+  modality: MRI
+  indication: multiple_sclerosis_monitoring
+  scoring_system: MS Activity Classification
+  target_population: adults
+
+input:
+  - path: /input
+    formats:
+      - dicom
+    description: >
+      DICOM MRI brain series. Prefers FLAIR sequence (<=1.0mm slice
+      thickness) for optimal white matter lesion contrast. T2-weighted
+      accepted as fallback. Minimum 20 instances recommended.
+
+output:
+  - path: /output
+    formats:
+      - dicom-sr
+      - json
+    description: >
+      DICOM Structured Report (TID 1500) with lesion count, total volume,
+      new/enlarging count, and activity classification.
+      JSON result with full WorkflowResult.
+
+resources:
+  cpu: 4
+  gpu: 1
+  memory: 8Gi
+  gpu_memory: 4Gi
+
+timeout: 180
+
+# NVIDIA technologies used
+nvidia_technologies:
+  - MONAI wholeBrainSeg_Large_UNEST
+  - MONAI Deploy App SDK
+  - TensorRT (optional)
+
+# Model details
+models:
+  - name: wholeBrainSeg_Large_UNEST_segmentation
+    architecture: UNEST (Large)
+    source: MONAI Model Zoo
+    parameters: ~87M
+    input_shape: 1x1x96x96x96
+    output: 133-class brain segmentation
+
+# Regulatory notes
+regulatory:
+  intended_use: >
+    Research and development use only. Not cleared for clinical
+    diagnostic use. Results must be reviewed by qualified physicians.
+  classification: Class II (triage/notification)
+  standards:
+    - DICOM SR TID 1500
+    - McDonald Criteria for MS

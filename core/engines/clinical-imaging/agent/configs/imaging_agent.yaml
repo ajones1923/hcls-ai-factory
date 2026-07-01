@@ -1,0 +1,30 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# Imaging Intelligence Agent — Agentic Reasoning Configuration
+#
+# Controls the Plan → Execute → Reflect → Refine reasoning loop.
+# Uses NVIDIA AIQ Toolkit when available; falls back to built-in
+# lightweight reasoning loop when AIQ is not installed.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+agentic:
+  enabled: true
+  max_refinement_rounds: 2
+  confidence_threshold: 0.7   # Below this, trigger refinement
+  min_evidence_count: 3       # Below this, expand search
+  reflection_enabled: true
+  cross_modal_auto_trigger: true
+
+  # Registered tools available for the reasoning loop
+  tools:
+    - search_imaging_evidence
+    - run_clinical_workflow
+    - query_genomic_evidence
+    - query_cross_agent
+    - extract_radiomics
+    - parse_radiology_report
+
+  # Per-tool timeout (seconds)
+  tool_timeout: 30
+
+  # Contradiction detection sensitivity (0.0 = off, 1.0 = strict)
+  contradiction_sensitivity: 0.5
