@@ -1,0 +1,101 @@
+api_version: 3
+name: imaging_intelligence_fl
+description: "Federated Learning for Medical Imaging Intelligence - HCLS AI Factory"
+
+participants:
+  # ---- FL Server (aggregator + coordinator) ----
+  - name: server
+    type: server
+    org: hcls-ai-factory
+    protocol: grpc
+    port: 8003
+    admin_port: 8103
+
+  # ---- Hospital Site Clients ----
+  - name: hospital_a
+    type: client
+    org: hospital-a
+    listening_host: 0.0.0.0
+
+  - name: hospital_b
+    type: client
+    org: hospital-b
+    listening_host: 0.0.0.0
+
+  # ---- Administrators ----
+  - name: admin@hcls-ai-factory
+    type: admin
+    org: hcls-ai-factory
+    role: project_admin
+
+  - name: lead@hospital-a
+    type: admin
+    org: hospital-a
+    role: org_admin
+
+  - name: lead@hospital-b
+    type: admin
+    org: hospital-b
+    role: org_admin
+
+builders:
+  # -- Certificate authority for mTLS --
+  - path: nvflare.lighter.impl.cert.CertBuilder
+    args:
+      issuer_cn: "HCLS AI Factory FL CA"
+      root_cert_life: 3650
+      server_cert_life: 365
+      client_cert_life: 365
+
+  # -- HE (Homomorphic Encryption) context builder (optional) --
+  - path: nvflare.lighter.impl.he.HEBuilder
+    args:
+      poly_modulus_degree: 8192
+      coeff_mod_bit_sizes: [60, 40, 40]
+      scale_bits: 40
+      scheme: "CKKS"
+
+  # -- Workspace builder --
+  - path: nvflare.lighter.impl.workspace.WorkspaceBuilder
+    args:
+      template_file: master_template.yml
+
+  # -- Authorization policy --
+  - path: nvflare.lighter.impl.auth_policy.AuthPolicyBuilder
+    args:
+      orgs:
+        hcls-ai-factory:
+          - project_admin
+        hospital-a:
+          - org_admin
+          - lead
+        hospital-b:
+          - org_admin
+          - lead
+      rules:
+        # project_admin can do everything
+        project_admin:
+          allow_byoc: true
+          allow_custom_datalist: true
+        # org_admin can manage their own site
+        org_admin:
+          allow_byoc: false
+          allow_custom_datalist: true
+        # leads can submit jobs and view results
+        lead:
+          allow_byoc: false
+          allow_custom_datalist: false
+
+  # -- Static file builder (distributes startup scripts) --
+  - path: nvflare.lighter.impl.static_file.StaticFileBuilder
+    args:
+      config_folder: config
+      overseer_agent:
+        path: nvflare.ha.dummy_overseer_agent.DummyOverseerAgent
+        args:
+          sp_end_point: "server:8003:8103"
+          heartbeat_interval: 6
+
+overseer:
+  protocol: grpc
+  port: 8004

@@ -1,0 +1,77 @@
+# ═══════════════════════════════════════════════════════════════════
+# CT Head Hemorrhage Triage — MONAI Application Package Manifest
+# ═══════════════════════════════════════════════════════════════════
+#
+# MONAI Deploy App SDK application descriptor.
+# Used by `monai-deploy package` to build the MAP container.
+#
+# License: Apache 2.0
+
+application:
+  title: CT Head Hemorrhage Triage
+  version: 1.0.0
+  description: >
+    GPU-accelerated CT head hemorrhage triage with MONAI SegResNet.
+    Applies Brain Trauma Foundation severity thresholds for emergency
+    department triage (Critical/Urgent/Routine). Generates DICOM SR
+    output with TID 1500 Measurement Report.
+
+  # Entry point
+  command: python -m maps.ct_head_hemorrhage
+
+  # Clinical metadata
+  clinical_domain: neuroradiology
+  body_region: head
+  modality: CT
+  indication: intracranial_hemorrhage
+  target_population: adults
+
+input:
+  - path: /input
+    formats:
+      - dicom
+    description: >
+      DICOM CT head series. Prefers thin-slice (<=1.5mm) axial
+      non-contrast acquisitions. Minimum 20 instances recommended.
+
+output:
+  - path: /output
+    formats:
+      - dicom-sr
+      - json
+    description: >
+      DICOM Structured Report (TID 1500) with hemorrhage measurements
+      and severity classification. JSON result with full WorkflowResult.
+
+resources:
+  cpu: 4
+  gpu: 1
+  memory: 8Gi
+  gpu_memory: 4Gi
+
+timeout: 120
+
+# NVIDIA technologies used
+nvidia_technologies:
+  - MONAI SegResNet
+  - MONAI Deploy App SDK
+  - TensorRT (optional)
+
+# Model details
+models:
+  - name: SegResNet (wholeBody_ct_segmentation)
+    architecture: SegResNet
+    source: MONAI Model Zoo
+    parameters: ~30M
+    input_shape: 1x1x64x64x64
+    output: 104-class segmentation
+
+# Regulatory notes
+regulatory:
+  intended_use: >
+    Research and development use only. Not cleared for clinical
+    diagnostic use. Results must be reviewed by qualified physicians.
+  classification: Class II (triage/notification)
+  standards:
+    - DICOM SR TID 1500
+    - Brain Trauma Foundation Guidelines, 4th Edition

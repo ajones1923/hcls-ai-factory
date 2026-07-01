@@ -1,0 +1,488 @@
+# =============================================================================
+# Imaging Intelligence Agent — Docker Compose
+# HCLS AI Factory / ai_agent_adds / imaging_intelligence_agent
+#
+# Services (Community Edition — default, no profile required):
+#   orthanc                  Orthanc DICOM server + web viewer (ports 8042, 4242)
+#   ohif-viewer              OHIF DICOM viewer (port 8526)
+#   milvus-etcd              etcd key-value store for Milvus metadata
+#   milvus-minio             MinIO object storage for Milvus log/index data
+#   milvus-standalone        Milvus 2.4 vector database (ports 19530, 9091)
+#   imaging-streamlit        Streamlit chat UI (port 8525)
+#   imaging-api              FastAPI REST server (port 8524)
+#   imaging-setup            One-shot: create collections + seed all data
+#   nim-llm                  Meta Llama 3 8B Instruct NIM (port 8520)
+#   nim-nv-segment-ct        NV-Segment-CT segmentation NIM (port 8534)
+#   nim-vilam3               Vision-Language model NIM (port 8532)
+#
+# Enterprise Edition (--profile enterprise):
+#   nim-vista3d              NVIDIA VISTA-3D segmentation NIM (port 8530)
+#   nim-maisi                NVIDIA MAISI synthesis NIM (port 8531)
+#
+# Research Edition (--profile research):
+#   nim-nv-reason-cxr        NV-Reason-CXR-3B chest X-ray NIM (port 8535)
+#   nim-nv-segment-ctmr      NV-Segment-CTMR segmentation NIM (port 8536)
+#
+# Usage:
+#   cp .env.example .env                              # add ANTHROPIC_API_KEY, NGC_API_KEY
+#   docker compose up -d                              # Community Edition
+#   docker compose --profile enterprise up -d         # + Enterprise NIMs
+#   docker compose --profile research up -d           # + Research models
+#   docker compose logs -f imaging-setup              # watch seed progress
+#
+# Author: Adam Jones
+# Date:   February 2026
+# =============================================================================
+
+
+services:
+  # ── Orthanc DICOM Server ──────────────────────────────────────────────────
+  orthanc:
+    image: orthancteam/orthanc:24.12.1
+    container_name: imaging-orthanc
+    ports:
+      - "8042:8042"               # REST API + Web viewer
+      - "4242:4242"               # DICOM (C-STORE SCP)
+    environment:
+      ORTHANC__NAME: "Imaging Intelligence Agent PACS"
+      ORTHANC__DICOM_AET: "IMAGING_AI"
+      ORTHANC__REGISTERED_USERS: |
+        {"admin": "orthanc"}
+      ORTHANC__DICOM_WEB__ENABLE: "true"
+      ORTHANC__HTTP_AUTHENTICATION_ENABLED: "false"
+      ORTHANC__DICOM_WEB__PUBLIC_ROOT: "/dicom-web/"
+    volumes:
+      - orthanc_data:/var/lib/orthanc/db
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8042/system"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - imaging-network
+    restart: unless-stopped
+
+  # ── OHIF DICOM Viewer ──────────────────────────────────────────────────
+  ohif-viewer:
+    image: ohif/app:v3.9.2
+    container_name: imaging-ohif-viewer
+    ports:
+      - "8526:80"
+    environment:
+      APP_CONFIG: /usr/share/nginx/html/app-config.js
+    volumes:
+      - ./config/ohif-config.js:/usr/share/nginx/html/app-config.js:ro
+    depends_on:
+      orthanc:
+        condition: service_healthy
+    networks:
+      - imaging-network
+    restart: unless-stopped
+
+  # ── etcd (Milvus metadata store) ──────────────────────────────────────────
+  milvus-etcd:
+    image: quay.io/coreos/etcd:v3.5.5
+    container_name: imaging-milvus-etcd
+    environment:
+      ETCD_AUTO_COMPACTION_MODE: revision
+      ETCD_AUTO_COMPACTION_RETENTION: "1000"
+      ETCD_QUOTA_BACKEND_BYTES: "4294967296"        # 4 GB
+      ETCD_SNAPSHOT_COUNT: "50000"
+    volumes:
+      - etcd_data:/etcd
+    command:
+      - etcd
+      - --advertise-client-urls=http://127.0.0.1:2379
+      - --listen-client-urls=http://0.0.0.0:2379
+      - --data-dir=/etcd
+      - --auto-compaction-mode=revision
+      - --auto-compaction-retention=1000
+      - --snapshot-count=50000
+    healthcheck:
+      test: ["CMD", "etcdctl", "endpoint", "health"]
+      interval: 30s
+      timeout: 20s
+      retries: 5
+    networks:
+      - imaging-network
+    restart: unless-stopped
+
+  # ── MinIO (Milvus object storage) ────────────────────────────────────────
+  milvus-minio:
+    image: minio/minio:RELEASE.2023-03-20T20-16-18Z
+    container_name: imaging-milvus-minio
+    environment:
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+    volumes:
+      - minio_data:/minio_data
+    command: minio server /minio_data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 5
+    networks:
+      - imaging-network
+    restart: unless-stopped
+
+  # ── Milvus Standalone ────────────────────────────────────────────────────
+  milvus-standalone:
+    image: milvusdb/milvus:v2.4.17
+    container_name: imaging-milvus-standalone
+    command: ["milvus", "run", "standalone"]
+    security_opt:
+      - seccomp:unconfined
+    environment:
+      ETCD_ENDPOINTS: milvus-etcd:2379
+      MINIO_ADDRESS: milvus-minio:9000
+    ports:
+      - "19530:19530"             # gRPC client port
+      - "9091:9091"               # Metrics / health endpoint
+    volumes:
+      - milvus_data:/var/lib/milvus
+    depends_on:
+      milvus-etcd:
+        condition: service_healthy
+      milvus-minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9091/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+    networks:
+      - imaging-network
+    restart: unless-stopped
+
+  # ── Imaging Streamlit UI ────────────────────────────────────────────────
+  imaging-streamlit:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: imaging-streamlit
+    ports:
+      - "8525:8525"
+    environment:
+      IMAGING_MILVUS_HOST: milvus-standalone
+      IMAGING_MILVUS_PORT: "19530"
+      IMAGING_STREAMLIT_PORT: "8525"
+      IMAGING_NIM_LLM_URL: "http://nim-llm:8000"
+      IMAGING_NIM_VISTA3D_URL: "http://nim-vista3d:8000"
+      IMAGING_NIM_MAISI_URL: "http://nim-maisi:8000"
+      IMAGING_NIM_VILAM3_URL: "http://nim-vilam3:8000"
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      NGC_API_KEY: ${NGC_API_KEY}
+    depends_on:
+      milvus-standalone:
+        condition: service_healthy
+    networks:
+      - imaging-network
+    restart: unless-stopped
+
+  # ── Imaging FastAPI Server ──────────────────────────────────────────────
+  imaging-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: imaging-api
+    ports:
+      - "8524:8524"
+    environment:
+      IMAGING_MILVUS_HOST: milvus-standalone
+      IMAGING_MILVUS_PORT: "19530"
+      IMAGING_API_PORT: "8524"
+      IMAGING_NIM_LLM_URL: "http://nim-llm:8000"
+      IMAGING_NIM_VISTA3D_URL: "http://nim-vista3d:8000"
+      IMAGING_NIM_MAISI_URL: "http://nim-maisi:8000"
+      IMAGING_NIM_VILAM3_URL: "http://nim-vilam3:8000"
+      IMAGING_ORTHANC_URL: "http://orthanc:8042"
+      IMAGING_ORTHANC_USERNAME: "admin"
+      IMAGING_ORTHANC_PASSWORD: "orthanc"
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      NGC_API_KEY: ${NGC_API_KEY}
+    command:
+      - uvicorn
+      - api.main:app
+      - --host=0.0.0.0
+      - --port=8524
+      - --workers=2
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8524/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+    depends_on:
+      milvus-standalone:
+        condition: service_healthy
+    networks:
+      - imaging-network
+    restart: unless-stopped
+
+  # ── Imaging Setup (one-shot: create collections + seed data) ───────────
+  imaging-setup:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: imaging-setup
+    environment:
+      IMAGING_MILVUS_HOST: milvus-standalone
+      IMAGING_MILVUS_PORT: "19530"
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+    command: >
+      bash -c "
+        echo '===== Imaging Agent Setup: Creating collections =====' &&
+        python scripts/setup_collections.py --drop-existing &&
+        echo '===== Seeding findings =====' &&
+        python scripts/seed_findings.py &&
+        echo '===== Seeding protocols =====' &&
+        python scripts/seed_protocols.py &&
+        echo '===== Seeding devices =====' &&
+        python scripts/seed_devices.py &&
+        echo '===== Seeding anatomy =====' &&
+        python scripts/seed_anatomy.py &&
+        echo '===== Seeding benchmarks =====' &&
+        python scripts/seed_benchmarks.py &&
+        echo '===== Seeding guidelines =====' &&
+        python scripts/seed_guidelines.py &&
+        echo '===== Seeding report templates =====' &&
+        python scripts/seed_report_templates.py &&
+        echo '===== Seeding datasets =====' &&
+        python scripts/seed_datasets.py &&
+        echo '===== Imaging Agent Setup complete! ====='
+      "
+    depends_on:
+      milvus-standalone:
+        condition: service_healthy
+    networks:
+      - imaging-network
+    restart: "no"
+
+  # ── MONAI Label (interactive annotation server, Apache 2.0) ──────────
+  monai-label:
+    image: projectmonai/monailabel:latest
+    container_name: imaging-monai-label
+    ports:
+      - "8527:8527"
+    volumes:
+      - ./data/monai_label_apps:/workspace/apps
+      - ./data/monai_label_studies:/workspace/studies
+    environment:
+      MONAI_LABEL_APP_DIR: /workspace/apps
+      MONAI_LABEL_STUDIES: /workspace/studies
+      MONAI_LABEL_DATASTORE_TYPE: orthanc
+      MONAI_LABEL_ORTHANC_URL: http://orthanc:8042
+    depends_on:
+      orthanc:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8527/info"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - imaging-network
+    restart: unless-stopped
+
+  # ── NIM: Meta Llama 3 8B Instruct ─────────────────────────────────────
+  nim-llm:
+    image: nvcr.io/nvidia/nim/meta-llama3-8b-instruct:latest
+    container_name: imaging-nim-llm
+    ports:
+      - "8520:8000"
+    environment:
+      NGC_API_KEY: ${NGC_API_KEY}
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/v1/health/ready"]
+      interval: 30s
+      timeout: 10s
+      start_period: 120s
+      retries: 10
+    networks:
+      - imaging-network
+    restart: unless-stopped
+
+  # ── NIM: NV-Segment-CT (Community Edition, Open Model license) ────────
+  nim-nv-segment-ct:
+    image: nvcr.io/nim/nvidia/nv-segment-ct:latest
+    container_name: imaging-nim-nv-segment-ct
+    ports:
+      - "8534:8000"
+    environment:
+      NGC_API_KEY: ${NGC_API_KEY:-}
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/v1/health/ready"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - imaging-network
+    restart: unless-stopped
+
+  # ── NIM: NVIDIA VISTA-3D (3D medical image segmentation) ──────────────
+  # Enterprise Edition — start with: docker compose --profile enterprise up -d
+  nim-vista3d:
+    profiles: ["enterprise"]
+    image: nvcr.io/nvidia/nim/vista3d:latest
+    container_name: imaging-nim-vista3d
+    ports:
+      - "8530:8000"
+    environment:
+      NGC_API_KEY: ${NGC_API_KEY}
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/v1/health/ready"]
+      interval: 30s
+      timeout: 10s
+      start_period: 120s
+      retries: 10
+    networks:
+      - imaging-network
+    restart: unless-stopped
+
+  # ── NIM: NVIDIA MAISI (medical AI synthetic imaging) ──────────────────
+  # Enterprise Edition — start with: docker compose --profile enterprise up -d
+  nim-maisi:
+    profiles: ["enterprise"]
+    image: nvcr.io/nvidia/nim/maisi:latest
+    container_name: imaging-nim-maisi
+    ports:
+      - "8531:8000"
+    environment:
+      NGC_API_KEY: ${NGC_API_KEY}
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/v1/health/ready"]
+      interval: 30s
+      timeout: 10s
+      start_period: 120s
+      retries: 10
+    networks:
+      - imaging-network
+    restart: unless-stopped
+
+  # ── NIM: Vision-Language Model (ViLaM3 / custom build) ────────────────
+  nim-vilam3:
+    image: nvcr.io/nvidia/nim/vilam3:latest
+    container_name: imaging-nim-vilam3
+    ports:
+      - "8532:8000"
+    environment:
+      NGC_API_KEY: ${NGC_API_KEY}
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/v1/health/ready"]
+      interval: 30s
+      timeout: 10s
+      start_period: 120s
+      retries: 10
+    networks:
+      - imaging-network
+    restart: unless-stopped
+
+  # ── NIM: NV-Reason-CXR-3B (Research, noncommercial) ───────────────────
+  # Research Edition — start with: docker compose --profile research up -d
+  nim-nv-reason-cxr:
+    profiles: ["research"]
+    image: nvcr.io/nim/nvidia/nv-reason-cxr-3b:latest
+    container_name: imaging-nim-nv-reason-cxr
+    ports:
+      - "8535:8000"
+    environment:
+      NGC_API_KEY: ${NGC_API_KEY:-}
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/v1/health/ready"]
+      interval: 30s
+      timeout: 10s
+      start_period: 120s
+      retries: 10
+    networks:
+      - imaging-network
+    restart: unless-stopped
+
+  # ── NIM: NV-Segment-CTMR (Research, noncommercial) ──────────────────
+  # Research Edition — start with: docker compose --profile research up -d
+  nim-nv-segment-ctmr:
+    profiles: ["research"]
+    image: nvcr.io/nim/nvidia/nv-segment-ctmr:latest
+    container_name: imaging-nim-nv-segment-ctmr
+    ports:
+      - "8536:8000"
+    environment:
+      NGC_API_KEY: ${NGC_API_KEY:-}
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/v1/health/ready"]
+      interval: 30s
+      timeout: 10s
+      start_period: 120s
+      retries: 10
+    networks:
+      - imaging-network
+    restart: unless-stopped
+
+# ── Volumes ──────────────────────────────────────────────────────────────────
+volumes:
+  orthanc_data:
+    driver: local
+  etcd_data:
+    driver: local
+  minio_data:
+    driver: local
+  milvus_data:
+    driver: local
+  nim_models:
+    driver: local
+
+# ── Network ──────────────────────────────────────────────────────────────────
+networks:
+  imaging-network:
+    name: imaging-network
+    driver: bridge

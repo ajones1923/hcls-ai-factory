@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+:root {
+  --nvidia-green: #76B900;
+  --nvidia-green-dark: #5a9400;
+  --bg-primary: #0E1117;
+  --bg-secondary: #1A1D23;
+  --bg-card: #1E2229;
+  --text-primary: #E0E0E0;
+  --text-secondary: #9CA3AF;
+  --border: rgba(255, 255, 255, 0.08);
+  --accent: #76B900;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+* {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+/* Severity colors */
+.severity-critical { color: #EF5350; }
+.severity-urgent { color: #FF9800; }
+.severity-significant { color: #FFC107; }
+.severity-routine { color: #4CAF50; }
+.severity-normal { color: #66BB6A; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(118,185,0,0.4); }
+
+/* Green pulsing skeleton for loading states */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.15; }
+  50% { opacity: 0.35; }
+}
+
+.skeleton-green {
+  background: linear-gradient(90deg, rgba(118,185,0,0.1) 0%, rgba(118,185,0,0.25) 50%, rgba(118,185,0,0.1) 100%);
+  animation: skeleton-pulse 2s ease-in-out infinite;
+  border-radius: 0.5rem;
+}
+
+/* Enhancement 2: Critical finding pulse animation */
+@keyframes critical-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 83, 80, 0); border-color: rgba(239, 83, 80, 0.2); }
+  25% { box-shadow: 0 0 24px 4px rgba(239, 83, 80, 0.25); border-color: rgba(239, 83, 80, 0.5); }
+  50% { box-shadow: 0 0 0 0 rgba(239, 83, 80, 0); border-color: rgba(239, 83, 80, 0.2); }
+  75% { box-shadow: 0 0 24px 4px rgba(239, 83, 80, 0.25); border-color: rgba(239, 83, 80, 0.5); }
+}
+
+.animate-critical-pulse {
+  animation: critical-pulse 2s ease-in-out;
+}

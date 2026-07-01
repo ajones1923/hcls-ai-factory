@@ -1,0 +1,25 @@
+{
+  "name": "cxr_classification_federated",
+  "resource_spec": {
+    "server": {
+      "num_gpus": 0,
+      "mem_per_gpu_in_GiB": 0
+    },
+    "client": {
+      "num_gpus": 1,
+      "mem_per_gpu_in_GiB": 16
+    }
+  },
+  "deploy_map": {
+    "app_server": ["server"],
+    "app_client": ["hospital_a", "hospital_b"]
+  },
+  "min_clients": 2,
+  "mandatory_clients": [],
+  "description": "Federated DenseNet-121 for multi-label chest X-ray classification across hospital sites. Trained on CheXpert-format data with 18 pathology labels using BCEWithLogitsLoss and FedAvg aggregation.",
+  "controller_type": "server",
+  "approach": "scatter_and_gather",
+  "data_kind": "WEIGHT_DIFF",
+  "num_rounds": 50,
+  "key_metric": "val_auc"
+}

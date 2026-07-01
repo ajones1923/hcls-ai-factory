@@ -1,0 +1,79 @@
+# ═══════════════════════════════════════════════════════════════════
+# CT Chest Lung Nodule Detection — MONAI Application Package Manifest
+# ═══════════════════════════════════════════════════════════════════
+#
+# MONAI Deploy App SDK application descriptor.
+# Used by `monai-deploy package` to build the MAP container.
+#
+# License: Apache 2.0
+
+application:
+  title: CT Chest Lung Nodule Detection
+  version: 1.0.0
+  description: >
+    GPU-accelerated CT lung nodule detection with Lung-RADS v2022
+    classification. Measures nodule size and volume, estimates volume
+    doubling time, and triggers cross-modal review for Lung-RADS 4A+
+    findings. Generates DICOM SR output with TID 1500 Measurement Report.
+
+  # Entry point
+  command: python -m maps.ct_chest_lung_nodule
+
+  # Clinical metadata
+  clinical_domain: thoracic_radiology
+  body_region: chest
+  modality: CT
+  indication: lung_nodule_screening
+  scoring_system: Lung-RADS v2022
+  target_population: adults
+
+input:
+  - path: /input
+    formats:
+      - dicom
+    description: >
+      DICOM CT chest series. Prefers thin-slice (<=1.25mm) axial
+      acquisitions with lung kernel reconstruction. Minimum 50
+      instances recommended for volumetric nodule analysis.
+
+output:
+  - path: /output
+    formats:
+      - dicom-sr
+      - json
+    description: >
+      DICOM Structured Report (TID 1500) with nodule measurements,
+      Lung-RADS classification, and cross-modal trigger status.
+      JSON result with full WorkflowResult.
+
+resources:
+  cpu: 4
+  gpu: 1
+  memory: 8Gi
+  gpu_memory: 4Gi
+
+timeout: 180
+
+# NVIDIA technologies used
+nvidia_technologies:
+  - MONAI lung_nodule_ct_detection bundle
+  - MONAI Deploy App SDK
+  - TensorRT (optional)
+
+# Model details
+models:
+  - name: lung_nodule_ct_detection
+    architecture: RetinaNet
+    source: MONAI Model Zoo
+    input_shape: 1x1x192x192x192
+    output: nodule detections with bounding boxes
+
+# Regulatory notes
+regulatory:
+  intended_use: >
+    Research and development use only. Not cleared for clinical
+    diagnostic use. Results must be reviewed by qualified physicians.
+  classification: Class II (triage/notification)
+  standards:
+    - DICOM SR TID 1500
+    - Lung-RADS v2022 (ACR)

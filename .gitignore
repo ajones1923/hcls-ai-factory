@@ -117,9 +117,6 @@ media/infographics-updates/
 !data/demo/
 !data/demo/**
 
-# ── Agent sub-repos (their own GitHub repos; not part of this monorepo) ───────
-core/engines/clinical-imaging/agent
-core/engines/precision-oncology/agent
 
 # scratch notes — not for publish
 tmp/

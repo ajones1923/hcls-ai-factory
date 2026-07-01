@@ -1,0 +1,79 @@
+# ═══════════════════════════════════════════════════════════════════
+# Breast BI-RADS Classification — MONAI Application Package Manifest
+# ═══════════════════════════════════════════════════════════════════
+#
+# MONAI Deploy App SDK application descriptor.
+# Used by `monai-deploy package` to build the MAP container.
+#
+# License: Apache 2.0
+
+application:
+  title: Breast BI-RADS Classification
+  version: 1.0.0
+  description: >
+    GPU-accelerated breast imaging analysis with BI-RADS classification.
+    Detects masses and calcifications on mammography and breast MRI,
+    characterizes features (shape, margin, density, morphology, distribution),
+    and assigns BI-RADS assessment category. Generates DICOM SR output
+    with TID 1500 Measurement Report.
+
+  # Entry point
+  command: python -m maps.breast_birads
+
+  # Clinical metadata
+  clinical_domain: breast_imaging
+  body_region: breast
+  modality: MG/MR
+  indication: breast_cancer_screening
+  scoring_system: BI-RADS (5th Edition)
+  target_population: adults
+
+input:
+  - path: /input
+    formats:
+      - dicom
+    description: >
+      DICOM mammography (MG modality, MLO/CC views) or breast MRI
+      (MR modality, DCE sequences). Single view or multi-view
+      input accepted.
+
+output:
+  - path: /output
+    formats:
+      - dicom-sr
+      - json
+    description: >
+      DICOM Structured Report (TID 1500) with mass/calcification
+      characterization, BI-RADS classification, and clinical recommendation.
+      JSON result with full WorkflowResult.
+
+resources:
+  cpu: 2
+  gpu: 1
+  memory: 4Gi
+  gpu_memory: 2Gi
+
+timeout: 90
+
+# NVIDIA technologies used
+nvidia_technologies:
+  - MONAI Deploy App SDK
+  - TensorRT (optional)
+
+# Model details
+models:
+  - name: Breast lesion detection
+    architecture: ResNet-50 + FPN
+    source: Custom trained
+    input_shape: varies by modality
+    output: mass/calcification detections with feature classification
+
+# Regulatory notes
+regulatory:
+  intended_use: >
+    Research and development use only. Not cleared for clinical
+    diagnostic use. Results must be reviewed by qualified physicians.
+  classification: Class II (triage/notification)
+  standards:
+    - DICOM SR TID 1500
+    - BI-RADS 5th Edition (ACR)

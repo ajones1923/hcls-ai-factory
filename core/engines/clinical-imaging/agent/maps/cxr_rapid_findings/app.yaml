@@ -1,0 +1,90 @@
+# ═══════════════════════════════════════════════════════════════════
+# CXR Rapid Findings — MONAI Application Package Manifest
+# ═══════════════════════════════════════════════════════════════════
+#
+# MONAI Deploy App SDK application descriptor.
+# Used by `monai-deploy package` to build the MAP container.
+#
+# License: Apache 2.0
+
+application:
+  title: CXR Rapid Findings
+  version: 1.0.0
+  description: >
+    Multi-label chest X-ray classification for emergency department
+    triage. Detects pneumothorax, consolidation, pleural effusion,
+    cardiomegaly, and fracture using DenseNet-121 with per-class
+    confidence thresholds. Generates DICOM SR output.
+
+  # Entry point
+  command: python -m maps.cxr_rapid_findings
+
+  # Clinical metadata
+  clinical_domain: thoracic_radiology
+  body_region: chest
+  modality: CR/DX
+  indication: acute_chest_findings
+  target_population: adults
+
+input:
+  - path: /input
+    formats:
+      - dicom
+    description: >
+      DICOM chest X-ray (CR or DX modality). Accepts PA and AP views.
+      Single image per study expected.
+
+output:
+  - path: /output
+    formats:
+      - dicom-sr
+      - json
+    description: >
+      DICOM Structured Report with per-class confidence scores and
+      positive/negative determination. JSON result with full WorkflowResult.
+
+resources:
+  cpu: 2
+  gpu: 1
+  memory: 4Gi
+  gpu_memory: 2Gi
+
+timeout: 60
+
+# NVIDIA technologies used
+nvidia_technologies:
+  - torchxrayvision DenseNet-121
+  - MONAI Deploy App SDK
+  - VILA-M3 (optional, report generation)
+
+# Model details
+models:
+  - name: DenseNet-121 (torchxrayvision, densenet121-res224-all)
+    architecture: DenseNet-121
+    source: torchxrayvision
+    training_data: CheXpert, MIMIC-CXR, NIH ChestX-ray14, PadChest
+    parameters: ~7.9M
+    input_shape: 1x1x224x224
+    output: 18 pathology logits
+    target_classes:
+      - pneumothorax (threshold: 0.50)
+      - consolidation (threshold: 0.60)
+      - pleural_effusion (threshold: 0.55)
+      - cardiomegaly (threshold: 0.60)
+      - fracture (threshold: 0.55)
+
+  - name: DenseNet-121 (MONAI, fallback)
+    architecture: DenseNet-121
+    source: MONAI + torchvision ImageNet
+    parameters: ~7.9M
+    input_shape: 1x3x224x224
+    output: 5 target class logits
+
+# Regulatory notes
+regulatory:
+  intended_use: >
+    Research and development use only. Not cleared for clinical
+    diagnostic use. Results must be reviewed by qualified physicians.
+  classification: Class II (triage/notification)
+  standards:
+    - DICOM SR TID 1500

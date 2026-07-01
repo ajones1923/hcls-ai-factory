@@ -1,0 +1,78 @@
+# ═══════════════════════════════════════════════════════════════════
+# MRI Prostate PI-RADS — MONAI Application Package Manifest
+# ═══════════════════════════════════════════════════════════════════
+#
+# MONAI Deploy App SDK application descriptor.
+# Used by `monai-deploy package` to build the MAP container.
+#
+# License: Apache 2.0
+
+application:
+  title: MRI Prostate PI-RADS
+  version: 1.0.0
+  description: >
+    GPU-accelerated MRI prostate lesion detection with PI-RADS v2.1
+    scoring. Measures ADC values, classifies lesion zone (transition
+    zone vs peripheral zone), and generates structured PI-RADS assessment.
+    Generates DICOM SR output with TID 1500 Measurement Report.
+
+  # Entry point
+  command: python -m maps.mri_prostate_pirads
+
+  # Clinical metadata
+  clinical_domain: abdominal_radiology
+  body_region: prostate
+  modality: MRI
+  indication: prostate_cancer_detection
+  scoring_system: PI-RADS v2.1
+  target_population: adult_males
+
+input:
+  - path: /input
+    formats:
+      - dicom
+    description: >
+      DICOM MRI prostate series. Prefers multiparametric MRI with T2W
+      and DWI/ADC sequences. Minimum 15 instances recommended for T2W,
+      10 instances for DWI/ADC.
+
+output:
+  - path: /output
+    formats:
+      - dicom-sr
+      - json
+    description: >
+      DICOM Structured Report (TID 1500) with PI-RADS score, ADC value,
+      lesion zone classification, and clinical recommendation.
+      JSON result with full WorkflowResult.
+
+resources:
+  cpu: 4
+  gpu: 1
+  memory: 8Gi
+  gpu_memory: 4Gi
+
+timeout: 200
+
+# NVIDIA technologies used
+nvidia_technologies:
+  - MONAI Deploy App SDK
+  - TensorRT (optional)
+
+# Model details
+models:
+  - name: Prostate lesion detection
+    architecture: nnU-Net
+    source: MONAI Model Zoo
+    input_shape: multi-sequence (T2W + ADC)
+    output: lesion segmentation mask with zone classification
+
+# Regulatory notes
+regulatory:
+  intended_use: >
+    Research and development use only. Not cleared for clinical
+    diagnostic use. Results must be reviewed by qualified physicians.
+  classification: Class II (triage/notification)
+  standards:
+    - DICOM SR TID 1500
+    - PI-RADS v2.1 (ACR)

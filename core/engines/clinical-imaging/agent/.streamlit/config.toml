@@ -1,0 +1,23 @@
+[server]
+port = 8525
+address = "0.0.0.0"
+headless = true
+enableCORS = false
+enableXsrfProtection = true
+# SSL: Use nginx reverse proxy for production HTTPS
+# Self-signed certs available at config/ssl/ for testing
+
+[theme]
+primaryColor = "#76B900"
+backgroundColor = "#0E1117"
+secondaryBackgroundColor = "#1A1D23"
+textColor = "#E0E0E0"
+font = "sans serif"
+
+[browser]
+gatherUsageStats = false
+serverAddress = "192.168.68.107"
+serverPort = 8525
+
+[runner]
+magicEnabled = false

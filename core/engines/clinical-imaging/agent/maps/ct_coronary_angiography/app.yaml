@@ -1,0 +1,78 @@
+# ═══════════════════════════════════════════════════════════════════
+# CT Coronary Angiography — MONAI Application Package Manifest
+# ═══════════════════════════════════════════════════════════════════
+#
+# MONAI Deploy App SDK application descriptor.
+# Used by `monai-deploy package` to build the MAP container.
+#
+# License: Apache 2.0
+
+application:
+  title: CT Coronary Angiography
+  version: 1.0.0
+  description: >
+    GPU-accelerated CT coronary angiography analysis with CAD-RADS
+    classification. Measures stenosis percentage and Agatston calcium
+    score, and generates per-vessel segment reports. Generates DICOM SR
+    output with TID 1500 Measurement Report.
+
+  # Entry point
+  command: python -m maps.ct_coronary_angiography
+
+  # Clinical metadata
+  clinical_domain: cardiac_radiology
+  body_region: cardiac
+  modality: CT
+  indication: coronary_artery_disease
+  scoring_system: CAD-RADS
+  target_population: adults
+
+input:
+  - path: /input
+    formats:
+      - dicom
+    description: >
+      DICOM CTA cardiac series. Prefers ECG-gated acquisitions with
+      thin-slice (<=0.75mm) reconstruction. Minimum 100 instances
+      recommended for coronary artery analysis.
+
+output:
+  - path: /output
+    formats:
+      - dicom-sr
+      - json
+    description: >
+      DICOM Structured Report (TID 1500) with stenosis measurements,
+      calcium score, and CAD-RADS classification.
+      JSON result with full WorkflowResult.
+
+resources:
+  cpu: 4
+  gpu: 1
+  memory: 12Gi
+  gpu_memory: 6Gi
+
+timeout: 240
+
+# NVIDIA technologies used
+nvidia_technologies:
+  - MONAI Deploy App SDK
+  - TensorRT (optional)
+
+# Model details
+models:
+  - name: Coronary artery segmentation
+    architecture: SegResNet
+    source: MONAI Model Zoo
+    input_shape: 1x1x512x512x512
+    output: coronary artery segmentation mask
+
+# Regulatory notes
+regulatory:
+  intended_use: >
+    Research and development use only. Not cleared for clinical
+    diagnostic use. Results must be reviewed by qualified physicians.
+  classification: Class II (triage/notification)
+  standards:
+    - DICOM SR TID 1500
+    - CAD-RADS (SCCT/ACR/NASCI/ACC)
