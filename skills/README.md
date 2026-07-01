@@ -93,20 +93,22 @@ files by path; keep them actionable and scannable.
 - **In `.claude/skills/`** — how Claude Code auto-discovers invocable skills in a session.
   `.claude/` is gitignored (local only), so hooking a skill up for auto-load never publishes.
 
-To make a repo skill auto-loadable without duplicating it, symlink it (single source of truth):
+To make the repo skills auto-loadable, sync them into `.claude/skills/` as real copies (chosen
+over symlinks for maximum discovery compatibility across Claude Code builds):
 
 ```bash
-mkdir -p .claude/skills
-ln -sfn ../../skills/<skill-name> .claude/skills/<skill-name>
+./scripts/sync-skills.sh      # rebuilds .claude/skills/ from skills/ (run after editing a skill)
 ```
 
-`build-housekeeping-standards` is already wired this way. Start a fresh Claude Code session for
-newly added skills to be picked up.
+The repo `skills/` tree is the single source of truth; `sync-skills.sh` re-copies it, so re-run
+it whenever you add or edit a skill. Start a fresh Claude Code session for newly synced skills to
+be picked up. All 18 skills (the north star, `build-housekeeping-standards`, and the 16 pillar
+skills) are synced this way.
 
 ## Adding a new skill
 
 1. Create `skills/<skill-name>/SKILL.md` with the frontmatter + body above.
 2. Verify it's neutral and passes the repo's checks (`./scripts/install-hooks.sh` then a trial
    `git add` + commit runs the guard).
-3. Symlink it into `.claude/skills/` (above) if it should be auto-loaded in-session.
+3. Run `./scripts/sync-skills.sh` to copy it into `.claude/skills/` for in-session auto-load.
 4. Add a one-line entry to the Layout section of this README.
