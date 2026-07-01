@@ -49,10 +49,14 @@ def read_event_log(log_dir: str = "data/events", max_events: int = 100) -> List[
         log_files.extend(glob.glob(pattern))
 
     if not log_files:
-        # Try common locations
+        # Try common locations, relative to the repo root (or $HCLS_ROOT).
+        _root = os.environ.get(
+            "HCLS_ROOT",
+            os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+        )
         for base in [
-            "/home/adam/projects/hcls-ai-factory/core/agents/precision-biomarker/data/events",
-            "/home/adam/projects/hcls-ai-factory/data/events",
+            os.path.join(_root, "core/agents/precision-biomarker/data/events"),
+            os.path.join(_root, "data/events"),
         ]:
             for pattern in patterns:
                 log_files.extend(glob.glob(os.path.join(base, "*.jsonl")))

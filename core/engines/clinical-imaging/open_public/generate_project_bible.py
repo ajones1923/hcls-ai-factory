@@ -1515,7 +1515,7 @@ R(p, "  |  Open Source (Apache 2.0)  |  NVIDIA DGX Spark  |  02/2026  |  v1.0",
   size=9, color=WHITE)
 
 # ── Save ─────────────────────────────────────────────────────
-BASE = "/home/adam/projects/hcls-ai-factory/core/engines/clinical-imaging/open_public"
+BASE = "core/engines/clinical-imaging/open_public"
 path = f"{BASE}/HCLS_Imaging_AI_Agent_Project_Bible.docx"
 doc.save(path)
 print(f"Project Bible saved to {path}")

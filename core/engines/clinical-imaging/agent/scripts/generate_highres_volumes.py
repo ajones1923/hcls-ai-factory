@@ -17,7 +17,7 @@ Outputs:
   data/demo/segmentation/highres_brain_flair_segmented.gif
 
 Usage:
-  /home/adam/jupyterlab/.venv/bin/python3 scripts/generate_highres_volumes.py
+  python33 scripts/generate_highres_volumes.py
 """
 
 import os

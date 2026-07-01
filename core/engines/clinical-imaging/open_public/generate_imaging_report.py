@@ -873,6 +873,6 @@ add_paragraph(
 )
 
 # ── Save ─────────────────────────────────────────────────────
-output_path = "/home/adam/projects/hcls-ai-factory/core/engines/clinical-imaging/open_public/HCLS_Imaging_Intelligence_Report.docx"
+output_path = "core/engines/clinical-imaging/open_public/HCLS_Imaging_Intelligence_Report.docx"
 doc.save(output_path)
 print(f"Report saved to {output_path}")

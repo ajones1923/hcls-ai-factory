@@ -37,7 +37,7 @@ class TestLoop:
     def test_mlops_logging(self):
         import importlib.util
         spec = importlib.util.spec_from_file_location("_hmlops",
-            "/home/adam/projects/hcls-ai-factory/lib/hcls_common/mlops.py")
+            "./lib/hcls_common/mlops.py")
         m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
         s = m.MLOpsStore(":memory:")
         gen = FakeGen(["CCO", "CCN"])
