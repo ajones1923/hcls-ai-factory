@@ -1,4 +1,12 @@
-# TSC Intelligence Engine — Engine 7 (HCLS AI Factory)
+# TSC Intelligence Engine — Tuberous Sclerosis disease-program (HCLS AI Factory)
+
+> **Framing note.** This program's docs were written when it was conceived as "Engine 7,"
+> and much of the collateral (papers, infographics) still uses that "Engine 7 / Seven Engines"
+> framing. In the current canonical model it is a **disease-program** — a vertical that
+> *composes* the eight horizontal engines and eight agents for one condition — not a ninth
+> engine. Engine 7 is structural-biology and Engine 8 is single-cell. See the root
+> `README.md`, `CONTRIBUTING.md`, and `docs/STRUCTURE.md` for the canonical framing; the
+> "Engine 7" wording in this folder is historical and reconciled incrementally.
 
 Five coordinated agents plus a deterministic orchestrator that turn dispersed TSC
 evidence (genomics, notes, imaging, trajectories) into reviewable clinician-facing

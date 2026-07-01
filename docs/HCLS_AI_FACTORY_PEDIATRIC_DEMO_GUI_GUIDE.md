@@ -174,7 +174,7 @@ bash health-monitor.sh --check-all
 
 **Say:**
 
-> "This is the HCLS AI Factory. One platform. One machine. Three engines and eight specialized AI agents. Everything you see here is running on a single NVIDIA DGX Spark. Today we are going to follow five children with cancer through this platform. Let's start with Evelyn."
+> "This is the HCLS AI Factory. One platform. One machine. Eight engines and eight specialized AI agents. Everything you see here is running on a single NVIDIA DGX Spark. Today we are going to follow five children with cancer through this platform. Let's start with Evelyn."
 
 **What you will see:** The Landing Page displays pipeline cards for Genomics, RAG/Chat, and Drug Discovery across the top. Below, an agent grid shows all 8 intelligence agents with real-time health status. Green circles indicate all services are operational.
 
