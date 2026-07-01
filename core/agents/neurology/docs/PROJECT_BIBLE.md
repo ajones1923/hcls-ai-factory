@@ -10,9 +10,9 @@
 
 **Name:** Neurology Intelligence Agent
 **Codename:** NeuroAgent
-**Repository:** `ai_agent_adds/neurology_intelligence_agent/`
+**Repository:** `core/agents/neurology/`
 **Parent Project:** HCLS AI Factory
-**Platform Position:** Precision Intelligence Network -- one of three GPU-accelerated engines (Genomic Foundation Engine, Precision Intelligence Network, Therapeutic Discovery Engine)
+**Platform Position:** Precision Intelligence Engine -- one of three GPU-accelerated engines (Genomic Foundation Engine, Precision Intelligence Engine, Therapeutic Discovery Engine)
 **License:** Apache 2.0 (Open Source)
 
 ### Platform: 11 Intelligence Agents
@@ -331,7 +331,7 @@ The neurology agent provides specialized support for neurotoxicity in pediatric 
 |---|---|
 | Project Lead / Developer | Adam Jones |
 | Platform | HCLS AI Factory |
-| Repository | `ai_agent_adds/neurology_intelligence_agent/` |
+| Repository | `core/agents/neurology/` |
 | Documentation | `docs/` directory |
 | Issues | GitHub Issues on hcls-ai-factory |
 

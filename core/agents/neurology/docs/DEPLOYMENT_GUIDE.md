@@ -41,7 +41,7 @@
 ### 2.1 Clone and Configure
 
 ```bash
-cd /path/to/hcls-ai-factory/ai_agent_adds/neurology_intelligence_agent
+cd /path/to/hcls-ai-factory/core/agents/neurology
 
 # Create environment file
 cp .env.example .env
@@ -124,7 +124,7 @@ Add the neurology agent services to `docker-compose.dgx-spark.yml`:
 ```yaml
 neuro-api:
   build:
-    context: ./ai_agent_adds/neurology_intelligence_agent
+    context: ./core/agents/neurology
     dockerfile: Dockerfile
   container_name: neuro-api
   ports:
@@ -148,7 +148,7 @@ neuro-api:
 
 neuro-streamlit:
   build:
-    context: ./ai_agent_adds/neurology_intelligence_agent
+    context: ./core/agents/neurology
     dockerfile: Dockerfile
   container_name: neuro-streamlit
   ports:

@@ -52,7 +52,7 @@ Landscape 16:9. White background (#FFFFFF). Dense reference architecture poster.
 **Center:**
 - Line 1 (large, bold, navy): **Precision Biomarker Agent**
 - Line 2 (gray): "Multi-Omic Biomarker Intelligence on NVIDIA DGX Spark"
-- Line 3 (teal): "Part of the Precision Intelligence Network — HCLS AI Factory"
+- Line 3 (teal): "Part of the Precision Intelligence Engine — HCLS AI Factory"
 - Line 4 (small, gray): "GB10 Superchip | 128 GB Unified Memory | 14 Collections | 14 Analysis Modules | 8-Tab UI"
 
 **Right side — Capability summary badge:**

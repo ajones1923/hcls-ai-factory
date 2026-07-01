@@ -16,7 +16,7 @@ The Single-Cell Intelligence Agent operates within the HCLS AI Factory, a three-
 - **Stage 2 -- RAG/Chat Engine:** Milvus (3.56M vectors from ClinVar, AlphaMissense) + Claude AI for variant interpretation
 - **Stage 3 -- Drug Discovery Engine:** BioNeMo MolMIM/DiffDock/RDKit for lead optimization across 171 druggable targets
 
-The platform includes **11 intelligence agents**:
+The platform includes **8 intelligence agents**:
 
 | # | Agent | Port | Domain |
 |---|---|---|---|

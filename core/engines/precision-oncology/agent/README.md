@@ -113,7 +113,7 @@ end-to-end precision medicine — from Patient DNA to Drug Candidates in under
 ```bash
 # Clone the repository
 git clone https://github.com/your-org/hcls-ai-factory.git
-cd hcls-ai-factory/ai_agent_adds/precision_oncology_agent/agent
+cd hcls-ai-factory/core/engines/precision-oncology/agent/agent
 
 # Configure environment
 cp .env.example .env

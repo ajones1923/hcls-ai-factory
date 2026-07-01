@@ -9,7 +9,7 @@ Reproducible-environment failure modes and their fixes, captured from real build
 | Model pins `torch 1.9 / CUDA 11.1` (e.g. RFdiffusion) won't install/run | CUDA 11.1 maxes at Ampere `sm_86`; GB10 is Blackwell `sm_121` (needs CUDA 13) | Run on RunPod (x86 + standard CUDA), or use a modern-torch equivalent. See the RunPod plan. |
 | `pip install parasail` → "error: building wheel failed" | No aarch64 wheel; source build needs the parasail C lib | Substitute Biopython `PairwiseAligner` (pure, ARM-clean) for exact SW. |
 | `rapids-singlecell` installs but won't import | No CUDA-13 / Blackwell / aarch64 RAPIDS wheels | Keep scanpy (CPU); run RAPIDS on RunPod x86. |
-| GPU model needs the GB10 but is on CPU | service started from the CPU venv | Start from the cu130 venv (`drug-discovery-pipeline/venv`, torch 2.12+cu130); confirm `torch.cuda.is_available()`. |
+| GPU model needs the GB10 but is on CPU | service started from the CPU venv | Start from the cu130 venv (`core/engines/therapeutic-discovery/venv`, torch 2.12+cu130); confirm `torch.cuda.is_available()`. |
 
 ## Service lifecycle
 | Symptom | Cause | Fix |

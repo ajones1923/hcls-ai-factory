@@ -4,7 +4,7 @@
 **Author:** Adam Jones
 **Date:** March 2026
 **License:** Apache 2.0
-**Repository:** hcls-ai-factory/ai_agent_adds/cardiology_intelligence_agent
+**Repository:** hcls-ai-factory/core/engines/cardiology
 
 ---
 
@@ -43,7 +43,7 @@ The **Cardiology Intelligence Agent** is a domain-specialized retrieval-augmente
 
 The system searches 12 cardiology-specific Milvus vector collections plus 1 shared genomic_evidence collection (3.5M variant vectors), implements 6 validated cardiovascular risk calculators (ASCVD, HEART, CHA2DS2-VASc, HAS-BLED, MAGGIC, EuroSCORE II), optimizes guideline-directed medical therapy (GDMT) for heart failure (7 therapy classes including finerenone, omecamtiv, and sotagliflozin), and provides 11 clinical workflows covering the highest-impact cardiovascular use cases.
 
-The Cardiology Intelligence Agent is built as part of the HCLS AI Factory Precision Intelligence Network -- one of three GPU-accelerated engines (Genomic Foundation Engine, Precision Intelligence Network, Therapeutic Discovery Engine) that compose the end-to-end precision medicine platform on NVIDIA DGX Spark. The Precision Intelligence Network comprises 11 specialized agents:
+The Cardiology Intelligence Agent is built as part of the HCLS AI Factory Precision Intelligence Engine -- one of three GPU-accelerated engines (Genomic Foundation Engine, Precision Intelligence Engine, Therapeutic Discovery Engine) that compose the end-to-end precision medicine platform on NVIDIA DGX Spark. The Precision Intelligence Engine comprises 8 specialized agents:
 
 | # | Agent | Domain |
 |---|-------|--------|

@@ -12,13 +12,13 @@
 2. [DGX Spark Hardware Reference](#2-dgx-spark-hardware-reference)
 3. [Repository Layout](#3-repository-layout)
 4. [Docker Compose Services](#4-docker-compose-services)
-5. [Stage 1: Genomics Pipeline](#5-stage-1-genomics-pipeline)
+5. [Stage 1: Genomics Pipeline](#5-stage-1-core/engines/genomic-foundation)
 6. [Stage 2: RAG/Chat Pipeline](#6-stage-2-ragchat-pipeline)
 7. [Milvus Vector Database Schema](#7-milvus-vector-database-schema)
 8. [Variant Annotation Pipeline](#8-variant-annotation-pipeline)
 9. [Knowledge Base — 201 Genes, 13 Therapeutic Areas](#9-knowledge-base--201-genes-13-therapeutic-areas)
 10. [Anthropic Claude LLM Integration](#10-anthropic-claude-llm-integration)
-11. [Stage 3: Drug Discovery Pipeline](#11-stage-3-drug-discovery-pipeline)
+11. [Stage 3: Drug Discovery Pipeline](#11-stage-3-core/engines/therapeutic-discovery)
 12. [BioNeMo NIM Services](#12-bionemo-nim-services)
 13. [Drug-Likeness Scoring](#13-drug-likeness-scoring)
 14. [Cryo-EM Structure Evidence](#14-cryo-em-structure-evidence)
@@ -131,7 +131,7 @@ hcls-ai-factory-public/
 ├── start-services.sh                   # Service startup orchestration
 ├── .env.example                        # Environment variable template
 │
-├── hls-orchestrator/                   # Nextflow pipeline orchestration
+├── hcls-orchestrator/                   # Nextflow pipeline orchestration
 │   ├── main.nf                         # DSL2 entry point
 │   ├── nextflow.config                 # Profiles and parameters
 │   ├── run_pipeline.py                 # Python CLI launcher
@@ -142,7 +142,7 @@ hcls-ai-factory-public/
 │   │   └── reporting.nf                # Report generation
 │   └── tests/
 │
-├── genomics-pipeline/                  # Stage 1: Parabricks
+├── core/engines/genomic-foundation/                  # Stage 1: Parabricks
 │   ├── README.md                       # Genomics documentation (48 KB)
 │   ├── Dockerfile
 │   ├── src/
@@ -153,7 +153,7 @@ hcls-ai-factory-public/
 │   │   └── parabricks.yaml             # GPU resource allocation
 │   └── tests/
 │
-├── rag-chat-pipeline/                  # Stage 2: RAG + Claude
+├── core/engines/precision-intelligence/                  # Stage 2: RAG + Claude
 │   ├── README.md                       # RAG documentation (51 KB)
 │   ├── Dockerfile
 │   ├── src/
@@ -167,7 +167,7 @@ hcls-ai-factory-public/
 │   │   └── milvus.yaml                 # Vector DB configuration
 │   └── tests/
 │
-├── drug-discovery-pipeline/            # Stage 3: BioNeMo + RDKit
+├── core/engines/therapeutic-discovery/            # Stage 3: BioNeMo + RDKit
 │   ├── README.md                       # Drug discovery documentation (56 KB)
 │   ├── Dockerfile
 │   ├── src/

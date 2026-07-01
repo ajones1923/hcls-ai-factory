@@ -52,7 +52,7 @@
 
 ---
 
-## Engine 2: Precision Intelligence Network
+## Engine 2: Precision Intelligence Engine
 
 ### Milvus Vector Database (v2.4.0, Standalone Mode)
 
@@ -634,7 +634,7 @@
 #### DCGM GPU Exporter (:9400) -- GPU Metrics
 #### Node Exporter (:9100) -- Host Metrics
 
-### Nextflow DSL2 Workflows (hls-orchestrator/)
+### Nextflow DSL2 Workflows (hcls-orchestrator/)
 #### Genomics Pipeline Orchestration
 #### MolMIM Container: nvcr.io/nim/nvidia/molmim:1.0.0
 #### DiffDock Container: nvcr.io/nim/mit/diffdock:2.2.0

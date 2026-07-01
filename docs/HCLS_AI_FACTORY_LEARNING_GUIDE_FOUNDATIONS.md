@@ -99,7 +99,7 @@ The output is a **VCF** (Variant Call Format) file containing every variant foun
 
 ---
 
-## Chapter 4: The Precision Intelligence Network (Stage 2) — Understanding What the Variants Mean
+## Chapter 4: The Precision Intelligence Engine (Stage 2) — Understanding What the Variants Mean
 
 ### Not All Variants Are Equal
 
@@ -261,7 +261,7 @@ The same software that runs on a $4,699 DGX Spark can scale to larger systems:
 ### The Bigger Picture
 
 This platform is part of the **HCLS AI Factory** — a broader ecosystem that also includes:
-- **11 intelligence agents** covering oncology, biomarkers, CAR-T therapy, imaging, autoimmune disease, pharmacogenomics, cardiology, clinical trials, rare disease, neurology, and single-cell analysis
+- **8 intelligence agents** covering oncology, biomarkers, CAR-T therapy, imaging, autoimmune disease, pharmacogenomics, cardiology, clinical trials, rare disease, neurology, and single-cell analysis
 - **Cross-modal triggers** — for example, a suspicious lung nodule found on a CT scan can automatically trigger genomic analysis to look for cancer-related variants
 - **NVIDIA FLARE** — technology that lets multiple hospitals train AI models together without sharing patient data
 

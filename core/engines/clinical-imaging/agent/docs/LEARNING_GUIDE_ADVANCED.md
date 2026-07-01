@@ -1386,7 +1386,7 @@ The system maps 103 SNOMED codes in total across all anatomy entries, findings, 
 
 ### 12.1 Architecture
 
-The cross-modal system in `src/cross_modal.py` (401 lines) bridges imaging findings to the genomic_evidence collection (3.5M vectors) populated by the rag-chat-pipeline.
+The cross-modal system in `src/cross_modal.py` (401 lines) bridges imaging findings to the genomic_evidence collection (3.5M vectors) populated by the core/engines/precision-intelligence.
 
 ```python
 class CrossModalTrigger:
@@ -2017,7 +2017,7 @@ All environment variables use the `IMAGING_` prefix (controlled by Pydantic `env
 | `IMAGING_DATA_DIR` | `{PROJECT_ROOT}/data` | Data storage directory |
 | `IMAGING_CACHE_DIR` | `{DATA_DIR}/cache` | Cache directory |
 | `IMAGING_REFERENCE_DIR` | `{DATA_DIR}/reference` | Reference data directory |
-| `IMAGING_RAG_PIPELINE_ROOT` | `/home/adam/.../rag-chat-pipeline` | RAG pipeline root |
+| `IMAGING_RAG_PIPELINE_ROOT` | `/home/adam/.../core/engines/precision-intelligence` | RAG pipeline root |
 
 ### B.2 Milvus Configuration
 

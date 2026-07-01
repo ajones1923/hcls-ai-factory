@@ -1,6 +1,6 @@
 # Precision Oncology Intelligence Agent -- Deployment Guide
 
-**HCLS AI Factory / ai_agent_adds / precision_oncology_agent**
+**HCLS AI Factory / core/agents / precision_oncology_agent**
 
 Version 1.0.0 | March 2026 | Author: Adam Jones
 
@@ -187,7 +187,7 @@ Five commands to get the agent running with Docker Compose:
 
 ```bash
 # 1. Clone or navigate to the agent directory
-cd ai_agent_adds/precision_oncology_agent/agent
+cd core/engines/precision-oncology/agent/agent
 
 # 2. Create your environment file
 cp .env.example .env
@@ -379,7 +379,7 @@ Run the agent directly with Python for rapid iteration and debugging.
 #### Step 1: Set Up Python Environment
 
 ```bash
-cd ai_agent_adds/precision_oncology_agent/agent
+cd core/engines/precision-oncology/agent/agent
 
 # Create virtual environment
 python3.10 -m venv .venv
@@ -1630,7 +1630,7 @@ services:
 The canonical `docker-compose.yml` is maintained at the repository root:
 
 ```
-ai_agent_adds/precision_oncology_agent/agent/docker-compose.yml
+core/engines/precision-oncology/agent/agent/docker-compose.yml
 ```
 
 It defines all 6 services (`milvus-etcd`, `milvus-minio`, `milvus-standalone`,

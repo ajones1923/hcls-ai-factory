@@ -15,7 +15,7 @@ Describe the problem this feature would solve or the workflow it would improve.
 
 ## Agent/Component Affected
 
-Which agent or component would this feature apply to (e.g., `precision_biomarker_agent`, `rag-chat-pipeline`, `lib/hcls_common`)?
+Which agent or component would this feature apply to (e.g., `precision_biomarker_agent`, `core/engines/precision-intelligence`, `lib/hcls_common`)?
 
 ## Clinical Impact (if applicable)
 

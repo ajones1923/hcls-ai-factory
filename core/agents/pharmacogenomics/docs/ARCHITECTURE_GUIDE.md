@@ -39,7 +39,7 @@ The Pharmacogenomics Intelligence Agent operates within the HCLS AI Factory, a t
 
 The PGx Agent consumes VCF output from Engine 1 for star allele calling and shares the genomic_evidence collection with Engine 2.
 
-The platform includes **11 intelligence agents**:
+The platform includes **8 intelligence agents**:
 
 | # | Agent | Port | Domain |
 |---|---|---|---|

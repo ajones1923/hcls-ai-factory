@@ -506,11 +506,11 @@ The system performs integrated clinical analyses that would traditionally requir
 
 The Precision Autoimmune Intelligence Agent operates as a specialized component within the HCLS AI Factory, an end-to-end precision medicine platform with three core pipeline stages:
 
-1. **Genomics Pipeline** (`genomics-pipeline/`): Processes raw FASTQ sequencing data through Parabricks/DeepVariant/BWA-MEM2 to produce annotated VCF files. GPU-accelerated alignment and variant calling reduces processing time from 24-48 hours (CPU) to 120-240 minutes (GPU).
+1. **Genomics Pipeline** (`core/engines/genomic-foundation/`): Processes raw FASTQ sequencing data through Parabricks/DeepVariant/BWA-MEM2 to produce annotated VCF files. GPU-accelerated alignment and variant calling reduces processing time from 24-48 hours (CPU) to 120-240 minutes (GPU).
 
-2. **RAG/Chat Pipeline** (`rag-chat-pipeline/`): Milvus-based vector search with Claude AI for variant interpretation, clinical query answering, and evidence synthesis. This is the shared infrastructure layer that all intelligence agents build upon.
+2. **RAG/Chat Pipeline** (`core/engines/precision-intelligence/`): Milvus-based vector search with Claude AI for variant interpretation, clinical query answering, and evidence synthesis. This is the shared infrastructure layer that all intelligence agents build upon.
 
-3. **Drug Discovery Pipeline** (`drug-discovery-pipeline/`): BioNeMo MolMIM for molecular generation, DiffDock for protein-ligand docking, and RDKit for chemical property analysis. Takes identified therapeutic targets and generates candidate drug molecules.
+3. **Drug Discovery Pipeline** (`core/engines/therapeutic-discovery/`): BioNeMo MolMIM for molecular generation, DiffDock for protein-ligand docking, and RDKit for chemical property analysis. Takes identified therapeutic targets and generates candidate drug molecules.
 
 The autoimmune agent extends the RAG/Chat Pipeline with 14 disease-specific collections and a clinical intelligence layer.
 
@@ -522,7 +522,7 @@ For example, when the genomics pipeline identifies that a patient carries HLA-B*
 
 ### 11.3 Cross-Agent Communication
 
-The autoimmune agent communicates with 6 sibling agents within the 11-agent Precision Intelligence Network:
+The autoimmune agent communicates with 6 sibling agents within the 11-agent Precision Intelligence Engine:
 
 - **Oncology Agent (8526):** Coordinates on immune-related adverse events (irAEs) from checkpoint inhibitor therapy, which can trigger autoimmune manifestations
 - **Cardiology Agent (8126):** Evaluates myocarditis from immunotherapy -- troponin monitoring, echocardiography, LVEF tracking

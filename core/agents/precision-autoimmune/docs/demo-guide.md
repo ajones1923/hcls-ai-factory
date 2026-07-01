@@ -368,7 +368,7 @@ Briefly demonstrate the remaining patients to show disease diversity:
 If the health check shows zero vectors or collections are missing:
 
 ```bash
-cd ai_agent_adds/precision_autoimmune_agent
+cd core/agents/precision-autoimmune
 python3 scripts/setup_collections.py
 ```
 

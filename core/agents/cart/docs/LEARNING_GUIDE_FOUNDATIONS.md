@@ -538,7 +538,7 @@ After each response, three download buttons appear:
 | 8 | `cart_regulatory` | 40 | FDA/EMA approval records, designations, label updates | Manual curation |
 | 9 | `cart_sequences` | 40 | scFv/CAR sequence and structural data | Manual curation |
 | 10 | `cart_realworld` | 54 | CIBMTR registry, institutional series | Manual curation |
-| 11 | `genomic_evidence` | 3,561,170 | VCF variant data from the rag-chat-pipeline | Shared (read-only) |
+| 11 | `genomic_evidence` | 3,561,170 | VCF variant data from the core/engines/precision-intelligence | Shared (read-only) |
 
 **Total: 3,567,622 vectors**
 
@@ -676,7 +676,7 @@ After each response, three download buttons appear:
 
 #### 11. genomic_evidence (3,561,170 records)
 
-**What it contains:** Genomic variant data from patient whole-genome sequencing, shared from the HCLS AI Factory's rag-chat-pipeline. Each record represents a single variant with chromosome, position, reference/alternate alleles, quality score, gene, consequence, impact level, genotype, clinical significance (from ClinVar), and AlphaMissense pathogenicity prediction.
+**What it contains:** Genomic variant data from patient whole-genome sequencing, shared from the HCLS AI Factory's core/engines/precision-intelligence. Each record represents a single variant with chromosome, position, reference/alternate alleles, quality score, gene, consequence, impact level, genotype, clinical significance (from ClinVar), and AlphaMissense pathogenicity prediction.
 
 **Why it matters:** Patient genomic data can reveal why certain patients respond differently to CAR-T therapy. For example, variants in immune-related genes might affect T-cell function, and variants in target-antigen genes might affect antigen expression.
 
@@ -687,7 +687,7 @@ After each response, three download buttons appear:
 
 **Key fields:** `id`, `chrom`, `pos`, `ref`, `alt`, `qual`, `gene`, `consequence`, `impact`, `genotype`, `text_summary`, `clinical_significance`, `rsid`, `disease_associations`, `am_pathogenicity`, `am_class`
 
-**Note:** This collection is read-only from the CAR-T Intelligence Agent's perspective. It is created and populated by the rag-chat-pipeline (Stage 2 of the HCLS AI Factory).
+**Note:** This collection is read-only from the CAR-T Intelligence Agent's perspective. It is created and populated by the core/engines/precision-intelligence (Stage 2 of the HCLS AI Factory).
 
 ### Mapping questions to collections
 
@@ -888,7 +888,7 @@ You will need:
 
 ```bash
 git clone https://github.com/ajones1923/hcls-ai-factory.git
-cd hcls-ai-factory/ai_agent_adds/cart_intelligence_agent
+cd hcls-ai-factory/core/agents/cart
 ```
 
 ### Step 2: Install Python dependencies

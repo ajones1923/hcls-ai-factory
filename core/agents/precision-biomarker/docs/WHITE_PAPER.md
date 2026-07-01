@@ -528,10 +528,10 @@ These triggers are exposed through the `/v1/events/cross-modal` API endpoint and
 The HCLS AI Factory employs a three-engine architecture:
 
 1. **Genomic Foundation Engine** -- GPU-accelerated variant calling (Parabricks/DeepVariant/BWA-MEM2)
-2. **Precision Intelligence Network** -- 11 domain-specialized RAG agents providing cross-functional clinical intelligence
+2. **Precision Intelligence Engine** -- 11 domain-specialized RAG agents providing cross-functional clinical intelligence
 3. **Therapeutic Discovery Engine** -- BioNeMo/DiffDock/RDKit for molecular generation, docking, and lead optimization
 
-The biomarker agent operates alongside 10 sibling agents within the Precision Intelligence Network:
+The biomarker agent operates alongside 10 sibling agents within the Precision Intelligence Engine:
 
 | # | Agent | Domain |
 |---|-------|--------|

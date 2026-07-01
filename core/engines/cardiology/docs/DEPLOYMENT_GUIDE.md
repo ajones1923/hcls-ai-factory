@@ -71,7 +71,7 @@
 
 ```bash
 # Clone the repository
-cd ai_agent_adds/cardiology_intelligence_agent
+cd core/engines/cardiology
 
 # Configure environment
 cp .env.example .env
@@ -175,7 +175,7 @@ docker run -d --name milvus \
 ### 3.2 Python Environment
 
 ```bash
-cd ai_agent_adds/cardiology_intelligence_agent
+cd core/engines/cardiology
 
 # Create virtual environment
 python3.12 -m venv .venv

@@ -37,7 +37,7 @@ The Clinical Trial Intelligence Agent operates within the HCLS AI Factory, a thr
 - **Stage 2 -- RAG/Chat Engine:** Milvus (3.56M vectors) + Claude AI for variant interpretation and evidence synthesis
 - **Stage 3 -- Drug Discovery Engine:** BioNeMo MolMIM/DiffDock/RDKit for lead optimization across 171 druggable targets
 
-The platform includes **11 intelligence agents**:
+The platform includes **8 intelligence agents**:
 
 | # | Agent | Port | Domain |
 |---|---|---|---|

@@ -873,7 +873,7 @@ Before you begin, ensure you have:
 **Step 1: Navigate to the agent directory**
 
 ```bash
-cd ai_agent_adds/precision_autoimmune_agent
+cd core/agents/precision-autoimmune
 ```
 
 **Step 2: Create a `.env` file**

@@ -163,7 +163,7 @@ The Neurology Intelligence Agent operates within the HCLS AI Factory's three-eng
 
 1. **Genomic Foundation Engine**: Parabricks/DeepVariant/BWA-MEM2 for FASTQ-to-VCF processing. Provides genomic variant data including neurogenetic variants (SOD1 for ALS, HTT for Huntington's, FMR1 for Fragile X) to the neurology agent via the shared `genomic_evidence` collection.
 
-2. **Precision Intelligence Network**: 11 specialized RAG agents including the Neurology Intelligence Agent. Cross-agent communication enables integrated assessments spanning neuroimaging, cardiac evaluation, biomarker trending, clinical trial matching, and rare disease diagnosis.
+2. **Precision Intelligence Engine**: 8 specialized RAG agents including the Neurology Intelligence Agent. Cross-agent communication enables integrated assessments spanning neuroimaging, cardiac evaluation, biomarker trending, clinical trial matching, and rare disease diagnosis.
 
 3. **Therapeutic Discovery Engine**: BioNeMo/MolMIM/DiffDock/RDKit for drug candidate generation. Neurological therapeutic targets identified by this agent (e.g., novel anti-amyloid epitopes, LRRK2 kinase inhibitor targets) feed into the drug discovery pipeline.
 

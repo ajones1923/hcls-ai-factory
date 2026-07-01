@@ -25,14 +25,14 @@ The v1.0 had these characteristics:
 ## WHAT CHANGES FROM v1.0 TO v2.0:
 
 1. **Badge** → "v2.0 Production" (was just "CAR-T Intelligence Agent")
-2. **Subtitle** → Adds "Part of the Precision Intelligence Network" and "Pediatric ALL Primary Use Case"
+2. **Subtitle** → Adds "Part of the Precision Intelligence Engine" and "Pediatric ALL Primary Use Case"
 3. **Data sources** → EXPANDED with pediatric CAR-T literature and ELIANA trial data
 4. **Collections** → 11 collections PLUS new pediatric-specific knowledge bases
 5. **NEW: Pediatric CAR-T Knowledge section** — PEDIATRIC_CART, PEDIATRIC_CRS_ICANS_MANAGEMENT
 6. **NEW: Cross-Agent Integration box** — connections to Biomarker, Oncology, Single-Cell, Cardiology, Clinical Trial
 7. **Processing row** → Updated with pediatric eligibility assessment and CRS risk modeling
 8. **Outputs** → NEW: /integrated-assessment endpoint, pediatric CRS/ICANS management protocols
-9. **Cross-Pipeline strip** → Updated to show all 11 agents, not just 6 connections
+9. **Cross-Pipeline strip** → Updated to show all 8 agents, not just 6 connections
 10. **Demo references** → Demo 2 ("30-Second Tumor Board") and Demo 5 ("Last Line of Defense")
 
 ---
@@ -86,7 +86,7 @@ Landscape 16:9. White background. Dense technical poster. IDENTICAL visual langu
 **Center:**
 - Title (large, bold, navy): **CAR-T Intelligence Agent**
 - Subtitle line 1 (gray): "Cross-Functional CAR-T Intelligence on NVIDIA DGX Spark"
-- Subtitle line 2 (teal): "Part of the Precision Intelligence Network — HCLS AI Factory" [NEW]
+- Subtitle line 2 (teal): "Part of the Precision Intelligence Engine — HCLS AI Factory" [NEW]
 - Subtitle line 3 (gray, small): "GB10 Superchip | 128 GB Unified Memory | Pediatric ALL Primary Use Case" [UPDATED]
 
 **Right side — Stage badges (matching v1.0 style, updated):**

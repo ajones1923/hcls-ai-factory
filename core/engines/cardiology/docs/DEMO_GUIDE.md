@@ -36,7 +36,7 @@
 ### Environment Setup
 
 ```bash
-cd ai_agent_adds/cardiology_intelligence_agent
+cd core/engines/cardiology
 
 # Copy environment template and add your Anthropic API key
 cp .env.example .env

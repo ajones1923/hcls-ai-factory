@@ -5,7 +5,7 @@
 **Version:** 1.0.0
 **License:** Apache 2.0
 
-Part of the HCLS AI Factory -- an end-to-end precision medicine platform built on three GPU-accelerated engines: the Genomic Foundation Engine (Parabricks/DeepVariant/BWA-MEM2), the Precision Intelligence Network (11 domain-specific RAG agents including this one), and the Therapeutic Discovery Engine (BioNeMo/MolMIM/DiffDock/RDKit).
+Part of the HCLS AI Factory -- an end-to-end precision medicine platform built on three GPU-accelerated engines: the Genomic Foundation Engine (Parabricks/DeepVariant/BWA-MEM2), the Precision Intelligence Engine (11 domain-specific RAG agents including this one), and the Therapeutic Discovery Engine (BioNeMo/MolMIM/DiffDock/RDKit).
 
 ---
 

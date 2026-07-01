@@ -3,7 +3,7 @@
 **Author:** Adam Jones
 **Date:** March 2026
 **Version:** 1.0.0
-**Codebase:** `hcls-ai-factory/ai_agent_adds/cart_intelligence_agent/`
+**Codebase:** `hcls-ai-factory/core/agents/cart/`
 
 ---
 
@@ -35,7 +35,7 @@
 
 ## 1. Overview
 
-The CAR-T Intelligence Agent is part of the HCLS AI Factory Precision Intelligence Network -- one of three GPU-accelerated engines (Genomic Foundation Engine, Precision Intelligence Network, Therapeutic Discovery Engine) that together deliver patient DNA to drug candidates in under 5 hours on a single NVIDIA DGX Spark.
+The CAR-T Intelligence Agent is part of the HCLS AI Factory Precision Intelligence Engine -- one of three GPU-accelerated engines (Genomic Foundation Engine, Precision Intelligence Engine, Therapeutic Discovery Engine) that together deliver patient DNA to drug candidates in under 5 hours on a single NVIDIA DGX Spark.
 
 The agent is a multi-collection Retrieval-Augmented Generation (RAG) system purpose-built for CAR-T cell therapy research and development. It breaks down data silos across the entire CAR-T development lifecycle -- from target identification and molecular design through clinical development, manufacturing, regulatory approval, and post-market pharmacovigilance -- and provides unified, cross-functional intelligence grounded in evidence.
 
@@ -53,7 +53,7 @@ A researcher asks a natural-language question such as *"Why do CD19 CAR-T patien
 
 ### Position in the HCLS AI Factory
 
-The CAR-T Intelligence Agent extends the three-stage HCLS AI Factory pipeline (Genomics, RAG/Chat, Drug Discovery) with a domain-specialized fourth capability. It reads from the existing `genomic_evidence` collection populated by Stage 2 (rag-chat-pipeline) and adds 10 new CAR-T-specific collections.
+The CAR-T Intelligence Agent extends the three-stage HCLS AI Factory pipeline (Genomics, RAG/Chat, Drug Discovery) with a domain-specialized fourth capability. It reads from the existing `genomic_evidence` collection populated by Stage 2 (core/engines/precision-intelligence) and adds 10 new CAR-T-specific collections.
 
 ```
 HCLS AI Factory Pipeline
@@ -269,7 +269,7 @@ When the engine detects comparison patterns ("compare", "vs", "versus") in a que
 **File:** `src/collections.py`
 **Class:** `CARTCollectionManager`
 
-Manages 11 Milvus collections (10 owned by this agent + 1 read-only `genomic_evidence` from rag-chat-pipeline).
+Manages 11 Milvus collections (10 owned by this agent + 1 read-only `genomic_evidence` from core/engines/precision-intelligence).
 
 #### Schema Summary
 
@@ -291,7 +291,7 @@ All collections share:
 | `cart_regulatory` | id | text_summary, product, regulatory_event, date, agency, indication, decision, conditions, pivotal_trial | text_summary: 3000, conditions: 500 |
 | `cart_sequences` | id | text_summary, construct_name, target_antigen, scfv_clone, binding_affinity_kd, heavy_chain_vregion, light_chain_vregion, framework, species_origin, immunogenicity_risk, structural_notes | heavy/light_chain: 500, structural_notes: 1000 |
 | `cart_realworld` | id | text_summary, study_type, data_source, product, indication, population_size (INT64), median_followup_months (FLOAT), primary_endpoint, outcome_value, setting, special_population | text_summary: 3000, special_population: 200 |
-| `genomic_evidence` | id | chrom, pos, ref, alt, qual, gene, consequence, impact, genotype, text_summary, clinical_significance, rsid, disease_associations, am_pathogenicity, am_class | **Read-only** -- created by rag-chat-pipeline |
+| `genomic_evidence` | id | chrom, pos, ref, alt, qual, gene, consequence, impact, genotype, text_summary, clinical_significance, rsid, disease_associations, am_pathogenicity, am_class | **Read-only** -- created by core/engines/precision-intelligence |
 
 #### Parallel Search Architecture
 
@@ -1047,7 +1047,7 @@ CORS is restricted to 3 origins configured in `config/settings.py`: `http://loca
 
 ### API Key Loading
 
-The API loads the Anthropic API key from the rag-chat-pipeline `.env` file if `ANTHROPIC_API_KEY` is not already set in the environment. This allows the API to share credentials with the parent platform without duplication.
+The API loads the Anthropic API key from the core/engines/precision-intelligence `.env` file if `ANTHROPIC_API_KEY` is not already set in the environment. This allows the API to share credentials with the parent platform without duplication.
 
 ---
 

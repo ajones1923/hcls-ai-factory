@@ -11,7 +11,7 @@
 
 ### 1.1 Platform Positioning
 
-The Single-Cell Intelligence Agent is one of **11 intelligence agents** in the HCLS AI Factory, a three-engine precision medicine platform (Genomics, RAG/Chat, Drug Discovery) running on NVIDIA DGX Spark. It occupies the single-cell transcriptomics niche, providing cellular-resolution analysis that complements bulk genomic data from the Genomics Engine.
+The Single-Cell Intelligence Agent is one of **8 intelligence agents** in the HCLS AI Factory, a three-engine precision medicine platform (Genomics, RAG/Chat, Drug Discovery) running on NVIDIA DGX Spark. It occupies the single-cell transcriptomics niche, providing cellular-resolution analysis that complements bulk genomic data from the Genomics Engine.
 
 **All 11 HCLS AI Factory Intelligence Agents:**
 

@@ -14,7 +14,7 @@ https://github.com/ajones1923/hcls-ai-factory
 
 Chimeric antigen receptor T-cell (CAR-T) therapy represents one of the most transformative advances in oncology, yet the data ecosystem supporting its development remains profoundly fragmented. Clinical researchers, manufacturing engineers, regulatory strategists, and pharmacovigilance scientists each operate within isolated information silos -- PubMed for literature, ClinicalTrials.gov for trial data, FDA databases for regulatory milestones, CIBMTR for real-world outcomes, and institutional databases for manufacturing records. A single cross-functional question such as "How do manufacturing parameters affect clinical response rates for CD19 CAR-T products?" requires manual synthesis across at least five distinct data sources, a process that can consume days of expert time.
 
-This paper presents the CAR-T Intelligence Agent, an AI-powered multi-collection retrieval-augmented generation (RAG) system that unifies 11 specialized vector collections containing 3,567,622 indexed vectors across the full CAR-T development lifecycle. The system employs 384-dimensional BGE-small-en-v1.5 embeddings, a 3-dictionary knowledge graph with 71 structured entries (34 targets, 17 toxicities, 20 manufacturing), 12 query expansion maps mapping 229 keywords to 1,961 related terms, and Claude Sonnet 4.6 for evidence synthesis. Parallel search via ThreadPoolExecutor across all 11 collections delivers cross-functional answers with clickable PubMed and ClinicalTrials.gov citations in under 30 seconds. The system includes structured comparative analysis, citation relevance scoring, and multi-format export (Markdown, JSON, PDF). Comprising 21,259 lines of Python across 61 files with 415 automated tests, the agent runs on a single NVIDIA DGX Spark ($4,699) and is released under the Apache 2.0 license. We demonstrate that a carefully designed multi-collection RAG architecture can transform fragmented biomedical data into actionable cross-functional intelligence, democratizing access to CAR-T development knowledge that was previously available only to large pharmaceutical organizations with dedicated informatics teams.
+This paper presents the CAR-T Intelligence Agent, an AI-powered multi-collection retrieval-augmented generation (RAG) system that unifies 8 specialized vector collections containing 3,567,622 indexed vectors across the full CAR-T development lifecycle. The system employs 384-dimensional BGE-small-en-v1.5 embeddings, a 3-dictionary knowledge graph with 71 structured entries (34 targets, 17 toxicities, 20 manufacturing), 12 query expansion maps mapping 229 keywords to 1,961 related terms, and Claude Sonnet 4.6 for evidence synthesis. Parallel search via ThreadPoolExecutor across all 11 collections delivers cross-functional answers with clickable PubMed and ClinicalTrials.gov citations in under 30 seconds. The system includes structured comparative analysis, citation relevance scoring, and multi-format export (Markdown, JSON, PDF). Comprising 21,259 lines of Python across 61 files with 415 automated tests, the agent runs on a single NVIDIA DGX Spark ($4,699) and is released under the Apache 2.0 license. We demonstrate that a carefully designed multi-collection RAG architecture can transform fragmented biomedical data into actionable cross-functional intelligence, democratizing access to CAR-T development knowledge that was previously available only to large pharmaceutical organizations with dedicated informatics teams.
 
 ---
 
@@ -49,7 +49,7 @@ Conventional approaches to CAR-T intelligence suffer from several structural lim
 
 The CAR-T Intelligence Agent addresses these limitations through a multi-collection RAG architecture that:
 
-- Unifies **11 specialized vector collections** spanning the complete CAR-T lifecycle into a single query interface
+- Unifies **8 specialized vector collections** spanning the complete CAR-T lifecycle into a single query interface
 - Employs **parallel vector search** across all collections simultaneously, returning cross-functional results in milliseconds
 - Augments retrieval with a **structured knowledge graph** containing curated clinical data on 34 target antigens, 17 toxicity profiles, 20 manufacturing processes, 23 biomarkers, 6 FDA-approved products, and 6 immunogenicity topics
 - Expands queries using **12 domain-specific maps** that map 229 expert keywords to 1,961 related terms, dramatically improving recall
@@ -494,7 +494,7 @@ This shared-collection architecture avoids data duplication while enabling speci
 The HCLS AI Factory employs a three-engine architecture:
 
 1. **Genomic Foundation Engine** -- GPU-accelerated variant calling (Parabricks/DeepVariant/BWA-MEM2)
-2. **Precision Intelligence Network** -- 11 domain-specialized RAG agents (Precision Oncology, CAR-T, Biomarker, Clinical Trial, Cardiology, Neurology, PGx, Imaging, Single-Cell, Autoimmune, Rare Disease) providing cross-functional clinical intelligence
+2. **Precision Intelligence Engine** -- 11 domain-specialized RAG agents (Precision Oncology, CAR-T, Biomarker, Clinical Trial, Cardiology, Neurology, PGx, Imaging, Single-Cell, Autoimmune, Rare Disease) providing cross-functional clinical intelligence
 3. **Therapeutic Discovery Engine** -- BioNeMo/DiffDock/RDKit for molecular generation, docking, and lead optimization
 
 The CAR-T agent coordinates with 5 peer agents via `cross_modal/cross_agent.py` -- Biomarker, Oncology, Single-Cell, Cardiology, and Clinical Trial -- and exposes an `/integrated-assessment` endpoint for multi-agent clinical synthesis.
@@ -506,8 +506,8 @@ The CAR-T Intelligence Agent follows the architectural patterns established by t
 - **Embedding model:** Same BGE-small-en-v1.5 (384-dim) used across all pipeline stages
 - **Vector database:** Same Milvus 2.4 instance with IVF_FLAT/COSINE indexes
 - **LLM integration:** Same Claude API integration pattern with streaming support
-- **Configuration:** Pydantic BaseSettings pattern matching `rag-chat-pipeline/config/settings.py`
-- **Data models:** Pydantic BaseModel pattern matching `drug-discovery-pipeline/src/models.py`
+- **Configuration:** Pydantic BaseSettings pattern matching `core/engines/precision-intelligence/config/settings.py`
+- **Data models:** Pydantic BaseModel pattern matching `core/engines/therapeutic-discovery/src/models.py`
 - **Observability:** Prometheus metrics integration consistent with the platform's Grafana+Prometheus stack (port 3000 Grafana, port 9099 Prometheus)
 
 ---
@@ -570,7 +570,7 @@ Several limitations should be acknowledged:
 
 This paper has presented the CAR-T Intelligence Agent, a multi-collection RAG system that addresses the data fragmentation challenge in CAR-T cell therapy development. The system's key contributions are:
 
-1. **Multi-collection RAG architecture:** 11 specialized Milvus collections with typed schemas, parallel search via ThreadPoolExecutor, and score-weighted merge -- enabling a single query to retrieve evidence across the full CAR-T lifecycle.
+1. **Multi-collection RAG architecture:** 8 specialized Milvus collections with typed schemas, parallel search via ThreadPoolExecutor, and score-weighted merge -- enabling a single query to retrieve evidence across the full CAR-T lifecycle.
 2. **Domain knowledge augmentation:** A 3-dictionary knowledge graph (71 entries, 54 aliases) providing structured clinical context on targets, toxicities, manufacturing, biomarkers, regulatory milestones, and immunogenicity.
 3. **Intelligent query expansion:** 12 maps with 229 keywords expanding to 1,961 terms, using a dual strategy (field-filter for antigens, semantic re-embedding for non-antigens) that significantly improves recall without sacrificing precision.
 4. **Structured comparative analysis:** Auto-detection and resolution of "X vs Y" queries with dual retrieval, entity-grouped evidence, and structured output (comparison tables, advantages/limitations, clinical context).

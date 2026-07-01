@@ -573,7 +573,7 @@ After each query or workflow run, you can export results:
 | 10 | `imaging_datasets` | Public imaging datasets | NIH, TCIA, Kaggle, grand challenges |
 | 11 | `imaging_radiomics` | Quantitative imaging features (~1,500 per study) | PyRadiomics extraction |
 | 12 | `imaging_reports` | Parsed radiology reports (NLP entities) | Report NLP pipeline |
-| 13 | `genomic_evidence` | Patient variant data (shared) | VCF data from rag-chat-pipeline |
+| 13 | `genomic_evidence` | Patient variant data (shared) | VCF data from core/engines/precision-intelligence |
 
 **12 imaging-specific collections + 1 shared genomic collection (read-only) = 13 total (38,028 vectors)**
 
@@ -737,7 +737,7 @@ After each query or workflow run, you can export results:
 
 #### 13. genomic_evidence (read-only)
 
-**What it contains:** Patient-level variant data from whole-genome sequencing, shared from the HCLS AI Factory's rag-chat-pipeline. This collection is read-only -- the Clinical Imaging Engine can query it but does not write to it.
+**What it contains:** Patient-level variant data from whole-genome sequencing, shared from the HCLS AI Factory's core/engines/precision-intelligence. This collection is read-only -- the Clinical Imaging Engine can query it but does not write to it.
 
 **Why it matters:** Radiogenomics -- the correlation between imaging features and genomic markers -- is an emerging field. A tumor that appears spiculated on CT may have a different mutational profile than one with smooth margins. Cross-modal queries that bridge imaging and genomics are a unique capability of this system.
 
@@ -745,7 +745,7 @@ After each query or workflow run, you can export results:
 - "Are there genomic markers associated with ground-glass opacity morphology in lung adenocarcinoma?"
 - "What imaging features correlate with BRCA1 mutation status in breast cancer?"
 
-**Key fields:** Inherited from the rag-chat-pipeline (variant ID, gene, consequence, clinical significance, etc.)
+**Key fields:** Inherited from the core/engines/precision-intelligence (variant ID, gene, consequence, clinical significance, etc.)
 
 ### Cross-reference guide
 
@@ -960,7 +960,7 @@ Optional but recommended:
 
 ```bash
 git clone https://github.com/ajones1923/hcls-ai-factory.git
-cd hcls-ai-factory/ai_agent_adds/imaging_intelligence_agent
+cd hcls-ai-factory/core/engines/clinical-imaging/agent
 ```
 
 ### Step 2: Install Python dependencies
@@ -1011,7 +1011,7 @@ curl http://localhost:19530/v1/vector/collections
 python3 scripts/setup_collections.py
 ```
 
-This creates all 12 imaging-specific Milvus collections with IVF_FLAT indexes (384 dimensions, COSINE metric). The shared `genomic_evidence` collection is not created here -- it is managed by the rag-chat-pipeline.
+This creates all 12 imaging-specific Milvus collections with IVF_FLAT indexes (384 dimensions, COSINE metric). The shared `genomic_evidence` collection is not created here -- it is managed by the core/engines/precision-intelligence.
 
 ### Step 5: Seed domain-specific data
 
@@ -1104,7 +1104,7 @@ For a minimal setup without NIM services or GPU:
 ```bash
 cd /home/adam/projects/hcls-ai-factory
 docker compose up -d milvus-standalone milvus-etcd milvus-minio
-cd ai_agent_adds/imaging_intelligence_agent/agent
+cd core/engines/clinical-imaging/agent/agent
 pip install -r requirements.txt
 python3 scripts/setup_collections.py
 python3 scripts/seed_findings.py

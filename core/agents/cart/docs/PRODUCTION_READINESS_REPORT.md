@@ -855,7 +855,7 @@ All settings can be overridden via environment variables with `CART_` prefix.
 | | DATA_DIR | PROJECT_ROOT/data |
 | | CACHE_DIR | DATA_DIR/cache |
 | | REFERENCE_DIR | DATA_DIR/reference |
-| | RAG_PIPELINE_ROOT | /app/rag-chat-pipeline |
+| | RAG_PIPELINE_ROOT | /app/core/engines/precision-intelligence |
 | **Milvus** | MILVUS_HOST | localhost |
 | | MILVUS_PORT | 19530 |
 | **Collections** | COLLECTION_LITERATURE through COLLECTION_REALWORLD | cart_* names |

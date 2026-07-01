@@ -26,7 +26,7 @@ See `docs/TSC_INTELLIGENCE_ENGINE_RESEARCH_PAPER.pdf` (master volume) and
 ## Run the walking skeleton (no external services needed)
 
 ```bash
-cd ai_agent_adds/tuberous_clerosis_engine
+cd core/tuberous_clerosis_engine
 python -m pytest tests/unit -q          # core + orchestrator tests
 python scripts/dry_run_demo.py          # enroll featured patients A/B/C; assemble all 3 surfaces
 ```

@@ -140,7 +140,7 @@ the sidebar shows **API: healthy** with green indicators for all services.
 >
 > What if that entire workflow could happen in under 5 seconds?
 >
-> That is what this agent does. It searches across 11 specialized knowledge collections
+> That is what this agent does. It searches across 8 specialized knowledge collections
 > -- literature, clinical trials, resistance mechanisms, treatment guidelines, and more --
 > using vector similarity search, then synthesizes everything through Claude AI into
 > an actionable MTB packet. Let me show you."
@@ -759,7 +759,7 @@ curl -s http://localhost:8527/knowledge/stats | python3 -m json.tool
 lsof -i :8527
 
 # Start the API if needed
-cd $HCLS_HOME/ai_agent_adds/precision_oncology_agent/agent
+cd $HCLS_HOME/core/engines/precision-oncology/agent/agent
 python -m api.main
 ```
 
@@ -785,7 +785,7 @@ docker restart milvus-standalone
 
 **Fix:**
 ```bash
-cd $HCLS_HOME/ai_agent_adds/precision_oncology_agent/agent
+cd $HCLS_HOME/core/engines/precision-oncology/agent/agent
 
 # Run all seed scripts
 python scripts/setup_collections.py
@@ -840,7 +840,7 @@ pip install reportlab
 **Fix:**
 ```bash
 # Verify the export module loads
-cd $HCLS_HOME/ai_agent_adds/precision_oncology_agent/agent
+cd $HCLS_HOME/core/engines/precision-oncology/agent/agent
 python -c "from src.export import export_fhir_r4; print('OK')"
 ```
 

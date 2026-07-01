@@ -62,7 +62,7 @@ The fastest path to a running system:
 
 ```bash
 # Clone and navigate
-cd /home/adam/projects/hcls-ai-factory/ai_agent_adds/rare_disease_diagnostic_agent
+cd /home/adam/projects/hcls-ai-factory/core/agents/rare-disease-diagnostic
 
 # Set API key
 export ANTHROPIC_API_KEY="your-key-here"
@@ -185,7 +185,7 @@ docker compose -f docker-compose.dgx-spark.yml up -d \
 To deploy the agent independently of the full platform:
 
 ```bash
-cd /home/adam/projects/hcls-ai-factory/ai_agent_adds/rare_disease_diagnostic_agent
+cd /home/adam/projects/hcls-ai-factory/core/agents/rare-disease-diagnostic
 
 # Install dependencies
 pip install -r requirements.txt

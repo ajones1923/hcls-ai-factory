@@ -1,6 +1,6 @@
 # Nano Banana Pro — HCLS AI Factory: Three-Engine Architecture & 11 Intelligence Agents
 
-## IMPORTANT: Read this entire prompt before generating. This describes a single, dense, technical architecture infographic — NOT a slide deck, NOT multiple pages. Every element described below appears on ONE canvas. This diagram is the definitive visual representation of the HCLS AI Factory platform — showing the three GPU-accelerated engines and all 11 intelligence agents that together transform patient DNA into drug candidates in under 5 hours. It should be the single image that makes someone understand the entire platform architecture, scope, and clinical capability in 30 seconds of looking at it.
+## IMPORTANT: Read this entire prompt before generating. This describes a single, dense, technical architecture infographic — NOT a slide deck, NOT multiple pages. Every element described below appears on ONE canvas. This diagram is the definitive visual representation of the HCLS AI Factory platform — showing the three GPU-accelerated engines and all 8 intelligence agents that together transform patient DNA into drug candidates in under 5 hours. It should be the single image that makes someone understand the entire platform architecture, scope, and clinical capability in 30 seconds of looking at it.
 
 ---
 
@@ -127,11 +127,11 @@ Large, prominent, NVIDIA green (#76B900) arrow with label above:
 
 ---
 
-#### ENGINE BLOCK 2 (center, slightly larger than others — this is the intelligence hub) — Precision Intelligence Network
+#### ENGINE BLOCK 2 (center, slightly larger than others — this is the intelligence hub) — Precision Intelligence Engine
 
 **Header bar:**
 - Icon: Brain/network (thin-line, 24x24, navy)
-- Text: "Precision Intelligence Network" (bold, teal #1AAFCC, 14pt equivalent)
+- Text: "Precision Intelligence Engine" (bold, teal #1AAFCC, 14pt equivalent)
 - Small badge right-aligned: "STAGE 2" (navy pill, white text)
 
 **Content — 3 core component cards arranged horizontally:**
@@ -157,7 +157,7 @@ Card 3:
 - Detail: "Cross-agent coordination via HTTP" (gray, 8pt)
 - Detail: "/integrated-assessment endpoints" (gray, 8pt)
 - Detail: "55+ cross-agent functions" (gray, 8pt)
-- Metric badge: "11 agents" (green pill)
+- Metric badge: "8 agents" (green pill)
 - Icon: grid of nodes (thin-line)
 
 **Below the 3 cards — a thin dashed teal line points DOWN to Band 3** with label:
@@ -226,10 +226,10 @@ Card 4:
 
 ### ━━━ BAND 3: 11 INTELLIGENCE AGENTS (the detail layer — ~40% of canvas height) ━━━
 
-**Position:** Full-width band below the three engines. This is the agent constellation. It connects visually to Engine Block 2 (Precision Intelligence Network) via the dashed teal line.
+**Position:** Full-width band below the three engines. This is the agent constellation. It connects visually to Engine Block 2 (Precision Intelligence Engine) via the dashed teal line.
 
 **Section header bar (full width, navy #1B2333 background, white text):**
-"11 Intelligence Agents — Precision Intelligence Network"
+"11 Intelligence Agents — Precision Intelligence Engine"
 
 **Layout:** Four domain groups arranged horizontally. Each group has a teal (#1AAFCC) uppercase domain label at top, then agent cards stacked vertically below.
 
@@ -407,7 +407,7 @@ Each category label in teal (#1AAFCC, bold), values in dark gray (#333333, regul
 - ">99.7% accuracy" on DeepVariant card
 - "11.7M variants" on VCF output card
 - "3.56M vectors" on Milvus card
-- "11 agents" on agent component card
+- "8 agents" on agent component card
 - "500 molecules" on MolMIM card
 - "Pediatric Safe" on safety filter card
 - Domain-specific badges on agent cards (as specified above)
@@ -431,8 +431,8 @@ Each category label in teal (#1AAFCC, bold), values in dark gray (#333333, regul
 ## WHAT THIS DIAGRAM MUST COMMUNICATE AT A GLANCE
 
 1. **Three engines, one pipeline** — Data flows left to right: DNA goes in, drug candidates come out. The three engines are visually distinct, equally prominent, and connected by bold arrows.
-2. **11 agents organized by clinical domain** — Four domain groups (Oncology & Immunotherapy, Specialty Medicine, Diagnostics & Genomics, Clinical Operations) with every agent visible and described.
-3. **The agents are the intelligence layer** — They live inside the Precision Intelligence Network (Engine 2) and are the bridge between genomic data and therapeutic discovery.
+2. **8 agents organized by clinical domain** — Four domain groups (Oncology & Immunotherapy, Specialty Medicine, Diagnostics & Genomics, Clinical Operations) with every agent visible and described.
+3. **The agents are the intelligence layer** — They live inside the Precision Intelligence Engine (Engine 2) and are the bridge between genomic data and therapeutic discovery.
 4. **Cross-agent coordination is real** — Dashed teal lines show agents communicating across domains. This isn't 11 isolated tools — it's a coordinated network.
 5. **Every number is specific** — 11.7M variants, 3.56M vectors, 88 rare diseases, 57 cell types, 10 clinical scales, 6 risk calculators, 23 ACMG criteria. These aren't round numbers. They're verified counts.
 6. **Pediatric safety is built in** — The Therapeutic Discovery Engine explicitly shows pediatric safety filters (BBB, cardiac, hepatic, growth plate). This isn't an afterthought.

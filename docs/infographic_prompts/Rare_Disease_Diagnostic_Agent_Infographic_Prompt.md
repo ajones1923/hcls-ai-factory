@@ -56,7 +56,7 @@ Landscape 16:9. White background (#FFFFFF). Dense reference architecture poster.
 **Center:**
 - Line 1 (24pt bold, navy): **Rare Disease Diagnostic Agent**
 - Line 2 (14pt, gray): "Phenotype-Driven Diagnosis & ACMG Variant Classification"
-- Line 3 (12pt, teal): "Part of the Precision Intelligence Network — HCLS AI Factory"
+- Line 3 (12pt, teal): "Part of the Precision Intelligence Engine — HCLS AI Factory"
 
 **Right side — Capability badge (RENDER AS VISUAL CARD AT 10pt MINIMUM):**
 Seven metric pills, each 14pt bold white text on colored background:

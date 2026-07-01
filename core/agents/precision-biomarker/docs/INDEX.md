@@ -117,7 +117,7 @@ Built on the HCLS AI Factory platform:
 ### Install
 
 ```bash
-cd ai_agent_adds/precision_biomarker_agent
+cd core/agents/precision-biomarker
 pip install -r requirements.txt
 ```
 

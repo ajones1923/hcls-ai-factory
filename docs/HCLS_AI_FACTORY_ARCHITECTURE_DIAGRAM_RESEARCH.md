@@ -35,7 +35,7 @@ The three engines that power the platform are:
 
 1. **Genomic Foundation Engine** -- GPU-accelerated FASTQ-to-VCF pipeline using NVIDIA Parabricks, DeepVariant, and BWA-MEM2, reducing whole-genome analysis from 24-48 hours (CPU) to 2-4 hours (GPU).
 
-2. **Precision Intelligence Network** -- A Retrieval-Augmented Generation (RAG) architecture built on Milvus vector database (45 collections, 45,255+ vectors) and Anthropic Claude LLM, with 11 domain-specialized intelligence agents spanning oncology, cardiology, neurology, rare diseases, autoimmune conditions, pharmacogenomics, clinical trials, imaging, CAR-T therapy, single-cell genomics, and biomarker analysis.
+2. **Precision Intelligence Engine** -- A Retrieval-Augmented Generation (RAG) architecture built on Milvus vector database (45 collections, 45,255+ vectors) and Anthropic Claude LLM, with 11 domain-specialized intelligence agents spanning oncology, cardiology, neurology, rare diseases, autoimmune conditions, pharmacogenomics, clinical trials, imaging, CAR-T therapy, single-cell genomics, and biomarker analysis.
 
 3. **Therapeutic Discovery Engine** -- A 10-stage computational chemistry pipeline leveraging BioNeMo MolMIM for molecular generation, DiffDock for pose prediction, and RDKit for pharmacokinetic analysis, with 6 pediatric safety filters (blood-brain barrier permeability, cardiac safety, hepatotoxicity, teratogenicity, topological polar surface area, and molecular flexibility).
 
@@ -127,7 +127,7 @@ The Genomic Foundation Engine is the entry point of the HCLS AI Factory. It acce
 - Annotated VCF with multi-source evidence fields
 - 11.7 million variants per whole genome
 - 3.56 million variants with actionable annotations
-- Automatic handoff to the Precision Intelligence Network for embedding
+- Automatic handoff to the Precision Intelligence Engine for embedding
 
 ### 2.1.3 Performance Characteristics
 
@@ -158,11 +158,11 @@ Milvus genomic_evidence Collection
 - Annotation databases: ~50 GB (ClinVar, AlphaMissense, gnomAD)
 - Working storage per sample: ~200 GB (temporary), ~50 GB (final)
 
-## 2.2 Engine 2: Precision Intelligence Network
+## 2.2 Engine 2: Precision Intelligence Engine
 
 ### 2.2.1 Architecture Overview
 
-The Precision Intelligence Network is the cognitive core of the HCLS AI Factory. It combines a Milvus vector database with 45 purpose-built collections, the BGE-small-en-v1.5 embedding model (384 dimensions), and Anthropic Claude as the reasoning LLM, all orchestrated through 11 specialized intelligence agents.
+The Precision Intelligence Engine is the cognitive core of the HCLS AI Factory. It combines a Milvus vector database with 45 purpose-built collections, the BGE-small-en-v1.5 embedding model (384 dimensions), and Anthropic Claude as the reasoning LLM, all orchestrated through 8 specialized intelligence agents.
 
 ### 2.2.2 Milvus Vector Database
 
@@ -180,11 +180,11 @@ The Precision Intelligence Network is the cognitive core of the HCLS AI Factory.
 - nprobe: 16 (search-time parameter)
 
 **Collection Architecture:**
-The 45 collections are distributed across 11 agents, with the `genomic_evidence` collection serving as a shared, read-only resource accessible by all agents. Each agent owns between 10 and 15 domain-specific collections, and each collection stores vectors alongside structured metadata fields (VARCHAR, INT32, INT64, FLOAT, BOOL) for hybrid search and filtering.
+The 45 collections are distributed across 8 agents, with the `genomic_evidence` collection serving as a shared, read-only resource accessible by all agents. Each agent owns between 10 and 15 domain-specific collections, and each collection stores vectors alongside structured metadata fields (VARCHAR, INT32, INT64, FLOAT, BOOL) for hybrid search and filtering.
 
 ### 2.2.3 RAG Architecture
 
-The Retrieval-Augmented Generation pipeline follows a consistent pattern across all 11 agents:
+The Retrieval-Augmented Generation pipeline follows a consistent pattern across all 8 agents:
 
 1. **Query Intake** -- User query arrives via Streamlit UI or FastAPI endpoint
 2. **Query Expansion** -- Each agent implements domain-specific query expansion (synonym injection, abbreviation resolution, ontology traversal)
@@ -210,7 +210,7 @@ This knowledge graph is materialized across the 45 Milvus collections, with cros
 
 - Model: Anthropic Claude (via API)
 - Authentication: ANTHROPIC_API_KEY environment variable
-- Role: Reasoning engine for all 11 agents
+- Role: Reasoning engine for all 8 agents
 - System prompts: Agent-specific clinical personas with safety guardrails
 - Token management: Context window optimization for large evidence sets
 - Streaming: Real-time response streaming to Streamlit UIs
@@ -224,7 +224,7 @@ The Therapeutic Discovery Engine translates genomic findings into drug candidate
 ### 2.3.2 The 10-Stage Pipeline
 
 **Stage 1: Target Validation**
-- Input: Gene/protein targets from Precision Intelligence Network
+- Input: Gene/protein targets from Precision Intelligence Engine
 - Druggability assessment using structural and functional criteria
 - Target prioritization by clinical evidence strength
 
@@ -297,7 +297,7 @@ Six specialized filters for pediatric populations:
 
 ## 3.1 Agent Architecture Overview
 
-All 11 intelligence agents share a common architectural pattern:
+All 8 intelligence agents share a common architectural pattern:
 
 - **FastAPI Backend** -- RESTful API with `/health`, `/query`, `/analyze`, and domain-specific endpoints
 - **Streamlit Frontend** -- Interactive UI for clinical users
@@ -319,7 +319,7 @@ Each agent connects to the shared Milvus instance and uses the Anthropic Claude 
 | **Ports** | FastAPI: 8103, Streamlit: 8503 |
 | **Collections (11)** | onco_literature, onco_trials, onco_variants, onco_biomarkers, onco_therapies, onco_pathways, onco_guidelines, onco_resistance, onco_outcomes, onco_cases, genomic_evidence |
 | **Memory Limit** | 4 GB |
-| **Source Directory** | `ai_agent_adds/precision_oncology_agent/agent/` |
+| **Source Directory** | `core/engines/precision-oncology/agent/agent/` |
 
 **Capabilities:**
 - Somatic and germline variant interpretation using CIViC and OncoKB databases
@@ -355,7 +355,7 @@ Each agent connects to the shared Milvus instance and uses the Anthropic Claude 
 | **Ports** | FastAPI: 8104, Streamlit: 8504 |
 | **Collections (11)** | cart_literature, cart_trials, cart_constructs, cart_assays, cart_manufacturing, cart_safety, cart_biomarkers, cart_regulatory, cart_sequences, cart_realworld, genomic_evidence |
 | **Memory Limit** | 4 GB |
-| **Source Directory** | `ai_agent_adds/cart_intelligence_agent/` |
+| **Source Directory** | `core/agents/cart/` |
 
 **Capabilities:**
 - CAR construct design analysis (scFv, hinge, transmembrane, costimulatory, signaling domains)
@@ -394,7 +394,7 @@ Each agent connects to the shared Milvus instance and uses the Anthropic Claude 
 | **Ports** | FastAPI: 8102, Streamlit: 8502 |
 | **Collections (11)** | biomarker_reference, biomarker_genetic_variants, biomarker_pgx_rules, biomarker_disease_trajectories, biomarker_clinical_evidence, biomarker_nutrition, biomarker_drug_interactions, biomarker_aging_markers, biomarker_genotype_adjustments, biomarker_monitoring, genomic_evidence |
 | **Memory Limit** | 4 GB |
-| **Source Directory** | `ai_agent_adds/precision_biomarker_agent/` |
+| **Source Directory** | `core/agents/precision-biomarker/` |
 
 **Capabilities:**
 - Reference biomarker definitions with genotype-adjusted normal ranges
@@ -423,7 +423,7 @@ Each agent connects to the shared Milvus instance and uses the Anthropic Claude 
 | **Ports** | FastAPI: 8126, Streamlit: 8536 |
 | **Collections (12)** | cardio_literature, cardio_trials, cardio_imaging, cardio_electrophysiology, cardio_heart_failure, cardio_valvular, cardio_prevention, cardio_interventional, cardio_oncology, cardio_devices, cardio_guidelines, cardio_hemodynamics |
 | **Memory Limit** | 4 GB |
-| **Source Directory** | `ai_agent_adds/cardiology_intelligence_agent/` |
+| **Source Directory** | `core/engines/cardiology/` |
 
 **Capabilities:**
 - Heart failure management by phenotype (HFrEF, HFmrEF, HFpEF) with NYHA class and ACC/AHA staging
@@ -465,7 +465,7 @@ Heart failure evaluation, CAD assessment/acute coronary syndrome, arrhythmia man
 | **Ports** | FastAPI: 8528, Streamlit: 8529 |
 | **Collections (14)** | neuro_literature, neuro_trials, neuro_imaging, neuro_electrophysiology, neuro_degenerative, neuro_cerebrovascular, neuro_epilepsy, neuro_oncology, neuro_ms, neuro_movement, neuro_headache, neuro_neuromuscular, neuro_guidelines, genomic_evidence |
 | **Memory Limit** | 4 GB |
-| **Source Directory** | `ai_agent_adds/neurology_intelligence_agent/` |
+| **Source Directory** | `core/agents/neurology/` |
 
 **Capabilities:**
 - Stroke evaluation with NIHSS scoring, ASPECTS grading, and tPA/thrombectomy eligibility
@@ -507,7 +507,7 @@ Acute stroke evaluation, dementia evaluation, epilepsy focus localization, brain
 | **Ports** | FastAPI: 8106, Streamlit: 8506 |
 | **Collections (14)** | autoimmune_clinical_documents, autoimmune_patient_labs, autoimmune_autoantibody_panels, autoimmune_hla_associations, autoimmune_disease_criteria, autoimmune_disease_activity, autoimmune_flare_patterns, autoimmune_biologic_therapies, autoimmune_pgx_rules, autoimmune_clinical_trials, autoimmune_literature, autoimmune_patient_timelines, autoimmune_cross_disease, genomic_evidence |
 | **Memory Limit** | 4 GB |
-| **Source Directory** | `ai_agent_adds/precision_autoimmune_agent/` |
+| **Source Directory** | `core/agents/precision-autoimmune/` |
 
 **Capabilities:**
 - Autoantibody panel interpretation with disease pattern matching
@@ -544,7 +544,7 @@ Acute stroke evaluation, dementia evaluation, epilepsy focus localization, brain
 | **Ports** | FastAPI: 8134, Streamlit: 8544 |
 | **Collections (14)** | rd_phenotypes (18,000), rd_diseases (10,000), rd_genes (5,000), rd_variants (500,000), rd_literature (50,000), rd_trials (8,000), rd_therapies (2,000), rd_case_reports (20,000), rd_guidelines (3,000), rd_pathways (2,000), rd_registries (1,500), rd_natural_history (5,000), rd_newborn_screening (80), genomic_evidence (3,560,000) |
 | **Memory Limit** | 4 GB |
-| **Source Directory** | `ai_agent_adds/rare_disease_diagnostic_agent/` |
+| **Source Directory** | `core/agents/rare-disease-diagnostic/` |
 
 **Capabilities:**
 - HPO phenotype-driven differential diagnosis using information content scoring
@@ -576,7 +576,7 @@ Phenotype-driven diagnosis, WES/WGS interpretation, metabolic screening, dysmorp
 | **Ports** | FastAPI: 8107, Streamlit: 8507 |
 | **Collections (15)** | pgx_gene_reference, pgx_drug_guidelines, pgx_drug_interactions, pgx_hla_hypersensitivity, pgx_phenoconversion, pgx_dosing_algorithms, pgx_clinical_evidence, pgx_population_data, pgx_clinical_trials, pgx_fda_labels, pgx_drug_alternatives, pgx_patient_profiles, pgx_implementation, pgx_education, genomic_evidence |
 | **Memory Limit** | 4 GB |
-| **Source Directory** | `ai_agent_adds/pharmacogenomics_intelligence_agent/` |
+| **Source Directory** | `core/agents/pharmacogenomics/` |
 
 **Capabilities:**
 - Star allele calling and diplotype-to-phenotype translation for all CPIC pharmacogenes
@@ -611,7 +611,7 @@ Phenotype-driven diagnosis, WES/WGS interpretation, metabolic screening, dysmorp
 | **Ports** | FastAPI: 8105, Streamlit: 8505 |
 | **Collections (11)** | imaging_literature, imaging_trials, imaging_findings, imaging_protocols, imaging_devices, imaging_anatomy, imaging_benchmarks, imaging_guidelines, imaging_report_templates, imaging_datasets, genomic_evidence |
 | **Memory Limit** | 8 GB |
-| **Source Directory** | `ai_agent_adds/imaging_intelligence_agent/agent/` |
+| **Source Directory** | `core/engines/clinical-imaging/agent/agent/` |
 
 **Capabilities:**
 - Radiology finding pattern matching and differential generation
@@ -638,7 +638,7 @@ Phenotype-driven diagnosis, WES/WGS interpretation, metabolic screening, dysmorp
 | **Ports** | FastAPI: 8540, Streamlit: 8130 |
 | **Collections (12)** | sc_cell_types (5,000), sc_markers (50,000), sc_spatial (10,000), sc_tme (8,000), sc_drug_response (25,000), sc_literature (50,000), sc_methods (2,000), sc_datasets (15,000), sc_trajectories (8,000), sc_pathways (20,000), sc_clinical (12,000), genomic_evidence (3,560,000) |
 | **Memory Limit** | 8 GB |
-| **Source Directory** | `ai_agent_adds/single_cell_intelligence_agent/` |
+| **Source Directory** | `core/agents/single-cell/` |
 
 **Capabilities:**
 - Cell type annotation with Cell Ontology mapping and marker gene validation
@@ -673,7 +673,7 @@ Cell type annotation, TME profiling, drug response prediction, subclonal archite
 | **Ports** | FastAPI: 8538, Streamlit: 8128 |
 | **Collections (14)** | trial_protocols (5,000), trial_eligibility (50,000), trial_endpoints (20,000), trial_sites (30,000), trial_investigators (5,000), trial_results (3,000), trial_regulatory (2,000), trial_literature (10,000), trial_biomarkers (3,000), trial_safety (20,000), trial_rwe (2,000), trial_adaptive (500), trial_guidelines (1,000), genomic_evidence (100,000) |
 | **Memory Limit** | 4 GB |
-| **Source Directory** | `ai_agent_adds/clinical_trial_intelligence_agent/` |
+| **Source Directory** | `core/agents/clinical-trial/` |
 
 **Capabilities:**
 - Protocol design assistance with endpoint selection and sample size estimation
@@ -919,7 +919,7 @@ The choice of BGE-small-en-v1.5 balances embedding quality with computational ef
 
 ### 4.3.1 The genomic_evidence Shared Collection
 
-The `genomic_evidence` collection is the primary mechanism for cross-agent data sharing. It is created and populated by the Genomic Foundation Engine (Engine 1) and consumed read-only by all 11 intelligence agents. Its estimated size is 3,560,000 entities, representing the annotated variant set from ClinVar, AlphaMissense, and gnomAD.
+The `genomic_evidence` collection is the primary mechanism for cross-agent data sharing. It is created and populated by the Genomic Foundation Engine (Engine 1) and consumed read-only by all 8 intelligence agents. Its estimated size is 3,560,000 entities, representing the annotated variant set from ClinVar, AlphaMissense, and gnomAD.
 
 **Schema Fields (common across agents):**
 - `gene` -- Gene symbol (HUGO nomenclature)
@@ -1428,7 +1428,7 @@ Mermaid.js (https://mermaid.ai) supports multiple diagram types, each suited to 
 **Best For:** Agent architecture, collection schema relationships, data model hierarchy
 **Strengths:** Shows inheritance, composition, and relationship cardinality
 **Recommended Use Cases:**
-- Agent class hierarchy (BaseAgent --> 11 specialized agents)
+- Agent class hierarchy (BaseAgent --> 8 specialized agents)
 - CollectionConfig schema relationships
 - Pydantic model inheritance trees
 - Knowledge graph entity relationships
@@ -1540,7 +1540,7 @@ For the agent network topology diagram, a radial layout with Milvus at the cente
 
 - Center: Milvus Vector Database
 - Inner ring: The 3 engines
-- Outer ring: 11 agents grouped by category
+- Outer ring: 8 agents grouped by category
 - Connection lines: Weighted by collection count (thicker = more collections)
 
 ### 7.3.2 Grid Layout
@@ -1558,7 +1558,7 @@ For the platform overview, a strict top-down hierarchy:
 
 Level 0: Patient DNA (input)
 Level 1: Genomic Foundation Engine
-Level 2: Precision Intelligence Network (with 11 agent branches)
+Level 2: Precision Intelligence Engine (with 11 agent branches)
 Level 3: Therapeutic Discovery Engine
 Level 4: Drug Candidates (output)
 
@@ -1578,7 +1578,7 @@ Recommended structure:
 
 Recommended structure:
 - Use `graph LR` or `graph TD`
-- Central `Milvus` node connected to all 11 agents
+- Central `Milvus` node connected to all 8 agents
 - Each agent shows port numbers in node labels
 - Collection count shown on connection labels
 - Color-coded by agent group
@@ -1636,7 +1636,7 @@ Patient DNA --> Drug Candidates in <5 Hours
 | Branch | Icon Recommendation | Color |
 |--------|-------------------|-------|
 | Genomic Foundation Engine | DNA helix | Green (#2ECC71) |
-| Precision Intelligence Network | Brain/AI | Blue (#3498DB) |
+| Precision Intelligence Engine | Brain/AI | Blue (#3498DB) |
 | Therapeutic Discovery Engine | Molecule | Purple (#9B59B6) |
 
 ### 8.2.3 Level 2: Engine Components
@@ -1646,7 +1646,7 @@ Patient DNA --> Drug Candidates in <5 Hours
 - Annotation Databases
 - Performance Metrics
 
-**Precision Intelligence Network:**
+**Precision Intelligence Engine:**
 - Milvus Vector Database
 - 11 Intelligence Agents
 - Claude LLM Integration
@@ -1850,7 +1850,7 @@ Show the complete end-to-end platform architecture with the three engines as pri
 **Nodes:**
 - Input node: "Patient FASTQ" (rounded rectangle)
 - Engine 1 subgraph: "Genomic Foundation Engine" containing BWA-MEM2, DeepVariant, Annotation
-- Engine 2 subgraph: "Precision Intelligence Network" containing Milvus, 11 Agents, Claude
+- Engine 2 subgraph: "Precision Intelligence Engine" containing Milvus, 11 Agents, Claude
 - Engine 3 subgraph: "Therapeutic Discovery Engine" containing MolMIM, DiffDock, RDKit
 - Output node: "Drug Candidates" (rounded rectangle)
 
@@ -1868,7 +1868,7 @@ Root node splits into three main branches for each engine, with key metrics on c
 ## 9.2 Diagram 2: Agent Network Topology (11 Agents with Ports)
 
 ### 9.2.1 Purpose
-Show all 11 agents connected to the central Milvus database, with port numbers, collection counts, and group membership visible.
+Show all 8 agents connected to the central Milvus database, with port numbers, collection counts, and group membership visible.
 
 ### 9.2.2 Mermaid Implementation
 **Type:** Flowchart (graph LR or graph TD)
@@ -2073,7 +2073,7 @@ Multi-branch mind map: "Clinical Workflows" --> agent branches --> workflow list
 
 ### 10.2.3 Completeness
 
-- [ ] All 11 agents are represented in topology diagrams
+- [ ] All 8 agents are represented in topology diagrams
 - [ ] All 45 collections appear in data architecture diagrams
 - [ ] All 3 engines appear in platform overview
 - [ ] All 13 therapeutic areas appear in coverage maps
@@ -2228,7 +2228,7 @@ graph TD
         A2 --> A3[Multi-Source Annotation]
     end
 
-    subgraph E2["Engine 2: Precision Intelligence Network"]
+    subgraph E2["Engine 2: Precision Intelligence Engine"]
         B1[(Milvus: 45 Collections)] --> B2[11 Intelligence Agents]
         B2 --> B3[Claude LLM Reasoning]
     end
@@ -2282,19 +2282,19 @@ graph TD
 
 - `/home/adam/projects/hcls-ai-factory/docker-compose.dgx-spark.yml` -- Full stack Docker Compose
 - `/home/adam/projects/hcls-ai-factory/hcls-ai-factory-public/docker-compose.yml` -- Reference stack Docker Compose
-- `/home/adam/projects/hcls-ai-factory/ai_agent_adds/cardiology_intelligence_agent/src/collections.py` -- 12 cardiology collections
-- `/home/adam/projects/hcls-ai-factory/ai_agent_adds/clinical_trial_intelligence_agent/src/collections.py` -- 14 trial collections
-- `/home/adam/projects/hcls-ai-factory/ai_agent_adds/neurology_intelligence_agent/src/collections.py` -- 14 neurology collections
-- `/home/adam/projects/hcls-ai-factory/ai_agent_adds/rare_disease_diagnostic_agent/src/collections.py` -- 14 rare disease collections
-- `/home/adam/projects/hcls-ai-factory/ai_agent_adds/single_cell_intelligence_agent/src/collections.py` -- 12 single-cell collections
-- `/home/adam/projects/hcls-ai-factory/ai_agent_adds/pharmacogenomics_intelligence_agent/src/collections.py` -- 15 PGx collections
-- `/home/adam/projects/hcls-ai-factory/ai_agent_adds/precision_oncology_agent/agent/src/collections.py` -- 11 oncology collections
-- `/home/adam/projects/hcls-ai-factory/ai_agent_adds/cart_intelligence_agent/src/collections.py` -- 11 CAR-T collections
-- `/home/adam/projects/hcls-ai-factory/ai_agent_adds/precision_biomarker_agent/src/collections.py` -- 11 biomarker collections
-- `/home/adam/projects/hcls-ai-factory/ai_agent_adds/imaging_intelligence_agent/agent/src/collections.py` -- 11 imaging collections
-- `/home/adam/projects/hcls-ai-factory/ai_agent_adds/precision_autoimmune_agent/src/collections.py` -- 14 autoimmune collections
-- `/home/adam/projects/hcls-ai-factory/ai_agent_adds/cardiology_intelligence_agent/src/risk_calculators.py` -- 6 cardiovascular risk calculators
-- `/home/adam/projects/hcls-ai-factory/ai_agent_adds/neurology_intelligence_agent/src/clinical_scales.py` -- 10 neurological clinical scales
+- `/home/adam/projects/hcls-ai-factory/core/engines/cardiology/src/collections.py` -- 12 cardiology collections
+- `/home/adam/projects/hcls-ai-factory/core/agents/clinical-trial/src/collections.py` -- 14 trial collections
+- `/home/adam/projects/hcls-ai-factory/core/agents/neurology/src/collections.py` -- 14 neurology collections
+- `/home/adam/projects/hcls-ai-factory/core/agents/rare-disease-diagnostic/src/collections.py` -- 14 rare disease collections
+- `/home/adam/projects/hcls-ai-factory/core/agents/single-cell/src/collections.py` -- 12 single-cell collections
+- `/home/adam/projects/hcls-ai-factory/core/agents/pharmacogenomics/src/collections.py` -- 15 PGx collections
+- `/home/adam/projects/hcls-ai-factory/core/engines/precision-oncology/agent/agent/src/collections.py` -- 11 oncology collections
+- `/home/adam/projects/hcls-ai-factory/core/agents/cart/src/collections.py` -- 11 CAR-T collections
+- `/home/adam/projects/hcls-ai-factory/core/agents/precision-biomarker/src/collections.py` -- 11 biomarker collections
+- `/home/adam/projects/hcls-ai-factory/core/engines/clinical-imaging/agent/agent/src/collections.py` -- 11 imaging collections
+- `/home/adam/projects/hcls-ai-factory/core/agents/precision-autoimmune/src/collections.py` -- 14 autoimmune collections
+- `/home/adam/projects/hcls-ai-factory/core/engines/cardiology/src/risk_calculators.py` -- 6 cardiovascular risk calculators
+- `/home/adam/projects/hcls-ai-factory/core/agents/neurology/src/clinical_scales.py` -- 10 neurological clinical scales
 
 ---
 

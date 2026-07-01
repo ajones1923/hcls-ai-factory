@@ -32,7 +32,7 @@
 
 ### What This Demo Shows
 
-The CAR-T Intelligence Agent is a cross-functional AI system that searches **3,567,622 vectors across 11 specialized data collections** to answer questions about CAR-T cell therapy development. It spans the entire lifecycle from patient genomics and target identification through manufacturing, clinical trials, post-market safety, and real-world outcomes.
+The CAR-T Intelligence Agent is a cross-functional AI system that searches **3,567,622 vectors across 8 specialized data collections** to answer questions about CAR-T cell therapy development. It spans the entire lifecycle from patient genomics and target identification through manufacturing, clinical trials, post-market safety, and real-world outcomes.
 
 This is not a generic chatbot. It is a domain-specific intelligence platform that:
 
@@ -85,7 +85,7 @@ cd /home/adam/projects/hcls-ai-factory && docker compose up -d milvus
 echo $ANTHROPIC_API_KEY | head -c 10
 
 # Or check the .env file
-head -1 /home/adam/projects/hcls-ai-factory/rag-chat-pipeline/.env
+head -1 /home/adam/projects/hcls-ai-factory/core/engines/precision-intelligence/.env
 ```
 
 **Expected:** The key should start with `sk-ant-`. If missing, the agent will run in scaffold mode (retrieval works but LLM synthesis will not).
@@ -93,7 +93,7 @@ head -1 /home/adam/projects/hcls-ai-factory/rag-chat-pipeline/.env
 ### 2.3 Start the Streamlit UI
 
 ```bash
-cd /home/adam/projects/hcls-ai-factory/ai_agent_adds/cart_intelligence_agent
+cd /home/adam/projects/hcls-ai-factory/core/agents/cart
 streamlit run app/cart_ui.py --server.port 8521
 ```
 
@@ -102,7 +102,7 @@ streamlit run app/cart_ui.py --server.port 8521
 ### 2.4 Start the FastAPI Server (Optional, for API Demo)
 
 ```bash
-cd /home/adam/projects/hcls-ai-factory/ai_agent_adds/cart_intelligence_agent
+cd /home/adam/projects/hcls-ai-factory/core/agents/cart
 uvicorn api.main:app --host 0.0.0.0 --port 8522 --reload
 ```
 
@@ -158,7 +158,7 @@ The first query takes a few seconds longer because the BGE-small-en-v1.5 model n
 
 Point to the sidebar. Read the total aloud:
 
-> "This system has indexed **3,567,622 vectors** across **11 specialized collections**. That includes over 5,000 published research papers, nearly 1,000 clinical trials, safety reports, biomarker data, manufacturing records, molecular sequences, real-world registry outcomes, and -- here is the bridge to precision medicine -- **3.5 million genomic variants** from actual patient sequencing data processed through our Parabricks genomics pipeline."
+> "This system has indexed **3,567,622 vectors** across **8 specialized collections**. That includes over 5,000 published research papers, nearly 1,000 clinical trials, safety reports, biomarker data, manufacturing records, molecular sequences, real-world registry outcomes, and -- here is the bridge to precision medicine -- **3.5 million genomic variants** from actual patient sequencing data processed through our Parabricks genomics pipeline."
 
 ### Show the Collection List
 
@@ -712,10 +712,10 @@ cd /home/adam/projects/hcls-ai-factory && docker compose up -d milvus
 export ANTHROPIC_API_KEY="sk-ant-..."
 
 # Or ensure it exists in the .env file
-cat /home/adam/projects/hcls-ai-factory/rag-chat-pipeline/.env | grep ANTHROPIC_API_KEY
+cat /home/adam/projects/hcls-ai-factory/core/engines/precision-intelligence/.env | grep ANTHROPIC_API_KEY
 ```
 
-The UI will auto-load the key from `rag-chat-pipeline/.env` if the environment variable is not set.
+The UI will auto-load the key from `core/engines/precision-intelligence/.env` if the environment variable is not set.
 
 ### Problem: Slow First Query (~10-15 Seconds Before Search Starts)
 
@@ -729,7 +729,7 @@ The UI will auto-load the key from `rag-chat-pipeline/.env` if the environment v
 
 **Fix:** Run the appropriate seed script:
 ```bash
-cd /home/adam/projects/hcls-ai-factory/ai_agent_adds/cart_intelligence_agent
+cd /home/adam/projects/hcls-ai-factory/core/agents/cart
 
 # Literature
 python3 scripts/ingest_pubmed.py --max-results 5000

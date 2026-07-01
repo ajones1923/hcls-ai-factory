@@ -56,7 +56,7 @@ Create a dense, professional clinical technology infographic in landscape orient
 **Center (the dominant visual element of the title bar — large, centered, commanding):**
 - **Title (large, bold, navy #1B2333, centered):** "6 Pediatric Oncology Demos"
 - **Tagline (medium, teal #1AAFCC, centered, italic):** "Built for the hardest cases in medicine. Works for all of them."
-- **Description (smaller, gray #666666, centered):** "Each demo tells the story of a child with cancer moving through the full HCLS AI Factory pipeline. All 3 engines and all 11 agents are exercised across the 6 workflows."
+- **Description (smaller, gray #666666, centered):** "Each demo tells the story of a child with cancer moving through the full HCLS AI Factory pipeline. All 3 engines and all 8 agents are exercised across the 6 workflows."
 
 **Right side — Platform Summary box** (small, top-right corner, thin navy border, white background):
 ```
@@ -88,9 +88,9 @@ Use small NVIDIA green dots (●) before each line.
 
 **Bold green arrow →**
 
-**Column 2 — Precision Intelligence Network**
+**Column 2 — Precision Intelligence Engine**
 - Icon: Network/brain (thin-line, navy)
-- Header: "Precision Intelligence Network" (bold, navy)
+- Header: "Precision Intelligence Engine" (bold, navy)
 - Line 1: "11 AI Agents" in teal
 - Line 2: "Milvus • Claude LLM • 3.56M Vectors" (small, gray)
 - Metric badge: "Cross-Agent Coordination" (teal pill)

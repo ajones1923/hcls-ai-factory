@@ -1,6 +1,6 @@
 # Nano Banana Pro — Precision Oncology Agent on NVIDIA DGX Spark
 
-## IMPORTANT: Read this entire prompt before generating. This describes a single, dense, technical architecture infographic — NOT a slide deck. Every element described below appears on ONE canvas. This diagram represents the Precision Oncology Agent — the central orchestrator of the HCLS AI Factory's Precision Intelligence Network. It is the agent that coordinates all other agents for cancer care, with pediatric oncology (11 cancer types including B-ALL, neuroblastoma, medulloblastoma) as the primary use case. It connects to 8 peer agents and serves as the hub for Demo 1 ("DNA to Drug") and Demo 2 ("The 30-Second Tumor Board"). Landscape 16:9, reference architecture poster density.
+## IMPORTANT: Read this entire prompt before generating. This describes a single, dense, technical architecture infographic — NOT a slide deck. Every element described below appears on ONE canvas. This diagram represents the Precision Oncology Agent — the central orchestrator of the HCLS AI Factory's Precision Intelligence Engine. It is the agent that coordinates all other agents for cancer care, with pediatric oncology (11 cancer types including B-ALL, neuroblastoma, medulloblastoma) as the primary use case. It connects to 8 peer agents and serves as the hub for Demo 1 ("DNA to Drug") and Demo 2 ("The 30-Second Tumor Board"). Landscape 16:9, reference architecture poster density.
 
 ---
 
@@ -52,7 +52,7 @@ Create a dense, professional technical architecture infographic in landscape ori
 **Center:**
 - Line 1 (large, bold, navy): **Precision Oncology Agent**
 - Line 2 (medium, gray): "Molecular Tumor Board Intelligence on NVIDIA DGX Spark"
-- Line 3 (teal): "Cross-Agent Orchestrator — Hub of the Precision Intelligence Network"
+- Line 3 (teal): "Cross-Agent Orchestrator — Hub of the Precision Intelligence Engine"
 - Line 4 (small, gray): "GB10 Superchip | 128 GB Unified Memory | 28 Cancer Types | 11 Pediatric Cancers | 40+ Actionable Targets"
 
 **Right side — Orchestrator badge (prominent, unique to this agent):**

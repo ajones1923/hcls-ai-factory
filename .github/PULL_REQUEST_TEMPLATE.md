@@ -14,7 +14,7 @@ Describe the tests you ran and how to reproduce them.
 
 ```bash
 # Example
-cd ai_agent_adds/{agent_name}
+cd core/{agent_name}
 pytest tests/
 ```
 

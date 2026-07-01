@@ -11,7 +11,7 @@
 
 ### 1.1 Platform Positioning
 
-The Imaging Intelligence Agent is one of **11 intelligence agents** in the HCLS AI Factory, a three-engine precision medicine platform (Genomics, RAG/Chat, Drug Discovery) running on NVIDIA DGX Spark. It occupies the medical imaging AI niche, connecting imaging findings with genomic evidence from the shared genomic_evidence collection (3.56M vectors).
+The Imaging Intelligence Agent is one of **8 intelligence agents** in the HCLS AI Factory, a three-engine precision medicine platform (Genomics, RAG/Chat, Drug Discovery) running on NVIDIA DGX Spark. It occupies the medical imaging AI niche, connecting imaging findings with genomic evidence from the shared genomic_evidence collection (3.56M vectors).
 
 **All 11 HCLS AI Factory Intelligence Agents:**
 

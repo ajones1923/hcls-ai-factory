@@ -83,7 +83,7 @@ curl -s http://localhost:8529/health | python3 -m json.tool
 
 ```bash
 # From the agent directory
-cd /home/adam/projects/hcls-ai-factory/ai_agent_adds/precision_biomarker_agent
+cd /home/adam/projects/hcls-ai-factory/core/agents/precision-biomarker
 
 # Start backend
 python -m uvicorn api.main:app --host 0.0.0.0 --port 8529 &
@@ -617,7 +617,7 @@ interactive documentation.
 lsof -i :8528
 
 # Restart Streamlit
-cd /home/adam/projects/hcls-ai-factory/ai_agent_adds/precision_biomarker_agent
+cd /home/adam/projects/hcls-ai-factory/core/agents/precision-biomarker
 streamlit run app/biomarker_ui.py --server.port 8528
 ```
 
@@ -631,7 +631,7 @@ streamlit run app/biomarker_ui.py --server.port 8528
 lsof -i :8529
 
 # Restart FastAPI
-cd /home/adam/projects/hcls-ai-factory/ai_agent_adds/precision_biomarker_agent
+cd /home/adam/projects/hcls-ai-factory/core/agents/precision-biomarker
 python -m uvicorn api.main:app --host 0.0.0.0 --port 8529
 ```
 
@@ -669,10 +669,10 @@ export ANTHROPIC_API_KEY="sk-ant-..."
 **Fix:**
 ```bash
 # Verify demo data files exist
-ls /home/adam/projects/hcls-ai-factory/ai_agent_adds/precision_biomarker_agent/data/
+ls /home/adam/projects/hcls-ai-factory/core/agents/precision-biomarker/data/
 
 # If data is missing, reload demo patients
-cd /home/adam/projects/hcls-ai-factory/ai_agent_adds/precision_biomarker_agent
+cd /home/adam/projects/hcls-ai-factory/core/agents/precision-biomarker
 python scripts/load_demo_data.py
 ```
 

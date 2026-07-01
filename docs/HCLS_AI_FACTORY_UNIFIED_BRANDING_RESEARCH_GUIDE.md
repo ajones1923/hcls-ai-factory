@@ -45,7 +45,7 @@
 The HCLS AI Factory has undergone a remarkable transformation since its inception. What began
 as a secondary genomics acceleration pipeline — a proof-of-concept for GPU-powered variant
 calling on NVIDIA hardware — has matured into a complete precision medicine operating system.
-Today, the platform encompasses three core engines, eleven intelligence agents spanning every
+Today, the platform encompasses three core engines, eight intelligence agents spanning every
 major medical domain, and an end-to-end workflow that compresses what traditionally requires
 months of fragmented analysis into a unified pipeline completing in under five hours.
 
@@ -71,21 +71,21 @@ the same molecular foundation as the Genomic Analysis pipeline.
 
 This research guide addresses the branding gap comprehensively. It provides:
 
-- **Unified naming recommendations** for all three engines, eleven agents, and the platform
+- **Unified naming recommendations** for all three engines, eight agents, and the platform
   itself, with rationale grounded in persona research and competitive analysis
 - **Website architecture redesign** that reduces navigation from 10 tabs to 7, groups content
   by user intent rather than document type, and creates clear entry points for five distinct
   personas
 - **Visual identity specifications** including color assignments per engine, typography standards,
   and icon language that scales from infographics to GitHub badges
-- **Infographic specifications** for all eleven agents, each following a standard 8K template
+- **Infographic specifications** for all eight agents, each following a standard 8K template
   while maintaining unique visual identity through hero elements and color accents
 - **Implementation roadmap** prioritized around the GTC Europe launch date, with P0 items
   (naming updates, hero section, 3-engine visualization) completing before the event
 
 ### 1.4 Key Recommendations Summary
 
-1. Adopt three-engine naming: **Genomic Foundation Engine**, **Precision Intelligence Network**,
+1. Adopt three-engine naming: **Genomic Foundation Engine**, **Precision Intelligence Engine**,
    **Therapeutic Discovery Engine**
 2. Restructure website navigation from 10 tabs to 7: Home | Platform | Engines | Agents |
    Learn | Deploy | Community
@@ -136,7 +136,7 @@ When drug discovery capabilities were added — BioNeMo MolMIM for molecular gen
 DiffDock for binding prediction, RDKit for ADMET profiling — the naming became "Drug
 Discovery Orchestrator Agent." This introduced a new problem: the word "Agent" was now
 applied to both a processing pipeline (Drug Discovery Orchestrator) and reasoning systems
-(the 11 intelligence agents). A first-time reader could not distinguish between pipeline
+(the 8 intelligence agents). A first-time reader could not distinguish between pipeline
 functions and autonomous reasoning capabilities.
 
 ### 2.2 Current Naming Inventory
@@ -145,7 +145,7 @@ The following names are currently in use across the codebase, documentation, and
 
 | Context | Stage 1 | Stage 2 | Stage 3 |
 |---------|---------|---------|---------|
-| Code (docker-compose) | genomics-pipeline | rag-chat-pipeline | drug-discovery-pipeline |
+| Code (docker-compose) | core/engines/genomic-foundation | core/engines/precision-intelligence | core/engines/therapeutic-discovery |
 | Website (pipelines/) | GPU Genomics | Evidence RAG | Drug Discovery |
 | Landing page | Genomic Analysis | Clinical Intelligence | Drug Discovery |
 | README | Genomic Analysis | Clinical Intelligence | Drug Discovery Orchestrator Agent |
@@ -159,7 +159,7 @@ not match any of the above.
 
 ### 2.3 The Agent Ambiguity Problem
 
-The platform currently has 11 intelligence agents. These are autonomous reasoning systems
+The platform currently has 8 intelligence agents. These are autonomous reasoning systems
 that use RAG (Retrieval-Augmented Generation) to query domain-specific knowledge collections
 and provide clinical decision support. They are fundamentally different from the three
 processing pipelines — they reason, they do not just process.
@@ -176,7 +176,7 @@ data) and **Agents** (reasoning systems that interpret data and make recommendat
 
 ### 2.4 Scaling Challenges
 
-The current naming does not scale. With 11 agents today, the platform is already complex.
+The current naming does not scale. With 8 agents today, the platform is already complex.
 The roadmap includes:
 
 - Reproductive Genomics Intelligence Agent (prenatal screening, carrier testing)
@@ -218,7 +218,7 @@ target personas, we recommend:
 **Rationale:**
 - "Foundation" communicates that this stage creates the molecular layer upon which everything
   else builds. The 3.5 million variant vectors in the `genomic_evidence` collection are
-  literally the foundation for all 11 intelligence agents.
+  literally the foundation for all 8 intelligence agents.
 - "Engine" distinguishes processing pipelines from reasoning agents. An engine transforms
   input to output; an agent reasons about that output.
 - "Foundation" resonates with the AI community, where "foundation model" implies a powerful
@@ -236,17 +236,17 @@ variant vectors in `genomic_evidence` collection
 "Transforms patient DNA into 3.5 million searchable molecular vectors — the foundation for
 precision medicine intelligence."
 
-#### Precision Intelligence Network (was "Clinical Intelligence")
+#### Precision Intelligence Engine (was "Clinical Intelligence")
 
 **Rationale:**
-- "Network" captures the interconnected nature of the 11 agents. They are not isolated tools;
+- "Network" captures the interconnected nature of the 8 agents. They are not isolated tools;
   they share a common molecular foundation (`genomic_evidence`), cross-reference each other's
   domain knowledge, and collectively provide whole-patient intelligence.
 - "Precision" connects directly to the precision medicine mission and differentiates from
   generic "clinical" intelligence (which could mean billing optimization or scheduling).
-- The name scales naturally: "The Precision Intelligence Network includes 11 agents" today
+- The name scales naturally: "The Precision Intelligence Engine includes 8 agents" today
   becomes "15 agents" tomorrow without renaming.
-- Each agent can be described as "part of the Precision Intelligence Network," giving every
+- Each agent can be described as "part of the Precision Intelligence Engine," giving every
   agent immediate context and belonging.
 - A cardiologist understands that their Cardiology Intelligence Agent is part of a network;
   an oncologist understands the same about their Precision Oncology Agent. The network
@@ -277,7 +277,7 @@ delivering precision clinical reasoning across every major medical domain."
   an implementation detail, not a brand-level concept.
 
 **Technical scope:**
-Validated therapeutic targets (from Precision Intelligence Network) -> BioNeMo MolMIM
+Validated therapeutic targets (from Precision Intelligence Engine) -> BioNeMo MolMIM
 molecular generation -> DiffDock binding pose prediction -> RDKit ADMET profiling ->
 Ranked candidate list with binding affinity, drug-likeness, and toxicity scores
 
@@ -298,7 +298,7 @@ HCLS AI Factory (Platform)
 │   ├── ClinVar / AlphaMissense / gnomAD Annotation
 │   └── Milvus Vector Embedding (genomic_evidence collection)
 │
-├── Precision Intelligence Network (Stage 2 — Reasoning)
+├── Precision Intelligence Engine (Stage 2 — Reasoning)
 │   ├── Precision Oncology Agent
 │   ├── Precision Biomarker Agent
 │   ├── Precision Autoimmune Agent
@@ -321,7 +321,7 @@ HCLS AI Factory (Platform)
 
 ### 3.3 Agent Naming Convention Analysis
 
-The 11 agents currently use three naming patterns:
+The 8 agents currently use three naming patterns:
 
 | Pattern | Agents | Count |
 |---------|--------|-------|
@@ -410,7 +410,7 @@ specialty agent page or a colleague's recommendation.
 "The [Specialty] Intelligence Agent provides guideline-directed clinical decision support
 powered by RAG across [X] specialized knowledge collections. It incorporates [specific
 clinical scales], [specific guidelines], and [specific drug databases]. It is part of the
-Precision Intelligence Network — connected to 10 companion agents for cross-specialty
+Precision Intelligence Engine — connected to 10 companion agents for cross-specialty
 coordination when your patient's needs extend beyond a single domain."
 
 **Key proof points:**
@@ -442,7 +442,7 @@ entry point: GitHub repository, Google Scholar citation, or a colleague's recomm
 "GPU-accelerated genomics pipeline processes a 30x whole genome in under 2 hours on NVIDIA
 DGX Spark. BWA-MEM2 alignment, DeepVariant variant calling, multi-database annotation
 (ClinVar 4.1M records, AlphaMissense 71M predictions, gnomAD population frequencies).
-Output: 3.5 million variant vectors searchable across 11 intelligence agents via Milvus.
+Output: 3.5 million variant vectors searchable across 8 intelligence agents via Milvus.
 RAPIDS-accelerated single-cell analysis at 74x CPU speedup. Full pipeline reproducible via
 Docker Compose. Apache 2.0."
 
@@ -501,7 +501,7 @@ Evaluates tools by architecture quality, deployment simplicity, code quality, an
 health. Most likely entry point: GitHub repository or Docker Hub.
 
 **Entry message:**
-"docker compose up. 11 agents, 3 engines, on a $4,699 machine. Apache 2.0. FastAPI +
+"docker compose up. 8 agents, 3 engines, on a $4,699 machine. Apache 2.0. FastAPI +
 Streamlit + Milvus + Claude. 150+ API endpoints. 23-module shared library. Prometheus +
 Grafana monitoring. Health checks with auto-restart. Nextflow DSL2 orchestration."
 
@@ -542,7 +542,7 @@ of size or budget. Because your diagnosis should not depend on your zip code."
 - Runs on affordable hardware ($4,699 NVIDIA DGX Spark)
 - Covers rare diseases (88 conditions, 45 genes, 12 gene therapies)
 - Reduces diagnostic odyssey (from years to hours for data processing)
-- Cross-specialty coordination (11 agents, no referral delays for AI analysis)
+- Cross-specialty coordination (8 agents, no referral delays for AI analysis)
 
 **What NOT to say:**
 - Do not use technical jargon (VCF, FASTQ, Milvus, RAG)
@@ -607,7 +607,7 @@ branding:
   your specialty agent." Researcher -> "Explore the genomic pipeline." Pharma -> "See
   clinical trial intelligence." Developer -> "View the architecture." Patient/Advocate ->
   "Learn how it helps."
-- **Keep existing sections:** Metrics bar (11 agents, 3.5M variants, <5 hours), pipeline
+- **Keep existing sections:** Metrics bar (8 agents, 3.5M variants, <5 hours), pipeline
   comparison (CPU vs GPU), origin story, why open source, getting started, tech stack.
 
 #### Tab 2: Platform
@@ -634,8 +634,8 @@ New tab replacing "Pipelines." Each engine gets its own landing page:
   - Input/output specifications
   - API documentation
 
-- **Precision Intelligence Network**
-  - Network overview (11 agents, shared foundation)
+- **Precision Intelligence Engine**
+  - Network overview (8 agents, shared foundation)
   - How agents share the genomic_evidence collection
   - Cross-agent coordination capabilities
   - RAG architecture (Milvus + Claude)
@@ -645,7 +645,7 @@ New tab replacing "Pipelines." Each engine gets its own landing page:
   - Pipeline overview (Targets -> Candidates)
   - Component descriptions (BioNeMo MolMIM, DiffDock, RDKit)
   - Example outputs (ranked candidates with scores)
-  - Integration with Precision Intelligence Network
+  - Integration with Precision Intelligence Engine
   - API documentation
 
 #### Tab 4: Agents
@@ -742,12 +742,12 @@ Card 1 — Genomic Foundation Engine:
 - Key metric: "3.5M vectors | 11.7M variants | ClinVar + AlphaMissense + gnomAD"
 - CTA button: "Explore the Foundation" -> /engines/genomic-foundation/
 
-Card 2 — Precision Intelligence Network:
+Card 2 — Precision Intelligence Engine:
 - Border color: HCLS Cyan (#00B4D8)
 - Icon: Connected nodes (network graph)
-- Headline: "Precision Intelligence Network"
-- Subtext: "11 specialized agents across every major medical domain"
-- Key metric: "11 agents | 14 collections each | <5 second response time"
+- Headline: "Precision Intelligence Engine"
+- Subtext: "8 specialized agents across every major medical domain"
+- Key metric: "8 agents | 14 collections each | <5 second response time"
 - CTA button: "Meet the Agents" -> /agents/
 
 Card 3 — Therapeutic Discovery Engine:
@@ -771,7 +771,7 @@ Five persona cards with distinct icons and entry points:
 ### 5.4 Agent Landing Pages
 
 Each agent's `index.md` should follow a standardized template to ensure consistency across
-all 11 agents while allowing domain-specific content:
+all 8 agents while allowing domain-specific content:
 
 **Template structure:**
 
@@ -779,7 +779,7 @@ all 11 agents while allowing domain-specific content:
 # [Agent Name]
 > One-line description of the agent's clinical purpose
 
-**Part of the [Precision Intelligence Network](../engines/precision-intelligence-network.md)**
+**Part of the [Precision Intelligence Engine](../engines/precision-intelligence-network.md)**
 
 ## Overview
 2-3 paragraphs describing the agent's purpose, target user, and key capabilities.
@@ -816,7 +816,7 @@ Table of all collections with record counts and descriptions.
 
 ## Cross-Agent Connections
 Description of how this agent connects to other agents in the
-Precision Intelligence Network.
+Precision Intelligence Engine.
 
 ## Infographic
 ![Agent Infographic](infographic.png)
@@ -850,8 +850,8 @@ DNA into therapeutic drug candidates in under 5 hours. Built for NVIDIA DGX Spar
 ### Genomic Foundation Engine
 Patient DNA -> 3.5M annotated variant vectors...
 
-### Precision Intelligence Network
-11 specialized intelligence agents...
+### Precision Intelligence Engine
+8 specialized intelligence agents...
 
 ### Therapeutic Discovery Engine
 Validated targets -> novel drug candidates...
@@ -883,7 +883,7 @@ hcls-ai-factory/
 │   ├── index.md                       # Landing page content
 │   ├── engines/                       # NEW: Engine documentation
 │   │   ├── genomic-foundation.md      # Genomic Foundation Engine
-│   │   ├── precision-intelligence-network.md  # Precision Intelligence Network
+│   │   ├── precision-intelligence-network.md  # Precision Intelligence Engine
 │   │   └── therapeutic-discovery.md   # Therapeutic Discovery Engine
 │   ├── agents/                        # Agent documentation (11 directories)
 │   │   ├── precision-oncology/
@@ -903,12 +903,12 @@ hcls-ai-factory/
 │   └── community/                     # Contributing, changelog, roadmap
 ├── mkdocs.yml                         # Updated navigation structure
 ├── netlify.toml                       # Deployment configuration
-├── genomics-pipeline/                 # Genomic Foundation Engine source
-├── rag-chat-pipeline/                 # Precision Intelligence Network source
-├── drug-discovery-pipeline/           # Therapeutic Discovery Engine source
-├── ai_agent_adds/                     # Individual agent source code
+├── core/engines/genomic-foundation/                 # Genomic Foundation Engine source
+├── core/engines/precision-intelligence/                 # Precision Intelligence Engine source
+├── core/engines/therapeutic-discovery/           # Therapeutic Discovery Engine source
+├── core/                     # Individual agent source code
 ├── lib/hcls_common/                   # Shared library (23 modules)
-├── hls-orchestrator/                  # Nextflow + Python orchestration
+├── hcls-orchestrator/                  # Nextflow + Python orchestration
 ├── landing-page/                      # Flask landing page (:8080)
 ├── monitoring/                        # Prometheus + Grafana
 └── scripts/                           # Utility scripts
@@ -922,9 +922,9 @@ should be deferred to a major version, the mapping should be clear:
 
 | Docker Service | Unified Brand Name | Engine/Network |
 |----------------|-------------------|----------------|
-| genomics-pipeline | Genomic Foundation Engine | Engine |
-| rag-chat-pipeline | Precision Intelligence Network (core) | Network |
-| drug-discovery-pipeline | Therapeutic Discovery Engine | Engine |
+| core/engines/genomic-foundation | Genomic Foundation Engine | Engine |
+| core/engines/precision-intelligence | Precision Intelligence Engine (core) | Network |
+| core/engines/therapeutic-discovery | Therapeutic Discovery Engine | Engine |
 | biomarker-agent | Precision Biomarker Agent | Network member |
 | oncology-agent | Precision Oncology Agent | Network member |
 | autoimmune-agent | Precision Autoimmune Agent | Network member |
@@ -946,7 +946,7 @@ recognition across all touchpoints:
 | Element | Color Name | Hex Code | RGB | Usage |
 |---------|-----------|----------|-----|-------|
 | NVIDIA Brand / Genomic Foundation | NVIDIA Green | #76B900 | 118, 185, 0 | Primary accent, CTA buttons, Genomic Foundation Engine cards and borders |
-| Precision Intelligence Network | HCLS Cyan | #00B4D8 | 0, 180, 216 | Intelligence Network cards, agent page accents, secondary buttons |
+| Precision Intelligence Engine | HCLS Cyan | #00B4D8 | 0, 180, 216 | Intelligence Network cards, agent page accents, secondary buttons |
 | Therapeutic Discovery Engine | Discovery Purple | #8b5cf6 | 139, 92, 246 | Discovery Engine cards, molecule visualizations, tertiary accent |
 | Background Primary | Navy | #1B2333 | 27, 35, 51 | Page backgrounds, card backgrounds, header bars |
 | Background Deep | Deep Navy | #0a0a0f | 10, 10, 15 | Infographic backgrounds, hero section gradient end |
@@ -960,7 +960,7 @@ recognition across all touchpoints:
 **Color Usage Rules:**
 1. Engine colors should never be mixed — each engine maintains its distinct color identity
 2. On the landing page, the three-engine cards use their respective border colors
-3. Agent pages inherit the HCLS Cyan from the Precision Intelligence Network
+3. Agent pages inherit the HCLS Cyan from the Precision Intelligence Engine
 4. The NVIDIA Green remains the primary accent for platform-level elements (logo, main CTA)
 5. Status colors are consistent across all agents and engines
 
@@ -975,7 +975,7 @@ Each engine has a distinct visual vocabulary used in diagrams, infographics, and
 - Data visualization style: Linear flow (left to right), showing transformation stages
 - Metaphor: Assembly line — raw material (DNA) transformed step by step
 
-**Precision Intelligence Network — Cyan Visual Language:**
+**Precision Intelligence Engine — Cyan Visual Language:**
 - Primary icon: Network graph with 11 nodes (representing agents)
 - Background pattern: Connected dots with lines (representing neural/agent connections)
 - Gradient: #00B4D8 -> #0077b6 (cyan to deep blue)
@@ -1020,7 +1020,7 @@ Standard icons for platform elements:
 | Element | Icon | Source | Usage |
 |---------|------|--------|-------|
 | Genomic Foundation Engine | DNA helix | Custom SVG | Engine cards, navigation, diagrams |
-| Precision Intelligence Network | Network graph | Custom SVG | Engine cards, navigation, diagrams |
+| Precision Intelligence Engine | Network graph | Custom SVG | Engine cards, navigation, diagrams |
 | Therapeutic Discovery Engine | Molecule | Custom SVG | Engine cards, navigation, diagrams |
 | Agent (generic) | Brain with circuit | Material Icons | Agent list items, badges |
 | API Endpoint | Terminal cursor | Material Icons | API documentation |
@@ -1077,7 +1077,7 @@ for web display. Export formats: PNG (web), PDF (print), SVG (scalable).
 **Color scheme:** Dark navy background (#0a0a0f) with subtle grid pattern (1px lines at
 #1a1a2e, 200px spacing). Agent-specific accent color used for borders, highlights, and
 callout cards. All agents use HCLS Cyan (#00B4D8) as their primary accent since they are
-all part of the Precision Intelligence Network.
+all part of the Precision Intelligence Engine.
 
 **Typography on infographics:**
 - Agent name: Inter Bold, 120pt (8K) / 30pt (1080p)
@@ -1602,15 +1602,15 @@ applied universally:
 | Old Name | New Name | Contexts to Update |
 |----------|----------|-------------------|
 | Genomic Analysis | Genomic Foundation Engine | README, landing page, mkdocs nav, demo script, slides |
-| Clinical Intelligence | Precision Intelligence Network | README, landing page, mkdocs nav, demo script, slides |
+| Clinical Intelligence | Precision Intelligence Engine | README, landing page, mkdocs nav, demo script, slides |
 | Drug Discovery Orchestrator Agent | Therapeutic Discovery Engine | README, landing page, mkdocs nav, demo script, slides |
 | GPU Genomics (website) | Genomic Foundation Engine | mkdocs pipelines section |
-| Evidence RAG (website) | Precision Intelligence Network | mkdocs pipelines section |
+| Evidence RAG (website) | Precision Intelligence Engine | mkdocs pipelines section |
 | Drug Discovery (website) | Therapeutic Discovery Engine | mkdocs pipelines section |
 
 Each agent's README and index.md must include the line:
-> "Part of the **Precision Intelligence Network** — the HCLS AI Factory's reasoning layer
-> connecting 11 specialized intelligence agents through shared molecular evidence."
+> "Part of the **Precision Intelligence Engine** — the HCLS AI Factory's reasoning layer
+> connecting 8 specialized intelligence agents through shared molecular evidence."
 
 ### 10.2 Documentation Sync Strategy
 
@@ -1620,7 +1620,7 @@ The documentation ecosystem spans three repositories:
 3. `hcls-ai-factory-vast/` — the AI platform deployment documentation (MkDocs + Netlify)
 
 **Sync rules:**
-- Source of truth: Agent documentation lives in `ai_agent_adds/[agent]/docs/`
+- Source of truth: Agent documentation lives in `core/[agent]/docs/`
 - Public release: Curated subset copied to `hcls-ai-factory-public/docs/`
 - the platform site: Deployment-specific content only; links to public site for agent details
 - Naming convention: UPPERCASE filenames locally (e.g., `LEARNING_GUIDE.md`), lowercase
@@ -1727,17 +1727,17 @@ plugins:
 | ID | Requirement | Priority | Effort |
 |----|------------|----------|--------|
 | FR-01 | Update all references from "Genomic Analysis" to "Genomic Foundation Engine" across documentation, website, and marketing materials | P0 | Medium |
-| FR-02 | Update all references from "Clinical Intelligence" to "Precision Intelligence Network" across documentation, website, and marketing materials | P0 | Medium |
+| FR-02 | Update all references from "Clinical Intelligence" to "Precision Intelligence Engine" across documentation, website, and marketing materials | P0 | Medium |
 | FR-03 | Update all references from "Drug Discovery Orchestrator Agent" to "Therapeutic Discovery Engine" across documentation, website, and marketing materials | P0 | Medium |
 | FR-04 | Update landing page hero section with unified tagline: "From Patient DNA to Therapeutic Discovery in Under 5 Hours" | P0 | Low |
 | FR-05 | Add three-engine visualization section below hero on landing page with engine-specific colors and descriptions | P0 | High |
 | FR-06 | Add persona-based "Choose Your Path" section to landing page with 5 persona cards | P1 | Medium |
 | FR-07 | Restructure website navigation from 10 tabs to 7 tabs (Home, Platform, Engines, Agents, Learn, Deploy, Community) | P1 | High |
-| FR-08 | Create three engine landing pages: Genomic Foundation Engine, Precision Intelligence Network, Therapeutic Discovery Engine | P1 | High |
+| FR-08 | Create three engine landing pages: Genomic Foundation Engine, Precision Intelligence Engine, Therapeutic Discovery Engine | P1 | High |
 | FR-09 | Group agents by clinical domain in navigation (Oncology & Therapeutics, Cardiology & Internal Medicine, Neurology & Rare Disease, Imaging & Autoimmune) | P1 | Medium |
-| FR-10 | Add "Part of the Precision Intelligence Network" badge to all 11 agent index.md pages | P0 | Low |
-| FR-11 | Create standardized infographic for each of the 11 agents following 8K template specification | P0 | Very High |
-| FR-12 | Update GitHub README.md with unified branding, three-engine architecture, and all 11 agents | P0 | Medium |
+| FR-10 | Add "Part of the Precision Intelligence Engine" badge to all 11 agent index.md pages | P0 | Low |
+| FR-11 | Create standardized infographic for each of the 8 agents following 8K template specification | P0 | Very High |
+| FR-12 | Update GitHub README.md with unified branding, three-engine architecture, and all 8 agents | P0 | Medium |
 | FR-13 | Add structured data (JSON-LD) to all agent pages for SEO | P2 | Medium |
 | FR-14 | Synchronize naming across docker-compose labels, landing page SERVICES dict, demo script, and slide decks | P0 | Medium |
 
@@ -1747,7 +1747,7 @@ plugins:
 |----|------------|--------|--------|
 | NFR-01 | Landing page load time | Time to First Contentful Paint | < 3 seconds on 4G connection |
 | NFR-02 | Accessibility score | Lighthouse Accessibility audit | 90+ on all pages |
-| NFR-03 | Agent page consistency | Template compliance | All 11 agents follow identical structure |
+| NFR-03 | Agent page consistency | Template compliance | All 8 agents follow identical structure |
 | NFR-04 | Infographic resolution | Export resolution | 8K (7680x4320) for print, 1080p for web |
 | NFR-05 | Offline capability | Service worker coverage | All pages cached for offline reading (Material PWA plugin) |
 | NFR-06 | SEO performance | Google Search Console | All agent pages indexed within 30 days of launch |
@@ -1761,7 +1761,7 @@ plugins:
 These items are critical for the global launch and must be completed first:
 
 1. **Engine renaming across all documentation** (FR-01, FR-02, FR-03)
-   - Grep and replace across all .md files in docs/, ai_agent_adds/, and README files
+   - Grep and replace across all .md files in docs/, core/, and README files
    - Update mkdocs.yml navigation labels
    - Update landing page HTML
    - Estimated effort: 2 days (1 person)
@@ -1778,7 +1778,7 @@ These items are critical for the global launch and must be completed first:
    - Estimated effort: 1 day (frontend)
 
 4. **Agent network badge** (FR-10)
-   - Add "Part of the Precision Intelligence Network" to all 11 agent index.md
+   - Add "Part of the Precision Intelligence Engine" to all 11 agent index.md
    - Estimated effort: 2 hours
 
 5. **Agent infographics** (FR-11)
@@ -1846,7 +1846,7 @@ The branding implementation is complete when all of the following are true:
 - [ ] No instance of "Drug Discovery Orchestrator Agent" appears in any user-facing documentation
 - [ ] The landing page hero displays the unified tagline
 - [ ] The three-engine section displays correctly on desktop (1920px) and mobile (375px)
-- [ ] All 11 agent pages include the "Precision Intelligence Network" badge
+- [ ] All 11 agent pages include the "Precision Intelligence Engine" badge
 - [ ] All 11 agent infographics are available at 8K and 1080p resolution
 - [ ] The GitHub README displays the three-engine architecture
 - [ ] Lighthouse accessibility score is 90+ on landing page and all agent pages
@@ -1967,7 +1967,7 @@ LAYER 2 -- HEADER BAR (y: 0-400px)
       - Font: Inter Bold 120pt, color #FFFFFF
       - Text shadow: 0 2px 12px rgba([engine color], 0.4)
   2d. Right block (x: 7080px right-aligned, y: 120px):
-      - Badge 1: "Precision Intelligence Network" (or appropriate engine)
+      - Badge 1: "Precision Intelligence Engine" (or appropriate engine)
         - Background: rgba([engine color], 0.15)
         - Border: 1px solid rgba([engine color], 0.4)
         - Text: JetBrains Mono Medium 24pt, [engine color]
@@ -2083,7 +2083,7 @@ FILENAME:   hcls-imaging-intelligence-infographic-8k.png
 CANVAS:     7680 x 4320 pixels (8K UHD)
 BACKGROUND: radial-gradient(center, #1B2333, #0a0a0f)
 GRID:       12-column, 40px gutter, 200px margin
-COLOR:      #00B4D8 (Cyan -- Precision Intelligence Network)
+COLOR:      #00B4D8 (Cyan -- Precision Intelligence Engine)
 
 LAYER 1 -- BACKGROUND
   Glow position: upper-left quadrant (x: 1600, y: 1200)
@@ -2091,7 +2091,7 @@ LAYER 1 -- BACKGROUND
 
 LAYER 2 -- HEADER BAR
   Agent name: "Imaging Intelligence Agent"
-  Engine badge: "Precision Intelligence Network"
+  Engine badge: "Precision Intelligence Engine"
   Separator: 4px solid #00B4D8
 
 LAYER 3 -- HERO VISUAL
@@ -2166,7 +2166,7 @@ FILENAME:   hcls-precision-oncology-infographic-8k.png
 CANVAS:     7680 x 4320 pixels (8K UHD)
 BACKGROUND: radial-gradient(center, #1B2333, #0a0a0f)
 GRID:       12-column, 40px gutter, 200px margin
-COLOR:      #00B4D8 (Cyan -- Precision Intelligence Network)
+COLOR:      #00B4D8 (Cyan -- Precision Intelligence Engine)
 
 LAYER 1 -- BACKGROUND
   Glow position: center-right (x: 5000, y: 1800)
@@ -2174,7 +2174,7 @@ LAYER 1 -- BACKGROUND
 
 LAYER 2 -- HEADER BAR
   Agent name: "Precision Oncology Agent"
-  Engine badge: "Precision Intelligence Network"
+  Engine badge: "Precision Intelligence Engine"
   Separator: 4px solid #00B4D8
 
 LAYER 3 -- HERO VISUAL
@@ -2250,7 +2250,7 @@ FILENAME:   hcls-precision-biomarker-infographic-8k.png
 CANVAS:     7680 x 4320 pixels (8K UHD)
 BACKGROUND: radial-gradient(center, #1B2333, #0a0a0f)
 GRID:       12-column, 40px gutter, 200px margin
-COLOR:      #00B4D8 (Cyan -- Precision Intelligence Network)
+COLOR:      #00B4D8 (Cyan -- Precision Intelligence Engine)
 
 LAYER 1 -- BACKGROUND
   Glow position: center (x: 3840, y: 1600)
@@ -2258,7 +2258,7 @@ LAYER 1 -- BACKGROUND
 
 LAYER 2 -- HEADER BAR
   Agent name: "Precision Biomarker Agent"
-  Engine badge: "Precision Intelligence Network"
+  Engine badge: "Precision Intelligence Engine"
   Separator: 4px solid #00B4D8
 
 LAYER 3 -- HERO VISUAL
@@ -2335,7 +2335,7 @@ FILENAME:   hcls-car-t-intelligence-infographic-8k.png
 CANVAS:     7680 x 4320 pixels (8K UHD)
 BACKGROUND: radial-gradient(center, #1B2333, #0a0a0f)
 GRID:       12-column, 40px gutter, 200px margin
-COLOR:      #00B4D8 (Cyan -- Precision Intelligence Network)
+COLOR:      #00B4D8 (Cyan -- Precision Intelligence Engine)
 
 LAYER 1 -- BACKGROUND
   Glow position: center-left (x: 2000, y: 1800)
@@ -2343,7 +2343,7 @@ LAYER 1 -- BACKGROUND
 
 LAYER 2 -- HEADER BAR
   Agent name: "CAR-T Intelligence Agent"
-  Engine badge: "Precision Intelligence Network"
+  Engine badge: "Precision Intelligence Engine"
   Separator: 4px solid #00B4D8
 
 LAYER 3 -- HERO VISUAL
@@ -2425,7 +2425,7 @@ FILENAME:   hcls-precision-autoimmune-infographic-8k.png
 CANVAS:     7680 x 4320 pixels (8K UHD)
 BACKGROUND: radial-gradient(center, #1B2333, #0a0a0f)
 GRID:       12-column, 40px gutter, 200px margin
-COLOR:      #00B4D8 (Cyan -- Precision Intelligence Network)
+COLOR:      #00B4D8 (Cyan -- Precision Intelligence Engine)
 
 LAYER 1 -- BACKGROUND
   Glow position: upper-center (x: 3840, y: 1000)
@@ -2433,7 +2433,7 @@ LAYER 1 -- BACKGROUND
 
 LAYER 2 -- HEADER BAR
   Agent name: "Precision Autoimmune Agent"
-  Engine badge: "Precision Intelligence Network"
+  Engine badge: "Precision Intelligence Engine"
   Separator: 4px solid #00B4D8
 
 LAYER 3 -- HERO VISUAL
@@ -2513,7 +2513,7 @@ FILENAME:   hcls-pharmacogenomics-infographic-8k.png
 CANVAS:     7680 x 4320 pixels (8K UHD)
 BACKGROUND: radial-gradient(center, #1B2333, #0a0a0f)
 GRID:       12-column, 40px gutter, 200px margin
-COLOR:      #00B4D8 (Cyan -- Precision Intelligence Network)
+COLOR:      #00B4D8 (Cyan -- Precision Intelligence Engine)
 
 LAYER 1 -- BACKGROUND
   Glow position: center (x: 3840, y: 2000)
@@ -2521,7 +2521,7 @@ LAYER 1 -- BACKGROUND
 
 LAYER 2 -- HEADER BAR
   Agent name: "Pharmacogenomics Intelligence Agent"
-  Engine badge: "Precision Intelligence Network"
+  Engine badge: "Precision Intelligence Engine"
   Separator: 4px solid #00B4D8
 
 LAYER 3 -- HERO VISUAL
@@ -2600,7 +2600,7 @@ FILENAME:   hcls-cardiology-intelligence-infographic-8k.png
 CANVAS:     7680 x 4320 pixels (8K UHD)
 BACKGROUND: radial-gradient(center, #1B2333, #0a0a0f)
 GRID:       12-column, 40px gutter, 200px margin
-COLOR:      #00B4D8 (Cyan -- Precision Intelligence Network)
+COLOR:      #00B4D8 (Cyan -- Precision Intelligence Engine)
 
 LAYER 1 -- BACKGROUND
   Glow position: center-left (x: 2400, y: 1600)
@@ -2608,7 +2608,7 @@ LAYER 1 -- BACKGROUND
 
 LAYER 2 -- HEADER BAR
   Agent name: "Cardiology Intelligence Agent"
-  Engine badge: "Precision Intelligence Network"
+  Engine badge: "Precision Intelligence Engine"
   Separator: 4px solid #00B4D8
 
 LAYER 3 -- HERO VISUAL
@@ -2690,7 +2690,7 @@ FILENAME:   hcls-neurology-intelligence-infographic-8k.png
 CANVAS:     7680 x 4320 pixels (8K UHD)
 BACKGROUND: radial-gradient(center, #1B2333, #0a0a0f)
 GRID:       12-column, 40px gutter, 200px margin
-COLOR:      #00B4D8 (Cyan -- Precision Intelligence Network)
+COLOR:      #00B4D8 (Cyan -- Precision Intelligence Engine)
 
 LAYER 1 -- BACKGROUND
   Glow position: upper-center (x: 3840, y: 1200)
@@ -2698,7 +2698,7 @@ LAYER 1 -- BACKGROUND
 
 LAYER 2 -- HEADER BAR
   Agent name: "Neurology Intelligence Agent"
-  Engine badge: "Precision Intelligence Network"
+  Engine badge: "Precision Intelligence Engine"
   Separator: 4px solid #00B4D8
 
 LAYER 3 -- HERO VISUAL
@@ -2786,7 +2786,7 @@ FILENAME:   hcls-rare-disease-infographic-8k.png
 CANVAS:     7680 x 4320 pixels (8K UHD)
 BACKGROUND: radial-gradient(center, #1B2333, #0a0a0f)
 GRID:       12-column, 40px gutter, 200px margin
-COLOR:      #00B4D8 (Cyan -- Precision Intelligence Network)
+COLOR:      #00B4D8 (Cyan -- Precision Intelligence Engine)
 
 LAYER 1 -- BACKGROUND
   Glow position: center (x: 3840, y: 1800)
@@ -2794,7 +2794,7 @@ LAYER 1 -- BACKGROUND
 
 LAYER 2 -- HEADER BAR
   Agent name: "Rare Disease Diagnostic Agent"
-  Engine badge: "Precision Intelligence Network"
+  Engine badge: "Precision Intelligence Engine"
   Separator: 4px solid #00B4D8
 
 LAYER 3 -- HERO VISUAL
@@ -3175,7 +3175,7 @@ LAYER 7 -- FOOTER
 - QR codes on ALL 11 agent infographics linking to hcls-ai-factory.org/agents/[agent-name]
 - QR code on engine overview infographic linking to hcls-ai-factory.org
 - Business cards: front = name/role, back = QR to GitHub repo + hcls-ai-factory.org
-- One-page handout: "HCLS AI Factory at a Glance" -- 3 engines, 11 agents, key stats
+- One-page handout: "HCLS AI Factory at a Glance" -- 3 engines, 8 agents, key stats
 
 **Demo Capture**
 - Record every demo session (screen capture + webcam)
@@ -3217,7 +3217,7 @@ The website should include a clear, honest comparison table on the homepage or a
 |---|---|---|---|---|---|
 | **License** | Apache 2.0 (Free) | Proprietary | Proprietary | Proprietary | Proprietary |
 | **Hardware** | DGX Spark ($4,699) | Cloud/On-prem | Cloud | Cloud | Cloud |
-| **AI Agents** | 11 specialized | Limited modules | Imaging only | Trial only | Genomics + limited |
+| **AI Agents** | 8 specialized | Limited modules | Imaging only | Trial only | Genomics + limited |
 | **End-to-End Pipeline** | DNA to Drug Candidate | No | No | No | Partial |
 | **Genomic Pipeline** | Full (Parabricks) | Via integrations | No | No | Partial |
 | **Drug Discovery** | Yes (BioNeMo) | No | No | No | No |
@@ -3238,7 +3238,7 @@ The website should include a clear, honest comparison table on the homepage or a
 
 **The 11-Agent Argument**
 - No competitor offers more than 3 specialized clinical AI capabilities
-- HCLS AI Factory offers 11 agents covering 8 medical specialties + research
+- HCLS AI Factory offers 8 agents covering 8 medical specialties + research
 - Each agent is independently validated with hundreds of tests
 - Agents collaborate through shared vector database and cross-agent triggers
 
@@ -3499,7 +3499,7 @@ Before any documentation page is published:
 
 | Principle | What It Means | Example |
 |---|---|---|
-| **Confident, not arrogant** | State capabilities clearly; let numbers speak | "11 agents, 200,000+ lines of tested code" NOT "the most advanced platform ever built" |
+| **Confident, not arrogant** | State capabilities clearly; let numbers speak | "8 agents, 200,000+ lines of tested code" NOT "the most advanced platform ever built" |
 | **Technical, not jargon-heavy** | Use precise terminology; explain when needed | "Variant classification using 28 ACMG criteria" NOT "leveraging cutting-edge AI/ML paradigms" |
 | **Urgent, not alarmist** | Convey the stakes without fear-mongering | "4.6 years average diagnosis time for rare diseases -- we can do better" NOT "patients are DYING because of slow diagnostics!!!" |
 | **Inclusive, not preachy** | Welcome all skill levels; never condescend | "Whether you're deploying your first Docker container or your hundredth" NOT "even non-technical people can use it" |
@@ -3507,7 +3507,7 @@ Before any documentation page is published:
 ### 19.2 Word Choice
 
 **Always Use:**
-- Specific numbers: "11 agents," "539 validated tests," "$4,699"
+- Specific numbers: "8 agents," "539 validated tests," "$4,699"
 - Real clinical scenarios: "A cardiologist evaluating a patient with HFrEF..."
 - Actual test counts: "Validated with 1,966 automated tests"
 - Patient-centered framing: "Faster diagnosis means earlier treatment"
@@ -3794,7 +3794,7 @@ The following must remain internal and must never appear on the public website o
 - [ ] Prepare offline demo mode (no internet dependency)
 - [ ] Pre-record 10-minute demo video (backup for technical failures)
 - [ ] Prepare backup slide deck (20 slides, key screenshots)
-- [ ] Test all 11 agents end-to-end on demo hardware
+- [ ] Test all 8 agents end-to-end on demo hardware
 
 **Social Media Execution**
 - [ ] Begin LinkedIn agent spotlight series (Day 8: Agent 1)
@@ -3889,7 +3889,7 @@ The branding must communicate three things simultaneously:
 
 **1. Technical Credibility**
 
-200,000+ lines of tested code across 11 specialized intelligence agents. Three integrated engines spanning genomics, clinical intelligence, and drug discovery. Validated clinical algorithms with thousands of automated tests. Built on NVIDIA's most advanced accelerated computing platform. Integrated with Anthropic's Claude for reasoning, Milvus for vector search, and BioNeMo for molecular modeling. This is not a prototype or a proof of concept -- it is a production-grade platform with the engineering rigor to prove it.
+200,000+ lines of tested code across 8 specialized intelligence agents. Three integrated engines spanning genomics, clinical intelligence, and drug discovery. Validated clinical algorithms with thousands of automated tests. Built on NVIDIA's most advanced accelerated computing platform. Integrated with Anthropic's Claude for reasoning, Milvus for vector search, and BioNeMo for molecular modeling. This is not a prototype or a proof of concept -- it is a production-grade platform with the engineering rigor to prove it.
 
 **2. Clinical Impact**
 
@@ -3899,7 +3899,7 @@ Faster diagnoses: 5-7 year rare disease diagnostic odysseys compressed to minute
 
 Open source under Apache 2.0 -- anyone can use it, modify it, deploy it, build on it. Runs on a $4,699 desktop -- no cloud dependency, no vendor lock-in, no recurring fees. Available to every hospital, every research institution, every country. The 95% of the world's hospitals that cannot afford Tempus, Epic CDS, or Viz.ai now have an alternative. That is not a marketing message -- it is the entire reason this platform exists.
 
-The naming framework -- **Genomic Foundation Engine**, **Precision Intelligence Network**, **Therapeutic Discovery Engine** -- creates a clear hierarchy that scales as new agents and capabilities are added. It communicates architectural intent to engineers, clinical scope to physicians, and strategic vision to executives. It positions the platform not as a collection of tools but as a complete precision medicine operating system -- a category that did not exist before this platform created it.
+The naming framework -- **Genomic Foundation Engine**, **Precision Intelligence Engine**, **Therapeutic Discovery Engine** -- creates a clear hierarchy that scales as new agents and capabilities are added. It communicates architectural intent to engineers, clinical scope to physicians, and strategic vision to executives. It positions the platform not as a collection of tools but as a complete precision medicine operating system -- a category that did not exist before this platform created it.
 
 The website at hcls-ai-factory.org is the world's first impression of this platform. It must be simultaneously:
 - **Inspirational** for the patient advocate who needs to believe precision medicine can be accessible
@@ -3909,7 +3909,7 @@ The website at hcls-ai-factory.org is the world's first impression of this platf
 
 The recommendations in this document -- from color systems to typography, from navigation architecture to persona routing, from infographic production scripts to SEO optimization -- provide the complete framework to achieve that. Every recommendation is grounded in the platform's actual capabilities: real agent counts, real test counts, real clinical algorithms, real data inventories. The branding does not inflate; it translates.
 
-The infographics, when produced following the specifications in Section 13, will become the visual language of the platform. Shareable on LinkedIn, printable for conferences, displayable in hospital corridors, and instantly communicative of each agent's unique clinical value. The consistent 7-layer template ensures brand coherence across all 11 agents while allowing each agent's domain-specific capabilities to stand on their own.
+The infographics, when produced following the specifications in Section 13, will become the visual language of the platform. Shareable on LinkedIn, printable for conferences, displayable in hospital corridors, and instantly communicative of each agent's unique clinical value. The consistent 7-layer template ensures brand coherence across all 8 agents while allowing each agent's domain-specific capabilities to stand on their own.
 
 The implementation checklist in Section 24 is designed around the GTC Europe timeline but serves as the operational blueprint for the platform's public launch regardless of the specific event. Week 1 establishes the foundation. Week 2 captures attention. Week 3 converts attention to engagement. Month 2 builds the infrastructure for sustained growth. Month 3 and beyond scales the community and deepens clinical validation.
 

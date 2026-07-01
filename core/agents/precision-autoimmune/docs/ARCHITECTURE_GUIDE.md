@@ -1,6 +1,6 @@
 # Precision Autoimmune Intelligence Agent -- Architecture Guide
 
-Part of the HCLS AI Factory Precision Intelligence Network -- one of three GPU-accelerated engines (Genomic Foundation Engine, Precision Intelligence Network, Therapeutic Discovery Engine) that compose the end-to-end precision medicine platform on NVIDIA DGX Spark.
+Part of the HCLS AI Factory Precision Intelligence Engine -- one of three GPU-accelerated engines (Genomic Foundation Engine, Precision Intelligence Engine, Therapeutic Discovery Engine) that compose the end-to-end precision medicine platform on NVIDIA DGX Spark.
 
 Author: Adam Jones
 Date: March 2026
@@ -367,7 +367,7 @@ letters, and medication lists).
 
 ### Platform Context: 11 Intelligence Agents
 
-The Precision Autoimmune Intelligence Agent is one of 11 specialized intelligence agents within the HCLS AI Factory Precision Intelligence Network:
+The Precision Autoimmune Intelligence Agent is one of 8 specialized intelligence agents within the HCLS AI Factory Precision Intelligence Engine:
 
 | # | Agent | UI Port | API Port | Domain |
 |---|-------|---------|----------|--------|

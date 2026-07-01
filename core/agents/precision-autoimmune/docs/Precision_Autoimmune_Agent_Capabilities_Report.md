@@ -1064,7 +1064,7 @@ precision_autoimmune_agent/
 
 | Location | Path/URL | Auto-deploy |
 |---|---|---|
-| DGX Spark (local) | `ai_agent_adds/precision_autoimmune_agent/docs/` | — |
+| DGX Spark (local) | `core/agents/precision-autoimmune/docs/` | — |
 | GitHub Public | `hcls-ai-factory-public/docs/precision-autoimmune-agent/` | GitHub Pages → hcls-ai-factory.org |
 | the platform / Netlify | `hcls-ai-factory-vast/docs/precision-autoimmune-agent/` | Netlify auto-deploy |
 

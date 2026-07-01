@@ -813,7 +813,7 @@ The agent runs as part of the HCLS AI Factory `docker-compose.dgx-spark.yml`:
 
 ```yaml
 clinical-trial-agent-api:
-  build: ./ai_agent_adds/clinical_trial_intelligence_agent
+  build: ./core/agents/clinical-trial
   ports:
     - "8538:8538"
   environment:

@@ -1995,7 +1995,7 @@ environment or `.env` file.
 | DATA_DIR         | `{PROJECT_ROOT}/data`           | Data file directory            |
 | CACHE_DIR        | `{PROJECT_ROOT}/cache`          | Cache directory                |
 | REFERENCE_DIR    | `{PROJECT_ROOT}/reference`      | Reference file directory       |
-| RAG_PIPELINE_ROOT| `<parent>/rag-chat-pipeline`    | Shared RAG pipeline root       |
+| RAG_PIPELINE_ROOT| `<parent>/core/engines/precision-intelligence`    | Shared RAG pipeline root       |
 
 ## Milvus
 

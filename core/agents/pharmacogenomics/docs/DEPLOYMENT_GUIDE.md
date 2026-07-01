@@ -54,7 +54,7 @@
 ### 2.2 Quick Start
 
 ```bash
-cd ai_agent_adds/pharmacogenomics_intelligence_agent
+cd core/agents/pharmacogenomics
 
 # Create environment file
 cat > .env << 'EOF'

@@ -217,7 +217,7 @@ Evidence-backed response to user
 
 ### Project Structure
 ```
-~/rag-chat-pipeline/
+~/core/engines/precision-intelligence/
 ├── docker-compose.yml          # Milvus standalone
 ├── ingest_evidence.py          # VCF → embeddings → Milvus
 ├── chat_app.py                 # Streamlit interface

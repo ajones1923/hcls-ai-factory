@@ -159,7 +159,7 @@ The fastest path from zero to running. All commands are run from the
 
 ```bash
 git clone https://github.com/your-org/hcls-ai-factory.git
-cd hcls-ai-factory/ai_agent_adds/precision_biomarker_agent
+cd hcls-ai-factory/core/agents/precision-biomarker
 ```
 
 ### 3.2 Configure Environment
@@ -254,7 +254,7 @@ iterating on analysis modules.
 ### 4.1 Create Virtual Environment
 
 ```bash
-cd ai_agent_adds/precision_biomarker_agent
+cd core/agents/precision-biomarker
 
 python3 -m venv .venv
 source .venv/bin/activate
@@ -495,7 +495,7 @@ Requires=docker.service
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-WorkingDirectory=/home/adam/projects/hcls-ai-factory/ai_agent_adds/precision_biomarker_agent
+WorkingDirectory=/home/adam/projects/hcls-ai-factory/core/agents/precision-biomarker
 ExecStart=/usr/bin/docker compose -f docker-compose.yml -f docker-compose.dgx.yml up -d
 ExecStop=/usr/bin/docker compose down
 TimeoutStartSec=300
@@ -868,7 +868,7 @@ docker run --rm \
 ### 7.6 Shared `genomic_evidence` Collection
 
 The `genomic_evidence` collection is created and managed by the main
-RAG Chat Pipeline (`rag-chat-pipeline/`). The Biomarker Agent connects
+RAG Chat Pipeline (`core/engines/precision-intelligence/`). The Biomarker Agent connects
 to it in **read-only** mode:
 
 - The agent never inserts, updates, or deletes records in `genomic_evidence`
@@ -1169,7 +1169,7 @@ if [ "$HTTP_CODE" != "200" ]; then
         | tee -a /var/log/biomarker-health.log
 
     # Attempt container restart
-    cd /home/adam/projects/hcls-ai-factory/ai_agent_adds/precision_biomarker_agent
+    cd /home/adam/projects/hcls-ai-factory/core/agents/precision-biomarker
     docker compose restart biomarker-api
 
     # Optional: send email alert
@@ -1181,7 +1181,7 @@ MILVUS_STATUS=$(curl -sf http://localhost:9091/healthz || echo "FAIL")
 if [ "$MILVUS_STATUS" != "OK" ]; then
     echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] ALERT: Milvus health check failed" \
         | tee -a /var/log/biomarker-health.log
-    cd /home/adam/projects/hcls-ai-factory/ai_agent_adds/precision_biomarker_agent
+    cd /home/adam/projects/hcls-ai-factory/core/agents/precision-biomarker
     docker compose restart milvus-standalone
 fi
 ```

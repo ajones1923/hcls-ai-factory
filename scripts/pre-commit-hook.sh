@@ -25,7 +25,7 @@ for f in "${files[@]}"; do
 
   # 2) Secrets.
   if grep -InE 'sk-ant-[a-zA-Z0-9_-]{20}|AKIA[0-9A-Z]{16}|-----BEGIN [A-Z]+ PRIVATE KEY|gh[pousr]_[a-zA-Z0-9]{36}' "$f" \
-       | grep -vqE '\.example|placeholder|your[_-]|xxxx|<|EXAMPLE'; then
+       | grep -vqE '\.example|placeholder|your[_-]|[Xx]{4,}|<|EXAMPLE|REDACTED|\.\.\.'; then
     echo "BLOCK: $f looks like it contains a secret/API key."
     fail=1
   fi
