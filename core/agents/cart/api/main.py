@@ -200,6 +200,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ── Governance gates (shared platform layer) ──
+# Adds request-id/timing + a /governance surface; endpoints can additionally call
+# require_valid_input()/honesty_flags() from hcls_common.api_gate. Degrades
+# gracefully if hcls_common is not installed so the service always starts.
+try:
+    from hcls_common.api_gate import install_governance
+
+    install_governance(app, service="cart", capability_id="cart-intelligence-agent")
+except Exception as _gov_err:  # noqa: BLE001
+    logger.warning("governance gates not installed (hcls_common unavailable): %s", _gov_err)
+
 
 # ── Auth middleware (optional, based on API_KEY setting) ──
 _AUTH_SKIP_PATHS = {"/health", "/healthz", "/metrics", "/docs", "/openapi.json"}
