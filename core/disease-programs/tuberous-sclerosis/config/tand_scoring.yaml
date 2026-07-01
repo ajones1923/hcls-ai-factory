@@ -1,0 +1,22 @@
+# TAND deterministic scoring configuration (PRD §3 FR-TS-2; master paper §11).
+# Per-marker weights, recency decay, recurrence bonus, and the flag threshold — the tunable,
+# transparent layer over the Marshall-Hagedorn discourse-marker taxonomy. Editing this file
+# (not code) changes how longitudinal TAND signal is aggregated into briefing flags.
+
+marker_weights:
+  hedging: 1.0
+  deferral: 1.0
+  third_party_attribution: 0.8
+  conditional: 1.0
+  follow_up_without_formalization: 1.5
+
+base_mention_weight: 1.0        # weight of a cluster mention carrying no discourse marker
+cluster_flag_threshold: 2.5     # weighted longitudinal score at/above which a cluster is flagged
+
+recency:
+  enabled: true
+  half_life_months: 18          # older mentions decay; a mention this many months back ~ half weight
+  reference_date: "2025-12-01"  # "now" for the synthetic timeline (deterministic)
+
+recurrence_bonus: 0.4           # added per repeat note in the same cluster (recurrence matters)
+negation: true                  # skip polarity=absent spans (a DENIED concern is not a signal)

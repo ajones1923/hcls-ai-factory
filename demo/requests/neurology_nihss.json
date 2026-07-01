@@ -1,0 +1,20 @@
+{
+  "scale_name": "nihss",
+  "items": {
+    "1a_loc": 0,
+    "1b_loc_questions": 0,
+    "1c_loc_commands": 0,
+    "2_gaze": 0,
+    "3_visual": 0,
+    "4_facial_palsy": 0,
+    "5a_motor_left_arm": 0,
+    "5b_motor_right_arm": 0,
+    "6a_motor_left_leg": 0,
+    "6b_motor_right_leg": 0,
+    "7_limb_ataxia": 0,
+    "8_sensory": 0,
+    "9_language": 0,
+    "10_dysarthria": 0,
+    "11_extinction": 0
+  }
+}

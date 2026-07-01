@@ -1,0 +1,223 @@
+flowchart TB
+    %% ── Styling ──────────────────────────────────────────────
+    classDef inputNode fill:#E8F4F8,stroke:#1AAFCC,stroke-width:2px,color:#1B2333,font-weight:bold
+    classDef nvidiaNode fill:#EFF8E8,stroke:#76B900,stroke-width:2px,color:#1B2333
+    classDef openNode fill:#F0FBFD,stroke:#1AAFCC,stroke-width:2px,color:#1B2333
+    classDef planeLabel fill:#1B2333,stroke:#1B2333,color:#FFFFFF,font-weight:bold
+    classDef workflowNode fill:#FFF8E1,stroke:#F5A623,stroke-width:2px,color:#1B2333
+    classDef outputNode fill:#F3E8FF,stroke:#7C3AED,stroke-width:2px,color:#1B2333
+    classDef clinicalNode fill:#FEE2E2,stroke:#DC2626,stroke-width:2px,color:#1B2333,font-weight:bold
+    classDef factoryNode fill:#E0E7FF,stroke:#4338CA,stroke-width:2px,color:#1B2333,font-weight:bold
+    classDef canonNode fill:#D1FAE5,stroke:#059669,stroke-width:2px,color:#1B2333,font-weight:bold
+    classDef hwAccelNode fill:#FEF3C7,stroke:#D97706,stroke-width:2px,color:#1B2333,font-weight:bold
+
+    %% ── Imaging Sources ──────────────────────────────────────
+    subgraph SOURCES["  Imaging Sources  "]
+        direction LR
+        CT["CT Studies\n(Head / Chest / Abdomen)"]
+        MRI["MRI Studies\n(Brain / MSK / Cardiac)"]
+        XR["X-Ray / CXR\n(Chest / MSK)"]
+    end
+    CT:::inputNode
+    MRI:::inputNode
+    XR:::inputNode
+
+    %% ── DICOM Ingestion ──────────────────────────────────────
+    subgraph INGEST["  DICOM Ingestion  "]
+        direction LR
+        STOW["DICOMweb\nSTOW-RS"]
+        CSTORE["DIMSE\nC-STORE"]
+        EVENTPULL["Event-Triggered\nPull from PACS/VNA"]
+    end
+    STOW:::openNode
+    CSTORE:::openNode
+    EVENTPULL:::openNode
+
+    %% ══════════════════════════════════════════════════════════
+    %% DGX Spark Software Stack
+    %% ══════════════════════════════════════════════════════════
+    subgraph DGXSTACK["  DGX Spark Software Stack  —  Imaging AI Agent  "]
+
+        %% ── Data Layer ───────────────────────────────────────
+        subgraph DATALAYER["  Data Layer  "]
+            direction TB
+            NVME["Local NVMe Storage\nGPUDirect Storage\n128 GB unified memory\nZero-copy GPU access"]
+            LOCALNS["Local Filesystem\nNamespace\nSingle-site MVP scope\nPath to multi-site at scale"]
+            subgraph CANONICAL["  Canonical Imaging State  "]
+                direction LR
+                DICOM_ORIG["Original DICOM\n(immutable evidence)"]
+                DERIVED["Derived Artifacts\nSegmentations / Masks\nHeatmaps / Measurements"]
+                EMBED["Semantic Embeddings\nStudy / Series / Lesion\n(384-dim vectors)"]
+                STRUCT["Structured Findings\nDICOM SR compatible\nQueryable clinical state"]
+                PROV["Provenance Bundles\nModel ID / Version\nParams / Lineage / Timestamps"]
+            end
+        end
+        NVME:::nvidiaNode
+        LOCALNS:::nvidiaNode
+        DICOM_ORIG:::canonNode
+        DERIVED:::canonNode
+        EMBED:::canonNode
+        STRUCT:::canonNode
+        PROV:::canonNode
+
+        %% ── Execution Layer ──────────────────────────────────
+        subgraph EXECLAYER["  Execution Layer  "]
+            direction TB
+            MONAIDEPLOY["MONAI Deploy + Nextflow\nContainerized MAPs\nPipeline DAG orchestration\nEvent-driven triggers"]
+            AGENTFW["LangChain / LangGraph\nAgent orchestration\nMCP Tool Server / Agent personas\nCheckpointing / Observability"]
+
+            subgraph NVSTACK["  NVIDIA Accelerated Computing  "]
+                direction LR
+                DGX["DGX Spark → B200 → SuperPOD\nGPU compute substrate\n$4K proof → $500K dept → $7M+ enterprise"]
+                MODELZOO["MONAI Model Zoo\n3D U-Net / RetinaNet\nSegResNet / DenseNet-121\nSwinUNETR"]
+                NIM["NVIDIA NIM\nInference microservices\nVersioned / Auto-scaling\nNVAIE licensed"]
+            end
+
+            FLARE["NVIDIA FLARE\nFederated learning\nacross institutions\nPrivacy-preserving"]
+        end
+        MONAIDEPLOY:::nvidiaNode
+        AGENTFW:::openNode
+        DGX:::nvidiaNode
+        MODELZOO:::nvidiaNode
+        NIM:::nvidiaNode
+        FLARE:::nvidiaNode
+
+        %% ── Reasoning Layer ──────────────────────────────────
+        subgraph REASONLAYER["  Reasoning Layer  "]
+            direction LR
+            PGVECTOR["PostgreSQL + pgvector\nStructured SQL queries\nVector similarity search\nHybrid queries"]
+            RAGPIPE["RAG Pipeline\nNIM LLM Serving\nEvidence grounding\nCross-modal enrichment"]
+            LONGITUDINAL["Longitudinal\nComparison\nPrior retrieval\nDelta analysis"]
+            COHORTS["Cohort Retrieval\nEmbedding similarity\nPopulation-scale\nOutcomes research"]
+        end
+        PGVECTOR:::openNode
+        RAGPIPE:::openNode
+        LONGITUDINAL:::openNode
+        COHORTS:::openNode
+    end
+
+    %% ── Reference Agent Workflows ────────────────────────────
+    subgraph WORKFLOWS["  Agent Workflows  —  Multi-Stage Inference  "]
+        direction LR
+        W_HEAD["CT Head\nHemorrhage Triage\n< 90 sec\nSensitivity > 95%"]
+        W_CHEST["CT Chest\nLung Nodule Tracking\n< 5 min\nDetection > 90% >= 4mm"]
+        W_CXR["CXR\nRapid Findings\n< 30 sec\nPneumothorax > 95%"]
+        W_MRI["MRI Brain\nMS Lesion Tracking\nLongitudinal deltas\nDisease activity"]
+    end
+    W_HEAD:::workflowNode
+    W_CHEST:::workflowNode
+    W_CXR:::workflowNode
+    W_MRI:::workflowNode
+
+    %% ── Clinical Output Encoding ─────────────────────────────
+    subgraph OUTPUTS["  Clinical Output Encoding  "]
+        direction LR
+        DICOMSR["DICOM SR\nStructured\nFindings"]
+        GSPS["GSPS\nOverlay\nAnnotations"]
+        FHIR["FHIR\nDiagnostic\nReport"]
+        TRIAGE["Triage &\nWorklist\nPrioritization"]
+    end
+    DICOMSR:::outputNode
+    GSPS:::outputNode
+    FHIR:::outputNode
+    TRIAGE:::outputNode
+
+    %% ── Clinical Destinations ────────────────────────────────
+    subgraph CLINICAL["  Clinical Systems  "]
+        direction LR
+        PACS["PACS\n(System of Record)"]
+        EHR["EHR"]
+        RADIOLOGIST["Radiologist\nClinician-in-the-Loop\nFDA SaMD Aligned"]
+    end
+    PACS:::clinicalNode
+    EHR:::clinicalNode
+    RADIOLOGIST:::clinicalNode
+
+    %% ── HCLS AI Factory (broader platform) ───────────────────
+    subgraph FACTORY["  HCLS AI Factory  —  Multimodal Patient Care  "]
+        direction LR
+        GENOMICS["Genomics Pipeline\nParabricks\nSomatic / Germline\n30hr CPU → 10min GPU"]
+        CLINICALLLM["Clinical Reasoning\nNIM LLM Serving\nEvidence Retrieval"]
+        DRUGDISC["Drug Discovery\nBioNeMo\n200+ Adopters\nCandidate Scoring"]
+        BIOMARKER["Biomarker Intelligence\nAgent\nGenomic + Imaging\nFusion"]
+    end
+    GENOMICS:::factoryNode
+    CLINICALLLM:::factoryNode
+    DRUGDISC:::factoryNode
+    BIOMARKER:::factoryNode
+
+    %% ── Deployment Scale ─────────────────────────────────────
+    subgraph DEPLOY["  Deployment Scale  "]
+        direction LR
+        SPARK["Phase 1\nDGX Spark\n$4K / 128 GB\nProof Build"]
+        DEPT["Phase 2\nDGX B200 Cluster\n$500K-$1M\nDepartmental"]
+        MULTI["Phase 3\nMulti-Site\n$2M-$4M\nFLARE + PACS"]
+        ENTERPRISE["Phase 4\nDGX SuperPOD\n$7M-$60M+\nThousands of studies"]
+    end
+    SPARK:::nvidiaNode
+    DEPT:::nvidiaNode
+    MULTI:::nvidiaNode
+    ENTERPRISE:::nvidiaNode
+
+    %% ══════════════════════════════════════════════════════════
+    %% CONNECTIONS
+    %% ══════════════════════════════════════════════════════════
+
+    %% Ingestion flow
+    SOURCES --> INGEST
+    INGEST --> NVME
+
+    %% Data Layer internal
+    NVME <--> LOCALNS
+    NVME --> CANONICAL
+
+    %% Data → Execution
+    CANONICAL --> MONAIDEPLOY
+    MONAIDEPLOY --> AGENTFW
+    AGENTFW --> NVSTACK
+    MONAIDEPLOY --> NVSTACK
+    FLARE -.->|"Multi-site model\nimprovement"| NVSTACK
+
+    %% Execution → Canonical (outputs persisted)
+    NVSTACK -->|"Derived artifacts\npersisted back"| CANONICAL
+
+    %% Execution → Workflows
+    NVSTACK --> WORKFLOWS
+
+    %% Data → Reasoning
+    CANONICAL --> PGVECTOR
+    EMBED --> COHORTS
+    LOCALNS -->|"Prior study\nretrieval"| LONGITUDINAL
+
+    %% Reasoning feeds Workflows
+    REASONLAYER -->|"Evidence / Priors\nCohort context"| WORKFLOWS
+
+    %% Workflows → Output Encoding
+    WORKFLOWS --> OUTPUTS
+
+    %% Output → Clinical
+    DICOMSR --> PACS
+    GSPS --> PACS
+    FHIR --> EHR
+    TRIAGE --> RADIOLOGIST
+
+    %% ── Cross-Modal Links to HCLS AI Factory ─────────────────
+    STRUCT -->|"Imaging phenotype\ntriggers genomic\nworkflow"| GENOMICS
+    GENOMICS -->|"Molecular context\nenriches imaging\nfindings"| RAGPIPE
+    RAGPIPE <--> CLINICALLLM
+    GENOMICS --> DRUGDISC
+    GENOMICS --> BIOMARKER
+    BIOMARKER -->|"Fused biomarker\nprofile"| RAGPIPE
+    W_CHEST -.->|"Lung-RADS 4B+\ntumor profiling"| GENOMICS
+    DRUGDISC -.->|"Candidate scoring\nfor treatment\nstratification"| RAGPIPE
+
+    %% Genomics → Imaging (reverse path)
+    DRUGDISC -.->|"Trial endpoints\nRECIST measurements"| W_CHEST
+
+    %% Governance annotation
+    PROV -.->|"Audit trail / Reproducibility\nPredetermined change control"| RADIOLOGIST
+
+    %% Deployment progression
+    SPARK --> DEPT
+    DEPT --> MULTI
+    MULTI --> ENTERPRISE

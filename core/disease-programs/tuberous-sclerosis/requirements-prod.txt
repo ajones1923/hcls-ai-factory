@@ -1,0 +1,9 @@
+# Production stack deps (PRD §2.4/§2.5). The core runs without these via fallbacks;
+# the Docker image installs them so the engine uses the real services.
+redis>=5.0
+minio>=7.2
+langgraph>=0.2
+statsmodels>=0.14
+psycopg2-binary>=2.9
+pymilvus>=2.4
+sentence-transformers>=2.2

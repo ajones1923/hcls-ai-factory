@@ -1,0 +1,11 @@
+# Milvus user overrides — mounted as /milvus/configs/user.yaml
+# Increases flush rate limit to prevent agent deadlocks when
+# multiple agents flush simultaneously.
+quotaAndLimits:
+  flushRate:
+    enabled: true
+    max: -1
+    collection:
+      max: 10.0  # Allow 10 flushes/sec per collection (was 0.1)
+    db:
+      max: -1

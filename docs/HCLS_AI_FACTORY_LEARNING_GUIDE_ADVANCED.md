@@ -12,7 +12,7 @@ tags:
 >
 > **What You'll Learn:** Deep technical analysis of the HCLS AI Factory architecture, from BWA-MEM2 seed-and-extend algorithms through diffusion-based molecular docking, with emphasis on algorithmic design decisions, scaling bottlenecks, and clinical translation barriers.
 >
-> License: Apache 2.0 | Date: March 2026
+> License: Apache 2.0 | Date: February 2026
 
 ---
 
@@ -87,11 +87,11 @@ Google DeepVariant reframes variant calling as an image classification problem. 
 
 ---
 
-## Chapter 2: Precision Intelligence Engine — Variant Annotation and Multi-Database Integration
+## Chapter 2: Precision Intelligence Network — Variant Annotation and Multi-Database Integration
 
 ### 2.1 ClinVar: Clinical Variant Classification
 
-ClinVar (NCBI) is a freely accessible archive of relationships between human variants and phenotypes. The HCLS AI Factory integrates the March 2026 release containing 4.1 million variant-condition records.
+ClinVar (NCBI) is a freely accessible archive of relationships between human variants and phenotypes. The HCLS AI Factory integrates the February 2026 release containing 4.1 million variant-condition records.
 
 **Classification system (ACMG/AMP):**
 - **Pathogenic (P):** Strong evidence of disease causation
@@ -150,7 +150,7 @@ VCF (11.7M variants)
 
 ---
 
-## Chapter 3: Precision Intelligence Engine — Vector Database Architecture and RAG
+## Chapter 3: Precision Intelligence Network — Vector Database Architecture and RAG
 
 ### 3.1 Milvus Schema Design
 
@@ -440,16 +440,11 @@ Oxford Nanopore and PacBio long-read technologies can detect structural variants
 
 ### 8.4 Pharmacogenomics Integration
 
-The Precision Intelligence Engine includes 11 intelligence agents covering oncology, biomarkers, CAR-T therapy, imaging, autoimmune disease, pharmacogenomics, cardiology, clinical trials, rare disease, neurology, and single-cell analysis. The knowledge base includes 11 pharmacogenomics genes (CYP2D6, CYP2C19, CYP3A4, DPYD, TPMT, etc.). Future extensions could:
+The Precision Intelligence Network includes 11 intelligence agents covering oncology, biomarkers, CAR-T therapy, imaging, autoimmune disease, pharmacogenomics, cardiology, clinical trials, rare disease, neurology, and single-cell analysis. The knowledge base includes 11 pharmacogenomics genes (CYP2D6, CYP2C19, CYP3A4, DPYD, TPMT, etc.). Future extensions could:
 - Star allele calling with PharmCAT
 - Drug-drug interaction prediction
 - Dosing recommendations based on metabolizer status
 
 ---
 
-*HCLS AI Factory Learning Guide: Advanced — Apache 2.0 | March 2026*
-
----
-
-!!! warning "Clinical Decision Support Disclaimer"
-    The HCLS AI Factory platform and all intelligence agents described in this document are clinical decision support research tools. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.
+*HCLS AI Factory Learning Guide: Advanced — Apache 2.0 | February 2026*

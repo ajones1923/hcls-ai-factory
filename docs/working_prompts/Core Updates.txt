@@ -1,0 +1,7 @@
+-On https://github.com/ajones1923/hcls-ai-factory below "See It in Action" and above "Origin", can you add the text "Full HCLS AI Factory" in the same font as "Origin" with The HCLS AI Factory - 3 Engine and 11 Agents Architecture Infographic.jpg from /home/adam/projects/hcls-ai-factory/media/infographics-updates/JPEGs embedded within?
+
+-On https://hcls-ai-factory.org, Above "What It Is" can you embedded The HCLS AI Factory - 3 Engine and 11 Agents Architecture Infographic.jpg from /home/adam/projects/hcls-ai-factory/media/infographics-updates/JPEGs? Can you also make sure that this embedded infographic has "Click image to expand" under and that the infographic expands when you click of it so it can be viewed larger?
+
+-Can you go back through https://hcls-ai-factory.org/HCLS_AI_FACTORY_LEARNING_GUIDE_FOUNDATIONS_UNIFIED ensuring that it is completely up to date with the 3 Engines and 11 Agents? This learning guide will be a primary resource that individuals will utilize and I need it to be 10/10 amazing. Also go through it in detail to ensure that everything is technically accurate and flows/reads well?
+
+-Since we just updated the Learning Guide - Unified Foundation, can we create one with the same level of detail named "Learning Guide - Unified Advanced" that is completely up to date with the 3 Engines and 11 Agents? Once completed can it be placed under the Learning Guide - Unified Advanced section on https://hcls-ai-factory.org

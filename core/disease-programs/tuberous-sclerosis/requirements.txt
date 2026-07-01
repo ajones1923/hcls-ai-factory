@@ -1,0 +1,22 @@
+# TSC Intelligence Engine — Engine 7, HCLS AI Factory (Apache 2.0)
+# Core (required for the runnable foundational core / walking skeleton):
+pydantic>=2.0
+pydantic-settings>=2.0
+pyyaml>=6.0
+numpy>=1.26
+fastapi>=0.109
+uvicorn[standard]>=0.27
+streamlit>=1.30
+anthropic>=0.40           # tiered Claude models (Haiku/Sonnet/Opus); optional at runtime
+pytest>=8.0
+
+# Orchestration / state / RAG (prod stack; the core runs without these via SQLite + stubs):
+# langgraph>=0.2          # production orchestrator runtime (deterministic router runs without it)
+# psycopg2-binary>=2.9    # PostgreSQL event store (SQLite is the default dev backend)
+# redis>=5.0              # ephemeral state (TTL keys)
+# pymilvus>=2.4           # tsc_literature RAG collection
+# sentence-transformers>=2.2  # embeddings (BAAI/bge-large-en-v1.5 + BiomedBERT-derived)
+
+# Agent-specific (added as each agent lands):
+# statsmodels>=0.14       # Trajectory Modeler: mixed-effects / survival (W4)
+# pysam, cyvcf2           # Variant Curator: BAM/VCF handling (W2-3)  [+ samtools/bcftools/BAMSurgeon system tools]

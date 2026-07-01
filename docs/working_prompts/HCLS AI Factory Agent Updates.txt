@@ -1,0 +1,70 @@
+For https://hcls-ai-factory.org,
+
+-Create an Architecture Guide for the Precision Oncology Agent
+
+-Create an Architecture Guide for the Imaging Intelligence Agent
+
+-Create an Architecture Guide for the Precision Autoimmune Agent
+
+-Create an Architecture Guide for the Precision Biomarker Agent
+
+-Create an Design Document for the Single-Cell Intelligence Agent
+
+-Create an Design Document for the Clinical Trial Intelligence Agent
+
+-Create an Design Document for the Cardiology Intelligence Agent
+
+-Create an Design Document for the Pharmacogenomics Intelligence Agent
+
+-Create an Design Document for the Neurology Intelligence Agent
+
+-Create an Design Document for the Rare Disease Diagnostic Agent
+
+-Remove https://hcls-ai-factory.org/single-cell-intelligence-agent/single-cell-intelligence-agent-research-paper
+
+-Remove https://hcls-ai-factory.org/single-cell-intelligence-agent/production-readiness-report
+
+-Remove https://hcls-ai-factory.org/single-cell-intelligence-agent/single-cell-intelligence-agent-research-paper
+
+-Remove https://hcls-ai-factory.org/clinical-trial-intelligence-agent/production-readiness-report
+
+-Remove https://hcls-ai-factory.org/clinical-trial-intelligence-agent/clinical-trial-intelligence-agent-research-paper
+
+-Remove https://hcls-ai-factory.org/cardiology-intelligence-agent/production-readiness-report
+
+-Remove https://hcls-ai-factory.org/cardiology-intelligence-agent/cardiology-intelligence-agent-research-paper
+
+-Remove https://hcls-ai-factory.org/pharmacogenomics-intelligence-agent/production-readiness-report
+
+-Remove https://hcls-ai-factory.org/pharmacogenomics-intelligence-agent/pharmacogenomics-intelligence-agent-research-paper
+
+-Remove https://hcls-ai-factory.org/neurology-intelligence-agent/production-readiness-report
+
+-Remove https://hcls-ai-factory.org/neurology-intelligence-agent/neurology-intelligence-agent-research-paper
+
+-Remove https://hcls-ai-factory.org/rare-disease-diagnostic-agent/production-readiness-report
+
+-Remove https://hcls-ai-factory.org/rare-disease-diagnostic-agent/rare-disease-diagnostic-agent-research-paper
+
+-Remove https://hcls-ai-factory.org/precision-autoimmune-agent/precision-autoimmune-agent-research-paper
+
+-For all of these agents on https://hcls-ai-factory.org, can you ensure that each agents assets (Left Side of Page) are listed in the order below (For each of the 11 agents)
+
+White Paper
+Project Bible
+Design Document
+Architecture Guide
+Demo Guide
+Deployment Guide
+Learning Guide - Foundations
+Learning Guide - Advanced
+
+-On https://hcls-ai-factory.org/precision-oncology-agent, can you remove "Source: github.com/ajones1923/precision-oncology-agent" directly below the infographic? 
+
+-On https://hcls-ai-factory.org/cart-intelligence-agent, can you remove "Source: github.com/ajones1923/cart-intelligence-agent" directly below the infographic? 
+
+-On https://hcls-ai-factory.org/imaging-intelligence-agent, can you remove "Source: github.com/ajones1923/imaging-intelligence-agent" directly below the infographic? 
+
+-Remove https://hcls-ai-factory.org/DEPLOYMENT_FLOW 
+
+-For all of the changes applied from this file, also update GitHub accordantly. 

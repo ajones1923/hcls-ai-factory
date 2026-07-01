@@ -1,0 +1,62 @@
+# Trajectory Modeler configuration (PRD §3 FR-TM-2; master paper §10).
+# Reproducible thresholds, horizons, prediction-interval z-scores, crossing grading, and
+# surveillance cadence. Editing this file (not code) changes the forecasting behavior.
+
+horizons_months: [6, 12, 18]
+crossing_window_months: [12, 18]
+prediction_intervals:        # z-scores for the half-width of each interval
+  pi50: 0.674
+  pi90: 1.645
+
+quantities:
+  SEGA:
+    label: SEGA
+    unit: cm
+    direction: increasing            # crosses when value >= threshold
+    threshold: 1.8
+    is_lesion: true
+    population_prior: true            # borrow strength from the NHD mixed-effects prior
+    surveillance: {modality: brain MRI, itsc_floor_months: 12}
+  AML:
+    label: AML
+    unit: cm
+    direction: increasing
+    threshold: 4.0
+    is_lesion: true
+    population_prior: false
+    surveillance: {modality: renal MRI, itsc_floor_months: 12}
+  eGFR:
+    label: eGFR
+    unit: mL/min/1.73m2
+    direction: decreasing            # crosses when value <= threshold (renal decline)
+    threshold: 60.0
+    is_lesion: false
+    population_prior: false
+    surveillance: {modality: renal function panel, itsc_floor_months: 12}
+  seizure_frequency:
+    label: Seizure frequency
+    unit: per_month
+    direction: increasing
+    threshold: 15.0
+    is_lesion: false
+    population_prior: false
+    surveillance: {modality: EEG / epilepsy review, itsc_floor_months: 12}
+
+# Grade a crossing by the forecast-distribution probability of crossing by the 18-month horizon.
+crossing_grades:
+  likely: 0.50        # P(crossed by 18mo) >= 0.50
+  possible: 0.15      # 0.15 <= P < 0.50  ;  below 0.15 = unlikely
+
+# Surveillance cadence: multiply the ITSC floor interval by this factor for the grade,
+# clamped to a minimum. A likely crossing tightens follow-up; an unlikely one holds the floor.
+surveillance_cadence:
+  likely: 0.5
+  possible: 0.75
+  unlikely: 1.0
+  min_interval_months: 3
+
+# Bayesian update of the growth slope: weakly-informative prior for quantities without a
+# population model (posterior ~ data when data are informative).
+weak_prior:
+  slope_mean: 0.0
+  slope_variance: 1.0

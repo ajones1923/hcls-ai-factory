@@ -1,0 +1,95 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hcls_common"
+version = "0.1.0"
+description = "Shared library for the HCLS AI Factory precision medicine platform (Patient DNA -> Drug Candidates on DGX Spark)"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+authors = [
+    {name = "Adam Jones"},
+]
+requires-python = ">=3.10"
+
+dependencies = [
+    "pydantic>=2.0",
+    "pydantic-settings>=2.0",
+    "numpy>=1.24",
+    "requests>=2.28",
+]
+
+[project.optional-dependencies]
+# Local embedding via sentence-transformers (default for DGX Spark)
+embeddings = [
+    "sentence-transformers>=2.2",
+    "torch>=2.0",
+]
+
+# Anthropic Claude LLM
+anthropic = [
+    "anthropic>=0.25",
+]
+
+# OpenAI-compatible LLMs (also used by Ollama/vLLM clients)
+openai = [
+    "openai>=1.0",
+]
+
+# Milvus vector database
+milvus = [
+    "pymilvus>=2.4",
+]
+
+# OpenTelemetry tracing
+tracing = [
+    "opentelemetry-api>=1.20",
+    "opentelemetry-sdk>=1.20",
+    "opentelemetry-exporter-otlp-proto-grpc>=1.20",
+]
+
+# Prometheus metrics
+metrics = [
+    "prometheus-client>=0.17",
+]
+
+# RDKit for SMILES validation (optional -- heavy dependency)
+chemistry = [
+    "rdkit",
+]
+
+# All optional dependencies
+all = [
+    "hcls_common[embeddings,anthropic,openai,milvus,tracing,metrics,chemistry]",
+]
+
+# Development / testing
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21",
+    "pytest-cov>=4.0",
+    "ruff>=0.3",
+    "mypy>=1.5",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["hcls_common*"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"

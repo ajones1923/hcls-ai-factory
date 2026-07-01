@@ -1,20 +1,31 @@
 ## Summary
-Brief description of the change and why it's needed.
 
-## Component(s) Affected
-- [ ] Genomics Pipeline
-- [ ] RAG Chat Pipeline
-- [ ] Drug Discovery Pipeline
-- [ ] Landing Page
-- [ ] CAR-T Intelligence Agent
-- [ ] Imaging Intelligence Agent
-- [ ] Precision Oncology Agent
-- [ ] Orchestrator
-- [ ] CI/CD & Infrastructure
-- [ ] Documentation
+Brief description of what this PR does and why.
 
-## Test Plan
-How was this tested? What commands to run?
+## Changes
 
-## Notes
-Any context the reviewer should know.
+-
+-
+-
+
+## Testing
+
+Describe the tests you ran and how to reproduce them.
+
+```bash
+# Example
+cd ai_agent_adds/{agent_name}
+pytest tests/
+```
+
+## Clinical Impact (if applicable)
+
+Describe any clinical relevance of these changes (new scoring models, variant classification updates, therapeutic area coverage, etc.).
+
+## Checklist
+
+- [ ] Tests pass (`pytest tests/`)
+- [ ] No secrets in code (API keys, credentials, tokens)
+- [ ] Error messages sanitized (no stack traces or internal paths exposed)
+- [ ] Clinical calculations cite published sources (PMID, DOI, or guideline)
+- [ ] Documentation updated (if applicable)

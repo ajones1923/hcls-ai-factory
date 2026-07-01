@@ -1,0 +1,218 @@
+{
+  "patient": {
+    "id": "PEDS-ALL-001",
+    "age": 8,
+    "sex": "female",
+    "weight_kg": 25.4,
+    "height_cm": 127,
+    "bsa_m2": 0.93,
+    "ethnicity": "Caucasian",
+    "diagnosis": "B-cell Acute Lymphoblastic Leukemia",
+    "diagnosis_date": "2026-02-15",
+    "icd10": "C91.00",
+    "risk_group": "Standard Risk",
+    "cns_status": "CNS1",
+    "presenting_symptoms": [
+      "Fatigue and pallor (3 weeks)",
+      "Petechiae on lower extremities",
+      "Bone pain (bilateral lower extremities)",
+      "Low-grade fever (38.2C intermittent)",
+      "Hepatosplenomegaly on exam"
+    ]
+  },
+  "genomic_findings": {
+    "somatic_variants": [
+      {
+        "gene": "ETV6-RUNX1",
+        "variant": "t(12;21)(p13;q22)",
+        "type": "fusion",
+        "vaf": 0.85,
+        "clinical_significance": "Favorable prognosis marker in B-ALL",
+        "tier": "Tier I"
+      },
+      {
+        "gene": "PAX5",
+        "variant": "c.547C>T (p.Pro183Ser)",
+        "type": "missense",
+        "vaf": 0.42,
+        "clinical_significance": "B-cell development transcription factor; common in B-ALL",
+        "tier": "Tier II"
+      },
+      {
+        "gene": "IKZF1",
+        "variant": "del(7p12.2)",
+        "type": "deletion",
+        "vaf": 0.38,
+        "clinical_significance": "Associated with higher relapse risk; may warrant intensified therapy",
+        "tier": "Tier I"
+      },
+      {
+        "gene": "CDKN2A",
+        "variant": "del(9p21.3)",
+        "type": "deletion",
+        "vaf": 0.55,
+        "clinical_significance": "Frequent in ALL; cell cycle regulator loss",
+        "tier": "Tier II"
+      }
+    ],
+    "germline_variants": [
+      {
+        "gene": "TPMT",
+        "variant": "c.719A>G (*3C)",
+        "zygosity": "heterozygous",
+        "clinical_significance": "Intermediate metabolizer — reduce 6-mercaptopurine dose by 30-50%",
+        "pharmacogenomic": true
+      },
+      {
+        "gene": "NUDT15",
+        "variant": "c.415C>T (p.Arg139Cys)",
+        "zygosity": "wild_type",
+        "clinical_significance": "Normal metabolizer — standard thiopurine dosing for NUDT15",
+        "pharmacogenomic": true
+      }
+    ],
+    "cytogenetics": {
+      "karyotype": "51,XX,+4,+6,+10,+14,+21,t(12;21)(p13;q22)[18]/46,XX[2]",
+      "ploidy": "High hyperdiploidy (51-67 chromosomes)",
+      "favorable_markers": ["ETV6-RUNX1 fusion", "High hyperdiploidy", "Trisomy 4/10"],
+      "unfavorable_markers": ["IKZF1 deletion"]
+    }
+  },
+  "biomarkers": {
+    "immunophenotype": {
+      "CD19": "positive (98%)",
+      "CD22": "positive (85%)",
+      "CD10": "positive (95%)",
+      "CD34": "positive (72%)",
+      "CD20": "positive (40%)",
+      "TdT": "positive",
+      "surface_IgM": "negative",
+      "myeloid_markers": "negative"
+    },
+    "mrd": {
+      "day_29_flow": {
+        "value": 0.003,
+        "unit": "percent",
+        "status": "MRD positive (0.003%)",
+        "method": "multicolor flow cytometry",
+        "sensitivity": "1e-4"
+      },
+      "day_29_pcr": {
+        "value": 1.2e-4,
+        "unit": "ratio",
+        "status": "MRD positive",
+        "method": "qPCR (ETV6-RUNX1)",
+        "sensitivity": "1e-5"
+      },
+      "end_consolidation": {
+        "value": 0.0,
+        "unit": "percent",
+        "status": "MRD negative",
+        "method": "multicolor flow cytometry",
+        "sensitivity": "1e-4"
+      }
+    },
+    "labs_at_diagnosis": {
+      "wbc": {"value": 12.3, "unit": "x10^9/L", "reference": "4.5-13.5"},
+      "hemoglobin": {"value": 7.2, "unit": "g/dL", "reference": "11.5-15.5", "flag": "LOW"},
+      "platelets": {"value": 42, "unit": "x10^9/L", "reference": "150-400", "flag": "LOW"},
+      "blasts_peripheral": {"value": 38, "unit": "percent"},
+      "blasts_bone_marrow": {"value": 87, "unit": "percent"},
+      "ldh": {"value": 1250, "unit": "U/L", "reference": "120-300", "flag": "HIGH"},
+      "uric_acid": {"value": 8.1, "unit": "mg/dL", "reference": "2.0-5.5", "flag": "HIGH"},
+      "bcr_abl": {"value": "negative", "method": "RT-PCR"}
+    }
+  },
+  "therapy_plan": {
+    "protocol": "COG AALL0932 (Standard/High Risk B-ALL)",
+    "risk_stratification": "Standard Risk (NCI criteria: age 1-9.99, WBC <50K)",
+    "phases": [
+      {
+        "phase": "Induction (Days 1-28)",
+        "status": "completed",
+        "regimen": [
+          {"drug": "Dexamethasone", "dose": "6 mg/m2/day", "route": "PO", "schedule": "Days 1-28"},
+          {"drug": "Vincristine", "dose": "1.5 mg/m2", "route": "IV", "schedule": "Days 1, 8, 15, 22"},
+          {"drug": "PEG-asparaginase", "dose": "2500 IU/m2", "route": "IM", "schedule": "Day 4"},
+          {"drug": "Daunorubicin", "dose": "25 mg/m2", "route": "IV", "schedule": "Day 1 (SR: 1 dose)"},
+          {"drug": "Methotrexate", "dose": "12 mg", "route": "IT", "schedule": "Days 1, 8, 15"}
+        ],
+        "response": "Complete remission (CR) Day 29; MRD 0.003%"
+      },
+      {
+        "phase": "Consolidation (Days 29-63)",
+        "status": "completed",
+        "regimen": [
+          {"drug": "6-Mercaptopurine", "dose": "50 mg/m2/day (reduced for TPMT*3C)", "route": "PO", "schedule": "Days 29-63"},
+          {"drug": "Methotrexate", "dose": "12 mg", "route": "IT", "schedule": "Days 29, 36"},
+          {"drug": "Vincristine", "dose": "1.5 mg/m2", "route": "IV", "schedule": "Day 29"},
+          {"drug": "Cyclophosphamide", "dose": "1000 mg/m2", "route": "IV", "schedule": "Days 29, 43"}
+        ],
+        "response": "MRD negative at end of consolidation"
+      },
+      {
+        "phase": "Interim Maintenance I",
+        "status": "active",
+        "regimen": [
+          {"drug": "Methotrexate", "dose": "100 mg/m2 escalating to 300 mg/m2", "route": "IV", "schedule": "Every 10 days x 5"},
+          {"drug": "Vincristine", "dose": "1.5 mg/m2", "route": "IV", "schedule": "Day 1 of each cycle"},
+          {"drug": "Methotrexate", "dose": "12 mg", "route": "IT", "schedule": "Days 1, 31"}
+        ]
+      },
+      {
+        "phase": "Maintenance (planned)",
+        "status": "planned",
+        "duration": "2 years from start of interim maintenance",
+        "regimen": [
+          {"drug": "6-Mercaptopurine", "dose": "50 mg/m2/day (TPMT-adjusted)", "route": "PO", "schedule": "Daily"},
+          {"drug": "Methotrexate", "dose": "20 mg/m2/week", "route": "PO", "schedule": "Weekly"},
+          {"drug": "Vincristine", "dose": "1.5 mg/m2", "route": "IV", "schedule": "Monthly pulses"},
+          {"drug": "Dexamethasone", "dose": "6 mg/m2/day x 5 days", "route": "PO", "schedule": "Monthly pulses"}
+        ]
+      }
+    ],
+    "supportive_care": [
+      "Allopurinol (tumor lysis prophylaxis, induction only)",
+      "TMP-SMX (PJP prophylaxis)",
+      "Fluconazole (antifungal prophylaxis)",
+      "Ondansetron PRN (antiemetic)",
+      "GCSF if febrile neutropenia"
+    ]
+  },
+  "imaging": {
+    "baseline_chest_ct": {
+      "date": "2026-02-16",
+      "findings": "No mediastinal mass. No lymphadenopathy. Clear lung fields.",
+      "impression": "Normal chest CT. No evidence of T-cell ALL mediastinal mass."
+    },
+    "baseline_brain_mri": {
+      "date": "2026-02-16",
+      "findings": "No parenchymal abnormalities. No leptomeningeal enhancement. Normal ventricular system.",
+      "impression": "Normal brain MRI. No CNS leukemia involvement.",
+      "protocol": "MRI brain with and without gadolinium contrast"
+    },
+    "baseline_echo": {
+      "date": "2026-02-15",
+      "findings": {
+        "lvef": "65%",
+        "lv_shortening_fraction": "35%",
+        "gls": "-21.5%",
+        "valves": "Normal",
+        "pericardium": "No effusion"
+      },
+      "impression": "Normal baseline cardiac function. Pre-anthracycline assessment."
+    },
+    "bone_marrow_aspirate": {
+      "date": "2026-02-15",
+      "cellularity": "Hypercellular (95%)",
+      "blasts": "87% lymphoblasts (B-cell immunophenotype)",
+      "morphology": "L1 (small uniform blasts, high N:C ratio)"
+    }
+  },
+  "follow_up_schedule": {
+    "next_mrd_check": "End of Interim Maintenance I",
+    "echo_schedule": "Every 3 months during anthracycline exposure, then annually",
+    "bone_marrow": "Day 29, End of Consolidation, End of each Interim Maintenance",
+    "cns_surveillance": "LP with IT chemo per protocol schedule"
+  }
+}

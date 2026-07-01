@@ -12,7 +12,7 @@ tags:
 >
 > **What You'll Learn:** How scientists use computers and AI to read DNA, find disease-causing changes, and design new medicines — all on a single desktop computer.
 >
-> License: Apache 2.0 | Date: March 2026
+> License: Apache 2.0 | Date: February 2026
 
 ---
 
@@ -99,7 +99,7 @@ The output is a **VCF** (Variant Call Format) file containing every variant foun
 
 ---
 
-## Chapter 4: The Precision Intelligence Engine (Stage 2) — Understanding What the Variants Mean
+## Chapter 4: The Precision Intelligence Network (Stage 2) — Understanding What the Variants Mean
 
 ### Not All Variants Are Equal
 
@@ -312,9 +312,4 @@ Note: NVIDIA BioNeMo NIMs (MolMIM, DiffDock) are free for development but requir
 
 ---
 
-*HCLS AI Factory Learning Guide: Foundations — Apache 2.0 | March 2026*
-
----
-
-!!! warning "Clinical Decision Support Disclaimer"
-    The HCLS AI Factory platform and all intelligence agents described in this document are clinical decision support research tools. It is not FDA-cleared and is not intended as a standalone diagnostic device. All recommendations should be reviewed by qualified healthcare professionals. Apache 2.0 License.
+*HCLS AI Factory Learning Guide: Foundations — Apache 2.0 | February 2026*

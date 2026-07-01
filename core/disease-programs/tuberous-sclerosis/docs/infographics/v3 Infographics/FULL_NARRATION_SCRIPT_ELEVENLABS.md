@@ -1,0 +1,280 @@
+# TSC AI Engine — ElevenLabs Narration (v4, paste-ready)
+### 22 cleaned blocks (00–21) for an ElevenLabs voice clone
+
+**How to use.** Generate **one slide at a time** — copy the text under each `▸ SLIDE NN` heading (not the heading) into ElevenLabs and render that clip. Per-slide generation keeps each clip short, keeps the break-tag count low, and makes re-takes painless.
+
+**Already done for you:** every pause is a native `<break time="0.7s" />` tag (adjust the seconds, or delete a tag, to taste — don't stack many in one clip or audio can wobble); all markdown emphasis has been removed (your voice model supplies natural prosody); production asides removed.
+
+**Pronunciation (only if a render mishears):** *SEGA* should read as a word ("SEE-gah"); *VAF, TSC1/TSC2, HPO, AML, RTX, eGFR* read as letters; *OpenUSD* as "open U-S-D." Add any stragglers to ElevenLabs' pronunciation dictionary or spell them phonetically in that clip.
+
+**Voice settings (starting point — tune to your clone):** Stability ~50%, Similarity ~75%, Style 0–15%, Speaker Boost on. Use the **same voice + settings across all 22** for a consistent track.
+
+---
+
+## ▸ SLIDE 00 — Title / starter slide  (~12 sec — optional opener)
+
+The TSC AI Engine. <break time="0.7s" /> Precision medicine for a rare genetic disease — five coordinated AI agents, on a compact DGX Spark desktop. Let me show you.
+
+---
+
+## ▸ SLIDE 01 — The one-line story (open)  (~70 sec)
+
+This is the TSC Intelligence Engine — a complete precision-medicine system for a rare genetic disease called Tuberous Sclerosis Complex, and it runs on a compact DGX Spark desktop. <break time="0.7s" />
+
+Here's the whole story on one screen. The problem: TSC care is fragmented across many specialists, the most important decisions are about timing, and about fifteen percent of patients are told "no mutation identified" on a blood test — a diagnosis the test simply missed, which can leave a family searching for years.
+
+What we built is five coordinated AI agents and a deterministic orchestrator, feeding clean clinician screens and a three-D digital twin. It recovers those missed diagnoses from tissue, forecasts how growths will change with honest uncertainty, surfaces hidden neuro-behavioral signals, and pulls every option into one place — and every output is traceable.
+
+And we measured it. On data where we know the right answers: a hundred percent classification accuracy, a twelve-point jump in diagnoses found, six out of six of the hardest cases recovered, and everything traceable to its source. <break time="0.7s" /> Those are real numbers — and I'll be just as clear about what they don't yet prove.
+
+In the next few minutes, I'll walk you through all of it — the disease, the engine, the visuals, the proof, and where it goes next.
+
+---
+
+## ▸ SLIDE 02 — What TSC is (the biology)  (~70 sec)
+
+So let's start with the disease itself. <break time="0.7s" /> Think of your genes as the instruction manual that tells your body how to build and run itself. Tuberous Sclerosis Complex happens when there's a spelling error in one of two genes — TSC1 or TSC2.
+
+Normally, those two genes make a pair of proteins that act like a brake on the cell's "grow-and-divide" switch. Break the gene, and you release the brake — so cells grow when they shouldn't, forming benign growths all over the body. In the brain, that's tubers and a tumor called a SEGA, along with seizures. In the kidneys, growths called angiomyolipomas. Plus the skin, the heart, the lungs. It's a whole-body disease.
+
+Now here's the twist that the whole engine is built around. Sometimes that spelling error happens after the egg is fertilized — so it ends up in only some of the body's cells. Picture a print run of a book where only some copies carry the misprint. We call that mosaicism, and the fraction of cells carrying it is the "VAF." When that fraction is low, a blood test simply can't see it — which is why about fifteen percent of patients are told nothing was found. <break time="0.7s" /> But the variant is usually concentrated in affected tissue. It's hiding in the freezer, if someone just looks.
+
+---
+
+## ▸ SLIDE 03 — Why it's hard today (six struggles → six answers)  (~65 sec)
+
+If TSC care were easy, we wouldn't need a new tool. So here are the six real problems — and what the engine does about each one. <break time="0.7s" />
+
+One: the diagnostic odyssey — those mosaic variants a blood test misses. We recover them from tissue. Two: care is split across a half-dozen specialists, each seeing only a slice — we pull it into one shared picture. Three: the hardest decisions are about when a growth crosses a line — we forecast that, with honest uncertainty. Four: the learning-and-behavior side of TSC is in nine out of ten patients but checked in fewer than two — we surface those quiet signals as gentle briefing material, never an alarm. Five: alert fatigue — too many alerts and doctors tune them all out — so we keep a strict budget. And six: scattered, untrusted data — every output records where it came from, and shows how sure it is.
+
+So that's the map: six struggles, six answers. Now let me show you the machine that does it.
+
+---
+
+## ▸ SLIDE 04 — Meet the engine  (~55 sec)
+
+Here's the simplest way to picture the whole thing: a small team of five expert assistants, plus a conductor who keeps them organized, turning a patient's messy data into a few clear, trustworthy screens for the doctor. <break time="0.7s" />
+
+Each assistant is what we call an agent — a focused piece of AI that does one job well. The Phenome Mapper organizes the symptoms. The Variant Curator handles the genetics. The Trajectory Modeler forecasts the future. The TAND agent watches the behavioral side. And the Therapeutics Strategist pulls the options together. Underneath them all is a deterministic orchestrator — the conductor — and it feeds the clinician's surfaces.
+
+And the headline it earns: six out of six of the hardest mosaic diagnoses recovered — the ones standard blood testing missed. <break time="0.7s" /> Let me take you through each piece.
+
+---
+
+## ▸ SLIDE 05 — The full architecture  (~75 sec)
+
+Now the whole machine, in one view. <break time="0.7s" /> On the left, the inputs — a synthetic fifty-patient cohort: the genomic data, the longitudinal records, the clinical notes, the imaging reports.
+
+That flows into the five agents. The Phenome Mapper runs first, because everyone builds on it — it organizes the symptoms and checks every code against the official medical dictionary of nearly twenty thousand terms — a check so strict it even flagged two mislabeled codes in our own practice data. The Variant Curator recovers the mosaic variant and classifies it by the worldwide rulebook. The Trajectory Modeler — which is classical statistics, not a chatbot — forecasts the growths. The TAND agent reads the behavioral signals. And the Therapeutics Strategist pulls it all into a sourced options brief.
+
+Holding them together is the orchestrator. Think of it as an air-traffic controller — it runs the agents in the right order and keeps a permanent, tamper-proof log of everything, so the whole process can be replayed and checked.
+
+And around all of it is the trust layer — provenance on every output — and a validation scorecard: a hundred percent accuracy, a twelve-point detection lift, six of six mosaics, fully traceable.
+
+---
+
+## ▸ SLIDE 06 — How the data flows  (~55 sec)
+
+Let's follow the data through it, left to right. <break time="0.7s" />
+
+It starts with the synthetic cohort on the left. The first stop is always the Phenome Mapper — it's the foundation, because everything downstream reads the phenotype it builds. From there the work fans out, in parallel, to three agents: the Variant Curator on the genetics, the Trajectory Modeler on the forecasts, and the TAND agent on the behavioral signals. Those three then converge into the Therapeutics Strategist, which assembles the final options brief.
+
+Underneath, the orchestrator coordinates all of it and routes the results to the clinician's surfaces — the briefing, the dashboard, the disciplined alerts, and the digital twin. And running along the bottom: provenance on every output, and the measured scorecard. <break time="0.7s" /> It's a clean pipeline — data in, a clear picture out.
+
+---
+
+## ▸ SLIDE 07 — How the AI is used responsibly  (~60 sec)
+
+People hear "AI engine" and assume a chatbot is making the calls. It isn't — and that's deliberate. <break time="0.7s" />
+
+The rule we built around is: be deterministic where correctness matters, and use AI only at the edges. So the things that have to be right — the genetic verdict, the coordination logic, the forecasting math — those are fixed, auditable code. They produce the same answer every time, and an AI never overrules them.
+
+Where we do use large language models, it's only for what they're genuinely good at: reading messy text and writing clear explanations. And we route each step to the right-sized model by its stakes — a fast one for light extraction, a balanced one for analysis, the most capable one for the high-stakes genetic narrative — with a local model as an offline fallback, and a ledger tracking every token and dollar.
+
+The principle, in one line: an AI explains; it never decides the genetic verdict. The rulebook does. <break time="0.7s" /> That's what makes this safe to put near a clinical decision.
+
+---
+
+## ▸ SLIDE 08 — One patient, end to end  (~65 sec)
+
+Let me make that concrete — follow one child all the way through. <break time="0.7s" />
+
+It starts with their data: the genomics, the records, the notes, the prior imaging. The Phenome Mapper organizes all of it into one clean phenotype. The Variant Curator finds the genetic answer — including a low-level mosaic recovered from tissue that the blood test missed. The Trajectory Modeler forecasts the brain tumor, the kidney growth, the kidney function, the seizures — each with its honest range. The TAND agent surfaces the quiet behavioral signals from the notes — and it's careful: if a parent says there's no concern, it takes that as a no instead of inventing a problem. And the Therapeutics Strategist assembles a sourced brief of the options.
+
+The orchestrator runs all of that in order and logs every step, then hands the clinician one clear picture — across the briefing, the dashboard, and the digital twin. <break time="0.7s" /> So the doctor, now holding the whole picture with the math already done and every claim sourced, can make a better-informed, better-timed decision. Five specialists' worth of analysis — for one child, in one visit.
+
+---
+
+## ▸ SLIDE 09 — The flagship: ending the diagnostic odyssey  (~75 sec)
+
+This is the capability I'm most proud of — and it's the heart of the whole engine. <break time="0.7s" />
+
+A child clearly has TSC. But the blood test comes back: "no mutation identified." Nothing found. For the family, that can mean years of uncertainty — what doctors call a diagnostic odyssey.
+
+So why does the test miss it? Mosaicism. Remember the misprint in only some copies of a book? The genetic change is in only some of the child's cells, and in the blood those cells are too rare to see. But — and this is the key — the variant is usually concentrated in affected tissue. In a piece of a brain tumor already removed during surgery. It's been sitting in the freezer the whole time.
+
+So we point the Variant Curator at the tissue instead. It runs mosaic-aware analysis, finds the low-level variant — here, a TSC2 change at about eight percent, roughly one cell in twelve — and classifies it Likely Pathogenic by the rulebook. And it has to reject look-alike junk to get there, so the zero-false-alarms number is earned, not free.
+
+The result: detection goes from eighty-six to ninety-eight percent. Six of six of the hardest cases, recovered. <break time="0.7s" /> A confirmed diagnosis — at last. And that's the capability a tissue biobank unlocks.
+
+---
+
+## ▸ SLIDE 10 — The digital twin: four scenes  (~75 sec)
+
+Now the part that tends to stop the room. <break time="0.7s" /> Here's the thing about TSC — it's a disease of where and when: growths in specific places, changing over time. A doctor answers that by building a picture in their head, but nobody else can see that mental model. So the engine builds it for them — a three-D digital twin, rendered with RTX in Omniverse, automatically from its own validated results. There are four scenes.
+
+The first is the lesion-trajectory twin: the child's brain tumor as a glowing shape that grows along the forecast as you scrub the timeline into the future — wrapped in a translucent cloud of uncertainty. And here's the clever, honest part: the size of that cloud is exactly the forecast's uncertainty range. The picture literally cannot overstate how sure we are.
+
+The second turns "eight percent VAF" into something you can count — a field of cells where about one in twelve glows gold. The third is a whole-child atlas, with each affected organ lit up from the symptoms. And the fourth is the whole population — fifty patients, with the seven recovered mosaics ringed in gold.
+
+One honest note: this is stylized anatomy scaled by the real measurements — not a picture of any real patient's scan.
+
+---
+
+## ▸ SLIDE 11 — How the visuals are built  (~70 sec)
+
+You might assume rendering film-quality 3-D needs a data center. It doesn't — and the trick is a clean split. <break time="0.7s" />
+
+Building the scene is just turning the engine's results into a structured 3-D format called OpenUSD. That's pure data work — it runs on the little DGX Spark, on the CPU, for free, no graphics card needed. The lesion's size and color become an animation over time; the uncertainty envelope's radii are set equal to the prediction intervals; the threshold and the provenance ride along as metadata. And notice — the twin never invents a number. It's a lens, not a source: it only shows what the engine already computed and checked.
+
+Then the heavy, beautiful part — the RTX path tracing, the glass, the glow — happens separately, on a rented cloud GPU, in Omniverse. In short: the DGX Spark does the thinking and building; the cloud GPU does the beautiful picture.
+
+And because the envelope's size is literally the prediction interval, the render is exactly as confident as the engine. <break time="0.7s" /> It can't lie. Down the road, that same twin could sit on a clinic table in augmented reality — and one day be built from a child's own scan.
+
+---
+
+## ▸ SLIDE 12 — The honest-geometry hero  (~65 sec)
+
+I want to sit on this one image for a moment, because it captures the whole philosophy of the project. <break time="0.7s" />
+
+This is the digital twin of a child's brain tumor. The glowing core is the lesion. The translucent glass shells around it are the uncertainty — and their size is the engine's fifty- and ninety- percent prediction interval. The red ring is the threshold where the care team would discuss acting.
+
+Think of the weather: a hurricane forecast doesn't claim one exact landfall — it draws a cone that widens the further out you look, because the future is less certain. This is that cone, in three dimensions, around a child's tumor. When the engine is confident, the glass hugs the core. When it's unsure, the cloud grows. <break time="0.7s" />
+
+There's even a small discipline behind the beauty: the tumor's color — shifting from teal toward red as it nears the line — comes straight from the engine, deliberately left unpolished, so no cosmetic effect can ever soften the warning. <break time="0.7s" />
+
+The whole point is right there in the geometry: the prettier this render gets, the more honest it stays. The glass cloud is the forecast's uncertainty. A render that cannot lie about how sure it is.
+
+---
+
+## ▸ SLIDE 13 — How we know it works  (~75 sec)
+
+Now the part that matters most to me — because anyone can build something that looks impressive. The hard, rarer thing is to measure whether it's actually right. <break time="0.7s" />
+
+Here's how we did that. Because the demonstration runs on synthetic patients, we know the correct answers in advance — so we can grade the engine against them, like a practice exam with an answer key. And the report card is strong: a hundred percent classification accuracy, a twelve-point lift in diagnoses found, six out of six of the hardest mosaics recovered, zero disease-causing variants wrongly called harmless, and a hundred percent of outputs traceable to their source.
+
+But here is the single most important sentence in this whole story, and I'll always say it out loud. <break time="0.7s" /> These numbers prove the engine's logic works on practice data with known answers — that's called construct validity. They do not prove it works on real patients in a real clinic — that's clinical validity, and it still has to be done.
+
+Think of it as a flight simulator: it can rigorously prove a pilot's skills and a plane's systems — but it is not the first real flight. This engine is a very good simulator. <break time="0.7s" /> The first real flight is the next step.
+
+---
+
+## ▸ SLIDE 14 — Why you can trust it  (~60 sec)
+
+In medicine, a confident-sounding AI that you can't check is worse than no AI at all. So trust was a design requirement here, not a feature we bolted on. Five disciplines run through the whole engine. <break time="0.7s" />
+
+One — provenance. Every single output carries a paper trail back to its source: which record, which guideline, which calculation. Nothing is "because the AI said so."
+
+Two — the right tool for each job. The forecasting is classical statistics, not a chatbot. The classification follows a deterministic rulebook. Language models are used only where judgment over text actually helps — and even then they cite their sources.
+
+Three — honest uncertainty. Every forecast carries its prediction interval, like that hurricane cone. Four — disciplined alerts: no more than three a week per clinician, so the signal never drowns in noise. And five — it degrades safely: if a model is unavailable, it falls back to a local one and tells you, rather than guessing.
+
+Provenance, the right tool, honest uncertainty, restraint, safe failure. <break time="0.7s" /> That's what makes it something a clinician can actually trust.
+
+---
+
+## ▸ SLIDE 15 — The live demo, in three acts  (~70 sec)
+
+Let me show you how this actually plays out, the way I run it live. It's three acts. <break time="0.7s" />
+
+Act one — the briefing. Before the visit, the engine has already done the prep. It opens on the hardest case: the child whose blood test said "no mutation identified." You watch it point at the tissue specimen instead, recover the variant, and turn a non-diagnosis into a confirmed one. That's the gut-punch moment.
+
+Act two — the dashboard. We move to a child being watched for a slow-growing brain tumor. One screen: the genetics, the phenotype, and the forecast — the growth trending toward the line where the team would discuss acting, with the honest uncertainty band around it. The whole picture, at a glance.
+
+Act three — the twin. Then it lifts off the page into three dimensions. The same tumor, in Omniverse, growing along its forecast inside the glass uncertainty cloud, crossing the threshold — the render that's exactly as confident as the engine.
+
+And those last two acts aren't rivals: the dashboard is for reading exact numbers fast; the twin is for seeing the situation and talking it through with a family — and you can fly straight from one into the other.
+
+Briefing, dashboard, twin. <break time="0.7s" /> Three acts, about ten minutes, one small computer.
+
+---
+
+## ▸ SLIDE 16 — Where it goes next  (~65 sec)
+
+So where does this go from here? The path is deliberately concrete. <break time="0.7s" />
+
+Phase one is built — what you've seen today: the full five-agent engine and the 3-D twin, running on a compact desktop system, validated against synthetic data with known answers.
+
+Phase two is the first real flight — and it turns on one thing: tissue. A partner children's hospital has something extraordinary sitting in its freezers — a biobank of specimens from past surgeries, with years of follow-up already attached. Remember the flagship capability: recovering a missed diagnosis from tissue. So the bridge study is almost poetic — take patients who were once told "no mutation identified," point the engine at the specimen already on the shelf, and see how many diagnoses we can recover retrospectively. The answers are, in a sense, already known — they're just waiting to be read.
+
+That study is the move from construct validity to clinical validity — from the simulator to the first real flight. And it connects naturally to the people and infrastructure of a research institution: the biobank, the informatics group, the clinical TSC program. <break time="0.7s" /> One disease, proven end to end — then it travels.
+
+---
+
+## ▸ SLIDE 17 — It's a blueprint, not a one-off  (~55 sec)
+
+Here's the part that makes this bigger than one rare disease. <break time="0.7s" />
+
+TSC was the proving ground — but almost nothing in the engine is specific to TSC. The architecture is the real product: five coordinated agents, a deterministic orchestrator, honest uncertainty, provenance on everything, an anatomical twin. That pattern is disease-agnostic.
+
+The way I think about it: we built the wiring, and TSC is just the labels on the boxes. To move to another condition, you swap the labels — the genes, the guidelines, the growth patterns — and keep the wiring. The same engine could serve neurofibromatosis, Rett syndrome, other mTOR-related disorders, or any rare disease where care is fragmented, timing is everything, and mosaicism hides diagnoses.
+
+So this isn't a one-off tool for one disease. <break time="0.7s" /> It's a blueprint for precision medicine in rare disease — proven once, then reused.
+
+---
+
+## ▸ SLIDE 18 — Small, affordable, open (close)  (~60 sec)
+
+Let me close with what I think is the quietly radical part of this. <break time="0.7s" />
+
+Everything you've seen — five AI agents, a deterministic orchestrator, classical forecasting, a film-quality 3-D twin — all of it runs on a compact DGX Spark desktop that costs about forty-seven hundred dollars. Not a data center. Not a seven-figure cluster. A box that sits under a desk, with the beautiful rendering rented by the hour from the cloud only when you need it.
+
+And it's open source — Apache 2.0. Anyone can read it, run it, check it, and build on it. That matters in medicine, because trust comes from being able to look inside.
+
+So the whole thing comes down to three words. Small — it fits on a desktop, not in a data center. Affordable — within reach of a small lab or clinic, not just the largest institutions. And open — transparent and reusable by anyone. <break time="0.7s" />
+
+Precision medicine for a rare disease, recovering diagnoses that were missed, on a computer that fits on a desk. That's the TSC Intelligence Engine. Thank you.
+
+---
+
+## ▸ SLIDE 19 — The logical architecture (walk-through diagram)  (~85 sec — the full walk-through)
+
+Let me put the entire engine on one diagram and walk you through it, left to right. <break time="0.7s" />
+
+On the far left are the inputs — everything the engine reads. A child's genomic data, the tissue specimen, their longitudinal records, the clinical notes, the imaging. And beneath those, the reference knowledge it grounds against: the human phenotype ontology, the ClinVar and AlphaMissense variant databases, the ACMG classification rules, and the trial and FDA sources.
+
+That feeds the engine itself — four stages. Stage one, Ground: the Phenome Mapper runs first and builds the patient's full, ontology-checked clinical picture; everything downstream depends on it. Stage two, Analyze — three agents work in parallel: the Variant Curator recovers the mosaic diagnosis from tissue and classifies it by the rulebook; the Trajectory Modeler — classical statistics, not a chatbot — forecasts each growth with honest intervals; and the TAND agent surfaces the hidden neuro-behavioral signals. Stage three, Synthesize: those three converge into the Therapeutics Strategist, which assembles a single sourced options brief.
+
+Running beneath all of it is the orchestrator — the deterministic conductor. It's event-sourced, so every step is logged and replayable, and it routes each model call to the right tier — a small, fast model for simple work, the most capable one for the hard reasoning, with a local fallback if the cloud is unavailable.
+
+Stage four, Deliver: the results flow out to the clinician surfaces on the right — the pre-visit briefing, the in-visit dashboard, the disciplined alerts, and the three-D digital twin — and on to the people who use them: the clinician, the geneticist, the care team, and the family.
+
+And along the bottom, the foundation under everything: provenance on every output, a cost ledger, and the validation scorecard — all running on a DGX Spark, with the twin rendered on a cloud GPU. <break time="0.7s" /> That's the whole engine, end to end.
+
+---
+
+## ▸ SLIDE 20 — The journey poster (From a Missed Diagnosis to a Confident Plan)  (~90 sec — the full journey)
+
+Let me tell the whole story as a single journey — from a child with no answers to a confident plan in one visit. <break time="0.7s" />
+
+It starts with a child who clearly has TSC, but whose blood test came back "no mutation identified." Years of uncertainty, and a crowd of specialists who each see only one piece.
+
+Stage one — recovering the diagnosis. Instead of the blood, the engine looks at tissue — a specimen already in the freezer from a past surgery. It runs mosaic-aware analysis, finds the variant hiding in roughly one cell in twelve, and classifies it by the rulebook. Detection jumps from eighty-six to ninety-eight percent; six of six of the hardest mosaics, recovered. A non-diagnosis becomes a confirmed one.
+
+Stage two — forecasting what's next. Classical statistics, not a chatbot, project each growth forward — the brain tumor, the kidney lesion, the kidney function, the seizures — each with an honest uncertainty band, so the care team can see what's trending toward the line where they'd act.
+
+Stage three — assembling the plan. The engine surfaces the hidden neuro-behavioral signals that busy visits miss, then pulls every relevant trial and treatment into one sourced brief — and lifts it all into a three-D digital twin you can actually see.
+
+And here's the punchline. What used to take years — the diagnostic odyssey, the scattered follow-ups — now comes together in one visit, on a compact desktop system. <break time="0.7s" /> TSC is just the first disease. The same engine is a blueprint for precision medicine across rare disease. From a missed diagnosis to a confident plan — that's the TSC AI Engine.
+
+---
+
+## ▸ SLIDE 21 — Closing / thank-you slide (the bookend)  (~20 sec — the close)
+
+That's the TSC AI Engine. <break time="0.7s" /> Precision medicine for a rare disease — recovering diagnoses that were missed, forecasting with honest uncertainty, and bringing the whole picture into one place — on a compact desktop system, open for anyone to build on.
+
+Thank you. <break time="0.7s" /> I'd love to talk about where it goes next.
+
+---
+
+*Total ≈ 23–24 min across 22 clips. Pair each clip with its matching slide (`NN_*`).*
