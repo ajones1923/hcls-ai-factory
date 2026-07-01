@@ -111,12 +111,12 @@ Built on the HCLS AI Factory platform:
 
 - Python 3.10+
 - Milvus 2.4 running on `localhost:19530`
-- `ANTHROPIC_API_KEY` environment variable (or in `rag-chat-pipeline/.env`)
+- `ANTHROPIC_API_KEY` environment variable (or in `core/engines/precision-intelligence/.env`)
 
 ### Install
 
 ```bash
-cd ai_agent_adds/cart_intelligence_agent
+cd core/agents/cart
 pip install -r requirements.txt
 ```
 

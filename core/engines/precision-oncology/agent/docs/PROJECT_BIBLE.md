@@ -1208,7 +1208,7 @@ prefix. The `.env` file is loaded automatically.
 | DATA_DIR                       | Path   | PROJECT_ROOT/data                  | Data directory                           |
 | CACHE_DIR                      | Path   | PROJECT_ROOT/cache                 | Cache directory                          |
 | REFERENCE_DIR                  | Path   | PROJECT_ROOT/reference             | Reference data directory                 |
-| RAG_PIPELINE_ROOT              | Path   | (auto-detected)                    | Path to rag-chat-pipeline                |
+| RAG_PIPELINE_ROOT              | Path   | (auto-detected)                    | Path to core/engines/precision-intelligence                |
 | MILVUS_HOST                    | str    | localhost                          | Milvus server hostname                   |
 | MILVUS_PORT                    | int    | 19530                              | Milvus gRPC port                         |
 | COLLECTION_LITERATURE          | str    | onco_literature                    | Literature collection name               |

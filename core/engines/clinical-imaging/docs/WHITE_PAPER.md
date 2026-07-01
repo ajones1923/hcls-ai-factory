@@ -523,7 +523,7 @@ This architecture avoids data duplication: the genomic evidence is maintained by
 
 ### 11.3 The Eleven Intelligence Agents
 
-The HCLS AI Factory includes **11 specialized intelligence agents**, each addressing a distinct clinical domain:
+The HCLS AI Factory includes **8 specialized intelligence agents**, each addressing a distinct clinical domain:
 
 1. **Biomarker Intelligence Agent** (:8529) -- Biomarker discovery and validation
 2. **Oncology Intelligence Agent** (:8527/:8528) -- Cancer genomics and treatment selection
@@ -537,7 +537,7 @@ The HCLS AI Factory includes **11 specialized intelligence agents**, each addres
 10. **Cardiology Intelligence Agent** (:8126) -- Cardiac genetics and risk assessment
 11. **Neurology Intelligence Agent** -- Neurological genetics and neurodegenerative disease
 
-All 11 agents share the same architectural pattern (multi-collection RAG, knowledge graph augmentation, query expansion, Claude synthesis) and the same infrastructure (Milvus, BGE-small-en-v1.5, DGX Spark). The `genomic_evidence` collection serves as a shared knowledge substrate across agents, enabling cross-domain intelligence without data silos.
+All 8 agents share the same architectural pattern (multi-collection RAG, knowledge graph augmentation, query expansion, Claude synthesis) and the same infrastructure (Milvus, BGE-small-en-v1.5, DGX Spark). The `genomic_evidence` collection serves as a shared knowledge substrate across agents, enabling cross-domain intelligence without data silos.
 
 ### 11.4 Cross-Agent Coordination
 

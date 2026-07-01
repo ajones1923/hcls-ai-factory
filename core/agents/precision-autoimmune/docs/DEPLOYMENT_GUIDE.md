@@ -150,7 +150,7 @@ Without `ANTHROPIC_API_KEY`, the agent starts in degraded mode: vector search wo
 ### 3.1 Clone and Configure
 
 ```bash
-cd /home/adam/projects/hcls-ai-factory/ai_agent_adds/precision_autoimmune_agent
+cd /home/adam/projects/hcls-ai-factory/core/agents/precision-autoimmune
 
 # Create .env from example
 cp .env.example .env
@@ -316,7 +316,7 @@ CMD ["streamlit", "run", "app/autoimmune_ui.py", \
 ### 4.2 Building the Image
 
 ```bash
-cd /home/adam/projects/hcls-ai-factory/ai_agent_adds/precision_autoimmune_agent
+cd /home/adam/projects/hcls-ai-factory/core/agents/precision-autoimmune
 
 # Build with default tag
 docker build -t autoimmune-agent:latest .
@@ -487,7 +487,7 @@ From the main compose file:
 ```yaml
 precision-autoimmune-agent:
   build:
-    context: ./ai_agent_adds/precision_autoimmune_agent
+    context: ./core/agents/precision-autoimmune
     dockerfile: Dockerfile
   restart: unless-stopped
   ports:

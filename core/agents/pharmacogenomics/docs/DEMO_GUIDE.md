@@ -35,7 +35,7 @@
 ### Environment Setup
 
 ```bash
-cd ai_agent_adds/pharmacogenomics_intelligence_agent
+cd core/agents/pharmacogenomics
 
 # Copy environment template and add your Anthropic API key
 cp .env.example .env

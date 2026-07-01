@@ -1,6 +1,6 @@
 # Nano Banana Pro — Imaging Intelligence Agent on NVIDIA DGX Spark v2.0
 
-## IMPORTANT: Read this entire prompt before generating. This is an UPDATE to the Imaging Intelligence Agent infographic (v1.0). The original showed the imaging agent as an MVP proof build with 4 pipelines (CT Head, CT Chest, CXR, MRI Brain) running on DGX Spark. v2.0 preserves that exact visual style and architecture but updates for: renamed engine context (now "Precision Intelligence Network"), cross-agent integration with 10 peer agents, pediatric oncology imaging capabilities (brain tumor staging, trilateral retinoblastoma screening, treatment response monitoring), 9-tab Streamlit UI, and the agent's role in the 6 pediatric demo workflows. ONE canvas, landscape 16:9, same reference architecture poster density as v1.0.
+## IMPORTANT: Read this entire prompt before generating. This is an UPDATE to the Imaging Intelligence Agent infographic (v1.0). The original showed the imaging agent as an MVP proof build with 4 pipelines (CT Head, CT Chest, CXR, MRI Brain) running on DGX Spark. v2.0 preserves that exact visual style and architecture but updates for: renamed engine context (now "Precision Intelligence Engine"), cross-agent integration with 10 peer agents, pediatric oncology imaging capabilities (brain tumor staging, trilateral retinoblastoma screening, treatment response monitoring), 9-tab Streamlit UI, and the agent's role in the 6 pediatric demo workflows. ONE canvas, landscape 16:9, same reference architecture poster density as v1.0.
 
 ---
 
@@ -28,11 +28,11 @@ The v1.0 had these visual characteristics that MUST be maintained:
 ## WHAT CHANGES FROM v1.0 TO v2.0:
 
 1. **Badge** → "v2.0 Production" (was "MVP Proof Build")
-2. **Subtitle** → "Part of the Precision Intelligence Network — HCLS AI Factory" (was standalone)
+2. **Subtitle** → "Part of the Precision Intelligence Engine — HCLS AI Factory" (was standalone)
 3. **NEW: Pediatric Imaging Pipelines** added alongside existing 4 pipelines
 4. **NEW: Cross-Agent Integration section** inside Reasoning Layer showing connections to 10 peer agents
 5. **NEW: 9-Tab Streamlit UI** reference in output section
-6. **Cross-Modal strip** → Updated with all 11 agents and pediatric oncology focus
+6. **Cross-Modal strip** → Updated with all 8 agents and pediatric oncology focus
 7. **Scope annotation** → Updated from "MVP 1-4 workflows" to "Production: 4 core + 3 pediatric workflows"
 8. **Clinical Destinations** → Expanded with Pediatric Oncologist and Tumor Board
 9. **Metrics** → Updated with current numbers
@@ -96,7 +96,7 @@ Landscape 16:9. White background. Dense reference architecture poster. IDENTICAL
 **Center:**
 - Title (large, bold, navy): **Imaging Intelligence Agent**
 - Subtitle line 1 (gray): "CT / MRI / X-Ray — Production on NVIDIA DGX Spark (GB10 Grace Blackwell)"
-- Subtitle line 2 (teal): "Part of the Precision Intelligence Network — HCLS AI Factory" [NEW]
+- Subtitle line 2 (teal): "Part of the Precision Intelligence Engine — HCLS AI Factory" [NEW]
 - Subtitle line 3 (gray, small): "128 GB Unified Memory | 4 Core + 3 Pediatric Imaging Pipelines" [UPDATED]
 
 **Right side — Key/Legend box (matching v1.0, expanded):**
@@ -351,7 +351,7 @@ Path: Proof → Department → Enterprise
 | v1.0 Said | v2.0 Says |
 |-----------|-----------|
 | MVP Proof Build | v2.0 Production |
-| Standalone agent | Part of Precision Intelligence Network with 10 peer agents |
+| Standalone agent | Part of Precision Intelligence Engine with 10 peer agents |
 | 4 imaging pipelines | 4 core + 3 pediatric imaging pipelines |
 | No cross-agent integration | /integrated-assessment with Oncology, Neurology, Cardiology, Clinical Trial |
 | No pediatric imaging | Medulloblastoma staging, trilateral screening, ALL staging, treatment response |
@@ -364,7 +364,7 @@ Path: Proof → Department → Enterprise
 ## WHAT THIS DIAGRAM MUST COMMUNICATE AT A GLANCE
 
 1. **Same architecture as v1.0** — recognizably the same poster, naturally evolved
-2. **Now part of a larger platform** — "Precision Intelligence Network" subtitle, cross-agent connections
+2. **Now part of a larger platform** — "Precision Intelligence Engine" subtitle, cross-agent connections
 3. **Pediatric imaging is a first-class capability** — 3 new pipeline rows for pediatric brain and body imaging
 4. **Cross-agent integration is real** — visible connections to Oncology, Neurology, Cardiology, Clinical Trial agents
 5. **4 core imaging pipelines preserved** — CT Head, CT Chest, CXR, MRI Brain unchanged

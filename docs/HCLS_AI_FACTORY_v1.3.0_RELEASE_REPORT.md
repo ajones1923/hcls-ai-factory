@@ -11,7 +11,7 @@ HCLS AI Factory v1.3.0 has been released across 12 GitHub repositories, represen
 **Key milestones:**
 
 - **v1.3.0 released** across all 12 GitHub repositories
-- **3 engines, 11 intelligence agents, 21 services** deployed and verified
+- **3 engines, 8 intelligence agents, 21 services** deployed and verified
 - **All CI green** (12/12 repos passing lint + tests)
 - **Documentation site live** at hcls-ai-factory.org with 142 documented pages
 - **139 Milvus collections** seeded with ~47,691 vectors across all agents
@@ -197,7 +197,7 @@ Additional workflows:
 - **142 markdown pages** published via MkDocs + Netlify
 - **Complete documentation overhaul** from v1.2.0 (148 pages consolidated to 142 after cleanup and deduplication)
 
-### Per-Agent Documentation (11 agents x 8 documents)
+### Per-Agent Documentation (8 agents x 8 documents)
 
 Each agent ships with a standardized documentation set:
 
@@ -214,12 +214,12 @@ Each agent ships with a standardized documentation set:
 
 | Document | Lines | Coverage |
 |----------|-------|----------|
-| Learning Guide Unified -- Foundations | 3,881 | All 11 agents, platform architecture, getting started |
+| Learning Guide Unified -- Foundations | 3,881 | All 8 agents, platform architecture, getting started |
 | Learning Guide Unified -- Advanced | 3,051 | Advanced topics, integration patterns, production deployment |
 
 ### Research Paper
 
-- **arXiv paper:** 669 lines, updated to cover all 11 agents and the three-engine architecture
+- **arXiv paper:** 669 lines, updated to cover all 8 agents and the three-engine architecture
 - **Title:** "HCLS AI Factory: An Open-Source Precision Medicine Platform on NVIDIA DGX Spark"
 
 ### Pediatric Oncology Resources
@@ -360,7 +360,7 @@ All repositories tagged with v1.3.0:
 - [x] Documentation site live at hcls-ai-factory.org
 - [x] Learning Guide Foundations Unified: 3,881 lines
 - [x] Learning Guide Advanced Unified: 3,051 lines
-- [x] arXiv paper updated for 11 agents (669 lines)
+- [x] arXiv paper updated for 8 agents (669 lines)
 - [x] Pediatric safety filters connected to real data (6 filters)
 - [x] All agents have Streamlit UI + FastAPI backend + Milvus integration
 - [x] Docker Compose unified manifest validated (`docker-compose.dgx-spark.yml`)
@@ -417,7 +417,7 @@ All repositories tagged with v1.3.0:
 
 ```
 hcls-ai-factory/
-  ai_agent_adds/
+  core/
     cardiology_intelligence_agent/       # New in v1.3.0
     cart_intelligence_agent/
     clinical_trial_intelligence_agent/   # New in v1.3.0
@@ -431,16 +431,16 @@ hcls-ai-factory/
     single_cell_intelligence_agent/      # New in v1.3.0
     docs/                                # Agent documentation hub
   docker-compose.dgx-spark.yml          # 21-service unified manifest
-  drug-discovery-pipeline/               # Engine 3
-  genomics-pipeline/                     # Engine 1
+  core/engines/therapeutic-discovery/               # Engine 3
+  core/engines/genomic-foundation/                     # Engine 1
   hcls-ai-factory/                       # Inner reference repo (CI/CD)
   hcls-ai-factory-public/                # Public GitHub release
   hcls-ai-factory-vast/                  # the AI platform deployment (MkDocs)
-  hls-orchestrator/                      # Nextflow DSL2 orchestrator
+  hcls-orchestrator/                      # Nextflow DSL2 orchestrator
   landing-page/                          # Flask portal (:8080)
   lib/hcls_common/                       # 23-module shared library
   monitoring/                            # Prometheus + Grafana configs
-  rag-chat-pipeline/                     # Engine 2
+  core/engines/precision-intelligence/                     # Engine 2
   start-factory.sh                       # Master startup script (19KB)
   stop-factory.sh                        # Graceful shutdown
   health-monitor.sh                      # 11-service health watchdog (19KB)

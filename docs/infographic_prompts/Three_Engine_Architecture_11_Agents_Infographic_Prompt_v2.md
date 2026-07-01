@@ -87,10 +87,10 @@ Key: Each process step is a small card with a 1-2 word label on top, a single me
 
 #### ═══ GREEN ARROW: "VCF + Annotations" ═══►
 
-#### BOX 2: Precision Intelligence Network (slightly wider)
+#### BOX 2: Precision Intelligence Engine (slightly wider)
 
 ```
-[Brain icon] Precision Intelligence Network              STAGE 2
+[Brain icon] Precision Intelligence Engine              STAGE 2
 
 Milvus DB          Claude LLM           11 Agents
 [3.56M vectors]    [RAG Architecture]   [Cross-Agent]
@@ -127,7 +127,7 @@ Key: Four process steps, each a small card with 1-word label and one badge.
 ### ━━━ BAND 3: 11 INTELLIGENCE AGENTS (~40% of canvas) ━━━
 
 **Header bar (full width, navy background, white text, 12pt):**
-"11 Intelligence Agents — Precision Intelligence Network"
+"11 Intelligence Agents — Precision Intelligence Engine"
 
 **Layout:** 4 columns (domain groups). Agent cards stacked vertically in each column.
 
@@ -274,7 +274,7 @@ Right: "March 2026 | Pediatric Oncology"
 ## WHAT THIS DIAGRAM MUST COMMUNICATE AT A GLANCE
 
 1. **Three engines, left to right** — DNA in, drug candidates out
-2. **11 agents in 4 domain groups** — organized, comprehensive, clinically grounded
+2. **8 agents in 4 domain groups** — organized, comprehensive, clinically grounded
 3. **Cross-agent coordination** — dashed lines show agents talk to each other
 4. **Every number is specific** — 11.7M, 3.56M, 88, 44, 10, 6, 28 — verified counts, not estimates
 5. **Pediatric safety is explicit** — BBB, hERG, hepatic, growth plate in the Discovery Engine

@@ -1,6 +1,6 @@
 # Nano Banana Pro — HCLS AI Factory on NVIDIA DGX Spark Architectural Infographic v2.0
 
-## IMPORTANT: Read this entire prompt before generating. This is an UPDATE to an existing infographic (v1.0). The original showed 3 pipelines with 5 agents. This v2.0 reflects the current platform: 3 RENAMED engines, 11 intelligence agents in 4 domain groups, pediatric oncology as primary use case, cross-agent integration, and pediatric safety filters in drug discovery. The visual style, layout density, and architectural poster aesthetic of v1.0 must be PRESERVED — this should look like a natural evolution, not a redesign. ONE canvas, landscape 16:9, reference architecture poster density.
+## IMPORTANT: Read this entire prompt before generating. This is an UPDATE to an existing infographic (v1.0). The original showed 3 pipelines with 5 agents. This v2.0 reflects the current platform: 3 RENAMED engines, 8 intelligence agents in 4 domain groups, pediatric oncology as primary use case, cross-agent integration, and pediatric safety filters in drug discovery. The visual style, layout density, and architectural poster aesthetic of v1.0 must be PRESERVED — this should look like a natural evolution, not a redesign. ONE canvas, landscape 16:9, reference architecture poster density.
 
 ---
 
@@ -21,8 +21,8 @@ The original v1.0 had these visual characteristics that MUST be maintained:
 
 ## WHAT CHANGES FROM v1.0 TO v2.0:
 
-1. **Pipeline names** → Engine names: "GPU-Accelerated Genomics" → "Genomic Foundation Engine" | "RAG/Chat Evidence Retrieval" → "Precision Intelligence Network" | "Generative Drug Discovery" → "Therapeutic Discovery Engine"
-2. **5 agents** → **11 agents in 4 domain groups** shown explicitly in the Precision Intelligence Network band
+1. **Pipeline names** → Engine names: "GPU-Accelerated Genomics" → "Genomic Foundation Engine" | "RAG/Chat Evidence Retrieval" → "Precision Intelligence Engine" | "Generative Drug Discovery" → "Therapeutic Discovery Engine"
+2. **5 agents** → **8 agents in 4 domain groups** shown explicitly in the Precision Intelligence Engine band
 3. **Demo use case** → "Pediatric Oncology" (was "VCP & Frontotemporal Dementia")
 4. **New: Cross-agent integration** lines between agents
 5. **New: Pediatric Safety Filter** added to drug discovery pipeline
@@ -46,7 +46,7 @@ Landscape 16:9. White background (#FFFFFF). Dense reference architecture poster.
 
 **Color Palette (same as v1.0):**
 - NVIDIA Green: #76B900 — Genomic Foundation Engine band, infrastructure bar, metric badges
-- Teal/Blue: #1AAFCC — Precision Intelligence Network band, agent connections
+- Teal/Blue: #1AAFCC — Precision Intelligence Engine band, agent connections
 - Purple: #7B2D8E — Therapeutic Discovery Engine band
 - Navy: #1B2333 — Title, headers, text
 - Light Gray: #F5F5F5 — Card backgrounds
@@ -91,7 +91,7 @@ Light green (#E8F5E9) background, thin green border, small text.
 **Right side — Pipeline Key (matching v1.0 style):**
 ```
 ━━━ Genomic Foundation Engine
-━━━ Precision Intelligence Network
+━━━ Precision Intelligence Engine
 ━━━ Therapeutic Discovery Engine
 →   Data Flow
 - → Cross-Agent Coordination
@@ -168,10 +168,10 @@ VEP                        384 dimensions          3.56M Vectors
 
 ### ━━━ BAND 3: PRECISION INTELLIGENCE NETWORK (teal tint band — LARGEST BAND) ━━━
 
-**Band header:** "Precision Intelligence Network"
+**Band header:** "Precision Intelligence Engine"
 **Background tint:** Very light teal (#E0F7FA)
 
-**This band is EXPANDED from v1.0 to show all 11 agents.** It has two sub-layers:
+**This band is EXPANDED from v1.0 to show all 8 agents.** It has two sub-layers:
 
 #### Sub-layer 3A: RAG Architecture (top of band)
 
@@ -394,7 +394,7 @@ Small, gray, centered.
 | v1.0 Said | v2.0 Says |
 |-----------|-----------|
 | 3 pipelines | 3 engines (renamed) |
-| 5 agents (not shown individually) | 11 agents in 4 domain groups (all visible) |
+| 5 agents (not shown individually) | 8 agents in 4 domain groups (all visible) |
 | VCP/FTD demo use case | Pediatric oncology (5 patients, 6 demos) |
 | Researcher + Clinician + Med Chemist outputs | + Tumor Board + Pediatric Oncologist + Clinical Trials |
 | No cross-agent integration shown | Dashed teal lines between agents |
@@ -406,12 +406,12 @@ Small, gray, centered.
 
 1. **Same elegant architecture as v1.0** — recognizably the same platform, evolved
 2. **Three engines renamed** — Genomic Foundation, Precision Intelligence, Therapeutic Discovery
-3. **11 agents are now VISIBLE** — not hidden behind a generic "Knowledge Layer" box
+3. **8 agents are now VISIBLE** — not hidden behind a generic "Knowledge Layer" box
 4. **Pediatric oncology is the mission** — use case badge, patient names, demo count
 5. **Cross-agent coordination exists** — dashed lines show agents talking to each other
 6. **Pediatric safety filter is explicit** — new box in Drug Discovery with BBB, hERG, hepatic, growth plate
 7. **More output consumers** — Tumor Board, Pediatric Oncologist, Clinical Trials added
-8. **The numbers have grown** — 11 agents, 140+ collections, 55+ cross-agent functions, 250K+ lines
+8. **The numbers have grown** — 8 agents, 140+ collections, 55+ cross-agent functions, 250K+ lines
 9. **Open source, free, Apache 2.0** — prominent in metrics badge and footer
 10. **This runs on one DGX Spark** — same desktop machine, 10x more capability
 

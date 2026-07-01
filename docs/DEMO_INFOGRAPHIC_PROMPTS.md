@@ -34,7 +34,7 @@ Label at bottom: "Powered by NVIDIA Parabricks on DGX Spark"
 
 **Connecting arrow (green #76B900, animated-style dotted line)**
 
-**Block 2 — Precision Intelligence Network (teal border)**
+**Block 2 — Precision Intelligence Engine (teal border)**
 Show in center a Milvus database cylinder icon labeled "3.56M Vectors" with the Precision Oncology Agent card connecting to it:
 - Agent card: "Precision Oncology Agent" with a tumor icon
 - Inside the card show 3 findings as small pills/badges:

@@ -105,7 +105,7 @@ curl http://localhost:8538/collections
 ### 3.1 Build the Docker Image
 
 ```bash
-cd /home/adam/projects/hcls-ai-factory/ai_agent_adds/clinical_trial_intelligence_agent
+cd /home/adam/projects/hcls-ai-factory/core/agents/clinical-trial
 
 # Build
 docker build -t clinical-trial-agent:latest .
@@ -197,7 +197,7 @@ docker-compose exec trial-api python scripts/seed_knowledge.py
 ### 4.1 Virtual Environment
 
 ```bash
-cd /home/adam/projects/hcls-ai-factory/ai_agent_adds/clinical_trial_intelligence_agent
+cd /home/adam/projects/hcls-ai-factory/core/agents/clinical-trial
 
 # Create virtual environment
 python3 -m venv .venv

@@ -1,7 +1,7 @@
 # Precision Oncology Intelligence Agent -- Architecture Guide
 
 Architecture design document for the Precision Oncology Intelligence Agent,
-part of the HCLS AI Factory Precision Intelligence Network -- one of three
+part of the HCLS AI Factory Precision Intelligence Engine -- one of three
 GPU-accelerated engines (Genomic Foundation Engine, Precision Intelligence
 Network, Therapeutic Discovery Engine) that together deliver patient DNA to
 drug candidates in under 5 hours on a single NVIDIA DGX Spark.
@@ -281,7 +281,7 @@ MTBPacket + CaseSnapshot returned
 
 ## Milvus Collections
 
-The agent manages 11 specialized vector collections. All use COSINE similarity
+The agent manages 8 specialized vector collections. All use COSINE similarity
 with IVF_FLAT indexing (nlist=1024, nprobe=16) and 384-dimensional vectors
 from BGE-small-en-v1.5.
 
@@ -858,14 +858,14 @@ Generates a FHIR R4 Bundle (type=collection) containing:
 
 ## Cross-Agent Integration
 
-### Platform Context: Precision Intelligence Network
+### Platform Context: Precision Intelligence Engine
 
 The Precision Oncology Intelligence Agent operates within the HCLS AI Factory
-Precision Intelligence Network, one of three GPU-accelerated engines:
+Precision Intelligence Engine, one of three GPU-accelerated engines:
 
 1. **Genomic Foundation Engine** -- Parabricks/DeepVariant/BWA-MEM2 for
    FASTQ-to-VCF processing (Stage 1)
-2. **Precision Intelligence Network** -- 11 domain-specialized RAG agents
+2. **Precision Intelligence Engine** -- 11 domain-specialized RAG agents
    providing clinical decision support (Stage 2)
 3. **Therapeutic Discovery Engine** -- BioNeMo MolMIM/DiffDock/RDKit for
    molecular generation and docking (Stage 3)

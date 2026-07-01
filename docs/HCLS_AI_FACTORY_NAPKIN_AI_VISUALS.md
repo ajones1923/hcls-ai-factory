@@ -21,12 +21,12 @@ Patient DNA to drug candidates in under 5 hours on a single NVIDIA DGX Spark.
 - Ensembl VEP consequence annotation
 - Output: VCF with 11.7M called variants
 
-### Engine 2: Precision Intelligence Network (Ports 8080, 8100-8544, 19530)
+### Engine 2: Precision Intelligence Engine (Ports 8080, 8100-8544, 19530)
 
 - Milvus v2.4 vector database (45 collections, IVF_FLAT index, COSINE metric)
 - BGE-small-en-v1.5 embedding model (384 dimensions)
 - Claude LLM synthesis (claude-sonnet-4-20250514, temperature=0.3)
-- 11 specialized FastAPI intelligence agents
+- 8 specialized FastAPI intelligence agents
 - Streamlit UI per agent
 - 201 genes across 13 therapeutic areas (171 druggable, 85%)
 - RAG-grounded multi-turn chat with streaming SSE
@@ -534,7 +534,7 @@ docking_normalized = max(0, min(1, (10 + dock_score) / 20))
 | nlist | 1024 |
 | Distance metric | COSINE |
 | Total indexed vectors | 3,487,216 |
-| Shared collection | genomic_evidence (used by all 11 agents) |
+| Shared collection | genomic_evidence (used by all 8 agents) |
 
 ### Collections by Agent
 
@@ -824,24 +824,24 @@ ELSE:
 
 | Service | Build Context | API Port | UI Port | Memory Limit |
 |---|---|---|---|---|
-| precision-biomarker-agent | ./ai_agent_adds/precision_biomarker_agent | 8102:8000 | 8502:8501 | 4 GB |
-| precision-oncology-agent | ./ai_agent_adds/precision_oncology_agent/agent | 8103:8000 | 8503:8501 | 4 GB |
-| cart-intelligence-agent | ./ai_agent_adds/cart_intelligence_agent | 8104:8000 | 8504:8501 | 4 GB |
-| imaging-intelligence-agent | ./ai_agent_adds/imaging_intelligence_agent/agent | 8105:8000 | 8505:8501 | 8 GB |
-| precision-autoimmune-agent | ./ai_agent_adds/precision_autoimmune_agent | 8106:8000 | 8506:8501 | 4 GB |
-| cardiology-intelligence-agent | ./ai_agent_adds/cardiology_intelligence_agent | 8126:8126 | 8536:8536 | 4 GB |
-| neurology-intelligence-agent | ./ai_agent_adds/neurology_intelligence_agent | 8528:8528 | 8529:8529 | 4 GB |
-| rare-disease-diagnostic-agent | ./ai_agent_adds/rare_disease_diagnostic_agent | 8134:8134 | 8544:8544 | 4 GB |
-| clinical-trial-intelligence-agent | ./ai_agent_adds/clinical_trial_intelligence_agent | 8538:8538 | 8128:8128 | 4 GB |
-| single-cell-intelligence-agent | ./ai_agent_adds/single_cell_intelligence_agent | 8540:8540 | 8130:8130 | 8 GB |
-| pharmacogenomics-intelligence-agent | ./ai_agent_adds/pharmacogenomics_intelligence_agent | 8107:8107 | 8507:8507 | 4 GB |
+| precision-biomarker-agent | ./core/agents/precision-biomarker | 8102:8000 | 8502:8501 | 4 GB |
+| precision-oncology-agent | ./core/engines/precision-oncology/agent/agent | 8103:8000 | 8503:8501 | 4 GB |
+| cart-intelligence-agent | ./core/agents/cart | 8104:8000 | 8504:8501 | 4 GB |
+| imaging-intelligence-agent | ./core/engines/clinical-imaging/agent/agent | 8105:8000 | 8505:8501 | 8 GB |
+| precision-autoimmune-agent | ./core/agents/precision-autoimmune | 8106:8000 | 8506:8501 | 4 GB |
+| cardiology-intelligence-agent | ./core/engines/cardiology | 8126:8126 | 8536:8536 | 4 GB |
+| neurology-intelligence-agent | ./core/agents/neurology | 8528:8528 | 8529:8529 | 4 GB |
+| rare-disease-diagnostic-agent | ./core/agents/rare-disease-diagnostic | 8134:8134 | 8544:8544 | 4 GB |
+| clinical-trial-intelligence-agent | ./core/agents/clinical-trial | 8538:8538 | 8128:8128 | 4 GB |
+| single-cell-intelligence-agent | ./core/agents/single-cell | 8540:8540 | 8130:8130 | 8 GB |
+| pharmacogenomics-intelligence-agent | ./core/agents/pharmacogenomics | 8107:8107 | 8507:8507 | 4 GB |
 
 ### Application Services
 
 | Service | Build/Image | Ports | Memory Limit | Purpose |
 |---|---|---|---|---|
 | landing-page | ./landing-page (Dockerfile) | 8080:8080 | 256 MB | Service hub and health dashboard |
-| dd-pipeline-ui | ./drug-discovery-pipeline (Dockerfile) | 8505:8501 | -- | Drug discovery Streamlit UI |
+| dd-pipeline-ui | ./core/engines/therapeutic-discovery (Dockerfile) | 8505:8501 | -- | Drug discovery Streamlit UI |
 
 ### NIM GPU Services
 

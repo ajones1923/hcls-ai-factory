@@ -120,10 +120,10 @@ All 10 services should show green status:
 ./setup-data.sh --status
 
 # Or check individual files
-ls genomics-pipeline/data/ref/GRCh38.fa              # 3.1 GB reference
-ls genomics-pipeline/data/input/HG002_R1.fastq.gz    # ~100 GB read 1
-ls genomics-pipeline/data/input/HG002_R2.fastq.gz    # ~100 GB read 2
-ls rag-chat-pipeline/data/annotations/                # ClinVar + AlphaMissense
+ls core/engines/genomic-foundation/data/ref/GRCh38.fa              # 3.1 GB reference
+ls core/engines/genomic-foundation/data/input/HG002_R1.fastq.gz    # ~100 GB read 1
+ls core/engines/genomic-foundation/data/input/HG002_R2.fastq.gz    # ~100 GB read 2
+ls core/engines/precision-intelligence/data/annotations/                # ClinVar + AlphaMissense
 ```
 
 > If any files are missing, run `./setup-data.sh --all` to download them. See Stage 0 above.
@@ -138,7 +138,7 @@ ls rag-chat-pipeline/data/annotations/                # ClinVar + AlphaMissense
 
 - "This is the HCLS AI Factory — a platform that transforms patient DNA into novel drug candidates in under 5 hours."
 - "Everything runs on this single DGX Spark — a $4,699 desktop workstation."
-- "Three engines: the Genomic Foundation Engine for GPU-accelerated genomics, the Precision Intelligence Network for RAG-grounded target identification with 11 intelligence agents, and the Therapeutic Discovery Engine for AI-driven drug discovery."
+- "Three engines: the Genomic Foundation Engine for GPU-accelerated genomics, the Precision Intelligence Engine for RAG-grounded target identification with 8 intelligence agents, and the Therapeutic Discovery Engine for AI-driven drug discovery."
 
 **Show:** Landing page at http://localhost:8080 — highlight the 10-service health grid.
 
@@ -172,7 +172,7 @@ python run_pipeline.py --mode demo
 
 ---
 
-### Precision Intelligence Network (Stage 2) — 5-6 minutes
+### Precision Intelligence Engine (Stage 2) — 5-6 minutes
 
 #### Show Annotation Pipeline
 
@@ -299,7 +299,7 @@ Claude will identify VCP as the primary target with:
 
 **11 Intelligence Agents:**
 
-- "The platform includes 11 specialized intelligence agents spanning oncology, biomarkers, CAR-T, imaging, autoimmune, pharmacogenomics, cardiology, clinical trials, rare disease, neurology, and single-cell analysis."
+- "The platform includes 8 specialized intelligence agents spanning oncology, biomarkers, CAR-T, imaging, autoimmune, pharmacogenomics, cardiology, clinical trials, rare disease, neurology, and single-cell analysis."
 
 **Cross-modal:**
 

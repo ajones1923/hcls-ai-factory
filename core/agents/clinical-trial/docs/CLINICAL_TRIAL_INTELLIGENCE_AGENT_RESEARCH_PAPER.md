@@ -307,14 +307,14 @@ GPU acceleration across all three stages of its pipeline. The total deployment f
 approximately 1.1 TB, encompassing models, databases, reference genomes, and indexed knowledge bases.
 
 The platform is orchestrated by Nextflow DSL2 workflows coordinated by a Python-based orchestrator
-in the `hls-orchestrator/` directory. A Flask-based landing page at port 8080 provides a unified
+in the `hcls-orchestrator/` directory. A Flask-based landing page at port 8080 provides a unified
 entry point with real-time health monitoring across all 11 services. The shared library in
 `lib/hcls_common/` provides 23 modules covering configuration management, Milvus operations, LLM
 integration, security, logging, and common utilities used by all agents.
 
 ### 4.2 Three-Stage Pipeline
 
-**Stage 1: Genomics Pipeline** (`genomics-pipeline/`)
+**Stage 1: Genomics Pipeline** (`core/engines/genomic-foundation/`)
 
 The genomics pipeline transforms raw sequencing data (FASTQ format) into annotated variant calls
 (VCF format) using GPU-accelerated tools. NVIDIA Parabricks 4.6 provides GPU-accelerated
@@ -323,7 +323,7 @@ whole-genome analysis from 24-48 hours on CPU to 120-240 minutes on DGX Spark. T
 processes the standard NA12878 reference genome (11.7 million variants) as its demo dataset, with
 3.56 million variants annotated and ready for downstream analysis.
 
-**Stage 2: RAG/Chat Pipeline** (`rag-chat-pipeline/`)
+**Stage 2: RAG/Chat Pipeline** (`core/engines/precision-intelligence/`)
 
 The RAG pipeline provides variant interpretation through retrieval-augmented generation. Variants
 from Stage 1 are queried against Milvus vector collections containing 4.1 million ClinVar records,
@@ -331,7 +331,7 @@ from Stage 1 are queried against Milvus vector collections containing 4.1 millio
 guidelines. BGE-small-en-v1.5 generates 384-dimensional vectors for semantic search, and Claude
 provides synthesis and reasoning over retrieved evidence. Query response time is under 5 seconds.
 
-**Stage 3: Drug Discovery Pipeline** (`drug-discovery-pipeline/`)
+**Stage 3: Drug Discovery Pipeline** (`core/engines/therapeutic-discovery/`)
 
 The drug discovery pipeline leverages BioNeMo NIMs for molecular generation and optimization.
 MolMIM generates novel molecular candidates targeting protein structures implicated by genomic

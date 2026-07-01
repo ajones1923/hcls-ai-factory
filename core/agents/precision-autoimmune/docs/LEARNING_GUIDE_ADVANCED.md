@@ -1645,7 +1645,7 @@ From `docker-compose.dgx-spark.yml`:
 
 ```yaml
 autoimmune-agent:
-  build: ./ai_agent_adds/precision_autoimmune_agent
+  build: ./core/agents/precision-autoimmune
   ports:
     - "8531:8531"  # Streamlit UI
     - "8532:8532"  # FastAPI API
@@ -1764,9 +1764,9 @@ Configure Prometheus scraping in `prometheus.yml`:
 
 The Precision Autoimmune Agent integrates with the HCLS AI Factory's three-stage precision medicine pipeline:
 
-1. **Genomics Pipeline** (`genomics-pipeline/`): FASTQ -> BAM -> VCF using Parabricks/DeepVariant/BWA-MEM2. Produces variant calls that feed into HLA typing and pharmacogenomic analysis.
-2. **RAG/Chat Pipeline** (`rag-chat-pipeline/`): Milvus + Claude AI for variant interpretation. Shares the Milvus infrastructure with the autoimmune agent.
-3. **Drug Discovery Pipeline** (`drug-discovery-pipeline/`): BioNeMo MolMIM/DiffDock/RDKit for drug candidate generation. The autoimmune agent's biologic therapy recommendations can guide target selection.
+1. **Genomics Pipeline** (`core/engines/genomic-foundation/`): FASTQ -> BAM -> VCF using Parabricks/DeepVariant/BWA-MEM2. Produces variant calls that feed into HLA typing and pharmacogenomic analysis.
+2. **RAG/Chat Pipeline** (`core/engines/precision-intelligence/`): Milvus + Claude AI for variant interpretation. Shares the Milvus infrastructure with the autoimmune agent.
+3. **Drug Discovery Pipeline** (`core/engines/therapeutic-discovery/`): BioNeMo MolMIM/DiffDock/RDKit for drug candidate generation. The autoimmune agent's biologic therapy recommendations can guide target selection.
 
 ### 13.2 The Genomic Evidence Bridge (shared collection, weight 0.02)
 

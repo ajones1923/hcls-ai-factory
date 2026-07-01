@@ -342,7 +342,7 @@ The knowledge graph (v2.0.0, last updated 2026-03-14) spans six dimensions with 
 
 ## 4. Clinical Workflows
 
-The WorkflowEngine dispatches queries to 11 specialized clinical workflows plus a general fallback. Each workflow follows the BaseCardioWorkflow template-method pattern: preprocess -> execute -> postprocess.
+The WorkflowEngine dispatches queries to 8 specialized clinical workflows plus a general fallback. Each workflow follows the BaseCardioWorkflow template-method pattern: preprocess -> execute -> postprocess.
 
 | # | Workflow | Type Enum | Key Inputs | Key Outputs | Severity Levels | Guidelines Referenced |
 |---|---|---|---|---|---|---|

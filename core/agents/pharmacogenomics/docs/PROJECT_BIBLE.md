@@ -4,7 +4,7 @@
 **Author:** Adam Jones
 **Date:** March 2026
 **License:** Apache 2.0
-**Repository:** hcls-ai-factory/ai_agent_adds/pharmacogenomics_intelligence_agent
+**Repository:** hcls-ai-factory/core/agents/pharmacogenomics
 
 ---
 
@@ -40,7 +40,7 @@
 
 ### Platform Positioning
 
-The Pharmacogenomics Intelligence Agent is one of **11 intelligence agents** in the HCLS AI Factory, a three-engine precision medicine platform (Genomics, RAG/Chat, Drug Discovery) running on NVIDIA DGX Spark. It occupies the pharmacogenomics niche, translating VCF variant data from the Genomics Engine into genotype-guided prescribing recommendations.
+The Pharmacogenomics Intelligence Agent is one of **8 intelligence agents** in the HCLS AI Factory, a three-engine precision medicine platform (Genomics, RAG/Chat, Drug Discovery) running on NVIDIA DGX Spark. It occupies the pharmacogenomics niche, translating VCF variant data from the Genomics Engine into genotype-guided prescribing recommendations.
 
 **All 11 HCLS AI Factory Intelligence Agents:**
 
@@ -288,7 +288,7 @@ Democratize pharmacogenomic decision support by providing unified, evidence-grou
 | 12 | `pgx_patient_profiles` | 0.03 | Patient diplotype-phenotype profiles | patient_id, gene, diplotype, phenotype, activity_score |
 | 13 | `pgx_implementation` | 0.02 | Clinical PGx implementation programs | institution, program_type, genes_tested, ehr_integration |
 | 14 | `pgx_education` | 0.02 | PGx educational resources & guidelines | topic, target_audience, content_type, learning_objectives |
-| 15 | `genomic_evidence` | 0.03 | Shared read-only genomic variants (from rag-chat-pipeline) | chrom, pos, ref, alt, gene, consequence |
+| 15 | `genomic_evidence` | 0.03 | Shared read-only genomic variants (from core/engines/precision-intelligence) | chrom, pos, ref, alt, gene, consequence |
 
 ### 5.2 Index Configuration
 

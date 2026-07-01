@@ -63,7 +63,7 @@ The Precision Oncology Intelligence Agent is a RAG-powered clinical
 decision-support system purpose-built for molecular tumor board (MTB)
 workflows. It operates within the HCLS AI Factory Precision Intelligence
 Network -- one of three GPU-accelerated engines (Genomic Foundation Engine,
-Precision Intelligence Network, Therapeutic Discovery Engine) -- sitting
+Precision Intelligence Engine, Therapeutic Discovery Engine) -- sitting
 between the genomics pipeline (Stage 1) and the drug discovery pipeline
 (Stage 3) to provide real-time variant interpretation, therapy ranking,
 clinical trial matching, and evidence synthesis.
@@ -74,7 +74,7 @@ The HCLS AI Factory comprises three engines:
 
 1. **Genomic Foundation Engine** -- Parabricks/DeepVariant/BWA-MEM2
    (FASTQ to VCF)
-2. **Precision Intelligence Network** -- 11 domain-specialized RAG agents
+2. **Precision Intelligence Engine** -- 11 domain-specialized RAG agents
    including this oncology agent
 3. **Therapeutic Discovery Engine** -- BioNeMo MolMIM/DiffDock/RDKit
    (molecular generation and docking)
@@ -1251,7 +1251,7 @@ prefix. The `.env` file is loaded automatically.
 | DATA_DIR                       | Path   | PROJECT_ROOT/data                  | Data directory                           |
 | CACHE_DIR                      | Path   | PROJECT_ROOT/cache                 | Cache directory                          |
 | REFERENCE_DIR                  | Path   | PROJECT_ROOT/reference             | Reference data directory                 |
-| RAG_PIPELINE_ROOT              | Path   | (auto-detected)                    | Path to rag-chat-pipeline                |
+| RAG_PIPELINE_ROOT              | Path   | (auto-detected)                    | Path to core/engines/precision-intelligence                |
 | MILVUS_HOST                    | str    | localhost                          | Milvus server hostname                   |
 | MILVUS_PORT                    | int    | 19530                              | Milvus gRPC port                         |
 | COLLECTION_LITERATURE          | str    | onco_literature                    | Literature collection name               |

@@ -965,7 +965,7 @@ internal operations. These are managed by Docker Compose.
 
 ```bash
 # From the project root
-cd ai_agent_adds/precision_biomarker_agent
+cd core/agents/precision-biomarker
 
 # Start the full stack (Milvus + API + UI)
 docker compose up -d

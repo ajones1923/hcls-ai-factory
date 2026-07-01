@@ -7,7 +7,7 @@ Agent, part of the HCLS AI Factory pipeline: Patient DNA -> Drug Candidates.
 **Author:** Adam Jones
 **Date:** March 2026
 **License:** Apache 2.0
-**Repository:** `hcls-ai-factory/ai_agent_adds/precision_biomarker_agent`
+**Repository:** `hcls-ai-factory/core/agents/precision-biomarker`
 
 ---
 
@@ -50,7 +50,7 @@ Agent, part of the HCLS AI Factory pipeline: Patient DNA -> Drug Candidates.
 The Precision Biomarker Intelligence Agent is a genotype-aware biomarker
 interpretation platform that transforms standard blood panel results and
 genomic data into actionable precision health intelligence. It operates
-within the HCLS AI Factory Precision Intelligence Network -- one of three
+within the HCLS AI Factory Precision Intelligence Engine -- one of three
 GPU-accelerated engines (Genomic Foundation Engine, Precision Intelligence
 Network, Therapeutic Discovery Engine) -- delivering a complete Patient DNA
 to Drug Candidates pipeline in under 5 hours on a single NVIDIA DGX Spark
@@ -62,7 +62,7 @@ The HCLS AI Factory comprises three engines:
 
 1. **Genomic Foundation Engine** -- Parabricks/DeepVariant/BWA-MEM2
    (FASTQ to VCF)
-2. **Precision Intelligence Network** -- 11 domain-specialized RAG agents
+2. **Precision Intelligence Engine** -- 11 domain-specialized RAG agents
    including this biomarker agent
 3. **Therapeutic Discovery Engine** -- BioNeMo MolMIM/DiffDock/RDKit
    (molecular generation and docking)
@@ -1344,7 +1344,7 @@ The Biomarker Intelligence Agent communicates with other HCLS AI Factory agents
 via the cross-modal event system and `cross_modal/cross_agent.py`. It calls 4
 peer agents directly (Oncology, CAR-T, PGx, Clinical Trial) and the
 `/integrated-assessment` endpoint for multi-agent clinical synthesis. The
-platform comprises 11 agents total within the Precision Intelligence Network.
+platform comprises 8 agents total within the Precision Intelligence Engine.
 
 ### 24.1 Outbound Triggers (Biomarker -> Other Agents)
 
@@ -1527,7 +1527,7 @@ File: `requirements.txt`
 ### 29.1 Docker (Recommended)
 
 ```bash
-cd ai_agent_adds/precision_biomarker_agent
+cd core/agents/precision-biomarker
 
 # Configure API key
 cp .env.example .env
@@ -1547,7 +1547,7 @@ open http://localhost:8529/docs  # Swagger API docs
 ### 29.2 Local Development
 
 ```bash
-cd ai_agent_adds/precision_biomarker_agent
+cd core/agents/precision-biomarker
 
 # Create virtual environment
 python -m venv .venv && source .venv/bin/activate

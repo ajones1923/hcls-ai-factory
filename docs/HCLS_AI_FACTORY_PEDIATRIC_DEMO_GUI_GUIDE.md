@@ -174,9 +174,9 @@ bash health-monitor.sh --check-all
 
 **Say:**
 
-> "This is the HCLS AI Factory. One platform. One machine. Three engines and eleven specialized AI agents. Everything you see here is running on a single NVIDIA DGX Spark. Today we are going to follow five children with cancer through this platform. Let's start with Evelyn."
+> "This is the HCLS AI Factory. One platform. One machine. Three engines and eight specialized AI agents. Everything you see here is running on a single NVIDIA DGX Spark. Today we are going to follow five children with cancer through this platform. Let's start with Evelyn."
 
-**What you will see:** The Landing Page displays pipeline cards for Genomics, RAG/Chat, and Drug Discovery across the top. Below, an agent grid shows all 11 intelligence agents with real-time health status. Green circles indicate all services are operational.
+**What you will see:** The Landing Page displays pipeline cards for Genomics, RAG/Chat, and Drug Discovery across the top. Below, an agent grid shows all 8 intelligence agents with real-time health status. Green circles indicate all services are operational.
 
 > 📸 **SCREENSHOT PLACEHOLDER:** [Landing Page at http://localhost:8080 showing three engine cards (Genomics, RAG/Chat, Drug Discovery) across the top and the 11-agent grid below with all green health indicators]
 
@@ -422,7 +422,7 @@ detected. What is the molecular risk classification and what are the therapeutic
 
 > ⚠️ **IF THIS FAILS:** This is a summary step with no live interaction. If the Landing Page has become unresponsive during the demo, simply deliver the closing statement without switching tabs. The verbal summary is the most important element here.
 
-> 🎤 **SAY:** "In 15 minutes, we followed one child's DNA through the entire precision medicine pipeline. From raw sequencing data to molecular classification to therapy ranking to clinical trial matching to novel drug candidate generation. Three engines, eleven agents, one machine. Now let us see what happens when Evelyn's treatment hits a complication and the tumor board needs to convene."
+> 🎤 **SAY:** "In 15 minutes, we followed one child's DNA through the entire precision medicine pipeline. From raw sequencing data to molecular classification to therapy ranking to clinical trial matching to novel drug candidate generation. Three engines, eight agents, one machine. Now let us see what happens when Evelyn's treatment hits a complication and the tumor board needs to convene."
 
 ---
 

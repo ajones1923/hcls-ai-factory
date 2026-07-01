@@ -24,7 +24,7 @@ The HCLS AI Factory is a mature, well-architected precision medicine platform wi
 ## Priority 1: CRITICAL — Fix Immediately
 
 ### 1.1 Rotate Exposed API Keys
-- **Files:** `rag-chat-pipeline/.env` (Anthropic key), `drug-discovery-pipeline/.env` (NVIDIA key)
+- **Files:** `core/engines/precision-intelligence/.env` (Anthropic key), `core/engines/therapeutic-discovery/.env` (NVIDIA key)
 - **Risk:** Keys are in plaintext in working directories. If synced to any repo, they're compromised.
 - **Action:**
   1. Rotate both API keys immediately (Anthropic console + NVIDIA NGC)
@@ -33,7 +33,7 @@ The HCLS AI Factory is a mature, well-architected precision medicine platform wi
   4. Consider using a secrets manager or environment-only injection
 
 ### 1.2 Fix Undefined Nextflow Channels
-- **File:** `hls-orchestrator/main.nf`, line 75
+- **File:** `hcls-orchestrator/main.nf`, line 75
 - **Risk:** Adding new modes or edge cases causes runtime crash (`No such variable`)
 - **Action:** Pre-declare all channels at the top of the workflow block:
   ```groovy
@@ -43,12 +43,12 @@ The HCLS AI Factory is a mature, well-architected precision medicine platform wi
   ```
 
 ### 1.3 Fix Silent Download Failures in Genomics
-- **File:** `genomics-pipeline/scripts/02-download-data.sh`, lines 110, 130
+- **File:** `core/engines/genomic-foundation/scripts/02-download-data.sh`, lines 110, 130
 - **Risk:** `|| true` swallows aria2c failures; corrupt merged FASTQ produced silently
 - **Action:** Remove `|| true`, add per-file checksum verification before merge, fail fast on download errors
 
 ### 1.4 Fix `genomics_only` Mode — Declared But Never Handled
-- **File:** `hls-orchestrator/main.nf` and `nextflow.config`
+- **File:** `hcls-orchestrator/main.nf` and `nextflow.config`
 - **Risk:** Using `--mode genomics_only` falls through all conditionals, producing empty outputs
 - **Action:** Add an `else if (params.mode == 'genomics_only')` block in `main.nf`
 
@@ -60,34 +60,34 @@ The HCLS AI Factory is a mature, well-architected precision medicine platform wi
 
 | # | Issue | File | Action |
 |---|-------|------|--------|
-| A | Chat UI filter injection | `rag-chat-pipeline/app/chat_ui.py:981-997` | Sanitize gene/chrom inputs using `MilvusClient._sanitize_gene()` before constructing Milvus filter expressions |
-| B | Portal executes arbitrary shell commands | `rag-chat-pipeline/portal/app/server.py:322-366` | Require `PORTAL_API_KEY` (fail closed when unset) or use parameterized commands |
-| C | File upload/delete has no auth | `genomics-pipeline/web-portal/app/server.py:760,804` | Add `@require_api_key` to upload and delete endpoints |
-| D | Security headers defined but never applied | `genomics-pipeline/web-portal/app/security.py` | Add `app.after_request(add_security_headers)` in `server.py` |
-| E | `stop_all` kills arbitrary host processes | `genomics-pipeline/web-portal/app/server.py:463-499` | Track child PIDs explicitly instead of pattern-matching all system processes |
-| F | `allow_pickle=True` without integrity check | `rag-chat-pipeline/src/embedder.py:133` | Add HMAC checksum to cache files or use pickle-free serialization |
-| G | Grafana default credentials in .env | `drug-discovery-pipeline/.env:24-25` | Change from `admin/admin` and don't store in version control |
-| H | `unsafe_allow_html=True` throughout Chat UI | `rag-chat-pipeline/app/chat_ui.py` | HTML-escape all dynamic values with `html.escape()` before injection |
+| A | Chat UI filter injection | `core/engines/precision-intelligence/app/chat_ui.py:981-997` | Sanitize gene/chrom inputs using `MilvusClient._sanitize_gene()` before constructing Milvus filter expressions |
+| B | Portal executes arbitrary shell commands | `core/engines/precision-intelligence/portal/app/server.py:322-366` | Require `PORTAL_API_KEY` (fail closed when unset) or use parameterized commands |
+| C | File upload/delete has no auth | `core/engines/genomic-foundation/web-portal/app/server.py:760,804` | Add `@require_api_key` to upload and delete endpoints |
+| D | Security headers defined but never applied | `core/engines/genomic-foundation/web-portal/app/security.py` | Add `app.after_request(add_security_headers)` in `server.py` |
+| E | `stop_all` kills arbitrary host processes | `core/engines/genomic-foundation/web-portal/app/server.py:463-499` | Track child PIDs explicitly instead of pattern-matching all system processes |
+| F | `allow_pickle=True` without integrity check | `core/engines/precision-intelligence/src/embedder.py:133` | Add HMAC checksum to cache files or use pickle-free serialization |
+| G | Grafana default credentials in .env | `core/engines/therapeutic-discovery/.env:24-25` | Change from `admin/admin` and don't store in version control |
+| H | `unsafe_allow_html=True` throughout Chat UI | `core/engines/precision-intelligence/app/chat_ui.py` | HTML-escape all dynamic values with `html.escape()` before injection |
 
 ### 2.2 Fix Milvus Backup/Restore (Will Fail)
-- **File:** `rag-chat-pipeline/scripts/milvus_backup.py`
+- **File:** `core/engines/precision-intelligence/scripts/milvus_backup.py`
 - **Issues:**
   1. `expr="id >= 0"` but `id` is VARCHAR — invalid query (line 59)
   2. Restore has wrong field order and omits `id` primary key (lines 121-138)
 - **Action:** Fix query to `expr='id != ""'`; restore data must match schema order and include `id`
 
 ### 2.3 Docking Score Normalization Inconsistency
-- **Files:** `drug-discovery-pipeline/src/pipeline.py:514-518` vs `run_cloud_nim_report.py:209-214`
+- **Files:** `core/engines/therapeutic-discovery/src/pipeline.py:514-518` vs `run_cloud_nim_report.py:209-214`
 - **Issue:** Pipeline uses `-dock/12.0`, cloud report uses `-dock/6.0` — non-comparable results
 - **Action:** Create a shared `normalize_docking_score()` utility; document the actual DiffDock score range
 
 ### 2.4 Add Parallel Docking (Major Performance Win)
-- **File:** `drug-discovery-pipeline/src/pipeline.py:461-489`
+- **File:** `core/engines/therapeutic-discovery/src/pipeline.py:461-489`
 - **Issue:** Sequential docking of 50 molecules takes 4-25 minutes
 - **Action:** Use `concurrent.futures.ThreadPoolExecutor(max_workers=4)` or `dock_batch()` method
 
 ### 2.5 Cache Cloud DiffDock Protein Asset
-- **File:** `drug-discovery-pipeline/src/nim_clients.py:494-503`
+- **File:** `core/engines/therapeutic-discovery/src/nim_clients.py:494-503`
 - **Issue:** Protein PDB re-uploaded for every molecule (100+ NVCF API calls for 50 molecules)
 - **Action:** Upload protein once, cache asset ID, reuse for all docking calls in the run
 
@@ -96,18 +96,18 @@ The HCLS AI Factory is a mature, well-architected precision medicine platform wi
 | Module | Location | Priority |
 |--------|----------|----------|
 | `hcls_common` library (14 modules, 0 tests) | `lib/hcls_common/` | **Highest** — shared across all pipelines |
-| Cloud NIM clients | `drug-discovery-pipeline/src/nim_clients.py` | **High** — production code path for DGX Spark |
-| Annotator module | `rag-chat-pipeline/src/annotator.py` | **High** — ClinVar/AlphaMissense parsing |
-| Embedder module | `rag-chat-pipeline/src/embedder.py` | **High** — cache hit/miss logic |
-| CryoEM evidence | `drug-discovery-pipeline/src/cryoem_evidence.py` | **Medium** |
-| Shell scripts (18 scripts, 0 tests) | `genomics-pipeline/scripts/` | **Medium** — add BATS or shellcheck CI |
+| Cloud NIM clients | `core/engines/therapeutic-discovery/src/nim_clients.py` | **High** — production code path for DGX Spark |
+| Annotator module | `core/engines/precision-intelligence/src/annotator.py` | **High** — ClinVar/AlphaMissense parsing |
+| Embedder module | `core/engines/precision-intelligence/src/embedder.py` | **High** — cache hit/miss logic |
+| CryoEM evidence | `core/engines/therapeutic-discovery/src/cryoem_evidence.py` | **Medium** |
+| Shell scripts (18 scripts, 0 tests) | `core/engines/genomic-foundation/scripts/` | **Medium** — add BATS or shellcheck CI |
 
 ### 2.7 Version Mismatch in Nextflow Pipeline
-- **File:** `hls-orchestrator/main.nf:17` says `1.0.0`, `nextflow.config:164` says `1.0.3`
+- **File:** `hcls-orchestrator/main.nf:17` says `1.0.0`, `nextflow.config:164` says `1.0.3`
 - **Action:** Update `main.nf` to `1.0.3`; create a single `VERSION` file read everywhere
 
 ### 2.8 Add Schema Validation at Stage Boundaries
-- **File:** `drug-discovery-pipeline/src/target_import.py:57-83`
+- **File:** `core/engines/therapeutic-discovery/src/target_import.py:57-83`
 - **Issue:** Silently accepts malformed target JSON with defaults for all fields
 - **Action:** Use Pydantic model validation; make `gene` required (not defaulting to "Unknown")
 
@@ -174,7 +174,7 @@ The HCLS AI Factory is a mature, well-architected precision medicine platform wi
 | G | `get_variant_stats` makes 9 separate Milvus queries | Page load speed | Single query with `IN` expression |
 
 ### 3.6 Composite Score Validation
-- **File:** `drug-discovery-pipeline/src/models.py`
+- **File:** `core/engines/therapeutic-discovery/src/models.py`
 - **Action:** Add Pydantic `@model_validator` ensuring `docking_weight + generation_weight + qed_weight == 1.0`
 
 ### 3.7 CI/CD Improvements

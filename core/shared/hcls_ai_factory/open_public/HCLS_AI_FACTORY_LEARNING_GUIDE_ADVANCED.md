@@ -297,7 +297,7 @@ composite = 0.30 * gen_score + 0.40 * dock_normalized + 0.30 * qed_score
 The pipeline uses Nextflow DSL2's module system for composable workflow design:
 
 ```
-hls-orchestrator/
+hcls-orchestrator/
 ├── main.nf                 # Entry point, mode routing
 ├── nextflow.config         # Profiles, parameters
 ├── run_pipeline.py         # Python CLI launcher

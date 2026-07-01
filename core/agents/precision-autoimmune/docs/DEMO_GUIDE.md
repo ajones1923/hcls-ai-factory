@@ -20,7 +20,7 @@ Before starting the demo, ensure:
 Verify everything is ready:
 
 ```bash
-cd ai_agent_adds/precision_autoimmune_agent
+cd core/agents/precision-autoimmune
 
 # Create collections and seed knowledge
 python3 scripts/setup_collections.py --seed
@@ -811,7 +811,7 @@ If demo performance is slow:
 If you need to reset the demo environment completely:
 
 ```bash
-cd ai_agent_adds/precision_autoimmune_agent
+cd core/agents/precision-autoimmune
 
 # Re-create collections and re-seed knowledge (drops and recreates)
 python3 scripts/setup_collections.py --seed --drop-existing

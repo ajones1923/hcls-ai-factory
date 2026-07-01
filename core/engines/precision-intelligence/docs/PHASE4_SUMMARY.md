@@ -104,7 +104,7 @@
 
 ### Step 1: Environment Setup
 ```bash
-cd rag-chat-pipeline
+cd core/engines/precision-intelligence
 cp .env.example .env
 # Edit .env: Add HF_TOKEN
 ./run.sh setup
@@ -218,7 +218,7 @@ HG002.genome.vcf.gz ──▶ Ingest ──▶ Milvus ──▶ RAG Chat ──�
 ## Key Files
 
 ```
-rag-chat-pipeline/
+core/engines/precision-intelligence/
 ├── .env                              # Configuration (HF_TOKEN, model)
 ├── docker-compose.yml                # Milvus, Attu, vLLM
 ├── run.sh                            # CLI interface

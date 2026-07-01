@@ -493,7 +493,7 @@ collection stores a different type of oncology information. All collections
 use the same embedding model (BGE-small-en-v1.5, 384 dimensions) and the
 same index type (IVF_FLAT with COSINE similarity).
 
-Think of these collections as 11 specialized filing cabinets in the medical
+Think of these collections as 8 specialized filing cabinets in the medical
 library, each containing a different kind of document.
 
 ## Collection 1: onco_variants

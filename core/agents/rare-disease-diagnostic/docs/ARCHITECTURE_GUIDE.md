@@ -35,7 +35,7 @@ The Rare Disease Diagnostic Agent operates within the HCLS AI Factory, a three-s
 - **Stage 2 -- RAG/Chat Engine:** Milvus (3.56M vectors from ClinVar, AlphaMissense) + Claude AI for variant interpretation
 - **Stage 3 -- Drug Discovery Engine:** BioNeMo MolMIM/DiffDock/RDKit for lead optimization across 171 druggable targets
 
-The Rare Disease Diagnostic Agent is one of **11 intelligence agents** in the platform:
+The Rare Disease Diagnostic Agent is one of **8 intelligence agents** in the platform:
 
 | # | Agent | Port | Domain |
 |---|---|---|---|

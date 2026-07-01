@@ -185,7 +185,7 @@ Streamlit UI, and FastAPI endpoints without any GPU hardware.
 
 ```bash
 # Navigate to the agent directory
-cd /path/to/hcls-ai-factory/ai_agent_adds/imaging_intelligence_agent/agent
+cd /path/to/hcls-ai-factory/core/engines/clinical-imaging/agent/agent
 
 # Copy the environment template
 cp .env.example .env
@@ -275,7 +275,7 @@ Container Toolkit installed.
 ### 4.1 Configure Environment
 
 ```bash
-cd /path/to/hcls-ai-factory/ai_agent_adds/imaging_intelligence_agent/agent
+cd /path/to/hcls-ai-factory/core/engines/clinical-imaging/agent/agent
 
 cp .env.example .env
 ```
@@ -577,7 +577,7 @@ services:
 ### 5.3 Launch on DGX Spark
 
 ```bash
-cd /path/to/hcls-ai-factory/ai_agent_adds/imaging_intelligence_agent/agent
+cd /path/to/hcls-ai-factory/core/engines/clinical-imaging/agent/agent
 
 # Configure environment
 cp .env.example .env
@@ -621,7 +621,7 @@ Requires=docker.service
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-WorkingDirectory=/path/to/hcls-ai-factory/ai_agent_adds/imaging_intelligence_agent/agent
+WorkingDirectory=/path/to/hcls-ai-factory/core/engines/clinical-imaging/agent/agent
 ExecStart=/usr/bin/docker compose -f docker-compose.yml -f docker-compose.dgx-spark.yml up -d
 ExecStop=/usr/bin/docker compose -f docker-compose.yml -f docker-compose.dgx-spark.yml down
 TimeoutStartSec=300

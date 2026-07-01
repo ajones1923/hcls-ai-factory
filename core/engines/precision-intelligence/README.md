@@ -602,7 +602,7 @@ class RAGEngine:
 
 ```bash
 # Clone and setup
-cd ~/projects/hcls-ai-factory/rag-chat-pipeline
+cd ~/projects/hcls-ai-factory/core/engines/precision-intelligence
 ./run.sh setup
 
 # Configure environment
@@ -635,7 +635,7 @@ Open **http://localhost:8501** in your browser.
 
 ```bash
 git clone https://github.com/ajones1923/hcls-ai-factory.git
-cd rag-chat-pipeline
+cd core/engines/precision-intelligence
 ```
 
 ### Step 2: Setup Virtual Environment
@@ -908,7 +908,7 @@ LLM_MODEL=gpt-4-turbo
 ## Directory Structure
 
 ```
-rag-chat-pipeline/
+core/engines/precision-intelligence/
 ├── docker-compose.yml          # Milvus + Attu services
 ├── requirements.txt            # Python dependencies
 ├── run.sh                      # Main CLI
@@ -1015,9 +1015,9 @@ curl https://api.anthropic.com/v1/messages \
 
 | Stage | Pipeline | Description |
 |-------|----------|-------------|
-| **1** | [Genomics Pipeline](https://github.com/ajones1923/hcls-ai-factory/tree/main/genomics-pipeline) | FASTQ → VCF with Parabricks |
+| **1** | [Genomics Pipeline](https://github.com/ajones1923/hcls-ai-factory/tree/main/core/engines/genomic-foundation) | FASTQ → VCF with Parabricks |
 | **2** | **RAG/Chat Pipeline** (This repo) | VCF → Target Hypothesis |
-| **3** | [Drug Discovery Pipeline](https://github.com/ajones1923/hcls-ai-factory/tree/main/drug-discovery-pipeline) | Target → Molecule Candidates |
+| **3** | [Drug Discovery Pipeline](https://github.com/ajones1923/hcls-ai-factory/tree/main/core/engines/therapeutic-discovery) | Target → Molecule Candidates |
 
 ### Integration Flow
 

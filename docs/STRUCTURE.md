@@ -1,32 +1,54 @@
-# HCLS AI Factory — Structure & Migration
+# HCLS AI Factory — Repository Structure
 
-## Current layout (live, all services running)
-Engines and the shared library live at top level as independent, cleanly-named components:
-`genomics-pipeline/ rag-chat-pipeline/ drug-discovery-pipeline/ large-molecule-pipeline/
-single-cell-pipeline/ small-molecule-pipeline/ hls-orchestrator/ lib/hcls_common/`,
-the agents under `ai_agent_adds/`, and infra under `deploy/ monitoring/ docs/ scripts/`.
+The factory is **Eight Engines · Eight Intelligence Agents · One Platform**, plus disease-program
+verticals. Engines and agents are horizontal capabilities under `core/`; the shared platform layer
+is `lib/hcls_common/`.
 
-Phase 0 + Phase 1 cleanup is complete: secrets quarantined, 249 GB backups moved off-tree,
-the nested site-clones relocated to siblings, working-file cruft archived to `~/hcls-archive/`,
-and a top-level `README.md` added.
-
-## Target layout (deliberate migration)
 ```
-engines/   genomic-foundation/ precision-intelligence/ therapeutic-discovery/
-           clinical-imaging/ precision-oncology/ cardiology/ tuberous-sclerosis/
-agents/    cart/ precision-biomarker/ pharmacogenomics/ precision-autoimmune/
-           neurology/ rare-disease-diagnostic/ single-cell/ clinical-trial/
-libs/hcls_common/   deploy/   infra/   docs/   examples/
+core/
+├── engines/                     # 8 engines — horizontal capabilities
+│   ├── genomic-foundation/      #  1  GPU variant calling (Parabricks/DeepVariant) + variant store
+│   ├── precision-intelligence/  #  2  annotation (ClinVar/AlphaMissense) + clinical RAG
+│   ├── therapeutic-discovery/   #  3  MolMIM/BRICS generation, DiffDock docking, real ADMET
+│   ├── clinical-imaging/        #  4  DICOM analysis (VISTA-3D / MAISI / VILA-M3)
+│   ├── precision-oncology/      #  5  MTB packets, therapy ranking, trial matching
+│   ├── cardiology/              #  6  clinical workflows + risk calculators
+│   ├── structural-biology/      #  7  ESMFold, ESM-2 search, ProteinMPNN, developability
+│   └── single-cell/             #  8  scanpy compute → cell-type annotation
+├── agents/                      # 8 intelligence agents — clinical decision support
+│   ├── cart/                    #     CAR-T cell therapy
+│   ├── precision-biomarker/     #     biomarkers, PhenoAge/GrimAge
+│   ├── pharmacogenomics/        #     star alleles, CPIC dosing
+│   ├── precision-autoimmune/    #     autoantibody / HLA / flare
+│   ├── neurology/               #     stroke triage, dementia, EDSS
+│   ├── clinical-trial/          #     trial optimization + matching
+│   ├── rare-disease-diagnostic/ #     HPO matching, ACMG classification
+│   └── single-cell/             #     cell-type annotation, TME profiling (reasoning layer)
+└── disease-programs/            # verticals composing the engines + agents for one condition
+    └── tuberous-sclerosis/      #     first clinical beachhead
+lib/hcls_common/                 # One Platform: capability registry, MCP, workflow composer,
+                                 #                MLOps, governance gates, shared clients
+hcls-orchestrator/               # Nextflow DSL2 + the cross-stage trigger fabric
+docs/  monitoring/  scripts/  demo/  data/     docker-compose.dgx-spark.yml  Caddyfile
 ```
 
-## Why this is a migration, not an in-place rename
-Nine capability services bind to current paths and the shared library is imported via
-relative `sys.path` from them. The safe cutover, run deliberately (not while live):
+## Conventions
 
-1. `pip install -e libs/hcls_common` (remove the `sys.path` hacks) — the hard prerequisite.
-2. `git mv` each component into `engines/` / `agents/` on a branch.
-3. Update each service's start path + the registry endpoints (ports are unchanged).
-4. Restart services one at a time; verify `/health` + the MCP `check_factory_health`.
-5. `mkdocs build` + Netlify preview before publishing.
+- **Directory names** are kebab-case; Python modules are snake_case.
+- **`single-cell` appears in both `engines/` and `agents/`** by design — the *engine* is the scanpy
+  compute layer (Engine 8), the *agent* is the reasoning layer on top. They are distinct
+  capabilities, disambiguated by their registry IDs.
+- **Two engines nest a deployable app under `agent/`** (`clinical-imaging/agent/`,
+  `precision-oncology/agent/`) — historical, from when they were standalone apps. The engine
+  directory still carries the engine-level README, docs, and (for oncology/imaging) the report
+  tooling.
+- Each engine/agent is self-contained: `src/`, `tests/`, `docs/`, `README.md`, and (for services)
+  `api/`, `app/`, `config/`, `requirements.txt`, `Dockerfile`.
 
-Full rationale + the per-component map: `HCLS_STRUCTURE_OPTIMIZATION_PLAN.md` (planning workspace).
+## Disease programs
+
+Disease programs are the **vertical** solutions the horizontal engines + agents power. Each is a
+self-contained folder under `core/disease-programs/` — its own engine, disease-specific agents,
+config (which core capabilities it composes), and reference data — so it can be deployed or
+replicated on its own. Tuberous Sclerosis Complex is the first; NF1/NF2/Rett/Williams and the
+broader mTORopathies follow the same pattern.

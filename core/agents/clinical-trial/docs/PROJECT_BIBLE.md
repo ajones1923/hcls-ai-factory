@@ -31,7 +31,7 @@
 
 ### 1.1 Platform Positioning
 
-The Clinical Trial Intelligence Agent is one of **11 intelligence agents** in the HCLS AI Factory, a three-engine precision medicine platform (Genomics, RAG/Chat, Drug Discovery) running on NVIDIA DGX Spark. It occupies the clinical trial intelligence niche, connecting genomic biomarker data from the Genomics Engine with trial design optimization and patient-trial matching.
+The Clinical Trial Intelligence Agent is one of **8 intelligence agents** in the HCLS AI Factory, a three-engine precision medicine platform (Genomics, RAG/Chat, Drug Discovery) running on NVIDIA DGX Spark. It occupies the clinical trial intelligence niche, connecting genomic biomarker data from the Genomics Engine with trial design optimization and patient-trial matching.
 
 **All 11 HCLS AI Factory Intelligence Agents:**
 

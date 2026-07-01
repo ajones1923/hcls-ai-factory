@@ -54,7 +54,7 @@ system specializing in autoimmune disease analysis. It provides:
 - RAG-powered clinical Q&A across 14 Milvus vector collections
 - Clinical report export in Markdown, PDF, and FHIR R4 formats
 
-The agent is deployed as part of the HCLS AI Factory Precision Intelligence Network -- one of three GPU-accelerated engines (Genomic Foundation Engine, Precision Intelligence Network, Therapeutic Discovery Engine). The Precision Intelligence Network now comprises 11 specialized agents:
+The agent is deployed as part of the HCLS AI Factory Precision Intelligence Engine -- one of three GPU-accelerated engines (Genomic Foundation Engine, Precision Intelligence Engine, Therapeutic Discovery Engine). The Precision Intelligence Engine now comprises 8 specialized agents:
 
 | # | Agent | Domain |
 |---|-------|--------|
@@ -1306,7 +1306,7 @@ All 9 demo patients with full clinical PDF datasets in `demo_data/`.
 
 ## 22. Cross-Agent Integration
 
-The autoimmune agent integrates with 6 sibling agents within the 11-agent Precision Intelligence Network and exposes a `/v1/autoimmune/integrated-assessment` endpoint.
+The autoimmune agent integrates with 6 sibling agents within the 11-agent Precision Intelligence Engine and exposes a `/v1/autoimmune/integrated-assessment` endpoint.
 
 ### Oncology Agent Integration (8526)
 
@@ -1423,8 +1423,8 @@ python -m pytest tests/ -v
 
 ## 25. HCLS AI Factory Integration
 
-The Precision Autoimmune Agent is one of 11 intelligence agents in the
-HCLS AI Factory Precision Intelligence Network.
+The Precision Autoimmune Agent is one of 8 intelligence agents in the
+HCLS AI Factory Precision Intelligence Engine.
 
 ### Agent Family Port Map
 

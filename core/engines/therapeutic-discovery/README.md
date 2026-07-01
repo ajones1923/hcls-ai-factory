@@ -637,7 +637,7 @@ generator.generate()
 ```bash
 # Clone the repository
 git clone https://github.com/ajones1923/hcls-ai-factory.git
-cd drug-discovery-pipeline
+cd core/engines/therapeutic-discovery
 
 # Create virtual environment
 python -m venv venv
@@ -671,7 +671,7 @@ Access the UI at: **http://localhost:8505**
 
 ```bash
 git clone https://github.com/ajones1923/hcls-ai-factory.git
-cd drug-discovery-pipeline
+cd core/engines/therapeutic-discovery
 ```
 
 ### Step 2: Create Virtual Environment
@@ -827,7 +827,7 @@ NIM_ALLOW_MOCK_FALLBACK=true
 ## Directory Structure
 
 ```
-drug-discovery-pipeline/
+core/engines/therapeutic-discovery/
 ├── app/
 │   └── discovery_ui.py              # Main Streamlit UI (Port 8505)
 ├── src/
@@ -1010,8 +1010,8 @@ cd monitoring && docker-compose down && docker-compose up -d
 
 | Stage | Pipeline | Description |
 |-------|----------|-------------|
-| **1** | [Genomics Pipeline](https://github.com/ajones1923/hcls-ai-factory/tree/main/genomics-pipeline) | FASTQ → VCF with Parabricks |
-| **2** | [RAG/Chat Pipeline](https://github.com/ajones1923/hcls-ai-factory/tree/main/rag-chat-pipeline) | VCF → Target Hypothesis |
+| **1** | [Genomics Pipeline](https://github.com/ajones1923/hcls-ai-factory/tree/main/core/engines/genomic-foundation) | FASTQ → VCF with Parabricks |
+| **2** | [RAG/Chat Pipeline](https://github.com/ajones1923/hcls-ai-factory/tree/main/core/engines/precision-intelligence) | VCF → Target Hypothesis |
 | **3** | **Drug Discovery Pipeline** (This repo) | Target → Molecule Candidates |
 
 ### Integration Flow

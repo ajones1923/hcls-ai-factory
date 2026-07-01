@@ -8,7 +8,7 @@ tags:
 
 # HCLS AI Factory — Project Bible
 
-> **Purpose:** Complete implementation reference for building the HCLS AI Factory on NVIDIA DGX Spark. This platform transforms patient DNA into novel drug candidates in under 5 hours across three GPU-accelerated engines: the Genomic Foundation Engine, the Precision Intelligence Network, and the Therapeutic Discovery Engine. Import this document into a Claude Code session as context for implementation.
+> **Purpose:** Complete implementation reference for building the HCLS AI Factory on NVIDIA DGX Spark. This platform transforms patient DNA into novel drug candidates in under 5 hours across three GPU-accelerated engines: the Genomic Foundation Engine, the Precision Intelligence Engine, and the Therapeutic Discovery Engine. Import this document into a Claude Code session as context for implementation.
 >
 > License: Apache 2.0 | Date: February 2026
 
@@ -21,7 +21,7 @@ tags:
 3. [Repository Layout](#3-repository-layout)
 4. [Docker Compose Services](#4-docker-compose-services)
 5. [Stage 1: Genomic Foundation Engine](#5-stage-1-genomic-foundation-engine)
-6. [Stage 2: Precision Intelligence Network](#6-stage-2-precision-intelligence-network)
+6. [Stage 2: Precision Intelligence Engine](#6-stage-2-precision-intelligence-network)
 7. [Milvus Vector Database Schema](#7-milvus-vector-database-schema)
 8. [Variant Annotation Pipeline](#8-variant-annotation-pipeline)
 9. [Knowledge Base — 201 Genes, 13 Therapeutic Areas](#9-knowledge-base--201-genes-13-therapeutic-areas)
@@ -54,7 +54,7 @@ The HCLS AI Factory is an end-to-end precision medicine platform that takes a pa
 | Stage | Function | Duration | Key Output |
 |---|---|---|---|
 | 1 — Genomic Foundation Engine | BWA-MEM2 alignment + DeepVariant calling | 120-240 min | VCF (~11.7M variants) |
-| 2 — Precision Intelligence Network | Annotation → Embedding → LLM reasoning + 11 intelligence agents | Interactive | Target gene + evidence |
+| 2 — Precision Intelligence Engine | Annotation → Embedding → LLM reasoning + 8 intelligence agents | Interactive | Target gene + evidence |
 | 3 — Therapeutic Discovery Engine | MolMIM generation → DiffDock docking → RDKit scoring | 8-16 min | 100 ranked drug candidates |
 
 ### End-to-End Flow
@@ -138,7 +138,7 @@ hcls-ai-factory-public/
 ├── start-services.sh                   # Service startup orchestration
 ├── .env.example                        # Environment variable template
 │
-├── hls-orchestrator/                   # Nextflow pipeline orchestration
+├── hcls-orchestrator/                   # Nextflow pipeline orchestration
 │   ├── main.nf                         # DSL2 entry point
 │   ├── nextflow.config                 # Profiles and parameters
 │   ├── run_pipeline.py                 # Python CLI launcher
@@ -149,7 +149,7 @@ hcls-ai-factory-public/
 │   │   └── reporting.nf                # Report generation
 │   └── tests/
 │
-├── genomics-pipeline/                  # Stage 1: Parabricks
+├── core/engines/genomic-foundation/                  # Stage 1: Parabricks
 │   ├── README.md                       # Genomics documentation (48 KB)
 │   ├── Dockerfile
 │   ├── src/
@@ -160,7 +160,7 @@ hcls-ai-factory-public/
 │   │   └── parabricks.yaml             # GPU resource allocation
 │   └── tests/
 │
-├── rag-chat-pipeline/                  # Stage 2: RAG + Claude
+├── core/engines/precision-intelligence/                  # Stage 2: RAG + Claude
 │   ├── README.md                       # RAG documentation (51 KB)
 │   ├── Dockerfile
 │   ├── src/
@@ -174,7 +174,7 @@ hcls-ai-factory-public/
 │   │   └── milvus.yaml                 # Vector DB configuration
 │   └── tests/
 │
-├── drug-discovery-pipeline/            # Stage 3: BioNeMo + RDKit
+├── core/engines/therapeutic-discovery/            # Stage 3: BioNeMo + RDKit
 │   ├── README.md                       # Drug discovery documentation (56 KB)
 │   ├── Dockerfile
 │   ├── src/
@@ -356,7 +356,7 @@ The Flask-based portal provides:
 
 ---
 
-## 6. Stage 2: Precision Intelligence Network
+## 6. Stage 2: Precision Intelligence Engine
 
 ### Overview
 
@@ -1210,7 +1210,7 @@ SERVICES = [
 
 ### HCLS AI Factory Ecosystem
 
-The genomics-to-drug-discovery pipeline integrates with the broader HCLS AI Factory ecosystem of 11 intelligence agents:
+The genomics-to-drug-discovery pipeline integrates with the broader HCLS AI Factory ecosystem of 8 intelligence agents:
 
 **Core Agents:**
 1. Precision Oncology Agent (8503/8103)
@@ -1246,7 +1246,7 @@ Imaging Intelligence Agent (CT/MRI/X-Ray)
 | Trigger | Source | Target | Action |
 |---|---|---|---|
 | Lung-RADS 4B+ | Imaging Agent | Genomic Foundation Engine | Initiate tumor profiling |
-| Pathogenic Variant | Precision Intelligence Network | Therapeutic Discovery Engine | Generate targeted therapies |
+| Pathogenic Variant | Precision Intelligence Engine | Therapeutic Discovery Engine | Generate targeted therapies |
 | Drug Candidates | Therapeutic Discovery Engine | Imaging Agent | Combined clinical report |
 | Integrated Assessment | Any Agent (`/integrated-assessment`) | Peer Agents | Cross-agent multi-domain synthesis |
 
@@ -1412,10 +1412,10 @@ The `demo` pipeline mode uses pre-configured inputs to validate the complete pip
 
 1. **Infrastructure:** Docker Compose, Milvus, monitoring stack
 2. **Genomic Foundation Engine:** Parabricks container, fq2bam, DeepVariant, VCF output
-3. **Precision Intelligence Network — Annotation:** ClinVar + AlphaMissense + VEP pipeline
-4. **Precision Intelligence Network — Vector DB:** Milvus schema, BGE embedding, IVF_FLAT index
-5. **Precision Intelligence Network — RAG:** Claude integration, knowledge base, query expansion
-6. **Precision Intelligence Network — Chat UI:** Streamlit interface, REST API
+3. **Precision Intelligence Engine — Annotation:** ClinVar + AlphaMissense + VEP pipeline
+4. **Precision Intelligence Engine — Vector DB:** Milvus schema, BGE embedding, IVF_FLAT index
+5. **Precision Intelligence Engine — RAG:** Claude integration, knowledge base, query expansion
+6. **Precision Intelligence Engine — Chat UI:** Streamlit interface, REST API
 7. **Therapeutic Discovery Engine — Structure:** RCSB PDB retrieval, Cryo-EM scoring
 8. **Therapeutic Discovery Engine — Generation:** MolMIM NIM, molecule generation
 9. **Therapeutic Discovery Engine — Docking:** DiffDock NIM, binding prediction

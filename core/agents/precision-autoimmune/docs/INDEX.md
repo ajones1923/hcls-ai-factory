@@ -121,7 +121,7 @@ Built on the HCLS AI Factory platform:
 ### Install
 
 ```bash
-cd ai_agent_adds/precision_autoimmune_agent
+cd core/agents/precision-autoimmune
 pip install -r requirements.txt
 ```
 

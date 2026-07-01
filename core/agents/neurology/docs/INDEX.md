@@ -35,7 +35,7 @@ The Neurology Intelligence Agent is a RAG-powered clinical decision support syst
 - **API Health:** `GET http://localhost:8528/health`
 - **API Docs (Swagger):** `http://localhost:8528/docs`
 - **Streamlit UI:** `http://localhost:8529`
-- **GitHub Repository:** `ai_agent_adds/neurology_intelligence_agent/`
+- **GitHub Repository:** `core/agents/neurology/`
 
 ---
 

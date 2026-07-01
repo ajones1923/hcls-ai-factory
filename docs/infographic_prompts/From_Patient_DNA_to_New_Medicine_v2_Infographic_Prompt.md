@@ -1,6 +1,6 @@
 # Nano Banana Pro — From Patient DNA to New Medicines v2.0 (Updated for 11 Agents & Pediatric Oncology)
 
-## IMPORTANT: Read this entire prompt before generating. This is an UPDATE to an existing storytelling infographic (v1.0). The original was a narrative-driven, general-audience-friendly diagram showing the journey from patient DNA to drug candidates in 3 stages. v2.0 preserves that storytelling approach but updates for: 3 renamed engines, 11 intelligence agents (was generic), pediatric oncology as primary use case (was generic genomics), cross-agent coordination, and pediatric safety filters. ONE canvas, landscape 16:9. This is NOT a technical architecture poster — it's a STORY told visually for a general audience, clinician, or executive.
+## IMPORTANT: Read this entire prompt before generating. This is an UPDATE to an existing storytelling infographic (v1.0). The original was a narrative-driven, general-audience-friendly diagram showing the journey from patient DNA to drug candidates in 3 stages. v2.0 preserves that storytelling approach but updates for: 3 renamed engines, 8 intelligence agents (was generic), pediatric oncology as primary use case (was generic genomics), cross-agent coordination, and pediatric safety filters. ONE canvas, landscape 16:9. This is NOT a technical architecture poster — it's a STORY told visually for a general audience, clinician, or executive.
 
 ---
 
@@ -24,9 +24,9 @@ The original v1.0 had these characteristics that MUST be maintained:
 1. **Subtitle** → Updated to mention pediatric oncology
 2. **"It Starts with DNA"** → Now about a child with cancer (Evelyn, 8, B-ALL)
 3. **Stage 1** → "Genomic Foundation Engine" (was "Reading the DNA / GPU-Accelerated Genomics")
-4. **Stage 2** → "Precision Intelligence Network" with 11 agents visible (was generic funnel)
+4. **Stage 2** → "Precision Intelligence Engine" with 8 agents visible (was generic funnel)
 5. **Stage 3** → "Therapeutic Discovery Engine" with pediatric safety filter (was generic drug discovery)
-6. **Bottom strip** → Updated: "11 Agents Working Together" replaces "AI vs Original Drug" | "6 Pediatric Demos" added | "Part of a Larger Vision" updated with 11 agents
+6. **Bottom strip** → Updated: "11 Agents Working Together" replaces "AI vs Original Drug" | "6 Pediatric Demos" added | "Part of a Larger Vision" updated with 8 agents
 7. **Footer metrics** → Updated numbers
 8. **VCP/FTD demo reference** → Replaced with pediatric oncology
 
@@ -149,9 +149,9 @@ Annotated with ClinVar (4.1M records)
 
 **Header bar (teal #1AAFCC background, white text):**
 "Stage 2: Finding What Matters"
-"Precision Intelligence Network — 11 AI Agents"
+"Precision Intelligence Engine — 11 AI Agents"
 
-**Visual: Updated funnel narrowing variants to actionable targets, but NOW showing the 11 agents as the intelligence layer.**
+**Visual: Updated funnel narrowing variants to actionable targets, but NOW showing the 8 agents as the intelligence layer.**
 
 **Top of funnel:**
 ```
@@ -282,7 +282,7 @@ Part of a Larger Vision
 [icon] Genomic Foundation Engine
        Parabricks • DeepVariant
 
-[icon] Precision Intelligence Network
+[icon] Precision Intelligence Engine
        11 Agents • Milvus • Claude
 
 [icon] Therapeutic Discovery Engine
@@ -328,7 +328,7 @@ HCLS AI Factory    |    11.7M Variants    |    201 Genes    |    11 Agents    | 
 
 1. **A child's DNA goes in on the left, drug candidates come out on the right** — the story is linear, simple, and human
 2. **Three stages are clear and labeled** — Reading (green), Finding (teal), Designing (purple)
-3. **11 agents are VISIBLE in Stage 2** — not hidden, each one named with an icon
+3. **8 agents are VISIBLE in Stage 2** — not hidden, each one named with an icon
 4. **The numbers tell the story** — 3.1B bases → 11.7M variants → 5 actionable findings → 100 candidates → Top 3 with pediatric safety
 5. **Evelyn is real** — her name, her age, her specific findings appear throughout
 6. **Pediatric safety is explicit** — BBB, hERG, hepatic, growth plate shown in Stage 3

@@ -56,7 +56,7 @@ The Rare Disease Diagnostic Agent demonstrates AI-powered rare disease diagnosis
 
 ```bash
 # Navigate to agent directory
-cd /home/adam/projects/hcls-ai-factory/ai_agent_adds/rare_disease_diagnostic_agent
+cd /home/adam/projects/hcls-ai-factory/core/agents/rare-disease-diagnostic
 
 # Option 1: Docker Compose (recommended)
 docker compose up -d

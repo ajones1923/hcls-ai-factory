@@ -939,7 +939,7 @@ Tests full pipeline: embed → search_all → knowledge graph → Claude LLM res
 |---|---|
 | **Milvus 2.4** | Shared instance — CAR-T adds 10 owned collections alongside `genomic_evidence` |
 | **BGE-small-en-v1.5** | Same embedding model as RAG/Chat pipeline |
-| **ANTHROPIC_API_KEY** | Loaded from `rag-chat-pipeline/.env` if not set |
+| **ANTHROPIC_API_KEY** | Loaded from `core/engines/precision-intelligence/.env` if not set |
 | **DGX Spark** | All services on single GB10 hardware ($4,699) |
 
 ### Architectural Insight

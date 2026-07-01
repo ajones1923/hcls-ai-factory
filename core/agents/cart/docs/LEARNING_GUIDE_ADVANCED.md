@@ -616,7 +616,7 @@ SearchHit(
 ### Step 10: Run Tests
 
 ```bash
-cd /home/adam/projects/hcls-ai-factory/ai_agent_adds/cart_intelligence_agent
+cd /home/adam/projects/hcls-ai-factory/core/agents/cart
 python -m pytest tests/ -v
 ```
 
@@ -1873,7 +1873,7 @@ All fields from `config/settings.py` (`CARTSettings`):
 | DATA_DIR | Path | PROJECT_ROOT/data | -- | Data directory |
 | CACHE_DIR | Path | DATA_DIR/cache | -- | Cache directory |
 | REFERENCE_DIR | Path | DATA_DIR/reference | -- | Reference data directory |
-| RAG_PIPELINE_ROOT | Path | /app/rag-chat-pipeline | CART_RAG_PIPELINE_ROOT | Parent RAG pipeline path |
+| RAG_PIPELINE_ROOT | Path | /app/core/engines/precision-intelligence | CART_RAG_PIPELINE_ROOT | Parent RAG pipeline path |
 | MILVUS_HOST | str | localhost | CART_MILVUS_HOST | Milvus server hostname |
 | MILVUS_PORT | int | 19530 | CART_MILVUS_PORT | Milvus server port |
 | COLLECTION_LITERATURE | str | cart_literature | CART_COLLECTION_LITERATURE | Literature collection name |

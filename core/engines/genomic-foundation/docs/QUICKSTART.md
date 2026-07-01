@@ -29,7 +29,7 @@
 
 ```bash
 # Navigate to project
-cd genomics-pipeline
+cd core/engines/genomic-foundation
 
 # Run all setup steps
 ./run.sh check && \

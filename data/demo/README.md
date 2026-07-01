@@ -8,7 +8,7 @@
 
 ## How to use with Stage 2
 
-From the `rag-chat-pipeline/` directory, ingest the demo VCF into Milvus:
+From the `core/engines/precision-intelligence/` directory, ingest the demo VCF into Milvus:
 
 ```bash
 # Start Milvus first

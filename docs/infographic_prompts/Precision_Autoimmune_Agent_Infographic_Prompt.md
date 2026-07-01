@@ -53,7 +53,7 @@ Landscape 16:9. White background (#FFFFFF). Dense reference architecture poster.
 **Center:**
 - Line 1 (large, bold, navy): **Precision Autoimmune Agent**
 - Line 2 (gray): "Immunology Intelligence & Immune-Related Adverse Event Profiling"
-- Line 3 (teal): "Part of the Precision Intelligence Network — HCLS AI Factory"
+- Line 3 (teal): "Part of the Precision Intelligence Engine — HCLS AI Factory"
 - Line 4 (small, gray): "GB10 Superchip | 128 GB | 50+ HLA Associations | 24 Autoantibodies | 22 Biologics | 20 Activity Scores"
 
 **Right side — Clinical capability badge:**

@@ -46,7 +46,7 @@
 ### 2.1 Clone and Configure
 
 ```bash
-cd /path/to/hcls-ai-factory/ai_agent_adds/single_cell_intelligence_agent
+cd /path/to/hcls-ai-factory/core/agents/single-cell
 
 # Create environment file
 cp .env.example .env

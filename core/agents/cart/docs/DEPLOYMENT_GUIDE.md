@@ -1,6 +1,6 @@
 # CAR-T Intelligence Agent — Deployment Guide
 
-**HCLS AI Factory / ai_agent_adds / cart_intelligence_agent**
+**HCLS AI Factory / core/agents / cart_intelligence_agent**
 
 Version 1.3.0 | March 2026 | Author: Adam Jones
 
@@ -125,7 +125,7 @@ synthesis.
 
 ```bash
 # 1. Clone the repository
-cd /path/to/hcls-ai-factory/ai_agent_adds/cart_intelligence_agent
+cd /path/to/hcls-ai-factory/core/agents/cart
 
 # 2. Create environment file
 cp .env.example .env
@@ -255,7 +255,7 @@ environment variables prefixed with `CART_`.
 | `DATA_DIR` | Path | `{PROJECT_ROOT}/data` | -- |
 | `CACHE_DIR` | Path | `{DATA_DIR}/cache` | -- |
 | `REFERENCE_DIR` | Path | `{DATA_DIR}/reference` | -- |
-| `RAG_PIPELINE_ROOT` | Path | `/app/rag-chat-pipeline` | `CART_RAG_PIPELINE_ROOT` |
+| `RAG_PIPELINE_ROOT` | Path | `/app/core/engines/precision-intelligence` | `CART_RAG_PIPELINE_ROOT` |
 
 ### 5.2 Milvus Settings
 
@@ -917,7 +917,7 @@ All variables use the `CART_` prefix for Pydantic settings injection.
 | `CART_INGEST_ENABLED` | No | `False` | Enable scheduled ingestion |
 | `CART_INGEST_SCHEDULE_HOURS` | No | `168` | Ingestion interval (hours) |
 | `CART_MAX_REQUEST_SIZE_MB` | No | `10` | Max request body size |
-| `CART_RAG_PIPELINE_ROOT` | No | `/app/rag-chat-pipeline` | Path to RAG pipeline |
+| `CART_RAG_PIPELINE_ROOT` | No | `/app/core/engines/precision-intelligence` | Path to RAG pipeline |
 | `CART_NCBI_API_KEY` | No | -- | NCBI API key (PubMed) |
 | `HCLS_LIB_PATH` | No | `/app/lib` | Path to hcls_common library |
 

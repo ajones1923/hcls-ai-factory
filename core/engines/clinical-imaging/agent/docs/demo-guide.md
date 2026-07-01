@@ -499,7 +499,7 @@ Each card shows the AI-annotated image with bounding boxes, severity badges, and
 If the health check shows zero vectors or collections are missing:
 
 ```bash
-cd ai_agent_adds/imaging_intelligence_agent/agent
+cd core/engines/clinical-imaging/agent/agent
 python3 scripts/setup_collections.py --drop-existing
 python3 scripts/seed_literature.py
 python3 scripts/seed_trials.py

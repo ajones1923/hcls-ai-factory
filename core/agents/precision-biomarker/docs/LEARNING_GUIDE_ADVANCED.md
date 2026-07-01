@@ -46,7 +46,7 @@ Before working with this codebase you should be comfortable with:
 
 ### 1.2 Codebase Map
 
-The agent lives at `ai_agent_adds/precision_biomarker_agent/` within the HCLS AI Factory monorepo. Every source file and its line count is listed below.
+The agent lives at `core/agents/precision-biomarker/` within the HCLS AI Factory monorepo. Every source file and its line count is listed below.
 
 #### Source Modules (`src/`)
 
@@ -1506,7 +1506,7 @@ The agent runs alongside the HCLS AI Factory services in `docker-compose.dgx-spa
 
 ```yaml
 biomarker-agent:
-  build: ./ai_agent_adds/precision_biomarker_agent
+  build: ./core/agents/precision-biomarker
   ports:
     - "8528:8528"  # Streamlit UI
     - "8529:8529"  # FastAPI API

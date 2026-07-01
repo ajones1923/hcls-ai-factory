@@ -31,7 +31,7 @@
 
 ### 1.1 Platform Positioning
 
-The Rare Disease Diagnostic Agent is one of **11 intelligence agents** in the HCLS AI Factory, a three-engine precision medicine platform (Genomics, RAG/Chat, Drug Discovery) running on NVIDIA DGX Spark. It occupies the rare disease diagnostic niche, bridging genomic variant data from the Genomics Engine with clinical phenotype-driven diagnosis and gene therapy matching from the Drug Discovery Engine.
+The Rare Disease Diagnostic Agent is one of **8 intelligence agents** in the HCLS AI Factory, a three-engine precision medicine platform (Genomics, RAG/Chat, Drug Discovery) running on NVIDIA DGX Spark. It occupies the rare disease diagnostic niche, bridging genomic variant data from the Genomics Engine with clinical phenotype-driven diagnosis and gene therapy matching from the Drug Discovery Engine.
 
 **All 11 HCLS AI Factory Intelligence Agents:**
 

@@ -39,7 +39,7 @@ is designed with dual entry points: a FASTQ path for audiences interested in the
 genomic processing pipeline, and a VCF path for audiences focused on clinical intelligence
 and drug discovery capabilities. The six demos collectively exercise every major component
 of the platform: the Genomic Foundation Engine (Parabricks, DeepVariant, BWA-MEM2), the
-Precision Intelligence Network (seven specialized AI agents with 80+ Milvus vector
+Precision Intelligence Engine (seven specialized AI agents with 80+ Milvus vector
 collections), and the Therapeutic Discovery Engine (BioNeMo MolMIM, DiffDock, RDKit).
 Together, they tell the story of how an integrated AI platform can compress the timeline
 from a child's diagnosis to an actionable treatment plan from weeks or months to hours.
@@ -496,15 +496,15 @@ and discovery workflows operate.
 predictions, BGE-small-en-v1.5 embedding model, Milvus vector database.
 
 **Interfaces:** Genomics API (Flask, port 5000), pipeline scripts (00 through 05 in
-genomics-pipeline/), Nextflow DSL2 orchestration (hls-orchestrator/main.nf).
+core/engines/genomic-foundation/), Nextflow DSL2 orchestration (hcls-orchestrator/main.nf).
 
 **Demo genome:** HG002 (NA24385), an Ashkenazi Jewish male from the Genome in a Bottle
 Consortium. This sample was chosen because it has the most comprehensive truth set
 available for benchmarking variant calling accuracy.
 
-#### Engine 2: Precision Intelligence Network
+#### Engine 2: Precision Intelligence Engine
 
-The Precision Intelligence Network is the analytical core of the platform--a constellation
+The Precision Intelligence Engine is the analytical core of the platform--a constellation
 of seven specialized AI agents, each backed by domain-specific Milvus vector collections
 and connected through a shared genomic evidence layer. These agents collectively provide
 clinical interpretation, risk stratification, therapy matching, pharmacogenomic screening,
@@ -537,7 +537,7 @@ RAG Chat API (Flask, port 5001), RAG Chat UI (Streamlit, port 8501), Discovery P
 #### Engine 3: Therapeutic Discovery Engine
 
 The Therapeutic Discovery Engine translates molecular targets identified by the
-Precision Intelligence Network into novel drug candidates. It implements a six-phase
+Precision Intelligence Engine into novel drug candidates. It implements a six-phase
 computational chemistry pipeline:
 
 1. **Target Import** -- Receives target protein structures and binding site information
@@ -693,7 +693,7 @@ accommodate different audiences, time constraints, and demonstration objectives.
 **Input:** Paired-end FASTQ files (raw sequencing reads)
 
 **Pipeline:** Genomic Foundation Engine (alignment, variant calling, annotation,
-embedding) followed by Precision Intelligence Network (agent analysis) followed by
+embedding) followed by Precision Intelligence Engine (agent analysis) followed by
 Therapeutic Discovery Engine (molecule generation, docking, scoring)
 
 **Approximate duration:** 4 to 5 hours for a whole-genome sample on DGX Spark
@@ -729,10 +729,10 @@ in the F3_inputs directory (3.56 million annotated variants in JSONL.gz format, 
 for embedding).
 
 The choice of entry point is made at the orchestrator level. The Nextflow orchestrator
-(hls-orchestrator/main.nf) accepts a mode parameter that supports full_pipeline (FASTQ
+(hcls-orchestrator/main.nf) accepts a mode parameter that supports full_pipeline (FASTQ
 entry), rag_only (VCF entry, intelligence only), drug_discovery_only (VCF entry,
 discovery only), and genomics_only (FASTQ to VCF, no intelligence or discovery). The
-Python fallback orchestrator (hls-orchestrator/run_pipeline.py) supports the same modes.
+Python fallback orchestrator (hcls-orchestrator/run_pipeline.py) supports the same modes.
 
 ### 4.6 Service Port Map
 
@@ -744,7 +744,7 @@ accessible via localhost.
 |---------|------|----------|-----------|---------------|
 | **Landing Page** | 8080 | HTTP | Flask | Central hub with real-time health monitoring for all services. Starting point for all demonstrations. |
 | **Genomics API** | 5000 | HTTP | Flask | Genomic Foundation Engine control plane. Triggers alignment, variant calling, and annotation pipelines. |
-| **RAG Chat API** | 5001 | HTTP | Flask | Precision Intelligence Network query endpoint. Handles semantic search, RAG retrieval, and LLM-powered responses. |
+| **RAG Chat API** | 5001 | HTTP | Flask | Precision Intelligence Engine query endpoint. Handles semantic search, RAG retrieval, and LLM-powered responses. |
 | **RAG Chat UI** | 8501 | HTTP | Streamlit | Interactive chat interface for querying the variant knowledge base. Used in all workflows for ad-hoc exploration. |
 | **Biomarker Agent API** | 8529 | HTTP | FastAPI | Precision Biomarker Agent backend. Provides biomarker interpretation, biological age, pharmacogenomic profiling. |
 | **Biomarker Agent UI** | 8502 | HTTP | Streamlit | Biomarker Agent interactive interface. Used in Workflows 1, 2, and 6. |

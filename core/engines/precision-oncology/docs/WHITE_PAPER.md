@@ -128,7 +128,7 @@ The HCLS AI Factory employs a three-engine architecture:
 
 1. **Genomic Foundation Engine** -- GPU-accelerated variant calling
    (Parabricks/DeepVariant/BWA-MEM2)
-2. **Precision Intelligence Network** -- 11 domain-specialized RAG
+2. **Precision Intelligence Engine** -- 11 domain-specialized RAG
    agents (Precision Oncology, CAR-T, Biomarker, Clinical Trial,
    Cardiology, Neurology, PGx, Imaging, Single-Cell, Autoimmune,
    Rare Disease) providing cross-functional clinical intelligence
@@ -597,7 +597,7 @@ maintenance, and emerging ALK-targeted combinations.
 ### 11.1 Cross-Agent Coordination
 
 The oncology agent participates in a network of 11 intelligence
-agents within the Precision Intelligence Network. Through
+agents within the Precision Intelligence Engine. Through
 `cross_modal/cross_agent.py`, it calls 8 peer agents (CAR-T,
 Biomarker, Clinical Trial, Cardiology, Neurology, PGx, Imaging,
 Single-Cell) to assemble multi-dimensional clinical assessments. The

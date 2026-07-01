@@ -550,7 +550,7 @@ This architecture avoids data duplication: the genomic evidence is maintained by
 
 ### 11.3 The Eleven Intelligence Engines
 
-The HCLS AI Factory includes eleven specialized intelligence engines, each addressing a distinct clinical domain:
+The HCLS AI Factory includes eight specialized intelligence engines, each addressing a distinct clinical domain:
 
 1. **Biomarker Intelligence Engine** -- Biomarker discovery and validation
 2. **Oncology Intelligence Engine** -- Cancer genomics and treatment selection

@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-The HCLS AI Factory is a complete, open-source precision medicine platform that transforms a patient's raw DNA into therapeutic candidates in hours — a process that traditionally takes weeks to months. Built to run on a single NVIDIA DGX Spark ($4,699), the platform integrates a three-stage computational pipeline (GPU genomics, evidence retrieval, drug discovery) with five specialized intelligence agents covering oncology, biomarkers, CAR-T cell therapy, medical imaging, and autoimmune disease.
+The HCLS AI Factory is a complete, open-source precision medicine platform that transforms a patient's raw DNA into therapeutic candidates in hours — a process that traditionally takes weeks to months. Built to run on a single NVIDIA DGX Spark ($4,699), the platform integrates a three-stage computational pipeline (GPU genomics, evidence retrieval, drug discovery) with eight specialized intelligence agents covering oncology, biomarkers, CAR-T cell therapy, medical imaging, and autoimmune disease.
 
 This document articulates why this work matters, who it serves, and why it is being released freely under the Apache 2.0 license.
 

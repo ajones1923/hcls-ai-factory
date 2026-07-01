@@ -403,7 +403,7 @@ This handles FASTQ download, MD5 verification, reference genome setup, and FASTQ
 ```bash
 # Clone the repository
 git clone https://github.com/ajones1923/hcls-ai-factory.git
-cd genomics-pipeline
+cd core/engines/genomic-foundation
 
 # Run the complete workflow
 ./run.sh check      # Verify prerequisites (Docker, GPU, disk space)
@@ -449,7 +449,7 @@ cp your_sample_R2.fastq.gz data/input/HG002_R2.fastq.gz
 
 ```bash
 git clone https://github.com/ajones1923/hcls-ai-factory.git
-cd genomics-pipeline
+cd core/engines/genomic-foundation
 ```
 
 ### Step 2: Verify Prerequisites
@@ -794,7 +794,7 @@ This distributes the workload across GPUs, reducing processing time proportional
 ## Directory Structure
 
 ```
-genomics-pipeline/
+core/engines/genomic-foundation/
 ├── run.sh                      # Main CLI interface
 ├── README.md                   # This documentation
 ├── QUICKSTART.md               # Quick start guide
@@ -917,7 +917,7 @@ bcftools filter -i 'QUAL>30' data/output/HG002.genome.vcf.gz | wc -l
 bcftools view -r chr17:7668402-7687550 data/output/HG002.genome.vcf.gz
 
 # Copy to RAG Pipeline
-cp data/output/HG002.genome.vcf.gz* ../rag-chat-pipeline/data/input/
+cp data/output/HG002.genome.vcf.gz* ../core/engines/precision-intelligence/data/input/
 ```
 
 ---
@@ -1015,9 +1015,9 @@ This pipeline is **Stage 1** of the Precision Medicine to Drug Discovery AI Fact
 
 | Stage | Pipeline | Repository | Description |
 |-------|----------|------------|-------------|
-| **1** | **Genomics Pipeline** | [genomics-pipeline](https://github.com/ajones1923/hcls-ai-factory/tree/main/genomics-pipeline) | FASTQ → VCF (This repo) |
-| **2** | RAG/Chat Pipeline | [rag-chat-pipeline](https://github.com/ajones1923/hcls-ai-factory/tree/main/rag-chat-pipeline) | VCF → Target Hypothesis |
-| **3** | Drug Discovery Pipeline | [drug-discovery-pipeline](https://github.com/ajones1923/hcls-ai-factory/tree/main/drug-discovery-pipeline) | Target → Molecule Candidates |
+| **1** | **Genomics Pipeline** | [core/engines/genomic-foundation](https://github.com/ajones1923/hcls-ai-factory/tree/main/core/engines/genomic-foundation) | FASTQ → VCF (This repo) |
+| **2** | RAG/Chat Pipeline | [core/engines/precision-intelligence](https://github.com/ajones1923/hcls-ai-factory/tree/main/core/engines/precision-intelligence) | VCF → Target Hypothesis |
+| **3** | Drug Discovery Pipeline | [core/engines/therapeutic-discovery](https://github.com/ajones1923/hcls-ai-factory/tree/main/core/engines/therapeutic-discovery) | Target → Molecule Candidates |
 
 ### Complete Demo Flow
 

@@ -4,7 +4,7 @@
 **Author:** Adam Jones (14+ years genomic research experience)
 **Date:** March 2026
 **License:** Apache 2.0
-**Repository:** hcls-ai-factory/ai_agent_adds/cart_intelligence_agent
+**Repository:** hcls-ai-factory/core/agents/cart
 
 ---
 
@@ -37,7 +37,7 @@
 
 ## 1. Executive Summary
 
-The **CAR-T Intelligence Agent** is a domain-specialized retrieval-augmented generation (RAG) system that provides cross-functional intelligence across the entire CAR-T cell therapy development lifecycle. It operates within the HCLS AI Factory Precision Intelligence Network -- one of three GPU-accelerated engines (Genomic Foundation Engine, Precision Intelligence Network, Therapeutic Discovery Engine) that together deliver patient DNA to drug candidates in under 5 hours.
+The **CAR-T Intelligence Agent** is a domain-specialized retrieval-augmented generation (RAG) system that provides cross-functional intelligence across the entire CAR-T cell therapy development lifecycle. It operates within the HCLS AI Factory Precision Intelligence Engine -- one of three GPU-accelerated engines (Genomic Foundation Engine, Precision Intelligence Engine, Therapeutic Discovery Engine) that together deliver patient DNA to drug candidates in under 5 hours.
 
 The agent searches 11 Milvus vector collections containing 3,567,622 vectors -- spanning published literature, clinical trials, CAR construct designs, functional assays, manufacturing records, pharmacovigilance data, predictive biomarkers, FDA regulatory milestones, molecular sequence data, real-world evidence, and patient genomic variants -- to answer complex questions about chimeric antigen receptor T-cell therapy.
 
@@ -48,7 +48,7 @@ The system breaks down the data silos that typically separate target identificat
 The HCLS AI Factory comprises three engines:
 
 1. **Genomic Foundation Engine** -- Parabricks/DeepVariant/BWA-MEM2 (FASTQ to VCF)
-2. **Precision Intelligence Network** -- 11 domain-specialized RAG agents including this CAR-T agent
+2. **Precision Intelligence Engine** -- 11 domain-specialized RAG agents including this CAR-T agent
 3. **Therapeutic Discovery Engine** -- BioNeMo MolMIM/DiffDock/RDKit (molecular generation and docking)
 
 ### The 11 Peer Agents
@@ -221,7 +221,7 @@ User Question
 
 ## 4. Collections Catalog
 
-The system manages 11 Milvus collections: 10 owned by the CAR-T Intelligence Agent and 1 shared read-only collection from the upstream rag-chat-pipeline.
+The system manages 11 Milvus collections: 10 owned by the CAR-T Intelligence Agent and 1 shared read-only collection from the upstream core/engines/precision-intelligence.
 
 ### 4.1 Collection Summary
 
@@ -237,7 +237,7 @@ The system manages 11 Milvus collections: 10 owned by the CAR-T Intelligence Age
 | 8 | `cart_regulatory` | 40 | FDA approvals, EMA, PMDA, NMPA designations | Seed data |
 | 9 | `cart_sequences` | 40 | scFv/CAR molecular & structural data | Seed data |
 | 10 | `cart_realworld` | 54 | CIBMTR, post-market outcomes | Seed data |
-| 11 | `genomic_evidence` | 3,561,170 | Patient variant data (ClinVar + AlphaMissense) | Read-only, rag-chat-pipeline |
+| 11 | `genomic_evidence` | 3,561,170 | Patient variant data (ClinVar + AlphaMissense) | Read-only, core/engines/precision-intelligence |
 | | **TOTAL** | **3,567,622** | | |
 
 ### 4.2 Shared Configuration
@@ -1263,7 +1263,7 @@ All configuration is managed through `CARTSettings` (defined in `config/settings
 | DATA_DIR | Path | `{PROJECT_ROOT}/data` | -- |
 | CACHE_DIR | Path | `{DATA_DIR}/cache` | -- |
 | REFERENCE_DIR | Path | `{DATA_DIR}/reference` | -- |
-| RAG_PIPELINE_ROOT | Path | `/app/rag-chat-pipeline` | `CART_RAG_PIPELINE_ROOT` |
+| RAG_PIPELINE_ROOT | Path | `/app/core/engines/precision-intelligence` | `CART_RAG_PIPELINE_ROOT` |
 | **Milvus** | | | |
 | MILVUS_HOST | str | `localhost` | `CART_MILVUS_HOST` |
 | MILVUS_PORT | int | `19530` | `CART_MILVUS_PORT` |
@@ -1328,7 +1328,7 @@ Settings are loaded via:
 2. `.env` file in the project root (via `env_file=".env"`)
 3. Default values (lowest priority)
 
-The Streamlit UI and FastAPI server also independently load `ANTHROPIC_API_KEY` from the rag-chat-pipeline `.env` file as a fallback.
+The Streamlit UI and FastAPI server also independently load `ANTHROPIC_API_KEY` from the core/engines/precision-intelligence `.env` file as a fallback.
 
 ---
 
@@ -1646,7 +1646,7 @@ The CAR-T Intelligence Agent is designed for future integration with the intelli
 
 ### 22.2 Additional Agents
 
-The `ai_agent_adds/` directory is designed for multiple domain agents:
+The `core/` directory is designed for multiple domain agents:
 - **Imaging Intelligence Agent**: Pathology slide analysis with CAR-T knowledge augmentation
 - **Biomarker Intelligence Agent**: Biomarker discovery, biological age modeling, and disease trajectory prediction
 - **Clinical Trial Intelligence Agent**: Automated trial landscape monitoring

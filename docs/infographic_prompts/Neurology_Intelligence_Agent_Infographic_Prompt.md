@@ -54,7 +54,7 @@ Landscape 16:9. White background (#FFFFFF). Dense reference architecture poster.
 **Center:**
 - Line 1 (large, bold, navy): **Neurology Intelligence Agent**
 - Line 2 (gray): "Comprehensive Neurological Intelligence on NVIDIA DGX Spark"
-- Line 3 (teal): "Part of the Precision Intelligence Network — HCLS AI Factory"
+- Line 3 (teal): "Part of the Precision Intelligence Engine — HCLS AI Factory"
 - Line 4 (small, gray): "GB10 Superchip | 128 GB | 10 Scales | 8 Workflows | 10 Domains | 42 Drugs | 38 Genes | 14 Collections"
 
 **Right side — Clinical capability badge:**

@@ -55,7 +55,7 @@ cd /home/adam/projects/hcls-ai-factory
 ### Quick Start (Standalone)
 
 ```bash
-cd /home/adam/projects/hcls-ai-factory/ai_agent_adds/clinical_trial_intelligence_agent
+cd /home/adam/projects/hcls-ai-factory/core/agents/clinical-trial
 
 # Terminal 1: API
 uvicorn api.main:app --host 0.0.0.0 --port 8538

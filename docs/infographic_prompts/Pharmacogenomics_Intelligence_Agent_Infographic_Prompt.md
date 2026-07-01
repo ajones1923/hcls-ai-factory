@@ -53,7 +53,7 @@ Landscape 16:9. White background (#FFFFFF). Dense reference architecture poster.
 **Center:**
 - Line 1 (large, bold, navy): **Pharmacogenomics Intelligence Agent**
 - Line 2 (gray): "Right Drug, Right Dose, Right Patient — Guided by Genotype"
-- Line 3 (teal): "Part of the Precision Intelligence Network — HCLS AI Factory"
+- Line 3 (teal): "Part of the Precision Intelligence Engine — HCLS AI Factory"
 - Line 4 (small, gray): "GB10 Superchip | 128 GB | 25 Genes | 308+ Star Alleles | 12 HLA Pairs | 12 Drug Categories | 15 Collections"
 
 **Right side — Capability badge:**

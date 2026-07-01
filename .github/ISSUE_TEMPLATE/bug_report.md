@@ -25,7 +25,7 @@ What actually happened. Include error messages or logs if available.
 
 ## Agent/Component
 
-Which agent or component is affected (e.g., `clinical_trial_intelligence_agent`, `genomics-pipeline`, `lib/hcls_common`)?
+Which agent or component is affected (e.g., `clinical_trial_intelligence_agent`, `core/engines/genomic-foundation`, `lib/hcls_common`)?
 
 ## Environment
 

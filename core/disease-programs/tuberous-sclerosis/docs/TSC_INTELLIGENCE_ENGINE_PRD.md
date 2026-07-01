@@ -205,7 +205,7 @@ The engine is scaffolded from the `precision_oncology_agent` template (verified 
 
 ### 2.3 Repository layout
 
-The repo is `ai_agent_adds/tuberous_clerosis_engine/`. Today it is docs-only (`docs/`). The W1 scaffold lays down the following, mirroring the template and extending `src/` with the four net-new packages (`agents`, `orchestrator`, `cohort`, `rag`):
+The repo is `core/tuberous_clerosis_engine/`. Today it is docs-only (`docs/`). The W1 scaffold lays down the following, mirroring the template and extending `src/` with the four net-new packages (`agents`, `orchestrator`, `cohort`, `rag`):
 
 ```
 tuberous_clerosis_engine/

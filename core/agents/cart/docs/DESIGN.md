@@ -576,7 +576,7 @@ Note: Ingest rate is dominated by BGE-small embedding time (~180ms per text on C
 | Dependency | Usage |
 |---|---|
 | Milvus 2.4 instance | Shared vector database — CAR-T adds 10 owned collections alongside existing `genomic_evidence` (read-only) |
-| `ANTHROPIC_API_KEY` | Loaded from `rag-chat-pipeline/.env` if not set in environment |
+| `ANTHROPIC_API_KEY` | Loaded from `core/engines/precision-intelligence/.env` if not set in environment |
 | BGE-small-en-v1.5 | Same embedding model as main RAG pipeline |
 
 ---
