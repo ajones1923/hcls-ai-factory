@@ -127,3 +127,6 @@ tmp/
 outputs/
 test_outputs/
 results/
+
+# Local-only production/marketing skills (not part of the open-source factory)
+skills/assistant/
