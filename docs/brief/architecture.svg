@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 764" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" role="img" aria-label="HCLS AI Factory architecture: 8 engines, 8 intelligence agents, 1 disease program on one platform">
+<rect width="1440" height="764" fill="#F1F4F3"/>
+<text x="44" y="58" font-family="Charter, 'Iowan Old Style', Georgia, 'Times New Roman', serif" font-size="34" font-weight="600" fill="#171A1F">HCLS AI Factory</text>
+<text x="44" y="88" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="16" fill="#545C66">8 Engines &#183; 8 Intelligence Agents &#183; 1 Disease Program — patient DNA to therapeutic candidates, in hours, on one box.</text>
+<rect x="44" y="124" width="1352" height="78" rx="6" fill="#F5E7E0" stroke="#E3C5B7" stroke-width="1.5"/>
+<rect x="44" y="124" width="6" height="78" rx="3" fill="#A8482B"/>
+<text x="66" y="148" font-family="'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace" font-size="12.5" letter-spacing="2.5" fill="#A8482B">DISEASE PROGRAM · THE VERTICAL</text>
+<text x="66" y="174" font-family="Charter, 'Iowan Old Style', Georgia, 'Times New Roman', serif" font-size="20" font-weight="600" fill="#171A1F">Tuberous Sclerosis Complex</text>
+<text x="404" y="154" font-family="'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace" font-size="10.5" letter-spacing="1.5" fill="#A8482B">FIVE DISEASE-SPECIFIC AGENTS</text>
+<rect x="404.0" y="164" width="111.5" height="24" rx="12" fill="#FBFCFB" stroke="#E3C5B7"/>
+<text x="459.8" y="180" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#545C66">Variant Curator</text>
+<rect x="523.5" y="164" width="131.6" height="24" rx="12" fill="#FBFCFB" stroke="#E3C5B7"/>
+<text x="589.3" y="180" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#545C66">Trajectory Modeler</text>
+<rect x="663.1" y="164" width="165.1" height="24" rx="12" fill="#FBFCFB" stroke="#E3C5B7"/>
+<text x="745.6" y="180" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#545C66">Therapeutics Strategist</text>
+<rect x="836.2" y="164" width="104.8" height="24" rx="12" fill="#FBFCFB" stroke="#E3C5B7"/>
+<text x="888.6" y="180" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#545C66">Phenome Mapper</text>
+<rect x="949.0" y="164" width="124.9" height="24" rx="12" fill="#FBFCFB" stroke="#E3C5B7"/>
+<text x="1011.5" y="180" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" fill="#545C66">TAND Surveillance</text>
+<text x="1396" y="174" text-anchor="end" font-family="Charter, 'Iowan Old Style', Georgia, 'Times New Roman', serif" font-style="italic" font-size="13" fill="#A8482B">composes the horizontal layers ▼</text>
+<text x="44" y="232" font-family="'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace" font-size="12.5" letter-spacing="2.5" fill="#4C3F98">INTELLIGENCE AGENTS · THE REASONING LAYER</text>
+<rect x="44.0" y="248.0" width="324.5" height="66" rx="5" fill="#EBE9F5" stroke="#CFC9EA" stroke-width="1"/>
+<rect x="44.0" y="248.0" width="4" height="66" rx="2" fill="#4C3F98"/>
+<text x="60.0" y="278" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14.5" font-weight="600" fill="#171A1F">CAR-T Intelligence</text>
+<text x="354.5" y="302" text-anchor="end" font-family="'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace" font-size="11.5" fill="#545C66">:8521</text>
+<rect x="386.5" y="248.0" width="324.5" height="66" rx="5" fill="#EBE9F5" stroke="#CFC9EA" stroke-width="1"/>
+<rect x="386.5" y="248.0" width="4" height="66" rx="2" fill="#4C3F98"/>
+<text x="402.5" y="274" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14.5" font-weight="600" fill="#171A1F">Precision Biomarker</text>
+<text x="402.5" y="290" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14.5" font-weight="600" fill="#171A1F">Intelligence</text>
+<text x="697.0" y="302" text-anchor="end" font-family="'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace" font-size="11.5" fill="#545C66">:8528</text>
+<rect x="729.0" y="248.0" width="324.5" height="66" rx="5" fill="#EBE9F5" stroke="#CFC9EA" stroke-width="1"/>
+<rect x="729.0" y="248.0" width="4" height="66" rx="2" fill="#4C3F98"/>
+<text x="745.0" y="274" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14.5" font-weight="600" fill="#171A1F">Pharmacogenomics</text>
+<text x="745.0" y="290" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14.5" font-weight="600" fill="#171A1F">Intelligence</text>
+<text x="1039.5" y="302" text-anchor="end" font-family="'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace" font-size="11.5" fill="#545C66">:8507</text>
+<rect x="1071.5" y="248.0" width="324.5" height="66" rx="5" fill="#EBE9F5" stroke="#CFC9EA" stroke-width="1"/>
+<rect x="1071.5" y="248.0" width="4" height="66" rx="2" fill="#4C3F98"/>
+<text x="1087.5" y="274" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14.5" font-weight="600" fill="#171A1F">Precision Autoimmune</text>
+<text x="1087.5" y="290" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14.5" font-weight="600" fill="#171A1F">Intelligence</text>
+<text x="1382.0" y="302" text-anchor="end" font-family="'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace" font-size="11.5" fill="#545C66">:8531</text>
+<rect x="44.0" y="330.0" width="324.5" height="66" rx="5" fill="#EBE9F5" stroke="#CFC9EA" stroke-width="1"/>
+<rect x="44.0" y="330.0" width="4" height="66" rx="2" fill="#4C3F98"/>
+<text x="60.0" y="360" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14.5" font-weight="600" fill="#171A1F">Neurology Intelligence</text>
+<text x="354.5" y="384" text-anchor="end" font-family="'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace" font-size="11.5" fill="#545C66">:8529</text>
+<rect x="386.5" y="330.0" width="324.5" height="66" rx="5" fill="#EBE9F5" stroke="#CFC9EA" stroke-width="1"/>
+<rect x="386.5" y="330.0" width="4" height="66" rx="2" fill="#4C3F98"/>
+<text x="402.5" y="356" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14.5" font-weight="600" fill="#171A1F">Clinical Trial</text>
+<text x="402.5" y="372" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14.5" font-weight="600" fill="#171A1F">Intelligence</text>
+<text x="697.0" y="384" text-anchor="end" font-family="'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace" font-size="11.5" fill="#545C66">:8128</text>
+<rect x="729.0" y="330.0" width="324.5" height="66" rx="5" fill="#EBE9F5" stroke="#CFC9EA" stroke-width="1"/>
+<rect x="729.0" y="330.0" width="4" height="66" rx="2" fill="#4C3F98"/>
+<text x="745.0" y="360" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14.5" font-weight="600" fill="#171A1F">Rare Disease Intelligence</text>
+<text x="1039.5" y="384" text-anchor="end" font-family="'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace" font-size="11.5" fill="#545C66">:8544</text>
+<rect x="1071.5" y="330.0" width="324.5" height="66" rx="5" fill="#EBE9F5" stroke="#CFC9EA" stroke-width="1"/>
+<rect x="1071.5" y="330.0" width="4" height="66" rx="2" fill="#4C3F98"/>
+<text x="1087.5" y="360" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14.5" font-weight="600" fill="#171A1F">Single-Cell Intelligence</text>
+<text x="1382.0" y="384" text-anchor="end" font-family="'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace" font-size="11.5" fill="#545C66">:8130</text>
+<text x="44" y="430" font-family="'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace" font-size="12.5" letter-spacing="2.5" fill="#0C6E63">ENGINES · THE COMPUTE LAYER</text>
+<rect x="44.0" y="446.0" width="324.5" height="66" rx="5" fill="#E4EFEC" stroke="#B8D6CF" stroke-width="1"/>
+<rect x="44.0" y="446.0" width="4" height="66" rx="2" fill="#0C6E63"/>
+<text x="60.0" y="468" font-family="'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace" font-size="12" font-weight="600" fill="#0C6E63">E1</text>
+<text x="90.0" y="476" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14.5" font-weight="600" fill="#171A1F">Genomic Foundation</text>
+<text x="354.5" y="500" text-anchor="end" font-family="'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace" font-size="11.5" fill="#545C66">:5000</text>
+<rect x="386.5" y="446.0" width="324.5" height="66" rx="5" fill="#E4EFEC" stroke="#B8D6CF" stroke-width="1"/>
+<rect x="386.5" y="446.0" width="4" height="66" rx="2" fill="#0C6E63"/>
+<text x="402.5" y="468" font-family="'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace" font-size="12" font-weight="600" fill="#0C6E63">E2</text>
+<text x="432.5" y="476" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14.5" font-weight="600" fill="#171A1F">Precision Intelligence</text>
+<text x="697.0" y="500" text-anchor="end" font-family="'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace" font-size="11.5" fill="#545C66">:5001</text>
+<rect x="729.0" y="446.0" width="324.5" height="66" rx="5" fill="#E4EFEC" stroke="#B8D6CF" stroke-width="1"/>
+<rect x="729.0" y="446.0" width="4" height="66" rx="2" fill="#0C6E63"/>
+<text x="745.0" y="468" font-family="'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace" font-size="12" font-weight="600" fill="#0C6E63">E3</text>
+<text x="775.0" y="476" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14.5" font-weight="600" fill="#171A1F">Therapeutic Discovery</text>
+<text x="1039.5" y="500" text-anchor="end" font-family="'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace" font-size="11.5" fill="#545C66">:8505</text>
+<rect x="1071.5" y="446.0" width="324.5" height="66" rx="5" fill="#E4EFEC" stroke="#B8D6CF" stroke-width="1"/>
+<rect x="1071.5" y="446.0" width="4" height="66" rx="2" fill="#0C6E63"/>
+<text x="1087.5" y="468" font-family="'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace" font-size="12" font-weight="600" fill="#0C6E63">E4</text>
+<text x="1117.5" y="476" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14.5" font-weight="600" fill="#171A1F">Clinical Imaging</text>
+<text x="1382.0" y="500" text-anchor="end" font-family="'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace" font-size="11.5" fill="#545C66">:8525</text>
+<rect x="44.0" y="528.0" width="324.5" height="66" rx="5" fill="#E4EFEC" stroke="#B8D6CF" stroke-width="1"/>
+<rect x="44.0" y="528.0" width="4" height="66" rx="2" fill="#0C6E63"/>
+<text x="60.0" y="550" font-family="'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace" font-size="12" font-weight="600" fill="#0C6E63">E5</text>
+<text x="90.0" y="558" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14.5" font-weight="600" fill="#171A1F">Precision Oncology</text>
+<text x="354.5" y="582" text-anchor="end" font-family="'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace" font-size="11.5" fill="#545C66">:8526</text>
+<rect x="386.5" y="528.0" width="324.5" height="66" rx="5" fill="#E4EFEC" stroke="#B8D6CF" stroke-width="1"/>
+<rect x="386.5" y="528.0" width="4" height="66" rx="2" fill="#0C6E63"/>
+<text x="402.5" y="550" font-family="'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace" font-size="12" font-weight="600" fill="#0C6E63">E6</text>
+<text x="432.5" y="558" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14.5" font-weight="600" fill="#171A1F">Cardiology</text>
+<text x="697.0" y="582" text-anchor="end" font-family="'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace" font-size="11.5" fill="#545C66">:8536</text>
+<rect x="729.0" y="528.0" width="324.5" height="66" rx="5" fill="#E4EFEC" stroke="#B8D6CF" stroke-width="1"/>
+<rect x="729.0" y="528.0" width="4" height="66" rx="2" fill="#0C6E63"/>
+<text x="745.0" y="550" font-family="'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace" font-size="12" font-weight="600" fill="#0C6E63">E7</text>
+<text x="775.0" y="554" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14.5" font-weight="600" fill="#171A1F">Large-Molecule /</text>
+<text x="745.0" y="570" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14.5" font-weight="600" fill="#171A1F">Structural Biology</text>
+<text x="1039.5" y="582" text-anchor="end" font-family="'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace" font-size="11.5" fill="#545C66">:8570–8578</text>
+<rect x="1071.5" y="528.0" width="324.5" height="66" rx="5" fill="#E4EFEC" stroke="#B8D6CF" stroke-width="1"/>
+<rect x="1071.5" y="528.0" width="4" height="66" rx="2" fill="#0C6E63"/>
+<text x="1087.5" y="550" font-family="'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace" font-size="12" font-weight="600" fill="#0C6E63">E8</text>
+<text x="1117.5" y="558" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14.5" font-weight="600" fill="#171A1F">Single-Cell Analysis</text>
+<text x="1382.0" y="582" text-anchor="end" font-family="'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace" font-size="11.5" fill="#545C66">:8573</text>
+<rect x="44" y="628" width="1352" height="62" rx="6" fill="#232A31"/>
+<text x="66" y="654" font-family="'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace" font-size="11.5" letter-spacing="2" fill="#9BB0AD">ONE PLATFORM · THE GLUE</text>
+<text x="66.0" y="676" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14.5" fill="#EAF0EF">Capability Registry</text>
+<text x="228.9" y="676" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" fill="#5C6B69">·</text>
+<text x="244.9" y="676" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14.5" fill="#EAF0EF">MCP Tool-Surface</text>
+<text x="383.5" y="676" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" fill="#5C6B69">·</text>
+<text x="399.5" y="676" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14.5" fill="#EAF0EF">Workflow Composer</text>
+<text x="546.2" y="676" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" fill="#5C6B69">·</text>
+<text x="562.2" y="676" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14.5" fill="#EAF0EF">Single-box MLOps</text>
+<text x="700.8" y="676" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" fill="#5C6B69">·</text>
+<text x="716.8" y="676" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14.5" fill="#EAF0EF">Governance Gates</text>
+<text x="1396" y="668" text-anchor="end" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#8AA09D">one box · elastic burst to remote GPU</text>
+<rect x="44" y="719" width="14" height="14" rx="3" fill="#0C6E63"/>
+<text x="64" y="730" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#545C66">Compute engine</text>
+<rect x="214" y="719" width="14" height="14" rx="3" fill="#4C3F98"/>
+<text x="234" y="730" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#545C66">Reasoning agent</text>
+<rect x="389" y="719" width="14" height="14" rx="3" fill="#A8482B"/>
+<text x="409" y="730" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" fill="#545C66">Disease program</text>
+<text x="1396" y="730" text-anchor="end" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#A8482B">All clinical output is decision support for a qualified clinician — never autonomous diagnosis.</text>
+</svg>
