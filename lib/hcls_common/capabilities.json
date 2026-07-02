@@ -242,7 +242,7 @@
     {
       "id": "precision-biomarker-agent",
       "type": "agent",
-      "name": "Precision Biomarker Agent",
+      "name": "Precision Biomarker Intelligence Agent",
       "description": "RAG decision support for biomarker analysis.",
       "domain": "clinical",
       "inputs": [
@@ -335,7 +335,7 @@
     {
       "id": "precision-autoimmune-agent",
       "type": "agent",
-      "name": "Precision Autoimmune Agent",
+      "name": "Precision Autoimmune Intelligence Agent",
       "description": "RAG decision support for autoimmune disease.",
       "domain": "clinical",
       "inputs": [
@@ -366,7 +366,7 @@
     {
       "id": "rare-disease-diagnostic-agent",
       "type": "agent",
-      "name": "Rare Disease Diagnostic Agent",
+      "name": "Rare Disease Intelligence Agent",
       "description": "RAG decision support for rare disease diagnosis.",
       "domain": "clinical",
       "inputs": [

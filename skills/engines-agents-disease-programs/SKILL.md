@@ -38,12 +38,12 @@ MLOps, governance).
 | Agent | Domain | Port | Key capabilities |
 |---|---|---|---|
 | CAR-T Intelligence | Cell therapy | 8521 | cross-collection evidence, comparative analysis, deep research |
-| Precision Biomarker | Biomarkers | 8528 | PhenoAge/GrimAge, 9-domain risk, genotype-aware; multi-omics join |
-| Pharmacogenomics | Drug–gene | 8507 | star-allele calling, CPIC, 9 dosing algorithms (safety interlock) |
-| Precision Autoimmune | Autoimmune | 8531 | autoantibody interpretation, HLA analysis, flare prediction |
+| Precision Biomarker Intelligence | Biomarkers | 8528 | PhenoAge/GrimAge, 9-domain risk, genotype-aware; multi-omics join |
+| Pharmacogenomics Intelligence | Drug–gene | 8507 | star-allele calling, CPIC, 9 dosing algorithms (safety interlock) |
+| Precision Autoimmune Intelligence | Autoimmune | 8531 | autoantibody interpretation, HLA analysis, flare prediction |
 | Neurology Intelligence | Neurology | 8529 | stroke triage, dementia eval, EDSS; Parkinson's S+N+G staging |
 | Clinical Trial Intelligence | Clinical trials | 8128 | trial optimization, adaptive design, biomarker strategy |
-| Rare Disease Diagnostic | Rare disease | 8544 | HPO matching, ACMG classification, trio, gene-therapy tracking |
+| Rare Disease Intelligence | Rare disease | 8544 | HPO matching, ACMG classification, trio, gene-therapy tracking |
 | Single-Cell Intelligence | Single-cell | 8130 | cell-type annotation, TME profiling, drug-response prediction |
 
 **Single-cell — engine vs. agent (not a duplicate):** the *engine* (Engine 8, `singlecell-compute`,

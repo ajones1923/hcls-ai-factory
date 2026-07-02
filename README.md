@@ -40,7 +40,7 @@ and the **Tuberous Sclerosis** disease-program built on top of them. **Eight eng
 ## Eight intelligence agents
 
 CAR-T · Precision Biomarker · Pharmacogenomics · Precision Autoimmune · Neurology ·
-Rare-Disease Diagnostic · Single-Cell · Clinical-Trial — RAG clinical-decision-support over a
+Rare-Disease · Single-Cell · Clinical-Trial — RAG clinical-decision-support over a
 shared vector database.
 
 ## The platform layer
