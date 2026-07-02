@@ -30,7 +30,7 @@ streamlit>=1.33,<2
 prometheus-client>=0.17
 
 # --- vector db / LLM / embeddings ---
-pymilvus>=2.4,<2.7
+pymilvus>=3.0.0,<3.1
 anthropic>=0.40
 sentence-transformers>=2.7
 
