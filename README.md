@@ -27,7 +27,7 @@ run — every step on real models, all on one machine.
 | 3 | **Therapeutic Discovery** | Target → ranked candidates: generation (MolMIM + BRICS), docking (DiffDock), and **real ADMET/tox** (104 endpoints) |
 
 …plus five more engines — **Clinical Imaging** (4), **Precision Oncology** (5),
-**Cardiology** (6), **Large-Molecule / Structural Biology** (7), and **Single-Cell Compute** (8) —
+**Cardiology** (6), **Large-Molecule / Structural Biology** (7), and **Single-Cell Analysis** (8) —
 and the **Tuberous Sclerosis** disease-program built on top of them. **Eight engines in all.**
 
 ## Engines 7 & 8 — real compute, not just retrieval
