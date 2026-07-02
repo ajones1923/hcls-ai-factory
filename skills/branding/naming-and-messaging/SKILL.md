@@ -18,14 +18,18 @@ reference: the "HCLS AI Factory - Branding and Messaging" document.
 | Tier | Named by | Pattern | Example |
 |---|---|---|---|
 | **Engine** | its **function** | `<Function> Engine` | Genomic Foundation Engine · Therapeutic Discovery Engine · Single-Cell Analysis Engine |
-| **Intelligence Agent** | its **domain** | `<Domain> Intelligence Agent` (or `<Domain> Agent`) | Neurology Intelligence Agent · Pharmacogenomics Agent |
+| **Intelligence Agent** | its **domain** | `<Domain> Intelligence Agent` (**all eight, uniformly**) | Neurology Intelligence Agent · Pharmacogenomics Intelligence Agent |
 | **Disease Program** | its **condition** | a vertical | Tuberous Sclerosis Complex |
 
 - **Engines are the machinery** — they *compute* and produce real artifacts. Name them for **what
   they do** (Foundation, Discovery, Imaging, Analysis…), **not** for their layer. Engines don't say
-  "Compute" in their names.
-- **Agents are the reasoning** — **"Intelligence" is the agent word.** It marks the
-  reasoning/decision-support layer.
+  "Compute" in their names. **The sole engine that carries "Intelligence" is `Precision Intelligence
+  Engine`** — an exception because its *function* genuinely is clinical interpretation/"intelligence."
+  (Cardiology dropped its legacy agent-word: it is `Cardiology Engine`, not "Cardiology Intelligence
+  Engine.")
+- **Agents are the reasoning** — **"Intelligence" is the agent word,** and **all eight agents carry
+  it uniformly** (`<Domain> Intelligence Agent`), so the "Eight Intelligence Agents" headline is
+  literally true on every card. It marks the reasoning/decision-support layer.
 - **Disease programs** are named for the condition.
 
 ## Why "Intelligence" is reserved for agents
