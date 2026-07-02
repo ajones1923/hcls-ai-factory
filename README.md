@@ -7,6 +7,12 @@
 Eight Engines · Eight Intelligence Agents · One Platform — open-source (Apache-2.0),
 running end-to-end on one NVIDIA DGX Spark ($4,699). No cloud lock-in.
 
+<br>
+
+<img src="docs/brief/architecture.svg" alt="HCLS AI Factory architecture — 8 engines, 8 intelligence agents, and the flagship Tuberous Sclerosis Complex disease program on one platform" width="900">
+
+📄 **[Read the Capability Brief →](docs/brief/)** — the whole factory in one place, in a **technical cut** for experts & builders and a **mission cut** for the broad audience.
+
 </div>
 
 ---
