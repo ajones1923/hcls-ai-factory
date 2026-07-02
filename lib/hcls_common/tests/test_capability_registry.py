@@ -16,7 +16,7 @@ class TestManifest:
     def test_engines_agents_nims_present(self):
         r = get_registry(reload=True)
         assert any(c.id == "genomics-engine" for c in r.find(type="engine"))
-        assert len(r.find(type="agent")) >= 10
+        assert len(r.find(type="agent")) >= 8   # 8 canonical intelligence agents
         assert {"molmim-nim", "diffdock-nim"} <= set(r.ids())
 
     def test_live_vs_planned_split(self):
