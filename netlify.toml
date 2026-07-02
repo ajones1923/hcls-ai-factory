@@ -1,0 +1,13 @@
+# Netlify build for the public docs site (Pillar 16).
+# GitHub -> MkDocs -> Netlify -> https://hcls-ai-factory.org, deploy-on-merge to main.
+
+[build]
+  command = "pip install -r requirements-docs.txt && mkdocs build --strict"
+  publish = "site"
+
+[build.environment]
+  PYTHON_VERSION = "3.12"
+
+# Deploy previews build the same way (opened on every PR).
+[context.deploy-preview]
+  command = "pip install -r requirements-docs.txt && mkdocs build --strict"
