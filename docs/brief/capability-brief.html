@@ -234,6 +234,23 @@
     .card { transition: none; }
     .card:hover { transform: none; }
   }
+
+  @media print {
+    :root { --ground: #fff; --panel: #fff; }
+    body { background: #fff; font-size: 10.5pt; }
+    .wrap { max-width: none; padding: 0; }
+    @page { margin: 15mm 14mm; }
+    .masthead { padding: 0 0 20px; }
+    .section { padding: 22px 0 4px; break-before: page; }
+    .section:first-of-type, .masthead + .section { break-before: auto; }
+    .card, .showcase, .beat, .guardrail, .glance div, .portfolio li { break-inside: avoid; }
+    .card:hover { transform: none; box-shadow: none; }
+    .card { box-shadow: none; }
+    .showcase { break-before: page; }
+    .two-col { break-inside: avoid; }
+    a { color: inherit; text-decoration: none; }
+    .card, .glance, .honesty, .guardrail, .showcase { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
 </style>
 
 <div class="wrap">
