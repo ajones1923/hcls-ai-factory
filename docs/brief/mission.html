@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HCLS AI Factory — Why It Exists</title>
+<meta name="description" content="The mission cut of the HCLS AI Factory: an understated, human-first telling for the broad public and families.">
+</head>
+<body>
+<style>
+  :root {
+    --ink: #211E1A;
+    --ink-soft: #55514A;
+    --ink-faint: #837D73;
+    --ground: #EEEFEA;
+    --paper: #F7F7F3;
+    --accent: #A8482B;
+    --accent-deep: #7C3320;
+    --line: #D8D8CF;
+
+    --serif: ui-serif, "Iowan Old Style", "Charter", "Palatino Linotype", Georgia, "Times New Roman", serif;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 19px;
+    line-height: 1.66;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  .col { max-width: 640px; margin: 0 auto; padding: 0 26px; }
+
+  .label {
+    font-family: var(--sans);
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 600;
+  }
+
+  /* ---- Opening ---- */
+  header { padding: 15vh 0 8vh; }
+  header .label { display: block; margin-bottom: 34px; }
+  header h1 {
+    font-weight: 500;
+    font-size: clamp(2.1rem, 6vw, 3.2rem);
+    line-height: 1.18;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+    margin: 0;
+    color: var(--ink);
+  }
+  header h1 .accent { color: var(--accent); font-style: italic; }
+
+  /* ---- Body prose ---- */
+  section { padding: 6vh 0; }
+  p { margin: 0 0 1.35em; }
+  p.lead { font-size: 1.14rem; }
+  em { font-style: italic; }
+  strong { font-weight: 600; }
+
+  .rule {
+    width: 46px; height: 2px; background: var(--accent);
+    margin: 2vh 0 4vh; border: none;
+  }
+
+  .kicker {
+    font-family: var(--sans);
+    font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--accent); font-weight: 700; margin: 0 0 14px;
+  }
+
+  /* ---- Pull quote ---- */
+  blockquote {
+    margin: 6vh 0; padding: 0 0 0 26px;
+    border-left: 3px solid var(--accent);
+    font-size: clamp(1.35rem, 3.4vw, 1.75rem);
+    line-height: 1.34; font-weight: 500; color: var(--ink);
+    text-wrap: balance;
+  }
+
+  /* ---- Plain "how" steps ---- */
+  .steps { margin: 3vh 0 1vh; padding: 0; list-style: none; counter-reset: step; }
+  .steps li {
+    padding: 20px 0; border-top: 1px solid var(--line);
+    display: grid; grid-template-columns: 46px 1fr; gap: 4px 20px; align-items: baseline;
+  }
+  .steps li:last-child { border-bottom: 1px solid var(--line); }
+  .steps .n {
+    font-family: var(--sans); font-weight: 700; font-size: 0.8rem;
+    color: var(--accent); counter-increment: step;
+  }
+  .steps .n::before { content: counter(step, decimal-leading-zero); }
+  .steps h3 { margin: 0; font-size: 1.14rem; font-weight: 600; grid-column: 2; }
+  .steps p { margin: 4px 0 0; grid-column: 2; font-size: 0.98rem; color: var(--ink-soft); line-height: 1.5; }
+
+  /* ---- Honesty panel ---- */
+  .honesty {
+    background: var(--paper); border: 1px solid var(--line);
+    border-radius: 5px; padding: 30px 30px 14px; margin: 4vh 0;
+  }
+  .honesty .kicker { color: var(--ink-faint); }
+  .honesty ul { margin: 0; padding: 0; list-style: none; }
+  .honesty li { font-size: 0.98rem; line-height: 1.5; padding: 12px 0; border-bottom: 1px solid var(--line); color: var(--ink-soft); }
+  .honesty li:last-child { border-bottom: none; }
+  .honesty li strong { color: var(--ink); }
+
+  /* ---- Openness close ---- */
+  .close { padding: 8vh 0 4vh; }
+  .close .big {
+    font-size: clamp(1.5rem, 4vw, 2rem); line-height: 1.28; font-weight: 500;
+    text-wrap: balance; margin: 0 0 1em;
+  }
+  .close .big .accent { color: var(--accent); }
+
+  footer { padding: 6vh 0 14vh; border-top: 1px solid var(--line); margin-top: 4vh; }
+  footer p { font-family: var(--sans); font-size: 0.82rem; line-height: 1.55; color: var(--ink-faint); margin: 0; }
+  footer strong { color: var(--ink-soft); }
+
+  @media (prefers-reduced-motion: no-preference) {
+    header h1, header .label { animation: rise .9s cubic-bezier(.2,.7,.2,1) both; }
+    header h1 { animation-delay: .08s; }
+    @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  }
+</style>
+
+<div class="col">
+
+  <header>
+    <span class="label">The HCLS AI Factory · Why it exists</span>
+    <h1>No one should die of a disease we could have <span class="accent">understood in time.</span></h1>
+  </header>
+
+  <section>
+    <p class="lead">For a family facing a rare disease, the hardest part is often not the diagnosis. It is the years before it — the long odyssey from one specialist to the next, the tests that rule things out but never rule anything in, the sense that somewhere the answer already exists and simply hasn’t been assembled yet.</p>
+    <p>Very often, it has. The clue is sitting in the person’s own DNA, in a medical journal published last spring, in a drug already approved for something adjacent. The knowledge exists. What has been missing is a way to bring all of it together, fast enough to matter, for <em>this</em> person.</p>
+    <hr class="rule" />
+    <p>That is what the HCLS AI Factory is built to do. It reads a person’s genome, works out what has gone wrong, reasons about it the way a room full of specialists would, sketches candidate treatments, and finds the clinical trials that might fit — and it does that in an afternoon, on a single computer, instead of over years.</p>
+  </section>
+
+  <section>
+    <p class="kicker">What happens in that afternoon</p>
+    <ol class="steps">
+      <li><span class="n"></span><h3>It reads the genome</h3><p>Raw DNA becomes a clear, checked list of the changes that matter — grounded in the same references clinicians trust.</p></li>
+      <li><span class="n"></span><h3>It works out what they mean</h3><p>The changes are interpreted in context and traced to their cause, so a wall of data becomes one clear explanation.</p></li>
+      <li><span class="n"></span><h3>It looks for a way to act</h3><p>Candidate treatments are designed, and existing therapies and trials that might help are surfaced and ranked.</p></li>
+      <li><span class="n"></span><h3>It hands the picture to a doctor</h3><p>Everything arrives as a clear, sourced summary for a qualified clinician to weigh — a starting point, not a verdict.</p></li>
+    </ol>
+  </section>
+
+  <section>
+    <p class="kicker">The child at the center</p>
+    <p>The clearest example is a rare condition called Tuberous Sclerosis Complex. A single change in one gene lets tumors grow across a child’s brain, kidneys, heart, skin, and lungs at once — the kind of diagnosis that usually scatters a family across a half-dozen clinics for years.</p>
+    <p>For this one condition, biology tells an unusually clean story: the faulty gene lifts a brake inside the cell, and there is already a medicine — <strong>everolimus</strong> — approved to put that brake back. The factory’s job is to find that thread for a specific child quickly, and lay it in front of their doctor with the reasoning attached.</p>
+    <blockquote>One infant. One governed afternoon. The whole weight of a diagnosis, met by the whole factory at once.</blockquote>
+  </section>
+
+  <section>
+    <p class="kicker">What this is — and what it isn’t</p>
+    <p>The honest part matters as much as the hopeful part, so here it is plainly:</p>
+    <div class="honesty">
+      <span class="kicker">Held to the truth</span>
+      <ul>
+        <li><strong>It supports a doctor; it does not replace one.</strong> Every result is decision support for a qualified clinician — never an automatic diagnosis, never a prescription.</li>
+        <li><strong>It is a bench, not a cure.</strong> Where it points toward gene therapies, those are still preclinical research — the promise of a direction, not a treatment available today.</li>
+        <li><strong>Some tools are still early.</strong> Anything that is research-stage or on the roadmap is labeled as such, out loud, wherever it appears.</li>
+      </ul>
+    </div>
+    <p>Restraint here isn’t caution for its own sake. Overstated hope is the one thing that could betray the families this is meant to serve — so the project would rather promise less and mean all of it.</p>
+  </section>
+
+  <section class="close">
+    <p class="kicker">And the part that’s different</p>
+    <p class="big">The surprise isn’t that a computer can do this. It’s that <span class="accent">it’s yours.</span></p>
+    <p>The whole factory is open source. Anyone — a hospital, a lab, a researcher, a company building the next generation of medicine — can take it, run it, and build on it freely. A business accelerating precision medicine on top of this isn’t the mission leaking; it’s the mission succeeding.</p>
+    <p>And every child it helps leaves something behind: their de-identified data makes the next child’s afternoon a little faster. That is the whole idea — understanding, arriving in time, and then passed on.</p>
+  </section>
+
+  <footer>
+    <p><strong>The HCLS AI Factory</strong> — an open-source precision-medicine platform. Runs on a single NVIDIA DGX Spark, with heavier work bursting to remote computers as needed. Open source under Apache-2.0. All clinical output is decision support for a qualified clinician, never autonomous diagnosis or prescribing.</p>
+  </footer>
+
+</div>
+
+</body>
+</html>
