@@ -32,7 +32,7 @@ MLOps, governance).
 | 5 | Precision Oncology | 8526 | MTB packets, therapy ranking, trial matching; fusion-first pediatric |
 | 6 | Cardiology | 8536 | 11 workflows + 6 risk calculators (prevention → intervention → rhythm; CAC + ASCVD) |
 | 7 | Large-Molecule / Structural Biology ⭐ | 8570–8578 | ESMFold · ESM-2 + Smith-Waterman · ProteinMPNN · developability · MHCflurry · ESM-2 LoRA · Chai-1 |
-| 8 | Single-Cell Compute ⭐ | 8573 | scanpy compute → cell-type clusters + TME map (shared service) |
+| 8 | Single-Cell Analysis ⭐ | 8573 | scanpy compute → cell-type clusters + TME map (shared service) |
 
 ## The 8 Intelligence Agents
 | Agent | Domain | Port | Key capabilities |
@@ -49,7 +49,7 @@ MLOps, governance).
 **Single-cell — engine vs. agent (not a duplicate):** the *engine* (Engine 8, `singlecell-compute`,
 :8573) is deterministic scanpy *compute*; the *agent* (`single-cell-intelligence-agent`, :8130) is
 the RAG *reasoning* layer. The engine computes; the agent interprets. **Presentation:** in lists
-name them **"Single-Cell Compute Engine"** and **"Single-Cell Intelligence Agent"** (the Compute vs.
+name them **"Single-Cell Analysis Engine"** and **"Single-Cell Intelligence Agent"** (the Analysis vs.
 Intelligence contrast reads as two roles, not a duplicate); in diagrams **stack them as one
 capability** — a reasoning cap on a compute base — never two identical side-by-side nodes.
 

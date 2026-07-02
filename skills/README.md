@@ -36,6 +36,8 @@ skills/
 ├── communication/                     # telling the story
 │   ├── demo-script-authoring/SKILL.md           # write a demo to weight→compression→hope + two-cut
 │   └── release-and-site-publishing/SKILL.md     # cut a release → Netlify → hcls-ai-factory.org
+├── branding/                          # naming + messaging conventions
+│   └── naming-and-messaging/SKILL.md            # how to name engines/agents/programs + on-brand copy
 ├── personas/                          # audience-awareness / messaging
 │   ├── broad-general-persona/SKILL.md           # the 5 personas + guardrails for any outreach
 │   ├── persona-ai-curious-public/SKILL.md
@@ -121,6 +123,14 @@ Consult the relevant one when building or reviewing that clinical area.
 ### `communication/`
 Telling the story. `demo-script-authoring` (write a demo to the weight→compression→hope arc + the
 two-cut principle) and `release-and-site-publishing` (cut a release → Netlify → hcls-ai-factory.org).
+
+### `branding/`
+Naming and messaging conventions. `naming-and-messaging` defines how the factory names engines (by
+function + "Engine"), agents (by domain + "Intelligence Agent"), and disease programs, why
+"Intelligence" is reserved for the reasoning agents, how to resolve an engine/agent name collision
+(the Analysis → Compute → drop-qualifier order, e.g. Single-Cell Analysis Engine vs. Single-Cell
+Intelligence Agent), and the on-brand messaging rules. Consult when naming anything or writing
+factory-facing copy.
 
 ### `personas/`
 Audience-awareness and messaging skills for outreach. `broad-general-persona` carries all five
