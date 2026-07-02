@@ -183,8 +183,9 @@ over symlinks for maximum discovery compatibility across Claude Code builds):
 
 The repo `skills/` tree is the single source of truth; `sync-skills.sh` re-copies it, so re-run
 it whenever you add or edit a skill. Start a fresh Claude Code session for newly synced skills to
-be picked up. All 18 skills (the north star, `build-housekeeping-standards`, and the 16 pillar
-skills) are synced this way.
+be picked up. Every skill in this tree is synced this way — the two north stars, the cross-cutting
+`build-housekeeping-standards` and `demo-foundation-alignment`, the development / governance /
+clinical / communication / branding / persona skills, and the 16 pillar skills.
 
 ## Adding a new skill
 
