@@ -1,4 +1,4 @@
-# Single-Cell Engine
+# Single-Cell Compute Engine
 
 Single-cell transcriptomics compute for the HCLS AI Factory — the compute layer that
 feeds the Single-Cell Intelligence Agent. Default port **8573**.

@@ -734,7 +734,7 @@
     {
       "id": "singlecell-compute",
       "type": "model",
-      "name": "Single-Cell Engine (Engine 8 — compute)",
+      "name": "Single-Cell Compute Engine",
       "description": "Engine 8 compute layer. Real scanpy scRNA-seq workflow (QC -> normalize -> HVG -> PCA -> Leiden clustering -> marker DE) + marker-based cell-type annotation. Verified on PBMC 3k: 2700 cells -> 9 clusters -> CD4 T / B / NK / CD14+ & FCGR3A+ Monocytes / Dendritic / Megakaryocytes. Produces the cell-type clusters the Single-Cell Intelligence Agent reasons over (the engine computes, the agent interprets) — and a shared capability other engines/agents can call (e.g. oncology TME, the multi-omics join). POST /analyze. GPU (rapids-singlecell) is the upgrade.",
       "domain": "single_cell",
       "inputs": [
