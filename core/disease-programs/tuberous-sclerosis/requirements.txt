@@ -7,7 +7,7 @@ numpy>=1.26
 fastapi>=0.109
 uvicorn[standard]>=0.27
 streamlit>=1.30
-anthropic>=0.40           # tiered Claude models (Haiku/Sonnet/Opus); optional at runtime
+anthropic>=0.116.0           # tiered Claude models (Haiku/Sonnet/Opus); optional at runtime
 pytest>=8.0
 
 # Orchestration / state / RAG (prod stack; the core runs without these via SQLite + stubs):
