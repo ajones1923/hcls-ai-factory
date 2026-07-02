@@ -179,9 +179,9 @@
     },
     {
       "id": "precision-oncology-agent",
-      "type": "agent",
-      "name": "Precision Oncology Agent",
-      "description": "RAG clinical decision support for oncology.",
+      "type": "engine",
+      "name": "Precision Oncology Engine",
+      "description": "MTB packet generation, therapy ranking, and trial matching, with cross-modal joins to the imaging, biomarker, and trial capabilities; fusion-first pediatric MTB, late-effects-weighted ranking, Pediatric MATCH/COG matching. Decision support.",
       "domain": "clinical",
       "inputs": [
         {
@@ -272,9 +272,9 @@
     },
     {
       "id": "cardiology-intelligence-agent",
-      "type": "agent",
-      "name": "Cardiology Intelligence Agent",
-      "description": "RAG decision support for cardiology.",
+      "type": "engine",
+      "name": "Cardiology Engine",
+      "description": "11 clinical workflows and 6 risk calculators spanning prevention, intervention, and rhythm; CAC + 10-year ASCVD prevention logic (ACC/AHA), handing to Pharmacogenomics for the genetically safe drug. Decision support.",
       "domain": "clinical",
       "inputs": [
         {
@@ -427,9 +427,9 @@
     },
     {
       "id": "imaging-intelligence-agent",
-      "type": "agent",
+      "type": "engine",
       "name": "Clinical Imaging Engine",
-      "description": "RAG + imaging decision support (NIM mock fallback labeled).",
+      "description": "Live DICOM analysis (VISTA-3D segmentation, VILA-M3 image/report reasoning, FHIR R4 export) with cross-modality reasoning against genomics. MAISI synthetic imaging is research/augmentation/QA only, never diagnostic. Decision support.",
       "domain": "clinical",
       "inputs": [
         {
@@ -733,7 +733,7 @@
     },
     {
       "id": "singlecell-compute",
-      "type": "model",
+      "type": "engine",
       "name": "Single-Cell Analysis Engine",
       "description": "Engine 8 compute layer. Real scanpy scRNA-seq workflow (QC -> normalize -> HVG -> PCA -> Leiden clustering -> marker DE) + marker-based cell-type annotation. Verified on PBMC 3k: 2700 cells -> 9 clusters -> CD4 T / B / NK / CD14+ & FCGR3A+ Monocytes / Dendritic / Megakaryocytes. Produces the cell-type clusters the Single-Cell Intelligence Agent reasons over (the engine computes, the agent interprets) — and a shared capability other engines/agents can call (e.g. oncology TME, the multi-omics join). POST /analyze. GPU (rapids-singlecell) is the upgrade.",
       "domain": "single_cell",
