@@ -1,0 +1,85 @@
+# Public docs site: GitHub -> MkDocs -> Netlify -> https://hcls-ai-factory.org
+# Docs-as-code, deploy-on-merge. Keep this NEUTRAL (no vendor / alternate-edition branding).
+# Pinned generator lives in requirements-docs.txt for a reproducible build.
+
+site_name: HCLS AI Factory
+site_description: >-
+  Open-source precision-medicine platform — 8 engines, 8 intelligence agents, and the flagship
+  Tuberous Sclerosis Complex disease program. Patient DNA to therapeutic candidates, in hours, on a
+  single box. Decision support for a qualified clinician, never autonomous diagnosis.
+site_url: https://hcls-ai-factory.org
+site_author: HCLS AI Factory
+copyright: >-
+  Apache-2.0 · Decision support for a qualified clinician, never autonomous diagnosis or prescribing.
+
+repo_url: https://github.com/ajones1923/hcls-ai-factory
+repo_name: hcls-ai-factory
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  icon:
+    logo: material/dna
+    repo: fontawesome/brands/github
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      accent: deep orange
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      accent: deep orange
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.top
+    - navigation.tracking
+    - content.action.edit
+    - toc.follow
+
+nav:
+  - Home: index.md
+  - Capability Brief: brief/README.md
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - footnotes
+  - toc:
+      permalink: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+# Publish an intentional site (Home + the Brief), not the full WIP docs tree.
+exclude_docs: |
+  /*.md
+  /infographic_prompts/
+  /working_prompts/
+  /brief/architecture_figure.py
+  !/index.md
+
+# Fail the build on broken internal links / missing nav pages (Pillar 16).
+validation:
+  omitted_files: ignore
+  absolute_links: ignore
+  unrecognized_links: warn
+  nav:
+    not_found: warn
+  links:
+    not_found: warn
+    anchors: warn
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/ajones1923/hcls-ai-factory
+      name: HCLS AI Factory on GitHub
