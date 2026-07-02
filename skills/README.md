@@ -13,8 +13,10 @@ the next generation of the platform. Two kinds of thing live here:
 ```
 skills/
 ├── README.md                          # this file
-├── hcls-core-vision-mission/          # ⭐ NORTH STAR — consult first, on every task
+├── hcls-core-vision-mission/          # ⭐ NORTH STAR (WHY) — the mission; consult first
 │   └── SKILL.md                       #   the founding mission, vision, and principles
+├── eight-engines-eight-agents/        # ⭐ NORTH STAR (WHAT) — the canonical capability roster
+│   └── SKILL.md                       #   8 engines · 8 agents · 1 disease program (TSC), with ports
 ├── AI Factory Core Pillars.txt        # the 16 foundational pillars (strategic reference)
 ├── build-housekeeping-standards/      # invocable skill — HOW we build
 │   └── SKILL.md                       #   best-practices checklist for every build
@@ -65,6 +67,15 @@ The founding **mission, vision, and principles** — *"No one should die of a di
 understood in time."* This is the guiding context for **all** work: it governs what to build, how
 to frame it, and what to promise, and every other skill exists to serve it. **Consult it first, on
 every task**; when a technical choice and the mission seem to conflict, the mission wins.
+
+### `eight-engines-eight-agents/SKILL.md` ⭐ (north star — what the factory *is*)
+The canonical capability roster — the authoritative, current picture of the **8 engines, 8
+intelligence agents, and the 1 disease program (TSC)** with ports and what each does, plus the
+platform layer, frontier models, and the honesty ledger. Consult it whenever naming or counting
+engines/agents or creating any artifact (doc, figure, demo, video, README, deck) that must reflect
+the canonical framing — so nothing reverts to a stale count or invents a capability. Distilled from
+the "8 Engines - 8 Agents Focus" paper; pairs with `hcls-core-vision-mission` (why) and
+`demo-foundation-alignment` (how it's proven).
 
 ### `AI Factory Core Pillars.txt`
 The 16 pillars the platform is built on — compute, storage, networking, orchestration,
