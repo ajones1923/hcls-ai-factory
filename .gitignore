@@ -131,3 +131,6 @@ results/
 # Local-only production/marketing skills (not part of the open-source factory)
 assistant/
 skills/assistant/
+
+# MkDocs build output (published, never tracked)
+/site/
