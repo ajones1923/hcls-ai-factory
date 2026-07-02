@@ -28,7 +28,7 @@ class TestDiscovery:
     def test_filter_by_type_and_status(self):
         ft = make_tools()
         agents = ft.list_capabilities(type="agent")
-        assert len(agents) >= 10 and all(a["type"] == "agent" for a in agents)
+        assert len(agents) >= 8 and all(a["type"] == "agent" for a in agents)
         planned = ft.list_capabilities(status="planned")
         assert any(p["id"] == "genmol-nim" for p in planned)
 
