@@ -1,5 +1,5 @@
 ---
-name: eight-engines-eight-agents
+name: engines-agents-disease-programs
 description: >-
   The canonical capability picture of the HCLS AI Factory — the authoritative, current roster of the
   8 engines, 8 intelligence agents, and the 1 disease program (TSC), with ports and what each does.

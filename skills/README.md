@@ -15,7 +15,7 @@ skills/
 ├── README.md                          # this file
 ├── hcls-core-vision-mission/          # ⭐ NORTH STAR (WHY) — the mission; consult first
 │   └── SKILL.md                       #   the founding mission, vision, and principles
-├── eight-engines-eight-agents/        # ⭐ NORTH STAR (WHAT) — the canonical capability roster
+├── engines-agents-disease-programs/        # ⭐ NORTH STAR (WHAT) — the canonical capability roster
 │   └── SKILL.md                       #   8 engines · 8 agents · 1 disease program (TSC), with ports
 ├── AI Factory Core Pillars.txt        # the 16 foundational pillars (strategic reference)
 ├── build-housekeeping-standards/      # invocable skill — HOW we build
@@ -68,7 +68,7 @@ understood in time."* This is the guiding context for **all** work: it governs w
 to frame it, and what to promise, and every other skill exists to serve it. **Consult it first, on
 every task**; when a technical choice and the mission seem to conflict, the mission wins.
 
-### `eight-engines-eight-agents/SKILL.md` ⭐ (north star — what the factory *is*)
+### `engines-agents-disease-programs/SKILL.md` ⭐ (north star — what the factory *is*)
 The canonical capability roster — the authoritative, current picture of the **8 engines, 8
 intelligence agents, and the 1 disease program (TSC)** with ports and what each does, plus the
 platform layer, frontier models, and the honesty ledger. Consult it whenever naming or counting
