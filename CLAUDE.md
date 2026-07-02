@@ -30,9 +30,12 @@ the `hcls-core-vision-mission` skill.
 
 Framework: **why → what → who → how → standards.**
 
-- **Why** — `hcls-core-vision-mission` (the north star).
-- **What** — `demo-foundation-alignment`: anchor every capability to the D1–D7 demo portfolio + keep
-  the coverage matrix green.
+- **Why** (north star) — `hcls-core-vision-mission` (the mission).
+- **What the factory is** (north star) — `engines-agents-disease-programs`: the canonical roster of
+  the 8 engines, 8 intelligence agents, and the TSC disease program (with ports). Use it so no
+  doc/figure/demo reverts to a stale count or invents a capability.
+- **What to build** — `demo-foundation-alignment`: anchor every capability to the D1–D7 demo
+  portfolio + keep the coverage matrix green.
 - **How** — `build-housekeeping-standards`: the build gate (structure, governed app, tests,
   registry, neutrality, docs).
 - **Ship a capability** — `capability-delivery-playbook` · new disease program —
