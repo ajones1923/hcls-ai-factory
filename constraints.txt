@@ -31,7 +31,7 @@ prometheus-client>=0.17
 
 # --- vector db / LLM / embeddings ---
 pymilvus>=2.4,<2.7
-anthropic>=0.40
+anthropic>=0.116.0
 sentence-transformers>=2.7
 
 # --- test / tooling ---
