@@ -40,7 +40,8 @@
       "tags": [
         "parabricks",
         "deepvariant",
-        "stage1"
+        "genomic-foundation",
+        "engine"
       ]
     },
     {
@@ -324,7 +325,7 @@
           "shape": "map"
         }
       ],
-      "endpoint": "localhost:8528",
+      "endpoint": "localhost:8529",
       "serving": "native",
       "status": "live",
       "tags": [
