@@ -82,6 +82,11 @@ def main() -> int:
             if cid not in id_set:
                 errors.append(f"COVERAGE[{comp}] references unknown capability id '{cid}'")
 
+    # 4) PF-12 drift-guard: no two live engine/agent capabilities may share a port
+    #    (an active routing break the composer/MCP cannot resolve).
+    for port_, cids in reg.port_collisions().items():
+        errors.append(f"port collision on :{port_} — {cids} (each service needs a unique port)")
+
     n_eng = len(reg.by_type("engine")) if hasattr(reg, "by_type") else sum(1 for c in reg.all() if c.type.value == "engine")
     print(f"registry: {len(ids)} capabilities, {n_eng} typed 'engine'")
     if errors:
