@@ -193,6 +193,7 @@ from hcls_common.biokey import (
     BioKey, BioKeyResolver, EntityKind, resolve, DEFAULT_RESOLVER,
 )
 from hcls_common.convergence import ConvergenceReasoner, ConvergenceSignal
+from hcls_common.lineage import chain_lineage
 from hcls_common.artifact import (
     Artifact,
     Honesty,
@@ -259,6 +260,8 @@ __all__ = [
     # multi-omics convergence reasoner (§7.2)
     "ConvergenceReasoner",
     "ConvergenceSignal",
+    # composed-chain lineage / reproducibility (§8)
+    "chain_lineage",
     # artifact envelope (PF-3)
     "Artifact",
     "Honesty",
