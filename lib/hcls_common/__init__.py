@@ -185,7 +185,9 @@ from hcls_common.governance import second_opinion, dual_predict
 from hcls_common.external_tools import ingest_external_tools, external_tool_to_capability
 from hcls_common.license_gate import audit as license_audit, classify_license, check_requirements
 from hcls_common.deploy_wizard import teardown_order, deploy_order
-from hcls_common.multiomics import MultiOmicsStore, MultiOmicsRecord
+from hcls_common.multiomics import (
+    MultiOmicsStore, MultiOmicsRecord, PatientContext, PatientContextStore,
+)
 from hcls_common.artifact import (
     Artifact,
     Honesty,
@@ -237,6 +239,9 @@ __all__ = [
     # F1 multi-omics
     "MultiOmicsStore",
     "MultiOmicsRecord",
+    # patient context (PF-1)
+    "PatientContext",
+    "PatientContextStore",
     # artifact envelope (PF-3)
     "Artifact",
     "Honesty",
