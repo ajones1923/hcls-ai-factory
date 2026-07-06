@@ -224,3 +224,73 @@ def new_artifact(
         patient_id=patient_id,
         run_id=run_id,
     )
+
+
+# --------------------------------------------------------------------------- #
+# PF-4 — the non-inflation gate (the load-bearing wall at the seams)
+# --------------------------------------------------------------------------- #
+def non_inflation_issues(artifact: Artifact, inputs: list[Artifact]) -> list[str]:
+    """The non-inflation gate: a downstream artifact may not be **more clinically weighty than
+    the weakest input it derives from**, and it may not **drop** any caution its inputs carry.
+
+    Returns a list of blocking ``ERROR:`` issues (empty = clean) — the honesty label is computed
+    from the evidence, never inflated as it crosses a seam. Wired into the composer/output gate in
+    the integration wave; usable standalone now.
+    """
+    issues: list[str] = []
+    if not inputs:
+        return issues
+    weakest = weakest_maturity([a.honesty.maturity for a in inputs])
+    if artifact.honesty.maturity.rank < weakest.rank:
+        issues.append(
+            f"ERROR: honesty inflation — artifact {artifact.id} claims "
+            f"'{artifact.honesty.maturity.value}' but derives from weaker '{weakest.value}' "
+            f"input(s); a claim may not be more confident than its evidence"
+        )
+    dropped_labels = {l for a in inputs for l in a.honesty.labels} - set(artifact.honesty.labels)
+    dropped_requires = {r for a in inputs for r in a.honesty.requires} - set(artifact.honesty.requires)
+    if dropped_labels:
+        issues.append(f"ERROR: dropped honesty labels {sorted(dropped_labels)} carried by inputs")
+    if dropped_requires:
+        issues.append(f"ERROR: dropped required reviews {sorted(dropped_requires)} carried by inputs")
+    return issues
+
+
+def derive_artifact(
+    shape: ArtifactShape,
+    payload: dict[str, Any],
+    *,
+    producer_id: str,
+    inputs: list[Artifact],
+    own_maturity: Maturity = Maturity.live,
+    extra_labels: list[str] | None = None,
+    extra_requires: list[str] | None = None,
+    invoke_path: str = "/",
+    serving: str = "native",
+    knowledge_version: str = "",
+    as_of: str = "",
+    run_id: str = "",
+    id: str | None = None,
+    ts: str | None = None,
+) -> Artifact:
+    """Build a downstream artifact whose honesty is **non-inflated by construction**: its maturity
+    is capped at the weakest input (a producer may add its own caution with ``own_maturity`` but can
+    never claim more confidence), input labels/requires are carried forward and unioned, its
+    ``provenance.inputs`` chains the input artifact ids, and ``patient_id`` is inherited if the
+    inputs agree. The result always passes ``non_inflation_issues``."""
+    base = combine_honesty([a.honesty for a in inputs])
+    maturity = weakest_maturity([base.maturity, own_maturity])   # own_maturity may only weaken
+    labels = sorted(set(base.labels) | set(extra_labels or []))
+    requires = sorted(set(base.requires) | set(extra_requires or []))
+    pids = {a.patient_id for a in inputs if a.patient_id is not None}
+    patient_id = next(iter(pids)) if len(pids) == 1 else None
+    return new_artifact(
+        shape, payload, producer_id=producer_id,
+        honesty=Honesty(maturity=maturity, labels=labels, requires=requires,
+                        rationale=f"non-inflated from {len(inputs)} input(s)"),
+        inputs=[a.id for a in inputs],
+        invoke_path=invoke_path, serving=serving,
+        knowledge_version=knowledge_version, as_of=as_of,
+        patient_id=patient_id, run_id=run_id or (inputs[0].run_id if inputs else ""),
+        id=id, ts=ts,
+    )

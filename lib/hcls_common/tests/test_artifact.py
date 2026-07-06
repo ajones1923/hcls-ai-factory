@@ -4,6 +4,7 @@ import pytest
 from hcls_common.artifact import (
     Artifact, Honesty, Maturity, Provenance,
     new_artifact, combine_honesty, weakest_maturity,
+    non_inflation_issues, derive_artifact,
 )
 from hcls_common.capability_registry import ArtifactShape
 
@@ -71,3 +72,68 @@ class TestArtifact:
         assert prov.serving == "native" and prov.inputs == []
         h = Honesty(Maturity.roadmap)
         assert h.labels == [] and h.requires == []
+
+
+# ── PF-4: the non-inflation gate ─────────────────────────────────────────────
+class TestNonInflationGate:
+    def _inp(self, maturity, labels=(), requires=(), pid="P0"):
+        return new_artifact(
+            ArtifactShape.CELL_MAP, {}, producer_id="src", maturity=maturity,
+            labels=list(labels), requires=list(requires), patient_id=pid,
+        )
+
+    def test_clean_when_at_or_below_weakest(self):
+        inputs = [self._inp(Maturity.live), self._inp(Maturity.hypothesis_only)]
+        ok = new_artifact(ArtifactShape.MTB_PACKET, {}, producer_id="e5",
+                          maturity=Maturity.hypothesis_only,
+                          labels=[], requires=[], inputs=[i.id for i in inputs])
+        assert non_inflation_issues(ok, inputs) == []
+
+    def test_flags_inflation(self):
+        inputs = [self._inp(Maturity.hypothesis_only)]
+        inflated = new_artifact(ArtifactShape.MTB_PACKET, {}, producer_id="e5",
+                                maturity=Maturity.live, inputs=[i.id for i in inputs])
+        issues = non_inflation_issues(inflated, inputs)
+        assert any("inflation" in i for i in issues)
+
+    def test_flags_dropped_labels_and_requires(self):
+        inputs = [self._inp(Maturity.live, labels=["pediatric-caution"], requires=["tumor-board"])]
+        stripped = new_artifact(ArtifactShape.MTB_PACKET, {}, producer_id="e5",
+                                maturity=Maturity.live)   # dropped the caution
+        issues = non_inflation_issues(stripped, inputs)
+        assert any("dropped honesty labels" in i for i in issues)
+        assert any("dropped required reviews" in i for i in issues)
+
+    def test_no_inputs_is_clean(self):
+        art = new_artifact(ArtifactShape.VCF_VARIANTS, {}, producer_id="e1")
+        assert non_inflation_issues(art, []) == []
+
+
+# ── PF-4: derive_artifact is non-inflating by construction ───────────────────
+class TestDeriveArtifact:
+    def test_maturity_capped_at_weakest_input(self):
+        a = new_artifact(ArtifactShape.ANNOTATED_VARIANTS, {}, producer_id="e1",
+                         maturity=Maturity.live, labels=["decision-support"], patient_id="P0")
+        b = new_artifact(ArtifactShape.CELL_MAP, {}, producer_id="e8",
+                         maturity=Maturity.hypothesis_only, requires=["wet-lab-or-trial"], patient_id="P0")
+        out = derive_artifact(ArtifactShape.MTB_PACKET, {"tier": 1},
+                              producer_id="precision-oncology-engine", inputs=[a, b],
+                              own_maturity=Maturity.live)   # tries to be live...
+        assert out.honesty.maturity is Maturity.hypothesis_only          # ...capped to weakest
+        assert "decision-support" in out.honesty.labels                  # labels carried
+        assert "wet-lab-or-trial" in out.honesty.requires                # requires carried
+        assert out.provenance.inputs == [a.id, b.id]                     # lineage chained
+        assert out.patient_id == "P0"                                    # inherited (agree)
+        assert non_inflation_issues(out, [a, b]) == []                   # passes the gate
+
+    def test_own_maturity_can_only_weaken(self):
+        a = new_artifact(ArtifactShape.VCF_VARIANTS, {}, producer_id="e1", maturity=Maturity.live)
+        out = derive_artifact(ArtifactShape.RISK_SCORES, {}, producer_id="e1",
+                              inputs=[a], own_maturity=Maturity.research_use)
+        assert out.honesty.maturity is Maturity.research_use   # producer added its own caution
+
+    def test_disagreeing_patient_ids_drop_to_none(self):
+        a = new_artifact(ArtifactShape.VCF_VARIANTS, {}, producer_id="e1", patient_id="P0")
+        b = new_artifact(ArtifactShape.CELL_MAP, {}, producer_id="e8", patient_id="P1")
+        out = derive_artifact(ArtifactShape.MTB_PACKET, {}, producer_id="e5", inputs=[a, b])
+        assert out.patient_id is None
