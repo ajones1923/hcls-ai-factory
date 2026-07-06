@@ -146,3 +146,26 @@ class TestSemanticShape:
         ))
         assert reg.can_connect("p", "o", "c", "i")                    # coarse: yes
         assert not reg.can_connect("p", "o", "c", "i", semantic=True) # semantic: no (unspecified)
+
+
+# ── PF-12: registry drift-guard (port collisions) ────────────────────────────
+class TestDriftGuard:
+    def test_detects_two_agents_on_one_port(self):
+        reg = CapabilityRegistry()
+        for i in ("a", "b"):
+            reg.register(Capability(id=f"agent-{i}", type=CapabilityType.AGENT, name=i,
+                                    description="", endpoint="localhost:8528", status=Status.LIVE))
+        cols = reg.port_collisions()
+        assert cols == {"8528": ["agent-a", "agent-b"]}
+
+    def test_no_collision_when_ports_differ(self):
+        reg = CapabilityRegistry()
+        reg.register(Capability(id="a", type=CapabilityType.AGENT, name="a", description="",
+                                endpoint="localhost:8528", status=Status.LIVE))
+        reg.register(Capability(id="b", type=CapabilityType.AGENT, name="b", description="",
+                                endpoint="localhost:8529", status=Status.LIVE))
+        assert reg.port_collisions() == {}
+
+    def test_real_manifest_is_collision_free(self):
+        # the :8528 neurology/biomarker collision is fixed (neurology -> :8529)
+        assert get_registry(reload=True).port_collisions() == {}

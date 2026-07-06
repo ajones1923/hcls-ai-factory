@@ -244,6 +244,17 @@ def inputs_ok(issues: list[str]) -> bool:
     return not any(i.startswith("ERROR") for i in issues)
 
 
+def endpoint_port(endpoint: str | None) -> str | None:
+    """Extract the port from a ``host:port`` or ``host:port/path`` endpoint (None if absent)."""
+    if not endpoint:
+        return None
+    tail = str(endpoint).rsplit(":", 1)
+    if len(tail) != 2:
+        return None
+    port = tail[1].split("/")[0].strip()
+    return port if port.isdigit() else None
+
+
 # --------------------------------------------------------------------------- #
 # Registry
 # --------------------------------------------------------------------------- #
@@ -318,6 +329,25 @@ class CapabilityRegistry:
 
     def live(self) -> list[Capability]:
         return self.find(status=Status.LIVE)
+
+    # -- PF-12: drift guards ------------------------------------------------ #
+    def port_collisions(
+        self, *, types: tuple[str, ...] = ("engine", "agent"), live_only: bool = True
+    ) -> dict[str, list[str]]:
+        """Ports claimed by more than one endpoint-bearing capability of the given types — an
+        active routing break the composer/MCP cannot resolve (e.g. two agents both on :8528).
+        Returns ``{port: [ids]}`` for collisions only (empty = clean)."""
+        by: dict[str, list[str]] = {}
+        tset = set(types)
+        for c in self.all():
+            if c.type.value not in tset:
+                continue
+            if live_only and c.status is not Status.LIVE:
+                continue
+            p = endpoint_port(c.endpoint)
+            if p:
+                by.setdefault(p, []).append(c.id)
+        return {p: sorted(ids) for p, ids in by.items() if len(ids) > 1}
 
     # -- shape graph helpers (used by the composer) ------------------------- #
     def producers_of(self, shape: ValueShape) -> list[Capability]:
