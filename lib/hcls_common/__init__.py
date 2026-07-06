@@ -192,6 +192,7 @@ from hcls_common.multiomics import (
 from hcls_common.biokey import (
     BioKey, BioKeyResolver, EntityKind, resolve, DEFAULT_RESOLVER,
 )
+from hcls_common.convergence import ConvergenceReasoner, ConvergenceSignal
 from hcls_common.artifact import (
     Artifact,
     Honesty,
@@ -255,6 +256,9 @@ __all__ = [
     "EntityKind",
     "resolve",
     "DEFAULT_RESOLVER",
+    # multi-omics convergence reasoner (§7.2)
+    "ConvergenceReasoner",
+    "ConvergenceSignal",
     # artifact envelope (PF-3)
     "Artifact",
     "Honesty",
