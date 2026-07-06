@@ -6,7 +6,7 @@
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat&logo=python)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](../LICENSE)
 
-**Stage 2 of the Precision Medicine to Drug Discovery AI Factory**
+**Engine 2 — Precision Intelligence** · one of the *Eight Engines · Eight Intelligence Agents · One Platform*
 
 > Retrieval-Augmented Generation (RAG) pipeline for querying genetic variants with natural language. Transforms annotated VCF data into therapeutic intelligence using semantic search, knowledge graphs, and AI reasoning.
 
@@ -57,9 +57,9 @@
 
 ## Overview
 
-This pipeline is the **intelligence layer** of the Precision Medicine to Drug Discovery AI Factory. It takes the VCF file from Stage 1 (Genomics Pipeline) and transforms it into actionable therapeutic insights through:
+This engine is the **intelligence layer** of the HCLS AI Factory. It takes the QC'd variant substrate from the Genomic Foundation Engine (E1) and transforms it into actionable therapeutic insights through:
 
-1. **Multi-source annotation** (ClinVar, AlphaMissense, VEP)
+1. **Variant annotation** (ClinVar, AlphaMissense) — *(an Ensembl VEP container ships as an optional, manually-run annotator; it is not in the automated path)*
 2. **Semantic search** (Milvus vector database)
 3. **Knowledge connections** (Clinker - 201 genes, 100+ diseases)
 4. **AI reasoning** (Claude with RAG architecture)
