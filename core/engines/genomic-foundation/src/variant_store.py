@@ -1,5 +1,5 @@
 """
-Queryable variant store (E2) — load VCF into DuckDB for cohort/agent queries without a
+Queryable variant store (E1 Genomic Foundation) — load VCF into DuckDB for cohort/agent queries without a
 warehouse. Columnar, SQL-queryable by region/filter/sample, with a real Ts/Tv QC metric.
 
 E1 F1 adds read-backed **VAF / somatic-mosaicism** signal: per-call allelic depths (AD/DP)

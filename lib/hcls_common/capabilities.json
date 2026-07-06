@@ -6,7 +6,7 @@
       "id": "genomics-engine",
       "type": "engine",
       "name": "Genomics Foundations Engine",
-      "description": "GPU germline variant calling: FASTQ to BAM to VCF via accelerated alignment (fq2bam/BWA-MEM2) and DeepVariant.",
+      "description": "GPU germline variant calling: FASTQ to BAM to VCF via accelerated alignment (fq2bam/BWA-MEM2) and DeepVariant. Script/pipeline-invoked (Parabricks in Docker via run.sh/run_caller.sh), not yet a request/response API. ClinVar/AlphaMissense annotation is served by the Precision Intelligence Engine (E2, :5001); E1 produces the QC'd variant substrate E2 annotates.",
       "domain": "genomics",
       "inputs": [
         {
@@ -979,7 +979,7 @@
       "gpu": false,
       "status": "live",
       "tags": [
-        "E6",
+        "E1",
         "acmg",
         "clinical"
       ]
@@ -1113,7 +1113,7 @@
       "gpu": false,
       "status": "live",
       "tags": [
-        "E5",
+        "E1",
         "gwas",
         "association"
       ]
