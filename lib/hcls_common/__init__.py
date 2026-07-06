@@ -188,6 +188,9 @@ from hcls_common.deploy_wizard import teardown_order, deploy_order
 from hcls_common.multiomics import (
     MultiOmicsStore, MultiOmicsRecord, PatientContext, PatientContextStore,
 )
+from hcls_common.biokey import (
+    BioKey, BioKeyResolver, EntityKind, resolve, DEFAULT_RESOLVER,
+)
 from hcls_common.artifact import (
     Artifact,
     Honesty,
@@ -242,6 +245,12 @@ __all__ = [
     # patient context (PF-1)
     "PatientContext",
     "PatientContextStore",
+    # biokey resolver (PF-5)
+    "BioKey",
+    "BioKeyResolver",
+    "EntityKind",
+    "resolve",
+    "DEFAULT_RESOLVER",
     # artifact envelope (PF-3)
     "Artifact",
     "Honesty",
