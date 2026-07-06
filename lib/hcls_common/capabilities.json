@@ -12,7 +12,8 @@
         {
           "name": "fastq",
           "shape": "file",
-          "description": "paired-end reads"
+          "description": "paired-end reads",
+          "semantic": "fastq_reads"
         },
         {
           "name": "reference",
@@ -24,12 +25,14 @@
         {
           "name": "vcf",
           "shape": "file",
-          "description": "annotated variants"
+          "description": "annotated variants",
+          "semantic": "vcf_variants"
         },
         {
           "name": "bam",
           "shape": "file",
-          "description": "aligned reads"
+          "description": "aligned reads",
+          "semantic": "aligned_reads"
         }
       ],
       "endpoint": "localhost:5000",
@@ -54,7 +57,8 @@
         {
           "name": "vcf",
           "shape": "file",
-          "required": false
+          "required": false,
+          "semantic": "vcf_variants"
         },
         {
           "name": "query",
@@ -65,7 +69,8 @@
         {
           "name": "report",
           "shape": "map",
-          "description": "targets + clinical context"
+          "description": "targets + clinical context",
+          "semantic": "clinical_narrative"
         }
       ],
       "endpoint": "localhost:5001",
@@ -96,7 +101,8 @@
         {
           "name": "candidates",
           "shape": "list_of_objects",
-          "description": "ranked molecules with scores"
+          "description": "ranked molecules with scores",
+          "semantic": "molecule_candidates"
         }
       ],
       "endpoint": "localhost:8505",
@@ -132,7 +138,8 @@
         {
           "name": "molecules",
           "shape": "list",
-          "description": "generated SMILES"
+          "description": "generated SMILES",
+          "semantic": "molecule_candidates"
         }
       ],
       "endpoint": "localhost:8001",
@@ -154,7 +161,8 @@
       "inputs": [
         {
           "name": "protein_structure",
-          "shape": "structure"
+          "shape": "structure",
+          "semantic": "protein_structure"
         },
         {
           "name": "ligand_smiles",
@@ -165,7 +173,8 @@
         {
           "name": "poses",
           "shape": "list_of_objects",
-          "description": "docked poses + confidence"
+          "description": "docked poses + confidence",
+          "semantic": "docking_poses"
         }
       ],
       "endpoint": "localhost:8002",
@@ -192,13 +201,15 @@
         {
           "name": "patient_context",
           "shape": "map",
-          "required": false
+          "required": false,
+          "semantic": "patient_context"
         }
       ],
       "outputs": [
         {
           "name": "answer",
-          "shape": "map"
+          "shape": "map",
+          "semantic": "mtb_packet"
         }
       ],
       "endpoint": "localhost:8526",
@@ -223,13 +234,15 @@
         {
           "name": "patient_context",
           "shape": "map",
-          "required": false
+          "required": false,
+          "semantic": "patient_context"
         }
       ],
       "outputs": [
         {
           "name": "answer",
-          "shape": "map"
+          "shape": "map",
+          "semantic": "clinical_narrative"
         }
       ],
       "endpoint": "localhost:8521",
@@ -254,13 +267,15 @@
         {
           "name": "patient_context",
           "shape": "map",
-          "required": false
+          "required": false,
+          "semantic": "patient_context"
         }
       ],
       "outputs": [
         {
           "name": "answer",
-          "shape": "map"
+          "shape": "map",
+          "semantic": "biomarker_panel"
         }
       ],
       "endpoint": "localhost:8528",
@@ -285,13 +300,15 @@
         {
           "name": "patient_context",
           "shape": "map",
-          "required": false
+          "required": false,
+          "semantic": "patient_context"
         }
       ],
       "outputs": [
         {
           "name": "answer",
-          "shape": "map"
+          "shape": "map",
+          "semantic": "risk_scores"
         }
       ],
       "endpoint": "localhost:8126",
@@ -316,13 +333,15 @@
         {
           "name": "patient_context",
           "shape": "map",
-          "required": false
+          "required": false,
+          "semantic": "patient_context"
         }
       ],
       "outputs": [
         {
           "name": "answer",
-          "shape": "map"
+          "shape": "map",
+          "semantic": "clinical_narrative"
         }
       ],
       "endpoint": "localhost:8529",
@@ -347,13 +366,15 @@
         {
           "name": "patient_context",
           "shape": "map",
-          "required": false
+          "required": false,
+          "semantic": "patient_context"
         }
       ],
       "outputs": [
         {
           "name": "answer",
-          "shape": "map"
+          "shape": "map",
+          "semantic": "autoantibody_panel"
         }
       ],
       "endpoint": "localhost:8531",
@@ -378,13 +399,15 @@
         {
           "name": "patient_context",
           "shape": "map",
-          "required": false
+          "required": false,
+          "semantic": "patient_context"
         }
       ],
       "outputs": [
         {
           "name": "answer",
-          "shape": "map"
+          "shape": "map",
+          "semantic": "clinical_narrative"
         }
       ],
       "endpoint": "localhost:8544",
@@ -409,13 +432,15 @@
         {
           "name": "patient_context",
           "shape": "map",
-          "required": false
+          "required": false,
+          "semantic": "patient_context"
         }
       ],
       "outputs": [
         {
           "name": "answer",
-          "shape": "map"
+          "shape": "map",
+          "semantic": "pgx_verdict"
         }
       ],
       "endpoint": "localhost:8507",
@@ -440,13 +465,15 @@
         {
           "name": "patient_context",
           "shape": "map",
-          "required": false
+          "required": false,
+          "semantic": "patient_context"
         }
       ],
       "outputs": [
         {
           "name": "answer",
-          "shape": "map"
+          "shape": "map",
+          "semantic": "image_read"
         }
       ],
       "endpoint": "localhost:8525",
@@ -471,13 +498,15 @@
         {
           "name": "patient_context",
           "shape": "map",
-          "required": false
+          "required": false,
+          "semantic": "patient_context"
         }
       ],
       "outputs": [
         {
           "name": "answer",
-          "shape": "map"
+          "shape": "map",
+          "semantic": "tme_profile"
         }
       ],
       "endpoint": "localhost:8540",
@@ -502,13 +531,15 @@
         {
           "name": "patient_context",
           "shape": "map",
-          "required": false
+          "required": false,
+          "semantic": "patient_context"
         }
       ],
       "outputs": [
         {
           "name": "answer",
-          "shape": "map"
+          "shape": "map",
+          "semantic": "trial_matches"
         }
       ],
       "endpoint": "localhost:8538",
@@ -534,7 +565,8 @@
       "outputs": [
         {
           "name": "assessment",
-          "shape": "map"
+          "shape": "map",
+          "semantic": "clinical_narrative"
         }
       ],
       "endpoint": "localhost:8560",
@@ -621,13 +653,15 @@
       "inputs": [
         {
           "name": "sequence",
-          "shape": "scalar"
+          "shape": "scalar",
+          "semantic": "protein_sequence"
         }
       ],
       "outputs": [
         {
           "name": "structure",
-          "shape": "structure"
+          "shape": "structure",
+          "semantic": "protein_structure"
         }
       ],
       "endpoint": "localhost:8570",
@@ -651,7 +685,8 @@
       "inputs": [
         {
           "name": "sequence",
-          "shape": "scalar"
+          "shape": "scalar",
+          "semantic": "protein_sequence"
         }
       ],
       "outputs": [
@@ -690,7 +725,8 @@
       "outputs": [
         {
           "name": "molecules",
-          "shape": "list"
+          "shape": "list",
+          "semantic": "molecule_candidates"
         }
       ],
       "gpu": true,
@@ -716,7 +752,8 @@
       "outputs": [
         {
           "name": "admet",
-          "shape": "map"
+          "shape": "map",
+          "semantic": "admet_report"
         }
       ],
       "endpoint": "localhost:8572",
@@ -741,7 +778,8 @@
       "inputs": [
         {
           "name": "expression_matrix",
-          "shape": "file"
+          "shape": "file",
+          "semantic": "expression_matrix"
         },
         {
           "name": "resolution",
@@ -755,7 +793,8 @@
       "outputs": [
         {
           "name": "clusters",
-          "shape": "map"
+          "shape": "map",
+          "semantic": "cell_map"
         }
       ],
       "endpoint": "localhost:8573",
@@ -820,7 +859,8 @@
       "outputs": [
         {
           "name": "molecules",
-          "shape": "list_of_objects"
+          "shape": "list_of_objects",
+          "semantic": "molecule_candidates"
         }
       ],
       "endpoint": "localhost:8574",
@@ -865,7 +905,8 @@
       "outputs": [
         {
           "name": "variants",
-          "shape": "list_of_objects"
+          "shape": "list_of_objects",
+          "semantic": "vcf_variants"
         }
       ],
       "endpoint": "localhost:8575",
@@ -890,13 +931,15 @@
       "inputs": [
         {
           "name": "sequence",
-          "shape": "scalar"
+          "shape": "scalar",
+          "semantic": "protein_sequence"
         }
       ],
       "outputs": [
         {
           "name": "developability",
-          "shape": "map"
+          "shape": "map",
+          "semantic": "developability_report"
         }
       ],
       "endpoint": "localhost:8576",
@@ -966,7 +1009,8 @@
       "inputs": [
         {
           "name": "annotated_variants",
-          "shape": "list_of_objects"
+          "shape": "list_of_objects",
+          "semantic": "annotated_variants"
         }
       ],
       "outputs": [
@@ -993,17 +1037,20 @@
       "inputs": [
         {
           "name": "sequence",
-          "shape": "scalar"
+          "shape": "scalar",
+          "semantic": "protein_sequence"
         },
         {
           "name": "alleles",
-          "shape": "list"
+          "shape": "list",
+          "semantic": "hla_alleles"
         }
       ],
       "outputs": [
         {
           "name": "immunogenicity",
-          "shape": "map"
+          "shape": "map",
+          "semantic": "immunogenicity"
         }
       ],
       "endpoint": "localhost:8577",
@@ -1026,7 +1073,8 @@
       "inputs": [
         {
           "name": "pdb",
-          "shape": "structure"
+          "shape": "structure",
+          "semantic": "protein_structure"
         },
         {
           "name": "num_seq",
@@ -1040,7 +1088,8 @@
       "outputs": [
         {
           "name": "designs",
-          "shape": "list_of_objects"
+          "shape": "list_of_objects",
+          "semantic": "protein_sequence"
         }
       ],
       "endpoint": "localhost:8578",
@@ -1106,7 +1155,8 @@
       "outputs": [
         {
           "name": "associations",
-          "shape": "list_of_objects"
+          "shape": "list_of_objects",
+          "semantic": "risk_scores"
         }
       ],
       "serving": "none",
@@ -1138,7 +1188,8 @@
       "outputs": [
         {
           "name": "structure",
-          "shape": "structure"
+          "shape": "structure",
+          "semantic": "complex_structure"
         }
       ],
       "invoke_path": "/fold",
@@ -1164,7 +1215,8 @@
       "inputs": [
         {
           "name": "target",
-          "shape": "structure"
+          "shape": "structure",
+          "semantic": "protein_structure"
         },
         {
           "name": "n_designs",
@@ -1178,7 +1230,8 @@
       "outputs": [
         {
           "name": "binders",
-          "shape": "list_of_objects"
+          "shape": "list_of_objects",
+          "semantic": "binder_spec"
         }
       ],
       "serving": "cloud_nim",

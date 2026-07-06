@@ -105,12 +105,22 @@ class TestSemanticShape:
         p = Port("x", ValueShape.MAP)
         assert p.semantic is ArtifactShape.UNSPECIFIED
 
-    def test_existing_manifest_ports_default_to_unspecified(self):
-        # backward compatibility: the real manifest has no `semantic` key yet
+    def test_manifest_semantic_ports_round_trip(self):
+        # ports that declare a semantic shape survive a load; unspecified ones stay unspecified
         r = get_registry(reload=True)
-        for c in r.all():
-            for port in (*c.inputs, *c.outputs):
-                assert port.semantic is ArtifactShape.UNSPECIFIED
+        vcf_out = next(p for p in r.get("genomics-engine").outputs if p.name == "vcf")
+        assert vcf_out.semantic is ArtifactShape.VCF_VARIANTS
+        # a scalar NL query carries no semantic (left unspecified, honestly)
+        q = next(p for p in r.get("precision-intelligence-engine").inputs if p.name == "query")
+        assert q.semantic is ArtifactShape.UNSPECIFIED
+
+    def test_real_manifest_semantic_chains_wire(self):
+        # the load-bearing cross-capability chains connect under semantic wiring
+        r = get_registry(reload=True)
+        assert r.can_connect("genomics-engine", "vcf", "precision-intelligence-engine", "vcf", semantic=True)
+        assert r.can_connect("esmfold-model", "structure", "diffdock-nim", "protein_structure", semantic=True)
+        assert "genomics-engine" in {c.id for c in r.semantic_producers_of(ArtifactShape.VCF_VARIANTS)}
+        assert "diffdock-nim" in {c.id for c in r.semantic_consumers_of(ArtifactShape.PROTEIN_STRUCTURE)}
 
     def test_semantic_survives_round_trip(self):
         reg = self._reg()
