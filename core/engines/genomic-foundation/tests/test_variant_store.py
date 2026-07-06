@@ -81,3 +81,32 @@ def test_vaf_null_when_no_ad():
     assert v.con.execute("SELECT count(*) FROM variants WHERE vaf IS NOT NULL").fetchone()[0] == 0
     assert v.mosaic_candidates() == []
     assert v.stats()["mosaicism"]["reason"] == "no AD/DP in source VCF"
+
+
+# ── E1 F3: QC trust-gate ─────────────────────────────────────────────────────
+_GOOD_QC = _os.path.join(_os.path.dirname(__file__), "fixtures", "good_qc.vcf")
+_BAD_QC = _os.path.join(_os.path.dirname(__file__), "fixtures", "bad_qc.vcf")
+
+
+def test_qc_report_ranges():
+    # a healthy set (Ts/Tv ~2.0, het/hom in range) -> pass, and the gate lets it through
+    v = VariantStore()
+    v.load_vcf(_GOOD_QC)
+    r = v.qc_report()
+    assert r["ts_tv_pass_biallelic"] == 2.0
+    assert 1.3 <= r["het_hom"] <= 2.5
+    assert r["contamination"] is None                 # hook, honestly null (no estimator yet)
+    assert r["expected"]["ts_tv"] == "~2.0-2.1"
+    assert r["verdict"] == "pass" and r["flags"] == []
+    assert v.qc_gate() is True and v.qc_gate("pass") is True
+
+
+def test_qc_gate_fails_bad_set():
+    # a transversion-heavy (FP-looking) set -> fail; the gate WITHHOLDS interpretation
+    v = VariantStore()
+    v.load_vcf(_BAD_QC)
+    r = v.qc_report()
+    assert r["ts_tv_pass_biallelic"] < 1.6
+    assert r["verdict"] == "fail"
+    assert any(f["metric"] == "ts_tv" for f in r["flags"])
+    assert v.qc_gate() is False and v.qc_gate("pass") is False
