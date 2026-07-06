@@ -194,6 +194,8 @@ from hcls_common.artifact import (
     new_artifact,
     combine_honesty,
     weakest_maturity,
+    non_inflation_issues,
+    derive_artifact,
 )
 
 __all__ = [
@@ -243,6 +245,8 @@ __all__ = [
     "new_artifact",
     "combine_honesty",
     "weakest_maturity",
+    "non_inflation_issues",
+    "derive_artifact",
     # verify_gate (ORCH-11)
     "honesty_check",
     "verify_claims",
