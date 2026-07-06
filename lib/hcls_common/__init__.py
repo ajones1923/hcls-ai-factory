@@ -187,6 +187,7 @@ from hcls_common.license_gate import audit as license_audit, classify_license, c
 from hcls_common.deploy_wizard import teardown_order, deploy_order
 from hcls_common.multiomics import (
     MultiOmicsStore, MultiOmicsRecord, PatientContext, PatientContextStore,
+    GovernedPatientContextStore, AccessRecord,
 )
 from hcls_common.biokey import (
     BioKey, BioKeyResolver, EntityKind, resolve, DEFAULT_RESOLVER,
@@ -245,6 +246,9 @@ __all__ = [
     # patient context (PF-1)
     "PatientContext",
     "PatientContextStore",
+    # patient-context access governance (NF-2)
+    "GovernedPatientContextStore",
+    "AccessRecord",
     # biokey resolver (PF-5)
     "BioKey",
     "BioKeyResolver",
