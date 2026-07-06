@@ -57,3 +57,21 @@ class TestConvergenceWithResolver:
             transcriptomics={"driver_genes": ["TSC2"]},
         )
         assert pc.cross_omics_links()[0]["n_layers"] == 2   # identical to PF-1 behavior
+
+
+# ── NF-9: ontology-version pinning + reconciliation ──────────────────────────
+class TestOntologyVersionPinning:
+    def test_pin_and_read_versions(self):
+        r = BioKeyResolver(ontology_versions={"hpo": "2025-01"})
+        r.pin_version("HGNC", "2025-03")
+        assert r.versions() == {"HPO": "2025-01", "HGNC": "2025-03"}
+
+    def test_reconcile_flags_version_mismatch(self):
+        e1 = BioKeyResolver(ontology_versions={"HPO": "2024-10", "HGNC": "2025-01"})
+        a7 = BioKeyResolver(ontology_versions={"HPO": "2025-01", "HGNC": "2025-01"})
+        mism = e1.reconcile(a7)
+        assert mism == ["ontology HPO: 2024-10 vs 2025-01"]      # HGNC agrees, HPO differs
+
+    def test_reconcile_clean_when_versions_agree(self):
+        a = BioKeyResolver(ontology_versions={"HPO": "2025-01"})
+        assert a.reconcile({"HPO": "2025-01"}) == []

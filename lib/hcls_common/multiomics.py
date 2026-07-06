@@ -11,10 +11,15 @@ clinical agent should weight highest.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, ClassVar, TYPE_CHECKING
+from datetime import datetime, timezone
+from typing import Any, Callable, ClassVar, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from hcls_common.biokey import BioKeyResolver
+
+
+def _now() -> str:
+    return datetime.now(timezone.utc).isoformat()
 
 
 def _genes(items: list[dict], key: str = "gene") -> set[str]:
@@ -267,3 +272,74 @@ class PatientContextStore:
 
     def patients(self) -> list[str]:
         return sorted(self._recs)
+
+
+# --------------------------------------------------------------------------- #
+# NF-2 — access-governance over the *live* PatientContext (a per-patient PHI
+# honeypot read/written by seventeen services). Adds per-patient row-level
+# authorization + a who-read-what audit log on top of the PF-1 store, without
+# changing it (composition). Default policy allows all — usable immediately —
+# but NOTHING is un-audited.
+# --------------------------------------------------------------------------- #
+# (principal, patient_id, action) -> allowed ; action is "read" | "write"
+AccessPolicy = Callable[[str, str, str], bool]
+
+
+def _allow_all(principal: str, patient_id: str, action: str) -> bool:
+    return True
+
+
+@dataclass
+class AccessRecord:
+    principal: str
+    patient_id: str
+    action: str            # read | write
+    layer: str = ""
+    allowed: bool = True
+    ts: str = ""
+
+
+class GovernedPatientContextStore:
+    """Row-level authorization + audit around a PatientContextStore (NF-2).
+
+    Every read/write names a ``principal`` (the calling engine/agent/service id), is checked
+    against the access policy, and is recorded in the audit log. A denied access raises
+    ``PermissionError`` and is still audited. The default policy allows all access so the store is
+    drop-in usable; a deployment injects a real per-patient policy via ``set_policy``.
+    """
+
+    def __init__(self, store: "PatientContextStore | None" = None, policy: AccessPolicy = _allow_all) -> None:
+        self._store = store or PatientContextStore()
+        self._policy = policy
+        self._audit: list[AccessRecord] = []
+
+    def set_policy(self, policy: AccessPolicy) -> None:
+        self._policy = policy
+
+    def _check(self, principal: str, patient_id: str, action: str, layer: str = "") -> None:
+        allowed = bool(self._policy(principal, patient_id, action))
+        self._audit.append(AccessRecord(principal, patient_id, action, layer, allowed, _now()))
+        if not allowed:
+            raise PermissionError(f"{principal!r} is not authorized to {action} patient {patient_id!r}")
+
+    # governed reads/writes — principal is mandatory
+    def get(self, patient_id: str, *, principal: str) -> "PatientContext | None":
+        self._check(principal, patient_id, "read")
+        return self._store.get(patient_id)
+
+    def update_layer(self, patient_id: str, layer: str, data: dict[str, Any], *, principal: str) -> None:
+        self._check(principal, patient_id, "write", layer)
+        self._store.update_layer(patient_id, layer, data)
+
+    def record_artifact(self, patient_id: str, artifact_id: str, *, principal: str) -> None:
+        self._check(principal, patient_id, "write", "artifacts")
+        self._store.record_artifact(patient_id, artifact_id)
+
+    def audit_log(self, *, patient_id: str | None = None, principal: str | None = None) -> list[AccessRecord]:
+        """The who-read-what trail, optionally filtered by patient or principal."""
+        recs = self._audit
+        if patient_id is not None:
+            recs = [r for r in recs if r.patient_id == patient_id]
+        if principal is not None:
+            recs = [r for r in recs if r.principal == principal]
+        return list(recs)
