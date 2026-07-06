@@ -1,5 +1,5 @@
 """
-ACMG Secondary Findings (SF) categorization — E6.
+ACMG Secondary Findings (SF) categorization — E1 Genomic Foundation.
 
 A rules layer over annotated variants: flag variants in genes on the ACMG SF panel whose
 clinical significance is reportable (Pathogenic / Likely pathogenic). This is a deterministic

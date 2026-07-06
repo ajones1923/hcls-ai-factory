@@ -1,10 +1,10 @@
 """
-Lightweight single-box GWAS — association testing (E5).
+Lightweight single-box GWAS — association testing (E1 Genomic Foundation).
 
 Per-variant logistic-regression association of genotypes against a binary case/control
 phenotype, with optional covariates — pure Python (statsmodels + scipy), no Spark/JVM, ARM-clean.
 This is the single-box-appropriate substitute for a cluster-scale statistical-genomics stack:
-the DuckDB variant store (E3) already provides columnar variant storage at single-box scale, and
+the DuckDB variant store (E1) already provides columnar variant storage at single-box scale, and
 this adds the association test on top. Separation/convergence failures are handled gracefully
 (reported as untestable, never a crash).
 """
