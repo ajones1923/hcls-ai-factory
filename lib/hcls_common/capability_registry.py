@@ -349,6 +349,19 @@ class CapabilityRegistry:
                 by.setdefault(p, []).append(c.id)
         return {p: sorted(ids) for p, ids in by.items() if len(ids) > 1}
 
+    def type_tag_conflicts(self) -> list[str]:
+        """Capability ids whose tags contradict their type — an engine tagged ``agent`` or an agent
+        tagged ``engine``. This is the taxonomy drift that misleads composer/MCP routing (E4/E5/E6
+        engines once carried an ``agent`` tag). Returns the offending ids (empty = clean)."""
+        out = []
+        for c in self.all():
+            tags = set(c.tags)
+            if c.type is CapabilityType.ENGINE and "agent" in tags:
+                out.append(c.id)
+            elif c.type is CapabilityType.AGENT and "engine" in tags:
+                out.append(c.id)
+        return sorted(out)
+
     # -- shape graph helpers (used by the composer) ------------------------- #
     def producers_of(self, shape: ValueShape) -> list[Capability]:
         return [c for c in self.all() if any(p.shape == shape for p in c.outputs)]

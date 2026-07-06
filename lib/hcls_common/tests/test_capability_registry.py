@@ -169,3 +169,17 @@ class TestDriftGuard:
     def test_real_manifest_is_collision_free(self):
         # the :8528 neurology/biomarker collision is fixed (neurology -> :8529)
         assert get_registry(reload=True).port_collisions() == {}
+
+    def test_type_tag_conflict_detected(self):
+        reg = CapabilityRegistry()
+        reg.register(Capability(id="e", type=CapabilityType.ENGINE, name="E", description="",
+                                tags=["agent", "oncology"]))          # engine mislabeled agent
+        reg.register(Capability(id="a", type=CapabilityType.AGENT, name="A", description="",
+                                tags=["engine"]))                     # agent mislabeled engine
+        reg.register(Capability(id="ok", type=CapabilityType.ENGINE, name="OK", description="",
+                                tags=["engine", "genomics"]))
+        assert reg.type_tag_conflicts() == ["a", "e"]
+
+    def test_real_manifest_has_no_type_tag_drift(self):
+        # E4/E5/E6 engines no longer carry an 'agent' tag
+        assert get_registry(reload=True).type_tag_conflicts() == []
