@@ -23,7 +23,7 @@ REPO = Path(__file__).resolve().parents[1]
 # the capability a tag/id/name that contains the directory name).
 COVERAGE: dict[str, list[str]] = {
     # engines
-    "core/engines/genomic-foundation": ["genomics-engine", "variant-store", "acmg-secondary-findings", "gwas-association"],
+    "core/engines/genomic-foundation": ["genomics-engine", "variant-store", "acmg-secondary-findings", "gwas-association", "mosaicism-vaf"],
     "core/engines/precision-intelligence": ["precision-intelligence-engine"],
     "core/engines/therapeutic-discovery": ["therapeutic-discovery-engine", "molmim-nim", "diffdock-nim", "genmol-nim", "chemprop-admet", "molecule-generator"],
     "core/engines/clinical-imaging": ["imaging-intelligence-agent"],

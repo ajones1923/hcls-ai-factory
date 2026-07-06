@@ -37,3 +37,47 @@ class TestStore:
         vs = VariantStore(); vs.load_vcf(_vcf_file())
         s = vs.stats()
         assert s["n_variants"] == 5 and s["n_pass"] == 4 and "ts_tv" in s
+
+
+# ── E1 F1: VAF / somatic-mosaicism flag ──────────────────────────────────────
+import os as _os  # noqa: E402
+
+_MINI = _os.path.join(_os.path.dirname(__file__), "fixtures", "mosaic_mini.vcf")
+
+
+def test_vaf_parsed():
+    v = VariantStore()
+    v.load_vcf(_MINI)
+    rows = {r[0]: r[1] for r in v.con.execute("SELECT pos, vaf FROM variants ORDER BY pos").fetchall()}
+    assert rows[2098000] == round(22 / 420, 6)      # low-VAF PASS call
+    assert rows[2099000] == round(205 / 415, 6)     # het PASS call
+    assert rows[2100000] is None                    # GT-only row -> no VAF
+
+
+def test_mosaic_candidates_bounds():
+    v = VariantStore()
+    v.load_vcf(_MINI)
+    cand = v.mosaic_candidates()                    # defaults 0.02-0.35, dp>=30
+    # only the ~0.05 PASS row qualifies
+    assert [c["pos"] for c in cand] == [2098000]
+    c = cand[0]
+    assert c["filter"] == "PASS" and c["dp"] == 420 and c["ad_alt"] == 22
+    assert 0.02 <= c["vaf"] <= 0.35 and c["flags"] == []
+    # the ~0.49 het row is excluded (VAF too high); the RefCall row is excluded (not PASS)
+    positions = {c["pos"] for c in cand}
+    assert 2099000 not in positions and 2101000 not in positions
+
+
+def test_vaf_null_when_no_ad():
+    # a FORMAT-less (8-column) VCF still loads; VAF is null and /mosaic is empty with a reason
+    import tempfile
+    body = ("##fileformat=VCFv4.2\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n"
+            "chr1\t100\t.\tA\tG\t50\tPASS\t.\nchr1\t200\t.\tC\tT\t50\tPASS\t.\n")
+    with tempfile.NamedTemporaryFile("w", suffix=".vcf", delete=False) as f:
+        f.write(body); path = f.name
+    v = VariantStore()
+    n = v.load_vcf(path)
+    assert n == 2                                   # still loads
+    assert v.con.execute("SELECT count(*) FROM variants WHERE vaf IS NOT NULL").fetchone()[0] == 0
+    assert v.mosaic_candidates() == []
+    assert v.stats()["mosaicism"]["reason"] == "no AD/DP in source VCF"
