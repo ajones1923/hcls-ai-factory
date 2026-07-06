@@ -87,6 +87,10 @@ def main() -> int:
     for port_, cids in reg.port_collisions().items():
         errors.append(f"port collision on :{port_} — {cids} (each service needs a unique port)")
 
+    # 4b) taxonomy drift-guard: tags must not contradict type (engine tagged 'agent' or vice versa)
+    for cid in reg.type_tag_conflicts():
+        errors.append(f"{cid}: tags contradict type (an engine tagged 'agent' or an agent tagged 'engine')")
+
     n_eng = len(reg.by_type("engine")) if hasattr(reg, "by_type") else sum(1 for c in reg.all() if c.type.value == "engine")
     print(f"registry: {len(ids)} capabilities, {n_eng} typed 'engine'")
     if errors:

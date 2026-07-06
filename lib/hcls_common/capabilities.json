@@ -205,7 +205,7 @@
       "serving": "native",
       "status": "live",
       "tags": [
-        "agent",
+        "engine",
         "oncology"
       ]
     },
@@ -298,7 +298,7 @@
       "serving": "native",
       "status": "live",
       "tags": [
-        "agent",
+        "engine",
         "cardiology"
       ]
     },
@@ -453,7 +453,7 @@
       "serving": "native",
       "status": "live",
       "tags": [
-        "agent",
+        "engine",
         "imaging"
       ]
     },
