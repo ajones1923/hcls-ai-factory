@@ -11,7 +11,10 @@ clinical agent should weight highest.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, ClassVar
+from typing import Any, ClassVar, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from hcls_common.biokey import BioKeyResolver
 
 
 def _genes(items: list[dict], key: str = "gene") -> set[str]:
@@ -121,40 +124,50 @@ class PatientContext:
         "imaging", "clinical", "pathway_activity", "trajectory", "biological_age",
     )
 
-    def _gene_layers(self) -> dict[str, set[str]]:
+    def _gene_layers(self, resolver: "BioKeyResolver | None" = None) -> dict[str, set[str]]:
         """Gene sets per gene-bearing layer (for cross-omics convergence).
 
         The transcriptomics contribution is DE **driver** genes (the E8-flagged fix), not
-        cell-type markers — markers alone must not fire the flagship convergence.
+        cell-type markers — markers alone must not fire the flagship convergence. When a PF-5
+        ``resolver`` is given, genes are folded to their canonical symbols so aliases / previous
+        symbols (``N-myc`` ≡ ``MYCN``, ``tuberin`` ≡ ``TSC2``) converge instead of missing.
         """
+        def canon(genes: set[str]) -> set[str]:
+            return {resolver.resolve_gene(x) for x in genes} if resolver else genes
+
         g: dict[str, set[str]] = {
-            "genomics": (
+            "genomics": canon(
                 _genes(self.genomics.get("variants", []))
                 | _genes(self.genomics.get("secondary_findings", []))
                 | _genes(self.genomics.get("cnv", []))
                 | _genes(self.genomics.get("str_repeats", []))
             ),
-            "pharmacogenomics": {k.upper() for k in self.pharmacogenomics.get("diplotypes", {})}
-            | {x.upper() for x in self.pharmacogenomics.get("genes", [])},
-            "transcriptomics": {x.upper() for x in self.transcriptomics.get("driver_genes", [])},
-            "epigenomics": {x.upper() for x in self.epigenomics.get("genes", [])},
-            "proteomics_structural": {t.upper() for t in self.proteomics_structural.get("targets", [])},
-            "pathway_activity": {x.upper() for x in self.pathway_activity.get("genes", [])},
-            "clinical": {x.upper() for x in self.clinical.get("genes", [])},
+            "pharmacogenomics": canon(
+                {k.upper() for k in self.pharmacogenomics.get("diplotypes", {})}
+                | {x.upper() for x in self.pharmacogenomics.get("genes", [])}
+            ),
+            "transcriptomics": canon({x.upper() for x in self.transcriptomics.get("driver_genes", [])}),
+            "epigenomics": canon({x.upper() for x in self.epigenomics.get("genes", [])}),
+            "proteomics_structural": canon({t.upper() for t in self.proteomics_structural.get("targets", [])}),
+            "pathway_activity": canon({x.upper() for x in self.pathway_activity.get("genes", [])}),
+            "clinical": canon({x.upper() for x in self.clinical.get("genes", [])}),
         }
         return {k: v for k, v in g.items() if v}
 
-    def genes(self) -> set[str]:
+    def genes(self, resolver: "BioKeyResolver | None" = None) -> set[str]:
         out: set[str] = set()
-        for s in self._gene_layers().values():
+        for s in self._gene_layers(resolver).values():
             out |= s
         return out
 
-    def cross_omics_links(self) -> list[dict[str, Any]]:
-        """Genes present in >1 layer — convergent multi-modal signals, ranked by breadth."""
-        layers = self._gene_layers()
+    def cross_omics_links(self, resolver: "BioKeyResolver | None" = None) -> list[dict[str, Any]]:
+        """Genes present in >1 layer — convergent multi-modal signals, ranked by breadth.
+
+        Pass a PF-5 ``BioKeyResolver`` to converge over canonical entities rather than raw symbols.
+        """
+        layers = self._gene_layers(resolver)
         links = []
-        for gene in sorted(self.genes()):
+        for gene in sorted(self.genes(resolver)):
             present = [name for name, genes in layers.items() if gene in genes]
             if len(present) > 1:
                 links.append({"gene": gene, "layers": present, "n_layers": len(present)})
