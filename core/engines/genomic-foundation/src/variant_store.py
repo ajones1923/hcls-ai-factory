@@ -1,6 +1,11 @@
 """
 Queryable variant store (E2) — load VCF into DuckDB for cohort/agent queries without a
 warehouse. Columnar, SQL-queryable by region/filter/sample, with a real Ts/Tv QC metric.
+
+E1 F1 adds read-backed **VAF / somatic-mosaicism** signal: per-call allelic depths (AD/DP)
+are parsed from the FORMAT/sample columns and a low-VAF mosaic-*candidate* flag surfaces the
+diagnostic trap standard germline pipelines drop (mosaic TSC1/TSC2). This is *evidence for a
+clinician*, never a classification.
 """
 import gzip
 from pathlib import Path
@@ -15,11 +20,43 @@ class VariantStore:
         self.con.execute(
             "CREATE TABLE IF NOT EXISTS variants("
             "chrom VARCHAR, pos BIGINT, id VARCHAR, ref VARCHAR, alt VARCHAR,"
-            "qual DOUBLE, filter VARCHAR, sample VARCHAR)")
+            "qual DOUBLE, filter VARCHAR, sample VARCHAR,"
+            # E1 F1: read-backed genotype + allelic depths + VAF (null for FORMAT-less VCFs)
+            "gt VARCHAR, dp BIGINT, ad_ref BIGINT, ad_alt BIGINT, vaf DOUBLE)")
+
+    @staticmethod
+    def _parse_format(fmt: str, sample_field: str):
+        """Parse a VCF FORMAT + first sample column -> (gt, dp, ad_ref, ad_alt, vaf).
+
+        VAF = ad_alt / dp, and is None when DP or the ALT allelic depth is absent. Multiallelic
+        ALT uses the first ALT's AD index (a documented limitation; SV/multiallelic is P2). Any
+        malformed field degrades to None rather than raising — a FORMAT-less VCF still loads.
+        """
+        if not fmt or not sample_field:
+            return (None, None, None, None, None)
+        d = dict(zip(fmt.split(":"), sample_field.split(":")))
+
+        def _int(x):
+            try:
+                return int(x) if x not in (None, ".", "") else None
+            except (ValueError, TypeError):
+                return None
+
+        gt = d.get("GT") or None
+        dp = _int(d.get("DP"))
+        ad_ref = ad_alt = None
+        ad = d.get("AD")
+        if ad and ad not in (".", ""):
+            parts = ad.split(",")
+            ad_ref = _int(parts[0]) if parts else None
+            ad_alt = _int(parts[1]) if len(parts) > 1 else None
+        vaf = round(ad_alt / dp, 6) if (ad_alt is not None and dp and dp > 0) else None
+        return (gt, dp, ad_ref, ad_alt, vaf)
 
     def load_vcf(self, path, sample: str = "HG002", limit: int | None = None) -> int:
         opener = gzip.open if str(path).endswith(".gz") else open
         batch, n = [], 0
+        cols = "(?,?,?,?,?,?,?,?,?,?,?,?,?)"   # 13 columns (8 core + gt/dp/ad_ref/ad_alt/vaf)
         with opener(path, "rt") as f:
             for line in f:
                 if not line or line[0] == "#":
@@ -31,14 +68,18 @@ class VariantStore:
                     qual = None if p[5] in (".", "") else float(p[5])
                 except ValueError:
                     qual = None
-                batch.append((p[0], int(p[1]), p[2], p[3], p[4], qual, p[6], sample))
+                gt = dp = ad_ref = ad_alt = vaf = None
+                if len(p) >= 10:                       # FORMAT (p[8]) + first sample (p[9])
+                    gt, dp, ad_ref, ad_alt, vaf = self._parse_format(p[8], p[9])
+                batch.append((p[0], int(p[1]), p[2], p[3], p[4], qual, p[6], sample,
+                              gt, dp, ad_ref, ad_alt, vaf))
                 n += 1
                 if len(batch) >= 20000:
-                    self.con.executemany("INSERT INTO variants VALUES (?,?,?,?,?,?,?,?)", batch); batch = []
+                    self.con.executemany(f"INSERT INTO variants VALUES {cols}", batch); batch = []
                 if limit and n >= limit:
                     break
         if batch:
-            self.con.executemany("INSERT INTO variants VALUES (?,?,?,?,?,?,?,?)", batch)
+            self.con.executemany(f"INSERT INTO variants VALUES {cols}", batch)
         return n
 
     def count(self) -> int:
@@ -68,6 +109,52 @@ class VariantStore:
         tv = len(rows) - ts
         return round(ts / tv, 3) if tv else 0.0
 
+    # ---- E1 F1: VAF / somatic-mosaicism (evidence, never a classification) ---- #
+    def mosaic_candidates(self, vaf_lo: float = 0.02, vaf_hi: float = 0.35,
+                          min_dp: int = 30) -> list[dict]:
+        """PASS calls with ``vaf`` in ``[vaf_lo, vaf_hi]`` and ``dp >= min_dp`` — low-VAF mosaic
+        *candidates* the Rare Disease agent can act on (the mosaic TSC1/TSC2 trap standard pipelines
+        filter as noise). Never drops a PASS call; carries the FILTER through. Empty (no rows) when
+        the source VCF had no AD/DP — see ``stats()['mosaicism']['reason']``.
+        """
+        cur = self.con.execute(
+            "SELECT chrom,pos,ref,alt,filter,dp,ad_ref,ad_alt,vaf FROM variants "
+            "WHERE filter='PASS' AND vaf IS NOT NULL AND vaf BETWEEN ? AND ? AND dp >= ? "
+            "ORDER BY vaf", (vaf_lo, vaf_hi, min_dp))
+        cols = [c[0] for c in cur.description]
+        out = []
+        for r in cur.fetchall():
+            row = dict(zip(cols, r))
+            # INFO strand-bias / low-complexity flags are a P2 refinement; empty for now so a
+            # caller never mistakes absence-of-flags for a validated mosaic call.
+            row["flags"] = []
+            out.append(row)
+        return out
+
+    def _mosaicism_stats(self) -> dict:
+        cand = self.mosaic_candidates()
+        buckets = {"0.02-0.10": 0, "0.10-0.20": 0, "0.20-0.35": 0}
+        dps = []
+        for c in cand:
+            v = c["vaf"]
+            dps.append(c["dp"])
+            if v < 0.10:
+                buckets["0.02-0.10"] += 1
+            elif v < 0.20:
+                buckets["0.10-0.20"] += 1
+            else:
+                buckets["0.20-0.35"] += 1
+        median_dp = None
+        if dps:
+            dps.sort()
+            m = len(dps) // 2
+            median_dp = dps[m] if len(dps) % 2 else (dps[m - 1] + dps[m]) / 2
+        has_vaf = self.con.execute(
+            "SELECT count(*) FROM variants WHERE vaf IS NOT NULL").fetchone()[0] > 0
+        return {"n_candidates": len(cand), "vaf_buckets": buckets, "median_dp": median_dp,
+                "reason": None if has_vaf else "no AD/DP in source VCF"}
+
     def stats(self) -> dict:
         return {"n_variants": self.count(), "n_pass": self.n_pass(),
-                "pass_rate": self.pass_rate(), "ts_tv": self.ts_tv()}
+                "pass_rate": self.pass_rate(), "ts_tv": self.ts_tv(),
+                "mosaicism": self._mosaicism_stats()}

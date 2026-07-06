@@ -19,6 +19,11 @@ def create_app(store: Optional[VariantStore] = None):
         start: int
         end: int
 
+    class MosaicReq(BaseModel):
+        vaf_lo: float = 0.02
+        vaf_hi: float = 0.35
+        min_dp: int = 30
+
     @app.get("/health")
     def health(): return {"status": "ok", "n_variants": vs.count()}
 
@@ -30,6 +35,14 @@ def create_app(store: Optional[VariantStore] = None):
 
     @app.get("/stats")
     def stats(): return vs.stats()
+
+    @app.post("/mosaic")
+    def mosaic(req: MosaicReq):
+        # E1 F1: low-VAF mosaic CANDIDATES (evidence, not a classification)
+        cands = vs.mosaic_candidates(req.vaf_lo, req.vaf_hi, req.min_dp)
+        return {"candidates": cands,
+                "params": {"vaf_lo": req.vaf_lo, "vaf_hi": req.vaf_hi, "min_dp": req.min_dp},
+                "n": len(cands)}
 
     return app
 
@@ -45,3 +58,6 @@ class VariantStoreClient:
     def query(self, chrom, start, end) -> dict:
         import httpx
         return httpx.post(f"{self.endpoint}/query", json={"chrom":chrom,"start":start,"end":end}, timeout=self.timeout).json()
+    def mosaic(self, vaf_lo=0.02, vaf_hi=0.35, min_dp=30) -> dict:
+        import httpx
+        return httpx.post(f"{self.endpoint}/mosaic", json={"vaf_lo":vaf_lo,"vaf_hi":vaf_hi,"min_dp":min_dp}, timeout=self.timeout).json()
