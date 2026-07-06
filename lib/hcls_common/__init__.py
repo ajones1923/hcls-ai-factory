@@ -186,6 +186,15 @@ from hcls_common.external_tools import ingest_external_tools, external_tool_to_c
 from hcls_common.license_gate import audit as license_audit, classify_license, check_requirements
 from hcls_common.deploy_wizard import teardown_order, deploy_order
 from hcls_common.multiomics import MultiOmicsStore, MultiOmicsRecord
+from hcls_common.artifact import (
+    Artifact,
+    Honesty,
+    Maturity,
+    Provenance,
+    new_artifact,
+    combine_honesty,
+    weakest_maturity,
+)
 
 __all__ = [
     # capability_registry (A1)
@@ -226,6 +235,14 @@ __all__ = [
     # F1 multi-omics
     "MultiOmicsStore",
     "MultiOmicsRecord",
+    # artifact envelope (PF-3)
+    "Artifact",
+    "Honesty",
+    "Maturity",
+    "Provenance",
+    "new_artifact",
+    "combine_honesty",
+    "weakest_maturity",
     # verify_gate (ORCH-11)
     "honesty_check",
     "verify_claims",
