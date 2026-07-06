@@ -60,10 +60,18 @@ class BioKeyResolver:
     are kept verbatim (they are already canonical identifiers).
     """
 
-    def __init__(self, gene_aliases: dict[str, list[str]] | None = None) -> None:
+    def __init__(
+        self,
+        gene_aliases: dict[str, list[str]] | None = None,
+        ontology_versions: dict[str, str] | None = None,
+    ) -> None:
         # reverse index: normalized alias -> canonical (per kind)
         self._alias: dict[EntityKind, dict[str, str]] = {k: {} for k in EntityKind}
         self.load_aliases(gene_aliases if gene_aliases is not None else _SEED_GENE_ALIASES)
+        # NF-9: the ontology versions this resolver's tables were built from (HGNC/HPO/CL/RxNorm/…).
+        # BioKeys depend on these; two runs on different versions must be reconciled or the join
+        # silently mis-fires. These ride into a composed run's reproducibility manifest.
+        self.ontology_versions: dict[str, str] = {k.upper(): v for k, v in (ontology_versions or {}).items()}
 
     def register_alias(self, alias: str, canonical: str, kind: EntityKind = EntityKind.GENE) -> None:
         self._alias[kind][_norm(alias)] = _norm(canonical)
@@ -85,6 +93,23 @@ class BioKeyResolver:
     def resolve_gene(self, symbol: str) -> str:
         """Convenience: the canonical gene symbol (upper-cased, alias-folded)."""
         return self.resolve(symbol, EntityKind.GENE).id
+
+    # -- NF-9: ontology-version pinning + reconciliation -------------------- #
+    def pin_version(self, ontology: str, version: str) -> None:
+        self.ontology_versions[ontology.upper()] = version
+
+    def versions(self) -> dict[str, str]:
+        return dict(self.ontology_versions)
+
+    def reconcile(self, other: "BioKeyResolver | dict[str, str]") -> list[str]:
+        """Warnings where this resolver and ``other`` pinned *different* versions of the same
+        ontology — across such a gap the entity join silently mis-fires (NF-9). Empty = compatible."""
+        ov = other.ontology_versions if isinstance(other, BioKeyResolver) else {k.upper(): v for k, v in other.items()}
+        return sorted(
+            f"ontology {k}: {self.ontology_versions[k]} vs {ov[k]}"
+            for k in self.ontology_versions
+            if k in ov and ov[k] != self.ontology_versions[k]
+        )
 
 
 # a shared default resolver (seeded); engines extend it via register_alias/load_aliases

@@ -99,3 +99,35 @@ class TestPatientContextStore:
         import pytest
         with pytest.raises(ValueError, match="unknown patient-context layer"):
             PatientContextStore().update_layer("P0", "not_a_layer", {})
+
+
+# ── NF-2: access-governance over the live PatientContext ─────────────────────
+from hcls_common.multiomics import GovernedPatientContextStore  # noqa: E402
+
+
+class TestGovernedPatientContextStore:
+    def test_reads_writes_are_audited(self):
+        g = GovernedPatientContextStore()
+        g.update_layer("P0", "genomics", {"variants": [{"gene": "TSC2"}]}, principal="e1")
+        g.record_artifact("P0", "art-1", principal="e1")
+        pc = g.get("P0", principal="a7")
+        assert pc.genomics["variants"][0]["gene"] == "TSC2"
+        trail = g.audit_log(patient_id="P0")
+        assert [(r.principal, r.action) for r in trail] == [("e1", "write"), ("e1", "write"), ("a7", "read")]
+        assert all(r.ts for r in trail)                       # every access timestamped
+
+    def test_policy_denies_and_still_audits(self):
+        # only the owning service may read patient P0
+        g = GovernedPatientContextStore(policy=lambda principal, pid, action: principal == "owner")
+        g.update_layer("P0", "clinical", {"stage": 2}, principal="owner")
+        import pytest
+        with pytest.raises(PermissionError, match="not authorized"):
+            g.get("P0", principal="intruder")
+        denied = [r for r in g.audit_log() if not r.allowed]
+        assert len(denied) == 1 and denied[0].principal == "intruder"
+
+    def test_audit_filters(self):
+        g = GovernedPatientContextStore()
+        g.get("P0", principal="a"); g.get("P1", principal="b")
+        assert len(g.audit_log(principal="a")) == 1
+        assert len(g.audit_log(patient_id="P1")) == 1
