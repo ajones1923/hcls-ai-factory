@@ -48,7 +48,7 @@
       "id": "precision-intelligence-engine",
       "type": "engine",
       "name": "Precision Intelligence Engine",
-      "description": "Variant annotation (VEP/ClinVar/AlphaMissense) + RAG over a clinical knowledge base to identify and contextualize druggable targets.",
+      "description": "Variant annotation (ClinVar/AlphaMissense) + RAG interpretation over the shared variant foundation to identify and contextualize druggable targets. Decision support for a qualified clinician, not diagnosis. (An Ensembl VEP container ships as an optional, manually-run annotator; it is not in the automated interpretation path.)",
       "domain": "clinical",
       "inputs": [
         {
@@ -76,7 +76,7 @@
       "tags": [
         "rag",
         "annotation",
-        "stage2"
+        "interpretation"
       ]
     },
     {
@@ -461,7 +461,7 @@
       "id": "single-cell-intelligence-agent",
       "type": "agent",
       "name": "Single-Cell Intelligence Agent",
-      "description": "Reasoning layer over the Single-Cell Engine (Engine 8). RAG clinical interpretation of the engine's computed cell-type clusters plus literature: cell-type annotation, TME profiling (hot/cold/excluded), drug-response, subclonal architecture, and ligand-receptor analysis. Distinct from the 'singlecell-compute' engine that produces the clusters it reasons over — the engine computes, the agent interprets. Not a duplicate.",
+      "description": "Reasoning layer over the Single-Cell Engine (Engine 8). RAG clinical interpretation of the engine's computed cell-type clusters plus literature: cell-type annotation, TME profiling (hot/cold/excluded), drug-response, subclonal architecture, and ligand-receptor analysis. Distinct from the 'singlecell-compute' engine that produces the clusters it reasons over \u2014 the engine computes, the agent interprets. Not a duplicate.",
       "domain": "clinical",
       "inputs": [
         {
@@ -736,7 +736,7 @@
       "id": "singlecell-compute",
       "type": "engine",
       "name": "Single-Cell Analysis Engine",
-      "description": "Engine 8 compute layer. Real scanpy scRNA-seq workflow (QC -> normalize -> HVG -> PCA -> Leiden clustering -> marker DE) + marker-based cell-type annotation. Verified on PBMC 3k: 2700 cells -> 9 clusters -> CD4 T / B / NK / CD14+ & FCGR3A+ Monocytes / Dendritic / Megakaryocytes. Produces the cell-type clusters the Single-Cell Intelligence Agent reasons over (the engine computes, the agent interprets) — and a shared capability other engines/agents can call (e.g. oncology TME, the multi-omics join). POST /analyze. GPU (rapids-singlecell) is the upgrade.",
+      "description": "Engine 8 compute layer. Real scanpy scRNA-seq workflow (QC -> normalize -> HVG -> PCA -> Leiden clustering -> marker DE) + marker-based cell-type annotation. Verified on PBMC 3k: 2700 cells -> 9 clusters -> CD4 T / B / NK / CD14+ & FCGR3A+ Monocytes / Dendritic / Megakaryocytes. Produces the cell-type clusters the Single-Cell Intelligence Agent reasons over (the engine computes, the agent interprets) \u2014 and a shared capability other engines/agents can call (e.g. oncology TME, the multi-omics join). POST /analyze. GPU (rapids-singlecell) is the upgrade.",
       "domain": "single_cell",
       "inputs": [
         {
