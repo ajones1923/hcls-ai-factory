@@ -1,0 +1,9 @@
+##fileformat=VCFv4.2
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=AD,Number=R,Type=Integer,Description="Allelic depths ref,alt">
+##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Total depth">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	SAMPLE
+chr16	2098000	.	C	T	50	PASS	.	GT:AD:DP	0/1:398,22:420
+chr16	2099000	.	A	G	50	PASS	.	GT:AD:DP	0/1:210,205:415
+chr16	2100000	.	G	A	50	PASS	.	GT	0/1
+chr16	2101000	.	T	C	50	RefCall	.	GT:AD:DP	0/0:300,9:309

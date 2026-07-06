@@ -913,6 +913,51 @@
       ]
     },
     {
+      "id": "mosaicism-vaf",
+      "type": "stage",
+      "name": "VAF / Somatic-Mosaicism Flag",
+      "description": "Read-backed VAF (AD/DP) per PASS call + low-VAF mosaic-candidate flag (default 0.02-0.35, DP>=30). The diagnostic trap standard germline pipelines drop (mosaic TSC1/TSC2). Evidence for the Rare Disease agent - NOT a classification. POST /mosaic on :8575.",
+      "domain": "genomics",
+      "inputs": [
+        {
+          "name": "vaf_lo",
+          "shape": "scalar",
+          "required": false,
+          "default": 0.02
+        },
+        {
+          "name": "vaf_hi",
+          "shape": "scalar",
+          "required": false,
+          "default": 0.35
+        },
+        {
+          "name": "min_dp",
+          "shape": "scalar",
+          "required": false,
+          "default": 30
+        }
+      ],
+      "outputs": [
+        {
+          "name": "candidates",
+          "shape": "list_of_objects"
+        }
+      ],
+      "endpoint": "localhost:8575",
+      "invoke_path": "/mosaic",
+      "serving": "native",
+      "gpu": false,
+      "cost_class": "low",
+      "status": "planned",
+      "tags": [
+        "E1",
+        "mosaicism",
+        "vaf",
+        "duckdb"
+      ]
+    },
+    {
       "id": "acmg-secondary-findings",
       "type": "stage",
       "name": "ACMG SF Secondary Findings",
