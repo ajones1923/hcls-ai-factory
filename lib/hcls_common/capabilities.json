@@ -854,7 +854,7 @@
       "id": "variant-store",
       "type": "service",
       "name": "Queryable Variant Store",
-      "description": "VCF -> DuckDB columnar store: SQL/region queries by chrom/pos/filter/sample, PASS-vs-RefCall aware, with Ts/Tv QC. Verified on real HG002 calls: Ts/Tv=2.40 over PASS SNVs (human ~2.0-2.1). Plus a caller option (run_caller.sh: DeepVariant|HaplotypeCaller). POST /query /load, GET /stats.",
+      "description": "VCF -> DuckDB columnar store: SQL/region queries by chrom/pos/filter/sample, PASS-vs-RefCall aware, with Ts/Tv QC. Verified on real HG002 PASS SNVs: Ts/Tv~2.0 (human ~2.0-2.1). Adds a QC trust-gate report (Ts/Tv, het/hom, SNV/indel, verdict pass|warn|fail) at GET /qc that withholds interpretation on a bad call set. Plus a caller option (run_caller.sh: DeepVariant|HaplotypeCaller). POST /query /load, GET /stats /qc.",
       "domain": "genomics",
       "inputs": [
         {
