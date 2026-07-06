@@ -8,9 +8,14 @@ diagnostic trap standard germline pipelines drop (mosaic TSC1/TSC2). This is *ev
 clinician*, never a classification.
 """
 import gzip
+import re
 from pathlib import Path
 
 _TRANSITIONS = {("A", "G"), ("G", "A"), ("C", "T"), ("T", "C")}
+
+# QC expected ranges (whole-genome, PASS biallelic) — inline in the report so a caller sees the bar
+_QC_EXPECT = {"ts_tv": "~2.0-2.1", "het_hom": "~1.3-2.0"}
+_VERDICT_RANK = {"fail": 0, "warn": 1, "pass": 2}
 
 
 class VariantStore:
@@ -158,3 +163,54 @@ class VariantStore:
         return {"n_variants": self.count(), "n_pass": self.n_pass(),
                 "pass_rate": self.pass_rate(), "ts_tv": self.ts_tv(),
                 "mosaicism": self._mosaicism_stats()}
+
+    # ---- E1 F3: QC trust-gate (refuses to advertise a bad call set) ---------- #
+    def _het_hom(self) -> float | None:
+        """Het / hom-alt ratio over PASS calls with a parsed GT (needs F1). Hom-ref (0/0) excluded."""
+        rows = self.con.execute(
+            "SELECT gt FROM variants WHERE filter='PASS' AND gt IS NOT NULL").fetchall()
+        het = hom = 0
+        for (gt,) in rows:
+            alleles = [a for a in re.split(r"[/|]", gt) if a not in (".", "")]
+            if len(alleles) != 2:
+                continue
+            a, b = alleles
+            if a != b:
+                het += 1
+            elif a != "0":            # hom-alt (exclude hom-ref 0/0)
+                hom += 1
+        return round(het / hom, 3) if hom else None
+
+    def _snv_indel(self) -> float | None:
+        snv = self.con.execute(
+            "SELECT count(*) FROM variants WHERE filter='PASS' AND length(ref)=1 AND length(alt)=1"
+        ).fetchone()[0]
+        indel = self.con.execute(
+            "SELECT count(*) FROM variants WHERE filter='PASS' AND (length(ref)>1 OR length(alt)>1)"
+        ).fetchone()[0]
+        return round(snv / indel, 3) if indel else None
+
+    def qc_report(self) -> dict:
+        """A QC *verdict*, not just numbers: Ts/Tv (PASS biallelic), het/hom, SNV/indel, and a
+        ``verdict in {pass, warn, fail}`` with the expected ranges inline. A false-positive-heavy
+        call set (Ts/Tv far from ~2.0) is flagged BEFORE any interpretation. ``contamination`` is a
+        hook — null until a real estimator is wired (honestly labeled)."""
+        tstv = self.ts_tv()
+        hethom = self._het_hom()
+        flags = []
+        if not (1.8 <= tstv <= 2.3):
+            flags.append({"metric": "ts_tv", "value": tstv, "note": f"outside {_QC_EXPECT['ts_tv']}"})
+        if hethom is not None and not (1.3 <= hethom <= 2.5):
+            flags.append({"metric": "het_hom", "value": hethom, "note": f"outside {_QC_EXPECT['het_hom']}"})
+        hard_fail = tstv < 1.6 or tstv > 2.6            # FP-heavy / broken call set
+        verdict = "fail" if hard_fail else ("warn" if flags else "pass")
+        return {"ts_tv_pass_biallelic": tstv, "het_hom": hethom, "snv_indel": self._snv_indel(),
+                "n_pass": self.n_pass(), "contamination": None, "expected": dict(_QC_EXPECT),
+                "verdict": verdict, "flags": flags}
+
+    def qc_gate(self, min_ok: str = "warn") -> bool:
+        """Trust-gate: True iff the call set is trustworthy enough to interpret. ``min_ok='warn'``
+        allows pass|warn; ``'pass'`` requires pass. On a ``fail`` set, a caller must WITHHOLD
+        interpretation and surface the red flag instead of the variants (the executable honesty
+        guardrail: an engine that says 'I don't trust this data')."""
+        return _VERDICT_RANK[self.qc_report()["verdict"]] >= _VERDICT_RANK[min_ok]

@@ -36,6 +36,9 @@ def create_app(store: Optional[VariantStore] = None):
     @app.get("/stats")
     def stats(): return vs.stats()
 
+    @app.get("/qc")
+    def qc(): return vs.qc_report()
+
     @app.post("/mosaic")
     def mosaic(req: MosaicReq):
         # E1 F1: low-VAF mosaic CANDIDATES (evidence, not a classification)
@@ -55,6 +58,8 @@ class VariantStoreClient:
         self.endpoint = endpoint.rstrip("/"); self.timeout = timeout
     def stats(self) -> dict:
         import httpx; return httpx.get(f"{self.endpoint}/stats", timeout=self.timeout).json()
+    def qc(self) -> dict:
+        import httpx; return httpx.get(f"{self.endpoint}/qc", timeout=self.timeout).json()
     def query(self, chrom, start, end) -> dict:
         import httpx
         return httpx.post(f"{self.endpoint}/query", json={"chrom":chrom,"start":start,"end":end}, timeout=self.timeout).json()
