@@ -3,7 +3,7 @@ import pytest
 
 from hcls_common.capability_registry import (
     Capability, CapabilityRegistry, CapabilityType, Port, Serving, Status, ValueShape,
-    get_registry,
+    ArtifactShape, get_registry,
 )
 
 
@@ -79,3 +79,70 @@ class TestSerialization:
         for entry in manifest["capabilities"]:
             r2.register(Capability.from_dict(entry), overwrite=True)
         assert r2.ids() == r.ids()
+
+
+# ── PF-2: semantic ArtifactShape (additive on top of ValueShape) ─────────────
+class TestSemanticShape:
+    def _reg(self):
+        """Two producers of a MAP: one semantically pgx_diplotypes, one hla_alleles;
+        and a consumer that wants pgx_diplotypes."""
+        reg = CapabilityRegistry()
+        reg.register(Capability(
+            id="pgx-producer", type=CapabilityType.STAGE, name="PGx", description="",
+            outputs=[Port("out", ValueShape.MAP, semantic=ArtifactShape.PGX_DIPLOTYPES)],
+        ))
+        reg.register(Capability(
+            id="hla-producer", type=CapabilityType.STAGE, name="HLA", description="",
+            outputs=[Port("out", ValueShape.MAP, semantic=ArtifactShape.HLA_ALLELES)],
+        ))
+        reg.register(Capability(
+            id="pgx-consumer", type=CapabilityType.AGENT, name="A3", description="",
+            inputs=[Port("dip", ValueShape.MAP, semantic=ArtifactShape.PGX_DIPLOTYPES)],
+        ))
+        return reg
+
+    def test_default_semantic_is_unspecified(self):
+        p = Port("x", ValueShape.MAP)
+        assert p.semantic is ArtifactShape.UNSPECIFIED
+
+    def test_existing_manifest_ports_default_to_unspecified(self):
+        # backward compatibility: the real manifest has no `semantic` key yet
+        r = get_registry(reload=True)
+        for c in r.all():
+            for port in (*c.inputs, *c.outputs):
+                assert port.semantic is ArtifactShape.UNSPECIFIED
+
+    def test_semantic_survives_round_trip(self):
+        reg = self._reg()
+        r2 = CapabilityRegistry()
+        for entry in reg.to_manifest()["capabilities"]:
+            r2.register(Capability.from_dict(entry), overwrite=True)
+        out = next(p for p in r2.get("pgx-producer").outputs if p.name == "out")
+        assert out.semantic is ArtifactShape.PGX_DIPLOTYPES
+
+    def test_semantic_producers_and_consumers(self):
+        reg = self._reg()
+        assert [c.id for c in reg.semantic_producers_of(ArtifactShape.PGX_DIPLOTYPES)] == ["pgx-producer"]
+        assert [c.id for c in reg.semantic_consumers_of(ArtifactShape.PGX_DIPLOTYPES)] == ["pgx-consumer"]
+
+    def test_coarse_wiring_unchanged_semantic_is_stricter(self):
+        reg = self._reg()
+        # coarse (default): both MAP producers connect to the MAP consumer
+        assert reg.can_connect("pgx-producer", "out", "pgx-consumer", "dip")
+        assert reg.can_connect("hla-producer", "out", "pgx-consumer", "dip")
+        # semantic (strict): only the matching artifact connects
+        assert reg.can_connect("pgx-producer", "out", "pgx-consumer", "dip", semantic=True)
+        assert not reg.can_connect("hla-producer", "out", "pgx-consumer", "dip", semantic=True)
+
+    def test_unspecified_never_semantically_connects(self):
+        reg = CapabilityRegistry()
+        reg.register(Capability(
+            id="p", type=CapabilityType.STAGE, name="P", description="",
+            outputs=[Port("o", ValueShape.MAP)],           # UNSPECIFIED
+        ))
+        reg.register(Capability(
+            id="c", type=CapabilityType.AGENT, name="C", description="",
+            inputs=[Port("i", ValueShape.MAP)],            # UNSPECIFIED
+        ))
+        assert reg.can_connect("p", "o", "c", "i")                    # coarse: yes
+        assert not reg.can_connect("p", "o", "c", "i", semantic=True) # semantic: no (unspecified)
