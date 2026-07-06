@@ -1,4 +1,4 @@
-"""Variant store FastAPI service + client (E2). Port 8575. No future-annotations."""
+"""Variant store FastAPI service + client (E1 Genomic Foundation). Port 8575. No future-annotations."""
 from typing import Optional, List
 from variant_store import VariantStore
 

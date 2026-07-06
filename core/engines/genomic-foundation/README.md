@@ -1,5 +1,7 @@
 # Genomics Pipeline
 
+> **Engine 1 — Genomic Foundation.** Produces the QC'd variant substrate the rest of the factory builds on: GPU variant calling → a queryable variant store (Ts/Tv + QC trust-gate, VAF/somatic-mosaicism), the ACMG SF secondary-findings join, and single-box GWAS. *ClinVar/AlphaMissense annotation is served by the Precision Intelligence Engine (E2, :5001); E1 produces the QC'd variants E2 annotates.*
+
 [![NVIDIA Parabricks](https://img.shields.io/badge/NVIDIA-Parabricks%204.6-76B900?style=flat&logo=nvidia)](https://docs.nvidia.com/clara/parabricks/)
 [![DGX Spark](https://img.shields.io/badge/NVIDIA-DGX%20Spark-76B900?style=flat&logo=nvidia)](https://www.nvidia.com/en-us/data-center/dgx-spark/)
 [![Docker](https://img.shields.io/badge/Docker-Required-2496ED?style=flat&logo=docker)](https://www.docker.com/)
