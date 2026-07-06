@@ -34,13 +34,77 @@ class CapabilityType(str, Enum):
 
 
 class ValueShape(str, Enum):
-    """The shape of a port's value — used by the workflow composer to wire nodes."""
+    """The coarse shape of a port's value — used by the workflow composer to wire nodes."""
     SCALAR = "scalar"                 # str/int/float/bool
     LIST = "list"                     # list of scalars
     LIST_OF_OBJECTS = "list_of_objects"
     MAP = "map"                       # dict/object
     FILE = "file"                     # path/URI to a file (FASTQ/BAM/VCF/CSV/...)
     STRUCTURE = "structure"           # a 3D structure blob (PDB/mmCIF)
+
+
+class ArtifactShape(str, Enum):
+    """The *semantic* shape of a port's value — what the data actually IS, not just its
+    coarse JSON shape.
+
+    ``ValueShape`` tells the composer that a port carries a ``map``; ``ArtifactShape`` tells
+    it the map is ``vcf_variants`` and not ``cell_map`` — so a chain is only wired when the
+    biology lines up, not merely the JSON. This layer is **additive**: it sits alongside
+    ``ValueShape`` and defaults to ``UNSPECIFIED``, so existing capabilities and the coarse
+    wiring are unchanged until a port opts in. The vocabulary is extended per capability as
+    the factory's producers/consumers are wired (see the upgrade PRD delta: RP-1 pgx_diplotypes,
+    RP-2 hla_alleles, RP-3 binding_pocket, XE-1 binder_spec, XE-4 imaging_hpo_terms, ...).
+    """
+    UNSPECIFIED = "unspecified"                 # no semantic tag yet — coarse wiring only
+
+    # genomics
+    FASTQ_READS = "fastq_reads"
+    ALIGNED_READS = "aligned_reads"
+    VCF_VARIANTS = "vcf_variants"
+    ANNOTATED_VARIANTS = "annotated_variants"
+    PGX_DIPLOTYPES = "pgx_diplotypes"           # RP-1
+    HLA_ALLELES = "hla_alleles"                 # RP-2 (nothing produces it today)
+    FUSION_CALL = "fusion_call"                 # XE-5 (pediatric RNA fusions)
+    RISK_SCORES = "risk_scores"                 # GWAS / polygenic
+
+    # proteins / structural biology
+    PROTEIN_SEQUENCE = "protein_sequence"
+    PROTEIN_STRUCTURE = "protein_structure"
+    COMPLEX_STRUCTURE = "complex_structure"     # Chai-1 co-fold
+    BINDING_POCKET = "binding_pocket"           # RP-3
+    BINDER_SPEC = "binder_spec"                 # XE-1 (scFv VH/VL/linker/epitope)
+    DEVELOPABILITY_REPORT = "developability_report"
+    IMMUNOGENICITY = "immunogenicity"           # MHCflurry pMHC-I
+
+    # small molecules
+    MOLECULE_CANDIDATES = "molecule_candidates"
+    DOCKING_POSES = "docking_poses"
+    ADMET_REPORT = "admet_report"
+
+    # imaging
+    DICOM_STUDY = "dicom_study"
+    IMAGE_READ = "image_read"                   # segmentation / RECIST
+    IMAGING_HPO_TERMS = "imaging_hpo_terms"     # XE-4 (imaging is phenotype)
+
+    # single cell
+    EXPRESSION_MATRIX = "expression_matrix"
+    CELL_MAP = "cell_map"
+    TME_PROFILE = "tme_profile"
+
+    # clinical / agent
+    PHENOTYPE_PROFILE = "phenotype_profile"     # HPO term set
+    ACMG_CLASSIFICATION = "acmg_classification"
+    PGX_VERDICT = "pgx_verdict"                 # XE-2 (safety interlock result)
+    MTB_PACKET = "mtb_packet"
+    THERAPY_RANKING = "therapy_ranking"
+    TRIAL_MATCHES = "trial_matches"
+    BIOMARKER_PANEL = "biomarker_panel"
+    AUTOANTIBODY_PANEL = "autoantibody_panel"
+    CLINICAL_NARRATIVE = "clinical_narrative"   # RAG interpretation
+
+    # platform
+    PATIENT_CONTEXT = "patient_context"         # the PCR (PF-1)
+    CONVERGENCE_SIGNAL = "convergence_signal"   # multi-omics convergence
 
 
 class Serving(str, Enum):
@@ -68,6 +132,9 @@ class Port:
     shape: ValueShape
     description: str = ""
     required: bool = True
+    # PF-2: the *semantic* shape (what the value IS) — additive alongside the coarse ``shape``.
+    # Defaults to UNSPECIFIED so existing ports/manifests are unchanged.
+    semantic: ArtifactShape = ArtifactShape.UNSPECIFIED
     # A1: JSON-Schema-style parameter contract (optional, drives the input-validation gate)
     enum: list[Any] | None = None        # allowed values; anything else is rejected
     minimum: float | None = None         # numeric lower bound (clamped, logged)
@@ -81,6 +148,7 @@ class Port:
             shape=ValueShape(d["shape"]),
             description=d.get("description", ""),
             required=d.get("required", True),
+            semantic=ArtifactShape(d.get("semantic", "unspecified")),
             enum=d.get("enum"),
             minimum=d.get("minimum"),
             maximum=d.get("maximum"),
@@ -130,8 +198,8 @@ class Capability:
         d["type"] = self.type.value
         d["serving"] = self.serving.value
         d["status"] = self.status.value
-        d["inputs"] = [{**asdict(p), "shape": p.shape.value} for p in self.inputs]
-        d["outputs"] = [{**asdict(p), "shape": p.shape.value} for p in self.outputs]
+        d["inputs"] = [{**asdict(p), "shape": p.shape.value, "semantic": p.semantic.value} for p in self.inputs]
+        d["outputs"] = [{**asdict(p), "shape": p.shape.value, "semantic": p.semantic.value} for p in self.outputs]
         return d
 
 
@@ -209,6 +277,8 @@ class CapabilityRegistry:
         for port in (*cap.inputs, *cap.outputs):
             if not isinstance(port.shape, ValueShape):
                 raise ValueError(f"{cap.id}: port {port.name} has invalid shape")
+            if not isinstance(port.semantic, ArtifactShape):
+                raise ValueError(f"{cap.id}: port {port.name} has invalid semantic shape")
         # honesty rule: a 'live' capability must not be served by a mock
         if cap.status is Status.LIVE and cap.serving is Serving.MOCK:
             raise ValueError(f"{cap.id}: a LIVE capability cannot be MOCK-served (honesty rule)")
@@ -256,11 +326,30 @@ class CapabilityRegistry:
     def consumers_of(self, shape: ValueShape) -> list[Capability]:
         return [c for c in self.all() if any(p.shape == shape for p in c.inputs)]
 
-    def can_connect(self, producer_id: str, output: str, consumer_id: str, input: str) -> bool:
-        """True iff the named output port shape matches the named input port shape."""
+    # PF-2: semantic graph helpers (additive) — wire by what the data *is*.
+    def semantic_producers_of(self, artifact: ArtifactShape) -> list[Capability]:
+        return [c for c in self.all() if any(p.semantic == artifact for p in c.outputs)]
+
+    def semantic_consumers_of(self, artifact: ArtifactShape) -> list[Capability]:
+        return [c for c in self.all() if any(p.semantic == artifact for p in c.inputs)]
+
+    def can_connect(
+        self, producer_id: str, output: str, consumer_id: str, input: str, *, semantic: bool = False
+    ) -> bool:
+        """True iff the named output port can feed the named input port.
+
+        Default (``semantic=False``): coarse — the ``ValueShape``s must match (unchanged
+        behavior). With ``semantic=True``: stricter — the coarse shapes must match AND both
+        ports must declare the *same, specified* ``ArtifactShape`` (two ``map``s are only
+        wired if they are the same artifact, e.g. both ``vcf_variants``).
+        """
         op = next(p for p in self.get(producer_id).outputs if p.name == output)
         ip = next(p for p in self.get(consumer_id).inputs if p.name == input)
-        return op.shape == ip.shape
+        if op.shape != ip.shape:
+            return False
+        if semantic:
+            return op.semantic is not ArtifactShape.UNSPECIFIED and op.semantic == ip.semantic
+        return True
 
     # -- serialization ------------------------------------------------------ #
     def to_manifest(self) -> dict[str, Any]:
