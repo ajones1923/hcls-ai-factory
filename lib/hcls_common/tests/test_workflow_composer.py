@@ -115,3 +115,42 @@ class TestRun:
         assert out["status"] == "failed" and out["failed_node"] == "dock"
         assert out["root_cause"]["verdict"] == "system"
         assert "start it" in out["root_cause"]["suggested_fix"]
+
+
+# ── Composer × PF-3/PF-4: governed provenance + honesty (Artifact envelope) ──
+class HonestTools:
+    """A tool-surface where fold self-reports hypothesis_only and dock claims live."""
+    def invoke_capability(self, cap_id, payload=None, path="/"):
+        port = {"esmfold-model": "structure", "diffdock-nim": "poses"}.get(cap_id, "out")
+        mat = {"esmfold-model": "hypothesis_only", "diffdock-nim": "live"}.get(cap_id, "live")
+        return {"status": "ok", "result": {port: f"<{cap_id}>"}, "maturity": mat}
+
+
+class TestGovernedRun:
+    def test_governed_off_is_unchanged(self):
+        out = WorkflowComposer(get_registry(reload=True), tools=FakeTools()).run(fold_then_dock())
+        assert out["status"] == "succeeded"
+        assert "artifacts" not in out and "run_id" not in out   # exact prior behavior
+
+    def test_governed_chains_provenance_and_threads_patient_run(self):
+        out = WorkflowComposer(get_registry(reload=True), tools=FakeTools()).run(
+            fold_then_dock(), patient_id="P0", governed=True)
+        assert out["status"] == "succeeded" and out["run_id"]
+        arts = out["artifacts"]
+        assert set(arts) == {"fold", "dock"}
+        # dock's provenance chains back to fold's artifact id (the lineage edge)
+        assert arts["dock"]["provenance"]["inputs"] == [arts["fold"]["id"]]
+        # patient + run threaded through every artifact
+        for a in arts.values():
+            assert a["patient_id"] == "P0" and a["run_id"] == out["run_id"]
+
+    def test_governed_enforces_non_inflation(self):
+        out = WorkflowComposer(get_registry(reload=True), tools=HonestTools()).run(
+            fold_then_dock(), governed=True)
+        arts = out["artifacts"]
+        # fold declared hypothesis_only; dock claimed live but is CAPPED to the weakest input
+        assert arts["fold"]["honesty"]["maturity"] == "hypothesis_only"
+        assert arts["dock"]["honesty"]["maturity"] == "hypothesis_only"
+        # and the attempted inflation is surfaced, not silently swallowed
+        assert any(i["node"] == "dock" and "non-inflation" in i["issue"]
+                   for i in out["honesty_issues"])

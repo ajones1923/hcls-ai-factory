@@ -19,11 +19,15 @@ is fully testable — offline with no model spend.
 """
 from __future__ import annotations
 
+import uuid
 from dataclasses import dataclass, field
 from typing import Any, Callable
 
 from hcls_common.capability_registry import (
-    Capability, CapabilityRegistry, Status, ValueShape, get_registry,
+    ArtifactShape, Capability, CapabilityRegistry, Status, ValueShape, get_registry,
+)
+from hcls_common.artifact import (
+    Honesty, Maturity, derive_artifact, non_inflation_issues, weakest_maturity,
 )
 
 
@@ -225,8 +229,34 @@ class WorkflowComposer:
         return Pipeline(goal=goal, nodes=nodes)
 
     # -- execution ---------------------------------------------------------- #
-    def run(self, pipeline: Pipeline, inputs: dict[str, dict] | None = None) -> dict[str, Any]:
-        """Execute a runnable pipeline in topological order via the tool-surface."""
+    @staticmethod
+    def _result_honesty(res: dict[str, Any]) -> Honesty:
+        """A node's *declared* output honesty, read from its result if present (a capability may
+        return ``honesty`` as a dict, or ``maturity`` + ``labels``/``requires``). Absent → live
+        (no extra caution declared); the non-inflation combine then caps it to its inputs."""
+        h = res.get("honesty")
+        if isinstance(h, dict) and "maturity" in h:
+            return Honesty.from_dict(h)
+        m = res.get("maturity")
+        if isinstance(m, str):
+            try:
+                return Honesty(Maturity(m), labels=list(res.get("labels", [])),
+                               requires=list(res.get("requires", [])))
+            except ValueError:
+                pass
+        return Honesty(Maturity.live)
+
+    def run(self, pipeline: Pipeline, inputs: dict[str, dict] | None = None, *,
+            patient_id: str | None = None, run_id: str | None = None,
+            governed: bool = False) -> dict[str, Any]:
+        """Execute a runnable pipeline in topological order via the tool-surface.
+
+        With ``governed=True`` (PF-3/PF-4 wired in), each node's output is additionally wrapped in
+        an ``Artifact``: provenance chained to the upstream nodes it consumed, semantic ``shape`` from
+        the capability's output port, honesty combined **non-inflatingly** (a node can never emit a
+        claim stronger than the weakest input it derives from — a tool that tries is capped and the
+        attempt is flagged), and ``patient_id``/``run_id`` threaded through the whole chain. Default
+        ``governed=False`` preserves the exact prior behavior (and every existing test)."""
         if not self.is_runnable(pipeline):
             return {"status": "blocked", "checklist": self.checklist(pipeline)}
         if self.tools is None:
@@ -234,6 +264,9 @@ class WorkflowComposer:
         order = self._topo(pipeline)
         outputs: dict[str, Any] = {}
         trace = []
+        node_artifacts: dict[str, Any] = {}          # nid -> Artifact (governed only)
+        honesty_issues: list[dict[str, Any]] = []
+        rid = run_id or (uuid.uuid4().hex if governed else "")
         for nid in order:
             n = pipeline.node(nid)
             payload = dict((inputs or {}).get(nid, {}))
@@ -246,7 +279,35 @@ class WorkflowComposer:
                 return {"status": "failed", "failed_node": nid, "trace": trace,
                         "root_cause": self.root_cause(n, res)}
             outputs[nid] = res.get("result", res)
-        return {"status": "succeeded", "trace": trace, "outputs": outputs}
+
+            if governed:
+                cap = self._cap(n.capability)
+                in_arts = [node_artifacts[i.from_node] for i in n.inputs
+                           if i.is_ref and i.from_node in node_artifacts]
+                shape = cap.outputs[0].semantic if (cap and cap.outputs) else ArtifactShape.UNSPECIFIED
+                own = self._result_honesty(res)
+                # flag (do not silently swallow) a capability that claims more than its inputs allow
+                if in_arts:
+                    weakest = weakest_maturity([a.honesty.maturity for a in in_arts])
+                    if own.maturity.rank < weakest.rank:
+                        honesty_issues.append({"node": nid,
+                            "issue": f"'{n.capability}' declared '{own.maturity.value}' but is capped "
+                                     f"to '{weakest.value}' (weakest input) — non-inflation"})
+                body = outputs[nid] if isinstance(outputs[nid], dict) else {"value": outputs[nid]}
+                art = derive_artifact(shape, body, producer_id=n.capability, inputs=in_arts,
+                                      own_maturity=own.maturity, extra_labels=own.labels,
+                                      extra_requires=own.requires,
+                                      serving=(cap.serving.value if cap else "native"),
+                                      patient_id=patient_id, run_id=rid)
+                node_artifacts[nid] = art
+                honesty_issues.extend({"node": nid, "issue": m} for m in non_inflation_issues(art, in_arts))
+
+        result: dict[str, Any] = {"status": "succeeded", "trace": trace, "outputs": outputs}
+        if governed:
+            result["run_id"] = rid
+            result["artifacts"] = {nid: a.to_dict() for nid, a in node_artifacts.items()}
+            result["honesty_issues"] = honesty_issues
+        return result
 
     def root_cause(self, node: Node, result: dict[str, Any]) -> dict[str, Any]:
         st = result.get("status")

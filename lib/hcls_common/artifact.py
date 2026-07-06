@@ -269,6 +269,7 @@ def derive_artifact(
     serving: str = "native",
     knowledge_version: str = "",
     as_of: str = "",
+    patient_id: str | None = None,
     run_id: str = "",
     id: str | None = None,
     ts: str | None = None,
@@ -276,14 +277,15 @@ def derive_artifact(
     """Build a downstream artifact whose honesty is **non-inflated by construction**: its maturity
     is capped at the weakest input (a producer may add its own caution with ``own_maturity`` but can
     never claim more confidence), input labels/requires are carried forward and unioned, its
-    ``provenance.inputs`` chains the input artifact ids, and ``patient_id`` is inherited if the
-    inputs agree. The result always passes ``non_inflation_issues``."""
+    ``provenance.inputs`` chains the input artifact ids. ``patient_id`` is used if given, else
+    inherited when the inputs agree. The result always passes ``non_inflation_issues``."""
     base = combine_honesty([a.honesty for a in inputs])
     maturity = weakest_maturity([base.maturity, own_maturity])   # own_maturity may only weaken
     labels = sorted(set(base.labels) | set(extra_labels or []))
     requires = sorted(set(base.requires) | set(extra_requires or []))
-    pids = {a.patient_id for a in inputs if a.patient_id is not None}
-    patient_id = next(iter(pids)) if len(pids) == 1 else None
+    if patient_id is None:
+        pids = {a.patient_id for a in inputs if a.patient_id is not None}
+        patient_id = next(iter(pids)) if len(pids) == 1 else None
     return new_artifact(
         shape, payload, producer_id=producer_id,
         honesty=Honesty(maturity=maturity, labels=labels, requires=requires,
