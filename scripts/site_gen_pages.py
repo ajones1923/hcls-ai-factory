@@ -66,6 +66,14 @@ def detail_page(c: dict, kind: str) -> str:
     ]
     if c.get("tags"):
         lines += ["**Tags:** " + " · ".join(f"`{t}`" for t in c["tags"]), ""]
+    if kind == "Intelligence Agents":
+        lines += [
+            '!!! note "Runtime dependency"',
+            "    This agent is a Retrieval-Augmented Generation service: at runtime it needs a "
+            "populated vector database and an LLM API key. When those are absent it returns an "
+            "honest degraded response (e.g. HTTP 503) and never fabricates clinical content.",
+            "",
+        ]
     lines += [
         "---",
         "",
