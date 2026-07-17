@@ -1,5 +1,5 @@
 {
-  "_comment": "HCLS AI Factory capability manifest. status=live means real & running; status=planned means on the roadmap (not yet real). A LIVE capability may never be MOCK-served (enforced by the registry's honesty rule).",
+  "_comment": "HCLS AI Factory capability manifest. status=live means real & running; status=planned means on the roadmap (not yet real). A LIVE capability may never be MOCK-served (enforced by the registry's honesty rule). Optional maturity (verified|preclinical|research-use|roadmap|gated) is an honest evidence/access tier orthogonal to status — set only where documented; maturity=verified requires a live, non-mock capability.",
   "version": "1.0",
   "capabilities": [
     {
@@ -915,6 +915,7 @@
       "gpu": false,
       "cost_class": "low",
       "status": "live",
+      "maturity": "verified",
       "tags": [
         "E1",
         "E2",
@@ -1238,6 +1239,7 @@
       "gpu": true,
       "cost_class": "high",
       "status": "planned",
+      "maturity": "gated",
       "tags": [
         "chai2",
         "binder-design",
