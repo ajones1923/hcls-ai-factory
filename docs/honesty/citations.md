@@ -25,6 +25,13 @@ edition/version for any downstream use.
 - **GIAB / HG002** — Zook JM, et al. Genome in a Bottle benchmark samples & truth sets. (the real
   data the [variant store](../factory/engines/genomics-engine.md) was **verified** against — Ts/Tv ≈ 2.0)
 
+## Single-cell
+
+- **pbmc3k (10x Genomics)** — the 3k-PBMC reference dataset, the canonical scanpy/Seurat tutorial
+  data the [single-cell compute engine](../factory/engines/singlecell-compute.md) was **verified**
+  against: 2,700 cells → the expected PBMC cell types (CD4 T, B, NK, CD14+ & FCGR3A+ monocytes,
+  dendritic, megakaryocytes) with correct marker-gene evidence.
+
 ## Pharmacogenomics
 
 - **CPIC** — Relling MV, Klein TE. *CPIC: Clinical Pharmacogenetics Implementation Consortium of the
