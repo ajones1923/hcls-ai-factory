@@ -106,7 +106,9 @@ Thumbs.db
 *.gif
 *.bmp
 *.tiff
-# …but published docs-site image assets DO ship — the built site needs them.
+# …but published docs-site image assets DO ship — the built site needs them (incl. subdirs).
+!docs/assets/**/*.png
+!docs/assets/**/*.jpg
 !docs/assets/*.png
 !docs/assets/*.jpg
 *.webp
