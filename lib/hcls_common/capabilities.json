@@ -802,6 +802,7 @@
       "gpu": false,
       "cost_class": "medium",
       "status": "live",
+      "maturity": "verified",
       "tags": [
         "D1",
         "scanpy",
