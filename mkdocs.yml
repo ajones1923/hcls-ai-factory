@@ -18,6 +18,8 @@ edit_uri: edit/main/docs/
 
 theme:
   name: material
+  custom_dir: overrides
+  favicon: assets/favicon.svg
   icon:
     logo: material/dna
     repo: fontawesome/brands/github
@@ -40,12 +42,29 @@ theme:
     - navigation.instant
     - navigation.top
     - navigation.tracking
+    - navigation.sections
     - content.action.edit
     - toc.follow
 
+extra_css:
+  - stylesheets/custom.css
+
+plugins:
+  - search
+  - gen-files:
+      scripts:
+        - scripts/site_gen_matrix.py
+
 nav:
   - Home: index.md
-  - Capability Brief: brief/README.md
+  - The Factory:
+      - Overview: factory/overview.md
+      - Capability Brief: brief/README.md
+  - Honesty & Governance:
+      - Overview: honesty/index.md
+      - Capability Maturity Matrix: honesty/maturity-matrix.md
+  - Run It Yourself: run/index.md
+  - Roadmap: roadmap.md
 
 markdown_extensions:
   - admonition
@@ -59,13 +78,15 @@ markdown_extensions:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
 
-# Publish an intentional site (Home + the Brief), not the full WIP docs tree.
+# Publish an intentional site (not the full WIP docs tree). Root-level WIP markdown is excluded;
+# the intentional root pages (index, roadmap) and the section subdirs are kept.
 exclude_docs: |
   /*.md
   /infographic_prompts/
   /working_prompts/
   /brief/architecture_figure.py
   !/index.md
+  !/roadmap.md
 
 # Fail the build on broken internal links / missing nav pages (Pillar 16).
 validation:

@@ -11,8 +11,8 @@ over a private mesh only when it needs to.
 
 - :material-engine-outline:{ .lg } __8 Engines__
 
-    The horizontal compute muscle — genomics, discovery, imaging, oncology, cardiology, protein
-    design, and single-cell.
+    The horizontal compute muscle — genomics, clinical interpretation, therapeutic discovery,
+    imaging, oncology, cardiology, protein design, and single-cell.
 
 - :material-brain:{ .lg } __8 Intelligence Agents__
 
