@@ -66,9 +66,12 @@ nav:
       - Capability Brief: brief/README.md
   - Disease Programs:
       - Tuberous Sclerosis Complex: programs/tsc.md
+  - Demonstrations: demos/index.md
   - Honesty & Governance:
       - Overview: honesty/index.md
       - Capability Maturity Matrix: honesty/maturity-matrix.md
+      - Citations & Evidence: honesty/citations.md
+      - Governance & Lineage: honesty/governance.md
   - Run It Yourself: run/index.md
   - Roadmap: roadmap.md
 

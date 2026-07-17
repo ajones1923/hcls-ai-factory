@@ -37,5 +37,16 @@ served by a real model against real input — never a mock. Where a capability i
     models run on remote GPUs on demand — **"elastic burst," not "all on one box."** All patient data
     stays on the local box; only derived, non-identifying work is sent to a burst GPU.
 
-*A deeper quickstart with a recorded real run and verified-on-real-data proofs lands in Phase 2 of the
-[site roadmap](../roadmap.md).*
+## Proof it's real
+
+- **A real, passing test suite gates every merge** — the platform library's hundreds of tests, plus
+  real-bug lint and registry validation, run for real (no `|| true`, no skipped gate).
+- **The registry validates** — 41 registered capabilities, every engine and agent directory accounted
+  for; a `live` capability can never be mock-served.
+- **Verified on real data** — the [queryable variant store](../factory/engines/genomics-engine.md) is
+  marked `verified` because it was run on real **GIAB HG002** reads: PASS-SNV **Ts/Tv ≈ 2.0** (the
+  expected genome-wide human range ≈ 2.0–2.1), behind a QC trust-gate that *withholds* interpretation
+  on a bad call set. A real result on real data, not a mock — see [Citations & Evidence](../honesty/citations.md).
+- **The site is honest by construction** — this page, the
+  [Capability Maturity Matrix](../honesty/maturity-matrix.md), and every engine/agent page are
+  generated from the registry, and the strict CI build fails before publishing anything stale.
