@@ -2,7 +2,7 @@
 import pytest
 
 from hcls_common.capability_registry import (
-    Capability, CapabilityRegistry, CapabilityType, Port, Serving, Status, ValueShape,
+    Capability, CapabilityRegistry, CapabilityType, MaturityTier, Port, Serving, Status, ValueShape,
     ArtifactShape, get_registry,
 )
 
@@ -45,6 +45,38 @@ class TestHonestyRule:
         reg.register(c)
         with pytest.raises(ValueError, match="duplicate"):
             reg.register(c)
+
+
+# ── maturity tier (honest evidence/access, orthogonal to serving status) ─────
+class TestMaturity:
+    def test_documented_tiers_load(self):
+        r = get_registry(reload=True)
+        assert r.get("variant-store").maturity is MaturityTier.VERIFIED   # proven on real HG002
+        assert r.get("chai2-binder-design").maturity is MaturityTier.GATED  # partnership-gated
+
+    def test_default_none_and_round_trips(self):
+        r = get_registry(reload=True)
+        assert r.get("cart-intelligence-agent").maturity is None      # most carry no tier
+        r2 = CapabilityRegistry()
+        for entry in r.to_manifest()["capabilities"]:
+            r2.register(Capability.from_dict(entry), overwrite=True)
+        assert r2.get("variant-store").maturity is MaturityTier.VERIFIED  # set survives round-trip
+        assert r2.get("cart-intelligence-agent").maturity is None     # unset survives round-trip
+
+    def test_verified_requires_live(self):
+        # verified on a not-yet-live capability is dishonest -> rejected. (verified + mock is
+        # already caught by the live-cannot-be-mock rule, tested above.)
+        reg = CapabilityRegistry()
+        with pytest.raises(ValueError, match="verified"):
+            reg.register(Capability(id="v", type=CapabilityType.MODEL, name="V", description="",
+                                    status=Status.PLANNED, maturity=MaturityTier.VERIFIED))
+
+    def test_verified_on_live_ok(self):
+        reg = CapabilityRegistry()
+        reg.register(Capability(id="ok", type=CapabilityType.SERVICE, name="OK", description="",
+                                status=Status.LIVE, serving=Serving.NATIVE,
+                                maturity=MaturityTier.VERIFIED))
+        assert reg.get("ok").maturity is MaturityTier.VERIFIED
 
 
 # ── shape graph (composer foundation) ───────────────────────────────────────

@@ -123,6 +123,20 @@ class Status(str, Enum):
     MOCK = "mock"          # only a mock exists (must be labeled)
 
 
+class MaturityTier(str, Enum):
+    """Honest evidence / access tier — *orthogonal* to serving ``Status``.
+
+    Optional and additive: absent (``None``) means "nothing beyond the serving status."
+    A capability can be ``status=live`` **and** ``maturity=research-use`` (served, but
+    research-only). Populate only where there is a documented basis — never inflate.
+    """
+    VERIFIED = "verified"          # proven against real, recorded input (e.g. on real HG002)
+    PRECLINICAL = "preclinical"    # research bench, not a treatment / clinical use today
+    RESEARCH_USE = "research-use"  # research / QA / trial-use input, not routine clinical
+    ROADMAP = "roadmap"            # a designed direction, not yet built
+    GATED = "gated"                # partnership- / license-gated access
+
+
 # --------------------------------------------------------------------------- #
 # Schema
 # --------------------------------------------------------------------------- #
@@ -171,6 +185,8 @@ class Capability:
     gpu: bool = False
     cost_class: str = "low"                # low / medium / high
     status: Status = Status.LIVE
+    # Honest evidence/access tier, orthogonal to `status` (see MaturityTier). Optional; None = untiered.
+    maturity: MaturityTier | None = None
     tags: list[str] = field(default_factory=list)
 
     @classmethod
@@ -189,6 +205,7 @@ class Capability:
             gpu=d.get("gpu", False),
             cost_class=d.get("cost_class", "low"),
             status=Status(d.get("status", "live")),
+            maturity=MaturityTier(d["maturity"]) if d.get("maturity") else None,
             tags=d.get("tags", []),
         )
 
@@ -198,6 +215,7 @@ class Capability:
         d["type"] = self.type.value
         d["serving"] = self.serving.value
         d["status"] = self.status.value
+        d["maturity"] = self.maturity.value if self.maturity else None
         d["inputs"] = [{**asdict(p), "shape": p.shape.value, "semantic": p.semantic.value} for p in self.inputs]
         d["outputs"] = [{**asdict(p), "shape": p.shape.value, "semantic": p.semantic.value} for p in self.outputs]
         return d
@@ -293,6 +311,13 @@ class CapabilityRegistry:
         # honesty rule: a 'live' capability must not be served by a mock
         if cap.status is Status.LIVE and cap.serving is Serving.MOCK:
             raise ValueError(f"{cap.id}: a LIVE capability cannot be MOCK-served (honesty rule)")
+        # honesty rule: 'verified' means proven against real input — it cannot sit on something
+        # that isn't actually running (not planned/mock-status, never mock-served).
+        if cap.maturity is MaturityTier.VERIFIED:
+            if cap.status is not Status.LIVE or cap.serving is Serving.MOCK:
+                raise ValueError(
+                    f"{cap.id}: maturity=verified requires a live, non-mock capability (honesty rule)"
+                )
 
     # -- query -------------------------------------------------------------- #
     def get(self, cap_id: str) -> Capability:

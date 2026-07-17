@@ -30,7 +30,11 @@ Built in four phases, each flipping matrix badges green as real capabilities com
 
 ## A note on the status vocabulary
 
-The registry currently declares two states — **live** and **planned**. A richer, honesty-first
-vocabulary (**verified · preclinical · research-use · roadmap · gated**) is a tracked enhancement: it
-requires extending the registry schema so every status remains machine-checked against the code
-rather than asserted in prose. When it lands, the maturity matrix upgrades automatically.
+Beyond the serving states **live** and **planned**, the registry now carries an optional, orthogonal
+**maturity tier** — **verified · preclinical · research-use · roadmap · gated** — machine-checked
+against the code (e.g. `verified` is rejected by the registry on anything not actually running). It
+is populated **conservatively**, only where the registry documents a basis: today the queryable
+variant store is `verified` (proven on real HG002) and Chai-2 is `gated` (partnership access).
+Broadening coverage — and adding finer-grained capability entries for the feature-level caveats now
+carried on the [Honesty & Governance ledger](honesty/index.md) (e.g. TSC gene therapy is preclinical)
+— continues as capabilities are audited.
