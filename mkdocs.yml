@@ -97,6 +97,7 @@ exclude_docs: |
   /brief/architecture_figure.py
   !/index.md
   !/roadmap.md
+  !/404.md
 
 # Fail the build on broken internal links / missing nav pages (Pillar 16).
 validation:
