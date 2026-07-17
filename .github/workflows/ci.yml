@@ -53,6 +53,20 @@ jobs:
       - run: pip install -e lib/hcls_common
       - run: python scripts/validate_registry.py
 
+  docs:
+    name: Docs site (strict build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements-docs.txt
+      # Strict build fails on broken links/nav AND runs the registry-bound
+      # matrix generator, so a malformed registry breaks the site build here
+      # (before Netlify) rather than publishing a stale page.
+      - run: mkdocs build --strict
+
   # NOTE: per-component test jobs (path-filtered matrix over core/engines and
   # core/agents) land with the dependency-pinning work (constraints + extras),
   # so their heavy ML stacks install reproducibly. Until then, the platform
