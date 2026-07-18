@@ -1,0 +1,53 @@
+/* Self-hosted typography (SC-5 · CON-2 — no font-CDN, reproducible/offline-safe).
+   Display: Fraunces (characterful serif) · Body: IBM Plex Sans · Code: IBM Plex Mono.
+   All licensed under the SIL Open Font License; served locally from docs/assets/fonts. */
+
+@font-face {
+  font-family: "IBM Plex Sans"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url("../assets/fonts/ibm-plex-sans-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: "IBM Plex Sans"; font-style: normal; font-weight: 600; font-display: swap;
+  src: url("../assets/fonts/ibm-plex-sans-600.woff2") format("woff2");
+}
+@font-face {
+  font-family: "IBM Plex Sans"; font-style: normal; font-weight: 700; font-display: swap;
+  src: url("../assets/fonts/ibm-plex-sans-700.woff2") format("woff2");
+}
+@font-face {
+  font-family: "IBM Plex Mono"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url("../assets/fonts/ibm-plex-mono-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Fraunces"; font-style: normal; font-weight: 600; font-display: swap;
+  src: url("../assets/fonts/fraunces-600.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Fraunces"; font-style: normal; font-weight: 700; font-display: swap;
+  src: url("../assets/fonts/fraunces-700.woff2") format("woff2");
+}
+
+/* Point Material's font variables at the self-hosted faces. */
+:root {
+  --md-text-font: "IBM Plex Sans";
+  --md-code-font: "IBM Plex Mono";
+}
+
+/* Characterful serif for display headings + the wordmark — used with restraint. */
+.md-typeset h1,
+.md-typeset h2,
+.md-typeset h3,
+.md-header__title,
+.md-nav__title[for="__drawer"] {
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.md-typeset h1 { font-weight: 700; }
+
+/* The site name reads as a wordmark in the header. */
+.md-header__title .md-header__topic:first-child .md-ellipsis {
+  font-family: "Fraunces", Georgia, serif;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
