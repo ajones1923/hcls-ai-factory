@@ -9,6 +9,11 @@ The honesty discipline is the load-bearing wall of this project. The site is bui
 claim more than the code delivers**: statuses are rendered from the capability registry, and every
 limit is stated plainly where it matters.
 
+![Capability maturity — every capability carries an honest status, from verified to roadmap](../assets/infographics/maturity-matrix.png)
+/// caption
+Illustrative. The **live** matrix below is generated at build time from the capability registry — it, not this diagram, is the source of truth.
+///
+
 - **[Capability Maturity Matrix](maturity-matrix.md)** — every capability's real status, generated
   at build time from `lib/hcls_common/capabilities.json`.
 
