@@ -45,10 +45,13 @@ each registry claim — not the claim itself. The findings are reflected directl
 - **The platform is genuinely implemented** — the library services (registry, MCP surface, workflow
   composer, MLOps, honesty gate), the genomics pipeline stages, all eight RAG intelligence agents,
   and the engines are real serving code with tests, not scaffolding.
-- **`verified`** is reserved for capabilities proven against real recorded input: the variant store
-  (real GIAB **HG002**, Ts/Tv ≈ 2.0), **ProteinMPNN** design (vendored weights + a logged real
-  design run + a real-run test), and **single-cell compute** (real **pbmc3k** → 2,700 cells → the
-  canonical PBMC cell types, with correct marker evidence).
+- **`verified`** is reserved for capabilities proven against real recorded input:
+    - the **variant store** — real GIAB **HG002**, Ts/Tv ≈ 2.0;
+    - **ProteinMPNN** design — vendored weights + a logged real design run + a real-run test;
+    - **single-cell compute** — real **pbmc3k** → 2,700 cells → the canonical PBMC cell types with
+      correct marker evidence;
+    - the **ACMG secondary-findings** stage — real **ClinVar** (4.2M variants) → 51,554 reportable
+      findings correctly flagged, with **0** benign and **0** off-panel false positives.
 - **Two capabilities were corrected `live` → `planned`** because their own code cannot currently run
   on the reference box (a required library isn't installed): MHCflurry immunogenicity and the ESM-2
   LoRA fine-tune.
