@@ -18,6 +18,14 @@ class TestHonestyRegister:
         assert any(x["severity"] == "block"
                    for x in honesty_check("The result confirms the diagnosis of the disorder."))
 
+    def test_blocks_efficacy_overclaim(self):
+        # "clinically proven to treat/prevent" is an efficacy overclaim that must not slip through
+        # (the bare verb "treat" evades the treat\w+ clinical trigger).
+        assert any(x["severity"] == "block"
+                   for x in honesty_check("Clinically proven to treat tuberous sclerosis."))
+        assert any(x["severity"] == "block"
+                   for x in honesty_check("This drug is proven to prevent seizures."))
+
     def test_warns_on_missing_disclaimer(self):
         v = honesty_check("The pathogenic variant suggests a treatment option for the patient.")
         assert any(x["severity"] == "warn" for x in v)
