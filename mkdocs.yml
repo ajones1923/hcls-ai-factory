@@ -58,6 +58,10 @@ extra_css:
 
 plugins:
   - search
+  - social:
+      cards_layout_options:
+        background_color: "#132b3e"
+        color: "#ffffff"
   - gen-files:
       scripts:
         - scripts/site_gen_matrix.py
