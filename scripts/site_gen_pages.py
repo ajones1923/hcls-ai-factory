@@ -140,3 +140,56 @@ for c in agents:
     with mkdocs_gen_files.open(f"factory/agents/{c['id']}.md", "w") as f:
         f.write(detail_page(c, "Intelligence Agents"))
     mkdocs_gen_files.set_edit_path(f"factory/agents/{c['id']}.md", "lib/hcls_common/capabilities.json")
+
+
+# ── Capability Brief — Technical Cut (registry-generated; retires the hard-coded HTML, SC-4) ──
+def brief_row(c: dict) -> str:
+    ep = c.get("endpoint") or ("library" if c.get("serving") == "none" else "—")
+    return f'| **{c["name"]}** | {c.get("domain", "")} | `{ep}` | {badge(effective(c))} |'
+
+
+def brief_group(title: str, rows: list) -> str:
+    out = [f"### {title}", "", "| Capability | Domain | Endpoint | Status |", "|---|---|---|---|"]
+    out += [brief_row(c) for c in sorted(rows, key=lambda c: c["name"])]
+    return "\n".join(out) + "\n"
+
+
+brief = [
+    "# Capability Brief — Technical Cut",
+    "",
+    "The whole factory in one read: **8 engines · 8 intelligence agents · 1 disease program (TSC)** on "
+    "one platform. Every endpoint and status below is **generated at build time from the capability "
+    "registry** — no hand-typed drift. For the human *why*, see the [Mission Cut](mission.md).",
+    "",
+    "![HCLS AI Factory architecture](architecture.svg)",
+    "/// caption",
+    "Illustrative architecture diagram — teal engines, indigo agents, ember TSC.",
+    "///",
+    "",
+    "## The roster",
+    "",
+    brief_group("Engines", [c for c in caps if c["type"] == "engine"]),
+    brief_group("Intelligence Agents", [c for c in caps if c["type"] == "agent"]),
+    brief_group("Models & NIMs", [c for c in caps if c["type"] in ("model", "nim")]),
+    brief_group("Platform Services & Pipeline Stages", [c for c in caps if c["type"] in ("service", "stage")]),
+    "## Flagship disease program",
+    "",
+    "[**Tuberous Sclerosis Complex**](../programs/tsc.md) composes the horizontals for one child in one "
+    "governed afternoon — TSC1/TSC2 → mTORC1 → everolimus. Gene therapy is **preclinical**; everolimus "
+    "is real and approved.",
+    "",
+    "## Honesty",
+    "",
+    "All clinical output is [decision support](../honesty/decision-support.md) for a qualified "
+    "clinician, never autonomous diagnosis. See the live "
+    "[Capability Maturity Matrix](../honesty/maturity-matrix.md) and the "
+    "[Honesty Ledger](../honesty/ledger.md). A `live` capability is never mock-served.",
+    "",
+    '!!! note "Generated from the registry"',
+    "    This page's roster, endpoints, and statuses are generated from "
+    "`lib/hcls_common/capabilities.json` at build time — the site cannot claim ahead of the code.",
+    "",
+]
+with mkdocs_gen_files.open("brief/README.md", "w") as f:
+    f.write("\n".join(brief))
+mkdocs_gen_files.set_edit_path("brief/README.md", "lib/hcls_common/capabilities.json")

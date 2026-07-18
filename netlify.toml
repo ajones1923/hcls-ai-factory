@@ -11,3 +11,14 @@
 # Deploy previews build the same way (opened on every PR).
 [context.deploy-preview]
   command = "pip install -r requirements-docs.txt && mkdocs build --strict"
+
+# IA-5: the retired monolithic HTML brief cuts 301-redirect to their Markdown homes,
+# so shared links don't 404 after the SC-4 migration.
+[[redirects]]
+  from = "/brief/capability-brief.html"
+  to = "/brief/"
+  status = 301
+[[redirects]]
+  from = "/brief/mission.html"
+  to = "/brief/mission/"
+  status = 301
