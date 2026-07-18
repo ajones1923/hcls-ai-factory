@@ -48,7 +48,8 @@ __pycache__/
 *.py[cod]
 *.egg-info/
 .pytest_cache/
-.cache/            # mkdocs-material social-plugin build cache (fonts/cards)
+# mkdocs-material social-plugin build cache (fonts/cards)
+.cache/
 .ipynb_checkpoints/
 node_modules/
 build/
