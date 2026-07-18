@@ -165,3 +165,14 @@
   box-shadow: 0 22px 55px -28px rgba(11, 23, 34, 0.4);
 }
 .hcls-band__cap { font-size: 0.85rem; color: var(--md-default-fg-color--light); margin-top: 1rem; }
+
+/* ── V4: a single orchestrated load-reveal (motion-safe) ─────────────────────── */
+@keyframes hcls-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: no-preference) {
+  .hcls-hero__eyebrow { animation: hcls-rise 0.6s 0.05s both ease-out; }
+  .hcls-hero__title   { animation: hcls-rise 0.7s 0.12s both ease-out; }
+  .hcls-hero__sub     { animation: hcls-rise 0.7s 0.22s both ease-out; }
+  .hcls-hero__cta     { animation: hcls-rise 0.7s 0.32s both ease-out; }
+  .hcls-hero__note    { animation: hcls-rise 0.7s 0.40s both ease-out; }
+  .hcls-mm            { animation: hcls-rise 0.8s 0.28s both ease-out; }
+}
