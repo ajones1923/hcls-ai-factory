@@ -53,7 +53,8 @@ each registry claim — not the claim itself. The findings are reflected directl
     - the **ACMG secondary-findings** stage — real **ClinVar** (4.2M variants) → 51,554 reportable
       findings correctly flagged, with **0** benign and **0** off-panel false positives;
     - the **molecule generator** — real drug seeds → 8/8 valid, novel RDKit molecules (BRICS) with real QED;
-    - **chemprop-ADMET** — real admet_ai GPU inference on aspirin (MW 180.16, logP 1.31, full endpoint profile).
+    - **chemprop-ADMET** — real admet_ai GPU inference on aspirin (MW 180.16, logP 1.31, full endpoint profile);
+    - **ESM-2 search** — real 650M ESM-2 embeddings rank globins together (HBA→HBB 0.95, →myoglobin 0.93) above unrelated ubiquitin (0.73).
 - **Two capabilities were corrected `live` → `planned`** because their own code cannot currently run
   on the reference box (a required library isn't installed): MHCflurry immunogenicity and the ESM-2
   LoRA fine-tune.
