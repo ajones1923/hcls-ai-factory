@@ -1024,6 +1024,7 @@
       "serving": "none",
       "gpu": false,
       "status": "live",
+      "maturity": "verified",
       "tags": [
         "E1",
         "acmg",
