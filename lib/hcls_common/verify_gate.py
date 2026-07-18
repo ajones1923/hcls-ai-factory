@@ -36,6 +36,8 @@ _OVERCLAIM_RULES: list[tuple[str, str, str]] = [
     (r"\b(definitive|confirmed|certain|conclusive)\s+(diagnos[ie]s|diagnosis)\b", "block", "Diagnostic-certainty overclaim — outputs are decision support, not a diagnosis."),
     (r"\b(confirms?|establishes?)\s+(the\s+)?diagnosis\b", "block", "Diagnostic-certainty overclaim."),
     (r"\b(cure[sd]?|will cure|proven to cure|eradicat\w+)\b", "block", "Cure claim — unsupported and unsafe to assert."),
+    (r"\bclinically proven\b", "block", "Efficacy overclaim — 'clinically proven' asserts unestablished clinical efficacy; outputs are research / decision-support."),
+    (r"\bproven to (treat|prevent|reverse|stop|halt|slow)\b", "block", "Efficacy overclaim — clinical efficacy is not established here."),
     (r"\b(100%|guarantee[sd]?|guaranteed|certain to|always works|never fails)\b", "block", "Absolute-certainty overclaim."),
     (r"\b(you should (take|stop|start)|discontinue your|prescribe[sd]?)\b", "warn", "Treatment-directive language — outputs inform clinicians, they don't direct patients."),
     (r"\b(safe for all|no side effects|zero risk|completely safe)\b", "block", "Safety overclaim."),
