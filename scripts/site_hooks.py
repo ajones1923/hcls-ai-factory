@@ -51,5 +51,9 @@ def _board_html() -> str:
 
 
 def on_config(config, **kwargs):
+    caps = json.loads(REGISTRY.read_text())["capabilities"]
+    counts = Counter(_effective(c) for c in caps)
     config["extra"]["maturity_board"] = _board_html()
+    config["extra"]["n_verified"] = counts.get("verified", 0)
+    config["extra"]["n_live"] = counts.get("live", 0)
     return config
