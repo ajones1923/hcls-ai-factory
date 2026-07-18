@@ -8,6 +8,11 @@ description: What is live, planned, and preclinical in the HCLS AI Factory — a
 The factory and this site grow together, in public. The **[Capability Maturity
 Matrix](honesty/maturity-matrix.md)** is the live scorecard; this page is the honest direction.
 
+![The site goes green as the factory matures — roadmap to planned to live to verified](assets/infographics/roadmap.png)
+/// caption
+Every capability advertises its real status, generated from the registry — the site cannot claim ahead of the code.
+///
+
 ## Platform
 
 - **Live today** — the platform library (capability registry, MCP tool-surface, workflow composer,

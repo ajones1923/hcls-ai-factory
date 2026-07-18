@@ -39,6 +39,23 @@ def ports_table(ports: list) -> str:
     return "\n".join(rows)
 
 
+def _hero(c: dict) -> str:
+    """Embed the capability's flow-diagram hero if one has been drawn for it (keyed by id).
+
+    Returns markdown (image + illustrative caption) or an empty string if no hero exists, so the
+    detail page degrades cleanly for any capability that hasn't been illustrated yet.
+    """
+    img = ROOT / "docs" / "assets" / "infographics" / "heros" / f"{c['id']}.png"
+    if not img.exists():
+        return ""
+    return (
+        f"![{c['name']} — what it takes in, what it computes, what it returns]"
+        f"(../../assets/infographics/heros/{c['id']}.png)\n"
+        "/// caption\nIllustrative. Decision support for a qualified clinician — never autonomous "
+        "diagnosis or prescribing.\n///\n"
+    )
+
+
 def detail_page(c: dict, kind: str) -> str:
     ep = c.get("endpoint") or "—"
     lines = [
@@ -49,6 +66,8 @@ def detail_page(c: dict, kind: str) -> str:
         "",
         c.get("description", ""),
         "",
+        # Registry-sourced hero: ingest -> compute/reason -> output, honest status + decision-support.
+        _hero(c),
         "## Interface",
         "",
         f"- **Endpoint:** `{ep}`  ·  **Invoke path:** `{c.get('invoke_path', '/')}`",

@@ -8,6 +8,11 @@ description: Pinned, verifiable inputs — the reproducible build and the versio
 A result you can't reproduce isn't evidence. The factory is built so its inputs are pinned and its
 public datasets are versioned — so a `verified` badge means the same thing tomorrow as today.
 
+![Real, never mocked — real public input, real run on real hardware, recorded output](../assets/infographics/reproducibility.png)
+/// caption
+Fork it and run it yourself — the output is recorded, not asserted (e.g. HG002 Ts/Tv ≈ 2.0).
+///
+
 ## Reproducible by construction
 
 - **Pinned build** — the docs site and the platform pin their generators; CI runs the real gate

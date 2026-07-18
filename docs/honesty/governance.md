@@ -9,6 +9,11 @@ Trust in a clinical-decision-support system is not a slogan — it's enforced at
 capability. Governance in the HCLS AI Factory is **mechanical**: the registry is the source of truth,
 and every governed run passes through the same gates.
 
+![Governed by construction — request, governance gate, capability run, signed lineage record](../assets/infographics/governance-lineage.png)
+/// caption
+Every capability call passes the gate and leaves an auditable, 21 CFR Part 11-style record.
+///
+
 ## The gates every governed run passes
 
 - **Input-validation gate** — parameters are checked against each capability's typed contract (allowed
