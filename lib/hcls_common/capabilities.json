@@ -700,6 +700,7 @@
       "gpu": true,
       "cost_class": "low",
       "status": "live",
+      "maturity": "verified",
       "tags": [
         "B2",
         "esm2",
