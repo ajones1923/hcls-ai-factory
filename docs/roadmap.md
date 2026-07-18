@@ -28,6 +28,22 @@ Built in four phases, each flipping matrix badges green as real capabilities com
 | **2 — Proof** | "Run It Yourself" quickstart, verified-on-real-data proofs, citations, governance |
 | **3 — Launch** | performance + accessibility pass, analytics for the right metrics, the launch moment |
 
+## Changelog
+
+The site build, in public — most-recent first.
+
+- **2026-07** — **Verification campaign:** ran capabilities on real public data and earned `verified`
+  where they passed — the variant store (HG002), single-cell compute (pbmc3k), ACMG secondary-findings
+  (real ClinVar), molecule generator + ADMET (real drugs), ESM-2 search + ProteinMPNN (real proteins).
+- **2026-07** — **Fuller IA:** two-tier tab navigation, a page for every engine and agent, About /
+  Mission, Honesty Ledger + Decision-Support Posture pages, Run It Yourself split
+  (Quickstart / Hardware / Reproducibility), per-page social OG cards, `CITATION.cff`.
+- **2026-07** — **Honesty audit:** code-level review of every `live` capability; corrected the real
+  overclaims (`live → planned` where a dependency can't load); the maturity vocabulary shipped.
+- **2026-07** — **Foundation (Phases 0–3):** the registry-bound maturity matrix, the honesty spine,
+  citations & governance pages, `llms.txt` + SEO, the design-system status badges, a strict docs build
+  gating every PR.
+
 ## A note on the status vocabulary
 
 Beyond the serving states **live** and **planned**, the registry now carries an optional, orthogonal
