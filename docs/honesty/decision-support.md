@@ -11,6 +11,11 @@ clinical surface — every engine, every intelligence agent, the TSC program —
 treat.** This posture is not a disclaimer bolted on at the end; it is a design constraint the whole
 system is built around.
 
+![Decision support, not diagnosis — the factory proposes, a qualified clinician decides](../assets/infographics/decision-support.png)
+/// caption
+The factory proposes; a qualified clinician decides. Never autonomous diagnosis or prescribing.
+///
+
 ## What that means concretely
 
 - An intelligence agent **recommends and flags** — it never *makes* the call. A pharmacogenomic dosing
