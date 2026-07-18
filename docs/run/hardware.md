@@ -10,6 +10,11 @@ description: The honest compute story — one NVIDIA DGX Spark locally, bursting
 **remote GPUs on demand**, over a private mesh — and the site says so wherever that's the case, because
 a "one box" claim that quietly needs a cluster is exactly the gap a skeptic turns into a headline.
 
+![One box, elastic burst — local DGX Spark bursting heavy models to remote GPU over a private mesh](../assets/infographics/elastic-burst.png)
+/// caption
+Illustrative diagram. All patient data stays on the local box; only derived, non-identifying work bursts to a remote GPU.
+///
+
 ## What runs where
 
 | Runs locally on the DGX Spark | Bursts to remote GPU (on demand) |
