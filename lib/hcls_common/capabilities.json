@@ -931,7 +931,7 @@
       "id": "protein-developability",
       "type": "model",
       "name": "Protein Developability + Design",
-      "description": "B4 developability scoring: real biophysical proxies (GRAVY, Guruprasad instability index, pI, aromaticity, MW) + flag/verdict. B3 design: developability-guided single-point mutation optimizer (proposes substitutions that lower instability, computed). Verified: E31K lowers instability 36.0->28.2. Structure-conditioned design (ProteinMPNN/RFdiffusion) + MHCflurry immunogenicity = follow-on. POST /score /optimize.",
+      "description": "B4 developability scoring: real biophysical proxies (GRAVY, Guruprasad instability index, pI, aromaticity, MW) + flag/verdict. B3 design: developability-guided single-point mutation optimizer (proposes substitutions that lower instability, computed). Verified: E31K lowers instability 36.0->28.2. Structure-conditioned design (ProteinMPNN/RFdiffusion) + MHCflurry immunogenicity = follow-on. POST /score /optimize. Code is real and correct (confirmed on real human lysozyme: pI 9.28, MW 14700, stable), but Biopython is not installable in the reference box's PEP 668-managed runtime, so the service cannot import as-is; planned until the dependency ships.",
       "domain": "proteins",
       "inputs": [
         {
@@ -952,7 +952,7 @@
       "serving": "native",
       "gpu": false,
       "cost_class": "low",
-      "status": "live",
+      "status": "planned",
       "tags": [
         "B3",
         "B4",
