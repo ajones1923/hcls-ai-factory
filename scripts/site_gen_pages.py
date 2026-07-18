@@ -39,6 +39,18 @@ def ports_table(ports: list) -> str:
     return "\n".join(rows)
 
 
+def _narrative(c: dict, kind: str) -> str:
+    """Inject the hand-authored, expanded explainer for a capability if one has been written.
+
+    Content lives OUTSIDE docs/ (in site_content/{engines,agents}/{id}.md) so mkdocs never serves
+    it as a standalone page; the generator splices it into the registry-driven detail page. Returns
+    the markdown, or "" if no explainer exists yet — so pages degrade cleanly during the rollout.
+    """
+    folder = "engines" if kind == "Engines" else "agents"
+    src = ROOT / "site_content" / folder / f"{c['id']}.md"
+    return src.read_text().rstrip() + "\n\n" if src.exists() else ""
+
+
 def _hero(c: dict) -> str:
     """Embed the capability's flow-diagram hero if one has been drawn for it (keyed by id).
 
@@ -68,6 +80,8 @@ def detail_page(c: dict, kind: str) -> str:
         "",
         # Registry-sourced hero: ingest -> compute/reason -> output, honest status + decision-support.
         _hero(c),
+        # Hand-authored expanded explainer (site_content/), injected before the generated interface.
+        _narrative(c, kind),
         "## Interface",
         "",
         f"- **Endpoint:** `{ep}`  ·  **Invoke path:** `{c.get('invoke_path', '/')}`",
