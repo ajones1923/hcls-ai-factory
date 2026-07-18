@@ -40,7 +40,8 @@ theme:
         icon: material/weather-sunny
         name: Switch to light mode
   features:
-    - navigation.instant
+    # navigation.instant intentionally OFF: it AJAX-swaps pages and does not reliably reload the
+    # home-scoped hero CSS linked from overrides/home.html (per-page template + scoped styles).
     - navigation.tabs
     - navigation.sections
     - navigation.indexes
@@ -57,6 +58,9 @@ theme:
 extra_css:
   - stylesheets/fonts.css
   - stylesheets/custom.css
+
+hooks:
+  - scripts/site_hooks.py
 
 plugins:
   - search

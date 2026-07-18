@@ -1,0 +1,30 @@
+{% extends "main.html" %}
+
+{#- V1 landing hero. Home-scoped CSS is linked here so it only loads on the home page. -#}
+{% block extrahead %}
+  {{ super() }}
+  <link rel="stylesheet" href="{{ 'stylesheets/home.css' | url }}">
+{% endblock %}
+
+{#- The full-width designed hero, rendered right below the nav tabs (super() keeps the tabs). -#}
+{% block tabs %}
+{{ super() }}
+<section class="hcls-hero" data-md-color-scheme="slate">
+  <div class="hcls-hero__inner">
+    <div class="hcls-hero__lede">
+      <p class="hcls-hero__eyebrow">Open-source precision medicine · Apache-2.0</p>
+      <h1 class="hcls-hero__title">No one should die of a disease we could have understood in&nbsp;time.</h1>
+      <p class="hcls-hero__sub">Patient DNA to a shortlist of therapeutic candidates, <strong>in hours</strong> —
+        on one box you can fork and run yourself, bursting heavier work to remote GPUs only when it needs to.</p>
+      <div class="hcls-hero__cta">
+        <a class="hcls-btn hcls-btn--solid" href="{{ 'factory/overview/' | url }}">Explore the factory</a>
+        <a class="hcls-btn hcls-btn--ghost" href="{{ 'run/' | url }}">Run it yourself</a>
+      </div>
+      <p class="hcls-hero__note">Decision support for a qualified clinician — never autonomous diagnosis.</p>
+    </div>
+    <div class="hcls-hero__panel">
+      {{ config.extra.maturity_board | safe }}
+    </div>
+  </div>
+</section>
+{% endblock %}
