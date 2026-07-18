@@ -1,0 +1,135 @@
+/* HCLS AI Factory — V1 landing hero (home-scoped; linked only from overrides/home.html).
+   "Clinical nocturne": a deep, quietly-luminous ground; stunning through restraint, not hype. */
+
+:root {
+  --hcls-ink:      #0b1722;
+  --hcls-ink-2:    #102838;
+  --hcls-line:     rgba(255, 255, 255, 0.09);
+  --hcls-jade:     #3e8e8a;
+  --hcls-jade-br:  #5cb6af;
+  --hcls-signal:   #e0a65e;
+  --hcls-fg:       #eef3f5;
+  --hcls-fg-soft:  #a7b8c2;
+}
+
+/* Blend the Material header + tab strip into the hero on the home page only. */
+.md-header,
+.md-tabs {
+  background-color: var(--hcls-ink);
+  color: var(--hcls-fg);
+}
+.md-header[data-md-state="shadow"],
+.md-header--shadow { box-shadow: none; }
+.md-tabs__link { opacity: 0.82; }
+.md-tabs__link--active,
+.md-tabs__link:hover { opacity: 1; }
+
+/* ── Hero ─────────────────────────────────────────────────────────────────── */
+.hcls-hero {
+  background:
+    radial-gradient(60rem 40rem at 22% 8%, rgba(92, 182, 175, 0.14), transparent 60%),
+    radial-gradient(50rem 40rem at 90% 0%, rgba(224, 166, 94, 0.06), transparent 55%),
+    var(--hcls-ink);
+  color: var(--hcls-fg);
+  border-bottom: 1px solid var(--hcls-line);
+}
+.hcls-hero__inner {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: clamp(3rem, 7vw, 6rem) 1.4rem clamp(3.5rem, 7vw, 6.5rem);
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: clamp(2rem, 5vw, 4rem);
+  align-items: center;
+}
+.hcls-hero__eyebrow {
+  font-family: var(--md-code-font-family), monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--hcls-jade-br);
+  margin: 0 0 1.1rem;
+}
+.hcls-hero__title {
+  font-family: "Fraunces", Georgia, serif;
+  font-weight: 600;
+  font-size: clamp(2.1rem, 5.2vw, 3.9rem);
+  line-height: 1.04;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+  color: #fff;
+  margin: 0 0 1.3rem;
+}
+.hcls-hero__sub {
+  font-size: 1.06rem;
+  line-height: 1.6;
+  color: var(--hcls-fg-soft);
+  max-width: 34rem;
+  margin: 0 0 1.8rem;
+}
+.hcls-hero__sub strong { color: var(--hcls-fg); font-weight: 600; }
+.hcls-hero__cta { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 1.4rem; }
+.hcls-btn {
+  display: inline-flex; align-items: center;
+  padding: 0.72rem 1.35rem;
+  border-radius: 0.5rem;
+  font-weight: 600; font-size: 0.92rem;
+  text-decoration: none;
+  transition: transform 0.12s ease, background-color 0.15s ease, border-color 0.15s ease;
+}
+.hcls-btn:hover { transform: translateY(-1px); }
+.hcls-btn--solid { background: var(--hcls-jade); color: #04161a; }
+.hcls-btn--solid:hover { background: var(--hcls-jade-br); }
+.hcls-btn--ghost { color: var(--hcls-fg); border: 1px solid rgba(255, 255, 255, 0.28); }
+.hcls-btn--ghost:hover { border-color: var(--hcls-fg); background: rgba(255, 255, 255, 0.04); }
+.hcls-hero__note { font-size: 0.8rem; color: var(--hcls-fg-soft); opacity: 0.85; margin: 0; }
+
+/* ── The signature: registry-sourced maturity board ──────────────────────────── */
+.hcls-mm {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+  border: 1px solid var(--hcls-line);
+  border-radius: 0.9rem;
+  padding: 1.1rem 1.15rem 1rem;
+  box-shadow: 0 24px 60px -30px rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(6px);
+}
+.hcls-mm__head {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-weight: 600; color: var(--hcls-fg);
+  padding-bottom: 0.7rem; margin-bottom: 0.85rem;
+  border-bottom: 1px solid var(--hcls-line);
+}
+.hcls-mm__sum {
+  font-family: var(--md-code-font-family), monospace;
+  font-size: 0.74rem; font-weight: 500; color: var(--hcls-jade-br);
+}
+.hcls-mm__grid {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;
+}
+.hcls-mm__cell {
+  display: flex; flex-direction: column; gap: 0.4rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--hcls-line);
+  border-radius: 0.5rem;
+  padding: 0.6rem 0.65rem;
+}
+.hcls-mm__name { font-size: 0.8rem; color: var(--hcls-fg); line-height: 1.2; }
+.hcls-mm .cap-badge { align-self: flex-start; }
+.hcls-mm__cap {
+  margin-top: 0.85rem; font-size: 0.74rem; font-style: italic;
+  color: var(--hcls-fg-soft); text-align: center;
+}
+
+/* ── Below-the-fold content (the trimmed index.md): a centered reading column ── */
+.md-content__inner { max-width: 60rem; margin-inline: auto; }
+
+/* ── Responsive ──────────────────────────────────────────────────────────────── */
+@media (max-width: 59.98em) {
+  .hcls-hero__inner { grid-template-columns: 1fr; }
+  .hcls-hero__panel { order: 2; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hcls-btn { transition: none; }
+  .hcls-btn:hover { transform: none; }
+}
