@@ -1,27 +1,23 @@
 cff-version: 1.2.0
+message: "If you use the HCLS AI Factory, please cite it."
 title: "HCLS AI Factory"
-message: "If you use this software, please cite it using these metadata."
+abstract: >-
+  An open-source precision-medicine platform: 8 compute engines, 8 clinical
+  intelligence agents, and the flagship Tuberous Sclerosis Complex disease
+  program. From a patient's raw DNA toward a shortlist of therapeutic candidates
+  in hours, on a single NVIDIA DGX Spark, bursting heavy work to remote GPUs over
+  a private mesh. Decision support for a qualified clinician, never autonomous
+  diagnosis.
 type: software
 authors:
   - family-names: Jones
     given-names: Adam
-abstract: >-
-  An open-source, end-to-end precision-medicine platform that takes patient DNA to
-  therapeutic candidates in hours on a single NVIDIA DGX Spark. Eight engines (genomic
-  foundation, precision intelligence, therapeutic discovery, clinical imaging, precision
-  oncology, cardiology, structural biology, and single-cell), eight clinical intelligence
-  agents, and disease-programs, unified by one platform layer (capability registry, MCP
-  tool-surface, AI workflow composer, single-box MLOps, and governance gates).
+repository-code: "https://github.com/ajones1923/hcls-ai-factory"
+url: "https://hcls-ai-factory.org"
+license: Apache-2.0
 keywords:
   - precision medicine
   - genomics
+  - clinical decision support
   - drug discovery
-  - structural biology
-  - single-cell
-  - retrieval-augmented generation
-  - agentic AI
-  - DGX Spark
-license: Apache-2.0
-repository-code: "https://github.com/ajones1923/hcls-ai-factory"
-url: "https://hcls-ai-factory.org"
-version: "2.0.0"
+  - open source
