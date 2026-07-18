@@ -84,6 +84,15 @@
 .cap-roadmap { background: var(--st-roadmap); }      .cap-gated { background: var(--st-gated); }
 .cap-planned { background: var(--st-planned); }      .cap-unknown { background: var(--st-unknown); }
 
+/* ── Embedded explainer video ─────────────────────────────────────────────────── */
+.md-typeset .cap-video {
+  display: block; width: 100%; max-width: 100%; height: auto;
+  margin: 0.6rem 0 0.2rem; border-radius: 0.7rem;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  box-shadow: 0 18px 44px -26px rgba(11, 23, 34, 0.32);
+  background: #000;
+}
+
 /* ── Capability matrix — dashboard-grade ──────────────────────────────────────── */
 .cap-matrix {
   width: 100%; border-collapse: separate; border-spacing: 0;

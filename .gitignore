@@ -113,6 +113,8 @@ Thumbs.db
 !docs/assets/**/*.jpg
 !docs/assets/*.png
 !docs/assets/*.jpg
+# …and the web-optimized page videos (the narrated 60s explainers) ship too.
+!docs/assets/videos/*.mp4
 *.webp
 *.psd
 *.ai

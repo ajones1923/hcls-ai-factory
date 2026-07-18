@@ -51,6 +51,27 @@ def _narrative(c: dict, kind: str) -> str:
     return src.read_text().rstrip() + "\n\n" if src.exists() else ""
 
 
+def _video(c: dict) -> str:
+    """Embed the capability's narrated 60-second explainer video if one has been produced.
+
+    Uses the hero infographic as the poster frame; degrades to nothing if no video exists yet.
+    Video files live in docs/assets/videos/<id>.mp4 (web-optimized, faststart).
+    """
+    vid = ROOT / "docs" / "assets" / "videos" / f"{c['id']}.mp4"
+    if not vid.exists():
+        return ""
+    poster = ROOT / "docs" / "assets" / "infographics" / "heros" / f"{c['id']}.png"
+    poster_attr = f' poster="../../assets/infographics/heros/{c["id"]}.png"' if poster.exists() else ""
+    return (
+        f'<video class="cap-video" controls preload="none" playsinline{poster_attr}>\n'
+        f'  <source src="../../assets/videos/{c["id"]}.mp4" type="video/mp4">\n'
+        f'  Your browser can\'t play embedded video — '
+        f'<a href="../../assets/videos/{c["id"]}.mp4">download the explainer</a>.\n'
+        f'</video>\n'
+        '/// caption\nA narrated, captioned explainer. Decision support for a qualified clinician.\n///\n\n'
+    )
+
+
 def _hero(c: dict) -> str:
     """Embed the capability's flow-diagram hero if one has been drawn for it (keyed by id).
 
@@ -78,7 +99,8 @@ def detail_page(c: dict, kind: str) -> str:
         "",
         c.get("description", ""),
         "",
-        # Registry-sourced hero: ingest -> compute/reason -> output, honest status + decision-support.
+        # Narrated 60s explainer video (if produced), then the registry-sourced hero infographic.
+        _video(c),
         _hero(c),
         # Hand-authored expanded explainer (site_content/), injected before the generated interface.
         _narrative(c, kind),
