@@ -18,8 +18,11 @@ edit_uri: edit/main/docs/
 
 theme:
   name: material
+  custom_dir: overrides
+  font: false            # self-hosted fonts only — no Google Fonts CDN (CON-2)
+  favicon: assets/favicon.svg
+  logo: assets/logo.svg
   icon:
-    logo: material/dna
     repo: fontawesome/brands/github
   palette:
     - media: "(prefers-color-scheme: light)"
@@ -38,14 +41,78 @@ theme:
         name: Switch to light mode
   features:
     - navigation.instant
+    - navigation.tabs
+    - navigation.sections
+    - navigation.indexes
     - navigation.top
     - navigation.tracking
-    - content.action.edit
+    - navigation.footer
     - toc.follow
+    - content.action.edit
+    - content.code.copy
+    - content.tabs.link
+    - search.suggest
+    - search.highlight
+
+extra_css:
+  - stylesheets/fonts.css
+  - stylesheets/custom.css
+
+plugins:
+  - search
+  - social:
+      cards_layout_options:
+        background_color: "#132b3e"
+        color: "#ffffff"
+  - gen-files:
+      scripts:
+        - scripts/site_gen_matrix.py
+        - scripts/site_gen_pages.py
 
 nav:
   - Home: index.md
-  - Capability Brief: brief/README.md
+  - The Factory:
+      - Overview: factory/overview.md
+      - Engines:
+          - factory/engines/index.md
+          - factory/engines/genomics-engine.md
+          - factory/engines/precision-intelligence-engine.md
+          - factory/engines/therapeutic-discovery-engine.md
+          - factory/engines/imaging-intelligence-agent.md
+          - factory/engines/precision-oncology-agent.md
+          - factory/engines/cardiology-intelligence-agent.md
+          - factory/engines/singlecell-compute.md
+          - factory/engines/tuberous-sclerosis-engine.md
+      - Intelligence Agents:
+          - factory/agents/index.md
+          - factory/agents/cart-intelligence-agent.md
+          - factory/agents/precision-biomarker-agent.md
+          - factory/agents/pharmacogenomics-intelligence-agent.md
+          - factory/agents/precision-autoimmune-agent.md
+          - factory/agents/neurology-intelligence-agent.md
+          - factory/agents/clinical-trial-intelligence-agent.md
+          - factory/agents/rare-disease-diagnostic-agent.md
+          - factory/agents/single-cell-intelligence-agent.md
+      - One Platform: factory/platform.md
+      - Capability Brief:
+          - Technical Cut: brief/README.md
+          - Mission Cut: brief/mission.md
+  - Disease Programs:
+      - Tuberous Sclerosis Complex: programs/tsc.md
+  - Demonstrations: demos/index.md
+  - Run It Yourself:
+      - run/index.md
+      - Hardware & Elastic Burst: run/hardware.md
+      - Reproducibility & Datasets: run/reproducibility.md
+  - Honesty & Governance:
+      - Overview: honesty/index.md
+      - Maturity Matrix: honesty/maturity-matrix.md
+      - Honesty Ledger: honesty/ledger.md
+      - Decision-Support Posture: honesty/decision-support.md
+      - Citations & Evidence: honesty/citations.md
+      - Governance & Lineage: honesty/governance.md
+  - About / Mission: about.md
+  - Roadmap: roadmap.md
 
 markdown_extensions:
   - admonition
@@ -55,17 +122,21 @@ markdown_extensions:
   - footnotes
   - toc:
       permalink: true
+  - pymdownx.blocks.caption
   - pymdownx.emoji:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
 
-# Publish an intentional site (Home + the Brief), not the full WIP docs tree.
+# Publish an intentional site (not the full WIP docs tree). Root-level WIP markdown is excluded;
+# the intentional root pages (index, roadmap) and the section subdirs are kept.
 exclude_docs: |
   /*.md
   /infographic_prompts/
   /working_prompts/
-  /brief/architecture_figure.py
   !/index.md
+  !/roadmap.md
+  !/404.md
+  !/about.md
 
 # Fail the build on broken internal links / missing nav pages (Pillar 16).
 validation:

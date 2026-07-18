@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="HCLS AI Factory">
+  <rect width="64" height="64" rx="14" fill="#132b3e"/>
+  <g stroke="#3e8e8a" stroke-width="3.2" fill="none" stroke-linecap="round">
+    <path d="M24 12 C40 24 24 40 40 52"/>
+    <path d="M40 12 C24 24 40 40 24 52"/>
+    <line x1="27" y1="18" x2="37" y2="18"/>
+    <line x1="29" y1="26" x2="35" y2="26"/>
+    <line x1="29" y1="38" x2="35" y2="38"/>
+    <line x1="27" y1="46" x2="37" y2="46"/>
+  </g>
+</svg>

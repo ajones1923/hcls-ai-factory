@@ -48,6 +48,8 @@ __pycache__/
 *.py[cod]
 *.egg-info/
 .pytest_cache/
+# mkdocs-material social-plugin build cache (fonts/cards)
+.cache/
 .ipynb_checkpoints/
 node_modules/
 build/
@@ -106,6 +108,11 @@ Thumbs.db
 *.gif
 *.bmp
 *.tiff
+# …but published docs-site image assets DO ship — the built site needs them (incl. subdirs).
+!docs/assets/**/*.png
+!docs/assets/**/*.jpg
+!docs/assets/*.png
+!docs/assets/*.jpg
 *.webp
 *.psd
 *.ai

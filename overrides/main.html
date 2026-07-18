@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{#- OG/Twitter cards are generated per-page by the mkdocs-material `social` plugin (SC-6).
+    Here we add only the JSON-LD the social plugin does not provide. -#}
+{% block extrahead %}
+  {{ super() }}
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "HCLS AI Factory",
+    "applicationCategory": "HealthApplication",
+    "operatingSystem": "Linux",
+    "url": "https://hcls-ai-factory.org",
+    "license": "https://www.apache.org/licenses/LICENSE-2.0",
+    "isAccessibleForFree": true,
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "description": "Open-source precision-medicine platform: 8 compute engines, 8 clinical intelligence agents, and the flagship Tuberous Sclerosis Complex disease program. Patient DNA to therapeutic candidates, in hours, on a single box. Decision support for a qualified clinician, never autonomous diagnosis."
+  }
+  </script>
+{% endblock %}

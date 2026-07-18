@@ -7,30 +7,40 @@ therapeutic candidates **in hours** — on a single [NVIDIA DGX Spark](https://w
 open under Apache-2.0. One box you can fork and run yourself, bursting heavier work to remote GPUs
 over a private mesh only when it needs to.
 
+![The HCLS AI Factory — eight engines, eight intelligence agents, and the flagship TSC program on one platform](assets/factory-architecture.png)
+/// caption
+Illustrative architecture diagram — [explore the factory](factory/overview.md).
+///
+
 <div class="grid cards" markdown>
 
-- :material-engine-outline:{ .lg } __8 Engines__
+- :material-engine-outline:{ .lg } __[8 Engines](factory/engines/index.md)__
 
-    The horizontal compute muscle — genomics, discovery, imaging, oncology, cardiology, protein
-    design, and single-cell.
+    The horizontal compute muscle — genomics, clinical interpretation, therapeutic discovery,
+    imaging, oncology, cardiology, protein design, and single-cell.
 
-- :material-brain:{ .lg } __8 Intelligence Agents__
+- :material-brain:{ .lg } __[8 Intelligence Agents](factory/agents/index.md)__
 
     The clinical reasoning layers that interpret what the engines produce — each one decision
     support for a qualified clinician.
 
-- :material-heart-pulse:{ .lg } __1 Disease Program__
+- :material-heart-pulse:{ .lg } __[1 Disease Program](programs/tsc.md)__
 
     Tuberous Sclerosis Complex — the flagship vertical that composes the whole factory for one
     child, in one governed afternoon.
 
 </div>
 
-## Start here
+## Explore
 
-- **[Capability Brief](brief/README.md)** — the full picture: every engine and agent, the flagship
-  TSC program, and the D1–D7 demo portfolio. Available as a **technical cut** (experts and builders)
-  and a **mission cut** (the human "why").
+- **[The Factory](factory/overview.md)** — the Platform → Engine → Agent → Program model, with a
+  registry-generated page for every capability.
+- **[Capability Maturity Matrix](honesty/maturity-matrix.md)** — every capability's real, audited
+  status, generated from the registry. The site cannot claim ahead of the code.
+- **[Run It Yourself](run/index.md)** — clone it, run the gate, verify a real capability.
+- **[Demonstrations](demos/index.md)** — the D1–D7 portfolio, each with its honesty flags.
+- **[Capability Brief](brief/README.md)** — the full picture in a **technical cut** and a
+  **mission cut**.
 - **[Source on GitHub](https://github.com/ajones1923/hcls-ai-factory)** — clone it, read it, run it.
 
 ## What it is — honestly
@@ -44,8 +54,9 @@ everywhere they matter:
   research — the promise of a direction, not a treatment available today.
 - **"Elastic burst," not "all on one box."** Heavy or ARM-incompatible models burst to remote GPU
   over a private mesh; nothing pretends to fit on the desk that doesn't.
-- **Real, never mocked.** A capability marked `live` is served by a real model against real input.
+- **Real, never mocked.** A capability marked `live` is served by a real model against real input —
+  and a [code-level audit](honesty/index.md#capability-audit) keeps that claim earned.
 
 !!! note "Source of truth"
     This site reflects the canonical roster — **8 engines · 8 intelligence agents · 1 disease
-    program (TSC)** — reconciled with the capability registry (`lib/hcls_common/capabilities.json`).
+    program (TSC)** — generated from the capability registry (`lib/hcls_common/capabilities.json`).

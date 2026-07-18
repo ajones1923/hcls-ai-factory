@@ -1,5 +1,5 @@
 {
-  "_comment": "HCLS AI Factory capability manifest. status=live means real & running; status=planned means on the roadmap (not yet real). A LIVE capability may never be MOCK-served (enforced by the registry's honesty rule).",
+  "_comment": "HCLS AI Factory capability manifest. status=live means real & running; status=planned means on the roadmap (not yet real). A LIVE capability may never be MOCK-served (enforced by the registry's honesty rule). Optional maturity (verified|preclinical|research-use|roadmap|gated) is an honest evidence/access tier orthogonal to status — set only where documented; maturity=verified requires a live, non-mock capability.",
   "version": "1.0",
   "capabilities": [
     {
@@ -88,7 +88,7 @@
       "id": "therapeutic-discovery-engine",
       "type": "engine",
       "name": "Therapeutic Discovery Engine",
-      "description": "Target to ranked drug candidates: generation, docking, and RDKit scoring across a 10-stage pipeline. Generated leads are preclinical design candidates, not drugs.",
+      "description": "Target to ranked drug candidates: generation, docking, and RDKit scoring across a 10-stage pipeline. Generated leads are preclinical design candidates, not drugs. (Honesty: the 10-stage chemistry (RDKit QED/conformers/ranking) is real and live; molecule generation currently uses the real RDKit BRICS backend, the BioNeMo/MolMIM path is not deployed, and stage-7 docking requires the DiffDock NIM.)",
       "domain": "small_molecules",
       "inputs": [
         {
@@ -121,7 +121,7 @@
       "id": "molmim-nim",
       "type": "nim",
       "name": "MolMIM Generator",
-      "description": "Generative small-molecule design from a seed compound (accelerated inference microservice; local/cloud, mock fallback labeled).",
+      "description": "Generative small-molecule design from a seed compound (accelerated inference microservice; local/cloud, mock fallback labeled). Runtime requires the MolMIM NIM container (NGC + GPU) deployed; a clearly-labeled mock fallback exists for development.",
       "domain": "small_molecules",
       "inputs": [
         {
@@ -156,7 +156,7 @@
       "id": "diffdock-nim",
       "type": "nim",
       "name": "DiffDock Docking",
-      "description": "Protein-ligand blind docking / 3D pose prediction (accelerated inference microservice; local/cloud, mock fallback labeled).",
+      "description": "Protein-ligand blind docking / 3D pose prediction (accelerated inference microservice; local/cloud, mock fallback labeled). Runtime requires the DiffDock NIM container (NGC + GPU) deployed; a clearly-labeled mock fallback exists for development.",
       "domain": "small_molecules",
       "inputs": [
         {
@@ -455,7 +455,7 @@
       "id": "imaging-intelligence-agent",
       "type": "engine",
       "name": "Clinical Imaging Engine",
-      "description": "Live DICOM analysis (VISTA-3D segmentation, VILA-M3 image/report reasoning, FHIR R4 export) with cross-modality reasoning against genomics. MAISI synthetic imaging is research/augmentation/QA only, never diagnostic. Decision support.",
+      "description": "Live DICOM analysis (VISTA-3D segmentation, VILA-M3 image/report reasoning, FHIR R4 export) with cross-modality reasoning against genomics. MAISI synthetic imaging is research/augmentation/QA only, never diagnostic. Decision support. (Honesty: the live-verified modality is chest X-ray analysis via DenseNet-121 on real DICOM pixels; the VISTA-3D / VILA-M3 CT path is a planned/placeholder modality, not yet live.)",
       "domain": "clinical",
       "inputs": [
         {
@@ -669,6 +669,7 @@
       "gpu": true,
       "cost_class": "medium",
       "status": "live",
+      "maturity": "verified",
       "tags": [
         "B1",
         "esmfold",
@@ -700,6 +701,7 @@
       "gpu": true,
       "cost_class": "low",
       "status": "live",
+      "maturity": "verified",
       "tags": [
         "B2",
         "esm2",
@@ -761,6 +763,7 @@
       "gpu": true,
       "cost_class": "low",
       "status": "live",
+      "maturity": "verified",
       "tags": [
         "C2",
         "admet",
@@ -802,6 +805,7 @@
       "gpu": false,
       "cost_class": "medium",
       "status": "live",
+      "maturity": "verified",
       "tags": [
         "D1",
         "scanpy",
@@ -869,6 +873,7 @@
       "gpu": false,
       "cost_class": "low",
       "status": "live",
+      "maturity": "verified",
       "tags": [
         "C1",
         "brics",
@@ -915,6 +920,7 @@
       "gpu": false,
       "cost_class": "low",
       "status": "live",
+      "maturity": "verified",
       "tags": [
         "E1",
         "E2",
@@ -926,7 +932,7 @@
       "id": "protein-developability",
       "type": "model",
       "name": "Protein Developability + Design",
-      "description": "B4 developability scoring: real biophysical proxies (GRAVY, Guruprasad instability index, pI, aromaticity, MW) + flag/verdict. B3 design: developability-guided single-point mutation optimizer (proposes substitutions that lower instability, computed). Verified: E31K lowers instability 36.0->28.2. Structure-conditioned design (ProteinMPNN/RFdiffusion) + MHCflurry immunogenicity = follow-on. POST /score /optimize.",
+      "description": "B4 developability scoring: real biophysical proxies (GRAVY, Guruprasad instability index, pI, aromaticity, MW) + flag/verdict. B3 design: developability-guided single-point mutation optimizer (proposes substitutions that lower instability, computed). Verified: E31K lowers instability 36.0->28.2. Structure-conditioned design (ProteinMPNN/RFdiffusion) + MHCflurry immunogenicity = follow-on. POST /score /optimize. Code is real and correct (confirmed on real human lysozyme: pI 9.28, MW 14700, stable), but Biopython is not installable in the reference box's PEP 668-managed runtime, so the service cannot import as-is; planned until the dependency ships.",
       "domain": "proteins",
       "inputs": [
         {
@@ -947,7 +953,7 @@
       "serving": "native",
       "gpu": false,
       "cost_class": "low",
-      "status": "live",
+      "status": "planned",
       "tags": [
         "B3",
         "B4",
@@ -1022,6 +1028,7 @@
       "serving": "none",
       "gpu": false,
       "status": "live",
+      "maturity": "verified",
       "tags": [
         "E1",
         "acmg",
@@ -1032,7 +1039,7 @@
       "id": "mhcflurry-immunogenicity",
       "type": "model",
       "name": "pMHC-I Immunogenicity (MHCflurry)",
-      "description": "MHCflurry 2.x (Apache-2.0) class-I HLA presentation prediction. Verified: NLVPMVATV vs HLA-A*02:01 -> presentation 0.97 / 17nM (correct strong epitope). Sliding-window scan -> per-allele immunogenic-epitope burden for biologic developability + neoantigen pre-screen. POST /scan /predict.",
+      "description": "MHCflurry 2.x (Apache-2.0) class-I HLA presentation prediction. Reference result: NLVPMVATV vs HLA-A*02:01 -> presentation 0.97 / 17nM (correct strong epitope). Sliding-window scan -> per-allele immunogenic-epitope burden for biologic developability + neoantigen pre-screen. POST /scan /predict. The mhcflurry package is not installed on the reference box (import fails), so the service cannot start as-is; planned until the dependency is present.",
       "domain": "proteins",
       "inputs": [
         {
@@ -1057,7 +1064,7 @@
       "invoke_path": "/scan",
       "serving": "native",
       "gpu": false,
-      "status": "live",
+      "status": "planned",
       "tags": [
         "B10",
         "mhcflurry",
@@ -1102,13 +1109,14 @@
         "proteinmpnn",
         "inverse-folding",
         "design"
-      ]
+      ],
+      "maturity": "verified"
     },
     {
       "id": "esm2-finetune",
       "type": "model",
       "name": "ESM-2 LoRA Fine-Tuning",
-      "description": "Parameter-efficient (LoRA) domain fine-tuning of ESM-2 for a custom protein property (regression/classification) on the GB10 GPU. Verified: learns lysine-count signal (loss 5.05->2.07) with only 1.2% trainable params. Path to bespoke solubility/activity/stability predictors without external repos. Library/in-process (finetune+predict).",
+      "description": "Parameter-efficient (LoRA) domain fine-tuning of ESM-2 for a custom protein property (regression/classification) on the GB10 GPU. Reference result: learns lysine-count signal (loss 5.05->2.07) with only 1.2% trainable params. Path to bespoke solubility/activity/stability predictors without external repos. Library/in-process (finetune+predict). The peft dependency is not installed on the reference box (import fails); not runnable as-is, planned until present.",
       "domain": "proteins",
       "inputs": [
         {
@@ -1128,7 +1136,7 @@
       ],
       "serving": "none",
       "gpu": true,
-      "status": "live",
+      "status": "planned",
       "tags": [
         "B11",
         "esm2",
@@ -1238,6 +1246,7 @@
       "gpu": true,
       "cost_class": "high",
       "status": "planned",
+      "maturity": "gated",
       "tags": [
         "chai2",
         "binder-design",

@@ -40,6 +40,14 @@ class TestPdbStats:
         assert s["n_residues"] == 2
         assert s["mean_plddt"] == pytest.approx((85.2 + 88.4 + 72.1 + 70.0) / 4, abs=0.01)
 
+    def test_plddt_normalized_from_0_1_scale(self):
+        # transformers ESMFold writes pLDDT in [0,1]; parse_pdb_stats must report 0-100.
+        # Reuse SAMPLE_PDB's exact column alignment, just swap the B-factor values.
+        pdb01 = (SAMPLE_PDB.replace("85.20", " 0.85").replace("88.40", " 0.88")
+                 .replace("72.10", " 0.72").replace("70.00", " 0.70"))
+        s = parse_pdb_stats(pdb01)
+        assert s["mean_plddt"] == pytest.approx((85 + 88 + 72 + 70) / 4, abs=0.5)   # ×100
+
 
 class TestModelInjected:
     def test_fold_uses_injected_folder(self):

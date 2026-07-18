@@ -54,6 +54,11 @@ def parse_pdb_stats(pdb: str) -> dict[str, Any]:
                 bfactors.append(float(col))
             except ValueError:
                 pass
+    # transformers' ESMFold writes per-residue pLDDT in [0,1]; the AlphaFold/ESMFold
+    # convention (and this function's contract) is 0-100 — normalize so a confident
+    # fold reads 86, not 0.86. Values already on the 0-100 scale are left untouched.
+    if bfactors and max(bfactors) <= 1.0:
+        bfactors = [b * 100.0 for b in bfactors]
     plddt = round(sum(bfactors) / len(bfactors), 2) if bfactors else None
     return {"n_atoms": len(atoms), "n_residues": len(residues), "mean_plddt": plddt}
 

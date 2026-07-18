@@ -1,0 +1,67 @@
+/* HCLS AI Factory — site design-system starter (Phase 0).
+   Extends Material for MkDocs; introduces the honest status-badge visual language
+   and a few restrained polish tokens. Palette stays compatible with the teal theme. */
+
+:root {
+  --hcls-ink: #132b3e;
+  --hcls-teal: #3e8e8a;
+  --hcls-slate: #64748b;
+  --hcls-hope: #e0a63c; /* warm accent, used sparingly */
+
+  /* Semantic status set — separate from the theme accent. */
+  --st-live: #2f9e52;
+  --st-verified: #1f8a45;
+  --st-preclinical: #d69329;
+  --st-research-use: #2f74c0;
+  --st-roadmap: #64748b;
+  --st-gated: #8250c8;
+  --st-planned: #64748b;
+  --st-unknown: #94a3b8;
+}
+
+/* Status badge — the site's signature honesty component. */
+.cap-badge {
+  display: inline-block;
+  padding: 0.12rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #fff;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+.cap-live        { background: var(--st-live); }
+.cap-verified    { background: var(--st-verified); }
+.cap-preclinical { background: var(--st-preclinical); }
+.cap-research-use{ background: var(--st-research-use); }
+.cap-roadmap     { background: var(--st-roadmap); }
+.cap-gated       { background: var(--st-gated); }
+.cap-planned     { background: var(--st-planned); }
+.cap-unknown     { background: var(--st-unknown); }
+
+/* Capability matrix table. */
+.cap-matrix {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.6rem 0 1rem;
+  font-size: 0.9rem;
+}
+.cap-matrix th,
+.cap-matrix td {
+  text-align: left;
+  padding: 0.5rem 0.7rem;
+  border-bottom: 1px solid var(--md-default-fg-color--lightest);
+}
+.cap-matrix thead th {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--hcls-slate);
+  border-bottom: 2px solid var(--md-default-fg-color--lighter);
+}
+.cap-matrix tbody tr:hover { background: var(--md-default-fg-color--lightest); }
+
+/* Slightly tighter hero grid cards on the home page. */
+.md-typeset .grid.cards > :is(ul, ol) > li,
+.md-typeset .grid > .card { border-radius: 0.5rem; }
