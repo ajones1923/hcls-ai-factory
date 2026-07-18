@@ -1,67 +1,121 @@
-/* HCLS AI Factory — site design-system starter (Phase 0).
-   Extends Material for MkDocs; introduces the honest status-badge visual language
-   and a few restrained polish tokens. Palette stays compatible with the teal theme. */
+/* HCLS AI Factory — site-wide design system ("clinical nocturne").
+   Loaded on every page. Elevates Material off the stock teal into a chosen, considered palette,
+   coherent with the landing hero. The honest status-badge language is the signature. */
 
 :root {
-  --hcls-ink: #132b3e;
-  --hcls-teal: #3e8e8a;
-  --hcls-slate: #64748b;
-  --hcls-hope: #e0a63c; /* warm accent, used sparingly */
+  --hcls-ink:   #0b1722;
+  --hcls-ink-2: #132b3e;
+  --hcls-jade:  #3e8e8a;
+  --hcls-jade-d:#216f68;
+  --hcls-jade-b:#5cb6af;
+  --hcls-signal:#e0a65e;
 
   /* Semantic status set — separate from the theme accent. */
-  --st-live: #2f9e52;
-  --st-verified: #1f8a45;
-  --st-preclinical: #d69329;
-  --st-research-use: #2f74c0;
-  --st-roadmap: #64748b;
-  --st-gated: #8250c8;
-  --st-planned: #64748b;
-  --st-unknown: #94a3b8;
+  --st-live: #2f9e52;  --st-verified: #1f8a45;  --st-preclinical: #d69329;
+  --st-research-use: #2f74c0;  --st-roadmap: #64748b;  --st-gated: #8250c8;
+  --st-planned: #64748b;  --st-unknown: #94a3b8;
 }
 
-/* Status badge — the site's signature honesty component. */
+/* ── Palette override — a dark ink header + jade accent, site-wide ─────────────── */
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color:        var(--hcls-ink-2);
+  --md-primary-fg-color--light: #24455a;
+  --md-primary-fg-color--dark:  var(--hcls-ink);
+  --md-primary-bg-color:        #ffffff;
+  --md-primary-bg-color--light: #d7e0e6;
+  --md-accent-fg-color:         var(--hcls-jade);
+  --md-typeset-a-color:         var(--hcls-jade-d);
+  --md-default-bg-color:        #faf9f5;   /* warm paper, not pure white */
+  --md-footer-bg-color:         var(--hcls-ink);
+}
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color:  var(--hcls-ink);
+  --md-primary-bg-color:  #eef3f5;
+  --md-accent-fg-color:   var(--hcls-jade-b);
+  --md-typeset-a-color:   var(--hcls-jade-b);
+  --md-default-bg-color:  #0e1c27;
+  --md-code-bg-color:     #0a151d;
+}
+
+/* White cards on the warm paper give quiet depth. */
+[data-md-color-scheme="default"] .md-typeset .grid.cards > ul > li {
+  background: #ffffff;
+}
+
+/* ── Typography — Fraunces display (set in fonts.css) + refined rhythm ─────────── */
+.md-typeset h1 { letter-spacing: -0.02em; }
+.md-typeset h2 {
+  letter-spacing: -0.01em; margin-top: 2.4rem; padding-top: 0.5rem;
+  border-top: 1px solid var(--md-default-fg-color--lightest);
+}
+.md-typeset h3 { letter-spacing: -0.005em; margin-top: 1.6rem; }
+.md-typeset a { text-underline-offset: 0.15em; }
+
+/* Blockquote (the mission line) — an elegant jade rule, not a plain bar. */
+.md-typeset blockquote {
+  border-left: 3px solid var(--hcls-jade);
+  color: var(--md-default-fg-color);
+  font-style: normal;
+}
+.md-typeset blockquote > p:first-child { font-family: "Fraunces", Georgia, serif; }
+
+/* ── Cards — a quiet hover-lift, everywhere (engine/agent indexes, home) ───────── */
+.md-typeset .grid.cards > ul > li,
+.md-typeset .grid > .card {
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 0.7rem;
+  transition: transform 0.13s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+}
+.md-typeset .grid.cards > ul > li:hover,
+.md-typeset .grid > .card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 44px -26px rgba(11, 23, 34, 0.32);
+  border-color: var(--hcls-jade);
+}
+
+/* ── Status badge — the honesty signature ─────────────────────────────────────── */
 .cap-badge {
-  display: inline-block;
-  padding: 0.12rem 0.55rem;
-  border-radius: 999px;
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: #fff;
-  line-height: 1.5;
-  white-space: nowrap;
+  display: inline-block; padding: 0.12rem 0.55rem; border-radius: 999px;
+  font-size: 0.72rem; font-weight: 600; letter-spacing: 0.02em;
+  color: #fff; line-height: 1.5; white-space: nowrap;
 }
-.cap-live        { background: var(--st-live); }
-.cap-verified    { background: var(--st-verified); }
-.cap-preclinical { background: var(--st-preclinical); }
-.cap-research-use{ background: var(--st-research-use); }
-.cap-roadmap     { background: var(--st-roadmap); }
-.cap-gated       { background: var(--st-gated); }
-.cap-planned     { background: var(--st-planned); }
-.cap-unknown     { background: var(--st-unknown); }
+.cap-live { background: var(--st-live); }            .cap-verified { background: var(--st-verified); }
+.cap-preclinical { background: var(--st-preclinical); } .cap-research-use { background: var(--st-research-use); }
+.cap-roadmap { background: var(--st-roadmap); }      .cap-gated { background: var(--st-gated); }
+.cap-planned { background: var(--st-planned); }      .cap-unknown { background: var(--st-unknown); }
 
-/* Capability matrix table. */
+/* ── Capability matrix — dashboard-grade ──────────────────────────────────────── */
 .cap-matrix {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 0.6rem 0 1rem;
-  font-size: 0.9rem;
+  width: 100%; border-collapse: separate; border-spacing: 0;
+  margin: 0.8rem 0 1.4rem; font-size: 0.9rem;
+  border: 1px solid var(--md-default-fg-color--lightest); border-radius: 0.7rem; overflow: hidden;
 }
-.cap-matrix th,
-.cap-matrix td {
-  text-align: left;
-  padding: 0.5rem 0.7rem;
+.cap-matrix th, .cap-matrix td {
+  text-align: left; padding: 0.6rem 0.9rem;
   border-bottom: 1px solid var(--md-default-fg-color--lightest);
 }
 .cap-matrix thead th {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--hcls-slate);
-  border-bottom: 2px solid var(--md-default-fg-color--lighter);
+  font-family: var(--md-code-font-family), monospace;
+  font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--md-default-fg-color--light);
+  background: var(--md-default-fg-color--lightest);
 }
-.cap-matrix tbody tr:hover { background: var(--md-default-fg-color--lightest); }
+.cap-matrix tbody tr:last-child td { border-bottom: none; }
+.cap-matrix tbody tr:hover { background: rgba(62, 142, 138, 0.06); }
+.cap-matrix td:last-child { text-align: right; }
 
-/* Slightly tighter hero grid cards on the home page. */
-.md-typeset .grid.cards > :is(ul, ol) > li,
-.md-typeset .grid > .card { border-radius: 0.5rem; }
+/* ── Small polish: admonition accents, code, footer ───────────────────────────── */
+.md-typeset .admonition, .md-typeset details {
+  border-radius: 0.6rem; border-left-width: 3px;
+}
+.md-typeset :not(pre) > code { border-radius: 0.3rem; }
+.md-typeset .md-button--primary {
+  background: var(--hcls-jade); border-color: var(--hcls-jade); color: #04161a;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .md-typeset .grid.cards > ul > li,
+  .md-typeset .grid > .card { transition: none; }
+  .md-typeset .grid.cards > ul > li:hover,
+  .md-typeset .grid > .card:hover { transform: none; }
+}
