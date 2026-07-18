@@ -19,9 +19,10 @@ edit_uri: edit/main/docs/
 theme:
   name: material
   custom_dir: overrides
+  font: false            # self-hosted fonts only — no Google Fonts CDN (CON-2)
   favicon: assets/favicon.svg
+  logo: assets/logo.svg
   icon:
-    logo: material/dna
     repo: fontawesome/brands/github
   palette:
     - media: "(prefers-color-scheme: light)"
@@ -54,6 +55,7 @@ theme:
     - search.highlight
 
 extra_css:
+  - stylesheets/fonts.css
   - stylesheets/custom.css
 
 plugins:
