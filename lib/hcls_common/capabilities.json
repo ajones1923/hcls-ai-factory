@@ -669,6 +669,7 @@
       "gpu": true,
       "cost_class": "medium",
       "status": "live",
+      "maturity": "verified",
       "tags": [
         "B1",
         "esmfold",
