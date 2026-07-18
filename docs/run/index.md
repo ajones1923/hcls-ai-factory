@@ -1,13 +1,14 @@
 ---
-title: Run It Yourself
+title: Run It Yourself — Quickstart
 description: Clone the HCLS AI Factory, run the build gate, and verify a real capability — the one claim a competitor cannot dismiss.
 ---
 
-# Run It Yourself
+# Run It Yourself — Quickstart
 
 Open-source means *you can run this yourself* — the one claim no one can wave away. Everything below
-is real; heavier or ARM-incompatible models burst to remote GPU over a private mesh (**elastic
-burst**), and the site says so wherever that's the case.
+is real; heavier or ARM-incompatible models burst to remote GPU over a private mesh
+([elastic burst](hardware.md)), and the site says so wherever that's the case. Apache-2.0,
+**commercial use welcome.**
 
 ## Clone it
 
@@ -30,12 +31,8 @@ python scripts/validate_registry.py                          # capability-regist
 
 A capability marked `live` on the **[Capability Maturity Matrix](../honesty/maturity-matrix.md)** is
 served by a real model against real input — never a mock. Where a capability is `planned`,
-`preclinical`, or `gated`, it is labeled as such and not shown as if it ships.
-
-!!! note "Hardware & honesty"
-    The reference target is a single **NVIDIA DGX Spark** (ARM Grace + Blackwell). Heavy frontier
-    models run on remote GPUs on demand — **"elastic burst," not "all on one box."** All patient data
-    stays on the local box; only derived, non-identifying work is sent to a burst GPU.
+`preclinical`, or `gated`, it is labeled as such and not shown as if it ships. See the
+[Honesty Ledger](../honesty/ledger.md) for what each badge means.
 
 ## Proof it's real
 
@@ -43,10 +40,12 @@ served by a real model against real input — never a mock. Where a capability i
   real-bug lint and registry validation, run for real (no `|| true`, no skipped gate).
 - **The registry validates** — 41 registered capabilities, every engine and agent directory accounted
   for; a `live` capability can never be mock-served.
-- **Verified on real data** — the [queryable variant store](../factory/engines/genomics-engine.md) is
-  marked `verified` because it was run on real **GIAB HG002** reads: PASS-SNV **Ts/Tv ≈ 2.0** (the
-  expected genome-wide human range ≈ 2.0–2.1), behind a QC trust-gate that *withholds* interpretation
-  on a bad call set. A real result on real data, not a mock — see [Citations & Evidence](../honesty/citations.md).
+- **Verified on real data** — capabilities marked `verified` were run against real public reference
+  data and are cited on the [Citations & Evidence](../honesty/citations.md) page: e.g. the variant
+  store on **GIAB HG002** (Ts/Tv ≈ 2.0), single-cell on **pbmc3k**, ACMG secondary-findings on real
+  **ClinVar**, ESM-2 search on real proteins, and ADMET on real drug molecules.
 - **The site is honest by construction** — this page, the
   [Capability Maturity Matrix](../honesty/maturity-matrix.md), and every engine/agent page are
   generated from the registry, and the strict CI build fails before publishing anything stale.
+
+*Next: the honest [hardware & elastic-burst story](hardware.md) · [reproducibility & datasets](reproducibility.md).*

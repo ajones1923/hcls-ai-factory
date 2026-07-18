@@ -92,7 +92,10 @@ nav:
   - Disease Programs:
       - Tuberous Sclerosis Complex: programs/tsc.md
   - Demonstrations: demos/index.md
-  - Run It Yourself: run/index.md
+  - Run It Yourself:
+      - run/index.md
+      - Hardware & Elastic Burst: run/hardware.md
+      - Reproducibility & Datasets: run/reproducibility.md
   - Honesty & Governance:
       - Overview: honesty/index.md
       - Maturity Matrix: honesty/maturity-matrix.md
