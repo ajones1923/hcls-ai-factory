@@ -613,6 +613,7 @@
       "domain": "platform",
       "serving": "none",
       "status": "live",
+      "maturity": "verified",
       "tags": [
         "governance",
         "repro"
