@@ -6,6 +6,16 @@ hide:
   - toc
 ---
 
+## The factory in under a minute
+
+<video class="cap-video" controls preload="none" playsinline poster="assets/factory-architecture.png">
+  <source src="assets/videos/factory-overview.mp4" type="video/mp4">
+  Your browser can't play embedded video — <a href="assets/videos/factory-overview.mp4">download the overview</a>.
+</video>
+/// caption
+A narrated, captioned tour of the whole factory. Decision support for a qualified clinician, never diagnosis.
+///
+
 ## Inside the factory
 
 Eight compute engines, eight clinical intelligence agents, and one flagship disease program — on a
