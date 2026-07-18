@@ -88,7 +88,7 @@
       "id": "therapeutic-discovery-engine",
       "type": "engine",
       "name": "Therapeutic Discovery Engine",
-      "description": "Target to ranked drug candidates: generation, docking, and RDKit scoring across a 10-stage pipeline. (Honesty: the 10-stage chemistry (RDKit QED/conformers/ranking) is real and live; molecule generation currently uses the real RDKit BRICS backend, the BioNeMo/MolMIM path is not deployed, and stage-7 docking requires the DiffDock NIM.)",
+      "description": "Target to ranked drug candidates: generation, docking, and RDKit scoring across a 10-stage pipeline. Generated leads are preclinical design candidates, not drugs. (Honesty: the 10-stage chemistry (RDKit QED/conformers/ranking) is real and live; molecule generation currently uses the real RDKit BRICS backend, the BioNeMo/MolMIM path is not deployed, and stage-7 docking requires the DiffDock NIM.)",
       "domain": "small_molecules",
       "inputs": [
         {
@@ -488,7 +488,7 @@
       "id": "single-cell-intelligence-agent",
       "type": "agent",
       "name": "Single-Cell Intelligence Agent",
-      "description": "Reasoning layer over the Single-Cell Engine (Engine 8). RAG clinical interpretation of the engine's computed cell-type clusters plus literature: cell-type annotation, TME profiling (hot/cold/excluded), drug-response, subclonal architecture, and ligand-receptor analysis. Distinct from the 'singlecell-compute' engine that produces the clusters it reasons over \u2014 the engine computes, the agent interprets. Not a duplicate.",
+      "description": "Reasoning layer over the Single-Cell Engine (Engine 8). RAG clinical interpretation of the engine's computed cell-type clusters plus literature: cell-type annotation, TME profiling (hot/cold/excluded), drug-response, subclonal architecture, and ligand-receptor analysis. Distinct from the 'singlecell-compute' engine that produces the clusters it reasons over \u2014 the engine computes, the agent interprets. Not a duplicate. Decision support for a qualified clinician, never diagnosis; drug-response predictions are hypotheses to test.",
       "domain": "clinical",
       "inputs": [
         {
@@ -554,7 +554,7 @@
       "id": "tuberous-sclerosis-engine",
       "type": "engine",
       "name": "Tuberous Sclerosis Engine",
-      "description": "Disease-program engine orchestrating 5 sub-agents (variant curator, trajectory modeler, therapeutics strategist, phenome mapper, TAND surveillance).",
+      "description": "Disease-program engine orchestrating 5 sub-agents (variant curator, trajectory modeler, therapeutics strategist, phenome mapper, TAND surveillance). Composes the horizontal engines/agents for TSC. Decision support, never autonomous diagnosis; pediatric caution at full force. Gene-therapy correction of TSC1/TSC2 is preclinical \u2014 the open design/analysis bench, not a cure today.",
       "domain": "tsc",
       "inputs": [
         {

@@ -186,6 +186,26 @@ class FactoryTools:
             "note": "Suggestion only — the AI Workflow Composer validates, repairs, and runs.",
         }
 
+    # -- multi-omics reasoning + reproducibility (platform layer) ----------- #
+    def converge(self, patient_context: dict[str, Any]) -> dict[str, Any]:
+        """Multi-omics convergence for one patient: entities that light up across more than one
+        omics layer, honesty-floored — a convergence is **never more confident than its weakest
+        layer** (a `hypothesis_only` layer makes it a hypothesis, not a finding). Decision support
+        for a qualified clinician, never diagnosis."""
+        from hcls_common.multiomics import PatientContext
+        from hcls_common.convergence import ConvergenceReasoner
+        ctx = PatientContext.from_dict(patient_context)
+        sigs = ConvergenceReasoner().signals(ctx)
+        return {"patient_id": ctx.patient_id, "n_signals": len(sigs),
+                "signals": [s.to_dict() for s in sigs]}
+
+    def chain_lineage(self, artifacts: Any) -> dict[str, Any]:
+        """Composed-chain reproducibility manifest (21 CFR Part 11) from a governed workflow run's
+        artifacts: the lineage graph, where each hop actually ran, the chain-level honesty floor,
+        and a deterministic replay hash."""
+        from hcls_common.lineage import chain_lineage as _chain_lineage
+        return _chain_lineage(artifacts)
+
 
 # --------------------------------------------------------------------------- #
 # FastMCP server wrapper
@@ -231,6 +251,19 @@ def build_server(tools: FactoryTools | None = None):
         comp = WorkflowComposer(ft.registry, tools=ft)
         pipe, meta = comp.compose(goal)
         return {"pipeline": pipe.to_dict(), **meta}
+
+    @mcp.tool()
+    def converge(patient_context: dict) -> dict:
+        """Multi-omics convergence for one patient — entities converging across omics layers,
+        honesty-floored (a convergence is never more confident than its weakest layer).
+        Decision support, not diagnosis."""
+        return ft.converge(patient_context)
+
+    @mcp.tool()
+    def chain_lineage(artifacts: dict) -> dict:
+        """Composed-chain reproducibility manifest (lineage graph + honesty floor + replay hash)
+        from the artifacts of a governed workflow run."""
+        return ft.chain_lineage(artifacts)
 
     return mcp
 

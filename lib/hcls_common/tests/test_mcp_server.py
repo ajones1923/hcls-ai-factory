@@ -81,3 +81,25 @@ class TestPlan:
         # structure-shape edge esmfold -> diffdock should be proposed when both are relevant
         if {"esmfold-model", "diffdock-nim"} <= ids:
             assert any(e["shape"] == "structure" for e in plan["candidate_wiring"])
+
+
+# ── platform-layer tools: convergence + lineage ──────────────────────────────
+class TestPlatformTools:
+    def test_converge_surfaces_multiomics_signal(self):
+        pc = {"patient_id": "P0",
+              "genomics": {"variants": [{"gene": "TSC2"}]},
+              "transcriptomics": {"driver_genes": ["TSC2"]},
+              "proteomics_structural": {"targets": ["tuberin"]}}   # alias -> TSC2
+        out = FactoryTools().converge(pc)
+        assert out["patient_id"] == "P0" and out["n_signals"] == 1
+        s = out["signals"][0]
+        assert s["entity"] == "TSC2" and s["breadth"] == 3 and s["presentation"] == "finding"
+
+    def test_chain_lineage_tool(self):
+        from hcls_common.artifact import new_artifact, derive_artifact
+        from hcls_common.capability_registry import ArtifactShape
+        a = new_artifact(ArtifactShape.VCF_VARIANTS, {}, producer_id="genomics-engine", run_id="R")
+        b = derive_artifact(ArtifactShape.MTB_PACKET, {}, producer_id="precision-oncology-agent",
+                            inputs=[a], run_id="R")
+        m = FactoryTools().chain_lineage({"a": a.to_dict(), "b": b.to_dict()})
+        assert m["n_hops"] == 2 and m["run_id"] == "R" and len(m["edges"]) == 1
