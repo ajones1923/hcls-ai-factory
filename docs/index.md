@@ -1,16 +1,16 @@
-# HCLS AI Factory
+---
+title: HCLS AI Factory
+template: home.html
+hide:
+  - navigation
+  - toc
+---
 
-> **No one should die of a disease we could have understood in time.**
+## Inside the factory
 
-An open-source precision-medicine platform that takes a patient's raw DNA to a shortlist of
-therapeutic candidates **in hours** — on a single [NVIDIA DGX Spark](https://www.nvidia.com/en-us/products/workstations/dgx-spark/),
-open under Apache-2.0. One box you can fork and run yourself, bursting heavier work to remote GPUs
-over a private mesh only when it needs to.
-
-![The HCLS AI Factory — eight engines, eight intelligence agents, and the flagship TSC program on one platform](assets/factory-architecture.png)
-/// caption
-Illustrative architecture diagram — [explore the factory](factory/overview.md).
-///
+Eight compute engines, eight clinical intelligence agents, and one flagship disease program — on a
+single [NVIDIA DGX Spark](https://www.nvidia.com/en-us/products/workstations/dgx-spark/), open under
+Apache-2.0, bursting heavier work to remote GPUs over a private mesh only when it needs to.
 
 <div class="grid cards" markdown>
 
