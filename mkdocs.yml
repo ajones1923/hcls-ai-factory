@@ -40,11 +40,18 @@ theme:
         name: Switch to light mode
   features:
     - navigation.instant
+    - navigation.tabs
+    - navigation.sections
+    - navigation.indexes
     - navigation.top
     - navigation.tracking
-    - navigation.sections
-    - content.action.edit
+    - navigation.footer
     - toc.follow
+    - content.action.edit
+    - content.code.copy
+    - content.tabs.link
+    - search.suggest
+    - search.highlight
 
 extra_css:
   - stylesheets/custom.css
@@ -60,19 +67,40 @@ nav:
   - Home: index.md
   - The Factory:
       - Overview: factory/overview.md
-      - Engines: factory/engines/index.md
-      - Intelligence Agents: factory/agents/index.md
+      - Engines:
+          - factory/engines/index.md
+          - factory/engines/genomics-engine.md
+          - factory/engines/precision-intelligence-engine.md
+          - factory/engines/therapeutic-discovery-engine.md
+          - factory/engines/imaging-intelligence-agent.md
+          - factory/engines/precision-oncology-agent.md
+          - factory/engines/cardiology-intelligence-agent.md
+          - factory/engines/singlecell-compute.md
+          - factory/engines/tuberous-sclerosis-engine.md
+      - Intelligence Agents:
+          - factory/agents/index.md
+          - factory/agents/cart-intelligence-agent.md
+          - factory/agents/precision-biomarker-agent.md
+          - factory/agents/pharmacogenomics-intelligence-agent.md
+          - factory/agents/precision-autoimmune-agent.md
+          - factory/agents/neurology-intelligence-agent.md
+          - factory/agents/clinical-trial-intelligence-agent.md
+          - factory/agents/rare-disease-diagnostic-agent.md
+          - factory/agents/single-cell-intelligence-agent.md
       - One Platform: factory/platform.md
       - Capability Brief: brief/README.md
   - Disease Programs:
       - Tuberous Sclerosis Complex: programs/tsc.md
   - Demonstrations: demos/index.md
+  - Run It Yourself: run/index.md
   - Honesty & Governance:
       - Overview: honesty/index.md
-      - Capability Maturity Matrix: honesty/maturity-matrix.md
+      - Maturity Matrix: honesty/maturity-matrix.md
+      - Honesty Ledger: honesty/ledger.md
+      - Decision-Support Posture: honesty/decision-support.md
       - Citations & Evidence: honesty/citations.md
       - Governance & Lineage: honesty/governance.md
-  - Run It Yourself: run/index.md
+  - About / Mission: about.md
   - Roadmap: roadmap.md
 
 markdown_extensions:
@@ -98,6 +126,7 @@ exclude_docs: |
   !/index.md
   !/roadmap.md
   !/404.md
+  !/about.md
 
 # Fail the build on broken internal links / missing nav pages (Pillar 16).
 validation:

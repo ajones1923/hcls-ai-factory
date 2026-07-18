@@ -84,7 +84,8 @@ def detail_page(c: dict, kind: str) -> str:
         "!!! note",
         "    Status and interface are generated from the capability registry "
         "(`lib/hcls_common/capabilities.json`) — the site cannot claim ahead of the code. "
-        "All clinical output is decision support for a qualified clinician, never autonomous diagnosis.",
+        "All clinical output is [decision support](../../honesty/decision-support.md) for a qualified "
+        "clinician, never autonomous diagnosis.",
         "",
     ]
     return "\n".join(lines)
