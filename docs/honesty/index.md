@@ -51,7 +51,9 @@ each registry claim — not the claim itself. The findings are reflected directl
     - **single-cell compute** — real **pbmc3k** → 2,700 cells → the canonical PBMC cell types with
       correct marker evidence;
     - the **ACMG secondary-findings** stage — real **ClinVar** (4.2M variants) → 51,554 reportable
-      findings correctly flagged, with **0** benign and **0** off-panel false positives.
+      findings correctly flagged, with **0** benign and **0** off-panel false positives;
+    - the **molecule generator** — real drug seeds → 8/8 valid, novel RDKit molecules (BRICS) with real QED;
+    - **chemprop-ADMET** — real admet_ai GPU inference on aspirin (MW 180.16, logP 1.31, full endpoint profile).
 - **Two capabilities were corrected `live` → `planned`** because their own code cannot currently run
   on the reference box (a required library isn't installed): MHCflurry immunogenicity and the ESM-2
   LoRA fine-tune.

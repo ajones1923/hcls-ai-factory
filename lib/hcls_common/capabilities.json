@@ -761,6 +761,7 @@
       "gpu": true,
       "cost_class": "low",
       "status": "live",
+      "maturity": "verified",
       "tags": [
         "C2",
         "admet",
@@ -870,6 +871,7 @@
       "gpu": false,
       "cost_class": "low",
       "status": "live",
+      "maturity": "verified",
       "tags": [
         "C1",
         "brics",
