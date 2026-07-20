@@ -13,7 +13,7 @@ that compose them for one condition, and the *platform* glue that governs it all
   Your browser can't play embedded video — <a href="/assets/videos/factory-overview.mp4">download the overview</a>.
 </video>
 /// caption
-The factory in under a minute — narrated and captioned. Decision support, not diagnosis.
+A three-minute guided tour of the whole factory — narrated and captioned. Decision support, not diagnosis.
 ///
 
 ![The HCLS AI Factory — layered architecture](../assets/factory-architecture.png)
