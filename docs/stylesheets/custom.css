@@ -87,10 +87,12 @@
 /* ── Embedded explainer video ─────────────────────────────────────────────────── */
 .md-typeset .cap-video {
   display: block; width: 100%; max-width: 100%; height: auto;
+  aspect-ratio: 16 / 9;                 /* always correctly sized, even before metadata loads */
   margin: 0.6rem 0 0.2rem; border-radius: 0.7rem;
   border: 1px solid var(--md-default-fg-color--lightest);
   box-shadow: 0 18px 44px -26px rgba(11, 23, 34, 0.32);
-  background: #000;
+  background: #0b1722;                   /* deep ink, not pure black, for any letterbox */
+  object-fit: contain;                   /* never distort a non-16:9 poster */
 }
 
 /* ── Capability matrix — dashboard-grade ──────────────────────────────────────── */
