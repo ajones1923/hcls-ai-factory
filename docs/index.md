@@ -6,13 +6,13 @@ hide:
   - toc
 ---
 
-## The factory in under a minute
+## The three-minute tour
 
 <video class="cap-video" controls preload="metadata" playsinline poster="/assets/videos/posters/factory-overview.jpg" src="/assets/videos/factory-overview.mp4">
   Your browser can't play embedded video — <a href="/assets/videos/factory-overview.mp4">download the overview</a>.
 </video>
 /// caption
-A narrated, captioned tour of the whole factory. Decision support for a qualified clinician, never diagnosis.
+A narrated, captioned walkthrough of the whole factory — the eight engines, eight agents, and the TSC flagship. Decision support for a qualified clinician, never diagnosis.
 ///
 
 ## Inside the factory
