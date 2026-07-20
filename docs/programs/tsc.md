@@ -9,8 +9,8 @@ The factory's first disease program, and the reason the whole thing exists: **on
 factory, one governed afternoon.** TSC is multi-system — brain, kidney, heart, skin, lungs — so it
 lights up nearly every engine and agent, and it has a clean gene-to-drug story.
 
-<video class="cap-video" controls preload="metadata" playsinline poster="../assets/infographics/tsc-flagship.png" src="../assets/videos/tsc-usecase.mp4">
-  Your browser can't play embedded video — <a href="../assets/videos/tsc-usecase.mp4">download the video</a>.
+<video class="cap-video" controls preload="metadata" playsinline poster="/assets/infographics/tsc-flagship.png" src="/assets/videos/tsc-usecase.mp4">
+  Your browser can't play embedded video — <a href="/assets/videos/tsc-usecase.mp4">download the video</a>.
 </video>
 /// caption
 The flagship story in under a minute — narrated and captioned. Gene therapy is preclinical; decision support, not diagnosis.
