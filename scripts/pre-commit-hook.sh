@@ -14,11 +14,18 @@ for f in "${files[@]}"; do
   [ -f "$f" ] || continue
 
   # 1) Oversized file (data / weights / archives slipping past .gitignore).
-  sz=$(wc -c < "$f" 2>/dev/null || echo 0)
-  if [ "$sz" -gt "$MAXBYTES" ]; then
-    echo "BLOCK: $f is $((sz/1024/1024)) MB (> 5 MB). Data/weights belong outside git."
-    fail=1
-  fi
+  #    The published site videos (docs/assets/videos/*.mp4) are intentional media
+  #    and are exempt — the guard exists to catch *accidental* large data/weights,
+  #    not to forbid the explainer videos the site embeds.
+  case "$f" in
+    docs/assets/videos/*.mp4) ;;
+    *)
+      sz=$(wc -c < "$f" 2>/dev/null || echo 0)
+      if [ "$sz" -gt "$MAXBYTES" ]; then
+        echo "BLOCK: $f is $((sz/1024/1024)) MB (> 5 MB). Data/weights belong outside git."
+        fail=1
+      fi ;;
+  esac
 
   # Only scan text files for the pattern checks.
   git grep -Iq . -- "$f" 2>/dev/null || continue
