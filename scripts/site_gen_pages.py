@@ -60,10 +60,11 @@ def _video(c: dict) -> str:
     vid = ROOT / "docs" / "assets" / "videos" / f"{c['id']}.mp4"
     if not vid.exists():
         return ""
-    poster = ROOT / "docs" / "assets" / "infographics" / "heros" / f"{c['id']}.png"
-    # Absolute (site-root) paths: raw HTML is NOT rewritten by mkdocs, so relative paths would
-    # resolve against the page URL depth and 404. Absolute /assets/… works at any depth.
-    poster_attr = f' poster="/assets/infographics/heros/{c["id"]}.png"' if poster.exists() else ""
+    # Poster is the video's OWN first frame (distinct from the static hero infographic below it, so
+    # they don't read as a duplicated diagram). Absolute (site-root) paths: raw HTML is NOT rewritten
+    # by mkdocs, so relative paths would resolve against the page URL depth and 404.
+    poster = ROOT / "docs" / "assets" / "videos" / "posters" / f"{c['id']}.jpg"
+    poster_attr = f' poster="/assets/videos/posters/{c["id"]}.jpg"' if poster.exists() else ""
     return (
         f'<video class="cap-video" controls preload="metadata" playsinline{poster_attr} '
         f'src="/assets/videos/{c["id"]}.mp4">\n'
