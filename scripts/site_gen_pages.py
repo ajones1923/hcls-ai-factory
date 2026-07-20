@@ -61,12 +61,14 @@ def _video(c: dict) -> str:
     if not vid.exists():
         return ""
     poster = ROOT / "docs" / "assets" / "infographics" / "heros" / f"{c['id']}.png"
-    poster_attr = f' poster="../../assets/infographics/heros/{c["id"]}.png"' if poster.exists() else ""
+    # Absolute (site-root) paths: raw HTML is NOT rewritten by mkdocs, so relative paths would
+    # resolve against the page URL depth and 404. Absolute /assets/… works at any depth.
+    poster_attr = f' poster="/assets/infographics/heros/{c["id"]}.png"' if poster.exists() else ""
     return (
         f'<video class="cap-video" controls preload="metadata" playsinline{poster_attr} '
-        f'src="../../assets/videos/{c["id"]}.mp4">\n'
+        f'src="/assets/videos/{c["id"]}.mp4">\n'
         f'  Your browser can\'t play embedded video — '
-        f'<a href="../../assets/videos/{c["id"]}.mp4">download the explainer</a>.\n'
+        f'<a href="/assets/videos/{c["id"]}.mp4">download the explainer</a>.\n'
         f'</video>\n'
         '/// caption\nA narrated, captioned explainer. Decision support for a qualified clinician.\n///\n\n'
     )
