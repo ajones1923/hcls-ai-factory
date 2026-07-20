@@ -63,8 +63,8 @@ def _video(c: dict) -> str:
     poster = ROOT / "docs" / "assets" / "infographics" / "heros" / f"{c['id']}.png"
     poster_attr = f' poster="../../assets/infographics/heros/{c["id"]}.png"' if poster.exists() else ""
     return (
-        f'<video class="cap-video" controls preload="none" playsinline{poster_attr}>\n'
-        f'  <source src="../../assets/videos/{c["id"]}.mp4" type="video/mp4">\n'
+        f'<video class="cap-video" controls preload="metadata" playsinline{poster_attr} '
+        f'src="../../assets/videos/{c["id"]}.mp4">\n'
         f'  Your browser can\'t play embedded video — '
         f'<a href="../../assets/videos/{c["id"]}.mp4">download the explainer</a>.\n'
         f'</video>\n'
