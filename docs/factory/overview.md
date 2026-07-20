@@ -9,7 +9,7 @@ description: The HCLS AI Factory in one view — Platform, eight Engines, eight 
 four layers: horizontal compute *engines*, clinical reasoning *agents* over them, disease *programs*
 that compose them for one condition, and the *platform* glue that governs it all.
 
-<video class="cap-video" controls preload="metadata" playsinline poster="/assets/factory-architecture.png" src="/assets/videos/factory-overview.mp4">
+<video class="cap-video" controls preload="metadata" playsinline poster="/assets/videos/posters/factory-overview.jpg" src="/assets/videos/factory-overview.mp4">
   Your browser can't play embedded video — <a href="/assets/videos/factory-overview.mp4">download the overview</a>.
 </video>
 /// caption
