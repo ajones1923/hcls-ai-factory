@@ -8,8 +8,8 @@ hide:
 
 ## The factory in under a minute
 
-<video class="cap-video" controls preload="metadata" playsinline poster="assets/factory-architecture.png" src="assets/videos/factory-overview.mp4">
-  Your browser can't play embedded video — <a href="assets/videos/factory-overview.mp4">download the overview</a>.
+<video class="cap-video" controls preload="metadata" playsinline poster="/assets/factory-architecture.png" src="/assets/videos/factory-overview.mp4">
+  Your browser can't play embedded video — <a href="/assets/videos/factory-overview.mp4">download the overview</a>.
 </video>
 /// caption
 A narrated, captioned tour of the whole factory. Decision support for a qualified clinician, never diagnosis.
