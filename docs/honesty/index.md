@@ -35,10 +35,10 @@ Carried everywhere it is relevant, stated out loud:
 |---|---|
 | Gene therapy for TSC1/TSC2 (and gene correction generally) | **preclinical** — open design/analysis bench, not a cure today |
 | MAISI synthetic imaging | **research / augmentation / QA use** — never a diagnostic source |
-| Single-cell atlas similarity & cell-foundation embeddings | **roadmap** |
+| Single-cell **atlas-similarity search & cell-foundation embeddings** (distinct from the `verified` single-cell compute engine) | **roadmap** |
 | Chai-2 de novo binder/antibody design | **gated** — partnership access; integration contingent |
 | α-synuclein SAA · plasma p-tau217 · NSD-ISS / SynNeurGe staging | **research- / trial-use** inputs the agents reason over — not routine diagnostics |
-| Frontier co-folding (Chai-1, RFdiffusion, Evo 2) | run via **elastic burst** to remote GPU, not locally |
+| Frontier co-folding (Chai-1, RFdiffusion, Evo 2) | when stood up, run via **elastic burst** to remote GPU, never locally — Chai-1 is `planned` |
 | All clinical output | **decision support**, not autonomous diagnosis or prescribing |
 
 ## Capability audit

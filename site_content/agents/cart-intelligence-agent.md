@@ -7,7 +7,7 @@ scientist a grounded evidence brief. It reasons; it does not design a therapy on
 
 ## Why it matters
 
-CAR-T can be curative, but designing and choosing one is an evidence-heavy, high-stakes exercise
+CAR-T can drive durable remissions, but designing and choosing one is an evidence-heavy, high-stakes exercise
 spread across scattered literature and sequence databases. Pulling that evidence into one comparative,
 cited view is where an intelligence layer earns its place.
 
@@ -41,8 +41,8 @@ oncology / CAR-T design demonstration.
 
 ## Honest limits
 
-- **Decision support, never diagnosis.** It supports a qualified clinician or scientist; it does not
-  make treatment decisions.
+- **Decision support, never an autonomous decision.** It supports a qualified clinician or scientist;
+  it does not make or design treatment decisions on its own.
 - **Grounded, and honest when it can't be.** As a retrieval-augmented service it needs a populated
   vector database and an LLM API key at runtime, returning an honest degraded response (HTTP 503)
   rather than inventing content when they're absent.

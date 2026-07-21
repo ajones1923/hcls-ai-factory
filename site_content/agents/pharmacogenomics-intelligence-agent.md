@@ -36,12 +36,12 @@ Genotype → metabolizer phenotype → guideline dose. Decision support, never a
 
 ![Where the Pharmacogenomics agent sits — the safety interlock before any prescription](../../assets/infographics/pages/pharmacogenomics-intelligence-agent-fits.png)
 /// caption
-The right-drug-right-dose gate the other engines hand off to. Illustrative.
+The right-drug-right-dose safety checkpoint the other engines hand off to. Illustrative.
 ///
 
 It is the **safety interlock**: the [Cardiology Engine](../engines/cardiology-intelligence-agent.md)
-and oncology hand off to it for the genetically safe drug, and it can gate any prescribing decision on
-the patient's metabolism.
+and oncology hand off to it for the genetically safe drug, and it can flag any prescribing decision
+against the patient's metabolism — the prescriber still decides.
 
 ## Honest limits
 
