@@ -26,6 +26,35 @@ Illustrative. MolMIM and DiffDock are live clients (they need the NIM container)
 All three serve the **Therapeutic Discovery Engine** — MolMIM and DiffDock as the generation and
 docking stages, GenMol as a planned diversity generator.
 
+## Working with Chai Discovery
+
+BioNeMo and [Chai Discovery](chai-discovery.md) are the two halves of one design bench: **BioNeMo
+builds and docks small molecules; Chai predicts and validates structures.** Chained, they close a loop
+neither can on its own.
+
+- **Generate → dock → *structurally validate.*** MolMIM (or RDKit BRICS) proposes molecules and
+  DiffDock predicts a binding pose — then **[Chai-1](chai-discovery.md)** co-folds that top candidate
+  *inside* its target's pocket, an independent, structure-based second opinion on the docking. Two
+  different methods agreeing on the same pose is far stronger evidence than either alone.
+- **A parallel large-molecule lane.** Where a target is better hit by a biologic than a small molecule,
+  **[Chai-2](chai-discovery.md)** designs a de-novo binder and Chai-1 validates the complex — so the
+  same target can be pursued as a *small molecule* (BioNeMo) **or** a *biologic* (Chai), side by side.
+
+What the pairing enables:
+
+| Engine / Agent | What BioNeMo + Chai unlock together |
+|---|---|
+| **Therapeutic Discovery Engine** | Small-molecule *and* large-molecule design under one roof, with Chai-1 as the shared structural validator for both. |
+| **Structural Biology Engine** | BioNeMo's docked ligands get co-folded and cross-checked by Chai-1 — docking pose meets predicted complex. |
+| **Precision Oncology Engine** | A tumor board can weigh both a small-molecule inhibitor (BioNeMo) *and* a biologic (Chai-2) against the same target, each with structural evidence. |
+
+!!! note "Honest about maturity"
+    The small-molecule half runs today: MolMIM and DiffDock are `live` (they need the NIM container).
+    The moment the loop reaches Chai it becomes forward-looking — **Chai-1 is `planned`, Chai-2 is
+    `gated`** — so the *integrated* generate → dock → validate → design pipeline is a **roadmap
+    capability**, not a live one. Everything here stays preclinical **decision support**, and both Chai
+    stages **burst to a remote GPU**.
+
 ## Honest limits
 
 - **Real clients, real dependency.** MolMIM and DiffDock are `live` — real client code — but they need
