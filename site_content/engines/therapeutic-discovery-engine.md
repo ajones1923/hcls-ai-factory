@@ -20,11 +20,13 @@ over months.
 Target to ranked candidate molecules across a 10-stage pipeline. Preclinical design, not drugs. Illustrative.
 ///
 
-1. **Generate** — new candidate molecules are produced with the **RDKit BRICS** backend (the real,
-   live generator today).
-2. **Dock** — a molecule's fit into the target's binding pocket is predicted (this stage-7 docking
-   step uses the **DiffDock** model service).
-3. **Score** — **RDKit** computes drug-likeness (QED), generates conformers, and ranks candidates
+1. **Generate** *(runs today)* — new candidate molecules are produced with **RDKit BRICS** (a
+   rules-based method that recombines drug-like fragments into new molecules) — the real, live
+   generator today.
+2. **Dock** *(optional add-on)* — a molecule's fit into the target's binding pocket is predicted; this
+   step uses the **DiffDock** model service, which must be running.
+3. **Score** *(runs today)* — **RDKit** computes drug-likeness (**QED** — a 0-to-1 "how drug-like is
+   it?" score), generates 3-D shapes (conformers), and ranks candidates
    across the ten stages.
 4. **Reseed** — the best candidates feed a *generate-score-reseed* loop that iterates toward better
    molecules.

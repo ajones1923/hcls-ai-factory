@@ -28,9 +28,17 @@ Illustrative architecture diagram.
 - **8 Intelligence Agents** — the clinical reasoning layers that interpret what the engines produce.
   Each is **decision support for a qualified clinician — never autonomous diagnosis or prescribing.**
 - **1 Disease Program** — Tuberous Sclerosis Complex, the flagship vertical that composes the whole
-  factory for one child in one governed afternoon.
+  factory for one child in one *governed* afternoon.
 - **One Platform** — the Capability Registry (the typed source of truth), the MCP tool-surface, the
   Workflow Composer, single-box MLOps, and the governance gates.
+
+!!! tip "Engine vs. agent — the rule of thumb"
+    An **engine** turns inputs into a *result* — a variant file, a docked molecule, a segmented scan.
+    An **agent** reasons over those results the way a specialist would — a pharmacologist checking a
+    dose, a geneticist ranking diagnoses — and always hands the decision back to the clinician.
+    *Engines are the lab; agents are the consult.* And **"governed"** means every step runs behind the
+    platform's governance gates — logged, access-controlled, and honesty-checked — so that afternoon is
+    auditable, not a black box.
 
 ## See it honestly
 

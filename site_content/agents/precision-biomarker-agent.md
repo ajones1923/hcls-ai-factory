@@ -1,14 +1,22 @@
 ## In plain terms
 
-The Precision Biomarker Intelligence Agent turns a patient's **multi-omics** and clinical data into a
-grounded **risk profile**. It reasons over biological-age clocks and multi-domain risk, genotype-aware,
-and explains its answer with citations — decision support for a clinician, not a verdict.
+A **biomarker** is a measurable biological signal — something in your blood, genes, or cells — that
+hints at your health or your risk of disease. The Precision Biomarker Intelligence Agent pulls together
+many such signals from different layers of a patient's biology — **multi-omics** (looking at DNA, RNA,
+proteins, and more at once, rather than just one) — and turns them into one clear, explained **risk
+profile** a clinician can act on. Because the same measurement can mean different things depending on a
+person's genes, it keeps the patient's genetics in the loop — and it cites its sources rather than
+handing down a verdict.
 
 ## Why it matters
 
-Biomarkers are only useful in context: a value means one thing in one genotype and another in a
-different one, and the signal that matters is usually spread across omics layers. Joining them into a
-single, interpretable risk picture is what makes biomarkers actionable.
+A single lab value rarely tells the whole story: it can mean one thing in one person's genetic context
+and something else in another's, and the signal that matters is usually spread across several layers of
+biology at once. Joining them into one interpretable picture is what turns scattered measurements into
+something a clinician can actually use.
+
+*For a patient: a fuller, genetics-aware read of their biology — so risk is judged in context, not
+from one number in isolation.*
 
 ## How it works
 

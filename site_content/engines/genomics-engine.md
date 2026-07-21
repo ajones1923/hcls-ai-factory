@@ -40,9 +40,10 @@ Germline variant calling: FASTQ → BAM → VCF, in hours not days. Illustrative
 
 ## What goes in, what comes out
 
-- **In:** paired-end sequencing reads (**FASTQ**) and the **GRCh38** reference genome.
-- **Out:** a **VCF** of called variants and the **BAM** of aligned reads — the substrate the rest of
-  the factory builds on.
+- **In:** the raw text fragments from the sequencer (**FASTQ**) and the standard human reference
+  genome (**GRCh38**).
+- **Out:** a **VCF** (the list of the patient's variants) and a **BAM** (the reads aligned to the
+  reference) — the substrate the rest of the factory builds on.
 
 ## Where it fits
 
@@ -60,15 +61,17 @@ what lets each stay honest and independently verifiable.
 
 - **Germline, not tumor.** This engine calls inherited (germline) variants. Somatic/tumor analysis
   lives in the [Precision Oncology Engine](precision-oncology-agent.md).
-- **Script-invoked today.** It currently runs as a container pipeline (Parabricks in Docker via
-  `run.sh` / `run_caller.sh`), **not yet a request/response API** — that API is on the roadmap.
+- **Script-invoked today.** It currently runs as a batch container pipeline, **not yet an on-demand
+  API** — that API is on the roadmap.
 - **Elastic burst — and honest about what leaves.** Parabricks is an x86-only CUDA container, so on
   an ARM DGX Spark this step runs on a **remote x86 GPU** over a private, encrypted mesh. Alignment
   needs the raw reads, so genomics is the *one* step where identifying data goes off-box: the
   reference deployment demonstrates it on the **public HG002** sample, and any real-patient deployment
   must send those reads only to a **dedicated, secure** environment. Everywhere else in the factory,
   only derived, non-identifying data ever bursts — raw patient data stays on the local box.
-- **Proven on a public benchmark.** The companion **Variant Store** capability is marked `verified`
-  against the public **HG002** reference sample (Ts/Tv ≈ 2.0) — real-data evidence, not a claim.
+- **Proven on a public benchmark.** The companion **Variant Store** capability is `verified` against
+  **HG002** — a public "gold-standard" human sample with a known, community-agreed set of variants, so
+  the results can be checked in the open (the Ts/Tv quality signal lands at ≈ 2.0). Real-data evidence,
+  not a claim.
 - **Decision support, not diagnosis.** The output supports a qualified clinician's judgment; it never
   diagnoses on its own.

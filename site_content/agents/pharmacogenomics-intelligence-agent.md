@@ -19,8 +19,9 @@ precision medicine.
 Genotype → metabolizer phenotype → guideline dose. Decision support, never autonomous prescribing. Illustrative.
 ///
 
-1. **Call star alleles** — the patient's pharmacogene genotype (e.g. *CYP2D6*, *TPMT*) is resolved into
-   named star alleles.
+1. **Call star alleles** — the patient's drug-metabolism gene (e.g. *CYP2D6*, *TPMT*) is resolved into
+   its named versions — *star alleles*, the standard shorthand (like \*2 or \*3) for the variants that
+   change how fast that gene's enzyme works.
 2. **Assign phenotype** — those alleles map to a **metabolizer phenotype** (poor → ultra-rapid).
 3. **Apply the guideline** — the phenotype is matched to **CPIC** dosing guidance, with drug-metabolism
    filtering and a safety interlock.

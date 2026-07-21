@@ -1,9 +1,11 @@
 ## In plain terms
 
-The Rare Disease Intelligence Agent helps narrow a **diagnostic odyssey**. It reasons from a patient's
-phenotype (coded as **HPO** terms) and family (trio) variants toward a ranked shortlist of candidate
-diagnoses, classifies variants by **ACMG** criteria, and does it all as grounded, cited decision
-support.
+The Rare Disease Intelligence Agent helps narrow a **diagnostic odyssey** — the years-long search
+many rare-disease families endure. It reasons from a patient's *phenotype* (their observed symptoms
+and features, coded in a standard medical vocabulary called **HPO**, the Human Phenotype Ontology) and
+their family's genetics toward a ranked shortlist of candidate diagnoses. It classifies each variant
+by the **ACMG** criteria — the standard rules geneticists use to call a change harmful or harmless —
+and does it all as grounded, cited decision support.
 
 ## Why it matters
 
