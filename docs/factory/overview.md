@@ -31,6 +31,9 @@ Illustrative architecture diagram.
   factory for one child in one *governed* afternoon.
 - **One Platform** — the Capability Registry (the typed source of truth), the MCP tool-surface, the
   Workflow Composer, single-box MLOps, and the governance gates.
+- **[Frontier Models](frontier-models.md)** — heavy or partner-gated models the factory connects to on
+  demand via elastic burst (Chai Discovery's **Chai-1** & **Chai-2**, and the roadmap frontier), each
+  with an honest status.
 
 !!! tip "Engine vs. agent — the rule of thumb"
     An **engine** turns inputs into a *result* — a variant file, a docked molecule, a segmented scan.

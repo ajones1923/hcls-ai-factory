@@ -98,6 +98,7 @@ nav:
           - factory/agents/rare-disease-diagnostic-agent.md
           - factory/agents/single-cell-intelligence-agent.md
       - One Platform: factory/platform.md
+      - Frontier Models: factory/frontier-models.md
       - Capability Brief:
           - Technical Cut: brief/README.md
           - Mission Cut: brief/mission.md
