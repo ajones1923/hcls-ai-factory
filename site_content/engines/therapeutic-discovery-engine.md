@@ -13,6 +13,8 @@ to "here are a few promising molecules worth making." Compressing that search co
 a single patient's target could, in principle, seed a therapeutic program in an afternoon instead of
 over months.
 
+*For a patient: a faster path from "here is the target driving your disease" to real candidate molecules worth testing.*
+
 ## How it works
 
 ![Inside the Therapeutic Discovery Engine — generate, dock, score, reseed](../../assets/infographics/pages/therapeutic-discovery-engine-how.png)

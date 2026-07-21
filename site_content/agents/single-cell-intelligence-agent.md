@@ -13,6 +13,8 @@ questions — *what* are these cells, is this tumor immunologically hot or cold,
 driving it, what might it respond to — are interpretation problems. Separating the deterministic
 compute from the grounded reasoning is what keeps both honest.
 
+*For a patient: the cells driving their disease not just counted but interpreted — what they are, and what they might respond to.*
+
 ## How it works
 
 ![How the Single-Cell agent reasons — from computed clusters to interpretation](../../assets/infographics/pages/single-cell-intelligence-agent-how.png)
