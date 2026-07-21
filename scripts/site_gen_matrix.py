@@ -48,9 +48,14 @@ def table(rows) -> str:
     return "\n".join(out)
 
 
+def _is_program(c):  # the disease-program vertical (TSC) is tagged, not counted among the 8 engines
+    return c["type"] == "engine" and "disease-program" in c.get("tags", [])
+
+
 GROUPS = [
-    ("Engines", lambda c: c["type"] == "engine"),
+    ("Engines", lambda c: c["type"] == "engine" and not _is_program(c)),
     ("Intelligence Agents", lambda c: c["type"] == "agent"),
+    ("Disease Program", _is_program),
     ("Models & NIMs", lambda c: c["type"] in ("model", "nim")),
     ("Platform Services & Pipeline Stages", lambda c: c["type"] in ("service", "stage")),
 ]
