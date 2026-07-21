@@ -16,6 +16,15 @@ lights up nearly every engine and agent, and it has a clean gene-to-drug story.
 The flagship story in under a minute — narrated and captioned. Gene therapy is preclinical; decision support, not diagnosis.
 ///
 
+For the deeper version — the diagnostic reality, and how the factory changes it:
+
+<video class="cap-video" controls preload="metadata" playsinline poster="/assets/videos/posters/tsc-two-journeys.jpg" src="/assets/videos/tsc-two-journeys.mp4">
+  Your browser can't play embedded video — <a href="/assets/videos/tsc-two-journeys.mp4">download the deep-dive film</a>.
+</video>
+/// caption
+Deep dive (~4.5 min): "One child, two journeys" — the diagnostic odyssey versus the factory, from the hamartin–tuberin / mTORC1 mechanism to mechanism-matched therapy. Chai-1 is planned; molecule design is preclinical; decision support, not diagnosis.
+///
+
 ![Tuberous Sclerosis Complex — mechanism to medicine](../assets/infographics/tsc-flagship.png)
 /// caption
 Illustrative diagram. Gene therapy is preclinical; decision support, not diagnosis.
