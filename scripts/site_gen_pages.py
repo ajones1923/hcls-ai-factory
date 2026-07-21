@@ -174,7 +174,11 @@ def index_page(title: str, rows: list, folder: str, grid_img: str, blurb: str) -
     return "\n".join(lines)
 
 
-engines = [c for c in caps if c["type"] == "engine"]
+all_engine_caps = [c for c in caps if c["type"] == "engine"]
+# The 8 *horizontal* engines exclude the disease-program capability (Tuberous Sclerosis) — that is the
+# vertical, presented as the disease program, not one of the eight engines. Its detail page is still
+# generated (below) and reached from the TSC program page.
+engines = [c for c in all_engine_caps if "disease-program" not in c.get("tags", [])]
 agents = [c for c in caps if c["type"] == "agent"]
 
 with mkdocs_gen_files.open("factory/engines/index.md", "w") as f:
@@ -183,7 +187,7 @@ with mkdocs_gen_files.open("factory/engines/index.md", "w") as f:
         "The horizontal compute muscle of the factory. Each engine is a registered capability with a "
         "typed interface and an honest status.",
     ))
-for c in engines:
+for c in all_engine_caps:  # generate a detail page for every engine-typed capability, incl. TSC
     with mkdocs_gen_files.open(f"factory/engines/{c['id']}.md", "w") as f:
         f.write(detail_page(c, "Engines"))
     mkdocs_gen_files.set_edit_path(f"factory/engines/{c['id']}.md", "lib/hcls_common/capabilities.json")
@@ -226,7 +230,7 @@ brief = [
     "",
     "## The roster",
     "",
-    brief_group("Engines", [c for c in caps if c["type"] == "engine"]),
+    brief_group("Engines", engines),
     brief_group("Intelligence Agents", [c for c in caps if c["type"] == "agent"]),
     brief_group("Models & NIMs", [c for c in caps if c["type"] in ("model", "nim")]),
     brief_group("Platform Services & Pipeline Stages", [c for c in caps if c["type"] in ("service", "stage")]),

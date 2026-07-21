@@ -85,8 +85,8 @@ nav:
           - factory/engines/imaging-intelligence-agent.md
           - factory/engines/precision-oncology-agent.md
           - factory/engines/cardiology-intelligence-agent.md
+          - factory/engines/structural-biology-engine.md
           - factory/engines/singlecell-compute.md
-          - factory/engines/tuberous-sclerosis-engine.md
       - Intelligence Agents:
           - factory/agents/index.md
           - factory/agents/cart-intelligence-agent.md
