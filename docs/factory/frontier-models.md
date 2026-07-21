@@ -12,17 +12,20 @@ run locally, and nothing claims more than it delivers.
 
 ## Connected services
 
+- **[Anthropic (Claude)](frontier-anthropic.md)** — the reasoning LLM behind the Precision Intelligence
+  Engine and all eight intelligence agents. The "intelligence" in *intelligence agent*.
+- **[NVIDIA BioNeMo](frontier-bionemo.md)** — GPU molecular microservices: **MolMIM** & **DiffDock**
+  (<span class="cap-badge cap-live">live</span>) and **GenMol** (<span class="cap-badge cap-planned">planned</span>) for the Therapeutic Discovery Engine.
 - **[Chai Discovery](frontier-chai.md)** — **Chai-1** (complex co-folding · <span class="cap-badge cap-planned">planned</span>)
   and **Chai-2** (de-novo binder & antibody design · <span class="cap-badge cap-gated">gated</span>):
   predict a molecular complex, or design a brand-new binder — and chain the two (design → validate).
 
-## Also on the frontier
+## Also on the roadmap
 
 Registered and connected the same way — heavy or containerized, honest status, elastic burst:
 
 - **RFdiffusion** &nbsp; <span class="cap-badge cap-planned">planned</span> — de-novo protein backbone design (→ ProteinMPNN → Chai-1).
 - **Evo 2** &nbsp; <span class="cap-badge cap-planned">planned</span> — genome-scale foundation model.
-- **MolMIM · DiffDock** (BioNeMo NIMs) &nbsp; <span class="cap-badge cap-live">live</span> — accelerated molecule generation and docking; real clients that need the NVIDIA NIM container deployed.
 
 !!! note "Honest by construction"
     The statuses here are the registry's — see the live

@@ -100,6 +100,8 @@ nav:
       - One Platform: factory/platform.md
       - Frontier Models:
           - Overview: factory/frontier-models.md
+          - Anthropic (Claude): factory/frontier-anthropic.md
+          - NVIDIA BioNeMo: factory/frontier-bionemo.md
           - Chai Discovery: factory/frontier-chai.md
       - Capability Brief:
           - Technical Cut: brief/README.md
