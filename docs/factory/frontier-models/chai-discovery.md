@@ -52,6 +52,13 @@ Chai and [NVIDIA BioNeMo](bionemo.md) are complementary halves of one design ben
 and designs structures; BioNeMo generates and docks the small molecules that populate them.** Together
 they cover a target from both directions.
 
+<video class="cap-video" controls preload="metadata" playsinline poster="/assets/videos/posters/frontier-chai-bionemo.jpg" src="/assets/videos/frontier-chai-bionemo.mp4">
+  Your browser can't play embedded video — <a href="/assets/videos/frontier-chai-bionemo.mp4">download the explainer</a>.
+</video>
+/// caption
+A ~90-second walkthrough: Chai-1 predicts a complex, BioNeMo fills the pocket with docked small molecules, Chai-1 validates the pose, and Chai-2 adds a biologic lane. Roadmap where noted — decision support, not diagnosis.
+///
+
 - **Chai-1 validates BioNeMo's small molecules.** BioNeMo's **MolMIM** generates candidate compounds
   and **DiffDock** docks them; **Chai-1** then co-folds the top candidate inside the target pocket — a
   structure-based cross-check on the docking pose. A different method reaching the same answer raises
