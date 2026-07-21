@@ -32,6 +32,13 @@ BioNeMo and [Chai Discovery](chai-discovery.md) are the two halves of one design
 builds and docks small molecules; Chai predicts and validates structures.** Chained, they close a loop
 neither can on its own.
 
+<video class="cap-video" controls preload="metadata" playsinline poster="/assets/videos/posters/frontier-bionemo-chai.jpg" src="/assets/videos/frontier-bionemo-chai.mp4">
+  Your browser can't play embedded video — <a href="/assets/videos/frontier-bionemo-chai.mp4">download the explainer</a>.
+</video>
+/// caption
+A ~90-second walkthrough: BioNeMo generates and docks a small molecule, Chai-1 co-folds it for an independent structural check, and Chai-2 opens a parallel biologic lane. Roadmap where noted — decision support, not diagnosis.
+///
+
 - **Generate → dock → *structurally validate.*** MolMIM (or RDKit BRICS) proposes molecules and
   DiffDock predicts a binding pose — then **[Chai-1](chai-discovery.md)** co-folds that top candidate
   *inside* its target's pocket, an independent, structure-based second opinion on the docking. Two
