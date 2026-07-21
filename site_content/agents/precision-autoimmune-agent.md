@@ -10,6 +10,8 @@ Autoimmune conditions are heterogeneous and relapsing: the same diagnosis behave
 patients, autoantibody patterns are subtle, and HLA associations carry real risk information. Bringing
 those threads together into a grounded, cited picture helps a clinician see the whole patient.
 
+*For a patient: their shifting autoimmune picture read as a whole, with a clearer sense of flare risk and drug safety.*
+
 ## How it works
 
 ![How the Autoimmune agent reasons — autoantibodies and HLA to flare-risk reasoning](../../assets/infographics/pages/precision-autoimmune-agent-how.png)

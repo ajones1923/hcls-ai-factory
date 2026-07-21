@@ -12,6 +12,8 @@ inherited differences in drug metabolism. Adverse drug reactions are a major cau
 harm. Getting the drug-gene match right *before* the first dose is one of the most concrete wins in
 precision medicine.
 
+*For a patient: the right drug at the right dose from the first prescription — matched to how their body actually processes it.*
+
 ## How it works
 
 ![How the Pharmacogenomics agent reasons — genotype to star allele to phenotype to CPIC dose](../../assets/infographics/pages/pharmacogenomics-intelligence-agent-how.png)

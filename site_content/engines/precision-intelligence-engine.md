@@ -13,6 +13,8 @@ buried in millions, and the value is in the *context* — is this variant known 
 does it do to the protein, is there a therapy that targets it. This engine is what turns data into
 **decision support**: grounded, sourced, and honest about uncertainty, never an autonomous diagnosis.
 
+*For a patient: the difference between a raw list of millions of variants and a short, plain-language explanation of the few that actually affect their care.*
+
 ## How it works
 
 ![Inside the Precision Intelligence Engine — annotate, retrieve, reason, coordinate](../../assets/infographics/pages/precision-intelligence-engine-how.png)

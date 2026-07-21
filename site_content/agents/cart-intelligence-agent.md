@@ -11,6 +11,8 @@ CAR-T can drive durable remissions, but designing and choosing one is an evidenc
 spread across scattered literature and sequence databases. Pulling that evidence into one comparative,
 cited view is where an intelligence layer earns its place.
 
+*For a patient: the scattered evidence behind a cell therapy pulled into one clear, cited brief for the team designing their treatment.*
+
 ## How it works
 
 ![How the CAR-T agent reasons — target antigen to comparative evidence to design brief](../../assets/infographics/pages/cart-intelligence-agent-how.png)

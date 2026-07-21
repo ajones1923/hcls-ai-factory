@@ -195,7 +195,9 @@ for c in all_engine_caps:  # generate a detail page for every engine-typed capab
 with mkdocs_gen_files.open("factory/agents/index.md", "w") as f:
     f.write(index_page(
         "Intelligence Agents", agents, "agents", "eight-agents.png",
-        "The clinical reasoning layers over the engines. Each agent is **decision support for a "
+        "The clinical reasoning layers over the engines — *engines are the lab; agents are the "
+        "consult.* The [Precision Intelligence Engine](../engines/precision-intelligence-engine.md) is "
+        "the hub that routes a case to the right agent. Each agent is **decision support for a "
         "qualified clinician — never autonomous diagnosis or prescribing.**",
     ))
 for c in agents:

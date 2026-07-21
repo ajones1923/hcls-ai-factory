@@ -13,6 +13,8 @@ gene-to-drug story: loss of **TSC1/TSC2** drives **mTORC1 hyperactivation**, whi
 **everolimus** targets (FDA-approved for TSC-associated SEGA in 2010, renal angiomyolipoma in 2012, and
 seizures in 2018).
 
+*For a child with TSC: their whole multi-system case reasoned through in one governed session, instead of months across many separate clinics.*
+
 ## How it works
 
 ![Inside the Tuberous Sclerosis Engine — five sub-agents composing the horizontal factory](../../assets/infographics/pages/tuberous-sclerosis-engine-how.png)
