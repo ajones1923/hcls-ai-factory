@@ -24,7 +24,7 @@ Illustrative architecture diagram.
 ## The model
 
 - **8 Engines** — the horizontal compute muscle: genomics, clinical interpretation, therapeutic
-  discovery, imaging, oncology, cardiology, protein/structural design, and single-cell.
+  discovery, imaging, oncology, cardiology, large-molecule / structural biology, and single-cell.
 - **8 Intelligence Agents** — the clinical reasoning layers that interpret what the engines produce.
   Each is **decision support for a qualified clinician — never autonomous diagnosis or prescribing.**
 - **1 Disease Program** — Tuberous Sclerosis Complex, the flagship vertical that composes the whole

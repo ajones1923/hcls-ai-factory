@@ -18,15 +18,16 @@ fusion — is where cross-modal precision medicine actually happens.
 DICOM in, structured findings out — reasoned against genomics. Illustrative.
 ///
 
-1. **Ingest** — standard **DICOM** imaging studies come in.
+1. **Ingest** — a standard **DICOM** imaging study comes in (referenced through the patient context).
 2. **Analyze** — the live, verified modality today is **chest X-ray analysis via a DenseNet-121 model
    on real DICOM pixels**.
-3. **Reason** — image and report reasoning, joined **cross-modally** with the patient's genomics.
+3. **Reason** — that live read is joined **cross-modally** with the patient's genomics (the deeper
+   image-and-report reasoning, VILA-M3 on CT, is on the planned path — see *Honest limits*).
 4. **Export** — findings are written out as **FHIR R4** so they slot into clinical systems.
 
 ## What goes in, what comes out
 
-- **In:** a **query** and the **patient context**.
+- **In:** a **query** and the **patient context** (which references the DICOM study).
 - **Out:** a structured **image read**.
 
 ## Where it fits
@@ -37,7 +38,8 @@ Imaging joins the tumor board, the calcium-score-to-statin path, and genomic rea
 ///
 
 Its reads feed the [Precision Oncology Engine](precision-oncology-agent.md) (imaging joins the tumor
-board) and the [Cardiology Engine](cardiology-intelligence-agent.md) (coronary calcium), and they
+board) and the [Cardiology Engine](cardiology-intelligence-agent.md) (a coronary-calcium input — a
+CT-derived value, on the planned CT path, not produced by the live chest-X-ray model), and they
 reason cross-modally with genomics throughout.
 
 ## Honest limits

@@ -12,20 +12,25 @@ a "one box" claim that quietly needs a cluster is exactly the gap a skeptic turn
 
 ![One box, elastic burst — local DGX Spark bursting heavy models to remote GPU over a private mesh](../assets/infographics/elastic-burst.png)
 /// caption
-Illustrative diagram. All patient data stays on the local box; only derived, non-identifying work bursts to a remote GPU.
+Illustrative diagram. Patient data stays on the local box; only derived, non-identifying work bursts — with one stated exception (GPU genomics alignment) noted below.
 ///
 
 ## What runs where
 
 | Runs locally on the DGX Spark | Bursts to remote GPU (on demand) |
 |---|---|
-| Orchestration, the capability registry, the MCP tool-surface, the workflow composer | Frontier co-folding (Chai-1 / Chai-2), RFdiffusion, Evo 2 |
+| Orchestration, the capability registry, the MCP tool-surface, the workflow composer | Frontier co-folding (Chai-1), RFdiffusion, Evo 2 (and gated Chai-2 binder design) |
 | Governance gates + 21 CFR Part 11-style lineage | x86-only CUDA containers (e.g. Parabricks, several BioNeMo NIMs) |
 | The RAG intelligence agents (vector DB + LLM), multi-omics join, DuckDB | Anything ARM-incompatible or too heavy for one box |
 | **All patient data** | **Only derived, non-identifying work** — never raw PHI |
 
 Two reasons a model bursts: raw compute (frontier models exceed one box), and architecture (the Spark
 is aarch64, so x86-only CUDA containers must run on a remote x86 GPU regardless of raw power).
+
+**The one exception, stated plainly:** GPU **genomics alignment** (Parabricks, x86-only) needs the
+raw sequencing reads, so *that* step is the single case where identifying data goes off-box. It must
+run in a **dedicated, secure** remote environment; the reference deployment demonstrates it on the
+**public HG002** sample. No other step sends identifying patient data to a burst GPU.
 
 ## Privacy is architectural
 
