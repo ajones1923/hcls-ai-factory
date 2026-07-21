@@ -35,12 +35,12 @@ exercise nearly every capability, with a therapy that is real today.
 TSC is multi-system, so it engages nearly every engine and agent. Illustrative.
 ///
 
-TSC rarely stays in one place. It shows up in the **brain** (seizures, subependymal giant cell
-astrocytoma, and TSC-associated neuropsychiatric disorders — TAND), the **heart** (rhabdomyoma, often
-seen in infancy), the **kidneys** (angiomyolipomas), the **skin** (angiofibromas and hypomelanotic
-macules), and the **lungs** (lymphangioleiomyomatosis, LAM). That breadth is exactly why one TSC
-patient recruits the genomics, imaging, cardiology, pharmacogenomics, rare-disease, and neurology
-capabilities at once.
+TSC rarely stays in one place. It causes growths and problems in the **brain** (seizures, and effects
+on development and behavior), the **heart**, the **kidneys**, the **skin**, and the **lungs** — five
+organ systems at once. *(The medical names a specialist would use: subependymal giant cell astrocytoma
+and TAND in the brain, cardiac rhabdomyoma, renal angiomyolipoma, skin angiofibromas, and pulmonary
+LAM.)* That whole-body reach is exactly why one TSC patient needs the genomics, imaging, cardiology,
+pharmacogenomics, rare-disease, and neurology capabilities together.
 
 ## The gene-to-drug story
 

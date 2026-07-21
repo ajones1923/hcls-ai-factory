@@ -17,9 +17,11 @@ A narrated, captioned walkthrough of the whole factory — the eight engines, ei
 
 ## Inside the factory
 
-Eight compute engines, eight clinical intelligence agents, and one flagship disease program — on a
-single [NVIDIA DGX Spark](https://www.nvidia.com/en-us/products/workstations/dgx-spark/), open under
-Apache-2.0, bursting heavier work to remote GPUs over a private mesh only when it needs to.
+**In one line:** the factory takes a patient's DNA and helps a clinician get from raw data to a
+shortlist of possible treatments — in hours, not months. Under the hood it's **eight compute engines,
+eight clinical-reasoning agents, and one flagship disease program**, on a single
+[NVIDIA DGX Spark](https://www.nvidia.com/en-us/products/workstations/dgx-spark/) (a desktop-sized AI
+computer), open under Apache-2.0, bursting heavier work to remote GPUs only when it needs to.
 
 <div class="grid cards" markdown>
 
@@ -50,7 +52,7 @@ Apache-2.0, bursting heavier work to remote GPUs over a private mesh only when i
 - **[Demonstrations](demos/index.md)** — the D1–D7 portfolio, each with its honesty flags.
 - **[Capability Brief](brief/README.md)** — the full picture in a **technical cut** and a
   **mission cut**.
-- **[Source on GitHub](https://github.com/ajones1923/hcls-ai-factory)** — clone it, read it, run it.
+- **[Source on GitHub](https://github.com/ajones1923/hcls-ai-factory)** — read the code, fork it, open an issue.
 
 ## What it is — honestly
 
