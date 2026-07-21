@@ -26,7 +26,7 @@ Apache-2.0, bursting heavier work to remote GPUs over a private mesh only when i
 - :material-engine-outline:{ .lg } __[8 Engines](factory/engines/index.md)__
 
     The horizontal compute muscle — genomics, clinical interpretation, therapeutic discovery,
-    imaging, oncology, cardiology, protein design, and single-cell.
+    imaging, oncology, cardiology, large-molecule / structural biology, and single-cell.
 
 - :material-brain:{ .lg } __[8 Intelligence Agents](factory/agents/index.md)__
 

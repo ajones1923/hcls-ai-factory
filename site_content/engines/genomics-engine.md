@@ -62,8 +62,12 @@ what lets each stay honest and independently verifiable.
   lives in the [Precision Oncology Engine](precision-oncology-agent.md).
 - **Script-invoked today.** It currently runs as a container pipeline (Parabricks in Docker via
   `run.sh` / `run_caller.sh`), **not yet a request/response API** — that API is on the roadmap.
-- **Elastic burst.** Parabricks is an x86-only CUDA container, so on an ARM DGX Spark this step
-  **bursts to a remote GPU** over a private mesh; only non-identifying work leaves the box.
+- **Elastic burst — and honest about what leaves.** Parabricks is an x86-only CUDA container, so on
+  an ARM DGX Spark this step runs on a **remote x86 GPU** over a private, encrypted mesh. Alignment
+  needs the raw reads, so genomics is the *one* step where identifying data goes off-box: the
+  reference deployment demonstrates it on the **public HG002** sample, and any real-patient deployment
+  must send those reads only to a **dedicated, secure** environment. Everywhere else in the factory,
+  only derived, non-identifying data ever bursts — raw patient data stays on the local box.
 - **Proven on a public benchmark.** The companion **Variant Store** capability is marked `verified`
   against the public **HG002** reference sample (Ts/Tv ≈ 2.0) — real-data evidence, not a claim.
 - **Decision support, not diagnosis.** The output supports a qualified clinician's judgment; it never

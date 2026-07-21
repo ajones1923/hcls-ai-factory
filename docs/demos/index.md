@@ -12,12 +12,12 @@ doing everything. Each demo composes capabilities at varying readiness — see t
 
 ![From patient DNA to therapeutic candidates](../assets/infographics/dna-to-drug.png)
 /// caption
-Illustrative — the D1 arc, "raw reads to a validated lead molecule."
+Illustrative — the D1 arc, "raw reads to a ranked candidate lead molecule."
 ///
 
 | # | Demonstration | Exercises | Honesty flags |
 |---|---|---|---|
-| **D3** | **Tuberous Sclerosis Complex** *(flagship)* | The whole factory on one infant — most engines + agents + the platform layer | Gene therapy **preclinical**; everolimus real/approved; decision support; pediatric caution |
+| **D3** | **Tuberous Sclerosis Complex** *(flagship)* | The whole factory on one child — most engines + agents + the platform layer | Gene therapy **preclinical**; everolimus real/approved; decision support; pediatric caution |
 | D1 | Secondary genomics → novel drug molecule | Engines 1→2→3, MLOps, workflow composer, Chai-1 | Chai-1 **planned**; generated molecules are research candidates |
 | D2 | Imaging → cardiac CAC → statin PGx → longevity | Engines 4 + 6, Pharmacogenomics + Biomarker agents | MAISI synthetic imaging **research/QA only**; decision support |
 | D4 | Pediatric molecular tumor board | Engine 5, E1 germline, single-cell, fusion-first | Decision support; trial matching is informational |

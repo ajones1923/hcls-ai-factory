@@ -26,7 +26,8 @@ Patient profile and biomarkers to a ranked, cited trial shortlist. Decision supp
 ## What goes in, what comes out
 
 - **In:** a **query** and the **patient context** (profile, biomarkers).
-- **Out:** a grounded, cited set of **ranked trial matches**.
+- **Out:** a grounded, cited set of **ranked trial matches** for a patient — or, for researchers,
+  trial-design and biomarker-strategy guidance.
 
 ## Where it fits
 

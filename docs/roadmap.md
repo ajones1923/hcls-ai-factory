@@ -18,7 +18,8 @@ Every capability advertises its real status, generated from the registry — the
 - **Live today** — the platform library (capability registry, MCP tool-surface, workflow composer,
   governance gates) and the engines/agents the registry declares `live`.
 - **Planned** — the frontier co-folding and generation models registered `planned` (e.g. Chai-1,
-  Chai-2, GenMol) flip to `live` only when they are stood up and served for real.
+  GenMol) flip to `live` only when they are stood up and served for real. (Chai-2 de-novo binder
+  design is `gated` — partnership access — not `planned`.)
 - **Preclinical** — gene-therapy directions (including TSC1/TSC2) are an open design/analysis bench,
   not a treatment available today.
 
@@ -28,18 +29,19 @@ Built in four phases, each flipping matrix badges green as real capabilities com
 
 | Phase | Focus |
 |---|---|
-| **0 — Foundation** *(in progress)* | design-system + honest status badges, OG/SEO + `llms.txt`, the registry-bound maturity matrix, the section skeleton, a strict docs build in CI |
-| **1 — Depth** | per-engine / per-agent / TSC pages, published diagrams, badges flipping as capabilities verify |
-| **2 — Proof** | "Run It Yourself" quickstart, verified-on-real-data proofs, citations, governance |
-| **3 — Launch** | performance + accessibility pass, analytics for the right metrics, the launch moment |
+| **0 — Foundation** *(shipped)* | design-system + honest status badges, OG/SEO + `llms.txt`, the registry-bound maturity matrix, the section skeleton, a strict docs build in CI |
+| **1 — Depth** *(shipped)* | per-engine / per-agent / TSC pages, published diagrams + narrated videos, badges flipping as capabilities verify |
+| **2 — Proof** *(shipped)* | "Run It Yourself" quickstart, verified-on-real-data proofs, citations, governance |
+| **3 — Launch** *(in progress)* | performance + accessibility pass, analytics for the right metrics, the launch moment |
 
 ## Changelog
 
 The site build, in public — most-recent first.
 
 - **2026-07** — **Verification campaign:** ran capabilities on real public data and earned `verified`
-  where they passed — the variant store (HG002), single-cell compute (pbmc3k), ACMG secondary-findings
-  (real ClinVar), molecule generator + ADMET (real drugs), ESM-2 search + ProteinMPNN (real proteins).
+  where they passed — **nine in total**: the variant store (HG002), single-cell compute (pbmc3k),
+  ACMG secondary-findings (real ClinVar), the molecule generator + ADMET (real drugs), ESM-2 search +
+  ProteinMPNN + ESMFold (real proteins), and the reproducibility capture.
 - **2026-07** — **Fuller IA:** two-tier tab navigation, a page for every engine and agent, About /
   Mission, Honesty Ledger + Decision-Support Posture pages, Run It Yourself split
   (Quickstart / Hardware / Reproducibility), per-page social OG cards, `CITATION.cff`.
@@ -54,8 +56,10 @@ The site build, in public — most-recent first.
 Beyond the serving states **live** and **planned**, the registry now carries an optional, orthogonal
 **maturity tier** — **verified · preclinical · research-use · roadmap · gated** — machine-checked
 against the code (e.g. `verified` is rejected by the registry on anything not actually running). It
-is populated **conservatively**, only where the registry documents a basis: today the queryable
-variant store is `verified` (proven on real HG002) and Chai-2 is `gated` (partnership access).
+is populated **conservatively**, only where the registry documents a basis: today **nine capabilities
+are `verified`** (proven on real public data — the variant store on HG002, single-cell compute on
+pbmc3k, ESMFold, ESM-2 search, ProteinMPNN, ACMG secondary findings, the molecule generator, ADMET,
+and reproducibility), and Chai-2 is `gated` (partnership access).
 Broadening coverage — and adding finer-grained capability entries for the feature-level caveats now
 carried on the [Honesty & Governance ledger](honesty/index.md) (e.g. TSC gene therapy is preclinical)
 — continues as capabilities are audited.
