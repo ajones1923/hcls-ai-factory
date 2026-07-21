@@ -99,10 +99,10 @@ nav:
           - factory/agents/single-cell-intelligence-agent.md
       - One Platform: factory/platform.md
       - Frontier Models:
-          - Overview: factory/frontier-models.md
-          - Anthropic (Claude): factory/frontier-anthropic.md
-          - NVIDIA BioNeMo: factory/frontier-bionemo.md
-          - Chai Discovery: factory/frontier-chai.md
+          - factory/frontier-models/index.md
+          - Anthropic (Claude): factory/frontier-models/anthropic.md
+          - NVIDIA BioNeMo: factory/frontier-models/bionemo.md
+          - Chai Discovery: factory/frontier-models/chai-discovery.md
       - Capability Brief:
           - Technical Cut: brief/README.md
           - Mission Cut: brief/mission.md
