@@ -46,6 +46,32 @@ binder-design family:
 | **Precision Oncology · Therapeutic Discovery** | Biologics against tumor antigens — large-molecule design alongside small-molecule discovery. |
 | **Structural Biology Engine** | The design frontier; hand off to **Chai-1** to validate the designed complex. |
 
+## Working with NVIDIA BioNeMo
+
+Chai and [NVIDIA BioNeMo](bionemo.md) are complementary halves of one design bench: **Chai predicts
+and designs structures; BioNeMo generates and docks the small molecules that populate them.** Together
+they cover a target from both directions.
+
+- **Chai-1 validates BioNeMo's small molecules.** BioNeMo's **MolMIM** generates candidate compounds
+  and **DiffDock** docks them; **Chai-1** then co-folds the top candidate inside the target pocket — a
+  structure-based cross-check on the docking pose. A different method reaching the same answer raises
+  confidence in the lead.
+- **Chai-2 adds the large-molecule lane.** Alongside BioNeMo's small-molecule discovery, **Chai-2**
+  designs de-novo biologics, and Chai-1 validates either — so a single target can be pursued as a
+  small molecule (BioNeMo) *or* an antibody / protein binder (Chai) in parallel.
+
+What the pairing enables:
+
+| Engine / Agent | What Chai + BioNeMo unlock together |
+|---|---|
+| **Therapeutic Discovery Engine** | Both design lanes — BioNeMo small-molecule, Chai-2 large-molecule — with Chai-1 as the shared structural validator. |
+| **Structural Biology Engine** | Chai-1 co-folds BioNeMo's docked ligands into a full predicted complex — pose meets structure. |
+| **Precision Oncology Engine** | Offer a tumor board both a small-molecule inhibitor (BioNeMo) *and* a biologic (Chai-2) against one target, each with structural evidence. |
+
+*(Honesty: the BioNeMo half — MolMIM, DiffDock — is `live` but needs the NIM container deployed; Chai-1
+is `planned` and Chai-2 is `gated`, so the **integrated** loop is a roadmap capability. All of it is
+preclinical decision support, bursting to a remote GPU.)*
+
 !!! note "Honest by construction"
     Chai-1 is `planned` (open, build in progress) and Chai-2 is `gated` (partner access) — see the live
     [Capability Maturity Matrix](../../honesty/maturity-matrix.md). Both **burst to a remote GPU**, never
