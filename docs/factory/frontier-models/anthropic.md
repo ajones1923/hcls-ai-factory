@@ -8,9 +8,9 @@ description: Anthropic's Claude is the factory's reasoning engine — it powers 
 Every part of the factory that *reasons* runs on a large language model. The factory uses
 **Anthropic's Claude** as that reasoning engine — the model that reads retrieved evidence and writes
 grounded, cited clinical reasoning. It's an external API connection, one of the
-[Frontier Models](frontier-models.md) the factory reaches over the network.
+[Frontier Models](index.md) the factory reaches over the network.
 
-![Claude — the reasoning layer: retrieved evidence to a cited answer, powering the interpretation engine and the agents](../assets/infographics/frontier-anthropic.png)
+![Claude — the reasoning layer: retrieved evidence to a cited answer, powering the interpretation engine and the agents](../../assets/infographics/frontier-anthropic.png)
 /// caption
 Illustrative. Claude reads retrieved evidence and returns a cited answer — an external API, an honest 503 when absent.
 ///

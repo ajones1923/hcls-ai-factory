@@ -7,10 +7,10 @@ description: NVIDIA BioNeMo provides GPU-accelerated molecular models as inferen
 
 [NVIDIA BioNeMo](https://www.nvidia.com/en-us/clara/bionemo/) packages biology models as
 GPU-accelerated inference microservices (**NIMs**) that the factory calls on demand. Its models power
-the [Therapeutic Discovery Engine](engines/therapeutic-discovery-engine.md)'s *generate → dock → score*
-loop, connected as one of the [Frontier Models](frontier-models.md) via elastic burst.
+the [Therapeutic Discovery Engine](../engines/therapeutic-discovery-engine.md)'s *generate → dock → score*
+loop, connected as one of the [Frontier Models](index.md) via elastic burst.
 
-![NVIDIA BioNeMo in the factory: MolMIM, DiffDock, and GenMol feeding the Therapeutic Discovery Engine](../assets/infographics/frontier-bionemo.png)
+![NVIDIA BioNeMo in the factory: MolMIM, DiffDock, and GenMol feeding the Therapeutic Discovery Engine](../../assets/infographics/frontier-bionemo.png)
 /// caption
 Illustrative. MolMIM and DiffDock are live clients (they need the NIM container); GenMol is planned.
 ///
