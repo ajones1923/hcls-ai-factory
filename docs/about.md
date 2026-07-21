@@ -43,8 +43,3 @@ about a child is worth more than any spectacle, and honesty here is not just eth
 
 *Explore the factory: [the engines and agents](factory/overview.md) · [run it yourself](run/index.md)
 · [how we keep it honest](honesty/index.md).*
-
-!!! note "A note on analytics"
-    This site uses [Plausible](https://plausible.io/) — privacy-friendly by design: **no cookies, no
-    cross-site tracking, no personal data**, just aggregate page counts, and nothing is sold or shared.
-    Fitting for a project whose whole point is honesty.
