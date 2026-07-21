@@ -18,4 +18,15 @@
     "description": "Open-source precision-medicine platform: 8 compute engines, 8 clinical intelligence agents, and the flagship Tuberous Sclerosis Complex disease program. Patient DNA to therapeutic candidates, in hours, on a single box. Decision support for a qualified clinician, never autonomous diagnosis."
   }
   </script>
+  {#- Plausible analytics — privacy-friendly, cookieless, no personal data (fits the honesty ethos).
+      Loaded only on the production domain, so deploy previews and local builds never pollute stats. -#}
+  <script>
+    if (location.hostname === "hcls-ai-factory.org") {
+      var _p = document.createElement("script");
+      _p.defer = true;
+      _p.setAttribute("data-domain", "hcls-ai-factory.org");
+      _p.src = "https://plausible.io/js/script.js";
+      document.head.appendChild(_p);
+    }
+  </script>
 {% endblock %}
