@@ -1,15 +1,20 @@
 ## In plain terms
 
-The Single-Cell Analysis Engine takes a **single-cell expression matrix** — thousands of individual
-cells, each with its own gene-activity profile — and works out **which cell types are present**. It is
-a real, standard **scanpy** workflow: the deterministic compute layer that turns a raw matrix into a
-labeled map of cells.
+Every tissue is a mix of thousands of individual cells that are *not* all alike — an immune cell, a
+tumor cell, and a healthy cell can sit side by side. The Single-Cell Analysis Engine takes a dataset
+that measures gene activity **one cell at a time** (a *single-cell expression matrix*) and works out
+**which cell types are present**. It's a real, standard scientific workflow, built on the widely-used
+**scanpy** toolkit — the reliable compute step that turns a raw table of numbers into a labeled map of
+cells.
 
 ## Why it matters
 
-Knowing exactly which cells are in a sample — and, for a tumor, what makes up its microenvironment —
-underlies oncology, immunology, and cell therapy. This engine is the honest, reproducible compute step
-that every higher-level single-cell reasoning depends on.
+Knowing exactly which cells are in a sample — and, for a tumor, which immune cells surround it — is the
+foundation of cancer, immunology, and cell-therapy work. This engine is the honest, reproducible
+compute step that every higher-level single-cell interpretation depends on.
+
+*For a patient: knowing exactly which cells make up a tumor — including the immune cells around it —
+helps a clinician choose therapies aimed at the right cells.*
 
 ## How it works
 
@@ -42,8 +47,9 @@ the oncology tumor-microenvironment view and the multi-omics join).
 
 ## Honest limits
 
-- **Verified on public data.** Marked `verified` because it was run end-to-end on the public **PBMC 3k**
-  benchmark with the expected, canonical cell types — real-data evidence, not a claim.
+- **Verified on public data.** Run end-to-end on the public **PBMC 3k** benchmark — about 2,700 human
+  immune cells that researchers use as a standard, known-answer test — and it recovered exactly the
+  cell types it should. Real-data evidence, not a claim.
 - **Deterministic compute, not reasoning.** It computes clusters; interpretation is the agent's job.
 - **CPU today, GPU is the upgrade.** It is CPU-served now; a GPU (`rapids-singlecell`) path is the
   planned acceleration.
