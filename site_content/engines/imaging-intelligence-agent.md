@@ -11,6 +11,8 @@ A radiology read and a genomic finding usually live in separate systems and sepa
 them into one reasoning step — a calcium score next to a lipid genotype, a tumor's imaging next to its
 fusion — is where cross-modal precision medicine actually happens.
 
+*For a patient: their scan and their genetics read together, so nothing that matters falls through the gap between two systems.*
+
 ## How it works
 
 ![Inside the Clinical Imaging Engine — ingest DICOM, analyze pixels, reason cross-modally, export FHIR](../../assets/infographics/pages/imaging-intelligence-agent-how.png)

@@ -14,6 +14,8 @@ matching phenotype to gene, classifying variants rigorously, and using trio (par
 resolve inheritance is exactly the kind of patient, evidence-heavy reasoning an intelligence layer can
 accelerate.
 
+*For a family: a years-long diagnostic search narrowed to a focused, explainable shortlist of candidates.*
+
 ## How it works
 
 ![How the Rare Disease agent reasons — HPO phenotype and trio variants to ranked diagnoses](../../assets/infographics/pages/rare-disease-diagnostic-agent-how.png)

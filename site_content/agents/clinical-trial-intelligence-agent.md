@@ -10,6 +10,8 @@ The right trial can be the best available option, but eligibility criteria are d
 scattered. For a rare-disease or pediatric-oncology patient especially, a grounded matching layer can
 turn a needle-in-a-haystack search into a short, explained shortlist.
 
+*For a patient: a hard-to-find but potentially best option — the right trial — surfaced as a short, explained shortlist.*
+
 ## How it works
 
 ![How the Clinical Trial agent reasons — patient profile to matched, ranked trials](../../assets/infographics/pages/clinical-trial-intelligence-agent-how.png)

@@ -12,6 +12,8 @@ chase, and a pediatric survivor may live sixty years with the consequences of tr
 therapies without weighting those **late effects** is the wrong answer. This engine is built around
 both facts.
 
+*For a patient: a tumor-board packet tuned to their exact cancer — and, for a child, weighted to protect their decades ahead.*
+
 ## How it works
 
 ![Inside the Precision Oncology Engine — fusions in, therapy ranking, trial matching, MTB packet out](../../assets/infographics/pages/precision-oncology-agent-how.png)

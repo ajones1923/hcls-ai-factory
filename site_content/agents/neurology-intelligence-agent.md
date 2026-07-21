@@ -10,6 +10,8 @@ Neurology spans very different problems that share a need for careful, staged re
 minutes-fast triage, a neurodegenerative disease needs longitudinal staging. One grounded agent that
 can reason across those domains — and cite why — is a genuine aid to a busy service.
 
+*For a patient: one consistent, evidence-grounded read across very different neurological problems, from stroke to slow-moving disease.*
+
 ## How it works
 
 ![How the Neurology agent reasons — presentation and biomarkers across ten domains to a cited summary](../../assets/infographics/pages/neurology-intelligence-agent-how.png)

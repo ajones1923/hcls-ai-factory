@@ -12,6 +12,8 @@ Reading a protein's structure and reasoning about how to change it used to take 
 in seconds, on real models, is what makes computational biologics and binder design possible — and it
 is the substrate the therapeutic-discovery and cell-therapy work builds on.
 
+*For a patient: the protein groundwork behind the next generation of biologics and cell therapies designed for their disease.*
+
 ## How it works
 
 ![Inside the Structural Biology Engine — fold, search, design, assess](../../assets/infographics/pages/structural-biology-engine-how.png)

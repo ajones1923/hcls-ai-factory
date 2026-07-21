@@ -11,6 +11,8 @@ The highest-leverage cardiology happens before the heart attack. A calcium score
 estimate tells you *whether* to treat; the patient's pharmacogenomics tells you *which* drug won't harm
 them. Doing both, together, is precision prevention rather than one-size-fits-all.
 
+*For a patient: prevention matched to their heart and their genes — the right risk assessment, then a drug that is safe for them specifically.*
+
 ## How it works
 
 ![Inside the Cardiology Engine — imaging and genotype in, risk scored, genetically safe drug out](../../assets/infographics/pages/cardiology-intelligence-agent-how.png)

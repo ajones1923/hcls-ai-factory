@@ -19,6 +19,8 @@ is a missed diagnosis later; a false one is a false alarm. The engine's job is t
 *speed* but **correctness you can check**: it produces a result whose quality can be measured and
 reproduced, not merely asserted.
 
+*For a patient: the faster and more reliably their variants are found, the sooner a clinician has trustworthy answers to act on.*
+
 ## How it works
 
 ![Inside the Genomics Foundations Engine — align, call, quality-check, hand off](../../assets/infographics/pages/genomics-engine-how.png)

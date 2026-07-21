@@ -5,6 +5,10 @@ description: Clone the HCLS AI Factory, run the build gate, and verify a real ca
 
 # Run It Yourself — Quickstart
 
+!!! note "This page is for builders"
+    It's for people who want to clone and run the factory themselves. If you'd rather just *see* what
+    it produces, watch the [three-minute tour](../index.md) or the [Demonstrations](../demos/index.md).
+
 Open-source means *you can run this yourself* — the one claim no one can wave away. Everything below
 is real; heavier or ARM-incompatible models burst to remote GPU over a private mesh
 ([elastic burst](hardware.md)), and the site says so wherever that's the case. Apache-2.0,
