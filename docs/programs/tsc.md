@@ -22,7 +22,7 @@ For the deeper version — the diagnostic reality, and how the factory changes i
   Your browser can't play embedded video — <a href="/assets/videos/tsc-two-journeys.mp4">download the deep-dive film</a>.
 </video>
 /// caption
-Deep dive (~4.5 min): "One child, two journeys" — the diagnostic odyssey versus the factory, from the hamartin–tuberin / mTORC1 mechanism to mechanism-matched therapy. Chai-1 is planned; molecule design is preclinical; decision support, not diagnosis.
+Deep dive (~5.5 min): "One child, two journeys" — the diagnostic odyssey versus the factory, from the hamartin–tuberin / mTORC1 mechanism to mechanism-matched therapy and designing a new precision molecule. Chai-1 is planned; molecule design is preclinical; decision support, not diagnosis.
 ///
 
 ![Tuberous Sclerosis Complex — mechanism to medicine](../assets/infographics/tsc-flagship.png)
