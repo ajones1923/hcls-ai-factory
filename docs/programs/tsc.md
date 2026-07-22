@@ -75,7 +75,7 @@ Watch the whole journey — the diagnostic odyssey, and how the factory changes 
   Your browser can't play embedded video — <a href="/assets/videos/tsc-two-journeys.mp4">download the deep-dive film</a>.
 </video>
 /// caption
-Deep dive (~5.5 min): "One child, two journeys" — the diagnostic odyssey, the hamartin–tuberin / mTORC1 mechanism, mechanism-matched therapy, and designing a new precision molecule. Decision support; molecule design is preclinical.
+Deep dive (~5 min): "One child, two journeys" — the diagnostic odyssey, the hamartin–tuberin / mTORC1 mechanism, mechanism-matched therapy, and designing a new precision molecule, shown with a real mTOR-structure animation. Decision support; molecule design is preclinical (illustrative structure).
 ///
 
 ## How the factory composes here
