@@ -1,6 +1,6 @@
 # HCLS AI Factory
 
-> Open-source (Apache-2.0) precision-medicine platform that takes a patient's raw DNA to a shortlist of therapeutic candidates in hours on a single NVIDIA DGX Spark, bursting heavy or ARM-incompatible work to remote GPUs over a private mesh ("elastic burst"). It is eight compute engines, eight clinical intelligence agents, and one flagship disease program (Tuberous Sclerosis Complex). North star: no one should die of a disease we could have understood in time. All clinical output is decision support for a qualified clinician — never autonomous diagnosis or prescribing.
+> Open-source (Apache-2.0) precision-medicine platform that takes a patient's raw DNA to a shortlist of therapeutic candidates in hours on a single NVIDIA DGX Spark, bursting heavy or ARM-incompatible work to remote GPUs over a private mesh ("elastic burst"). It is eight compute engines, eight clinical intelligence agents, and one flagship disease program (Tuberous Sclerosis Complex). North star: no one should wait years for a disease we could have understood in a day. All clinical output is decision support for a qualified clinician — never autonomous diagnosis or prescribing.
 
 ## Canonical pages
 - [Home](https://hcls-ai-factory.org/): the mission, the 8 + 8 + 1 roster, and the honesty posture.
