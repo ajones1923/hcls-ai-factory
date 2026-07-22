@@ -1,11 +1,11 @@
 ---
 title: About / Mission
-description: Why the HCLS AI Factory exists — no one should die of a disease we could have understood in time.
+description: Why the HCLS AI Factory exists — no one should wait years for a disease we could have understood in a day.
 ---
 
 # Mission
 
-> **No one should die of a disease we could have understood in time.**
+> **No one should wait years for a disease we could have understood in a day.**
 
 That sentence is the whole reason this project exists, and it is the test every decision here has to
 pass. When a technical choice, a design flourish, or a marketing line conflicts with the mission — or
