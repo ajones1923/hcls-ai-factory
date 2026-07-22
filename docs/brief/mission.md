@@ -1,6 +1,6 @@
 ---
 title: Capability Brief — Mission Cut
-description: The human why — no one should die of a disease we could have understood in time.
+description: The human why — no one should wait years for a disease we could have understood in a day.
 ---
 
 # Capability Brief — Mission Cut
@@ -30,7 +30,7 @@ condition that touches brain, kidney, heart, skin, and lungs at once. For that c
 approved medicine today, and an open bench for what comes next. That is the whole shape of the hope
 here: **something true now, and a door held open for later.**
 
-> **No one should die of a disease we could have understood in time.**
+> **No one should wait years for a disease we could have understood in a day.**
 
 That sentence is the reason the project exists, and the test every decision has to pass. It is not a
 slogan to put over a montage. It is a quiet promise — to be honest about what is real, generous with
