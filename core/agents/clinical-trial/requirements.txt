@@ -7,9 +7,9 @@
 # =============================================================================
 
 # -- Core Framework --
-pydantic-settings==2.2.1
-pydantic==2.7.4
-loguru==0.7.2
+pydantic-settings==2.14.2
+pydantic==2.13.4
+loguru==0.7.3
 
 # -- Vector Database --
 pymilvus==2.4.1
@@ -18,29 +18,29 @@ pymilvus==2.4.1
 sentence-transformers==2.7.0
 
 # -- LLM --
-anthropic==0.25.0
+anthropic==0.120.0
 
 # -- Web / API --
-streamlit==1.33.0
-fastapi==0.111.0
-uvicorn==0.29.0
-python-multipart==0.0.9
+streamlit==1.60.0
+fastapi==0.140.0
+uvicorn==0.51.0
+python-multipart==0.0.32
 
 # -- Data Ingest / HTTP --
-requests==2.31.0
-httpx==0.27.0
+requests==2.34.2
+httpx==0.28.1
 lxml==5.2.1
 
 # -- Scheduling --
-apscheduler==3.10.4
+apscheduler==3.11.3
 
 # -- Monitoring --
-prometheus-client==0.20.0
+prometheus-client==0.26.0
 
 # -- Export / Reporting --
-python-docx==1.1.0
+python-docx==1.2.0
 
 # -- Utilities --
 numpy>=1.24.0
-tqdm>=4.65.0
-python-dotenv>=1.0.0
+tqdm>=4.69.1
+python-dotenv>=1.2.2

@@ -7,9 +7,9 @@
 # =============================================================================
 
 # ── Core Framework ──
-pydantic>=2.0
-pydantic-settings>=2.7
-loguru>=0.7.0
+pydantic>=2.13.4
+pydantic-settings>=2.14.2
+loguru>=0.7.3
 
 # ── Vector Database ──
 pymilvus>=2.4.0
@@ -18,16 +18,16 @@ pymilvus>=2.4.0
 sentence-transformers>=2.2.0
 
 # ── LLM ──
-anthropic>=0.18.0
+anthropic>=0.120.0
 
 # ── Web / API ──
-streamlit>=1.30.0
-fastapi>=0.109.0
-uvicorn[standard]>=0.27.0
-python-multipart>=0.0.6
+streamlit>=1.60.0
+fastapi>=0.140.0
+uvicorn[standard]>=0.51.0
+python-multipart>=0.0.32
 
 # ── Data Ingest ──
-requests>=2.31.0
+requests>=2.34.2
 lxml>=5.0.0                   # PubMed XML parsing
 biopython>=1.83               # NCBI E-utilities
 
@@ -35,10 +35,10 @@ biopython>=1.83               # NCBI E-utilities
 cyvcf2>=0.31.0                # VCF file parsing for pharmacogenomic variants
 
 # ── Scheduling ──
-apscheduler>=3.10.0
+apscheduler>=3.11.3
 
 # ── Monitoring ──
-prometheus-client>=0.20.0
+prometheus-client>=0.26.0
 
 # ── Observability / Tracing ──
 opentelemetry-api>=1.29.0
@@ -52,5 +52,5 @@ pyvis>=0.3.0
 
 # ── Utilities ──
 numpy>=1.24.0
-tqdm>=4.65.0
-python-dotenv>=1.0.0
+tqdm>=4.69.1
+python-dotenv>=1.2.2
