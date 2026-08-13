@@ -72,7 +72,7 @@ Google DeepVariant reframes variant calling as an image classification problem. 
 | Peak memory | ~60 GB |
 | SNP F1 | >99.7% on HG002 |
 | Indel F1 | >99.4% on HG002 |
-| Total variants | ~11.7M (unfiltered) |
+| Total variant records | ~11.7M (unfiltered; ~4.69M PASS) |
 | QUAL>30 variants | ~3.56M |
 
 ### 1.4 VCF Quality Metrics
@@ -138,7 +138,7 @@ The Variant Effect Predictor maps variants to genes, transcripts, and regulatory
 The three annotation databases are applied sequentially in `annotator.py` (23 KB):
 
 ```
-VCF (11.7M variants)
+VCF (11.7M variant records)
   → parse_vcf(min_qual=30)     → 3.56M variants
   → annotate_clinvar()          → Clinical significance
   → annotate_alphamissense()    → AI pathogenicity scores

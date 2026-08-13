@@ -39,7 +39,7 @@ The three engines that power the platform are:
 
 3. **Therapeutic Discovery Engine** -- A 10-stage computational chemistry pipeline leveraging BioNeMo MolMIM for molecular generation, DiffDock for pose prediction, and RDKit for pharmacokinetic analysis, with 6 pediatric safety filters (blood-brain barrier permeability, cardiac safety, hepatotoxicity, teratogenicity, topological polar surface area, and molecular flexibility).
 
-The platform processes 11.7 million variants per genome, maintains 3.56 million annotated and searchable vectors, covers 201 genes across 13 therapeutic areas with 171 druggable targets, and integrates 4.1 million ClinVar records alongside 71 million AlphaMissense predictions.
+The platform processes ~11.7 million variant records per genome (~4.69M PASS), maintains 3.56 million annotated and searchable vectors, covers 201 genes across 13 therapeutic areas with 171 druggable targets, and integrates 4.1 million ClinVar records alongside 71 million AlphaMissense predictions.
 
 ## 1.2 Purpose of This Research
 
@@ -55,7 +55,7 @@ Both diagram sets will be published as primary assets on https://hcls-ai-factory
 
 | Metric | Value |
 |--------|-------|
-| Total variants per genome | 11.7 million |
+| Total variant records per genome | 11.7 million (~4.69M PASS) |
 | Annotated searchable vectors | 3.56 million |
 | ClinVar records integrated | 4.1 million |
 | AlphaMissense predictions | 71 million |
@@ -125,7 +125,7 @@ The Genomic Foundation Engine is the entry point of the HCLS AI Factory. It acce
 
 **Stage 6: VCF Output and Handoff**
 - Annotated VCF with multi-source evidence fields
-- 11.7 million variants per whole genome
+- 11.7 million variant records per whole genome
 - 3.56 million variants with actionable annotations
 - Automatic handoff to the Precision Intelligence Engine for embedding
 
@@ -1788,7 +1788,7 @@ Root: Patient DNA to Drug Candidates
   |   |- Alignment (BWA-MEM2)
   |   |- Variant Calling (DeepVariant)
   |   |- Annotation (ClinVar, AlphaMissense)
-  |   |- Output: 11.7M variants
+  |   |- Output: 11.7M variant records
   |- Stage 2: Variant Interpretation
   |   |- Agent Selection (by disease context)
   |   |- RAG Search (45 collections)
@@ -1855,7 +1855,7 @@ Show the complete end-to-end platform architecture with the three engines as pri
 - Output node: "Drug Candidates" (rounded rectangle)
 
 **Connections:**
-- FASTQ --> Engine 1 ("11.7M variants")
+- FASTQ --> Engine 1 ("11.7M variant records")
 - Engine 1 --> Engine 2 ("3.56M annotated variants")
 - Engine 2 --> Engine 3 ("Prioritized targets")
 - Engine 3 --> Output ("Ranked candidates")

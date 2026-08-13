@@ -81,7 +81,7 @@ A **GPU** (Graphics Processing Unit) is a special computer chip originally desig
 
 ### The VCF File
 
-The output is a **VCF** (Variant Call Format) file containing every variant found. For a typical human genome, this includes about **11.7 million variants**. After filtering for quality, about **3.5 million** high-confidence variants remain.
+The output is a **VCF** (Variant Call Format) file containing every variant found. For a typical human genome, this includes about **11.7 million variant records**. That is a count of *candidate* rows in the file, not of confident calls — about **4.69 million** carry the caller's `PASS` filter, and about **3.56 million** clear the stricter quality threshold the platform uses.
 
 **Key concepts:**
 - **GPU** — a computer chip that's very fast at parallel processing
@@ -95,7 +95,7 @@ The output is a **VCF** (Variant Call Format) file containing every variant foun
 
 ### Not All Variants Are Equal
 
-Of the 11.7 million variants found, most are harmless. The challenge is finding the few that actually cause disease. This is like finding a needle in a haystack — except the haystack has 11.7 million pieces of hay.
+Of the 11.7 million variant records found, most are harmless. The challenge is finding the few that actually cause disease. This is like finding a needle in a haystack — except the haystack has 11.7 million pieces of hay.
 
 ### Three Annotation Databases
 
@@ -114,7 +114,7 @@ The platform checks each variant against three databases:
 
 ### The Annotation Funnel
 
-Starting with 11.7 million variants, the platform narrows down to the most important ones:
+Starting with 11.7 million variant records, the platform narrows down to the most important ones:
 - 11.7M → 3.5M (quality filter)
 - 3.5M → 35,616 (match ClinVar)
 - 35,616 → 6,831 (have AlphaMissense scores)

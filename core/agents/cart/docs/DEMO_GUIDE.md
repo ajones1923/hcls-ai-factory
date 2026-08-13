@@ -652,7 +652,7 @@ Draw or show this architecture on a whiteboard or slide:
 
 ```
 Stage 1: Genomics Pipeline (Parabricks)
-  Patient FASTQ --> BWA-MEM2 --> DeepVariant --> 11.7M Variants
+  Patient FASTQ --> BWA-MEM2 --> DeepVariant --> 11.7M Variant Records
   Time: 120-240 min on DGX Spark
 
 Stage 2: RAG/Chat Pipeline (Milvus + Claude)

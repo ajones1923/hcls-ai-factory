@@ -76,7 +76,7 @@ Small thin-line icon of a clock next to a red pill badge: "Decision Needed Now"
 - **Body content in structured rows:**
 
   **Input Row:**
-  - Patient genome: 11.7M variants (VCF)
+  - Patient genome: 11.7M variant records (VCF)
   - Clinical status: Day 29 MRD 0.1%
   - Key findings: ETV6-RUNX1 fusion, IKZF1 deletion
   - Risk classification: IKZF1plus (High Risk)
@@ -214,7 +214,7 @@ Small thin-line icon of a clock next to a red pill badge: "Decision Needed Now"
 - "< 30 seconds" on central hub
 - "5 agents in parallel" on orchestrator
 - "3.56M vectors" on vector search references
-- "11.7M variants" on patient genome input
+- "11.7M variant records" on patient genome input
 - "2,880x faster" on comparison bar
 - "98% CD19+" on CAR-T agent
 - "3 trial matches" on Clinical Trial agent

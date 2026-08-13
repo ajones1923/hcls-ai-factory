@@ -455,7 +455,7 @@
       "id": "imaging-intelligence-agent",
       "type": "engine",
       "name": "Clinical Imaging Engine",
-      "description": "Live DICOM analysis (VISTA-3D segmentation, VILA-M3 image/report reasoning, FHIR R4 export) with cross-modality reasoning against genomics. MAISI synthetic imaging is research/augmentation/QA only, never diagnostic. Decision support. (Honesty: the live-verified modality is chest X-ray analysis via DenseNet-121 on real DICOM pixels; the VISTA-3D / VILA-M3 CT path is a planned/placeholder modality, not yet live.)",
+      "description": "Live DICOM analysis (VISTA-3D segmentation, VILA-M3 image/report reasoning, FHIR R4 export) with cross-modality reasoning against genomics. MAISI synthetic imaging is research/augmentation/QA only, never diagnostic. Decision support. (Honesty: the live-verified modality is chest X-ray analysis via DenseNet-121 on real DICOM pixels; the VISTA-3D / VILA-M3 CT path is a planned/placeholder modality, not yet live.) The Cardiac Workup (CT coronary angiography) workflow is REPRESENTATIVE: ct_coronary_angiography.infer() returns fixed findings (CAD-RADS 4A/P3/HRP, Agatston 385 representative, 77.9% stenosis measured from a segmented vessel surface) \u2014 SegResNet/VISTA-3D coronary inference is not yet wired. Its imagery is a rendered coronary surface mesh (CoronariesNC6, manual rater ground truth), not a patient CT.",
       "domain": "clinical",
       "inputs": [
         {

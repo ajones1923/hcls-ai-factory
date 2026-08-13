@@ -290,7 +290,7 @@
 - **Total VCP variants found:** 13
 
 ### Demo Flow
-1. Process HG002 whole-genome (Parabricks → 11.7M variants)
+1. Process HG002 whole-genome (Parabricks → 11.7M variant records)
 2. Annotate variants (ClinVar + AlphaMissense → identify 13 VCP variants)
 3. RAG chat: "What variants are associated with frontotemporal dementia?"
 4. Knowledge graph connects VCP variants to FTD via Clinker
@@ -377,7 +377,7 @@ Illumina Sequencer → FASTQ (~200 GB, 30× WGS)
     ↓
 [Stage 1: Genomics Pipeline — 120-240 min]
     Parabricks fq2bam (BWA-MEM2) → BAM (~100 GB)
-    DeepVariant → VCF (~11.7M variants)
+    DeepVariant → VCF (~11.7M variant records)
     ↓
 [Stage 2: RAG/Chat Pipeline — Interactive]
     ClinVar (4.1M) + AlphaMissense (71M) annotation

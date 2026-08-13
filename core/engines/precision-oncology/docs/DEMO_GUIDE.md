@@ -725,7 +725,7 @@ curl -s http://localhost:8527/knowledge/stats | python3 -m json.tool
 >
 > Stage 1 takes raw patient DNA -- FASTQ files -- and runs GPU-accelerated variant
 > calling with Parabricks and DeepVariant. In 2 to 4 hours, you have an annotated
-> VCF file with 11.7 million variants.
+> VCF file with 11.7 million variant records.
 >
 > Stage 2 -- the RAG pipeline -- embeds those variants into Milvus alongside 3.56
 > million searchable vectors from ClinVar, AlphaMissense, and the oncology knowledge

@@ -404,8 +404,9 @@ H2("The VCF File")
 body(
     "The output is a VCF (Variant Call Format) file containing every variant "
     "found. For a typical human genome, this includes about 11.7 million "
-    "variants. After filtering for quality, about 3.5 million high-confidence "
-    "variants remain."
+    "variant records. That is a count of candidate rows in the file, not of "
+    "confident calls \u2014 about 4.69 million carry the caller\u2019s PASS filter, "
+    "and about 3.56 million clear the stricter quality threshold the platform uses."
 )
 
 H3("Key Concepts")
@@ -424,7 +425,7 @@ H1("Chapter 4: Stage 2 \u2014 Understanding What the Variants Mean")
 
 H2("Not All Variants Are Equal")
 body(
-    "Of the 11.7 million variants found, most are harmless. The challenge is "
+    "Of the 11.7 million variant records found, most are harmless. The challenge is "
     "finding the few that actually cause disease. This is like finding a "
     "needle in a haystack \u2014 except the haystack has 11.7 million pieces "
     "of hay."
@@ -462,7 +463,7 @@ body(
 
 H2("The Annotation Funnel")
 body(
-    "Starting with 11.7 million variants, the platform narrows down to "
+    "Starting with 11.7 million variant records, the platform narrows down to "
     "the most important ones:"
 )
 add_table(

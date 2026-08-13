@@ -18,7 +18,7 @@ tags:
 
 The HCLS AI Factory follows a reusable pattern: identify a canonical artifact, build a persistent data model around it, and let agentic workflows operate continuously on that model. In genomics, the canonical artifact is the VCF — a structured record of every genomic variant identified in a patient's DNA. This white paper describes an end-to-end platform that processes raw DNA sequencing data through GPU-accelerated variant calling, RAG-grounded clinical reasoning, and AI-driven drug discovery — all on a single NVIDIA DGX Spark desktop workstation. A primary use case is pediatric oncology, where rapid turnaround from tumor sequencing to actionable therapeutic candidates can be life-saving — but the architecture generalizes across all 13 therapeutic areas.
 
-The platform transforms patient FASTQ files (~200 GB of raw sequencing data from a 30× whole-genome study) into 100 ranked novel drug candidates in under 5 hours. Three stages execute sequentially: NVIDIA Parabricks performs GPU-accelerated alignment and variant calling (120-240 min), producing ~11.7 million variants. A RAG pipeline annotates variants with ClinVar, AlphaMissense, and VEP, indexes 3.56 million high-quality variants in a Milvus vector database, and uses Anthropic Claude to identify druggable gene targets. Finally, BioNeMo NIM services (MolMIM and DiffDock) generate novel molecules, predict binding affinities, and rank candidates by a composite drug-likeness score.
+The platform transforms patient FASTQ files (~200 GB of raw sequencing data from a 30× whole-genome study) into 100 ranked novel drug candidates in under 5 hours. Three stages execute sequentially: NVIDIA Parabricks performs GPU-accelerated alignment and variant calling (120-240 min), producing a VCF of ~11.7 million variant records (~4.69M of which pass filtering). A RAG pipeline annotates variants with ClinVar, AlphaMissense, and VEP, indexes 3.56 million high-quality variants in a Milvus vector database, and uses Anthropic Claude to identify druggable gene targets. Finally, BioNeMo NIM services (MolMIM and DiffDock) generate novel molecules, predict binding affinities, and rank candidates by a composite drug-likeness score.
 
 The architecture is designed to run end-to-end on a $4,699 DGX Spark for proof builds and scale to DGX SuperPOD for enterprise deployments. All HCLS AI Factory code is released under Apache 2.0. The platform integrates open-source tools (Milvus, RDKit, DeepVariant), NVIDIA software (Parabricks, BioNeMo NIMs — free for development on DGX Spark), and the Anthropic Claude API. See the [Licensing & Cost Guide](licensing.md) for details.
 
@@ -26,7 +26,7 @@ The architecture is designed to run end-to-end on a $4,699 DGX Spark for proof b
 
 ## 2. The Precision Medicine Data Challenge
 
-Precision medicine promises therapies tailored to an individual's genetic profile. A single 30× whole-genome sequencing (WGS) run produces approximately 200 GB of raw data and 11.7 million genomic variants. The challenge is not generating this data — modern sequencers produce it reliably — but transforming it into actionable therapeutic hypotheses within a clinically relevant timeframe.
+Precision medicine promises therapies tailored to an individual's genetic profile. A single 30× whole-genome sequencing (WGS) run produces approximately 200 GB of raw data and ~11.7 million genomic variant records, of which ~4.69 million pass filtering. The challenge is not generating this data — modern sequencers produce it reliably — but transforming it into actionable therapeutic hypotheses within a clinically relevant timeframe.
 
 ### The Limits of Traditional Bioinformatics
 
@@ -54,7 +54,7 @@ The HCLS AI Factory processes data through three sequential engines:
 
 | Engine | Technology | Duration | Input | Output |
 |---|---|---|---|---|
-| 1 — Genomic Foundation Engine | Parabricks 4.6 (BWA-MEM2 + DeepVariant) | 120-240 min | FASTQ (~200 GB) | VCF (~11.7M variants) |
+| 1 — Genomic Foundation Engine | Parabricks 4.6 (BWA-MEM2 + DeepVariant) | 120-240 min | FASTQ (~200 GB) | VCF (~11.7M variant records; ~4.69M PASS) |
 | 2 — Precision Intelligence Engine | Milvus + BGE + Claude + 8 intelligence agents | Interactive | VCF | Target gene + evidence |
 | 3 — Therapeutic Discovery Engine | MolMIM + DiffDock + RDKit | 8-16 min | Target gene | 100 ranked drug candidates |
 
@@ -104,7 +104,9 @@ The platform uses HG002 from the Genome in a Bottle (GIAB) Consortium — an Ash
 
 ### Output: Variant Call Format (VCF)
 
-The VCF contains ~11.7 million variants: ~4.2 million SNPs, ~1.0 million indels, and ~150,000 multi-allelic sites. Of these, ~3.56 million pass the quality filter (QUAL>30), with ~35,000 in coding regions.
+The VCF contains ~11.7 million **variant records**, emitted at all quality levels — ~10.2 million SNVs, ~1.5 million indels, and ~85,000 multi-allelic sites. These are candidates, not confident calls: most will not survive filtering. Of them, ~4.69 million carry the caller's `PASS` filter (~3.8 million SNVs, ~0.87 million indels) — the figure comparable to the ~4–5 million variants typically reported per human genome against GRCh38 — and ~3.56 million meet the stricter QUAL>30 threshold used downstream, with ~35,000 in coding regions.
+
+> **Note on the headline number.** The familiar "11.7M variants" is a count of *records in the VCF*, not of confident variant calls. Both figures are correct and describe different populations; quoting the total while breaking it down by the filtered composition is what makes the two look irreconcilable. Counts verified directly against `hcls-ai-factory-core-data/vcf/HG002.genome.vcf.gz` (GIAB HG002).
 
 ---
 

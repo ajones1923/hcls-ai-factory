@@ -53,7 +53,7 @@ The HCLS AI Factory is an end-to-end precision medicine platform that takes a pa
 
 | Stage | Function | Duration | Key Output |
 |---|---|---|---|
-| 1 — Genomic Foundation Engine | BWA-MEM2 alignment + DeepVariant calling | 120-240 min | VCF (~11.7M variants) |
+| 1 — Genomic Foundation Engine | BWA-MEM2 alignment + DeepVariant calling | 120-240 min | VCF (~11.7M variant records) |
 | 2 — Precision Intelligence Engine | Annotation → Embedding → LLM reasoning + 8 intelligence agents | Interactive | Target gene + evidence |
 | 3 — Therapeutic Discovery Engine | MolMIM generation → DiffDock docking → RDKit scoring | 8-16 min | 100 ranked drug candidates |
 
@@ -62,7 +62,7 @@ The HCLS AI Factory is an end-to-end precision medicine platform that takes a pa
 ```
 Patient DNA → Illumina Sequencer → FASTQ (~200 GB)
   → Parabricks fq2bam → BAM
-  → DeepVariant → VCF (11.7M variants)
+  → DeepVariant → VCF (11.7M variant records)
   → ClinVar + AlphaMissense + VEP annotation
   → Milvus vector indexing (3.56M embeddings)
   → Claude RAG reasoning → Target hypothesis (gene + evidence)
@@ -330,7 +330,7 @@ pbrun deepvariant \
 
 | Metric | Count |
 |---|---|
-| Total Variants | ~11.7M |
+| Total Variant Records | ~11.7M (~4.69M PASS) |
 | High-Quality (QUAL>30) | ~3.56M |
 | SNPs | ~4.2M |
 | Indels | ~1.0M |
@@ -365,7 +365,7 @@ Stage 2 annotates the VCF variants with clinical and functional databases, index
 ### Architecture
 
 ```
-VCF (11.7M variants)
+VCF (11.7M variant records)
   → Quality filter (QUAL>30) → 3.56M variants
   → ClinVar annotation → clinical significance
   → AlphaMissense annotation → pathogenicity prediction
@@ -379,7 +379,7 @@ VCF (11.7M variants)
 
 | Stage | Variant Count | Filter |
 |---|---|---|
-| Raw VCF | ~11.7M | — |
+| Raw VCF | ~11.7M records | — |
 | Quality filter | ~3.56M | QUAL > 30 |
 | ClinVar match | ~35,616 | Clinical significance annotated |
 | AlphaMissense match | ~6,831 | AI pathogenicity predicted |
@@ -905,7 +905,7 @@ def score_structure(structure: StructureInfo) -> float:
 1. Load pre-processed HG002 FASTQ subset
 2. Run Parabricks fq2bam alignment
 3. Run DeepVariant variant calling
-4. Output VCF with ~11.7M variants including rs188935092
+4. Output VCF with ~11.7M variant records including rs188935092
 
 **Stage 2 — RAG/Chat (Interactive):**
 1. VCF annotated: ClinVar flags rs188935092 as pathogenic in VCP

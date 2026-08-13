@@ -64,11 +64,11 @@ nextflow run main.nf --fastq_dir /data/sarah/ --output_dir /results/sarah/ -prof
 - Memory bandwidth: NVLink-C2C streaming reads to GPU at 900 GB/s
 - Throughput: ~1.8 billion reads aligned per hour
 
-> "DeepVariant is next -- NVIDIA's GPU-accelerated variant caller. It examines every position in the genome and asks: does Sarah differ from the reference here? By the time it finishes, we will have identified approximately 11.7 million variants."
+> "DeepVariant is next -- NVIDIA's GPU-accelerated variant caller. It examines every position in the genome and asks: does Sarah differ from the reference here? By the time it finishes, we will have identified approximately 11.7 million variant records."
 
 *[Show variant count ticking up in the Genomics UI at port 5000]*
 
-> "11.7 million variants. That is Sarah's complete genetic fingerprint. But only a handful of those matter for her disease. Finding those needles in the haystack is where the AI agents take over."
+> "11.7 million variant records. That is Sarah's complete genetic fingerprint. But only a handful of those matter for her disease. Finding those needles in the haystack is where the AI agents take over."
 
 ---
 
@@ -164,7 +164,7 @@ and likely pathogenic variants with neurological implications.
 *[Walk through the Patient 360 dashboard]*
 
 **Genomics Layer:**
-> "11.7 million variants called. 3 pathogenic variants identified in VCP. Full ACMG classification with evidence."
+> "11.7 million variant records called. 3 pathogenic variants identified in VCP. Full ACMG classification with evidence."
 
 **Biomarker Layer:**
 > "Biological age offset: +4.2 years. Muscle enzyme trajectory: ascending. Inflammatory markers: subclinical elevation. Disease trajectory: early-stage with intervention window."

@@ -189,7 +189,7 @@ H1("The Solution \u2014 Three Stages")
 H2("Stage 1: GPU-Accelerated Genomics (120-240 min)")
 bullet("\u2022", "NVIDIA Parabricks 4.6 \u2014 10-20\u00d7 faster than CPU")
 bullet("\u2022", "BWA-MEM2 alignment: 20-45 min | DeepVariant: 10-35 min, >99% accuracy")
-bullet("\u2022", "Input: ~200 GB FASTQ | Output: VCF (~11.7M variants)")
+bullet("\u2022", "Input: ~200 GB FASTQ | Output: VCF (~11.7M variant records)")
 
 H2("Stage 2: RAG-Grounded Target Identification (Interactive)")
 bullet("\u2022", "ClinVar (4.1M) + AlphaMissense (71M) + VEP annotation")

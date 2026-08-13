@@ -1569,7 +1569,7 @@ Create a Grafana dashboard with panels for:
 
 The HCLS AI Factory runs three stages:
 
-1. **Genomics Pipeline** (120-240 min): FASTQ -> VCF via Parabricks (BWA-MEM2, DeepVariant). Produces 11.7M variants.
+1. **Genomics Pipeline** (120-240 min): FASTQ -> VCF via Parabricks (BWA-MEM2, DeepVariant). Produces 11.7M variant records.
 2. **RAG/Chat Pipeline** (interactive): ClinVar (~2.7M) + AlphaMissense (71M) + Milvus (3.5M vectors) + Claude. Produces the `genomic_evidence` Milvus collection.
 3. **Drug Discovery Pipeline** (8-16 min): MolMIM generation + DiffDock docking + RDKit scoring.
 

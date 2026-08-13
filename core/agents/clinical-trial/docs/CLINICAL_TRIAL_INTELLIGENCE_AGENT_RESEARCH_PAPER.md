@@ -320,7 +320,7 @@ The genomics pipeline transforms raw sequencing data (FASTQ format) into annotat
 (VCF format) using GPU-accelerated tools. NVIDIA Parabricks 4.6 provides GPU-accelerated
 implementations of BWA-MEM2 for read alignment and DeepVariant for variant calling, reducing
 whole-genome analysis from 24-48 hours on CPU to 120-240 minutes on DGX Spark. The pipeline
-processes the standard NA12878 reference genome (11.7 million variants) as its demo dataset, with
+processes the standard NA12878 reference genome (11.7 million variant records) as its demo dataset, with
 3.56 million variants annotated and ready for downstream analysis.
 
 **Stage 2: RAG/Chat Pipeline** (`core/engines/precision-intelligence/`)

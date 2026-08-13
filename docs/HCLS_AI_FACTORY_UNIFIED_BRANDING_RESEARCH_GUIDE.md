@@ -739,7 +739,7 @@ Card 1 — Genomic Foundation Engine:
 - Icon: DNA double helix
 - Headline: "Genomic Foundation Engine"
 - Subtext: "Patient DNA -> 3.5M annotated variant vectors in 2 hours"
-- Key metric: "3.5M vectors | 11.7M variants | ClinVar + AlphaMissense + gnomAD"
+- Key metric: "3.5M vectors | 11.7M variant records | ClinVar + AlphaMissense + gnomAD"
 - CTA button: "Explore the Foundation" -> /engines/genomic-foundation/
 
 Card 2 — Precision Intelligence Engine:

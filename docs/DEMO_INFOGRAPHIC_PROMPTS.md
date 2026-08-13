@@ -29,7 +29,7 @@ Show 4 sequential steps inside with small icons:
 - FASTQ icon (DNA helix) → "Raw Sequencing Data"
 - GPU chip icon → "BWA-MEM2 Alignment (45 min GPU vs 12 hrs CPU)"
 - Neural network icon → "DeepVariant Variant Calling"
-- Document icon → "Annotated VCF: 11.7M variants"
+- Document icon → "Annotated VCF: 11.7M variant records"
 Label at bottom: "Powered by NVIDIA Parabricks on DGX Spark"
 
 **Connecting arrow (green #76B900, animated-style dotted line)**

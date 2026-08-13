@@ -83,7 +83,7 @@ A typical human genome contains approximately:
 - **3 billion** base pairs (A, C, G, T)
 - **4-5 million** variants compared to the reference genome
 - **~20,000** protein-coding genes
-- **~11.7 million** total variants (including non-coding regions) in a 30x whole-genome sequence
+- **~11.7 million** total variant records (including non-coding regions) in a 30x whole-genome sequence — of which **~4.69 million** carry the caller's `PASS` filter
 
 Most variants are harmless—normal human diversity. But some affect genes in ways that change proteins, and those changes are often where disease begins. This pipeline is the first step in finding those critical variants.
 
@@ -204,7 +204,7 @@ This pipeline processes whole-genome sequencing (WGS) data through a complete bi
 │                                        │                                    │
 │                                        ▼                                    │
 │   Output: VCF File (HG002.genome.vcf.gz)                                   │
-│           ~11.7 million variants identified                                 │
+│           ~11.7 million variant records identified                                 │
 │           Ready for annotation in RAG/Chat Pipeline                         │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -335,7 +335,7 @@ This pipeline processes whole-genome sequencing (WGS) data through a complete bi
 │                       ▼                                                     │
 │              ┌─────────────────┐                                           │
 │              │   VCF File      │──────────▶  RAG/Chat Pipeline            │
-│              │ ~11.7M variants │             (Stage 2)                     │
+│              │ ~11.7M variant records │             (Stage 2)                     │
 │              └─────────────────┘                                           │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -1032,7 +1032,7 @@ Stage 1 (This Pipeline)
     │  Parabricks fq2bam + DeepVariant
     │        │
     │        ▼
-    │  VCF file (11.7M variants)
+    │  VCF file (11.7M variant records)
     │
     └───────────────────────────────────────────▶ Stage 2 (RAG/Chat)
                                                       │

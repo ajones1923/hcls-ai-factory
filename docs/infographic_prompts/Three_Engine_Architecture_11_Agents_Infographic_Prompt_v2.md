@@ -77,7 +77,7 @@ Three large rounded boxes connected by bold green arrows (→). Each box has a g
 FASTQ    →    BWA-MEM2      →    DeepVariant    →    Annotated VCF
 Input          Alignment           Calling              Output
 
-               [45 min]           [>99.7%]            [11.7M variants]
+               [45 min]           [>99.7%]            [11.7M variant records]
                vs 12 hrs CPU       accuracy             ClinVar + AlphaMissense
 
 Parabricks on DGX Spark | GRCh38

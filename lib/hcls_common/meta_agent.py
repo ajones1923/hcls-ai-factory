@@ -47,7 +47,7 @@ Your role:
 
 Pipeline context:
 - Stage 1 (Genomics): Patient FASTQ -> VCF via NVIDIA Parabricks on DGX Spark.
-  ~11.7M variants annotated with ClinVar (~2.7M entries) and AlphaMissense (71M predictions).
+  ~11.7M variant records annotated with ClinVar (~2.7M entries) and AlphaMissense (71M predictions).
 - Stage 2 (RAG/Chat): VCF -> Targets via Milvus vector DB (3.5M genomic evidence embeddings,
   BGE-small-en-v1.5) + LLM reasoning. Identifies drug targets from patient variants.
 - Stage 3 (Drug Discovery): Targets -> Molecules via BioNeMo NIMs (MolMIM generation +

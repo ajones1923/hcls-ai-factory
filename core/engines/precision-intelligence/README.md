@@ -69,7 +69,7 @@ This engine is the **intelligence layer** of the HCLS AI Factory. It takes the Q
 │                         STAGE 2: RAG/CHAT PIPELINE                           │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│   VCF File (11.7M variants)                                                 │
+│   VCF File (11.7M variant records)                                                 │
 │        │                                                                    │
 │        ▼                                                                    │
 │   ┌──────────────────────────────────────────────────────────────┐        │
@@ -125,7 +125,7 @@ This engine is the **intelligence layer** of the HCLS AI Factory. It takes the Q
 
 Once we have the VCF from the Genomics Pipeline, the next step is **annotation**—this is where genetic differences start to gain meaning.
 
-From the roughly **11.7 million variants** identified across all chromosomes, annotation enriches each variant with biological and clinical context by linking it to:
+From the roughly **11.7 million variant records** identified across all chromosomes, annotation enriches each variant with biological and clinical context by linking it to:
 - The **gene** it affects
 - The **type of change** it causes (missense, frameshift, etc.)
 - Whether it has been **observed before** in clinical databases
@@ -136,7 +136,7 @@ This process allows us to quickly separate normal human variation from the small
 ### The Filtering Funnel
 
 ```
-11.7M variants (raw from VCF)
+11.7M variant records (raw from VCF)
       │
       ▼ Quality filter (QUAL > 30)
 3.5M high-quality variants
