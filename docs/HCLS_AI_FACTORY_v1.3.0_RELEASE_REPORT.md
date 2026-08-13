@@ -128,7 +128,7 @@ Six pediatric safety filters are now connected to real data:
 
 - **Input:** FASTQ (whole-genome sequencing data)
 - **Processing:** BWA-MEM2 alignment, Parabricks fq2bam, DeepVariant variant calling
-- **Output:** VCF with 11.7M variants
+- **Output:** VCF with 11.7M variant records (~4.69M PASS)
 - **Reference genome:** GRCh38 (HG002 GIAB demo sample)
 - **Performance:** 120-240 minutes (GPU) vs 24-48 hours (CPU-only)
 
@@ -308,7 +308,7 @@ All repositories tagged with v1.3.0:
 
 | Metric | Value |
 |--------|-------|
-| Variants in demo genome | 11.7M |
+| Variant records in demo genome | 11.7M (~4.69M PASS) |
 | Searchable vectors | 3.56M (annotated variants) + 47.7K (agent knowledge) |
 | ClinVar records | 4.1M |
 | AlphaMissense predictions | 71M |

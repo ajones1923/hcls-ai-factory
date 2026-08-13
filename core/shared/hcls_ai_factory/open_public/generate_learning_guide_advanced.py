@@ -467,7 +467,7 @@ body(
 )
 
 code_block(
-    "VCF (11.7M variants)\n"
+    "VCF (11.7M variant records)\n"
     "  \u2192 parse_vcf(min_qual=30)     \u2192 3.5M variants\n"
     "  \u2192 annotate_clinvar()          \u2192 Clinical significance\n"
     "  \u2192 annotate_alphamissense()    \u2192 AI pathogenicity scores\n"

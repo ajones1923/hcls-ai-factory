@@ -477,7 +477,7 @@ The CAR-T Intelligence Agent is one component of the HCLS AI Factory, an end-to-
 
 | Stage | Duration | Process | Output |
 |-------|----------|---------|--------|
-| **1. Genomics** | 120-240 min | FASTQ to VCF via Parabricks 4.6, BWA-MEM2, DeepVariant | 11.7 million variants |
+| **1. Genomics** | 120-240 min | FASTQ to VCF via Parabricks 4.6, BWA-MEM2, DeepVariant | 11.7 million variant records |
 | **2. RAG/Chat** | Interactive | ClinVar (~2.7M) + AlphaMissense (71M) + Milvus (3.5M vectors) + Claude | Variant interpretation, gene-drug associations |
 | **3. Drug Discovery** | 8-16 min | MolMIM generation + DiffDock docking + RDKit scoring | Candidate molecules with docking scores |
 

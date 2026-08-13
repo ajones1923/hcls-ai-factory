@@ -101,7 +101,7 @@ Small thin-line icon of a child silhouette next to the name. Red (#DC2626) small
 - Thin green-bordered rounded rectangle
 - Header: "VCF Output" in bold navy
 - Body: Variant Call Format | Annotated with ClinVar (4.1M records) | AlphaMissense (71M predictions)
-- Metric badge (green pill): "11.7M variants"
+- Metric badge (green pill): "11.7M variant records"
 
 **Arrow (solid gray, rightward):** labeled "Annotated Variants"
 
@@ -243,7 +243,7 @@ Small thin-line icon of a child silhouette next to the name. Red (#DC2626) small
 **Performance metric badges** scattered throughout (small rounded green pills with white text):
 - "< 45 min" on BWA-MEM2 alignment
 - "> 99.7% accuracy" on DeepVariant
-- "11.7M variants" on VCF output
+- "11.7M variant records" on VCF output
 - "3.56M vectors" on Milvus
 - "500 candidates" on MolMIM
 - "-9.1 kcal/mol" on DiffDock

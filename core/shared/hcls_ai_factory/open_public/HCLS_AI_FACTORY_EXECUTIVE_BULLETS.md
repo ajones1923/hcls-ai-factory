@@ -28,7 +28,7 @@ The HCLS AI Factory transforms patient DNA into ranked novel drug candidates in 
 - BWA-MEM2 alignment: **20-45 min** (vs. 12-24 hours on CPU)
 - Google DeepVariant: **10-35 min**, >99% accuracy
 - Input: ~200 GB FASTQ (30× WGS, HG002)
-- Output: VCF with **~11.7 million variants**
+- Output: VCF with **~11.7 million variant records**
 
 ### Stage 2: RAG-Grounded Target Identification (Interactive)
 - **3 annotation databases:** ClinVar (4.1M), AlphaMissense (71M), Ensembl VEP

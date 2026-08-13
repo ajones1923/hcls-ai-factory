@@ -20,7 +20,7 @@
 
 1. Raw DNA data (FASTQ) entering the platform
 2. GPU-accelerated variant calling (Parabricks) completing in minutes
-3. 11.7 million variants annotated and indexed in a vector database
+3. 11.7 million variant records annotated and indexed in a vector database
 4. Interactive Claude RAG chat identifying VCP as a drug target
 5. BioNeMo generating 100 novel VCP inhibitors
 6. Ranked candidates with docking scores and drug-likeness profiles
@@ -131,7 +131,7 @@ python run_pipeline.py --mode demo
 
 **Key numbers to mention:**
 - ~200 GB FASTQ input (30× whole-genome sequencing)
-- ~11.7 million variants called
+- ~11.7 million variant records called
 - ~3.5 million pass quality filter (QUAL>30)
 - GRCh38 reference genome (3.1 GB)
 
@@ -151,7 +151,7 @@ python run_pipeline.py --mode demo
 - "VEP — Ensembl Variant Effect Predictor for functional consequences."
 
 **Annotation funnel to walk through:**
-- 11.7M variants → 3.5M (quality filter) → 35,616 (ClinVar match) → 6,831 (AlphaMissense match) → 2,412 (actionable)
+- 11.7M variant records → 3.5M (quality filter) → 35,616 (ClinVar match) → 6,831 (AlphaMissense match) → 2,412 (actionable)
 
 #### Show Vector Database
 

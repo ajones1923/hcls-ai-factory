@@ -32,7 +32,7 @@
 ##### GRCh38 Human Genome Assembly
 ##### Alt Contigs Included
 
-### Output: Annotated VCF (11.7M Variants)
+### Output: Annotated VCF (11.7M Variant Records)
 
 ### Annotation
 #### ClinVar (4.1M Clinical Records)

@@ -112,7 +112,7 @@ Card 3:
 Card 4:
 - Label: "Annotated VCF" (bold, navy)
 - Detail: "ClinVar + AlphaMissense" (gray, 8pt)
-- Metric badge: "11.7M variants" (green pill)
+- Metric badge: "11.7M variant records" (green pill)
 - Icon: document with checkmark (thin-line)
 
 **Footer line (bottom of block, small gray text):**
@@ -405,7 +405,7 @@ Each category label in teal (#1AAFCC, bold), values in dark gray (#333333, regul
 **Performance metric badges scattered throughout (small rounded green pills with white text):**
 - "45 min alignment" on BWA-MEM2 card
 - ">99.7% accuracy" on DeepVariant card
-- "11.7M variants" on VCF output card
+- "11.7M variant records" on VCF output card
 - "3.56M vectors" on Milvus card
 - "8 agents" on agent component card
 - "500 molecules" on MolMIM card
@@ -434,7 +434,7 @@ Each category label in teal (#1AAFCC, bold), values in dark gray (#333333, regul
 2. **8 agents organized by clinical domain** — Four domain groups (Oncology & Immunotherapy, Specialty Medicine, Diagnostics & Genomics, Clinical Operations) with every agent visible and described.
 3. **The agents are the intelligence layer** — They live inside the Precision Intelligence Engine (Engine 2) and are the bridge between genomic data and therapeutic discovery.
 4. **Cross-agent coordination is real** — Dashed teal lines show agents communicating across domains. This isn't 11 isolated tools — it's a coordinated network.
-5. **Every number is specific** — 11.7M variants, 3.56M vectors, 88 rare diseases, 57 cell types, 10 clinical scales, 6 risk calculators, 23 ACMG criteria. These aren't round numbers. They're verified counts.
+5. **Every number is specific** — 11.7M variant records, 3.56M vectors, 88 rare diseases, 57 cell types, 10 clinical scales, 6 risk calculators, 23 ACMG criteria. These aren't round numbers. They're verified counts.
 6. **Pediatric safety is built in** — The Therapeutic Discovery Engine explicitly shows pediatric safety filters (BBB, cardiac, hepatic, growth plate). This isn't an afterthought.
 7. **The technology stack is identified** — NVIDIA Parabricks, BioNeMo, DGX Spark, Milvus, Claude, RDKit — everything is named and placed.
 8. **It's open source** — Apache 2.0 badge is prominent. "Free for Every Hospital on Earth" is visible.

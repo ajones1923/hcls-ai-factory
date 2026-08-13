@@ -219,7 +219,8 @@ body(
     "from a 30\u00d7 whole-genome study) into 100 ranked novel drug candidates in "
     "under 5 hours. Three stages execute sequentially: NVIDIA Parabricks performs "
     "GPU-accelerated alignment and variant calling (120-240 min), producing ~11.7 "
-    "million variants. A RAG pipeline annotates variants with ClinVar, AlphaMissense, "
+    "million variant records (~4.69 million of which pass filter). A RAG pipeline "
+    "annotates variants with ClinVar, AlphaMissense, "
     "and VEP, indexes 3.5 million high-quality variants in a Milvus vector database, "
     "and uses Anthropic Claude to identify druggable gene targets. Finally, BioNeMo "
     "NIM services (MolMIM and DiffDock) generate novel molecules, predict binding "
@@ -241,7 +242,7 @@ H1("2. The Precision Medicine Data Challenge")
 body(
     "Precision medicine promises therapies tailored to an individual\u2019s genetic "
     "profile. A single 30\u00d7 whole-genome sequencing (WGS) run produces approximately "
-    "200 GB of raw data and 11.7 million genomic variants. The challenge is not "
+    "200 GB of raw data and 11.7 million genomic variant records. The challenge is not "
     "generating this data \u2014 modern sequencers produce it reliably \u2014 but transforming "
     "it into actionable therapeutic hypotheses within a clinically relevant timeframe."
 )
@@ -292,7 +293,7 @@ H2("Three-Stage Pipeline")
 add_table(
     ["Stage", "Technology", "Duration", "Input", "Output"],
     [
-        ["1 \u2014 Genomics", "Parabricks 4.6", "120-240 min", "FASTQ (~200 GB)", "VCF (~11.7M variants)"],
+        ["1 \u2014 Genomics", "Parabricks 4.6", "120-240 min", "FASTQ (~200 GB)", "VCF (~11.7M variant records)"],
         ["2 \u2014 RAG/Chat", "Milvus + BGE + Claude", "Interactive", "VCF", "Target gene + evidence"],
         ["3 \u2014 Drug Discovery", "MolMIM + DiffDock + RDKit", "8-16 min", "Target gene", "100 ranked candidates"],
     ],

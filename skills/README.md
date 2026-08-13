@@ -45,6 +45,12 @@ skills/
 │   ├── persona-builders-oss/SKILL.md
 │   ├── persona-patients-families/SKILL.md
 │   └── persona-skeptics/SKILL.md
+├── assistant/                          # tooling the assistant drives (audio, film, media)
+│   └── eleven-labs/
+│       ├── elevenlabs-video-production/SKILL.md  # PLAN: the 18-film engine/agent series
+│       ├── video-demos-alignment/SKILL.md        # bind films to the demos doc + honesty ledger
+│       └── hcls-film-series-pipeline/SKILL.md    # ⭐ BUILT: the shipped 7-film series — read
+│                                                 #   before changing anything in tmp/videos/
 └── architecture/                      # one invocable skill per Core Pillar (16)
     ├── 01-compute-dgx-spark-remote-gpus/SKILL.md
     ├── 02-storage-and-data-layer/SKILL.md

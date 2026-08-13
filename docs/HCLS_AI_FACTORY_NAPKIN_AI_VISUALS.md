@@ -19,7 +19,7 @@ Patient DNA to drug candidates in under 5 hours on a single NVIDIA DGX Spark.
 - ClinVar annotation (4.1M variants, February 2026 release)
 - AlphaMissense scoring (71,697,560 predictions)
 - Ensembl VEP consequence annotation
-- Output: VCF with 11.7M called variants
+- Output: VCF with 11.7M variant records
 
 ### Engine 2: Precision Intelligence Engine (Ports 8080, 8100-8544, 19530)
 
@@ -173,8 +173,8 @@ Patient DNA to drug candidates in under 5 hours on a single NVIDIA DGX Spark.
 |---|---|---|---|---|---|---|
 | 1. Alignment | BWA-MEM2 via Parabricks fq2bam | 34 min | 82% | 38 GB | 198.7 GB FASTQ | ~120 GB BAM |
 | 2. Sorting + Indexing | samtools (via Parabricks) | included | -- | -- | BAM | Sorted BAM + BAI |
-| 3. Variant Calling | Google DeepVariant (via Parabricks) | 22 min | 91% | 54 GB | Sorted BAM | VCF (11.7M variants) |
-| 4. Quality Filtering | bcftools / VCF filter | <1 min | 0% | 1 GB | 11.7M variants | 3.49M PASS variants |
+| 3. Variant Calling | Google DeepVariant (via Parabricks) | 22 min | 91% | 54 GB | Sorted BAM | VCF (11.7M variant records) |
+| 4. Quality Filtering | bcftools / VCF filter | <1 min | 0% | 1 GB | 11.7M variant records | 3.49M PASS variants |
 | 5. ClinVar Annotation | ClinVar Feb 2026 database | ~5 min | 0% | 4 GB | 3.49M variants | 35,616 clinically annotated |
 | 6. AlphaMissense Scoring | AlphaMissense v1.0 lookup | ~5 min | 0% | 6 GB | 35,616 variants | 6,831 AI-scored |
 | 7. VEP Annotation | Ensembl VEP (GRCh38) | ~8 min | 0% | 8 GB | 6,831 variants | Consequence-annotated VCF |

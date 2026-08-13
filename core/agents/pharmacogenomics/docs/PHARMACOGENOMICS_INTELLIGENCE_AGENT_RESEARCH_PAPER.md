@@ -222,7 +222,7 @@ The HCLS AI Factory is an end-to-end precision medicine platform deployed on NVI
 **Stage 1: Genomics Pipeline** (`core/engines/genomic-foundation/`)
 - Input: FASTQ (raw sequencing data) or pre-aligned BAM
 - Processing: BWA-MEM2 alignment → Parabricks/DeepVariant variant calling
-- Output: Annotated VCF files with 11.7 million variants per genome
+- Output: Annotated VCF files with 11.7 million variant records per genome
 - Relevance to PGx: **VCF output contains all pharmacogenomic variants** but they are not currently extracted, interpreted, or translated to prescribing guidance
 
 **Stage 2: RAG/Chat Pipeline** (`core/engines/precision-intelligence/`)
@@ -380,7 +380,7 @@ Screens for HLA alleles associated with drug hypersensitivity reactions:
 ### 6.1 Pipeline Overview
 
 ```
-VCF File (11.7M variants)
+VCF File (11.7M variant records)
     │
     ▼
 ┌──────────────────────────┐
@@ -427,7 +427,7 @@ VCF File (11.7M variants)
 
 ### 6.2 Variant Extraction Detail
 
-From a typical whole-genome VCF with 11.7 million variants, the pipeline extracts approximately 2,500 pharmacogenomically relevant positions across 25+ genes. Extraction uses a curated BED file of PGx-relevant coordinates derived from:
+From a typical whole-genome VCF with 11.7 million variant records, the pipeline extracts approximately 2,500 pharmacogenomically relevant positions across 25+ genes. Extraction uses a curated BED file of PGx-relevant coordinates derived from:
 
 - PharmVar database (all defined star allele positions)
 - CPIC gene-specific tables (defining variants for each guideline)

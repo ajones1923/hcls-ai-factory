@@ -11,7 +11,7 @@ The original v1.0 had these characteristics that MUST be maintained:
 - Left-to-right narrative flow across 3 stages
 - "It Starts with DNA" opening section on the far left with DNA illustration
 - Stage 1: "Reading the DNA" — Genomic Foundation Engine
-- Stage 2: "Finding What Matters" — funnel visualization narrowing 11.7M variants down to actionable targets
+- Stage 2: "Finding What Matters" — funnel visualization narrowing 11.7M variant records down to actionable targets
 - Stage 3: "Designing New Medicines" — molecule generation to ranked candidates
 - Bottom strip with comparison boxes ("AI-Designed vs Original Drug", "A Supercomputer on Your Desk", "Part of a Larger Vision")
 - Green footer bar with key metrics
@@ -132,14 +132,14 @@ FASTQ files           BWA-MEM2               VCF Output
 ```
 3.1 Billion bases
     ↓
-11.7 Million variants found
+11.7 Million variant records found
     ↓
 Annotated with ClinVar (4.1M records)
 & AlphaMissense (71M predictions)
 ```
 
 **Big number callout (NVIDIA green, very large):**
-**11.7M** Variants Identified
+**11.7M** Variant Records
 
 **Arrow labeled "Step 2: Find What Matters →"**
 
@@ -155,7 +155,7 @@ Annotated with ClinVar (4.1M records)
 
 **Top of funnel:**
 ```
-11.7 Million variants enter
+11.7 Million variant records enter
          ↓
 ```
 
@@ -303,7 +303,7 @@ Scaling: DGX Spark → DGX B200 → DGX SuperPOD
 **White bold text, evenly spaced metrics:**
 
 ```
-HCLS AI Factory    |    11.7M Variants    |    201 Genes    |    11 Agents    |    100 Drug Candidates    |    Under 5 Hours    |    Apache 2.0
+HCLS AI Factory    |    11.7M Variant Records    |    201 Genes    |    11 Agents    |    100 Drug Candidates    |    Under 5 Hours    |    Apache 2.0
 ```
 
 **Below (very small, gray on white):**
@@ -329,7 +329,7 @@ HCLS AI Factory    |    11.7M Variants    |    201 Genes    |    11 Agents    | 
 1. **A child's DNA goes in on the left, drug candidates come out on the right** — the story is linear, simple, and human
 2. **Three stages are clear and labeled** — Reading (green), Finding (teal), Designing (purple)
 3. **8 agents are VISIBLE in Stage 2** — not hidden, each one named with an icon
-4. **The numbers tell the story** — 3.1B bases → 11.7M variants → 5 actionable findings → 100 candidates → Top 3 with pediatric safety
+4. **The numbers tell the story** — 3.1B bases → 11.7M variant records → 5 actionable findings → 100 candidates → Top 3 with pediatric safety
 5. **Evelyn is real** — her name, her age, her specific findings appear throughout
 6. **Pediatric safety is explicit** — BBB, hERG, hepatic, growth plate shown in Stage 3
 7. **It runs on one $4,699 machine** — DGX Spark box in bottom strip

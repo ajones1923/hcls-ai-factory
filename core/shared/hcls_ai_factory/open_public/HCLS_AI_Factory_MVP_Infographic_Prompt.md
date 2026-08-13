@@ -120,8 +120,8 @@ Use small colored dots: NVIDIA green for Stage 1, teal for Stage 2, orange for S
    Metric badges: "10-35 min" (green pill), ">99% accuracy" (teal pill), "80-95% GPU" (teal pill)
 
 4. **VCF Output** [file output icon]
-   Metric badge: "~11.7M variants" (green pill)
-   Sub-metrics: "3.5M QUAL>30 | 4.2M SNPs | 1.0M indels | 35K coding"
+   Metric badge: "~11.7M variant records" (green pill)
+   Sub-metrics: "4.69M PASS | 3.56M QUAL>30 | 10.2M SNVs | 1.5M indels | 35K coding"
 
 5. **Genomics Portal** [dashboard icon, small card]
    Flask :5000

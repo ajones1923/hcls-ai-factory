@@ -210,7 +210,7 @@ bash health-monitor.sh --check-all
 
 **Say:**
 
-> "Evelyn's genome has already been processed. We have her VCF file with 11.7 million variants cataloged and annotated. Let's see what the AI makes of it."
+> "Evelyn's genome has already been processed. We have her VCF file with 11.7 million variant records cataloged and annotated. Let's see what the AI makes of it."
 
 **What you will see:** The Genomics Portal shows pipeline status, processing stages, and output file locations. If a run is active, progress bars indicate current stage completion.
 

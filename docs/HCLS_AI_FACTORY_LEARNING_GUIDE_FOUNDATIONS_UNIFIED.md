@@ -212,7 +212,7 @@ to provide domain-specific clinical decision support.
   |  +---------------------------+                                   |
   |       |                                                          |
   |       v                                                          |
-  |  VCF (11.7M variants)                                            |
+  |  VCF (11.7M variant records)                                            |
   |       |                                                          |
   |       +---> Annotate (ClinVar, AlphaMissense, VEP)               |
   |       |                                                          |
@@ -599,7 +599,7 @@ VEP (from Ensembl) classifies the functional impact of each variant:
 
 ### The Annotation Funnel
 
-Starting with 11.7 million raw variants, the platform progressively filters:
+Starting with 11.7 million raw variant records, the platform progressively filters:
 
 ```
   11,700,000  Raw variants detected
@@ -624,7 +624,7 @@ Starting with 11.7 million raw variants, the platform progressively filters:
 
 | Metric                          | Value                  |
 |---------------------------------|------------------------|
-| Raw variants per genome         | 11.7 million           |
+| Raw variant records per genome  | 11.7 million (~4.69M PASS) |
 | High-quality after filtering    | 3.5 million            |
 | Variants in druggable genes     | 847                    |
 | Alignment time (GPU)            | 20-45 minutes          |
@@ -3027,7 +3027,7 @@ curl -X POST http://localhost:8126/v1/cardio/query \
 ### 14.1 A Complete Patient Journey
 
 1. **Patient DNA arrives** as FASTQ files (200 GB raw sequencing data)
-2. **Stage 1 (Genomics, 120 min):** BWA-MEM2 aligns reads → DeepVariant calls variants → 11.7M variants in VCF
+2. **Stage 1 (Genomics, 120 min):** BWA-MEM2 aligns reads → DeepVariant calls variants → 11.7M variant records in VCF (~4.69M PASS)
 3. **Annotation:** ClinVar matches (35,616), AlphaMissense predictions (6,831), VEP consequences → 3.5M searchable vectors in genomic_evidence
 4. **Stage 2 (Clinical Intelligence):** Clinician queries "What therapeutic targets exist for this patient?"
 5. **Oncology Agent** identifies BRAF V600E (Level IA evidence) → recommends dabrafenib + trametinib

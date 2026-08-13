@@ -45,7 +45,7 @@ The HCLS AI Factory is an end-to-end precision medicine platform that takes a pa
 
 | Stage | Function | Duration | Key Output |
 |---|---|---|---|
-| 1 — Genomics | BWA-MEM2 alignment + DeepVariant calling | 120-240 min | VCF (~11.7M variants) |
+| 1 — Genomics | BWA-MEM2 alignment + DeepVariant calling | 120-240 min | VCF (~11.7M variant records) |
 | 2 — RAG/Chat | Annotation → Embedding → LLM reasoning | Interactive | Target gene + evidence |
 | 3 — Drug Discovery | MolMIM generation → DiffDock docking → RDKit scoring | 8-16 min | 100 ranked drug candidates |
 
@@ -54,7 +54,7 @@ The HCLS AI Factory is an end-to-end precision medicine platform that takes a pa
 ```
 Patient DNA → Illumina Sequencer → FASTQ (~200 GB)
   → Parabricks fq2bam → BAM
-  → DeepVariant → VCF (11.7M variants)
+  → DeepVariant → VCF (11.7M variant records)
   → ClinVar + AlphaMissense + VEP annotation
   → Milvus vector indexing (3.5M embeddings)
   → Claude RAG reasoning → Target hypothesis (gene + evidence)
@@ -358,7 +358,7 @@ Stage 2 annotates the VCF variants with clinical and functional databases, index
 ### Architecture
 
 ```
-VCF (11.7M variants)
+VCF (11.7M variant records)
   → Quality filter (QUAL>30) → 3.5M variants
   → ClinVar annotation → clinical significance
   → AlphaMissense annotation → pathogenicity prediction
@@ -898,7 +898,7 @@ def score_structure(structure: StructureInfo) -> float:
 1. Load pre-processed HG002 FASTQ subset
 2. Run Parabricks fq2bam alignment
 3. Run DeepVariant variant calling
-4. Output VCF with ~11.7M variants including rs188935092
+4. Output VCF with ~11.7M variant records including rs188935092
 
 **Stage 2 — RAG/Chat (Interactive):**
 1. VCF annotated: ClinVar flags rs188935092 as pathogenic in VCP

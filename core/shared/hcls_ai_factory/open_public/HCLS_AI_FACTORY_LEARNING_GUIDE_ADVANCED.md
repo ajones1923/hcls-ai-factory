@@ -130,7 +130,7 @@ The Variant Effect Predictor maps variants to genes, transcripts, and regulatory
 The three annotation databases are applied sequentially in `annotator.py` (23 KB):
 
 ```
-VCF (11.7M variants)
+VCF (11.7M variant records)
   → parse_vcf(min_qual=30)     → 3.5M variants
   → annotate_clinvar()          → Clinical significance
   → annotate_alphamissense()    → AI pathogenicity scores

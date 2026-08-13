@@ -278,7 +278,7 @@ H2("Three-Stage Pipeline")
 add_table(
     ["Stage", "Function", "Duration", "Key Output"],
     [
-        ["1 \u2014 Genomics", "BWA-MEM2 alignment + DeepVariant calling", "120-240 min", "VCF (~11.7M variants)"],
+        ["1 \u2014 Genomics", "BWA-MEM2 alignment + DeepVariant calling", "120-240 min", "VCF (~11.7M variant records)"],
         ["2 \u2014 RAG/Chat", "Annotation \u2192 Embedding \u2192 LLM reasoning", "Interactive", "Target gene + evidence"],
         ["3 \u2014 Drug Discovery", "MolMIM \u2192 DiffDock \u2192 RDKit scoring", "8-16 min", "100 ranked drug candidates"],
     ],
@@ -289,7 +289,7 @@ H2("End-to-End Flow")
 code_block(
     "Patient DNA \u2192 Illumina Sequencer \u2192 FASTQ (~200 GB)\n"
     "  \u2192 Parabricks fq2bam \u2192 BAM\n"
-    "  \u2192 DeepVariant \u2192 VCF (11.7M variants)\n"
+    "  \u2192 DeepVariant \u2192 VCF (11.7M variant records)\n"
     "  \u2192 ClinVar + AlphaMissense + VEP annotation\n"
     "  \u2192 Milvus vector indexing (3.5M embeddings)\n"
     "  \u2192 Claude RAG reasoning \u2192 Target hypothesis\n"
@@ -591,7 +591,7 @@ body(
 
 H2("Architecture")
 code_block(
-    "VCF (11.7M variants)\n"
+    "VCF (11.7M variant records)\n"
     "  \u2192 Quality filter (QUAL>30) \u2192 3.5M variants\n"
     "  \u2192 ClinVar annotation \u2192 clinical significance\n"
     "  \u2192 AlphaMissense annotation \u2192 pathogenicity prediction\n"
@@ -1147,7 +1147,7 @@ H3("Stage 1 \u2014 Genomics (Demo Mode: ~20 min)")
 bullet("1.", "Load pre-processed HG002 FASTQ subset")
 bullet("2.", "Run Parabricks fq2bam alignment")
 bullet("3.", "Run DeepVariant variant calling")
-bullet("4.", "Output VCF with ~11.7M variants including rs188935092")
+bullet("4.", "Output VCF with ~11.7M variant records including rs188935092")
 
 H3("Stage 2 \u2014 RAG/Chat (Interactive)")
 bullet("1.", "VCF annotated: ClinVar flags rs188935092 as pathogenic in VCP")

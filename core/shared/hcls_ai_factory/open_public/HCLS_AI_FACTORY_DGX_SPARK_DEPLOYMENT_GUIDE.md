@@ -115,7 +115,7 @@ The 10-stage drug discovery pipeline transforms a genomic target into ranked dru
 #### 1.5.6 End-to-End Data Flow Summary
 
 ```
-FASTQ (200 GB) ─► Parabricks fq2bam ─► BAM (100 GB) ─► DeepVariant ─► VCF (11.7M variants)
+FASTQ (200 GB) ─► Parabricks fq2bam ─► BAM (100 GB) ─► DeepVariant ─► VCF (11.7M variant records)
     ─► Annotation (ClinVar + AlphaMissense + VEP) ─► Milvus (384-dim vectors)
     ─► Claude RAG (variant interpretation) ─► Target Hypothesis
     ─► PDB Structure Retrieval ─► MolMIM (molecule generation)
@@ -943,7 +943,7 @@ docker run --rm --gpus all \
 ```bash
 # Count total variants
 zcat genomics/data/vcf/HG002.vcf.gz | grep -v '^#' | wc -l
-# Expected: ~11,700,000 (11.7M variants)
+# Expected: ~11,700,000 (11.7M variant records)
 
 # Count PASS variants with QUAL > 30
 zcat genomics/data/vcf/HG002.vcf.gz | grep -v '^#' | \
@@ -1815,7 +1815,7 @@ BAM files are the largest intermediate output (~100 GB). Once the VCF has been v
 ```bash
 # Verify VCF is complete before deleting BAM
 zcat genomics/data/vcf/HG002.vcf.gz | grep -v '^#' | wc -l
-# Confirm ~11.7M variants
+# Confirm ~11.7M variant records
 
 # Delete intermediate BAM
 rm -f genomics/data/bam/HG002.bam genomics/data/bam/HG002.bam.bai

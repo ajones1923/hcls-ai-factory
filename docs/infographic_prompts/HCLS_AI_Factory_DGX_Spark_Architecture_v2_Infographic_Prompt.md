@@ -155,7 +155,7 @@ FASTQ → fq2bam/BWA-MEM2 → Sort → Mark Duplicates → BQSR → DeepVariant 
 ```
 
 **Metric badges along bottom of band:**
-- [10-50x Speedup] [>99% Accuracy] [2-4 Hours] [11.7M Variants]
+- [10-50x Speedup] [>99% Accuracy] [2-4 Hours] [11.7M Variant Records]
 
 **Below process flow — Annotation sub-row:**
 ```
