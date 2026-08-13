@@ -133,7 +133,7 @@ Then the results:
 
 > "Lung-RADS 4B. That's the ACR's classification for a highly suspicious nodule. The system recommends tissue sampling."
 
-*Point to the Cross-Modal Bridge Animation — the pulsing dots flowing from Engine 4 (Imaging) to Engine 2 (Genomics):*
+*Point to the Cross-Modal Bridge Animation — the pulsing dots flowing from Engine 4 (Imaging) to Engine 2 (Precision Intelligence):*
 
 > "But here's what no other radiology AI platform does. Watch this animation. When the classification hit Lung-RADS 4A or higher, the engine automatically triggered a cross-modal query — data flowing from the imaging engine to the genomics engine — searching 35,000 variant vectors from ClinVar and AlphaMissense for lung cancer driver mutations. EGFR, ALK, ROS1, KRAS. No one clicked a button. No one told it to check genomics. The architecture did it."
 
