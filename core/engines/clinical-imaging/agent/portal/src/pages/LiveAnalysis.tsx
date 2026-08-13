@@ -1,3 +1,4 @@
+import { describeApiError } from '../lib/api';
 import { useCallback, useEffect, useState } from 'react';
 import {
   Upload,
@@ -85,7 +86,7 @@ export default function LiveAnalysis() {
     api
       .get('/analyze/status')
       .then((r) => setStatus(r.data))
-      .catch(() => {});
+      .catch((e) => describeApiError('Loading live analysis data', e));
   }, []);
 
   // ── File Upload Handlers ──

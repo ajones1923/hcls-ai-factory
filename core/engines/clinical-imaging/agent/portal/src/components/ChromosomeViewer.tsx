@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { X, Dna, MapPin, AlertTriangle, BookOpen, ExternalLink } from 'lucide-react';
 
 interface GeneInfo {
@@ -6,17 +6,34 @@ interface GeneInfo {
   name: string;
   chromosome: string;
   band: string;
-  position_mb: number;       // Approximate position in megabases
-  chr_length_mb: number;     // Chromosome length in Mb
-  variant?: string;
+  position_mb: number;       // Approximate position in megabases (GRCh38)
+  chr_length_mb: number;     // Chromosome length in Mb (GRCh38)
+  transcript?: string;       // MANE Select transcript — HGVS is meaningless without it
+  variant?: string;          // Full HGVS, transcript-qualified
+  rsid?: string;             // dbSNP, only where the mapping is unambiguous
   consequence?: string;
   clinical_significance?: string;
   condition?: string;
   inheritance?: string;
-  drug_interaction?: string;
+  // Renamed from `drug_interaction`, and split by KIND. Calling an LDLR genotype a
+  // "pharmacogenomic interaction" is a category error: pharmacogenomics is germline variation
+  // altering drug PK/PD (SLCO1B1, CYP2C19). LDLR/PCSK9/APOB/LPA change the DISEASE, and therefore
+  // the therapeutic target — a different claim, and one a PGx specialist will not confuse.
+  implication?: string;
+  implication_kind?: 'pgx' | 'therapy';
   omim?: string;
+  omim_kind?: 'gene' | 'phenotype';   // OMIM prefixes: * = gene, # = phenotype
+  phenotype_omim?: string;
+  evidence?: string;         // where the claim comes from
   description: string;
 }
+
+// GRCh38 coordinates. Variants below are ILLUSTRATIVE exemplars chosen for the demo narrative --
+// they are real, well-described alleles, but no sequencing was performed in this workflow, so the
+// UI labels them representative. Pathogenicity is not asserted from our own evidence review: each
+// card links to a ClinVar query so the claim can be checked against the primary source rather than
+// taken on trust. Deliberately NO fabricated accession numbers.
+const CLINVAR_BASE = 'https://www.ncbi.nlm.nih.gov/clinvar/?term=';
 
 const GENE_DATABASE: Record<string, GeneInfo> = {
   LDLR: {
@@ -26,14 +43,27 @@ const GENE_DATABASE: Record<string, GeneInfo> = {
     band: 'p13.2',
     position_mb: 11.09,
     chr_length_mb: 58.6,
-    variant: 'p.Gly592Glu (c.1775G>A)',
-    consequence: 'Missense — disrupts LDL receptor folding',
+    transcript: 'NM_000527.5',
+    variant: 'NM_000527.5(LDLR):c.1775G>A (p.Gly592Glu)',
+    // "Disrupts folding" named a specific defect class (Class 2, transport-defective). Gly592 sits
+    // in the EGF-precursor homology domain, whose beta-propeller drives acid-dependent ligand
+    // release and receptor recycling — a different mechanism. Stated at the level the evidence
+    // actually supports.
+    consequence: 'Missense — impairs LDL receptor function (EGF-precursor homology domain)',
     clinical_significance: 'Pathogenic',
     condition: 'Familial Hypercholesterolemia (FH)',
-    inheritance: 'Autosomal Dominant',
-    drug_interaction: 'Reduced response to statins alone; PCSK9 inhibitors (evolocumab, alirocumab) recommended as add-on therapy',
+    inheritance: 'Autosomal dominant (semi-dominant; homozygotes far more severe)',
+    // Escalation order matters: guidelines add ezetimibe BEFORE a PCSK9 inhibitor, and payers
+    // generally require that step. Jumping straight to PCSK9i misstates the pathway.
+    implication: 'Very high baseline LDL-C; statin monotherapy often insufficient to reach goal. '
+      + 'Guideline escalation is high-intensity statin → add ezetimibe → consider PCSK9 inhibitor '
+      + '(evolocumab, alirocumab) or inclisiran. Decision support for a clinician, not a prescription.',
+    implication_kind: 'therapy',
     omim: '606945',
-    description: 'Encodes the LDL receptor responsible for clearing LDL cholesterol from the bloodstream. Pathogenic variants cause familial hypercholesterolemia, affecting 1 in 250 individuals. Each first-degree relative has a 50% chance of carrying the variant.',
+    omim_kind: 'gene',
+    phenotype_omim: '143890',
+    evidence: 'Prevalence: Akioyamen et al. BMJ Open 2017 meta-analysis. Therapy sequence: 2018 AHA/ACC cholesterol guideline.',
+    description: 'Encodes the LDL receptor that clears LDL cholesterol from the bloodstream. Pathogenic variants cause familial hypercholesterolemia, affecting roughly 1 in 250 people. Each first-degree relative has a 50% chance of carrying the variant.',
   },
   PCSK9: {
     symbol: 'PCSK9',
@@ -42,14 +72,20 @@ const GENE_DATABASE: Record<string, GeneInfo> = {
     band: 'p32.3',
     position_mb: 55.04,
     chr_length_mb: 248.9,
-    variant: 'p.Asp374Tyr (c.1120G>T)',
-    consequence: 'Gain-of-function — increased LDLR degradation',
+    transcript: 'NM_174936.4',
+    variant: 'NM_174936.4(PCSK9):c.1120G>T (p.Asp374Tyr)',
+    rsid: 'rs28942111',
+    consequence: 'Gain-of-function — increased LDL receptor degradation',
     clinical_significance: 'Pathogenic',
-    condition: 'Familial Hypercholesterolemia (FH)',
-    inheritance: 'Autosomal Dominant',
-    drug_interaction: 'PCSK9 inhibitors directly target this protein; enhanced therapeutic response expected',
+    condition: 'Familial Hypercholesterolemia (FH), PCSK9-related',
+    inheritance: 'Autosomal dominant',
+    implication: 'PCSK9 inhibitors target this protein directly; the gain-of-function mechanism is the rationale for that class.',
+    implication_kind: 'therapy',
     omim: '607786',
-    description: 'Gain-of-function variants increase degradation of LDL receptors, raising circulating LDL cholesterol. Loss-of-function variants are cardioprotective — this biology led directly to the development of PCSK9 inhibitor drugs.',
+    omim_kind: 'gene',
+    phenotype_omim: '603776',
+    evidence: 'D374Y is the classical gain-of-function allele described in Utah and UK FH kindreds.',
+    description: 'Gain-of-function variants increase degradation of LDL receptors, raising circulating LDL cholesterol. Loss-of-function variants are cardioprotective — that observation led directly to the development of PCSK9 inhibitor drugs.',
   },
   APOB: {
     symbol: 'APOB',
@@ -58,14 +94,22 @@ const GENE_DATABASE: Record<string, GeneInfo> = {
     band: 'p24.1',
     position_mb: 21.0,
     chr_length_mb: 242.2,
-    variant: 'p.Arg3527Gln (c.10580G>A)',
+    transcript: 'NM_000384.3',
+    variant: 'NM_000384.3(APOB):c.10580G>A (p.Arg3527Gln)',
+    rsid: 'rs5742904',
     consequence: 'Missense — impairs LDL receptor binding',
     clinical_significance: 'Pathogenic',
     condition: 'Familial Defective ApoB-100 (FDB)',
-    inheritance: 'Autosomal Dominant',
-    drug_interaction: 'Moderate statin response; may require combination therapy with ezetimibe',
+    inheritance: 'Autosomal dominant',
+    implication: 'Responds to statins; ezetimibe combination frequently required to reach LDL-C goal.',
+    implication_kind: 'therapy',
     omim: '107730',
-    description: 'ApoB-100 is the primary ligand for LDL receptor binding. The Arg3527Gln variant reduces receptor binding affinity by ~95%, causing LDL accumulation similar to FH but typically with a milder phenotype.',
+    omim_kind: 'gene',
+    phenotype_omim: '144010',
+    evidence: 'Historically numbered R3500Q on the mature protein; R3527Q uses the precursor including the 27-residue signal peptide.',
+    // "~95% reduced binding" overstated it: the classical work puts FDB LDL binding near a third of
+    // normal, not a twentieth.
+    description: 'ApoB-100 is the main ligand for the LDL receptor. The Arg3527Gln variant reduces receptor binding affinity to roughly 30% of normal, causing LDL accumulation similar to FH but with a typically milder phenotype.',
   },
   LPA: {
     symbol: 'LPA',
@@ -74,46 +118,71 @@ const GENE_DATABASE: Record<string, GeneInfo> = {
     band: 'q25.3',
     position_mb: 160.5,
     chr_length_mb: 170.8,
-    variant: 'KIV-2 repeat expansion',
-    consequence: 'Elevated Lp(a) levels (>50 mg/dL)',
+    transcript: 'NM_005577.4',
+    // The old card said "KIV-2 repeat EXPANSION", which is the risk direction backwards and
+    // contradicted its own description one line below: Lp(a) rises as repeat number FALLS.
+    variant: 'KIV-2 low copy number (short apo(a) isoform)',
+    consequence: 'Short isoform → elevated Lp(a) (>50 mg/dL / >125 nmol/L)',
     clinical_significance: 'Risk Factor',
-    condition: 'Elevated Lipoprotein(a) — Independent CVD Risk',
-    inheritance: 'Autosomal Dominant (>90% heritable)',
-    drug_interaction: 'Not responsive to statins; antisense oligonucleotides (pelacarsen) in Phase 3 trials',
+    condition: 'Elevated Lipoprotein(a) — independent ASCVD risk',
+    inheritance: 'Codominant; ~70-90% heritable',
+    implication: 'Not lowered meaningfully by statins. Targeted agents (pelacarsen, olpasiran) are in Phase 3 trials — investigational, not approved.',
+    implication_kind: 'therapy',
     omim: '152200',
-    description: 'Lp(a) is a genetically determined, independent risk factor for atherosclerotic cardiovascular disease. The KIV-2 repeat number is inversely correlated with Lp(a) levels. Currently no approved targeted therapy, but pelacarsen and olpasiran are in late-stage clinical trials.',
+    omim_kind: 'gene',
+    evidence: 'Kronenberg et al. EAS consensus statement 2022. Trials: Lp(a)HORIZON (pelacarsen), OCEAN(a) (olpasiran).',
+    description: 'Lp(a) is a genetically determined, independent risk factor for atherosclerotic cardiovascular disease. Apo(a) isoform size is set by the number of KIV-2 repeats, and Lp(a) concentration is INVERSELY related to that number — short isoforms carry the higher concentrations and the higher risk.',
   },
   '9p21': {
     symbol: '9p21.3',
-    name: 'Chromosome 9p21.3 Risk Locus (CDKN2A/CDKN2B-AS1)',
+    name: 'Chromosome 9p21.3 Risk Locus (CDKN2B-AS1 / ANRIL)',
     chromosome: '9',
     band: 'p21.3',
     position_mb: 22.0,
     chr_length_mb: 138.4,
+    transcript: 'NR_003529.3 (CDKN2B-AS1, non-coding)',
     variant: 'rs10757274 / rs2383206 risk alleles',
-    consequence: 'Non-coding — alters ANRIL lncRNA expression',
+    rsid: 'rs10757274',
+    consequence: 'Non-coding — alters ANRIL (CDKN2B-AS1) expression',
     clinical_significance: 'Risk Factor',
-    condition: 'Coronary Artery Disease Susceptibility',
-    inheritance: 'Complex (additive risk)',
-    drug_interaction: 'No direct pharmacogenomic interaction; risk modifiable through aggressive risk factor management',
-    omim: '611082',
-    description: 'The 9p21.3 locus was the first genomic region identified in GWAS for coronary artery disease. The risk variants alter expression of ANRIL (CDKN2B-AS1), a long non-coding RNA involved in vascular smooth muscle cell proliferation and inflammation. Carriers of both risk alleles have ~1.6x increased CAD risk.',
+    condition: 'Coronary artery disease susceptibility',
+    inheritance: 'Complex (additive, per-allele)',
+    implication: 'No direct drug-gene interaction. Risk is modifiable through aggressive risk-factor management.',
+    implication_kind: 'therapy',
+    // Was *611082 — that is MIAT (Myocardial Infarction Associated Transcript) on 22q12, a
+    // different lncRNA on a different chromosome, and a gene entry mislabelled here as a
+    // phenotype. The 9p21.3 locus is *613149 (CDKN2B-AS1/ANRIL); its CAD phenotype entry is
+    // #611139 (CHDS8, mapped to 9p21).
+    omim: '613149',
+    omim_kind: 'gene',
+    phenotype_omim: '611139',
+    evidence: 'First CAD locus identified by GWAS (2007). Per-allele OR ~1.25-1.3; homozygotes ~1.6-1.9x.',
+    description: 'The 9p21.3 locus was the first genomic region identified by GWAS for coronary artery disease. Risk variants alter expression of ANRIL (CDKN2B-AS1), a long non-coding RNA involved in vascular smooth-muscle proliferation and inflammation. Carriers of two risk alleles have roughly 1.6x the CAD risk.',
   },
   SLCO1B1: {
     symbol: 'SLCO1B1',
     name: 'Solute Carrier Organic Anion Transporter 1B1',
     chromosome: '12',
-    band: 'p12.2',
-    position_mb: 21.3,
+    band: 'p12.1',        // NCBI Gene and OMIM *604843 both place SLCO1B1 at 12p12.1
+    position_mb: 21.13,
     chr_length_mb: 133.3,
-    variant: 'rs4149056 (c.521T>C, Val174Ala)',
-    consequence: 'Reduced OATP1B1 transporter function',
+    transcript: 'NM_006446.5',
+    variant: 'NM_006446.5(SLCO1B1):c.521T>C (p.Val174Ala) — *5 / *15 haplotypes',
+    rsid: 'rs4149056',
+    consequence: 'Decreased OATP1B1 transporter function',
     clinical_significance: 'Pharmacogenomic',
-    condition: 'Statin-Induced Myopathy Risk',
-    inheritance: 'Autosomal Co-dominant',
-    drug_interaction: 'TC heterozygous: reduce simvastatin (max 20mg), consider rosuvastatin or pravastatin. CC homozygous: avoid simvastatin entirely; use alternative statin at lower starting dose.',
+    condition: 'Statin-associated musculoskeletal symptoms — risk',
+    inheritance: 'Codominant',
+    implication: 'Intermediate function (TC): limit simvastatin to 20 mg/day, or prefer rosuvastatin, '
+      + 'pravastatin, atorvastatin or fluvastatin. Poor function (CC): avoid simvastatin. '
+      + 'Per CPIC; the risk is statin-specific, not a class effect.',
+    implication_kind: 'pgx',
     omim: '604843',
-    description: 'OATP1B1 is the primary hepatic uptake transporter for statins. The Val174Ala variant reduces statin clearance from blood, increasing systemic exposure and myopathy risk by 4.5-fold (heterozygous) to 17-fold (homozygous). CPIC guideline provides evidence-based dosing recommendations.',
+    omim_kind: 'gene',
+    // The 4.5x / 17x figures are real but SIMVASTATIN-80mg-specific (SEARCH). Presented without
+    // that qualifier they read as a class effect, which would be wrong and clinically misleading.
+    evidence: 'CPIC guideline for statins and SLCO1B1 (2022). Odds ratios: Link et al., NEJM 2008 (SEARCH), simvastatin 80 mg.',
+    description: 'OATP1B1 is the main hepatic uptake transporter for statins. The c.521T>C variant reduces clearance from blood, raising systemic exposure and myopathy risk. In the SEARCH trial of simvastatin 80 mg the odds of myopathy were ~4.5x per C allele and ~17x in CC homozygotes — those figures are specific to high-dose simvastatin; risk with rosuvastatin or pravastatin is substantially lower.',
   },
   CYP2C19: {
     symbol: 'CYP2C19',
@@ -122,14 +191,19 @@ const GENE_DATABASE: Record<string, GeneInfo> = {
     band: 'q23.33',
     position_mb: 94.8,
     chr_length_mb: 133.8,
-    variant: '*2/*2 (c.681G>A, splicing defect)',
+    transcript: 'NM_000769.4',
+    variant: 'CYP2C19*2/*2 — c.681G>A (splice defect)',
+    rsid: 'rs4244285',
     consequence: 'No functional enzyme — poor metabolizer',
     clinical_significance: 'Pharmacogenomic',
-    condition: 'Clopidogrel Resistance',
-    inheritance: 'Autosomal Co-dominant',
-    drug_interaction: 'Poor metabolizer: clopidogrel is ineffective. Use prasugrel 10mg or ticagrelor 90mg BID instead. Critical if patient undergoes PCI with stent placement.',
+    condition: 'Clopidogrel — reduced activation',
+    inheritance: 'Codominant',
+    implication: 'Poor metabolizer: clopidogrel activation is impaired. CPIC recommends prasugrel or ticagrelor where not contraindicated. Most relevant if the patient proceeds to PCI with stenting.',
+    implication_kind: 'pgx',
     omim: '124020',
-    description: 'CYP2C19 converts the prodrug clopidogrel to its active antiplatelet metabolite. Poor metabolizers (*2/*2) have no enzyme function, rendering clopidogrel ineffective and increasing the risk of stent thrombosis by 3-4 fold. CPIC guideline recommends alternative antiplatelet agents.',
+    omim_kind: 'gene',
+    evidence: 'CPIC guideline for clopidogrel and CYP2C19 (2022 update).',
+    description: 'CYP2C19 converts the prodrug clopidogrel into its active antiplatelet metabolite. Poor metabolizers (*2/*2) have no enzyme activity, leaving clopidogrel substantially less effective and raising the risk of stent thrombosis. CPIC provides alternative-agent recommendations.',
   },
   BRCA1: {
     symbol: 'BRCA1',
@@ -138,14 +212,19 @@ const GENE_DATABASE: Record<string, GeneInfo> = {
     band: 'q21.31',
     position_mb: 43.04,
     chr_length_mb: 83.3,
-    variant: 'Pathogenic variant detected',
-    consequence: 'Loss of DNA double-strand break repair',
+    transcript: 'NM_007294.4',
+    variant: 'Pathogenic variant (exemplar — not a specific allele)',
+    consequence: 'Loss of homologous-recombination DNA repair',
     clinical_significance: 'Pathogenic',
     condition: 'Hereditary Breast and Ovarian Cancer Syndrome',
-    inheritance: 'Autosomal Dominant',
-    drug_interaction: 'PARP inhibitors (olaparib, talazoparib) show synthetic lethality in BRCA1-deficient tumors',
+    inheritance: 'Autosomal dominant',
+    implication: 'PARP inhibitors (olaparib, talazoparib) exploit synthetic lethality in BRCA1-deficient tumours.',
+    implication_kind: 'therapy',
     omim: '113705',
-    description: 'BRCA1 is a tumor suppressor involved in homologous recombination DNA repair. Pathogenic variants confer 60-80% lifetime risk of breast cancer and 40-60% risk of ovarian cancer. Cascade testing of at-risk relatives is strongly recommended.',
+    omim_kind: 'gene',
+    phenotype_omim: '604370',
+    evidence: 'Penetrance: Kuchenbaecker et al., JAMA 2017 prospective cohort.',
+    description: 'BRCA1 is a tumour suppressor in homologous-recombination DNA repair. Pathogenic variants confer roughly 60-70% lifetime breast cancer risk and 40-45% ovarian cancer risk. Cascade testing of at-risk relatives is recommended.',
   },
   BRCA2: {
     symbol: 'BRCA2',
@@ -154,14 +233,19 @@ const GENE_DATABASE: Record<string, GeneInfo> = {
     band: 'q13.1',
     position_mb: 32.3,
     chr_length_mb: 114.4,
-    variant: 'Pathogenic variant detected',
-    consequence: 'Loss of DNA double-strand break repair',
+    transcript: 'NM_000059.4',
+    variant: 'Pathogenic variant (exemplar — not a specific allele)',
+    consequence: 'Loss of homologous-recombination DNA repair',
     clinical_significance: 'Pathogenic',
     condition: 'Hereditary Breast and Ovarian Cancer Syndrome',
-    inheritance: 'Autosomal Dominant',
-    drug_interaction: 'PARP inhibitors effective; also associated with prostate and pancreatic cancer risk',
+    inheritance: 'Autosomal dominant',
+    implication: 'PARP inhibitors effective; also associated with prostate and pancreatic cancer risk.',
+    implication_kind: 'therapy',
     omim: '600185',
-    description: 'BRCA2 partners with RAD51 in homologous recombination repair. Pathogenic variants confer 45-65% lifetime breast cancer risk, 15-25% ovarian cancer risk, and elevated prostate cancer risk in males.',
+    omim_kind: 'gene',
+    phenotype_omim: '612555',
+    evidence: 'Penetrance: Kuchenbaecker et al., JAMA 2017 prospective cohort.',
+    description: 'BRCA2 partners with RAD51 in homologous-recombination repair. Pathogenic variants confer roughly 55-60% lifetime breast cancer risk, 15-20% ovarian cancer risk, and elevated prostate cancer risk in males.',
   },
   EGFR: {
     symbol: 'EGFR',
@@ -170,14 +254,18 @@ const GENE_DATABASE: Record<string, GeneInfo> = {
     band: 'p11.2',
     position_mb: 55.1,
     chr_length_mb: 159.3,
-    variant: 'Exon 19 deletion / L858R',
+    transcript: 'NM_005228.5',
+    variant: 'Exon 19 deletion or p.Leu858Arg (L858R) — somatic',
     consequence: 'Constitutive kinase activation',
     clinical_significance: 'Oncogenic Driver',
     condition: 'Non-Small Cell Lung Cancer (NSCLC)',
-    inheritance: 'Somatic',
-    drug_interaction: 'EGFR TKIs: osimertinib (3rd gen, preferred), erlotinib, gefitinib. T790M resistance mutation → osimertinib.',
+    inheritance: 'Somatic (tumour, not germline)',
+    implication: 'EGFR TKIs: osimertinib preferred first line; erlotinib and gefitinib are alternatives. T790M resistance → osimertinib.',
+    implication_kind: 'therapy',
     omim: '131550',
-    description: 'EGFR activating mutations are found in 10-15% of NSCLC in Western populations and 40-50% in East Asian populations. These mutations predict dramatic response to EGFR tyrosine kinase inhibitors, with response rates >70%.',
+    omim_kind: 'gene',
+    evidence: 'FLAURA trial (osimertinib first line). Frequencies: Midha et al., Am J Cancer Res 2015.',
+    description: 'EGFR activating mutations occur in roughly 10-15% of NSCLC in Western populations and 40-50% in East Asian populations. They predict response to EGFR tyrosine kinase inhibitors, with response rates above 70%.',
   },
 };
 
@@ -429,17 +517,22 @@ export default function ChromosomeViewer({ gene, onClose }: ChromosomeViewerProp
                 <div className="bg-[#0E1117] rounded-lg border border-white/[0.06] p-3">
                   <div className="flex items-center gap-2 mb-1.5">
                     <AlertTriangle size={12} className={sigStyle.text} />
-                    <span className="text-[10px] uppercase tracking-wider text-[#9CA3AF] font-medium">Significance</span>
+                    <span className="text-[10px] uppercase tracking-wider text-[#9CA3AF] font-medium">Variant class</span>
                   </div>
                   <p className={`text-sm font-semibold ${sigStyle.text}`}>{info.clinical_significance}</p>
-                  <p className="text-[10px] text-[#9CA3AF] mt-0.5">{info.inheritance}</p>
+                  <p className="text-[10px] text-[#9CA3AF] mt-0.5 leading-snug">{info.inheritance}</p>
                 </div>
                 <div className="bg-[#0E1117] rounded-lg border border-white/[0.06] p-3">
                   <div className="flex items-center gap-2 mb-1.5">
                     <BookOpen size={12} className="text-purple-400" />
                     <span className="text-[10px] uppercase tracking-wider text-[#9CA3AF] font-medium">OMIM</span>
                   </div>
-                  <p className="text-sm text-white font-mono font-semibold">{info.omim || 'N/A'}</p>
+                  <p className="text-sm text-white font-mono font-semibold">
+                    {info.omim ? `${info.omim_kind === 'phenotype' ? '#' : '*'}${info.omim}` : 'N/A'}
+                  </p>
+                  {info.phenotype_omim && (
+                    <p className="text-[10px] text-[#9CA3AF] mt-0.5">phenotype #{info.phenotype_omim}</p>
+                  )}
                   {info.omim && (
                     <a
                       href={`https://omim.org/entry/${info.omim}`}
@@ -456,9 +549,16 @@ export default function ChromosomeViewer({ gene, onClose }: ChromosomeViewerProp
               {/* Variant */}
               {info.variant && (
                 <div className="bg-[#0E1117] rounded-lg border border-white/[0.06] p-4">
-                  <h4 className="text-[10px] uppercase tracking-wider text-[#9CA3AF] font-medium mb-2">Variant Detected</h4>
-                  <p className="text-sm text-white font-mono mb-1">{info.variant}</p>
+                  <h4 className="text-[10px] uppercase tracking-wider text-[#9CA3AF] font-medium mb-2">
+                    Exemplar Variant · representative
+                  </h4>
+                  <p className="text-sm text-white font-mono mb-1 break-all">{info.variant}</p>
                   <p className="text-xs text-[#9CA3AF]">{info.consequence}</p>
+                  {/* This is an imaging workflow: no genome was sequenced here. Saying "detected"
+                      claimed a result that was never produced. */}
+                  <p className="text-[11px] text-amber-400/80 mt-2 leading-relaxed">
+                    Illustrative allele for this demo case — no sequencing was performed in this workflow.
+                  </p>
                 </div>
               )}
             </div>
@@ -485,15 +585,37 @@ export default function ChromosomeViewer({ gene, onClose }: ChromosomeViewerProp
               </div>
 
               {/* Drug interaction */}
-              {info.drug_interaction && (
+              {info.implication && (
                 <div className="bg-[#0E1117] rounded-lg border border-amber-500/20 p-4">
                   <h4 className="text-[10px] uppercase tracking-wider text-amber-400 font-medium mb-2 flex items-center gap-1.5">
                     <AlertTriangle size={10} />
-                    Pharmacogenomic Interaction
+                    {info.implication_kind === 'pgx'
+                      ? 'Pharmacogenomic Guidance (drug-gene)'
+                      : 'Therapeutic Implication'}
                   </h4>
-                  <p className="text-sm text-[#E0E0E0] leading-relaxed">{info.drug_interaction}</p>
+                  <p className="text-sm text-[#E0E0E0] leading-relaxed">{info.implication}</p>
                 </div>
               )}
+
+              {/* Provenance. A pathogenicity call with no source is exactly the kind of
+                  uncited clinical claim the honesty rules exist to prevent. */}
+              <div className="bg-[#0E1117] rounded-lg border border-white/[0.06] p-4">
+                <h4 className="text-[10px] uppercase tracking-wider text-[#9CA3AF] font-medium mb-2">Evidence &amp; Provenance</h4>
+                {info.evidence && (
+                  <p className="text-xs text-[#9CA3AF] leading-relaxed mb-2">{info.evidence}</p>
+                )}
+                <p className="text-xs text-[#9CA3AF] leading-relaxed">
+                  Coordinates GRCh38{info.transcript ? ` · transcript ${info.transcript}` : ''}
+                  {info.rsid ? ` · ${info.rsid}` : ''}
+                </p>
+                <a
+                  href={`${CLINVAR_BASE}${encodeURIComponent(info.symbol + '[gene]')}`}
+                  target="_blank" rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-xs text-[#4EA8FF] hover:underline mt-2"
+                >
+                  Verify in ClinVar <ExternalLink size={10} />
+                </a>
+              </div>
 
               {/* Variant details */}
               {info.variant && (
@@ -513,13 +635,25 @@ export default function ChromosomeViewer({ gene, onClose }: ChromosomeViewerProp
                         <td className="py-2 text-[#9CA3AF]">Location</td>
                         <td className="py-2 text-white font-mono text-right">Chr {info.chromosome}{info.band} (~{info.position_mb} Mb)</td>
                       </tr>
+                      {info.transcript && (
+                        <tr className="border-b border-white/[0.04]">
+                          <td className="py-2 text-[#9CA3AF]">Transcript</td>
+                          <td className="py-2 text-white font-mono text-right">{info.transcript}</td>
+                        </tr>
+                      )}
+                      {info.rsid && (
+                        <tr className="border-b border-white/[0.04]">
+                          <td className="py-2 text-[#9CA3AF]">dbSNP</td>
+                          <td className="py-2 text-white font-mono text-right">{info.rsid}</td>
+                        </tr>
+                      )}
                       {info.omim && (
                         <tr>
                           <td className="py-2 text-[#9CA3AF]">OMIM</td>
                           <td className="py-2 text-right">
                             <a href={`https://omim.org/entry/${info.omim}`} target="_blank" rel="noopener noreferrer"
                               className="text-blue-400 hover:underline font-mono">
-                              #{info.omim}
+                              {info.omim_kind === 'phenotype' ? '#' : '*'}{info.omim}
                             </a>
                           </td>
                         </tr>

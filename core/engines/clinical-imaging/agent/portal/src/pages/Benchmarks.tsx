@@ -31,7 +31,7 @@ const benchmarks = [
   {
     category: 'System Performance',
     metrics: [
-      { name: 'Tests Passing', value: '1,324', target: '1,324', pass: true },
+      { name: 'Tests Passing', value: '1,365', target: '1,365', pass: true },
       { name: 'API Latency (p95)', value: '180ms', target: '<500ms', pass: true },
       { name: 'Vector Search', value: '12ms', target: '<50ms', pass: true },
       { name: 'Uptime', value: '99.97%', target: '>99.9%', pass: true },

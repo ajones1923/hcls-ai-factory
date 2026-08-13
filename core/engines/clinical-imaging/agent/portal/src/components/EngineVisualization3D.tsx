@@ -10,14 +10,28 @@ interface EngineConfig {
   active: boolean;
 }
 
-const ENGINES: EngineConfig[] = [
-  { id: 1, name: 'Engine 1', title: 'Genomics',         color: '#00BCD4', position: [-2.0,  1.0,  0.0], active: false },
-  { id: 2, name: 'Engine 2', title: 'Intelligence',     color: '#2196F3', position: [-2.0, -1.0,  0.0], active: false },
-  { id: 3, name: 'Engine 3', title: 'Drug Discovery',   color: '#9C27B0', position: [ 2.0, -1.0,  0.0], active: false },
-  { id: 4, name: 'Engine 4', title: 'Clinical Imaging',  color: '#76B900', position: [ 0.0, -2.2,  0.3], active: true },
-  { id: 5, name: 'Engine 5', title: 'Orchestration',    color: '#FF9800', position: [ 0.0,  2.2,  0.0], active: false },
-  { id: 6, name: 'Engine 6', title: 'Monitoring',       color: '#607D8B', position: [ 2.0,  1.0,  0.0], active: false },
+// The canonical EIGHT engines (skills/engines-agents-disease-programs). This previously listed six,
+// two of which ("Orchestration", "Monitoring") are platform layers, not engines — so the 3-D view
+// contradicted both the dashboard and the 8x8 infographic. Positions form a ring so the count can
+// change without hand-placing each node.
+const ENGINE_TITLES = [
+  'Genomic Foundation', 'Precision Intelligence', 'Therapeutic Discovery', 'Clinical Imaging',
+  'Precision Oncology', 'Cardiology', 'Structural Biology', 'Single-Cell',
 ];
+const ENGINE_COLORS = ['#00BCD4', '#2196F3', '#9C27B0', '#76B900',
+                       '#E91E63', '#FF5722', '#3F51B5', '#009688'];
+
+const ENGINES: EngineConfig[] = ENGINE_TITLES.map((title, i) => {
+  const a = (i / ENGINE_TITLES.length) * Math.PI * 2 - Math.PI / 2;
+  return {
+    id: i + 1,
+    name: `Engine ${i + 1}`,
+    title,
+    color: ENGINE_COLORS[i],
+    position: [2.4 * Math.cos(a), 2.4 * Math.sin(a), i % 2 === 0 ? 0.0 : 0.3],
+    active: title === 'Clinical Imaging',
+  } as EngineConfig;
+});
 
 interface StreamConfig {
   source: number;
@@ -419,7 +433,7 @@ export default function EngineVisualization3D({ height = 420, className }: Engin
       });
 
       // Update label positions (project 3D to 2D)
-      ENGINES.forEach((eng, i) => {
+      ENGINES.forEach((_eng, i) => {
         const group = engineGroups[i];
         const worldPos = new THREE.Vector3();
         group.getWorldPosition(worldPos);

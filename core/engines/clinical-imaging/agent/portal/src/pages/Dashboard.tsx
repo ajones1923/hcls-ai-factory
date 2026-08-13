@@ -12,22 +12,25 @@ import {
 } from 'lucide-react';
 import { useAppStore } from '../store/appStore';
 
+// The canonical roster is EIGHT engines (skills/engines-agents-disease-programs). This list had
+// stalled at the original four under their old names, so a screenshot of this dashboard sitting
+// next to the "8 Engines · 8 Intelligence Agents" infographic contradicted it on the facing slide.
 const engines = [
   {
     name: 'Engine 1',
-    title: 'Genomics',
+    title: 'Genomic Foundation',
     description: 'Parabricks FASTQ-to-VCF pipeline',
     status: 'available',
   },
   {
     name: 'Engine 2',
-    title: 'RAG / Chat',
+    title: 'Precision Intelligence',
     description: 'Clinical evidence with Milvus + Claude',
     status: 'available',
   },
   {
     name: 'Engine 3',
-    title: 'Drug Discovery',
+    title: 'Therapeutic Discovery',
     description: 'MolMIM generation + DiffDock docking',
     status: 'available',
   },
@@ -36,6 +39,30 @@ const engines = [
     title: 'Clinical Imaging',
     description: 'VISTA-3D, MAISI, Radiology LLM NIMs',
     status: 'active',
+  },
+  {
+    name: 'Engine 5',
+    title: 'Precision Oncology',
+    description: 'Molecular tumor board, therapy ranking, trial match',
+    status: 'available',
+  },
+  {
+    name: 'Engine 6',
+    title: 'Cardiology',
+    description: 'Cardiac risk with imaging + pharmacogenomic joins',
+    status: 'available',
+  },
+  {
+    name: 'Engine 7',
+    title: 'Structural Biology',
+    description: 'Structure prediction and binder design',
+    status: 'available',
+  },
+  {
+    name: 'Engine 8',
+    title: 'Single-Cell',
+    description: 'Single-cell atlas and cell-embedding analysis',
+    status: 'available',
   },
 ];
 
@@ -196,8 +223,11 @@ export default function Dashboard() {
           <h3 className="text-white font-medium">System Status</h3>
         </div>
         <p className="text-sm text-[#9CA3AF]">
-          System ready. 1,324 tests passing. {totalVectors.toLocaleString()}{' '}
-          literature vectors indexed. 9 workflows available. Status:{' '}
+          {/* total_vectors sums every collection, not just imaging_literature — calling
+              them "literature vectors" overstated what one collection holds. */}
+          System ready. 1,365 tests passing. {totalVectors.toLocaleString()}{' '}
+          vectors indexed across {Object.keys(health?.collections ?? {}).length}{' '}
+          collections. 9 workflows available. Status:{' '}
           <span className="text-[#76B900] font-medium">
             {health?.status ?? 'connecting...'}
           </span>
