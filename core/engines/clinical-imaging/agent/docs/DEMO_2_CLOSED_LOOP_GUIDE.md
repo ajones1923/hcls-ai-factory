@@ -64,7 +64,7 @@ The Lung-RADS 4B result with:
 - 3-panel medical imaging (AI segmentation + animated CT scroll + 3D point cloud)
 - CRITICAL FINDING DETECTED banner
 - Patient journey timeline with red Lung-RADS 4B node
-- Cross-modal bridge animation — pulsing dots flowing from Engine 4 (Imaging) → Engine 2 (Genomics)
+- Cross-modal bridge animation — pulsing dots flowing from Engine 4 (Imaging) → Engine 2 (Precision Intelligence)
 - Gene pills: EGFR, ALK, ROS1, KRAS, BRAF, MET
 
 **Script:**
@@ -73,7 +73,7 @@ The Lung-RADS 4B result with:
 
 *Point to the cross-modal bridge animation:*
 
-> "Watch this animation. Data is flowing from Engine 4 — Imaging — to Engine 2 — Genomics. The engine didn't just find a nodule and classify it. It asked a question: does this patient have actionable driver mutations?"
+> "Watch this animation. Data is flowing from Engine 4 — Imaging — to Engine 2 — Precision Intelligence, the genomic evidence layer. The engine didn't just find a nodule and classify it. It asked a question: does this patient have actionable driver mutations?"
 
 > "In a traditional hospital, that question takes 6 to 8 weeks. Biopsy referral, tissue sampling, molecular testing, results. On this device, it takes minutes."
 

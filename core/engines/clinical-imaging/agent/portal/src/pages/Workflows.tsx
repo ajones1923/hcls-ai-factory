@@ -1091,8 +1091,13 @@ export default function Workflows() {
                           <Dna size={16} className="text-[#76B900]" />
                         </div>
                         <div>
+                          {/* The hand-off is to the evidence layer that serves genomics, not to the
+                              genomics engine: Engine 2 owns the genomic_evidence collection (see
+                              src/collections.py) and is what the closed-loop demo guides describe.
+                              This read "Engine 2 · Genomics" — right number, wrong name, since
+                              Engine 2 is Precision Intelligence and Engine 1 is Genomic Foundation. */}
                           <span className="text-[10px] uppercase tracking-wider text-[#76B900] font-semibold">Engine 2</span>
-                          <p className="text-[10px] text-white/50">Genomics</p>
+                          <p className="text-[10px] text-white/50">Precision Intelligence</p>
                         </div>
                       </div>
                     </div>
