@@ -44,6 +44,15 @@ class BaseImagingWorkflow(ABC):
         """Return realistic mock inference result."""
         ...
 
+    def apply_measurements(self, raw: Dict) -> Dict:
+        """Re-apply real measurements after demo-case overrides have been merged.
+
+        Override in a workflow that has genuinely measured values to defend, so that a demo case's
+        narrative fields (vessel names, plaque types, talking points) can be authored freely without
+        being able to overwrite a number that was actually computed.
+        """
+        return raw
+
     def run(self, input_path: str = "") -> WorkflowResult:
         """Orchestrate the full workflow pipeline."""
         start = time.time()
@@ -53,6 +62,12 @@ class BaseImagingWorkflow(ABC):
                 raw = self._mock_inference()
                 if self.mock_overrides:
                     raw.update(self.mock_overrides)
+                    # Demo-case overrides clobber whole keys, so a workflow that layered a real
+                    # measurement into _mock_inference() silently lost it here and the API went on
+                    # serving the narrative literal while the rendered panels showed the measured
+                    # value. This hook lets a workflow put its measurement back on top of the
+                    # narrative. Default is a no-op, so no other workflow changes behaviour.
+                    raw = self.apply_measurements(raw)
             else:
                 preprocessed = self.preprocess(input_path)
                 raw = self.infer(preprocessed)

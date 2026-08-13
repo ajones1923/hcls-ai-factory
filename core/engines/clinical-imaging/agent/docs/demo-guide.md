@@ -237,14 +237,20 @@ Before starting the live demo, open the following tabs in your browser so you ca
 
 **Expected result:** The workflow executes the `ct_coronary_angiography` pipeline and displays:
 
-- **Calcium Score:** 385 Agatston (92nd percentile for age/sex)
-- **CAD-RADS Classification:** 4A
+- **Calcium Score:** 385 Agatston -- representative, above the 90th percentile for a 55-year-old
+  man (MESA); an exact percentile also needs race/ethnicity, which this case does not specify.
+  Agatston is not computable from a surface mesh (it needs Hounsfield units), so the panel says
+  "(repr.)"
+- **CAD-RADS Classification:** 4A/P3/HRP
 - **Vessel Assessment:**
-    - LAD (proximal): 72% stenosis, mixed plaque -- **significant**
+    - LAD (proximal): 77.9% stenosis, mixed plaque -- **urgent**
     - LAD (mid): 40% stenosis, calcified plaque
     - LCx (proximal): 30% stenosis, calcified plaque
-    - RCA (proximal): 15% stenosis, no plaque
+    - RCA (proximal): 15% stenosis, calcified plaque
     - Left Main: 0% stenosis, no plaque
+
+  Only the 77.9% is measured (from the segmented vessel surface). The vessel identities and plaque
+  types are scripted in `demo_cases.json` -- the geometry cannot resolve branch identity.
 - **High-Risk Plaque Features:** Low-attenuation plaque, positive remodeling
 - **Ejection Fraction Estimate:** 55%
 - **Severity Classification:** Urgent

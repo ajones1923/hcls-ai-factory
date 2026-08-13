@@ -211,7 +211,7 @@ class ImagingSettings(BaseSettings):
     CROSS_MODAL_ENABLED: bool = False
 
     # ── CORS ──
-    CORS_ORIGINS: str = "http://localhost:8080,http://localhost:8524,http://localhost:8525,http://localhost:8550,http://192.168.68.107:8550,http://192.168.68.107:8525,http://192.168.68.107:3001,http://192.168.68.107:8524"
+    CORS_ORIGINS: str = "http://localhost:8080,http://localhost:8524,http://localhost:8525,http://localhost:8550,http://192.168.68.107:8550,http://192.168.68.107:8525,http://192.168.68.107:3001,http://192.168.68.107:8524,http://192.168.68.107:3000,http://192.168.68.107:3002,http://192.168.68.107:3003,http://192.168.68.107:5173,http://192.168.68.107:5174,http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:3003,http://localhost:5173,http://localhost:5174"
 
     # ── Request Limits ──
     MAX_REQUEST_SIZE_MB: int = 500  # Increased for CT series uploads
