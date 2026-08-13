@@ -18,7 +18,7 @@ import {
   Zap,
   Download,
 } from 'lucide-react';
-import { fetchWorkflows, fetchDemoCases, runDemoCase, runWorkflow, generateReport } from '../lib/api';
+import { fetchWorkflows, fetchDemoCases, runDemoCase, runWorkflow, generateReport, describeApiError } from '../lib/api';
 import VolumeViewer3D from '../components/VolumeViewer3D';
 import ChromosomeViewer from '../components/ChromosomeViewer';
 
@@ -55,6 +55,9 @@ interface GenomicContext {
 }
 
 interface WorkflowResult {
+  // Declared explicitly so it resolves as string; the `[key: string]: unknown` fallback below
+  // otherwise types it `unknown`, which cannot index workflowImages/volumeWorkflows.
+  workflow_name?: string;
   classification?: string;
   severity?: string;
   findings?: Finding[];
@@ -65,6 +68,15 @@ interface WorkflowResult {
   [key: string]: unknown;
 }
 
+interface PatientDemographics {
+  age?: number;
+  sex?: string;
+  weight_kg?: number;
+  history?: string[];
+  medications?: string[];
+  allergies?: string[];
+}
+
 interface DemoCaseResult {
   case_id?: string;
   title?: string;
@@ -72,6 +84,11 @@ interface DemoCaseResult {
   workflow_result?: WorkflowResult;
   genomic_context?: GenomicContext;
   talking_points?: string[];
+  // These two are returned by /demo-cases/{id}/run but were absent from the interface, so every
+  // read of them went through a `as Record<string, unknown>` cast that typed the value as
+  // `unknown` — which React cannot render, and which broke `tsc -b`.
+  patient_demographics?: PatientDemographics;
+  clinical_scenario?: string;
 }
 
 const workflowIcons: Record<string, typeof Stethoscope> = {
@@ -114,6 +131,10 @@ const severityStyles: Record<string, string> = {
 
 // Map workflows to sample images + AI segmentation overlays
 const API_HOST = `${window.location.protocol}//${window.location.hostname}:8524`;
+// Coronary panels are re-rendered in place by scripts/precompute_coronary_analysis.py.
+// Evaluated once per page load, so a reload always shows the current render rather
+// than a cached one quoting a superseded measurement.
+const ASSET_V = `?v=${Date.now()}`;
 const workflowImages: Record<string, { primary: string; label: string; animation?: string; animLabel?: string }> = {
   ct_head_hemorrhage: {
     primary: `${API_HOST}/segmentation/highres_ct_head_overlay.png`,
@@ -201,7 +222,7 @@ function getSeverityStyle(severity?: string): string {
   return severityStyles[severity.toLowerCase()] || 'bg-blue-500/10 text-blue-400 border border-blue-500/30';
 }
 
-function getTimelineSteps(workflowName: string, classification?: string, genomicGenes?: string[]) {
+function getTimelineSteps(_workflowName: string, classification?: string, genomicGenes?: string[]) {
   const steps: { label: string; active: boolean; critical?: boolean }[] = [
     { label: 'DICOM Received', active: true },
     { label: 'AI Segmentation', active: true },
@@ -230,6 +251,7 @@ function getAvatarColor(severity?: string): string {
 
 export default function Workflows() {
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [demoCases, setDemoCases] = useState<DemoCase[]>([]);
   const [selectedWorkflow, setSelectedWorkflow] = useState<string | null>(null);
   const [result, setResult] = useState<DemoCaseResult | null>(null);
@@ -246,13 +268,13 @@ export default function Workflows() {
         const wfs = data.workflows || data;
         setWorkflows(Array.isArray(wfs) ? wfs : []);
       })
-      .catch(() => {});
+      .catch((e) => setLoadError(describeApiError('Loading workflows', e)));
     fetchDemoCases()
       .then((data) => {
         const cases = Array.isArray(data) ? data : data.cases || [];
         setDemoCases(cases);
       })
-      .catch(() => {});
+      .catch((e) => setLoadError(describeApiError('Loading demo cases', e)));
   }, []);
 
   // Enhancement 4: Pipeline stage animation during loading
@@ -315,6 +337,10 @@ export default function Workflows() {
 
   const scoringSystems = new Set(workflows.map(wf => getScoring(wf.name)).filter(Boolean));
 
+  const demographics = result?.patient_demographics;
+  const clinicalScenario = result?.clinical_scenario;
+  const isCritical: boolean = result?.workflow_result?.severity === 'critical';
+
   return (
     <div className="space-y-8">
       {/* ── Header ─────────────────────────────────────────────── */}
@@ -327,7 +353,7 @@ export default function Workflows() {
             Imaging Workflows
           </h1>
           <p className="text-sm text-[#9CA3AF] mt-1.5 ml-[52px]">
-            {workflows.length > 0 ? `${workflows.length} workflows` : 'Loading workflows...'}
+            {workflows.length > 0 ? `${workflows.length} workflows` : (loadError ? 'Unavailable' : 'Loading workflows...')}
             {scoringSystems.size > 0 && (
               <span className="text-white/40 mx-2">|</span>
             )}
@@ -335,6 +361,22 @@ export default function Workflows() {
           </p>
         </div>
       </div>
+
+      {/* Surface load failures instead of sitting on "Loading workflows..." forever.
+          From the UI, a CORS block, a stopped API and an empty response are indistinguishable
+          unless the reason is shown — so show it, with the likely cause named. */}
+      {loadError && (
+        <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/[0.06] px-4 py-3">
+          <p className="text-sm font-medium text-red-300">Could not load workflow data</p>
+          <p className="text-xs text-[#9CA3AF] mt-1 leading-relaxed">{loadError}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-2 text-xs text-[#76B900] hover:underline"
+          >
+            Retry
+          </button>
+        </div>
+      )}
 
       {/* ── Workflow Grid ──────────────────────────────────────── */}
       <div>
@@ -558,7 +600,9 @@ export default function Workflows() {
             <div className="flex items-center gap-2">
               {result.workflow_result?.inference_time_ms != null && (
                 <span className="text-[11px] text-[#9CA3AF] bg-white/5 border border-white/10 px-3 py-1 rounded-full font-mono">
-                  {Number(result.workflow_result.inference_time_ms).toFixed(1)}ms
+                  {result.workflow_result.is_mock
+                    ? 'cached result'
+                    : `${Number(result.workflow_result.inference_time_ms).toFixed(1)}ms`}
                 </span>
               )}
               <button
@@ -588,7 +632,7 @@ export default function Workflows() {
           </div>
 
           {/* Enhancement 2: Critical Alert Bar */}
-          {result.workflow_result?.severity === 'critical' && (
+          {isCritical && (
             <div className="bg-red-500/10 border-l-4 border-red-500 px-4 py-2 flex items-center gap-3">
               <span className="relative flex h-3 w-3">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
@@ -599,39 +643,37 @@ export default function Workflows() {
           )}
 
           {/* Patient Context (from demo cases) */}
-          {(result as Record<string, unknown>).patient_demographics && (
+          {demographics && (
             <div className="px-6 py-3 bg-white/[0.02] border-b border-white/[0.06] flex flex-wrap items-center gap-4">
               <div className="flex items-center gap-2">
                 <User size={14} className="text-[#9CA3AF]" />
                 <span className="text-sm text-white font-medium">
-                  {((result as Record<string, unknown>).patient_demographics as Record<string, unknown>)?.age}
-                  {((result as Record<string, unknown>).patient_demographics as Record<string, unknown>)?.sex === 'Male' ? 'M' : ((result as Record<string, unknown>).patient_demographics as Record<string, unknown>)?.sex === 'Female' ? 'F' : ''}
+                  {demographics.age}
+                  {demographics.sex === 'Male' ? 'M' : demographics.sex === 'Female' ? 'F' : ''}
                 </span>
               </div>
-              {((result as Record<string, unknown>).patient_demographics as Record<string, unknown>)?.weight_kg && (
-                <span className="text-xs text-[#9CA3AF]">
-                  {String(((result as Record<string, unknown>).patient_demographics as Record<string, unknown>).weight_kg)}kg
-                </span>
+              {demographics.weight_kg && (
+                <span className="text-xs text-[#9CA3AF]">{demographics.weight_kg}kg</span>
               )}
-              {((result as Record<string, unknown>).patient_demographics as Record<string, unknown>)?.history && (
+              {demographics.history && (
                 <div className="flex flex-wrap gap-1">
-                  {(((result as Record<string, unknown>).patient_demographics as Record<string, unknown>).history as string[]).map((h: string) => (
+                  {demographics.history.map((h: string) => (
                     <span key={h} className="text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded-full">
                       {h.replace(/_/g, ' ')}
                     </span>
                   ))}
                 </div>
               )}
-              {(result as Record<string, unknown>).clinical_scenario && (
+              {clinicalScenario && (
                 <p className="text-xs text-[#9CA3AF] flex-1 min-w-[200px]">
-                  {String((result as Record<string, unknown>).clinical_scenario).slice(0, 150)}...
+                  {clinicalScenario.slice(0, 150)}...
                 </p>
               )}
             </div>
           )}
 
           {/* Enhancement 3: Patient Journey Timeline */}
-          {(result as Record<string, unknown>).patient_demographics && (
+          {demographics && (
             <div className="px-6 py-4 border-b border-white/[0.06]">
               <h4 className="text-[10px] uppercase tracking-wider text-[#9CA3AF] mb-3 font-medium">Patient Journey</h4>
               <div className="relative">
@@ -674,17 +716,35 @@ export default function Workflows() {
               const isCardiac = wfName === 'ct_coronary_angiography';
 
               // For cardiac workflow, select images based on version tab
+              // Cardiac panels: rendered from CoronariesNC6 coronary-artery meshes.
+              //
+              // These replace two panels that showed the WRONG ANATOMY under cardiac captions:
+              // V1 ("CTA Coronary — AI Stenosis Analysis") was an axial slice of a VERTEBRA, and
+              // V2 ("Cardiac CT — ... Heart + Vessels") was an upper-abdominal slice at liver
+              // level. Both derived from data/cardiac_ct/abdomen_ct/. A clinician spots that
+              // instantly, and it costs exactly the credibility this demo exists to build.
+              //
+              // The mesh is real coronary geometry with manual rater ground truth, captioned as a
+              // 3-D surface model rather than as a CT slice it is not.
               const cardiacV1Images = {
-                primary: `${API_HOST}/images/annotated/ct_coronary_annotated.png`,
-                label: 'CTA Coronary — AI Stenosis Analysis',
-                animation: `${API_HOST}/segmentation/highres_ct_chest_segmented.gif`,
-                animLabel: 'CT Chest — AI Segmentation Scroll (1024x1024)',
+                primary: `${API_HOST}/coronary/coronary_tree_annotated.png${ASSET_V}`,
+                label: 'Coronary Artery Tree — 3D Segmentation (CoronariesNC6)',
+                animation: `${API_HOST}/coronary/coronary_tree_spin.gif${ASSET_V}`,
+                animLabel: 'Coronary Artery Tree — Rotating 3D Model',
               };
+              // The narrative panel from film 06 (09:11-09:52 of
+              // hcls-factory-06-dna-to-new-medicines): heart -> 72% stenosis -> calcium score ->
+              // LDLR -> statin. It is an ILLUSTRATION, so it makes no anatomical claim, and it
+              // gives the case the same visual language the film already taught the audience.
+              const cardiacStory = `${API_HOST}/coronary/cardiac_pathway_dark.png${ASSET_V}`;
+              // Close-up of the measured lesion. Rendered from the same mesh and the same
+              // coronary_analysis.json as the overview, so the zoom cannot disagree with it.
+              const cardiacDetail = `${API_HOST}/coronary/coronary_stenosis_detail.png${ASSET_V}`;
               const cardiacV2Images = {
-                primary: `${API_HOST}/segmentation/cardiac_ct_overlay.png`,
-                label: 'Cardiac CT — AI Segmentation (Heart + Vessels + Calcification)',
-                animation: `${API_HOST}/segmentation/cardiac_ct_segmented.gif`,
-                animLabel: 'Cardiac CT — AI Segmentation Scroll (Real 512x512 Clinical CT)',
+                primary: `${API_HOST}/coronary/coronary_tree_annotated.png${ASSET_V}`,
+                label: 'Coronary Artery Tree — 3D Segmentation (manual rater ground truth)',
+                animation: `${API_HOST}/coronary/coronary_tree_spin.gif${ASSET_V}`,
+                animLabel: 'Coronary Artery Tree — Rotating 3D Model',
               };
 
               const imgData = isCardiac
@@ -692,6 +752,8 @@ export default function Workflows() {
                 : workflowImages[wfName];
               if (!imgData) return null;
               const hasAnim = !!imgData.animation;
+              const storyImg = isCardiac ? cardiacStory : null;
+              const detailImg = isCardiac ? cardiacDetail : null;
               const volumeWorkflows: Record<string, 'brain' | 'chest' | 'head'> = {
                 ct_head_hemorrhage: 'head',
                 mri_brain_ms_lesion: 'brain',
@@ -699,7 +761,10 @@ export default function Workflows() {
                 ct_coronary_angiography: 'chest',
               };
               const volumeType = volumeWorkflows[wfName] || null;
-              const colCount = hasAnim && volumeType ? 3 : hasAnim ? 2 : volumeType ? 2 : 1;
+              // Cardiac shows four panels: overview, stenosis close-up, rotation, pathway.
+              const colCount = isCardiac
+                ? 4
+                : hasAnim && volumeType ? 3 : hasAnim ? 2 : volumeType ? 2 : 1;
               return (
                 <div className="mb-6">
                   {/* Version Tabs — only for cardiac workflow */}
@@ -746,7 +811,7 @@ export default function Workflows() {
                               ? 'bg-white/5 text-white/50 border border-white/10'
                               : 'bg-blue-500/10 text-blue-400 border border-blue-500/25'
                           }`}>
-                            {cardiacVersion === 1 ? 'V1 — Demo-Matched' : 'V2 — Real Clinical CT'}
+                            {cardiacVersion === 1 ? 'Vessel Model — Annotated' : 'Vessel Model — Ground Truth'}
                           </span>
                         )}
                       </div>
@@ -783,19 +848,22 @@ export default function Workflows() {
                       }`}>
                         <p className="text-[11px] text-[#9CA3AF] leading-relaxed">
                           {cardiacVersion === 1
-                            ? 'Standard view using chest CT segmentation overlays. Matches the imagery used in the platform demo walkthrough for consistent presentation.'
-                            : 'Advanced view using real 512x512 clinical cardiac CT from TCIA. AI segmentation highlights heart chambers, aorta, and coronary calcification at full diagnostic resolution.'}
+                            ? 'Coronary artery tree rendered from CoronariesNC6 vessel meshes, with a representative stenosis marker. A 3D surface model — not a patient CT slice.'
+                            : 'The same coronary geometry shown as manual-rater ground truth. Representative for this demo case \u2014 decision support for a qualified clinician, not a diagnosis. Coronary inference is not yet wired.'}
                         </p>
                       </div>
                     )}
 
-                    <div className={`grid ${colCount === 3 ? 'grid-cols-3' : colCount === 2 ? 'grid-cols-2' : 'grid-cols-1'} gap-0`}>
+                    {/* Cardiac lays out 2x2, not a 1x4 strip. Four panels spread across a dashboard
+                        width leaves each one too narrow to read the labels and measurements baked
+                        into the renders; two per row roughly doubles each panel. */}
+                    <div className={`grid ${colCount === 4 ? 'grid-cols-2' : colCount === 3 ? 'grid-cols-3' : colCount === 2 ? 'grid-cols-2' : 'grid-cols-1'} gap-0`}>
                       {/* Annotated AI Detection with Before/After toggle */}
                       <div className="flex flex-col items-center justify-center p-4 bg-black/30 border-r border-white/[0.06]">
                         <img
                           src={imgData.primary}
                           alt={imgData.label}
-                          className={`max-h-[280px] rounded-lg shadow-2xl shadow-black/50 object-contain transition-all duration-500 ${
+                          className={`max-h-[760px] w-full rounded-lg shadow-2xl shadow-black/50 object-contain transition-all duration-500 ${
                             imageMode === 'raw' ? 'grayscale brightness-110' : ''
                           }`}
                           onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
@@ -804,20 +872,49 @@ export default function Workflows() {
                           {imageMode === 'raw' ? 'Original Grayscale' : imgData.label}
                         </span>
                       </div>
+                      {/* Stenosis close-up (cardiac only).
+                          Sits beside the overview so the viewer can see the narrowing itself
+                          rather than take the percentage on trust. Rendered from the same mesh and
+                          the same coronary_analysis.json, centred on the measured lesion. */}
+                      {isCardiac && detailImg && (
+                        <div className="flex flex-col items-center justify-center p-4 bg-black/40 border-r border-white/[0.06]">
+                          <img
+                            src={detailImg}
+                            alt="Stenosis detail — measured lumen vs reference calibre"
+                            className="max-h-[760px] w-full rounded-lg shadow-2xl shadow-black/50 object-contain"
+                            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                          />
+                          <span className="text-[10px] text-[#9CA3AF] mt-2">Stenosis Detail — Measured Lumen</span>
+                        </div>
+                      )}
                       {/* Animated Volume Scroll */}
                       {hasAnim && (
                         <div className="flex flex-col items-center justify-center p-4 bg-black/40">
                           <img
                             src={imgData.animation}
                             alt={imgData.animLabel || 'Volume scroll'}
-                            className="max-h-[280px] rounded-lg shadow-2xl shadow-black/50 object-contain"
+                            className="max-h-[760px] w-full rounded-lg shadow-2xl shadow-black/50 object-contain"
                             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                           />
                           <span className="text-[10px] text-[#9CA3AF] mt-2">{imgData.animLabel || 'Volume Scroll'}</span>
                         </div>
                       )}
-                      {/* 3D AI Volume Rendering */}
-                      {volumeType && (
+                      {/* Third panel.
+                          For cardiac this is the narrative illustration from film 06, NOT the
+                          volume viewer: ct_coronary_angiography maps to volumeType 'chest', and
+                          highres_ct_chest.nii.gz is a SYNTHETIC PHANTOM (a noise ellipsoid with no
+                          anatomy) — i.e. another cardiac-captioned panel showing nothing cardiac. */}
+                      {isCardiac && storyImg ? (
+                        <div className="flex flex-col items-center justify-center p-4 bg-black/40 border-l border-white/[0.06]">
+                          <img
+                            src={storyImg}
+                            alt="Cardiac pathway: stenosis to genomic trigger"
+                            className="max-h-[760px] w-full rounded-lg shadow-2xl shadow-black/50 object-contain"
+                            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                          />
+                          <span className="text-[10px] text-[#9CA3AF] mt-2">Cardiac Pathway — Illustration</span>
+                        </div>
+                      ) : volumeType && (
                         <div className="flex flex-col items-center justify-center p-4 bg-black/40 border-l border-white/[0.06]">
                           <VolumeViewer3D volumeType={volumeType} height={280} />
                           <span className="text-[10px] text-[#9CA3AF] mt-2">3D AI Visualization</span>
@@ -856,14 +953,31 @@ export default function Workflows() {
                 {/* NIM Services */}
                 {result.workflow_result?.nim_services_used && result.workflow_result.nim_services_used.length > 0 && (
                   <div>
-                    <h4 className="text-[10px] uppercase tracking-wider text-[#9CA3AF] mb-2">NIM Services Used</h4>
+                    <h4 className="text-[10px] uppercase tracking-wider text-[#9CA3AF] mb-2">
+                      {result.workflow_result.is_mock
+                        ? 'Reference Pipeline — models not executed'
+                        : 'NIM Services Used'}
+                    </h4>
                     <div className="flex flex-wrap gap-1.5">
                       {result.workflow_result.nim_services_used.map((svc) => (
-                        <span key={svc} className="text-[10px] font-mono bg-[#76B900]/8 text-[#76B900] border border-[#76B900]/20 px-2 py-0.5 rounded">
-                          {svc}
+                        <span
+                          key={svc}
+                          className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
+                            result.workflow_result?.is_mock
+                              ? 'bg-white/5 text-[#9CA3AF] border-white/10'
+                              : 'bg-[#76B900]/8 text-[#76B900] border-[#76B900]/20'
+                          }`}
+                        >
+                          {svc}{result.workflow_result?.is_mock ? ' · not run' : ''}
                         </span>
                       ))}
                     </div>
+                    {result.workflow_result.is_mock && (
+                      <p className="text-[10px] text-[#9CA3AF] mt-2 leading-relaxed">
+                        The models this workflow is designed around. Coronary inference is not yet wired;
+                        the stenosis shown is measured geometrically from a segmented vessel surface.
+                      </p>
+                    )}
                   </div>
                 )}
               </div>

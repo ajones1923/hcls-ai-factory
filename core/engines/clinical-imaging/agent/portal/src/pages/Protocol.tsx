@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { FileCheck, Loader2, AlertTriangle, Shield, ChevronRight, Gauge, Zap } from 'lucide-react';
-import { recommendProtocol, fetchIndications } from '../lib/api';
+import { recommendProtocol, fetchIndications, describeApiError } from '../lib/api';
 
 interface Alternative {
   modality?: string;
@@ -76,7 +76,7 @@ export default function Protocol() {
         const list = data.indications || data;
         setIndications(Array.isArray(list) ? list : []);
       })
-      .catch(() => {});
+      .catch((e) => describeApiError('Loading protocol data', e));
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {

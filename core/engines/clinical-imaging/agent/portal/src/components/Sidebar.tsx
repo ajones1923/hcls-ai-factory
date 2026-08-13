@@ -12,7 +12,7 @@ import {
   GitCompare,
   Zap,
 } from 'lucide-react';
-import { fetchHealth } from '../lib/api';
+import { fetchHealth, describeApiError } from '../lib/api';
 import { useAppStore } from '../store/appStore';
 
 const navItems = [
@@ -48,7 +48,7 @@ export default function Sidebar() {
           setHealth(data);
           setNimStatus(data.nim_services || {});
         })
-        .catch(() => {});
+        .catch((e) => describeApiError('Loading engine status', e));
     };
     load();
     const interval = setInterval(load, 15000);
@@ -160,7 +160,7 @@ export default function Sidebar() {
       {/* Footer */}
       <div className="px-5 py-3 border-t border-white/[0.08]">
         <p className="text-[10px] text-[#9CA3AF]">
-          Apache 2.0 | 1,324 tests passing
+          Apache 2.0 | 1,365 tests passing
         </p>
       </div>
     </aside>

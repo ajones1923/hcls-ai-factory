@@ -7,7 +7,7 @@ import {
   Dna,
   AlertTriangle,
 } from 'lucide-react';
-import { fetchDemoCases, runDemoCase } from '../lib/api';
+import { fetchDemoCases, runDemoCase, describeApiError } from '../lib/api';
 
 interface DemoCase {
   case_id: string;
@@ -230,7 +230,7 @@ export default function Compare() {
         const cases = Array.isArray(data) ? data : data.cases || [];
         setDemoCases(cases);
       })
-      .catch(() => {});
+      .catch((e) => describeApiError('Loading demo cases', e));
   }, []);
 
   const runA = async () => {
