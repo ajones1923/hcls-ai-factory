@@ -560,6 +560,23 @@ def annotate_ct_chest_nodule():
 # Image 8: CT Coronary
 # ===========================================================================
 def annotate_ct_coronary():
+    """DISABLED — this drew coronary anatomy onto a slice of SPINE.
+
+    The source, `dicom_ct_sample_preview.png`, is a pydicom public-domain axial CT slice of a
+    VERTEBRA: vertebral body, pedicles, lamina, spinous process, spinal canal. This function drew
+    stylised LAD/LCx/RCA paths, stenosis markers and an Agatston overlay on top of it and saved the
+    result as `ct_coronary_annotated.png`, which the demo captioned "CTA Coronary — AI Stenosis
+    Analysis". Any radiologist or cardiologist identifies that in about a second.
+
+    The coronary panel is now produced by `scripts/render_coronary_mesh.py` from real coronary
+    artery meshes (`data/cardiac_ct/CoronariesNC6/`). Do not re-enable this without a genuine
+    cardiac source image.
+    """
+    print("8. CT Coronary — SKIPPED (source is a vertebra; see render_coronary_mesh.py)")
+    return
+
+
+def _disabled_annotate_ct_coronary_vertebra_source():
     print("8. dicom_ct_sample_preview — CT Coronary")
     img = load_source(os.path.join(SRC_DIR, "dicom_ct_sample_preview.png"),
                       target_size=512)
@@ -618,13 +635,16 @@ def annotate_ct_coronary():
 
     # Main label at bottom
     font_main = get_font(17)
+    # 77.9% is the measured value from coronary_analysis.json; this label read 72% while every
+    # other surface said 77.9%. Keep it in step with the analysis if that number ever changes.
     draw_text_with_shadow(draw, (15, h - 70),
-                          "LAD Proximal: 72% Stenosis \u2014 CAD-RADS 4A",
+                          "LAD Proximal: 77.9% Stenosis \u2014 CAD-RADS 4A/P3/HRP",
                           font_main, fill=RED)
 
-    # Calcium score badge
+    # Calcium score badge. Agatston needs Hounsfield units a surface mesh does not carry, so the
+    # score is representative; an exact MESA percentile would also need race/ethnicity.
     font_badge = get_font(18)
-    draw_badge(draw, (15, h - 40), "Ca Score: 385 (92nd %ile)",
+    draw_badge(draw, (15, h - 40), "Ca Score: 385 (repr.)",
                ORANGE, font_badge)
 
     # CRITICAL badge top-left

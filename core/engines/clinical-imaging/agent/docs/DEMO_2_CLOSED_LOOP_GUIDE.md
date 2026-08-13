@@ -89,17 +89,17 @@ The Lung-RADS 4B result with:
 
 **What the audience sees:**
 
-The Genomics Pipeline portal showing the completed genomic analysis. If showing live data, the VCF file with 11.7 million variants is displayed.
+The Genomics Pipeline portal showing the completed genomic analysis. If showing live data, the VCF file with 11.7 million variant records is displayed.
 
 **Script:**
 
 > "This is Engine 1 — the Genomic Foundation Engine. When Maria visited this hospital previously, her whole genome was sequenced. 200 gigabytes of raw DNA data. Engine 1 processed it using NVIDIA Parabricks — GPU-accelerated alignment with BWA-MEM2 and variant calling with Google DeepVariant."
 
-> "What would take 48 hours on a CPU server took 3 hours on this DGX Spark. The result: 11.7 million variants called with over 99.7% accuracy."
+> "What would take 48 hours on a CPU server took 3 hours on this DGX Spark. The result: 11.7 million variant records called with over 99.7% accuracy."
 
 *Point to the VCF data:*
 
-> "Every variant in Maria's genome is indexed and searchable. But 11.7 million variants is too many for a human to review. That's where Engine 2 comes in."
+> "Every variant in Maria's genome is indexed and searchable. But 11.7 million variant records is too many for a human to review. That's where Engine 2 comes in."
 
 ---
 
@@ -245,7 +245,7 @@ Results:
 | Engine | Name | What It Did for Maria | Time |
 |--------|------|----------------------|------|
 | **4** | Clinical Imaging | Found the nodule, classified Lung-RADS 4B, triggered genomics | 1 minute |
-| **1** | Genomic Foundation | Processed her genome, called 11.7M variants | 3 hours (pre-computed) |
+| **1** | Genomic Foundation | Processed her genome, called 11.7M variant records | 3 hours (pre-computed) |
 | **2** | Precision Intelligence | Found EGFR L858R, validated druggable target | 2 minutes |
 | **3** | Therapeutic Discovery | Generated 100 EGFR inhibitor candidates | 16 minutes |
 
@@ -302,7 +302,7 @@ git clone https://github.com/ajones1923/hcls-ai-factory.git
 | Act | Content | Duration | Running Total |
 |-----|---------|----------|---------------|
 | 1 | The Trigger (Engine 4 → cross-modal bridge) | 3:00 | 3:00 |
-| 2 | The Genome (Engine 1 — Parabricks, 11.7M variants) | 3:00 | 6:00 |
+| 2 | The Genome (Engine 1 — Parabricks, 11.7M variant records) | 3:00 | 6:00 |
 | 3 | The Intelligence (Engine 2 — EGFR L858R identified) | 4:00 | 10:00 |
 | 4 | The Target (validation, PDB structures, druggability) | 2:00 | 12:00 |
 | 5 | The Molecules (Engine 3 — 100 EGFR inhibitors generated) | 5:00 | 17:00 |

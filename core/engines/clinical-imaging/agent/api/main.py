@@ -172,12 +172,21 @@ async def lifespan(app: FastAPI):
             host=settings.MILVUS_HOST,
             port=settings.MILVUS_PORT,
         )
+        # Connect and create-collections are logged separately: folding them into one
+        # try/except reported an AttributeError here (the method is create_all_collections,
+        # not ensure_collections) as "Milvus connection deferred", which reads as a network
+        # fault on a connection that had in fact already succeeded.
         try:
             manager.connect()
-            manager.ensure_collections()
-            logger.info("Milvus connected and collections ensured")
+            logger.info("Milvus connected")
         except Exception as e:
             logger.warning(f"Milvus connection deferred: {e}")
+        else:
+            try:
+                manager.create_all_collections()
+                logger.info("Milvus collections ensured")
+            except Exception as e:
+                logger.warning(f"Milvus collection setup failed: {e}")
 
         # Embedding model
         embedder = SentenceTransformer(settings.EMBEDDING_MODEL)
@@ -360,6 +369,14 @@ _segmentation_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "da
 if os.path.isdir(_segmentation_dir):
     app.mount("/segmentation", StaticFiles(directory=_segmentation_dir), name="segmentation")
     logger.info(f"Serving segmentation overlays from {_segmentation_dir}")
+
+# Coronary artery meshes rendered from CoronariesNC6 (real vessel geometry with manual rater
+# ground truth). These replace the cardiac panels that previously showed abdominal and spine
+# anatomy captioned as coronary — see scripts/render_coronary_mesh.py.
+_coronary_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "demo", "coronary")
+if os.path.isdir(_coronary_dir):
+    app.mount("/coronary", StaticFiles(directory=_coronary_dir), name="coronary")
+    logger.info(f"Serving coronary mesh renders from {_coronary_dir}")
 
 
 # =====================================================================
