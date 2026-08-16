@@ -26,6 +26,16 @@ DEMO_CASES = (pathlib.Path(__file__).resolve().parents[1]
               / "data" / "reference" / "demo_cases.json")
 
 
+
+# data/ is deliberately never published (.gitignore; CLAUDE.md: "Data / weights / secrets stay
+# local — only code + docs publish"). These tests read that local-only reference data, so on a
+# fresh clone it is absent by design. Skip rather than fail — a clean clone should report a green
+# run with skips, not errors that read as a broken project.
+pytestmark = pytest.mark.skipif(
+    not DEMO_CASES.is_file(),
+    reason="local-only reference data under data/ is not published (see .gitignore)",
+)
+
 # ---------------------------------------------------------------------------------------------
 # Stenosis category
 # ---------------------------------------------------------------------------------------------

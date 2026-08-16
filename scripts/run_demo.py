@@ -104,10 +104,18 @@ def run_single_cell(log):
     sys.path.insert(0, str(src))
     from single_cell_compute import SingleCellAnalysis, PBMC_MARKERS
 
+    # The bundled copy lives under data/, which the project deliberately never publishes
+    # (.gitignore; "Data / weights / secrets stay local"). On a fresh clone it is absent, so fall
+    # back to scanpy's own copy of the same public PBMC 3k dataset. That keeps this demo genuinely
+    # reproducible by anyone who clones the repo -- which is the whole point of publishing it.
     h5ad = ROOT / "core/engines/single-cell/data/pbmc3k_raw.h5ad"
-    log(f"dataset       {h5ad.name} ({h5ad.stat().st_size/1e6:.1f} MB)")
     log(f"marker panel  {len(PBMC_MARKERS)} cell types")
-    adata = sc.read_h5ad(h5ad)
+    if h5ad.is_file():
+        log(f"dataset       {h5ad.name} ({h5ad.stat().st_size/1e6:.1f} MB), local copy")
+        adata = sc.read_h5ad(h5ad)
+    else:
+        log("dataset       PBMC 3k via scanpy (local copy absent — data/ is not published)")
+        adata = sc.datasets.pbmc3k()
     log(f"loaded        {adata.n_obs:,} cells x {adata.n_vars:,} genes")
     log("running       QC -> normalize -> HVG -> PCA -> neighbors -> Leiden -> marker DE")
     result = SingleCellAnalysis().run(adata, resolution=1.0)
