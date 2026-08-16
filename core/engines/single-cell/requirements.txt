@@ -1,0 +1,27 @@
+# Single-Cell Analysis Engine (Engine 8, compute layer) — runtime dependencies.
+#
+# The engine runs the standard scanpy scRNA-seq workflow (QC -> normalize -> HVG -> PCA ->
+# neighbors -> Leiden -> marker DE) and annotates clusters by marker-gene overlap. It is CPU-served:
+# scanpy/leidenalg on the Grace cores, no GPU required. See `tags: [D1, scanpy, cpu-served]` in
+# lib/hcls_common/capabilities.json.
+#
+# Pinned to major/minor to keep the aarch64 wheel set reproducible on the DGX Spark.
+
+fastapi>=0.110,<1.0
+uvicorn[standard]>=0.27,<1.0
+pydantic>=2.0,<3.0
+httpx>=0.26,<1.0
+
+# scientific core
+scanpy>=1.10,<2.0
+anndata>=0.10,<1.0
+numpy>=1.24,<3.0
+scipy>=1.11,<2.0
+pandas>=2.0,<3.0
+
+# Leiden clustering — scanpy needs BOTH of these; leidenalg alone silently falls back
+leidenalg>=0.10,<1.0
+igraph>=0.11,<1.0
+
+# neighbour graph construction used by scanpy.pp.neighbors
+pynndescent>=0.5,<1.0

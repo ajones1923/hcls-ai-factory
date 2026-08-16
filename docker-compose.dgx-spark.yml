@@ -367,6 +367,135 @@ services:
   # Landing Page
   # -------------------------------------------------------------------
 
+  # ---------------------------------------------------------------------
+  # Engines that had no compose entry until 2026-08-15.
+  #
+  # All five already had a Dockerfile and requirements.txt; they were simply never declared
+  # here, so `docker compose up` could not start half the platform -- including the flagship
+  # genomics engine and the TSC disease program. Ports follow lib/hcls_common/capabilities.json.
+  # ---------------------------------------------------------------------
+  genomic-foundation-engine:
+    build:
+      context: ./core/engines/genomic-foundation/web-portal
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      <<: *common-env
+      ENGINE_NAME: genomics-engine
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"]
+      <<: *agent-healthcheck
+
+  precision-intelligence-engine:
+    build:
+      context: ./core/engines/precision-intelligence
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "5001:5001"
+    environment:
+      <<: *common-env
+      ENGINE_NAME: precision-intelligence-engine
+    depends_on:
+      milvus:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5001/health')"]
+      <<: *agent-healthcheck
+
+  therapeutic-discovery-engine:
+    build:
+      context: ./core/engines/therapeutic-discovery
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8505:8501"
+    environment:
+      <<: *common-env
+      ENGINE_NAME: therapeutic-discovery-engine
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      <<: *agent-healthcheck
+
+  # Engine 8 compute layer. Registered `live` at :8573 since before this entry existed, with
+  # nothing able to bind the port -- the one real registry-honesty defect found in the audit.
+  # CPU-served by design (scanpy + leidenalg on the Grace cores); no GPU reservation.
+  singlecell-compute:
+    build:
+      context: ./core/engines/single-cell
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8573:8573"
+    environment:
+      <<: *common-env
+      ENGINE_NAME: singlecell-compute
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8573/health"]
+      <<: *agent-healthcheck
+
+  # The TSC disease program composes the horizontal engines/agents; it is NOT a ninth engine
+  # (registry: type=engine + tags:[disease-program], filtered out of the 8 by site_gen_matrix).
+  tuberous-sclerosis-program:
+    build:
+      context: ./core/disease-programs/tuberous-sclerosis
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8560:8560"
+    environment:
+      <<: *common-env
+      PROGRAM_NAME: tuberous-sclerosis
+    depends_on:
+      milvus:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8560/health')"]
+      <<: *agent-healthcheck
+
+  # Structural Biology — only the CPU-feasible service is declared. ESMFold (:8570) and
+  # ProteinMPNN (:8578) need CUDA; the box is on torch 2.10.0+cpu, so declaring them would create
+  # services that start but cannot do their job. Add them once PRD R6 (CUDA torch) lands.
+  structural-biology-search:
+    build:
+      context: ./core/engines/structural-biology
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8571:8571"
+    environment:
+      <<: *common-env
+      ENGINE_NAME: esm2-search
+    deploy:
+      resources:
+        limits:
+          memory: 12G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8571/health"]
+      <<: *agent-healthcheck
+
   landing-page:
     build:
       context: ./landing-page

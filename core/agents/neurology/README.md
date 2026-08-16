@@ -20,8 +20,8 @@ RAG-powered neurology clinical decision support system for the HCLS AI Factory.
 
 | Service | Port |
 |---------|------|
-| FastAPI API | 8528 |
-| Streamlit UI | 8529 |
+| FastAPI API | 8536 |
+| Streamlit UI | 8535 |
 | Milvus (standalone) | 59530 |
 
 ## Quick Start
@@ -38,9 +38,9 @@ docker compose up -d
 docker compose logs -f neuro-setup
 
 # 4. Access
-# API:  http://localhost:8528/health
-# UI:   http://localhost:8529
-# Docs: http://localhost:8528/docs
+# API:  http://localhost:8536/health
+# UI:   http://localhost:8535
+# Docs: http://localhost:8536/docs
 ```
 
 ## Local Development
@@ -50,10 +50,10 @@ docker compose logs -f neuro-setup
 pip install -r requirements.txt
 
 # Start API
-uvicorn api.main:app --host 0.0.0.0 --port 8528 --reload
+uvicorn api.main:app --host 0.0.0.0 --port 8536 --reload
 
 # Start UI (separate terminal)
-streamlit run app/neuro_ui.py --server.port 8529
+streamlit run app/neuro_ui.py --server.port 8535
 ```
 
 ## API Endpoints
@@ -95,13 +95,13 @@ streamlit run app/neuro_ui.py --server.port 8529
 ```
 neurology_intelligence_agent/
   api/
-    main.py              # FastAPI app (port 8528)
+    main.py              # FastAPI app (port 8536)
     routes/
       neuro_clinical.py  # Clinical endpoints + scale calculators
       reports.py         # Report generation
       events.py          # SSE streaming
   app/
-    neuro_ui.py          # Streamlit UI (port 8529)
+    neuro_ui.py          # Streamlit UI (port 8535)
   config/
     settings.py          # Pydantic settings (NEURO_ env prefix)
   src/

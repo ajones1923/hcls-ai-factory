@@ -108,7 +108,24 @@ nav:
           - Mission Cut: brief/mission.md
   - Disease Programs:
       - Tuberous Sclerosis Complex: programs/tsc.md
-  - Demonstrations: demos/index.md
+  - Demonstrations:
+      - Portfolio (D1-D7): demos/index.md
+      - Catalogue (E/A/P): demos/DEMO_CATALOG.md
+      - Demo PRD: demos/PRD.md
+      - Demo Build Guide: demos/BUILD_GUIDE.md
+  - Subject Guides: subjects/index.md
+  - Build & Audit:
+      - Index: build/README.md
+      - Gap Analysis: build/GAP_ANALYSIS.md
+      - PRD: build/PRD.md
+      - Build Guide: build/BUILD_GUIDE.md
+      - Port Map: build/PORT_MAP.md
+      - Best Practices & Accuracy: build/BEST_PRACTICES_AUDIT.md
+      - Layout Review: build/LAYOUT_REVIEW.md
+      - Scorecard: build/SCORECARD.md
+      - Resource Report: build/RESOURCE_REPORT.md
+      - Gated Software PRD: build/GATED_SOFTWARE_PRD.md
+      - Gated Software Build Guide: build/GATED_SOFTWARE_BUILD_GUIDE.md
   - Run It Yourself:
       - run/index.md
       - Hardware & Elastic Burst: run/hardware.md

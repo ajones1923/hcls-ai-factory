@@ -11,5 +11,16 @@ RUN pip install --upgrade pip && pip install -r requirements.txt -r requirements
 
 COPY . .
 
+# Run unprivileged. This is the flagship disease program and it served as root until 2026-08-15 --
+# a container escape would have landed with full root in the namespace. `COPY . .` also ingests the
+# whole build context, so .dockerignore is load-bearing here (secrets, logs, data must not enter
+# the image).
+RUN useradd -r -s /bin/false tscuser && chown -R tscuser:tscuser /app
+USER tscuser
+
 EXPOSE 8560 8561 8562 8563
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:8560/health || exit 1
+
 CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8560"]

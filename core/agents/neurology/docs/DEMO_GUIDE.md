@@ -15,21 +15,21 @@
 docker compose ps
 
 # Verify health
-curl -s http://localhost:8528/health | python -m json.tool
+curl -s http://localhost:8536/health | python -m json.tool
 
 # Expected: "status": "healthy", "collections": 14, "workflows": 9, "scales": 10
 
 # Open Streamlit UI
-open http://localhost:8529
+open http://localhost:8535
 
 # Open API docs
-open http://localhost:8528/docs
+open http://localhost:8536/docs
 ```
 
 ### Demo Environment Checklist
 
 - [ ] All 14 collections loaded (check `/collections`)
-- [ ] Streamlit UI responsive at port 8529
+- [ ] Streamlit UI responsive at port 8535
 - [ ] API health returns "healthy"
 - [ ] Anthropic API key configured and LLM responding
 - [ ] Browser tabs ready for Streamlit UI and API docs
@@ -45,7 +45,7 @@ open http://localhost:8528/docs
 
 Via API:
 ```bash
-curl -X POST http://localhost:8528/v1/neuro/scale/calculate \
+curl -X POST http://localhost:8536/v1/neuro/scale/calculate \
   -H "Content-Type: application/json" \
   -d '{
     "scale_type": "nihss",
@@ -74,7 +74,7 @@ curl -X POST http://localhost:8528/v1/neuro/scale/calculate \
 ### Step 2: Calculate ASPECTS
 
 ```bash
-curl -X POST http://localhost:8528/v1/neuro/scale/calculate \
+curl -X POST http://localhost:8536/v1/neuro/scale/calculate \
   -H "Content-Type: application/json" \
   -d '{
     "scale_type": "aspects",
@@ -107,7 +107,7 @@ Via Streamlit: Type the following query:
 ### Step 1: Calculate MoCA
 
 ```bash
-curl -X POST http://localhost:8528/v1/neuro/scale/calculate \
+curl -X POST http://localhost:8536/v1/neuro/scale/calculate \
   -H "Content-Type: application/json" \
   -d '{
     "scale_type": "moca",
@@ -167,7 +167,7 @@ Demonstrate other scale calculators to show breadth:
 
 ```bash
 # ALSFRS-R for ALS patient
-curl -X POST http://localhost:8528/v1/neuro/scale/calculate \
+curl -X POST http://localhost:8536/v1/neuro/scale/calculate \
   -H "Content-Type: application/json" \
   -d '{
     "scale_type": "alsfrs_r",
@@ -211,7 +211,7 @@ Via Streamlit:
 ### Step 1: Calculate EDSS
 
 ```bash
-curl -X POST http://localhost:8528/v1/neuro/scale/calculate \
+curl -X POST http://localhost:8536/v1/neuro/scale/calculate \
   -H "Content-Type: application/json" \
   -d '{
     "scale_type": "edss",

@@ -21,10 +21,10 @@ This document describes the high-level design of the Neurology Intelligence Agen
 
 ## 3. Architecture Overview
 
-- **API Layer** (FastAPI, port 8528) -- Clinical endpoints, scale calculators, report generation
+- **API Layer** (FastAPI, port 8536) -- Clinical endpoints, scale calculators, report generation
 - **Intelligence Layer** -- Multi-collection RAG retrieval with neurology-specific filtering
 - **Data Layer** (Milvus) -- Vector collections for neurology literature, guidelines, trials
-- **Presentation Layer** (Streamlit, port 8529) -- Interactive neurology dashboard
+- **Presentation Layer** (Streamlit, port 8535) -- Interactive neurology dashboard
 
 For detailed technical architecture, see [ARCHITECTURE_GUIDE.md](ARCHITECTURE_GUIDE.md).
 

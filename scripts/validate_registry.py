@@ -87,6 +87,54 @@ def main() -> int:
     for port_, cids in reg.port_collisions().items():
         errors.append(f"port collision on :{port_} — {cids} (each service needs a unique port)")
 
+    # 4a) PORT CONVENTION drift-guard (adopted 2026-08-15).
+    #
+    #     The registry endpoint is the UI port; the API is UI + 1.
+    #
+    # Before this guard existed, the registry and health-monitor.sh (the cron supervisor that is
+    # the ACTUAL deployment mechanism) disagreed on 8 of 13 subjects, and precision-biomarker and
+    # neurology each claimed BOTH 8528 and 8529 -- they could not run together. reg.port_collisions()
+    # could not see it, because it only compares registry entries with each other; the supervisor's
+    # ports are invisible to the registry. So parse the supervisor and cross-check.
+    hm = REPO / "health-monitor.sh"
+    if hm.exists():
+        import re as _re
+        supervised: dict[str, int] = {}
+        for line in hm.read_text().splitlines():
+            m = _re.match(r'\s*"([a-z0-9-]+)\|(\d+)\|', line)
+            if m:
+                supervised[m.group(1)] = int(m.group(2))
+
+        # a port may be claimed once and once only, across BOTH sources
+        claimed: dict[int, list[str]] = {}
+        SINGLE = {"genomics-engine", "precision-intelligence-engine",
+                  "therapeutic-discovery-engine", "singlecell-compute"}
+        for c in reg.all():
+            if c.type.value not in ("engine", "agent") or not c.endpoint:
+                continue
+            try:
+                ui_port = int(str(c.endpoint).rsplit(":", 1)[-1])
+            except ValueError:
+                continue
+            claimed.setdefault(ui_port, []).append(f"{c.id}(ui)")
+            if c.id not in SINGLE:
+                claimed.setdefault(ui_port + 1, []).append(f"{c.id}(api)")
+        for port_, who in sorted(claimed.items()):
+            if len(who) > 1:
+                errors.append(
+                    f"port convention violated on :{port_} — claimed by {who}. "
+                    f"The registry endpoint is the UI and the API is UI+1, so two capabilities "
+                    f"whose UI ports are adjacent will always collide; re-seat one of them."
+                )
+        # every supervised port must be a port the convention actually allocates
+        allocated = set(claimed)
+        for name, port_ in sorted(supervised.items()):
+            if port_ not in allocated and port_ not in (3000, 8080, 8501, 8510, 9099, 9100, 9400, 19530):
+                errors.append(
+                    f"health-monitor.sh supervises '{name}' on :{port_}, which the registry does "
+                    f"not allocate under UI/UI+1 — the supervisor has drifted from the registry"
+                )
+
     # 4b) taxonomy drift-guard: tags must not contradict type (engine tagged 'agent' or vice versa)
     for cid in reg.type_tag_conflicts():
         errors.append(f"{cid}: tags contradict type (an engine tagged 'agent' or an agent tagged 'engine')")

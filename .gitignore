@@ -43,6 +43,10 @@ vendor_*/
 # ── PYTHON ENVIRONMENTS & CACHES ─────────────────────────────────────────────
 venv/
 .venv/
+# Isolated mkdocs toolchain. It MUST stay out of git: `git add -A` would otherwise stage
+# 16,540 files. It is separate from .venv because installing requirements-docs.txt into the
+# platform venv breaks test collection (zarr / fast-array-utils pytest plugins).
+.venv-docs/
 env/
 __pycache__/
 *.py[cod]

@@ -1,0 +1,17 @@
+demo          E8 · single-cell
+title         Nine populations from one sample
+label         LIVE
+started       2026-08-16T03:38:30+00:00
+dataset       pbmc3k_raw.h5ad (5.9 MB)
+marker panel  8 cell types
+loaded        2,700 cells x 32,738 genes
+running       QC -> normalize -> HVG -> PCA -> neighbors -> Leiden -> marker DE
+clusters      9
+  cell type   B cells
+  cell type   CD14+ Monocytes
+  cell type   CD4 T cells
+  cell type   Dendritic cells
+  cell type   FCGR3A+ Monocytes
+  cell type   Megakaryocytes
+  cell type   NK cells
+RESULT        PASS — ran on real input
