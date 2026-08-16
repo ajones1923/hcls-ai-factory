@@ -108,6 +108,7 @@ nav:
           - Mission Cut: brief/mission.md
   - Disease Programs:
       - Tuberous Sclerosis Complex: programs/tsc.md
+  - Paper: paper/index.md
   - Demonstrations:
       - Portfolio (D1-D7): demos/index.md
       - Catalogue (E/A/P): demos/DEMO_CATALOG.md

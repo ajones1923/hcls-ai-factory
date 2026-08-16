@@ -31,6 +31,11 @@ program, composed from the horizontal engines and agents. Not a ninth engine.
 
 Each subject has: **Overview** · **Foundation Learning** · **Advanced Learning** · **Demo**.
 
+## Paper
+
+- [**Honesty by Construction**](paper/index.md) — preprint describing the platform and the
+  capability registry that makes its claims machine-checkable
+
 ## Build, audit and operate
 
 Produced 2026-08-15. Every figure was measured by running the code.
