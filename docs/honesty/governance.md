@@ -9,9 +9,10 @@ Trust in a clinical-decision-support system is not a slogan — it's enforced at
 capability. Governance in the HCLS AI Factory is **mechanical**: the registry is the source of truth,
 and every governed run passes through the same gates.
 
-![Governed by construction — request, governance gate, capability run, signed lineage record](../assets/infographics/governance-lineage.png)
+![Governed by construction — request, governance gate, capability run, lineage record of inputs, chain and hash](../assets/infographics/governance-lineage.png)
 /// caption
-Every capability call passes the gate and leaves an auditable, 21 CFR Part 11-style record.
+A governed run: request → gate → capability → lineage record. See *Where the gates fire today*
+below for current coverage.
 ///
 
 ## The gates every governed run passes
@@ -25,11 +26,37 @@ Every capability call passes the gate and leaves an auditable, 21 CFR Part 11-st
   on anything that isn't actually running. Enforced in code (see the
   [Capability Maturity Matrix](maturity-matrix.md)).
 
+## Where the gates fire today
+
+Honesty about the honesty layer: the gates are **enforced on the governed path** — capability calls
+made through the workflow composer and the tool surface — and adoption across the services' own HTTP
+routes is **in progress**.
+
+| | Coverage |
+|---|---|
+| Governance middleware installed (request id, timing, service identity) | **11 of 12** services |
+| Input-validation gate invoked by a handler | **1 of 12** |
+| Output-honesty gate invoked by a handler | **1 of 12** |
+| API-key authentication available (fail-closed once configured) | **12 of 12** |
+
+The middleware is deliberately *not* a gate: it identifies and times a request. A handler must call
+`require_valid_input()` and `honesty_flags()` for a call to be gated, and the response header
+`X-HCLS-Governed` names only the gates that actually ran — it is absent when none did.
+
+So a request to a service's own route is authenticated and identified, but not yet input-validated
+or honesty-checked unless that service has adopted the calls. We state the number rather than the
+intention.
+
 ## Reproducible lineage (21 CFR Part 11-minded)
 
 Governed runs carry a lineage manifest — inputs, the capability chain that produced each artifact,
 serving details, a composed honesty tier, and a deterministic lineage hash — so a result can be traced
 back to exactly what made it. The design intent is audit-grade reproducibility, not a black box.
+
+**Scope, stated plainly:** the lineage mechanism (`chain_lineage`) is implemented and used on the
+governed composer path. It is **not yet emitted by the services' own HTTP routes**. "21 CFR Part
+11-**minded**" describes the design intent — traceable inputs, attributable steps, a deterministic
+hash — and is not a claim of Part 11 validation or compliance.
 
 ## The neutral, reproducible repository
 
