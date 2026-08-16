@@ -125,6 +125,9 @@ nav:
       - Scorecard: build/SCORECARD.md
       - Resource Report: build/RESOURCE_REPORT.md
       - Repo & Site Review: build/REPO_AND_SITE_REVIEW.md
+      - Pre-Gated Recommendations: build/PRE_GATED_RECOMMENDATIONS.md
+      - Software Acquisition Manifest: build/ACQUISITION_MANIFEST.md
+      - Site to 10/10: build/SITE_TO_TEN.md
       - Deploy Runbook: build/DEPLOY_RUNBOOK.md
       - Gated Software PRD: build/GATED_SOFTWARE_PRD.md
       - Gated Software Build Guide: build/GATED_SOFTWARE_BUILD_GUIDE.md
