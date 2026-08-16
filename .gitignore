@@ -57,6 +57,11 @@ __pycache__/
 .ipynb_checkpoints/
 node_modules/
 build/
+# ...but docs/build/ is DOCUMENTATION, not a build artifact. The bare `build/` pattern above
+# silently dropped all 14 files there from a `git add -A`, and mkdocs.yml's nav references
+# them -- so the Netlify build failed with no local symptom (the files exist on disk).
+!docs/build/
+!docs/build/**
 dist/
 
 # ── SEPARATE REPOS (their own git; not part of this monorepo) ────────────────
