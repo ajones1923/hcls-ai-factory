@@ -10,6 +10,13 @@
 
 **Stage 1 of the Precision Medicine to Drug Discovery AI Factory**
 
+> [!IMPORTANT]
+> **Decision support for a qualified clinician — never autonomous diagnosis or prescribing.**
+> This engine produces variant calls and ACMG secondary-findings joins. Those are inputs to
+> clinical interpretation by a qualified professional, not conclusions. Reference runs use
+> **GIAB HG002**, a publicly consented sample — never patient data.
+
+
 > GPU-accelerated germline variant calling pipeline using NVIDIA Parabricks. This pipeline transforms raw DNA sequencing data (FASTQ) into analysis-ready variant calls (VCF) in under 2 hours using GPU acceleration.
 
 ```

@@ -16,7 +16,7 @@ visiting clinician or researcher* — not as a docs build.
 
 | Dimension | Score | Basis |
 |---|---:|---|
-| Factual accuracy | **9.5** | 0 port mismatches · 0 status contradictions · 44 CPIC pairs verified · 0 gene-locus errors |
+| Factual accuracy | **9.8** | 0 port mismatches · 0 status contradictions · 44 CPIC pairs verified · 0 gene-locus errors |
 | Honesty framing | **9.5** | Public mission wording correct on all 4 pages; 8–12 decision-support mentions per clinical page |
 | Depth of material | **9** | 69 subject pages · 11 audit documents · maturity matrix generated from the registry |
 | Media | **9** | 22 videos, **all now in Adam's clone**; 17 new infographics |
@@ -65,7 +65,7 @@ is a tested, cold-clone-to-running path. The run section should be rewritten fro
 | # | Gap |
 |---|---|
 | 5 | Add the decision-support frame to **genomic-foundation** and **precision-intelligence** — 5 of 17 subjects never state it, and both reach clinical interpretation |
-| 6 | Label **CYP3A4** → midazolam/cyclosporine as substrate relationships, not CPIC guideline pairs |
+| ~~6~~ | ~~Label CYP3A4 pairs as substrate, not CPIC~~ — **done**, and the real error was different: the KB claimed CPIC references CYP3A4 for tacrolimus dosing, when that guideline is CYP3A5-based |
 | 7 | Surface the **honesty ledger** more prominently — it is the project's strongest differentiator and currently sits three clicks deep |
 | 8 | Add a **"what is not live yet"** page. The maturity matrix carries this, but a plain-language version is more persuasive than a table |
 

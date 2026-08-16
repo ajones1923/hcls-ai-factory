@@ -169,9 +169,18 @@ CYP2C19 10q23.33, LDLR 19p13.2, LMNA 1q22, MYH7 14q11.2, TTN 2q31.2. **All corre
 | CFTR | ivacaftor |
 
 **No spurious pair was found.** Variant identifiers spot-checked and correct: VKORC1 **rs9923231**
-(−1639G>A), SLCO1B1 **rs4149056** (c.521T>C, \*5). CYP3A5→tacrolimus is genuine CPIC; CYP3A4→
-midazolam/cyclosporine are pharmacologically correct substrate relationships rather than CPIC
-guideline pairs — accurate, but should not be presented as guideline-backed.
+(−1639G>A), SLCO1B1 **rs4149056** (c.521T>C, \*5).
+
+> **Corrected 2026-08-16.** The original finding here — "CYP3A4→midazolam/cyclosporine presented
+> alongside CPIC pairs" — was an artefact of a co-occurrence regex. Those entries live in
+> `CYP_INHIBITORS`/`CYP_INDUCERS`, which are drug-drug-interaction tables and claim no CPIC backing;
+> the four `"guideline": "CPIC..."` fields correctly cite only TPMT/NUDT15, UGT1A1 and DPYD.
+>
+> Checking it properly surfaced a **real** defect the regex had missed:
+> `data/reference/gene_reference.json` asserted *"CPIC guidelines reference CYP3A4 for tacrolimus
+> dosing."* CPIC's tacrolimus guideline is **CYP3A5**-based (Birdwell et al., *Clin Pharmacol Ther*
+> 2015). Corrected to say so explicitly. The knowledge base already handled CYP3A5→tacrolimus
+> correctly elsewhere, so this was an isolated sentence rather than a systematic error.
 
 ### 3.3 Decision-support framing — 12 of 17
 
@@ -204,7 +213,7 @@ precision-oncology 19 of 21.
 | A5 | Rename the 12 stdlib-shadowing modules | medium |
 | A6 | Agree a test-depth floor for clinical-output subjects | medium |
 | A7 | Choose one deployment model | medium |
-| A8 | Label CYP3A4 pairs as substrate relationships, not CPIC | low |
+| ~~A8~~ | ~~Label CYP3A4 pairs as substrate, not CPIC~~ | **retracted** — the tables were already correct; a different, real CYP3A4/CPIC error was found and fixed |
 
 A1–A3 are one change in shape: the platform already has the gate; it is adopted by one service.
 
