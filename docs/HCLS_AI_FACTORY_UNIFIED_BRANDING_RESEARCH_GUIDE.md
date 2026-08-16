@@ -3249,7 +3249,7 @@ The website should include a clear, honest comparison table on the homepage or a
 
 ### 16.3 Positioning Statement
 
-> "HCLS AI Factory is the world's first open-source precision medicine operating system. It is not competing with Epic, Viz.ai, or Tempus -- it is creating a new category: the complete, self-hosted, AI-powered precision medicine platform that any institution can deploy for under $4,000."
+> "HCLS AI Factory is the world's first open-source precision medicine operating system. It is not competing with Epic, Viz.ai, or Tempus -- it is creating a new category: the complete, self-hosted, AI-powered precision medicine platform that any institution can deploy for under $5,000 (DGX Spark, $4,699)."
 
 ### 16.4 Category Creation Strategy
 

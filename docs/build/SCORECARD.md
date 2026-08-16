@@ -6,7 +6,7 @@ memory would be guessing.
 
 ---
 
-## Overall: **6.5 / 10**
+## Overall: **7.3 / 10**  *(was 6.5 before the 2026-08-16 security work)*
 
 An unusually strong codebase sitting on a platform layer that does not yet enforce what the project
 claims. The science is the best part; the controls are the weakest.
@@ -20,7 +20,7 @@ claims. The science is the best part; the controls are the weakest.
 | Registry & honesty | 7.5 | now 0 live-but-unreachable, CI-gated — but only after 2 were found |
 | Deployability | 7.0 | 17/17 declared; **nothing actually running**; images unbuilt |
 | Layout consistency | 6.5 | 12/17 conformant; 3 legitimate patterns, 1 real defect |
-| Security | **4.0** | **1 of 12** endpoints authenticated; governance gate adopted by 1 of 12 |
+| Security | **7.5** *(was 4.0)* | 12/12 endpoints can enforce auth, fail-closed when configured; header no longer overclaims |
 | Hardware utilisation | **2.0** | GPU at **0%** the entire session; CPU-only torch on a GB10 |
 
 ---
@@ -39,9 +39,20 @@ The strongest dimension and the one that matters most for the audience. Every ch
 Deduction: CYP3A4→midazolam/cyclosporine are presented alongside CPIC pairs. They are correct
 pharmacology but not CPIC guideline pairs and should be labelled as substrate relationships.
 
-### 4.0 — Security
+### 7.5 — Security *(was 4.0)*
 
-**1 of 12 FastAPI entrypoints enforces authentication.** The other eleven — every intelligence
+**Now 12 of 12 entrypoints can enforce authentication**, via one shared module rather than twelve
+copies, fail-closed once `HCLS_API_KEY` is set and verified live (401 without a key, 401 with a
+wrong key, routing reached with the right one). The `X-HCLS-Governed` header now reports only gates
+that actually ran.
+
+Not yet 10: the gate is **off by default** (deliberate — it preserves the trusted-network demo
+posture), and the handlers still do not call `require_valid_input()` / `honesty_flags()`, so
+input-validation and output-honesty remain opt-in per route.
+
+The original finding, for the record:
+
+**1 of 12 FastAPI entrypoints enforced authentication.** The other eleven — every intelligence
 agent plus the cardiology, imaging and oncology engines — expose clinical decision-support endpoints
 with no auth dependency.
 
@@ -76,8 +87,9 @@ exist for only 4 of ~20 supervised services. The platform is cold.
 
 | # | Action | Lifts | Effort |
 |---|---|---|---|
-| 1 | **Authenticate the 11 open clinical endpoints** | Security 4.0 → 8 | medium |
-| 2 | **Stop emitting `X-HCLS-Governed` unless the request was gated** | Honesty | low |
+| ~~1~~ | ~~Authenticate the 11 open clinical endpoints~~ | **DONE** — 4.0 → 7.5 | — |
+| ~~2~~ | ~~Stop emitting `X-HCLS-Governed` unless gated~~ | **DONE** | — |
+| 1 | **Set `HCLS_API_KEY` in production** — the gate ships off | Security 7.5 → 9 | trivial |
 | 3 | **Install CUDA PyTorch** (gated) | Hardware 2.0 → 8 | gated |
 | 4 | Adopt `install_governance` + `require_valid_input` across all 12 | Security, honesty | medium |
 | 5 | Bring the platform up and keep it up | Deployability 7 → 9 | medium |
