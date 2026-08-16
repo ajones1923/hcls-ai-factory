@@ -14,6 +14,8 @@ stated in the document rather than removed.
 | [`LAYOUT_REVIEW.md`](LAYOUT_REVIEW.md) | Structural conformance across the 17 subjects |
 | [`SCORECARD.md`](SCORECARD.md) | Scored assessment + ranked recommendations |
 | [`RESOURCE_REPORT.md`](RESOURCE_REPORT.md) | CPU / GPU / memory / disk / network / models |
+| [`REPO_AND_SITE_REVIEW.md`](REPO_AND_SITE_REVIEW.md) | GitHub layout + live-site accuracy |
+| [`DEPLOY_RUNBOOK.md`](DEPLOY_RUNBOOK.md) | Publishing to hcls-ai-factory.org |
 | [`GATED_SOFTWARE_PRD.md`](GATED_SOFTWARE_PRD.md) | What needs credentials and what it blocks |
 | [`GATED_SOFTWARE_BUILD_GUIDE.md`](GATED_SOFTWARE_BUILD_GUIDE.md) | Step-by-step gated install |
 | `docx/GATED_SOFTWARE_PRD.docx` · `docx/GATED_SOFTWARE_BUILD_GUIDE.docx` | Word versions, for the final upgrade pass |

@@ -25,9 +25,24 @@ FastAPI is imported lazily so `import hcls_common` never requires web deps.
 """
 from __future__ import annotations
 
+import contextvars
 import time
 import uuid
 from typing import Any
+
+# Which gates actually executed on THIS request. The middleware cannot know -- the gates are
+# called from inside handlers -- so they record here and the response header reports the truth.
+# Holds a MUTABLE set. The middleware must not rebind this var from inside a handler:
+# Starlette runs sync endpoints in a threadpool with a copied context, so a `.set()` made in
+# the handler is invisible to the middleware that awaited it. Mutating one shared set works
+# because both see the same object. A test asserts the header actually appears.
+_GATES_RUN: contextvars.ContextVar[set] = contextvars.ContextVar("_hcls_gates_run", default=None)
+
+
+def _mark_gate(name: str) -> None:
+    bucket = _GATES_RUN.get()
+    if bucket is not None:
+        bucket.add(name)
 
 
 def create_governed_app(service: str, *, capability_id: str | None = None, **fastapi_kwargs):
@@ -39,6 +54,14 @@ def create_governed_app(service: str, *, capability_id: str | None = None, **fas
     return app
 
 
+def _auth_status(service: str) -> dict:
+    try:
+        from hcls_common.api_auth import auth_status
+        return auth_status(service)
+    except Exception:
+        return {"api_key_required": None}
+
+
 def install_governance(app, *, service: str = "", capability_id: str | None = None):
     """Attach the governance middleware (request id + timing + governed header) and a
     /governance info endpoint to an existing FastAPI app. Idempotent-ish; safe to call once."""
@@ -47,10 +70,20 @@ def install_governance(app, *, service: str = "", capability_id: str | None = No
     @app.middleware("http")
     async def _governance(request: "Request", call_next):
         rid = request.headers.get("x-request-id") or uuid.uuid4().hex[:16]
+        gates: set[str] = set()
+        _GATES_RUN.set(gates)
         t0 = time.monotonic()
         response = await call_next(request)
         response.headers["X-Request-ID"] = rid
-        response.headers["X-HCLS-Governed"] = service or "1"
+        response.headers["X-HCLS-Service"] = service or "hcls-ai-factory"
+        # AUDIT FIX (2026-08-16): this used to emit `X-HCLS-Governed: <service>` on EVERY request,
+        # including requests where no gate ran -- this middleware only adds a request id and timing.
+        # A header asserting governance on an ungoverned request is worse than no header on a
+        # project whose credibility rests on honesty by construction. Now it reports only the gates
+        # that actually executed, and is omitted entirely when none did.
+        ran = sorted(gates)
+        if ran:
+            response.headers["X-HCLS-Governed"] = ",".join(ran)
         response.headers["X-HCLS-Duration-ms"] = f"{(time.monotonic() - t0) * 1000:.1f}"
         return response
 
@@ -59,7 +92,11 @@ def install_governance(app, *, service: str = "", capability_id: str | None = No
         return {
             "service": service,
             "capability_id": capability_id,
-            "gates": ["input-validation", "output-honesty"],
+            "gates_available": ["input-validation", "output-honesty"],
+            "gates_are_opt_in": ("this middleware adds a request id, timing and the service name. "
+                                 "It does NOT gate. A handler must call require_valid_input() and "
+                                 "honesty_flags(); X-HCLS-Governed lists only what actually ran."),
+            "auth": _auth_status(service),
             "how": {
                 "input": "call require_valid_input(capability_id, payload) in POST handlers",
                 "output": "call honesty_flags(text) (deterministic) or assert_publishable(text, llm=...)",
@@ -83,6 +120,7 @@ def require_valid_input(capability_id: str, payload: dict[str, Any] | None) -> d
         cap = get_registry().get(capability_id)
     except Exception:
         return dict(payload or {})
+    _mark_gate("input-validation")
     cleaned, issues = validate_inputs(cap, payload)
     errors = [i for i in issues if i.startswith("ERROR")]
     if errors:
@@ -94,6 +132,7 @@ def honesty_flags(text: str) -> list[dict]:
     """Deterministic overclaim / missing-disclaimer scan (never calls an LLM)."""
     from hcls_common.verify_gate import honesty_check
 
+    _mark_gate("output-honesty")
     return honesty_check(text)
 
 

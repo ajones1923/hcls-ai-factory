@@ -12,8 +12,8 @@ tree, not by reading it. Where a first result was wrong, the correction is state
 |---|---|
 | Secrets in tracked code | **clean** — 0 real secrets |
 | Container hardening (service images) | 16/18 → **18/18** after fixes |
-| API authentication | **1 of 12** entrypoints |
-| Platform governance gate adoption | **1 of 12** entrypoints |
+| API authentication | 1 of 12 → **12 of 12** *(fixed 2026-08-16)* |
+| Platform governance gate adoption | 1 of 12 → **12 of 12** *(fixed 2026-08-16)* |
 | Gene → locus claims | **0 mismatches** |
 | Pharmacogenomics (CPIC) | **44 pairs, all genuine** |
 | Decision-support disclaimer in docs | **12 of 17** subjects |
@@ -33,11 +33,29 @@ A scan for hardcoded credentials across `core/`, `lib/`, `scripts/`, `hcls-orche
 and `api_key="not-needed"` placeholders for **local NIM / vLLM endpoints that genuinely take no
 auth**. No live credential is committed. `.gitignore` covers `.env`, `.env.*` and `*.env`.
 
-### 1.2 Authentication — the significant gap
+### 1.2 Authentication — FIXED 2026-08-16
 
-**1 of 12 FastAPI entrypoints enforces authentication** (the TSC program). The other eleven — every
-intelligence agent, plus the cardiology, imaging and oncology engines — expose their endpoints with
-no auth dependency at all.
+**Was: 1 of 12 FastAPI entrypoints enforced authentication** (the TSC program). The other eleven —
+every intelligence agent, plus the cardiology, imaging and oncology engines — exposed their
+endpoints with no auth dependency at all.
+
+**Now: 12 of 12.** `lib/hcls_common/api_auth.py` generalises the pattern TSC already used, so there
+is one implementation rather than twelve. Posture is deliberately unchanged by default:
+
+    HCLS_API_KEY unset  ->  open (the trusted-network / synthetic-demo posture the platform ships)
+    HCLS_API_KEY set    ->  FAIL CLOSED on every route except /health, /docs, /openapi.json
+
+Per-service override: `HCLS_API_KEY_<SLUG>`. Key comparison is `hmac.compare_digest` — a plain `==`
+leaks key length and prefix through timing.
+
+**Proven on a live service**, not just in unit tests (cart agent, `HCLS_API_KEY` set):
+
+| Request | Result |
+|---|---|
+| `/query` no key | **401** |
+| `/query` wrong key | **401** |
+| `/query` correct key | 405 — passed the gate and reached routing |
+| `/health` | 200 — probes must not fail closed |
 
 These are clinical decision-support endpoints. They accept patient context and return variant
 interpretations, therapy suggestions and trial matches.
@@ -48,8 +66,18 @@ interpretations, therapy suggestions and trial matches.
 > `/governance` info endpoint. Its own payload describes the gates as things a handler must *call* —
 > `require_valid_input()` and `honesty_flags()` — not middleware enforcement.
 
-That produces a second, sharper issue: **a response header asserting `X-HCLS-Governed` on a request
-that was not gated.** The header is instrumentation dressed as assurance.
+That produced a second, sharper issue: **a response header asserting `X-HCLS-Governed` on a request
+that was not gated** — instrumentation dressed as assurance.
+
+**FIXED 2026-08-16.** The middleware now emits `X-HCLS-Service` (true — it does add the service
+name, a request id and timing) and emits `X-HCLS-Governed` **only when a gate actually executed**,
+listing which ones. `require_valid_input()` and `honesty_flags()` record themselves into a
+per-request set that the middleware reads.
+
+A subtlety worth keeping: the first implementation rebound a `ContextVar` inside the handler, and
+the header never appeared — Starlette runs sync endpoints in a threadpool with a copied context, so
+the middleware never saw the change. It now mutates one shared set. **A test asserts the header
+actually appears**, which is what caught it.
 
 ### 1.3 Governance gate adoption — 1 of 12
 
@@ -168,9 +196,10 @@ precision-oncology 19 of 21.
 
 | # | Recommendation | Severity |
 |---|---|---|
-| A1 | Enforce authentication on the 11 unauthenticated clinical endpoints | **high** |
-| A2 | Stop emitting `X-HCLS-Governed` unless the request was gated | **high** |
-| A3 | Adopt `install_governance` + `require_valid_input` across all 12 entrypoints | high |
+| ~~A1~~ | ~~Enforce authentication on the 11 unauthenticated endpoints~~ | **DONE** |
+| ~~A2~~ | ~~Stop emitting `X-HCLS-Governed` unless the request was gated~~ | **DONE** |
+| ~~A3~~ | ~~Adopt `install_governance` across all 12 entrypoints~~ | **DONE** (11/12; TSC keeps its own) |
+| A3b | Call `require_valid_input()` / `honesty_flags()` in the handlers themselves | high |
 | A4 | Add the decision-support frame to genomic-foundation and precision-intelligence | high |
 | A5 | Rename the 12 stdlib-shadowing modules | medium |
 | A6 | Agree a test-depth floor for clinical-output subjects | medium |

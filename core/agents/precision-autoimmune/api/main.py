@@ -187,6 +187,21 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# -- Platform security gate (audit 2026-08-15) -------------------------------
+# This service returned clinical decision-support output with NO authentication. The gate is a
+# no-op until HCLS_API_KEY (or the per-service HCLS_API_KEY_<SLUG>) is set, so the default
+# trusted-network posture is unchanged; once set it FAILS CLOSED on every route except /health
+# and /docs. install_governance adds a request id, timing, and X-HCLS-Governed listing only the
+# gates a handler actually invoked.
+try:  # pragma: no cover - platform lib is optional at import time
+    from hcls_common.api_auth import install_api_key_auth
+    from hcls_common.api_gate import install_governance
+    install_api_key_auth(app, service="precision-autoimmune")
+    install_governance(app, service="precision-autoimmune", capability_id="precision-autoimmune-agent")
+except Exception:  # never take a running service down over the gate
+    pass
+
+
 # CORS
 origins = settings.CORS_ORIGINS.split(",")
 app.add_middleware(

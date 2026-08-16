@@ -42,6 +42,36 @@ jobs:
       - run: pip install -e ".[dev]"
       - run: pytest -q
 
+  subjects:
+    # The 17 engine/agent/disease-program suites — 8,402 tests. Until 2026-08-16 CI gated only the
+    # 382 platform-library tests, so a change could break every subject and still merge green.
+    #
+    # scripts/run_all_tests.py is used rather than a bare `pytest` because two traps make a naive
+    # invocation wrong: several subjects ship src/collections.py which SHADOWS the stdlib (putting
+    # their src/ on PYTHONPATH kills the interpreter before collection), and zarr/fast-array-utils
+    # register pytest plugins that import an application Settings model at startup and abort
+    # collection for three subjects.
+    name: Subject suites (8 engines, 8 agents, 1 program)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Create the platform venv the harness expects
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install --upgrade pip
+          .venv/bin/pip install -e lib/hcls_common
+      - name: Install subject runtime dependencies
+        # Not in pyproject: these are per-engine runtime deps the suites import directly.
+        run: |
+          .venv/bin/pip install pytest pytest-asyncio fastapi "uvicorn[standard]" streamlit httpx \
+                                duckdb statsmodels biopython peft pymilvus loguru anthropic \
+                                prometheus-client apscheduler python-multipart tqdm python-dotenv
+      - name: Run all 17 suites
+        run: .venv/bin/python scripts/run_all_tests.py
+
   registry:
     name: Capability registry validation
     runs-on: ubuntu-latest

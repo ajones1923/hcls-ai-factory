@@ -27,11 +27,26 @@ def _app():
 
 
 def test_governance_endpoint_and_headers():
+    """Updated 2026-08-16.
+
+    `gates` became `gates_available`, and `X-HCLS-Governed` is no longer emitted unconditionally —
+    it appears only when a handler actually invoked a gate. /governance is a plain info route that
+    runs none, so asserting the header here was asserting the very overclaim that was removed.
+    `X-HCLS-Service` is the header that is always true.
+    """
     c = TestClient(_app())
     r = c.get("/governance")
     assert r.status_code == 200
-    assert r.json()["gates"] == ["input-validation", "output-honesty"]
-    assert any(k.lower() == "x-hcls-governed" for k in r.headers)
+    assert r.json()["gates_available"] == ["input-validation", "output-honesty"]
+    assert any(k.lower() == "x-hcls-service" for k in r.headers)
+    assert not any(k.lower() == "x-hcls-governed" for k in r.headers)
+
+
+def test_governed_header_appears_when_a_gate_runs():
+    c = TestClient(_app())
+    r = c.post("/query", json={"patient_context": {"patient_id": "P1"}, "question": "q"})
+    if r.status_code == 200:                      # payload satisfied the contract
+        assert r.headers.get("X-HCLS-Governed") == "input-validation"
 
 
 def test_input_gate_rejects_missing_required():

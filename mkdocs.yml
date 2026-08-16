@@ -124,6 +124,8 @@ nav:
       - Layout Review: build/LAYOUT_REVIEW.md
       - Scorecard: build/SCORECARD.md
       - Resource Report: build/RESOURCE_REPORT.md
+      - Repo & Site Review: build/REPO_AND_SITE_REVIEW.md
+      - Deploy Runbook: build/DEPLOY_RUNBOOK.md
       - Gated Software PRD: build/GATED_SOFTWARE_PRD.md
       - Gated Software Build Guide: build/GATED_SOFTWARE_BUILD_GUIDE.md
   - Run It Yourself:
