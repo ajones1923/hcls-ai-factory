@@ -29,6 +29,18 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 APP_DIR = PROJECT_ROOT / "app"
 DATA_DIR = PROJECT_ROOT / "data" / "reference"
 
+# The project deliberately never publishes data/ — .gitignore excludes it and CLAUDE.md states
+# "Data / weights / secrets stay local; only code + docs publish." These tests assert on that
+# local-only reference data, so on a fresh clone the files are absent by design. Skip rather than
+# fail: a clean clone should report a green run with skips, not 44 failures that look like a broken
+# project. Run them on a machine that has the data to exercise them for real.
+_DATA_PRESENT = DATA_DIR.is_dir() and any(DATA_DIR.glob("*.json"))
+pytestmark = pytest.mark.skipif(
+    not _DATA_PRESENT,
+    reason="local-only reference data under data/ is not published (see .gitignore)",
+)
+
+
 BIOMARKER_UI_PATH = APP_DIR / "biomarker_ui.py"
 PATIENT_360_PATH = APP_DIR / "patient_360.py"
 PROTEIN_VIEWER_PATH = APP_DIR / "protein_viewer.py"

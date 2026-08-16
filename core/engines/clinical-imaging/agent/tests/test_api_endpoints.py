@@ -12,6 +12,7 @@ import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import pathlib
 import pytest
 from fastapi.testclient import TestClient
 
@@ -282,6 +283,12 @@ class TestEvidenceRAG:
 # =====================================================================
 
 
+_DEMO_DATA = (pathlib.Path(__file__).resolve().parents[1]
+              / "data" / "reference" / "demo_cases.json").is_file()
+
+
+@pytest.mark.skipif(not _DEMO_DATA,
+                    reason="local-only reference data under data/ is not published")
 class TestDemoCases:
     """Demo case list and run endpoints."""
 
