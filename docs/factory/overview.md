@@ -18,7 +18,9 @@ A three-minute guided tour of the whole factory — narrated and captioned. Deci
 
 ![The HCLS AI Factory — layered architecture](../assets/factory-architecture.png)
 /// caption
-Illustrative architecture diagram.
+Illustrative. Agents reason; engines compute; the disease program composes them for one condition;
+the platform layer is shared. Most of this runs on one workstation — heavy or ARM-incompatible
+models [burst to remote GPU](../run/hardware.md), which the site states wherever it applies.
 ///
 
 ## The model

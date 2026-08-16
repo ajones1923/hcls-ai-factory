@@ -85,9 +85,12 @@ current claim.
 
 ### Mission wording: correct
 
-**0 published pages** use the internal *"die of a disease we could have understood in time"*
-phrasing. **4 pages** use the public softened line: *"No one should wait years for a disease we
-could have understood in a day."* That distinction was a deliberate decision and it has held.
+**0 published pages** use the internal, sharper phrasing of the mission line. **4 pages** use the
+public softened version: *"No one should wait years for a disease we could have understood in a
+day."* That distinction was a deliberate decision and it has held.
+
+> This paragraph originally quoted the internal wording in full in order to say it was absent —
+> which published it. Paraphrased instead. Checking for a string is not a reason to print it.
 
 ### Decision-support framing: strong where it matters
 
