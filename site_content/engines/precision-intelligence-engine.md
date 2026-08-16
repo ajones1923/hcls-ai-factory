@@ -4,7 +4,7 @@ If the [Genomics Foundations Engine](genomics-engine.md) finds **where** a patie
 the Precision Intelligence Engine explains **what they mean**. It is the factory's interpretation
 brain. It takes a raw variant file — millions of rows — and turns it into a short, cited, plain-language
 narrative a clinician can actually use: which variants matter, why, and which point to a druggable
-target. It is also the hub that coordinates the eight intelligence agents.
+target. That interpretation is the shared substrate the eight intelligence agents reason over.
 
 ## Why it matters
 
@@ -17,7 +17,7 @@ does it do to the protein, is there a therapy that targets it. This engine is wh
 
 ## How it works
 
-![Inside the Precision Intelligence Engine — annotate, retrieve, reason, coordinate](../../assets/infographics/pages/precision-intelligence-engine-how.png)
+![Inside the Precision Intelligence Engine — annotate, retrieve, reason, hand off](../../assets/infographics/pages/precision-intelligence-engine-how.png)
 /// caption
 From a variant file to a cited clinical narrative — grounded in retrieved evidence. Illustrative.
 ///
@@ -28,8 +28,9 @@ From a variant file to a cited clinical narrative — grounded in retrieved evid
    database, so the narrative is built on real sources rather than a model's memory.
 3. **Reason** — a language model writes a grounded interpretation **with citations**, surfaces
    druggable targets, and is built to refuse rather than fabricate when evidence is thin.
-4. **Coordinate** — it routes questions to the eight specialist agents (pharmacogenomics, oncology,
-   rare disease, and the rest) and pulls their answers together.
+4. **Hand off** — the interpreted result is what the eight specialist agents (pharmacogenomics,
+   oncology, rare disease, and the rest) reason over. Chaining engines and agents into one governed
+   run is the [workflow composer's](../../factory/platform.md) job, not this engine's.
 
 ## What goes in, what comes out
 
@@ -40,7 +41,8 @@ From a variant file to a cited clinical narrative — grounded in retrieved evid
 
 ![Where the Precision Intelligence Engine sits — between genomics and the eight agents](../../assets/infographics/pages/precision-intelligence-engine-fits.png)
 /// caption
-The interpretation hub: it consumes the genomics substrate and coordinates the eight agents. Illustrative.
+The interpretation layer: it consumes the genomics substrate and produces what the eight agents
+reason over. Illustrative.
 ///
 
 It sits directly downstream of genomics and upstream of the agents — the interpretation layer the
