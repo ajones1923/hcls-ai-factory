@@ -72,6 +72,11 @@ dev = [
     "pytest-cov>=4.0",
     "ruff>=0.3",
     "mypy>=1.5",
+    # api_gate / api_auth are FastAPI middleware; their tests build a real app and drive it with
+    # TestClient (which needs httpx). Without these the security tests fail on import in CI while
+    # passing locally, because a dev machine already has fastapi installed.
+    "fastapi>=0.110",
+    "httpx>=0.26",
 ]
 
 # The package lives flat in this directory (this dir IS the hcls_common package),
