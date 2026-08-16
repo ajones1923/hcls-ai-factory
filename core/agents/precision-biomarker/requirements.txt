@@ -7,9 +7,9 @@
 # =============================================================================
 
 # -- Core Framework --
-pydantic>=2.0,<3.0
-pydantic-settings>=2.7,<3.0
-loguru>=0.7.0,<1.0
+pydantic>=2.13.4,<3.0
+pydantic-settings>=2.15.0,<3.0
+loguru>=0.7.3,<1.0
 
 # -- Vector Database --
 pymilvus>=2.4.0,<2.6
@@ -18,13 +18,13 @@ pymilvus>=2.4.0,<2.6
 sentence-transformers>=2.2.0,<3.0
 
 # -- LLM --
-anthropic>=0.18.0,<1.0
+anthropic>=0.122.0,<1.0
 
 # -- Web / API --
-streamlit>=1.30.0,<2.0
-fastapi>=0.109.0,<1.0
-uvicorn[standard]>=0.27.0,<1.0
-python-multipart>=0.0.6,<1.0
+streamlit>=1.61.1,<2.0
+fastapi>=0.141.1,<1.0
+uvicorn[standard]>=0.52.3,<1.0
+python-multipart>=0.0.32,<1.0
 
 # -- Export / Reporting --
 reportlab>=4.0.0,<5.0
@@ -33,11 +33,11 @@ reportlab>=4.0.0,<5.0
 numpy>=1.24.0,<3.0
 pandas>=2.0.0,<3.0
 plotly>=5.18.0,<6.0
-tqdm>=4.65.0,<5.0
-python-dotenv>=1.0.0,<2.0
+tqdm>=4.70.0,<5.0
+python-dotenv>=1.2.2,<2.0
 
 # -- Monitoring --
-prometheus-client>=0.20.0,<1.0
+prometheus-client>=0.26.0,<1.0
 
 # -- Testing --
 pytest>=7.0,<8.0

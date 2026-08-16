@@ -7,15 +7,15 @@
 #
 # Pinned to major/minor to keep the aarch64 wheel set reproducible on the DGX Spark.
 
-fastapi>=0.110,<1.0
-uvicorn[standard]>=0.27,<1.0
-pydantic>=2.0,<3.0
+fastapi>=0.141.1,<1.0
+uvicorn[standard]>=0.52.3,<1.0
+pydantic>=2.13.4,<3.0
 httpx>=0.26,<1.0
 
 # scientific core
 scanpy>=1.10,<2.0
 anndata>=0.10,<1.0
-numpy>=1.24,<3.0
+numpy>=2.5.2,<3.0
 scipy>=1.11,<2.0
 pandas>=2.0,<3.0
 
