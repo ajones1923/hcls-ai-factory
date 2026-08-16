@@ -5,7 +5,7 @@ RAG-powered queries, clinical scale calculators, workflow runners,
 and real-time dashboard monitoring.
 
 Usage:
-    streamlit run app/neuro_ui.py --server.port 8529
+    streamlit run app/neuro_ui.py --server.port 8535
 
 Author: Adam Jones
 Date: March 2026
@@ -23,7 +23,7 @@ import streamlit as st
 # Configuration
 # =====================================================================
 
-API_BASE = os.environ.get("NEURO_API_BASE", "http://localhost:8528")
+API_BASE = os.environ.get("NEURO_API_BASE", "http://localhost:8536")
 
 NVIDIA_THEME = {
     "bg_primary": "#1a1a2e",

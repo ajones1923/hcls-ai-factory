@@ -10,7 +10,7 @@
 
 The Neurology Intelligence Agent is a RAG-powered clinical decision support system covering 10 neurological disease domains, 14 Milvus vector collections, 10 validated clinical scale calculators, and 8 evidence-based clinical workflows. It is part of the HCLS AI Factory precision medicine platform.
 
-**Ports:** FastAPI API (8528) | Streamlit UI (8529)
+**Ports:** FastAPI API (8536) | Streamlit UI (8535)
 
 ---
 
@@ -32,9 +32,9 @@ The Neurology Intelligence Agent is a RAG-powered clinical decision support syst
 
 ## Quick Links
 
-- **API Health:** `GET http://localhost:8528/health`
-- **API Docs (Swagger):** `http://localhost:8528/docs`
-- **Streamlit UI:** `http://localhost:8529`
+- **API Health:** `GET http://localhost:8536/health`
+- **API Docs (Swagger):** `http://localhost:8536/docs`
+- **Streamlit UI:** `http://localhost:8535`
 - **GitHub Repository:** `core/agents/neurology/`
 
 ---

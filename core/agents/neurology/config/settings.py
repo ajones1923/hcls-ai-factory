@@ -99,7 +99,11 @@ class NeuroSettings(BaseSettings):
     API_PORT: int = 8528
 
     # -- Streamlit --
-    STREAMLIT_PORT: int = 8534
+    # Platform convention (adopted 2026-08-15): the capability registry advertises the UI port
+    # and the API is UI+1. Neurology's UI moved 8529 -> 8535 because 8529 is precision-
+    # biomarker's API (its UI 8528 + 1); the old 8534 belongs to the NV-Segment-CT NIM.
+    # Registry: neurology-intelligence-agent = localhost:8535, API on 8536.
+    STREAMLIT_PORT: int = 8535
 
     # -- Prometheus Metrics --
     METRICS_ENABLED: bool = True

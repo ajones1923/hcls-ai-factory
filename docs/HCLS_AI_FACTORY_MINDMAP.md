@@ -266,7 +266,7 @@
 
 #### Precision Biomarker Agent
 ##### API: :8529 (FastAPI/Uvicorn)
-##### UI: :8533 (Streamlit)
+##### UI: :8528 (Streamlit)
 ##### Docker Memory: 4 GB
 ##### Collections: 14 (13 Own + genomic_evidence)
 ##### Endpoints: /health, /collections, /knowledge/stats, /metrics
@@ -376,8 +376,8 @@
 ###### Cross-Agent: Oncology, Trial, Biomarker, Neurology, Imaging
 
 #### Neurology Intelligence Agent
-##### API: :8528 (FastAPI/Uvicorn)
-##### UI: :8534 (Streamlit)
+##### API: :8536 (FastAPI/Uvicorn)
+##### UI: :8535 (Streamlit)
 ##### Docker Memory: 4 GB
 ##### Collections: 14 (13 Own + genomic_evidence)
 ##### Endpoints: /health, /collections, /workflows, /metrics
@@ -599,14 +599,14 @@
 ##### milvus: milvusdb/milvus:v2.4.0 (:19530, :9091, 8 GB)
 
 #### Agent Containers (11)
-##### precision-biomarker-agent (:8529 API, :8533 UI, 4 GB)
+##### precision-biomarker-agent (:8529 API, :8528 UI, 4 GB)
 ##### precision-oncology-agent (:8527 API, :8526 UI, 4 GB)
 ##### cart-intelligence-agent (:8522 API, :8521 UI, 4 GB)
 ##### imaging-intelligence-agent (:8524 API, :8525 UI, 8 GB)
 ##### precision-autoimmune-agent (:8532 API, :8531 UI, 4 GB)
 ##### pharmacogenomics-intelligence-agent (:8107 API, :8507 UI, 4 GB)
 ##### cardiology-intelligence-agent (:8126 API, :8536 UI, 4 GB)
-##### neurology-intelligence-agent (:8528 API, :8534 UI, 4 GB)
+##### neurology-intelligence-agent (:8536 API, :8535 UI, 4 GB)
 ##### rare-disease-diagnostic-agent (:8134 API, :8544 UI, 4 GB)
 ##### clinical-trial-intelligence-agent (:8538 API, :8128 UI, 4 GB)
 ##### single-cell-intelligence-agent (:8540 API, :8130 UI, 8 GB)

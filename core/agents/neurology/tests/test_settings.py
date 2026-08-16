@@ -33,7 +33,7 @@ class TestNeuroSettings:
         assert settings.API_PORT == 8528
 
     def test_streamlit_port(self):
-        assert settings.STREAMLIT_PORT == 8529
+        assert settings.STREAMLIT_PORT == 8535
 
     def test_ports_differ(self):
         assert settings.API_PORT != settings.STREAMLIT_PORT

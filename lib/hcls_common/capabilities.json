@@ -344,7 +344,7 @@
           "semantic": "clinical_narrative"
         }
       ],
-      "endpoint": "localhost:8529",
+      "endpoint": "localhost:8535",
       "serving": "native",
       "status": "live",
       "tags": [
@@ -476,7 +476,7 @@
           "semantic": "image_read"
         }
       ],
-      "endpoint": "localhost:8525",
+      "endpoint": "localhost:8523",
       "serving": "native",
       "status": "live",
       "tags": [
@@ -819,11 +819,11 @@
       "type": "engine",
       "name": "Large-Molecule / Structural Biology Engine",
       "domain": "proteins",
-      "status": "live",
-      "endpoint": "localhost:8579",
+      "status": "planned",
+      "endpoint": "localhost:8581",
       "serving": "container",
       "gpu": true,
-      "description": "Large-molecule / structural-biology engine (E7): real protein structure prediction and design served on the GB10 \u2014 ESMFold folding, ESM-2 embeddings + Smith-Waterman search, ProteinMPNN sequence design, developability, and MHC immunogenicity. Aggregates the verified structural-biology models (ESMFold, ESM-2 search, ProteinMPNN) behind one engine; heavier/ARM-incompatible frontier co-folding (Chai-1) bursts to a remote GPU. Research-use / decision support, not a therapy.",
+      "description": "Large-molecule / structural-biology engine (E7): real protein structure prediction and design served on the GB10 \u2014 ESMFold folding, ESM-2 embeddings + Smith-Waterman search, ProteinMPNN sequence design, developability, and MHC immunogenicity. Aggregates the verified structural-biology models (ESMFold, ESM-2 search, ProteinMPNN) behind one engine; heavier/ARM-incompatible frontier co-folding (Chai-1) bursts to a remote GPU. Research-use / decision support, not a therapy. NOTE (2026-08-15): no process binds :8581 -- this engine is five separate services (esmfold :8570, protein-search :8571, developability :8576, immunogenicity :8577, proteinmpnn :8578) with no aggregator. Marked `planned` until an aggregator exists; the model-level capabilities are the reachable surface.",
       "inputs": [
         {
           "name": "sequence",
