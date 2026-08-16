@@ -195,7 +195,7 @@ The flagship. An infant with seizures and cardiac rhabdomyomas. Five disease-spe
 composing the horizontal engines: variant curator → trajectory modeller → therapeutics strategist →
 phenome mapper → TAND surveillance.
 
-*Weight.* Cincinnati Children's brought this need. TSC1/TSC2 act as a **brake** on mTOR; lose the
+*Weight.* The need for this program came from paediatric clinicians. TSC1/TSC2 act as a **brake** on mTOR; lose the
 brake and growth runs unchecked.
 
 *Compression.* Genome → variant curated → mTOR pathway → everolimus considered with its real
