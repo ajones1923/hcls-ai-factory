@@ -149,7 +149,42 @@ def detail_page(c: dict, kind: str) -> str:
     return "\n".join(lines)
 
 
-def index_page(title: str, rows: list, folder: str, grid_img: str, blurb: str) -> str:
+def _one_line(c: dict, limit: int = 165) -> str:
+    """First sentence of the registry description — real content, not a placeholder.
+
+    These index pages were 92 and 121 words: a blurb and a status badge. They are top-level
+    navigation, so a reader arriving from the nav could not tell what any capability actually did
+    without opening nine more pages. The description already exists in the registry; surface it.
+    """
+    d = (c.get("description") or "").strip()
+    if not d:
+        return ""
+
+    # Several descriptions open with an optimistic sentence and qualify it later, e.g. the imaging
+    # engine names VISTA-3D and VILA-M3 up front and then records that those paths are NOT yet live.
+    # Surfacing only the first sentence would publish the claim without its correction. Detect the
+    # caveat and say so, so a reader knows the row is not the whole story.
+    lowered = d.lower()
+    caveated = ("honesty:" in lowered or "note (" in lowered or "not yet" in lowered
+                or "representative" in lowered or "placeholder" in lowered)
+
+    parts = [x for x in d.split(". ") if x.strip()]
+    first = parts[0].rstrip(".")
+    # a bare label ("Engine 8 compute layer") is not a description — take the next sentence too
+    if len(first) < 45 and len(parts) > 1:
+        first = f"{first}. {parts[1].rstrip('.')}"
+    # truncate FIRST, then append the caveat — otherwise the marker is the part that gets cut
+    if len(first) > limit:
+        first = first[:limit].rsplit(" ", 1)[0] + "…"
+
+    out = first.replace("|", "/")
+    if caveated:
+        out += " ⚠️ *stated limits — see the capability page*"
+    return out
+
+
+def index_page(title: str, rows: list, folder: str, grid_img: str, blurb: str,
+               orientation: str = "") -> str:
     lines = [
         f"# {title}",
         "",
@@ -157,18 +192,29 @@ def index_page(title: str, rows: list, folder: str, grid_img: str, blurb: str) -
         "",
         f"![{title}](../../assets/infographics/{grid_img})",
         "",
-        "| Capability | Domain | Status |",
-        "|---|---|---|",
+    ]
+    if orientation:
+        lines += [orientation, ""]
+    lines += [
+        "| Capability | What it does | Domain | Status |",
+        "|---|---|---|---|",
     ]
     for c in sorted(rows, key=lambda c: c["name"]):
         lines.append(
-            f'| [{c["name"]}]({c["id"]}.md) | {c.get("domain", "")} | {badge(effective(c))} |'
+            f'| [{c["name"]}]({c["id"]}.md) | {_one_line(c)} | {c.get("domain", "")} '
+            f'| {badge(effective(c))} |'
         )
     lines += [
         "",
-        "Every row is generated from the capability registry; open a capability for its interface, "
-        "ports, and honest status. See the full [Capability Maturity Matrix]"
-        "(../../honesty/maturity-matrix.md).",
+        "!!! note \"How to read this table\"",
+        "    Every row — including the status — is generated from the capability registry, the same "
+        "file continuous integration validates. A capability marked **live** is served by a real "
+        "model against real input, never a mock; anything `planned` is labelled and not shown as if "
+        "it ships. See the full [Capability Maturity Matrix](../../honesty/maturity-matrix.md) and "
+        "the [Honesty Ledger](../../honesty/ledger.md).",
+        "",
+        "All clinical output across these capabilities is **decision support for a qualified "
+        "clinician — never autonomous diagnosis or prescribing.**",
         "",
     ]
     return "\n".join(lines)
@@ -186,6 +232,17 @@ with mkdocs_gen_files.open("factory/engines/index.md", "w") as f:
         "Engines", engines, "engines", "eight-engines.png",
         "The horizontal compute muscle of the factory. Each engine is a registered capability with a "
         "typed interface and an honest status.",
+        orientation=(
+            "**Engines compute; agents interpret.** An engine produces a result that can be "
+            "reproduced without a language model — a variant call, a cluster assignment, a docking "
+            "score. The [intelligence agents](../agents/index.md) reason over those results and "
+            "return cited clinical context. Keeping the two separate is what lets each be checked "
+            "independently: the numbers reproduce on their own, and an interpretation can always be "
+            "traced back to the numbers it rests on.\n\n"
+            "The eight engines are horizontal — they serve any condition. A "
+            "[disease program](../../programs/tsc.md) is a *vertical* that composes them for one "
+            "condition, and is not a ninth engine."
+        ),
     ))
 for c in all_engine_caps:  # generate a detail page for every engine-typed capability, incl. TSC
     with mkdocs_gen_files.open(f"factory/engines/{c['id']}.md", "w") as f:
@@ -199,7 +256,17 @@ with mkdocs_gen_files.open("factory/agents/index.md", "w") as f:
         "consult.* The [Precision Intelligence Engine](../engines/precision-intelligence-engine.md) is "
         "the hub that routes a case to the right agent. Each agent is **decision support for a "
         "qualified clinician — never autonomous diagnosis or prescribing.**",
-    ))
+            orientation=(
+            "**Each agent retrieves evidence, then reasons over it, then cites what it used.** "
+            "The citation is the part a clinician can check — an answer without a traceable source "
+            "is not decision support. Retrieval quality is bounded by what has been indexed, so an "
+            "agent with an unseeded corpus returns nothing rather than inventing an answer.\n\n"
+            "Agents sit above the [engines](../engines/index.md), which do the deterministic "
+            "computation. The single-cell pair shows the split most clearly: the engine resolves an "
+            "expression matrix into cell-type clusters, and the agent explains what those clusters "
+            "imply clinically."
+        ),
+))
 for c in agents:
     with mkdocs_gen_files.open(f"factory/agents/{c['id']}.md", "w") as f:
         f.write(detail_page(c, "Intelligence Agents"))
