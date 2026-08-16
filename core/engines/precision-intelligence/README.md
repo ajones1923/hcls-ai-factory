@@ -8,6 +8,13 @@
 
 **Engine 2 — Precision Intelligence** · one of the *Eight Engines · Eight Intelligence Agents · One Platform*
 
+> [!IMPORTANT]
+> **Decision support for a qualified clinician — never autonomous diagnosis or prescribing.**
+> This engine retrieves evidence and produces cited interpretations of genomic variants. Retrieval
+> quality is bounded by what has been indexed, and a cited interpretation is a starting point for a
+> clinician's judgement, not a substitute for it.
+
+
 > Retrieval-Augmented Generation (RAG) pipeline for querying genetic variants with natural language. Transforms annotated VCF data into therapeutic intelligence using semantic search, knowledge graphs, and AI reasoning.
 
 ```

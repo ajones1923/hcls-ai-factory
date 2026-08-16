@@ -13,7 +13,7 @@ claims. The science is the best part; the controls are the weakest.
 
 | Dimension | Score | Basis |
 |---|---:|---|
-| Clinical / scientific accuracy | **9.5** | 44 CPIC pairs all genuine; 0 gene-locus errors; correct variant IDs |
+| Clinical / scientific accuracy | **9.8** | 44 CPIC pairs all genuine; 0 gene-locus errors; correct variant IDs |
 | Test health | **9.0** | 8,402 passing, 0 failing across 17/17 |
 | Code quality | 8.0 | ruff-clean on real-bug rules; 12 stdlib-shadowing modules |
 | Documentation (internal) | 7.5 | 17/17 have README + docs/; 5 lack the decision-support frame |
@@ -36,8 +36,9 @@ The strongest dimension and the one that matters most for the audience. Every ch
   MYH7 14q11.2, TTN 2q31.2).
 - Variant identifiers correct: VKORC1 **rs9923231**, SLCO1B1 **rs4149056**.
 
-Deduction: CYP3A4→midazolam/cyclosporine are presented alongside CPIC pairs. They are correct
-pharmacology but not CPIC guideline pairs and should be labelled as substrate relationships.
+One real error found and fixed: the knowledge base asserted *"CPIC guidelines reference CYP3A4 for
+tacrolimus dosing."* CPIC's tacrolimus guideline is **CYP3A5**-based. (The earlier claim that CYP3A4
+inhibitor tables overstated CPIC backing was retracted — those tables were correctly structured.)
 
 ### 7.5 — Security *(was 4.0)*
 
@@ -97,7 +98,7 @@ exist for only 4 of ~20 supervised services. The platform is cold.
 | 7 | Choose one runtime model (compose) | Layout, ops | decision |
 | 8 | Rename the 12 stdlib-shadowing modules | Code quality | medium |
 | 9 | Agree a test-depth floor (range is 4 → 1,966) | Confidence | medium |
-| 10 | Label CYP3A4 pairs as substrate, not CPIC | Accuracy 9.5 → 10 | trivial |
+
 
 **Items 1 and 2 are the highest-value changes in this document.** The platform's credibility rests
 on honesty-by-construction, and it currently ships a header claiming governance it does not perform,
