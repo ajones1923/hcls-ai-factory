@@ -66,7 +66,7 @@ registry: 42 capabilities, 9 typed 'engine'
 OK — manifest valid and every engine/agent directory is registered.
 ```
 
-`validate_registry.py` also enforces the [port convention](../build/PORT_MAP.md) — the registry
+`validate_registry.py` also enforces the [port convention](https://github.com/ajones1923/hcls-ai-factory/blob/main/docs/build/PORT_MAP.md) — the registry
 advertises the UI port and the API is UI + 1 — and cross-checks it against the process supervisor,
 so a port change in one place and not the other fails the build.
 
@@ -141,7 +141,7 @@ docker compose -f docker-compose.dgx-spark.yml up -d
     ```
 
 Full cold-clone-to-running instructions, including seeding the agent corpora, are in the
-[Build Guide](../build/BUILD_GUIDE.md).
+[Build Guide](https://github.com/ajones1923/hcls-ai-factory/blob/main/docs/build/BUILD_GUIDE.md).
 
 ## What "live" means here
 
@@ -168,4 +168,4 @@ until an aggregator exists. Status follows evidence.
   [Capability Maturity Matrix](../honesty/maturity-matrix.md) and every engine/agent page are
   generated from the registry, and the strict CI build fails before publishing anything stale.
 
-*Next: the honest [hardware & elastic-burst story](hardware.md) · [reproducibility & datasets](reproducibility.md) · [what to install](../build/ACQUISITION_MANIFEST.md).*
+*Next: the honest [hardware & elastic-burst story](hardware.md) · [reproducibility & datasets](reproducibility.md) · [what to install](https://github.com/ajones1923/hcls-ai-factory/blob/main/docs/build/ACQUISITION_MANIFEST.md).*

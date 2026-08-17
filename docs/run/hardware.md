@@ -20,7 +20,7 @@ Illustrative diagram. Patient data stays on the local box; only derived, non-ide
 | Runs locally on the DGX Spark | Bursts to remote GPU (on demand) |
 |---|---|
 | Orchestration, the capability registry, the MCP tool-surface, the workflow composer | Frontier co-folding (Chai-1), RFdiffusion, Evo 2 (and gated Chai-2 binder design) |
-| Governance gates + 21 CFR Part 11-style lineage | x86-only CUDA containers (e.g. Parabricks, several BioNeMo NIMs) |
+| Governance gates + the deterministic lineage record | x86-only CUDA containers (e.g. Parabricks, several BioNeMo NIMs) |
 | The RAG intelligence agents (vector DB + LLM), multi-omics join, DuckDB | Anything ARM-incompatible or too heavy for one box |
 | **All patient data** | **Only derived, non-identifying work** — never raw PHI |
 

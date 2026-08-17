@@ -476,7 +476,8 @@ services:
       <<: *agent-healthcheck
 
   # Structural Biology — only the CPU-feasible service is declared. ESMFold (:8570) and
-  # ProteinMPNN (:8578) need CUDA; the box is on torch 2.10.0+cpu, so declaring them would create
+  # ProteinMPNN (:8578) need CUDA, which the platform venv does not have (the therapeutic-discovery
+  # venv does). Declaring them against the platform interpreter would create
   # services that start but cannot do their job. Add them once PRD R6 (CUDA torch) lands.
   structural-biology-search:
     build:

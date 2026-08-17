@@ -57,7 +57,7 @@ docker compose -f docker-compose.dgx-spark.yml up -d
 **Seed Milvus before demoing an agent.** An empty collection makes a working agent look broken. If
 no seeded corpus exists, `core/*/scripts/seed_*.py` and `ingest_*.py` are the entry points.
 
-Ports follow the convention in [`../build/PORT_MAP.md`](../build/PORT_MAP.md) — registry endpoint is
+Ports follow the convention in [`../build/PORT_MAP.md`](https://github.com/ajones1923/hcls-ai-factory/blob/main/docs/build/PORT_MAP.md) — registry endpoint is
 the **UI**, API is **UI + 1**. The runner probes the API port.
 
 ## 3. The gated demos — E1, E3, E7

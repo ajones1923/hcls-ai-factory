@@ -1,6 +1,6 @@
 ---
 title: Frontier Models
-description: The external models the factory builds on, in two roles — the reasoning layer (Anthropic's Claude) and the heavy domain-science models (NVIDIA BioNeMo, Chai Discovery, and the roadmap frontier) — each a registered capability with an honest status.
+description: The external models the factory builds on, in two roles — the reasoning layer (Anthropic's Claude) and the heavy domain-science models (NVIDIA BioNeMo, Chai Discovery, and the roadmap frontier) — each carrying an honest status.
 ---
 
 # Frontier Models
@@ -31,13 +31,15 @@ Heavy or partner-gated models — too large for one box, or available only throu
 
 ### Also on the roadmap
 
-Registered and connected the same way — heavy or containerized, honest status, elastic burst:
+Directions the factory is designed to take, connected the same way when they are stood up. These two
+are **not yet registered capabilities** — they carry the `roadmap` badge rather than a registry
+status, so the distinction stays visible:
 
-- **RFdiffusion** &nbsp; <span class="cap-badge cap-planned">planned</span> — de-novo protein backbone design (→ ProteinMPNN → Chai-1).
-- **Evo 2** &nbsp; <span class="cap-badge cap-planned">planned</span> — genome-scale foundation model.
+- **RFdiffusion** &nbsp; <span class="cap-badge cap-roadmap">roadmap</span> — de-novo protein backbone design (→ ProteinMPNN → Chai-1).
+- **Evo 2** &nbsp; <span class="cap-badge cap-roadmap">roadmap</span> — genome-scale foundation model.
 
 !!! note "Honest by construction"
-    The statuses here are the registry's — see the live
+    Every badge above except the two `roadmap` items is the registry's own — see the live
     [Capability Maturity Matrix](../../honesty/maturity-matrix.md). The **domain-science models burst to
     a remote GPU** ([elastic burst](../../run/hardware.md)), never pretending to run on the box; the
     **reasoning layer** is a hosted API — configurable, and never mock-served. Any clinical use is

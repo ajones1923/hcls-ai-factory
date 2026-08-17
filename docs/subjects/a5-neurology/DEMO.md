@@ -38,7 +38,7 @@ degrading to a canned result. The failure message names the missing prerequisite
 
 - a service not listening → start it (`docker compose -f docker-compose.dgx-spark.yml up -d`)
 - a missing Python package → install it
-- a gated component → see [`../../build/GATED_SOFTWARE_BUILD_GUIDE.md`](../../build/GATED_SOFTWARE_BUILD_GUIDE.md)
+- a gated component → see [`../../build/GATED_SOFTWARE_BUILD_GUIDE.md`](https://github.com/ajones1923/hcls-ai-factory/blob/main/docs/build/GATED_SOFTWARE_BUILD_GUIDE.md)
 
 ## Transcript
 

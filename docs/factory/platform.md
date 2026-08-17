@@ -7,7 +7,7 @@ description: The platform glue that makes the HCLS AI Factory one governed syste
 
 The engines compute and the agents reason, but they only become *one factory* because of a shared
 platform layer: a typed source of truth, a tool-surface, a composer, single-box MLOps, and the
-governance gates every capability passes through.
+governance gates a composed run passes through.
 
 ![One Platform — the glue](../assets/infographics/one-platform.png)
 /// caption
@@ -23,8 +23,11 @@ Illustrative diagram.
   wiring capabilities along typed ports (a VCF output only connects to a VCF input).
 - **Single-box MLOps** — model/versioning, runs, and lineage on one machine, with elastic burst to
   remote GPU for heavy or ARM-incompatible models.
-- **Governance Gates** — the input-validation and output-honesty brackets, plus 21 CFR Part 11-style
-  lineage, that every governed run passes through.
+- **Governance Gates** — the input-validation and output-honesty brackets, plus a deterministic
+  lineage record (**21 CFR Part 11-*minded*** — traceable inputs, attributable steps, a reproducible
+  hash — not a claim of Part 11 validation), that every run through the composer passes. Per-service
+  adoption on the services' own HTTP routes is [in progress, with the coverage
+  stated](../honesty/governance.md).
 
 !!! note "Honest by construction"
     Because the registry is the single source of truth, the platform enforces the honesty rules

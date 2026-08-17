@@ -41,9 +41,11 @@ models [burst to remote GPU](../run/hardware.md), which the site states wherever
     An **engine** turns inputs into a *result* — a variant file, a docked molecule, a segmented scan.
     An **agent** reasons over those results the way a specialist would — a pharmacologist checking a
     dose, a geneticist ranking diagnoses — and always hands the decision back to the clinician.
-    *Engines are the lab; agents are the consult.* And **"governed"** means every step runs behind the
-    platform's governance gates — logged, access-controlled, and honesty-checked — so that afternoon is
-    auditable, not a black box.
+    *Engines are the lab; agents are the consult.* And **"governed"** means a run made through the
+    platform's composer passes its gates — input-validated, honesty-checked, and recorded with a
+    lineage hash — so that afternoon is auditable rather than a black box. Adoption of those gates on
+    the services' own routes is still in progress, and
+    [Governance & Lineage](../honesty/governance.md) states the current coverage as a number.
 
 ## See it honestly
 

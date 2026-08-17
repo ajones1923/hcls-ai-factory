@@ -115,23 +115,6 @@ nav:
       - Demo PRD: demos/PRD.md
       - Demo Build Guide: demos/BUILD_GUIDE.md
   - Subject Guides: subjects/index.md
-  - Build & Audit:
-      - Index: build/README.md
-      - Gap Analysis: build/GAP_ANALYSIS.md
-      - PRD: build/PRD.md
-      - Build Guide: build/BUILD_GUIDE.md
-      - Port Map: build/PORT_MAP.md
-      - Best Practices & Accuracy: build/BEST_PRACTICES_AUDIT.md
-      - Layout Review: build/LAYOUT_REVIEW.md
-      - Scorecard: build/SCORECARD.md
-      - Resource Report: build/RESOURCE_REPORT.md
-      - Repo & Site Review: build/REPO_AND_SITE_REVIEW.md
-      - Pre-Gated Recommendations: build/PRE_GATED_RECOMMENDATIONS.md
-      - Software Acquisition Manifest: build/ACQUISITION_MANIFEST.md
-      - Site to 10/10: build/SITE_TO_TEN.md
-      - Deploy Runbook: build/DEPLOY_RUNBOOK.md
-      - Gated Software PRD: build/GATED_SOFTWARE_PRD.md
-      - Gated Software Build Guide: build/GATED_SOFTWARE_BUILD_GUIDE.md
   - Run It Yourself:
       - run/index.md
       - Hardware & Elastic Burst: run/hardware.md
@@ -163,6 +146,7 @@ markdown_extensions:
 # the intentional root pages (index, roadmap) and the section subdirs are kept.
 exclude_docs: |
   /*.md
+  /build/
   /infographic_prompts/
   /working_prompts/
   !/index.md

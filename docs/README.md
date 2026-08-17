@@ -40,13 +40,13 @@ Each subject has: **Overview** · **Foundation Learning** · **Advanced Learning
 
 Produced 2026-08-15. Every figure was measured by running the code.
 
-- [**Build documentation index**](build/README.md) — start here
-- [Gap Analysis](build/GAP_ANALYSIS.md) — what exists vs what is needed
-- [PRD](build/PRD.md) · [Build Guide](build/BUILD_GUIDE.md) — cold clone to running platform
-- [Port Map](build/PORT_MAP.md) — the UI / UI+1 convention, CI-enforced
-- [Best-Practices & Accuracy Audit](build/BEST_PRACTICES_AUDIT.md) — security, design, clinical facts
-- [Layout Review](build/LAYOUT_REVIEW.md) · [Scorecard](build/SCORECARD.md) · [Resource Report](build/RESOURCE_REPORT.md)
-- [Gated Software PRD](build/GATED_SOFTWARE_PRD.md) · [Build Guide](build/GATED_SOFTWARE_BUILD_GUIDE.md) — also as [.docx](build/docx/)
+- [**Build documentation index**](https://github.com/ajones1923/hcls-ai-factory/blob/main/docs/build/README.md) — start here
+- [Gap Analysis](https://github.com/ajones1923/hcls-ai-factory/blob/main/docs/build/GAP_ANALYSIS.md) — what exists vs what is needed
+- [PRD](https://github.com/ajones1923/hcls-ai-factory/blob/main/docs/build/PRD.md) · [Build Guide](https://github.com/ajones1923/hcls-ai-factory/blob/main/docs/build/BUILD_GUIDE.md) — cold clone to running platform
+- [Port Map](https://github.com/ajones1923/hcls-ai-factory/blob/main/docs/build/PORT_MAP.md) — the UI / UI+1 convention, CI-enforced
+- [Best-Practices & Accuracy Audit](https://github.com/ajones1923/hcls-ai-factory/blob/main/docs/build/BEST_PRACTICES_AUDIT.md) — security, design, clinical facts
+- [Layout Review](https://github.com/ajones1923/hcls-ai-factory/blob/main/docs/build/LAYOUT_REVIEW.md) · [Scorecard](https://github.com/ajones1923/hcls-ai-factory/blob/main/docs/build/SCORECARD.md) · [Resource Report](https://github.com/ajones1923/hcls-ai-factory/blob/main/docs/build/RESOURCE_REPORT.md)
+- [Gated Software PRD](https://github.com/ajones1923/hcls-ai-factory/blob/main/docs/build/GATED_SOFTWARE_PRD.md) · [Build Guide](https://github.com/ajones1923/hcls-ai-factory/blob/main/docs/build/GATED_SOFTWARE_BUILD_GUIDE.md) — also as [.docx](https://github.com/ajones1923/hcls-ai-factory/tree/main/docs/build/docx)
 
 ## Demonstrations
 
@@ -72,7 +72,7 @@ Two axes, deliberately distinct — see the reconciliation note in the catalogue
 
 - [DGX Spark Deployment Guide](HCLS_AI_FACTORY_DGX_SPARK_DEPLOYMENT_GUIDE.md)
 - [RUNBOOK.md](RUNBOOK.md)
-- [Build Guide](build/BUILD_GUIDE.md) — the current, measured bring-up path
+- [Build Guide](https://github.com/ajones1923/hcls-ai-factory/blob/main/docs/build/BUILD_GUIDE.md) — the current, measured bring-up path
 
 ## Honesty & governance
 
@@ -97,7 +97,7 @@ Three rules the documentation itself is held to:
 
 > Some research/branding/demo documents predate the current **Eight Engines · Eight Agents** framing
 > and the `core/` restructure. The canonical references are the root README, CONTRIBUTING,
-> [STRUCTURE.md](STRUCTURE.md), and the [build documentation](build/README.md).
+> [STRUCTURE.md](STRUCTURE.md), and the [build documentation](https://github.com/ajones1923/hcls-ai-factory/blob/main/docs/build/README.md).
 
 ## Verify any claim in these docs
 

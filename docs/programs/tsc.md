@@ -91,8 +91,9 @@ condition. For a single TSC child, that looks like:
    mechanism; the **Rare Disease** and **Pharmacogenomics** agents add HPO phenotype matching and
    mTOR-inhibitor dosing context.
 3. **Structure & discovery.** For the drug side, the Therapeutic Discovery engine generates and docks
-   candidate molecules against the mTOR pathway, and **Chai-1** co-folds the top candidate as an
-   independent structural check.
+   candidate molecules against the mTOR pathway — **preclinical design, not a therapy**. Co-folding
+   the top candidate with **Chai-1** as an independent structural check is *planned*, not live; when
+   it stands up it will run by [elastic burst](../run/hardware.md) to a remote GPU.
 4. **Surveillance.** The [Tuberous Sclerosis engine](../factory/engines/tuberous-sclerosis-engine.md)'s
    disease-specific agents — variant curator, phenome mapper, trajectory modeler, TAND surveillance,
    therapeutics strategist — turn the results into reviewable, clinician-facing surfaces.

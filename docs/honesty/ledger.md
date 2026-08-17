@@ -14,13 +14,15 @@ function of the capability registry plus this ledger** — never hand-typed pros
 | Badge | Meaning | Derivation |
 |---|---|---|
 | <span class="cap-badge cap-live">live</span> | Real and running — served by a real model against real input, never mock-served. | registry `status: live` |
-| <span class="cap-badge cap-verified">verified</span> | Additionally **proven against real, recorded input** (e.g. GIAB HG002, pbmc3k, real ClinVar). | registry `status: live` **and** a recorded real-data run |
 | <span class="cap-badge cap-planned">planned</span> | Not yet running (or a required dependency isn't deployed). | registry `status: planned` |
-| <span class="cap-badge cap-verified">verified</span> | *(maturity tier)* proven against real recorded input. | registry `maturity: verified` |
+| <span class="cap-badge cap-verified">verified</span> | Live **and additionally proven against real, recorded input** (e.g. GIAB HG002, pbmc3k, real ClinVar). | registry `maturity: verified` |
 | <span class="cap-badge cap-preclinical">preclinical</span> | A research bench, not a treatment or clinical use today. | registry maturity tier / honesty ledger |
 | <span class="cap-badge cap-research-use">research-use</span> | Research / QA / trial-use input, not a routine clinical diagnostic. | registry maturity tier / honesty ledger |
 | <span class="cap-badge cap-roadmap">roadmap</span> | A designed direction the factory is heading — not yet built. | registry maturity tier / honesty ledger |
 | <span class="cap-badge cap-gated">gated</span> | Real but partnership- or license-gated access. | registry `maturity: gated` |
+
+The badge a page shows is **`maturity` when the registry sets one, otherwise `status`** — one rule,
+applied by the generator, so a maturity tier can never be shown alongside a contradicting status.
 
 ## The standing ledger
 
