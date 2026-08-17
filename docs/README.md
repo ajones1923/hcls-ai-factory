@@ -54,7 +54,7 @@ Two axes, deliberately distinct — see the reconciliation note in the catalogue
 
 - [**Portfolio D1–D7**](demos/index.md) — patient-story demonstrations; the coverage contract
 - [**Catalogue E1–E8 / A1–A8 / P1**](demos/DEMO_CATALOG.md) — one per subject
-- [Demo PRD](demos/PRD.md) · [Demo Build Guide](demos/BUILD_GUIDE.md)
+- [Demo PRD](https://github.com/ajones1923/hcls-ai-factory/blob/main/docs/demos/PRD.md) · [Demo Build Guide](https://github.com/ajones1923/hcls-ai-factory/blob/main/docs/demos/BUILD_GUIDE.md)
 
 ```bash
 .venv/bin/python scripts/run_demo.py --check-all   # what is ready

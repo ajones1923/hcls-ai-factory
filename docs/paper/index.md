@@ -267,9 +267,10 @@ memory and 34% of 20 cores. The machine is not the constraint at this stage of t
 
 ## 7. Limitations
 
-- **Accelerated inference is not currently enabled.** The installed tensor runtime is a CPU-only
-  build, so model paths that depend on the GPU are degraded or unavailable pending credentialed
-  software.
+- **Accelerated inference is enabled in one environment, not across the platform.** A CUDA build
+  of the tensor runtime is installed and reports the integrated GPU correctly, but it backs a
+  single service environment; the platform interpreter and the remaining services carry a
+  CPU-only build, so most model paths do not reach the GPU today.
 - **Accelerated secondary analysis requires a licensed container.** Genomics demonstrations
   currently serve pre-computed results and are labelled accordingly.
 - **One generation backend of two is deployed.** The open cheminformatics generation path is live;

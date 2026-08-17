@@ -12,10 +12,20 @@ actually seeing.
 | **REPRESENTATIVE** | A pre-computed or curated result standing in for a long or gated step — said out loud |
 | **BURST** | Running live, but on remote GPUs over the private mesh — say "elastic burst", never "all on one box" |
 
-**Current reality:** `torch` is CPU-only and the BioNeMo NIMs, Parabricks and Chai-1 are not
-installed. So **6 of 17 are LIVE today**, 9 are REPRESENTATIVE until the gated install lands, and
-2 are mixed. That distribution is the honest one; it improves the moment
-`GATED_SOFTWARE_BUILD_GUIDE.md` is executed.
+**Current distribution:** **13 LIVE · 3 REPRESENTATIVE · 1 MIXED.** The three representative ones
+(E1, E3, E7) wait on gated software — Parabricks, the BioNeMo NIMs, and a CUDA-served ESMFold —
+and flip to LIVE when it lands.
+
+**A LIVE label is a claim about the demo, not a promise the box is up.** Every LIVE demo needs the
+platform running, Milvus seeded, and `ANTHROPIC_API_KEY` set. Ask the runner rather than trusting
+this page:
+
+```bash
+.venv/bin/python scripts/run_demo.py --check-all
+```
+
+It refuses to run a demo labelled LIVE whose service is unreachable rather than returning a canned
+result — so the honest count on a cold box is lower than the count above, and it says so.
 
 Every demo states **decision support, not diagnosis** the first time clinical output appears.
 
@@ -118,7 +128,8 @@ decides whether the statin will work. Three engines, one patient — that sequen
 pockets a molecule must fit.
 
 *What actually runs:* protein search and re-ranking, developability scoring (34 tests).
-*What does not:* ESMFold prediction and ProteinMPNN design — both need CUDA, and `torch` is CPU-only.
+*What does not:* ESMFold prediction and ProteinMPNN design — both need CUDA, which the environment
+serving them does not have.
 Structures shown are **deposited PDB entries**, not predictions made in the room.
 
 > The engine capability `structural-biology-engine:8581` is `planned` — nothing binds that port.

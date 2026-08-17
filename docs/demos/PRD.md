@@ -1,7 +1,7 @@
 # PRD — The 17 Demonstrations
 
 **Date:** 2026-08-15 · **Companion:** [`DEMO_CATALOG.md`](DEMO_CATALOG.md) (the specs) ·
-[`BUILD_GUIDE.md`](BUILD_GUIDE.md) (how to build and test them)
+[`BUILD_GUIDE.md`](https://github.com/ajones1923/hcls-ai-factory/blob/main/docs/demos/BUILD_GUIDE.md) (how to build and test them)
 
 ---
 

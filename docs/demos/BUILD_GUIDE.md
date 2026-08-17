@@ -1,6 +1,6 @@
 # Build Guide — the 17 Demonstrations
 
-Companion to [`DEMO_CATALOG.md`](DEMO_CATALOG.md) (specs) and [`PRD.md`](PRD.md) (requirements).
+Companion to [`DEMO_CATALOG.md`](DEMO_CATALOG.md) (specs) and [`PRD.md`](https://github.com/ajones1923/hcls-ai-factory/blob/main/docs/demos/PRD.md) (requirements).
 Keys are **E1–E8 / A1–A8 / P1** — not D1–D7, which is the patient-story portfolio.
 
 ---
