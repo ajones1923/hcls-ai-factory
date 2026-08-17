@@ -19,7 +19,7 @@ Illustrative. Claude reads retrieved evidence and returns a cited answer — an 
 
 | Capability | What Claude does there |
 |---|---|
-| **Precision Intelligence Engine** | RAG interpretation — turns annotated variants into a cited, plain-language clinical narrative, and coordinates the agents. |
+| **Precision Intelligence Engine** | RAG interpretation — turns annotated variants into a cited, plain-language clinical narrative for the agents to reason over. |
 | **All 8 Intelligence Agents** | Each is a retrieval-augmented service: Claude reasons over the retrieved evidence to produce the agent's cited answer — a dose, a diagnosis shortlist, a trial match, and so on. |
 | **Workflow Composer** | Turns a natural-language request into a validated, governed pipeline of capabilities. |
 
@@ -33,6 +33,7 @@ agent.*
 - **Grounded, not free-associating.** It reasons over *retrieved* evidence (RAG) with citations, and
   returns an honest degraded response (**HTTP 503**) when its knowledge base or API key is absent — it
   does not fabricate clinical content.
-- **An external dependency.** Claude is a proprietary API from Anthropic; the specific model is
-  configurable (the factory runs a current model such as Claude Opus 4.8). Nothing on this layer is
-  mock-served.
+- **An external dependency.** Claude is a proprietary API from Anthropic. The **specific model is
+  configurable per service** and is set in code rather than pinned by this page — check the service
+  you care about rather than trusting a version number in prose, which goes stale the moment
+  Anthropic ships. Nothing on this layer is mock-served.

@@ -16,8 +16,9 @@
 # in this tree binds 8581. There is no aggregator. Until one exists the engine capability is marked
 # `planned`; the model-level capabilities (8570/8571/8578) are the real, reachable surface.
 #
-# NOTE ON GPU — ESMFold and ProteinMPNN need CUDA. The box currently has torch 2.10.0+cpu with
-# cuda_is_available() == False, so only protein_search is practically servable today. Do not mark
+# NOTE ON GPU — ESMFold and ProteinMPNN need CUDA. This image installs the CPU wheel, so only
+# protein_search is practically servable from it. (The box itself does have a working CUDA build —
+# torch 2.12.1+cu130, GB10 at sm_121 — in core/engines/therapeutic-discovery/venv.) Do not mark
 # the GPU services `live` until PRD R6 lands.
 #
 # `vendor_rfdiffusion/` and `vendor_proteinmpnn/` are deliberately NOT copied: vendored third-party

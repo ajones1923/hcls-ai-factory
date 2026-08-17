@@ -247,7 +247,7 @@ with mkdocs_gen_files.open("factory/engines/index.md", "w") as f:
 for c in all_engine_caps:  # generate a detail page for every engine-typed capability, incl. TSC
     with mkdocs_gen_files.open(f"factory/engines/{c['id']}.md", "w") as f:
         f.write(detail_page(c, "Engines"))
-    mkdocs_gen_files.set_edit_path(f"factory/engines/{c['id']}.md", "lib/hcls_common/capabilities.json")
+    mkdocs_gen_files.set_edit_path(f"factory/engines/{c['id']}.md", "../lib/hcls_common/capabilities.json")
 
 with mkdocs_gen_files.open("factory/agents/index.md", "w") as f:
     f.write(index_page(
@@ -270,7 +270,7 @@ with mkdocs_gen_files.open("factory/agents/index.md", "w") as f:
 for c in agents:
     with mkdocs_gen_files.open(f"factory/agents/{c['id']}.md", "w") as f:
         f.write(detail_page(c, "Intelligence Agents"))
-    mkdocs_gen_files.set_edit_path(f"factory/agents/{c['id']}.md", "lib/hcls_common/capabilities.json")
+    mkdocs_gen_files.set_edit_path(f"factory/agents/{c['id']}.md", "../lib/hcls_common/capabilities.json")
 
 
 # ── Capability Brief — Technical Cut (registry-generated; retires the hard-coded HTML, SC-4) ──
@@ -323,4 +323,4 @@ brief = [
 ]
 with mkdocs_gen_files.open("brief/README.md", "w") as f:
     f.write("\n".join(brief))
-mkdocs_gen_files.set_edit_path("brief/README.md", "lib/hcls_common/capabilities.json")
+mkdocs_gen_files.set_edit_path("brief/README.md", "../lib/hcls_common/capabilities.json")

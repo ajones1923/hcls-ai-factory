@@ -38,6 +38,17 @@ Built in four phases, each flipping matrix badges green as real capabilities com
 
 The site build, in public — most-recent first.
 
+- **2026-08** — **Security & governance:** authentication available on **12 of 12** clinical
+  endpoints via one shared module, fail-closed once a key is set; the `X-HCLS-Governed` header now
+  reports only gates that actually ran, and [Governance & Lineage](honesty/governance.md) states
+  per-service gate coverage as a number rather than a claim.
+- **2026-08** — **Proof of health:** one harness across all 17 subjects — 8 engines, 8 agents, the
+  TSC program — **8,402 tests passing**; compose coverage 11/17 → 17/17; a single port convention
+  (registry advertises the UI, API is UI + 1) now cross-checked against the process supervisor in CI.
+- **2026-08** — **Site pass:** every page's narrated video re-recorded in one voice; **84
+  infographics audited against the registry** and nine corrected where they claimed ahead of the
+  code; per-capability subject guides published; the preprint added.
+
 - **2026-07** — **Verification campaign:** ran capabilities on real public data and earned `verified`
   where they passed — **nine in total**: the variant store (HG002), single-cell compute (pbmc3k),
   ACMG secondary-findings (real ClinVar), the molecule generator + ADMET (real drugs), ESM-2 search +

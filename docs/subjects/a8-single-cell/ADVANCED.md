@@ -75,7 +75,7 @@ Two traps the shared harness handles, which a hand-rolled `pytest` invocation wi
 
 Interpretation rests on the quality of the upstream clustering and the marker panel used.
 
-Before changing a port, read [`../../build/PORT_MAP.md`](../../build/PORT_MAP.md). The convention is
+Before changing a port, read [`../../build/PORT_MAP.md`](https://github.com/ajones1923/hcls-ai-factory/blob/main/docs/build/PORT_MAP.md). The convention is
 enforced by `scripts/validate_registry.py`, which also cross-checks `health-monitor.sh` — a port
 change in one place and not the other fails the build.
 

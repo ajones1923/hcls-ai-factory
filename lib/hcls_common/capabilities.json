@@ -224,7 +224,7 @@
       "id": "cart-intelligence-agent",
       "type": "agent",
       "name": "CAR-T Intelligence Agent",
-      "description": "RAG decision support for CAR-T; stores scFv/antibody sequences.",
+      "description": "RAG decision support across the five stages of CAR-T development (target identification, CAR design, vector engineering, testing, clinical), with cross-collection evidence retrieval, comparative construct analysis, and a stored scFv/antibody sequence library. Produces a cited design-evidence brief. It reasons over published evidence - it does not generate binders. Decision support for a qualified clinician, never autonomous diagnosis.",
       "domain": "clinical",
       "inputs": [
         {
@@ -257,7 +257,7 @@
       "id": "precision-biomarker-agent",
       "type": "agent",
       "name": "Precision Biomarker Intelligence Agent",
-      "description": "RAG decision support for biomarker analysis.",
+      "description": "RAG decision support over multi-omics and routine labs: biological-age clocks (PhenoAge, GrimAge), 9-domain disease-trajectory risk (diabetes, cardiovascular, liver, thyroid, iron, nutritional, kidney, bone, cognitive), critical-value alerting, reference-range interpretation, discordance detection across panels, and genotype-aware adjustment. The multi-omics join other capabilities draw on. Biological-age clocks are research-use, not clinical tests. Decision support for a qualified clinician, never autonomous diagnosis.",
       "domain": "clinical",
       "inputs": [
         {
@@ -323,7 +323,7 @@
       "id": "neurology-intelligence-agent",
       "type": "agent",
       "name": "Neurology Intelligence Agent",
-      "description": "RAG decision support across 10 neurology domains (Parkinson's, Alzheimer's, dementia, ALS, MS, ...).",
+      "description": "RAG decision support across 10 neurology domains (cerebrovascular, neurodegenerative, epilepsy, MS, neuro-oncology, movement disorders, headache, neuromuscular, neurogenetics, neuroimmunology), with validated clinical scales, ATN biomarker staging for Alzheimer's, EDSS for MS, and research staging for Parkinson's. Staging frameworks (NSD-ISS / SynNeurGe, alpha-synuclein SAA, plasma p-tau217) are research-/trial-use inputs, not routine diagnostics. Decision support for a qualified clinician, never autonomous diagnosis.",
       "domain": "clinical",
       "inputs": [
         {
@@ -356,7 +356,7 @@
       "id": "precision-autoimmune-agent",
       "type": "agent",
       "name": "Precision Autoimmune Intelligence Agent",
-      "description": "RAG decision support for autoimmune disease.",
+      "description": "RAG decision support across 13 autoimmune conditions (rheumatoid arthritis, SLE, multiple sclerosis, type 1 diabetes, IBD, psoriasis, ankylosing spondylitis, Sjogren's, systemic sclerosis, myasthenia gravis, celiac, Graves'): autoantibody-panel interpretation, HLA association analysis, five-level disease-activity scoring, flare-risk reasoning, and a longitudinal disease timeline. Hands off to Pharmacogenomics for drug safety. Decision support for a qualified clinician, never autonomous diagnosis.",
       "domain": "clinical",
       "inputs": [
         {
@@ -389,7 +389,7 @@
       "id": "rare-disease-diagnostic-agent",
       "type": "agent",
       "name": "Rare Disease Intelligence Agent",
-      "description": "RAG decision support for rare disease diagnosis.",
+      "description": "RAG decision support for the diagnostic odyssey: 21 workflows (phenotype-driven search, variant interpretation, differential diagnosis, gene-therapy eligibility, newborn screening, metabolic workup, carrier and prenatal screening, natural history, therapy selection, trial matching, genetic counseling) across 14 disease categories, combining HPO phenotype matching, ACMG classification and trio analysis into a ranked shortlist of candidate diagnoses. A shortlist for a qualified clinician - never a diagnosis.",
       "domain": "clinical",
       "inputs": [
         {
@@ -422,7 +422,7 @@
       "id": "pharmacogenomics-intelligence-agent",
       "type": "agent",
       "name": "Pharmacogenomics Intelligence Agent",
-      "description": "RAG decision support + PGx drug-metabolism filtering.",
+      "description": "RAG decision support for gene-guided prescribing across six workflows (gene, drug, profile, interaction, dosing, HLA screening): star-allele genotype to CPIC metabolizer phenotype (poor through ultrarapid), guideline-cited dosing, transporter function, HLA risk-allele screening, and phenoconversion from co-prescribed inhibitors/inducers. Its knowledge base carries 44 gene-drug pairs across 13 genes, each checked against CPIC. Decision support for a qualified clinician, never autonomous prescribing.",
       "domain": "clinical",
       "inputs": [
         {
@@ -455,7 +455,7 @@
       "id": "imaging-intelligence-agent",
       "type": "engine",
       "name": "Clinical Imaging Engine",
-      "description": "Live DICOM analysis (VISTA-3D segmentation, VILA-M3 image/report reasoning, FHIR R4 export) with cross-modality reasoning against genomics. MAISI synthetic imaging is research/augmentation/QA only, never diagnostic. Decision support. (Honesty: the live-verified modality is chest X-ray analysis via DenseNet-121 on real DICOM pixels; the VISTA-3D / VILA-M3 CT path is a planned/placeholder modality, not yet live.) The Cardiac Workup (CT coronary angiography) workflow is REPRESENTATIVE: ct_coronary_angiography.infer() returns fixed findings (CAD-RADS 4A/P3/HRP, Agatston 385 representative, 77.9% stenosis measured from a segmented vessel surface) \u2014 SegResNet/VISTA-3D coronary inference is not yet wired. Its imagery is a rendered coronary surface mesh (CoronariesNC6, manual rater ground truth), not a patient CT.",
+      "description": "Live DICOM analysis on real pixels: the live-verified modality is chest X-ray via DenseNet-121, with FHIR R4 export and cross-modality reasoning against genomics. The CT path (VISTA-3D segmentation, VILA-M3 image/report reasoning) is planned/placeholder, not yet live. MAISI synthetic imaging is research/augmentation/QA only, never diagnostic. Decision support. The Cardiac Workup (CT coronary angiography) workflow is REPRESENTATIVE: ct_coronary_angiography.infer() returns fixed findings (CAD-RADS 4A/P3/HRP, Agatston 385 representative, 77.9% stenosis measured from a segmented vessel surface) - SegResNet/VISTA-3D coronary inference is not yet wired. Its imagery is a rendered coronary surface mesh (CoronariesNC6, manual rater ground truth), not a patient CT.",
       "domain": "clinical",
       "inputs": [
         {
@@ -521,7 +521,7 @@
       "id": "clinical-trial-intelligence-agent",
       "type": "agent",
       "name": "Clinical Trial Intelligence Agent",
-      "description": "RAG decision support for trial matching.",
+      "description": "RAG decision support across 19 trial workflows spanning design and conduct: protocol design, patient matching, eligibility analysis and optimization, site selection, endpoint strategy, adaptive design, safety-signal monitoring, regulatory strategy, and competitive intelligence. Returns a cited, ranked trial shortlist with the criteria that matched. Eligibility is always confirmed with the trial itself; matches are informational. Decision support for the care team.",
       "domain": "clinical",
       "inputs": [
         {
@@ -1041,7 +1041,7 @@
       "id": "acmg-secondary-findings",
       "type": "stage",
       "name": "ACMG SF Secondary Findings",
-      "description": "Rules layer flagging annotated variants in the ACMG SF v3.2 panel (82 genes, 40 conditions) with reportable (likely-)pathogenic significance. Deterministic gene x significance join over the annotation output. Validate panel vs official publication before clinical use.",
+      "description": "Rules layer flagging annotated variants against a curated representation of the ACMG SF v3.2 gene list (82 genes / 40 conditions as curated here; ACMG has since published v3.3) with reportable (likely-)pathogenic significance. Deterministic gene x significance join over the annotation output. Validate panel vs official publication before clinical use.",
       "domain": "genomics",
       "inputs": [
         {
