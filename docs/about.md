@@ -36,9 +36,11 @@ families it is for.
 ## The first child
 
 The flagship program is [**Tuberous Sclerosis Complex**](programs/tsc.md) — a multi-system condition
-that touches brain, kidney, heart, skin, and lungs, and a clean gene-to-drug story. It is where the
-whole factory converges on one patient, in one governed afternoon: a real, approved therapy today,
-and an open bench for what comes next. Told plainly, without montage — because a quiet true sentence
+that touches brain, kidney, heart, skin, and lungs, and a clean gene-to-drug story. **It is there
+because clinicians asked for it.** They were shown three engines and asked whether anything here
+could help these children; the program is the answer. It is where the whole factory converges on one
+patient, in one governed afternoon: a real, approved therapy today, and an open bench for what comes
+next. Told plainly, without montage — because a quiet true sentence
 about a child is worth more than any spectacle, and honesty here is not just ethics, it is the point.
 
 *Explore the factory: [the engines and agents](factory/overview.md) · [run it yourself](run/index.md)

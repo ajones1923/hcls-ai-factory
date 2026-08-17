@@ -1,6 +1,6 @@
 ---
 title: Tuberous Sclerosis Complex
-description: The flagship — the entire HCLS AI Factory converging on one child in a single afternoon, on one $4,699 box, open-source. Decision support, not diagnosis; gene therapy is preclinical.
+description: The flagship, built because clinicians asked for it — the entire HCLS AI Factory converging on one child in a single afternoon, on one $4,699 box, open-source. Decision support, not diagnosis; gene therapy is preclinical.
 ---
 
 # Flagship: Tuberous Sclerosis Complex
@@ -9,11 +9,16 @@ A child is born with a single change in one gene that can quietly seed growths a
 systems — brain, heart, kidneys, skin, lungs. Naming it can take a family *years* of scattered
 specialist visits.
 
-This is the flagship: **the entire HCLS AI Factory — genomics, imaging, clinical reasoning, and drug
-discovery — converging on one child in a single afternoon, on one $4,699 computer, open for anyone to
-run.** TSC is the ideal first patient story: multi-system enough to light up nearly every engine and
-agent, with a clean, honest gene-to-drug mechanism. Decision support for a clinician — never a
-diagnosis on its own.
+**This program exists because clinicians asked for it.** Shown the first three engines — genomics,
+interpretation, and therapeutic discovery — clinicians who care for these children asked one
+question: *is there anything you could do for TSC?* Everything below is the answer to that question.
+The factory was built to be general. The flagship was requested.
+
+So this is the flagship: **the entire HCLS AI Factory — genomics, imaging, clinical reasoning, and
+drug discovery — converging on one child in a single afternoon, on one $4,699 computer, open for
+anyone to run.** TSC turned out to suit the factory unusually well — multi-system enough to exercise
+nearly every engine and agent, with a clean gene-to-drug mechanism — but that was what we found, not
+why we started. Decision support for a clinician — never a diagnosis on its own.
 
 <video class="cap-video" controls preload="metadata" playsinline poster="/assets/videos/posters/tsc-usecase.jpg" src="/assets/videos/tsc-usecase.mp4">
   Your browser can't play embedded video — <a href="/assets/videos/tsc-usecase.mp4">download the video</a>.
@@ -25,9 +30,10 @@ The flagship story in under a minute.
 ## What TSC is, in plain terms
 
 Tuberous Sclerosis Complex is a genetic condition — roughly **1 in 6,000 births** — in which benign
-tumors (**hamartomas**) grow across many organs. Because it touches so many systems and follows a
-clean genetic mechanism, it is the ideal first patient story for the factory: enough breadth to
-exercise nearly every capability, with a therapy that is real today.
+tumors (**hamartomas**) grow across many organs. One faulty gene, present from birth, expressed in
+five different organ systems over a lifetime. That is what makes it hard for families, and it is why
+answering it well needs genomics, imaging, neurology, cardiology, and pharmacology in the same
+afternoon rather than across four years of appointments.
 
 ## One condition, the whole factory
 
