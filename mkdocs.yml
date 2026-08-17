@@ -112,8 +112,6 @@ nav:
   - Demonstrations:
       - Portfolio (D1-D7): demos/index.md
       - Catalogue (E/A/P): demos/DEMO_CATALOG.md
-      - Demo PRD: demos/PRD.md
-      - Demo Build Guide: demos/BUILD_GUIDE.md
   - Subject Guides: subjects/index.md
   - Run It Yourself:
       - run/index.md
@@ -147,6 +145,8 @@ markdown_extensions:
 exclude_docs: |
   /*.md
   /build/
+  /demos/PRD.md
+  /demos/BUILD_GUIDE.md
   /infographic_prompts/
   /working_prompts/
   !/index.md

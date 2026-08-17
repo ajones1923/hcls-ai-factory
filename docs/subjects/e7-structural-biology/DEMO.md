@@ -25,7 +25,7 @@ A drug has to physically fit its target. Knowing the shape, atom by atom, is wha
 
 > **Decision support for a qualified clinician — never autonomous diagnosis or prescribing.** Every output on this page is intended to inform a clinician's judgement, not replace it.
 
-**ESMFold prediction and ProteinMPNN design need CUDA; this box runs a CPU-only PyTorch build. Structures shown are deposited PDB entries, not predictions made live.**
+**ESMFold prediction and ProteinMPNN design need CUDA, and these services are not currently served from the venv that has it, so structures shown are deposited PDB entries rather than predictions made live. The engine as a whole is registered `planned`: no process binds its aggregate port, and the model-level capabilities are the reachable surface.**
 
 The label matters. **LIVE** means it ran, now, on real input, in front of the room. **REPRESENTATIVE**
 means a pre-computed or curated result is standing in for a long or gated step — and you say so.

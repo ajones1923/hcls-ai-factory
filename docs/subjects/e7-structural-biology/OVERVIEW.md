@@ -19,7 +19,7 @@ A drug has to physically fit its target. Knowing the shape, atom by atom, is wha
 
 ## Honest limit
 
-ESMFold prediction and ProteinMPNN design need CUDA; this box runs a CPU-only PyTorch build. Structures shown are deposited PDB entries, not predictions made live.
+ESMFold prediction and ProteinMPNN design need CUDA, and these services are not currently served from the venv that has it, so structures shown are deposited PDB entries rather than predictions made live. The engine as a whole is registered `planned`: no process binds its aggregate port, and the model-level capabilities are the reachable surface.
 
 ## Endpoints
 

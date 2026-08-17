@@ -76,7 +76,7 @@ Two traps the shared harness handles, which a hand-rolled `pytest` invocation wi
 
 ## Operational notes
 
-ESMFold prediction and ProteinMPNN design need CUDA; this box runs a CPU-only PyTorch build. Structures shown are deposited PDB entries, not predictions made live.
+ESMFold prediction and ProteinMPNN design need CUDA, and these services are not currently served from the venv that has it, so structures shown are deposited PDB entries rather than predictions made live. The engine as a whole is registered `planned`: no process binds its aggregate port, and the model-level capabilities are the reachable surface.
 
 Before changing a port, read [`../../build/PORT_MAP.md`](https://github.com/ajones1923/hcls-ai-factory/blob/main/docs/build/PORT_MAP.md). The convention is
 enforced by `scripts/validate_registry.py`, which also cross-checks `health-monitor.sh` — a port
