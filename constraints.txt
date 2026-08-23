@@ -26,7 +26,7 @@ loguru>=0.7
 # --- web / serving ---
 fastapi>=0.111,<1
 uvicorn>=0.30
-streamlit>=1.33,<2
+streamlit>=1.58.0,<2
 prometheus-client>=0.17
 
 # --- vector db / LLM / embeddings ---
