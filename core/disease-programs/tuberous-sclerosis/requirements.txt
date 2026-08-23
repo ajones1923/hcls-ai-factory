@@ -6,7 +6,7 @@ pyyaml>=6.0
 numpy>=1.26
 fastapi>=0.109
 uvicorn[standard]>=0.27
-streamlit>=1.30
+streamlit>=1.58.0
 anthropic>=0.40           # tiered Claude models (Haiku/Sonnet/Opus); optional at runtime
 pytest>=8.0
 
