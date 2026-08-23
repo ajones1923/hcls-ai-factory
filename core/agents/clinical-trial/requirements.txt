@@ -12,7 +12,7 @@ pydantic==2.7.4
 loguru==0.7.2
 
 # -- Vector Database --
-pymilvus==2.4.1
+pymilvus==3.0.0
 
 # -- Embeddings --
 sentence-transformers==2.7.0
