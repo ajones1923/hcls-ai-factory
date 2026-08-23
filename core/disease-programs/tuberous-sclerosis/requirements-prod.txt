@@ -5,5 +5,5 @@ minio>=7.2
 langgraph>=0.2
 statsmodels>=0.14
 psycopg2-binary>=2.9
-pymilvus>=2.4
+pymilvus>=3.0.0
 sentence-transformers>=2.2
