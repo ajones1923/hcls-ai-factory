@@ -1,0 +1,9 @@
+{% extends "main.html" %}
+
+{#- Video playlists page (unlisted — reachable by direct link, not in the nav).
+    Page-scoped CSS is linked here so it only loads on this page
+    (same pattern as home.html). Fonts come from the site's self-hosted faces. -#}
+{% block extrahead %}
+  {{ super() }}
+  <link rel="stylesheet" href="{{ 'stylesheets/video-playlists.css' | url }}">
+{% endblock %}

@@ -153,6 +153,7 @@ exclude_docs: |
   !/roadmap.md
   !/404.md
   !/about.md
+  !/video-playlists.md
 
 # Fail the build on broken internal links / missing nav pages (Pillar 16).
 validation:
