@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HCLS AI Factory — Video Playlists</title>
+<meta name="description" content="Ten videos, 78 minutes. The HCLS AI Factory architecture and both workflows end to end — patient DNA to ranked molecule candidates, and imaging and genomics on one patient. Plus an optional biology refresher. Apache-2.0.">
+<link rel="canonical" href="https://hcls-ai-factory.org/video-playlists/">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="HCLS AI Factory">
+<meta property="og:title" content="HCLS AI Factory — Video Playlists">
+<meta property="og:description" content="Ten videos, 78 minutes. The HCLS AI Factory architecture and both workflows end to end — patient DNA to ranked molecule candidates, and imaging and genomics on one patient. Plus an optional biology refresher. Apache-2.0.">
+<meta property="og:url" content="https://hcls-ai-factory.org/video-playlists/">
+<meta property="og:image" content="https://hcls-ai-factory.org/assets/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="HCLS AI Factory — Video Playlists">
+<meta name="twitter:description" content="Ten videos, 78 minutes. The HCLS AI Factory architecture and both workflows end to end — patient DNA to ranked molecule candidates, and imaging and genomics on one patient. Plus an optional biology refresher. Apache-2.0.">
+<meta name="twitter:image" content="https://hcls-ai-factory.org/assets/og-image.png">
+<style>
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:14px}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<style>
+/* Self-hosted variable faces — no external font CDN (CON-2). Latin subset. */
+@font-face{font-family:Archivo;src:url("/assets/fonts/archivo-var.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:swap;}
+@font-face{font-family:Inter;src:url("/assets/fonts/inter-var.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:swap;}
+@font-face{font-family:"JetBrains Mono";src:url("/assets/fonts/jetbrains-mono-var.woff2") format("woff2");font-weight:100 800;font-style:normal;font-display:swap;}
+</style>
+<style>
+:root{
+  --ground:#F7F8F6;
+  --surface:#FFFFFF;
+  --surface-2:#EFF1ED;
+  --ink:#1B2333;
+  --ink-2:#4A5468;
+  --ink-3:#7B8595;
+  --rule:#DDE1DA;
+  --rule-strong:#C3C9BE;
+  --op:#5E9400;
+  --op-soft:#EDF4E0;
+  --bio:#0682A0;
+  --bio-soft:#E3F1F5;
+  --focus:#00B4D8;
+  --shadow:0 1px 2px rgba(27,35,51,.06);
+}
+:root:not([data-theme="light"]){}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0A0A0F;
+    --surface:#151A26;
+    --surface-2:#1B2333;
+    --ink:#E9EDF0;
+    --ink-2:#A7B0BE;
+    --ink-3:#798394;
+    --rule:#262E3E;
+    --rule-strong:#38424F;
+    --op:#8DD100;
+    --op-soft:#1A2413;
+    --bio:#3FC9E8;
+    --bio-soft:#0E2630;
+    --focus:#1FD9FE;
+    --shadow:0 1px 2px rgba(0,0,0,.4);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0A0A0F;
+  --surface:#151A26;
+  --surface-2:#1B2333;
+  --ink:#E9EDF0;
+  --ink-2:#A7B0BE;
+  --ink-3:#798394;
+  --rule:#262E3E;
+  --rule-strong:#38424F;
+  --op:#8DD100;
+  --op-soft:#1A2413;
+  --bio:#3FC9E8;
+  --bio-soft:#0E2630;
+  --focus:#1FD9FE;
+  --shadow:0 1px 2px rgba(0,0,0,.4);
+}
+
+*{box-sizing:border-box}
+body{
+  background:var(--ground);
+  color:var(--ink);
+  font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-size:16px;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:920px;margin:0 auto;padding:0 24px}
+a{color:inherit}
+a:focus-visible,.row:focus-visible{outline:2px solid var(--focus);outline-offset:3px;border-radius:2px}
+
+/* ---------- masthead ---------- */
+.masthead{padding:56px 0 0}
+.eyebrow{
+  font-family:"JetBrains Mono",ui-monospace,monospace;
+  font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink-3);display:flex;gap:10px;align-items:center;flex-wrap:wrap;
+}
+.eyebrow .tick{color:var(--op)}
+h1{
+  font-family:Archivo,Inter,sans-serif;font-weight:700;
+  font-size:clamp(30px,4.6vw,46px);line-height:1.08;letter-spacing:-.022em;
+  text-wrap:balance;margin:18px 0 0;max-width:24ch;
+}
+h1 em{font-style:normal;color:var(--op)}
+.standfirst{
+  margin:20px 0 0;max-width:64ch;font-size:17px;color:var(--ink-2);
+}
+.standfirst strong{color:var(--ink);font-weight:600}
+
+.facts{
+  margin:32px 0 0;display:flex;flex-wrap:wrap;gap:0;
+  border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);
+}
+.fact{padding:14px 26px 14px 0;margin-right:26px;border-right:1px solid var(--rule);}
+.fact:last-child{border-right:0;margin-right:0;padding-right:0}
+.fact dt{
+  font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--ink-3);margin:0 0 3px;
+}
+.fact dd{
+  margin:0;font-family:Archivo,sans-serif;font-weight:600;font-size:19px;
+  font-variant-numeric:tabular-nums;letter-spacing:-.01em;
+}
+
+/* ---------- routing note ---------- */
+.route{
+  margin:36px 0 0;padding:18px 20px;background:var(--surface);
+  border:1px solid var(--rule);border-left:3px solid var(--op);
+  box-shadow:var(--shadow);
+}
+.route p{margin:0;font-size:15px;color:var(--ink-2);max-width:66ch}
+.route p+p{margin-top:9px}
+.route b{color:var(--ink);font-weight:600}
+
+/* ---------- series ---------- */
+.series{margin:64px 0 0}
+.series-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;padding-bottom:12px;border-bottom:2px solid var(--ink)}
+.series-id{
+  font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink-3);margin:0 0 6px;
+}
+.series-head h2{
+  font-family:Archivo,sans-serif;font-weight:700;font-size:clamp(23px,3vw,30px);
+  letter-spacing:-.018em;margin:0;line-height:1.1;
+}
+.series-meta{
+  font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--ink-2);
+  font-variant-numeric:tabular-nums;white-space:nowrap;
+}
+.playall{
+  display:inline-flex;align-items:center;gap:7px;margin-top:16px;
+  font-size:14px;font-weight:600;text-decoration:none;
+  padding:8px 15px;border-radius:2px;
+}
+.op .playall{background:var(--op-soft);color:var(--op);border:1px solid var(--op)}
+.bio .playall{background:var(--bio-soft);color:var(--bio);border:1px solid var(--bio)}
+.playall svg{flex:none}
+.playall:hover{filter:brightness(.96)}
+
+.optional{
+  margin:14px 0 0;font-size:14.5px;color:var(--ink-2);max-width:66ch;
+}
+.optional b{color:var(--ink);font-weight:600}
+
+/* ---------- episode rows ---------- */
+.eps{list-style:none;margin:22px 0 0;padding:0;display:flex;flex-direction:column;gap:2px}
+.row{
+  display:grid;grid-template-columns:168px 1fr auto;gap:20px;align-items:start;
+  padding:16px;text-decoration:none;
+  background:var(--surface);border:1px solid var(--rule);
+  transition:border-color .13s ease, transform .13s ease;
+}
+@media (prefers-reduced-motion:reduce){.row{transition:none}}
+.row:hover{border-color:var(--rule-strong);transform:translateX(2px)}
+.op .row:hover{border-left-color:var(--op)}
+.bio .row:hover{border-left-color:var(--bio)}
+.thumb{position:relative;aspect-ratio:16/9;overflow:hidden;background:var(--surface-2);border-radius:1px}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.thumb .num{
+  position:absolute;top:0;left:0;
+  font-family:"JetBrains Mono",monospace;font-size:11px;font-weight:500;
+  padding:3px 7px;background:rgba(10,10,15,.82);color:#fff;
+  font-variant-numeric:tabular-nums;letter-spacing:.06em;
+}
+.ep-body h3{
+  font-family:Archivo,sans-serif;font-weight:600;font-size:17.5px;line-height:1.24;
+  letter-spacing:-.012em;margin:1px 0 0;text-wrap:balance;
+}
+.ep-body p{margin:7px 0 0;font-size:14.5px;color:var(--ink-2);max-width:56ch}
+.dur{
+  font-family:"JetBrains Mono",monospace;font-size:13.5px;color:var(--ink-3);
+  font-variant-numeric:tabular-nums;padding-top:3px;white-space:nowrap;
+}
+.pick{
+  display:inline-block;margin:9px 0 0;
+  font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.1em;
+  text-transform:uppercase;padding:3px 7px;border-radius:2px;
+}
+.op .pick{background:var(--op-soft);color:var(--op)}
+.bio .pick{background:var(--bio-soft);color:var(--bio)}
+
+/* ---------- limits ---------- */
+.limits{margin:72px 0 0;padding:30px 0 0;border-top:1px solid var(--rule)}
+.limits h2{
+  font-family:Archivo,sans-serif;font-weight:700;font-size:21px;letter-spacing:-.015em;margin:0;
+}
+.limits-grid{margin:22px 0 0;display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--rule)}
+.limit{background:var(--surface);padding:18px}
+.limit h3{
+  font-family:"JetBrains Mono",monospace;font-size:10.5px;font-weight:500;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--ink-3);margin:0 0 8px;
+}
+.limit p{margin:0;font-size:14.5px;color:var(--ink-2)}
+.limit p b{color:var(--ink);font-weight:600}
+
+footer{margin:56px 0 0;padding:24px 0 64px;border-top:1px solid var(--rule);
+  display:flex;gap:14px 32px;flex-wrap:wrap;align-items:baseline;justify-content:space-between}
+.links{display:flex;gap:26px;flex-wrap:wrap;font-size:14.5px}
+.links a{text-decoration:none;border-bottom:1px solid var(--rule-strong);padding-bottom:1px}
+.links a:hover{border-bottom-color:var(--op);color:var(--op)}
+.lic{font-family:"JetBrains Mono",monospace;font-size:11.5px;color:var(--ink-3);letter-spacing:.04em}
+
+@media (max-width:660px){
+  .masthead{padding-top:36px}
+  .row{grid-template-columns:1fr;gap:13px}
+  .thumb{max-width:280px}
+  .dur{grid-row:1;justify-self:start;padding-top:0}
+  .fact{padding-right:18px;margin-right:18px}
+  .limits-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="masthead">
+    <p class="eyebrow"><span class="tick">&#9679;</span> An open project &nbsp;·&nbsp; Apache-2.0 &nbsp;·&nbsp; Ten videos</p>
+    <h1>A patient's DNA in the morning. A hundred ranked molecule candidates by <em>that afternoon</em>.</h1>
+    <p class="standfirst">The HCLS AI Factory is an open-source precision medicine platform — <strong>eight compute engines, eight intelligence agents, one platform</strong> — running on a single accelerated box that sits on a desk. These videos walk the architecture in detail, then two complete workflows end to end. Every number on screen comes from code you can clone and read.</p>
+
+    <dl class="facts">
+      <div class="fact"><dt>Videos</dt><dd>10</dd></div>
+      <div class="fact"><dt>Total runtime</dt><dd>78 min</dd></div>
+      <div class="fact"><dt>Playlists</dt><dd>2</dd></div>
+      <div class="fact"><dt>Licence</dt><dd>Apache-2.0</dd></div>
+    </dl>
+
+    <div class="route">
+      <p><b>Start with the Open Project series.</b> It is the main body of work — the architecture, and both workflows from raw reads to a ranked candidate list.</p>
+      <p>The Biology Refresh playlist below it is background only, for anyone coming to this without a life sciences day job. If you work in the field, skip it entirely; nothing in it is a prerequisite.</p>
+    </div>
+  </header>
+
+  <section class="series op">
+    <div class="series-head">
+      <div>
+        <p class="series-id">Main series</p>
+        <h2>Open Project</h2>
+      </div>
+      <p class="series-meta">6 videos &nbsp;·&nbsp; 58 min</p>
+    </div>
+    <a class="playall" href="https://www.youtube.com/playlist?list=PLfm8WIWDeOQE" target="_blank" rel="noopener"><svg width="11" height="12" viewBox="0 0 11 12" aria-hidden="true"><path d="M0 0L11 6L0 12Z" fill="currentColor"/></svg> Play all on YouTube</a>
+    <ol class="eps">
+      <li>
+        <a class="row" href="https://youtu.be/hjtDIax2Mg0" target="_blank" rel="noopener">
+          <span class="thumb"><img src="/assets/videos/thumbs/hjtDIax2Mg0.jpg" width="560" height="315" alt="" loading="lazy"><span class="num">01</span></span>
+          <span class="ep-body">
+            <h3>DNA to New Medicines</h3>
+            <p>One genome followed the whole way — sequencing, alignment, variant calling, then generative molecular design against the target it lands on.</p>
+            <span class="pick">Start here</span>
+          </span>
+          <span class="dur">12:00</span>
+        </a>
+      </li>
+      <li>
+        <a class="row" href="https://youtu.be/iypq9BPZZAs" target="_blank" rel="noopener">
+          <span class="thumb"><img src="/assets/videos/thumbs/iypq9BPZZAs.jpg" width="560" height="315" alt="" loading="lazy"><span class="num">02</span></span>
+          <span class="ep-body">
+            <h3>Designing a Precision Molecule</h3>
+            <p>How a molecule is actually designed, the six things it has to get right at once, and why most promising compounds never make it.</p>
+            
+          </span>
+          <span class="dur">10:14</span>
+        </a>
+      </li>
+      <li>
+        <a class="row" href="https://youtu.be/pal9v1I1Czc" target="_blank" rel="noopener">
+          <span class="thumb"><img src="/assets/videos/thumbs/pal9v1I1Czc.jpg" width="560" height="315" alt="" loading="lazy"><span class="num">03</span></span>
+          <span class="ep-body">
+            <h3>From Patient DNA to New Medicines Infographic Walkthrough</h3>
+            <p>The whole pipeline as a single infographic, walked end to end with the timings and the filtering that happens at each stage.</p>
+            
+          </span>
+          <span class="dur">10:47</span>
+        </a>
+      </li>
+      <li>
+        <a class="row" href="https://youtu.be/ycRTKMl076Q" target="_blank" rel="noopener">
+          <span class="thumb"><img src="/assets/videos/thumbs/ycRTKMl076Q.jpg" width="560" height="315" alt="" loading="lazy"><span class="num">04</span></span>
+          <span class="ep-body">
+            <h3>GUI Demo Walkthrough</h3>
+            <p>No slides. The portal itself, with a genomics run kicked off live and the grounded chat layer asked a real question.</p>
+            
+          </span>
+          <span class="dur">4:43</span>
+        </a>
+      </li>
+      <li>
+        <a class="row" href="https://youtu.be/EjqHYEhBgNc" target="_blank" rel="noopener">
+          <span class="thumb"><img src="/assets/videos/thumbs/EjqHYEhBgNc.jpg" width="560" height="315" alt="" loading="lazy"><span class="num">05</span></span>
+          <span class="ep-body">
+            <h3>8 Engines and 8 Intelligence Agents Infographic Walkthrough</h3>
+            <p>Every engine and every agent, what each one actually runs, and why the count is eight plus eight rather than sixteen separate products.</p>
+            
+          </span>
+          <span class="dur">9:06</span>
+        </a>
+      </li>
+      <li>
+        <a class="row" href="https://youtu.be/wcEeCdXCCKI" target="_blank" rel="noopener">
+          <span class="thumb"><img src="/assets/videos/thumbs/wcEeCdXCCKI.jpg" width="560" height="315" alt="" loading="lazy"><span class="num">06</span></span>
+          <span class="ep-body">
+            <h3>Cardiac Imaging to Genomics GUI Demo Walkthrough</h3>
+            <p>Two modalities reasoning across each other on one patient: a coronary blockage, then which statin and at what dose from his own variants. He came in for chest pain and left having put his children into screening.</p>
+            <span class="pick">If you watch one</span>
+          </span>
+          <span class="dur">11:11</span>
+        </a>
+      </li>
+    </ol>
+  </section>
+
+  <section class="series bio">
+    <div class="series-head">
+      <div>
+        <p class="series-id">Background &mdash; optional</p>
+        <h2>Biology Refresh</h2>
+      </div>
+      <p class="series-meta">4 videos &nbsp;·&nbsp; 20 min</p>
+    </div>
+    <a class="playall" href="https://www.youtube.com/playlist?list=PLNUwWzTqQM-c" target="_blank" rel="noopener"><svg width="11" height="12" viewBox="0 0 11 12" aria-hidden="true"><path d="M0 0L11 6L0 12Z" fill="currentColor"/></svg> Play all on YouTube</a>
+    <p class="optional">The biology you need before the AI makes sense, in about twenty minutes. <b>Skip this if the ground is already familiar</b> — it exists so that nobody has to pretend to follow the main series.</p>
+    <ol class="eps">
+      <li>
+        <a class="row" href="https://youtu.be/8fAVJohorJc" target="_blank" rel="noopener">
+          <span class="thumb"><img src="/assets/videos/thumbs/8fAVJohorJc.jpg" width="560" height="315" alt="" loading="lazy"><span class="num">01</span></span>
+          <span class="ep-body">
+            <h3>Biology Overview</h3>
+            <p>Genes, DNA, chromosomes and cells — ending at proteins, and why their shape decides everything about designing a medicine.</p>
+            
+          </span>
+          <span class="dur">6:01</span>
+        </a>
+      </li>
+      <li>
+        <a class="row" href="https://youtu.be/G3qV_WsbE2E" target="_blank" rel="noopener">
+          <span class="thumb"><img src="/assets/videos/thumbs/G3qV_WsbE2E.jpg" width="560" height="315" alt="" loading="lazy"><span class="num">02</span></span>
+          <span class="ep-body">
+            <h3>Disease Overview</h3>
+            <p>How cancer develops and spreads, then Parkinson&#x27;s and the loss of dopamine-producing neurons, and what the two have in common.</p>
+            
+          </span>
+          <span class="dur">5:17</span>
+        </a>
+      </li>
+      <li>
+        <a class="row" href="https://youtu.be/4WvOKKsasxg" target="_blank" rel="noopener">
+          <span class="thumb"><img src="/assets/videos/thumbs/4WvOKKsasxg.jpg" width="560" height="315" alt="" loading="lazy"><span class="num">03</span></span>
+          <span class="ep-body">
+            <h3>Unlocking the Genome</h3>
+            <p>The Human Genome Project, how sequencing works now, and what reading a whole genome actually reveals.</p>
+            
+          </span>
+          <span class="dur">2:41</span>
+        </a>
+      </li>
+      <li>
+        <a class="row" href="https://youtu.be/_l8IhxxtoMQ" target="_blank" rel="noopener">
+          <span class="thumb"><img src="/assets/videos/thumbs/_l8IhxxtoMQ.jpg" width="560" height="315" alt="" loading="lazy"><span class="num">04</span></span>
+          <span class="ep-body">
+            <h3>Disease Treatment Options</h3>
+            <p>From blunt instruments to editing the code — radiation and chemotherapy through mRNA, CAR T-cell therapy and CRISPR-Cas9.</p>
+            
+          </span>
+          <span class="dur">6:04</span>
+        </a>
+      </li>
+    </ol>
+  </section>
+
+  <section class="limits">
+    <h2>What this is, and what it isn't</h2>
+    <div class="limits-grid">
+      <div class="limit">
+        <h3>The molecules</h3>
+        <p>Designs shown are <b>computational candidates</b>, generated and ranked against a target pocket. They are not finished medicines and no wet-lab validation is claimed.</p>
+      </div>
+      <div class="limit">
+        <h3>The clinical work</h3>
+        <p>Everything clinical is <b>decision support for a qualified clinician</b> — never autonomous diagnosis, never prescribing.</p>
+      </div>
+      <div class="limit">
+        <h3>Labelled honestly</h3>
+        <p>The platform marks what it did not do: cached results say cached, models that did not run say <b>not run</b>. That constraint is in the architecture, not bolted on at the end.</p>
+      </div>
+      <div class="limit">
+        <h3>Build state</h3>
+        <p>The first engines are online and the rest are being added; the videos call out planned work by name. The <a href="/honesty/maturity-matrix/">maturity matrix</a> is the current record of what is live, verified, gated or planned.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="links">
+      <a href="https://github.com/ajones1923/hcls-ai-factory" target="_blank" rel="noopener">Source on GitHub</a>
+      <a href="https://hcls-ai-factory.org" target="_blank" rel="noopener">hcls-ai-factory.org</a>
+    </div>
+    <p class="lic">Built on weekends. Feedback welcome — especially where it doesn't hold up.</p>
+  </footer>
+
+</div>
+</body>
+</html>
