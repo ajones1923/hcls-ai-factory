@@ -216,6 +216,7 @@ h1 em{font-style:normal;color:var(--op)}
 }
 .limits-grid{margin:22px 0 0;display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--rule)}
 .limit{background:var(--surface);padding:18px}
+.limit.wide{grid-column:1/-1}
 .limit h3{
   font-family:"JetBrains Mono",monospace;font-size:10.5px;font-weight:500;letter-spacing:.11em;
   text-transform:uppercase;color:var(--ink-3);margin:0 0 8px;
@@ -414,11 +415,15 @@ footer{margin:56px 0 0;padding:24px 0 64px;border-top:1px solid var(--rule);
       </div>
       <div class="limit">
         <h3>Labelled honestly</h3>
-        <p>The platform marks what it did not do: cached results say cached, models that did not run say <b>not run</b>. That constraint is in the architecture, not bolted on at the end.</p>
+        <p>The platform marks what it did not do: cached results say cached, models that did not run say <b>not run</b>, and a figure standing in for a measurement the data cannot support says <b>representative</b>. That constraint is in the architecture, not bolted on at the end.</p>
       </div>
       <div class="limit">
+        <h3>One box, mostly</h3>
+        <p>The factory runs on a single desktop-sized machine, but heavier and ARM-incompatible models <b>burst to remote GPUs</b> over a private mesh. The site says so wherever it applies.</p>
+      </div>
+      <div class="limit wide">
         <h3>Build state</h3>
-        <p>The first engines are online and the rest are being added; the videos call out planned work by name. The <a href="/honesty/maturity-matrix/">maturity matrix</a> is the current record of what is live, verified, gated or planned.</p>
+        <p>Fifteen of the sixteen engines and agents are <b>live</b>; large-molecule / structural biology is the one that isn't. Eight individual models and stages inside otherwise-live engines are still planned, and the videos call them out by name. The <a href="/honesty/maturity-matrix/">maturity matrix</a> is the current record of what is live, verified, gated or planned.</p>
       </div>
     </div>
   </section>
