@@ -202,6 +202,37 @@ check_gpu() {
     return 1
 }
 
+# GB10 is a UNIFIED-memory part: the GPU allocates from the same pool as the host, and
+# nvidia-smi reports [N/A] for memory here, so MemFree is the only usable signal. It is
+# MemFree and deliberately not MemAvailable -- the page cache counts as "available" to the
+# host but is NOT reclaimable for a CUDA allocation, which is the whole reason the workbook
+# prescribes dropping caches before a GPU run (PRD R5).
+#
+# Without this, `check_gpu` reported HEALTHY whenever nvidia-smi merely ran -- liveness, not
+# usable capacity -- while only 5 GiB of 119 GiB was actually allocatable and anything the
+# size of ESMFold or Parabricks would fail.
+GPU_FREE_WARN_GIB=${GPU_FREE_WARN_GIB:-16}
+
+gpu_free_gib() {
+    awk '/^MemFree:/ {printf "%.1f", $2/1048576}' /proc/meminfo 2>/dev/null
+}
+
+gpu_line() {
+    if ! check_gpu; then
+        echo "  GPU                  :--     NOT RESPONDING"
+        return
+    fi
+    local free
+    free=$(gpu_free_gib)
+    if [ -z "$free" ]; then
+        echo "  GPU                  :--     HEALTHY"
+    elif awk "BEGIN{exit !($free < $GPU_FREE_WARN_GIB)}"; then
+        echo "  GPU                  :--     HEALTHY  (only ${free} GiB allocatable — page cache holds the rest; drop caches before a large model)"
+    else
+        echo "  GPU                  :--     HEALTHY  (${free} GiB allocatable)"
+    fi
+}
+
 # ============================================================================
 # SERVICE MANAGEMENT
 # ============================================================================
@@ -410,15 +441,12 @@ cmd_status() {
         echo ""
         echo "  },"
         echo "  \"gpu\": \"${gpu_status}\","
+        echo "  \"gpu_free_gib\": $(gpu_free_gib || echo null),"
         echo "  \"summary\": {\"healthy\": ${healthy}, \"total\": ${total}, \"all_healthy\": $([ $healthy -eq $total ] && echo true || echo false)}"
         echo "}"
     else
         echo "  ────────────────────────────────────────────────────────"
-        if check_gpu; then
-            echo "  GPU                  :--     HEALTHY"
-        else
-            echo "  GPU                  :--     NOT RESPONDING"
-        fi
+        gpu_line
         echo "  ────────────────────────────────────────────────────────"
         echo "  Total: ${healthy}/${total} services healthy"
         if [ $healthy -eq $total ]; then
