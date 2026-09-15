@@ -28,6 +28,50 @@ MAX_LOG_SIZE=10485760  # 10MB
 mkdir -p "${LOG_DIR}"
 
 # ============================================================================
+# SINGLE-INSTANCE GUARD  +  SELF-TIMEOUT
+# ============================================================================
+# A run that has to give up on N dead services costs N x 60s (30 attempts x 2s).
+# On a partly-built box that exceeds the 5-minute cron cadence, so invocations
+# pile up: 11 concurrent monitors -- three of them 51 days old -- were observed
+# on 2026-09-15, racing each other to start the same services and appending
+# 536 MB to logs/. flock makes a late run skip instead of stack.
+#
+# The self-timeout is the other half: without it a single hung run would hold
+# the lock forever and silently end all supervision.
+#
+# Read-only commands (status / log / help) are deliberately NOT guarded.
+LOCK_FILE="${LOG_DIR}/health-monitor.lock"
+MAX_RUN_SECONDS=${MAX_RUN_SECONDS:-600}
+
+acquire_lock() {
+    exec 9>"${LOCK_FILE}" || return 0
+    if ! flock -n 9; then
+        echo "Another health-monitor run still holds ${LOCK_FILE} — skipping this tick."
+        log "INFO" "Skipped tick: previous run still in progress"
+        exit 0
+    fi
+    # Watchdog: SIGTERM this run if it outlives MAX_RUN_SECONDS, so the lock is
+    # always released. `exec 9>&-` is load-bearing -- without it the watchdog
+    # inherits the lock fd and keeps the lock held after the parent is killed,
+    # silently blocking every later tick for the full MAX_RUN_SECONDS.
+    ( exec 9>&-; sleep "${MAX_RUN_SECONDS}"; kill -TERM $$ 2>/dev/null ) &
+    WATCHDOG_PID=$!
+    trap 'kill "${WATCHDOG_PID}" 2>/dev/null' EXIT
+}
+
+# Cap the cron append-log, which nothing else rotates.
+cap_cron_log() {
+    local f="${LOG_DIR}/cron-health.log"
+    [ -f "$f" ] || return 0
+    local size
+    size=$(stat --format="%s" "$f" 2>/dev/null || echo 0)
+    if [ "$size" -gt "$MAX_LOG_SIZE" ]; then
+        tail -c "$((MAX_LOG_SIZE / 2))" "$f" > "${f}.tmp" && mv "${f}.tmp" "$f"
+        log "INFO" "cron-health.log truncated at ${size} bytes"
+    fi
+}
+
+# ============================================================================
 # SERVICE REGISTRY
 # ============================================================================
 # Format: ID|PORT|NAME|HEALTH_PATH|TYPE|START_DIR|START_CMD
@@ -229,13 +273,44 @@ start_service() {
     local log_name
     log_name=$(get_id "$svc")
 
-    if [ "$svc_type" = "docker" ]; then
-        cd "$svc_dir" 2>/dev/null && eval "$svc_cmd" >> "${LOG_DIR}/${log_name}.log" 2>&1
-    else
-        cd "$svc_dir" 2>/dev/null && nohup bash -c "$svc_cmd" >> "${LOG_DIR}/${log_name}.log" 2>&1 &
+    # Preflight 1 — the working directory must exist. Previously `cd ... 2>/dev/null &&`
+    # swallowed this, started nothing, then waited the full 60s to report a generic failure.
+    if [ ! -d "$svc_dir" ]; then
+        echo "  SKIP: ${name} — directory not found: ${svc_dir}"
+        log "WARN" "Cannot start ${name}: missing directory ${svc_dir}"
+        return 1
     fi
 
-    # Wait for service to come up
+    # Preflight 2 — most services start via a per-service ./venv. 13 of 21 of those venvs
+    # do not exist on this box, and waiting 60s to discover that (per service, every 5
+    # minutes) is what produced the pileup. Detect it in O(1) and say so plainly.
+    # Match an absolute venv path first (some commands `source` another service's venv);
+    # only fall back to the relative form, which is resolved against $svc_dir.
+    local venv_path
+    venv_path=$(printf '%s\n' "$svc_cmd" | grep -oE '(^|[[:space:]])/[^[:space:]]*/venv/bin/[a-zA-Z0-9_.-]+' | head -1 | tr -d '[:space:]')
+    if [ -z "$venv_path" ]; then
+        local venv_rel
+        venv_rel=$(printf '%s\n' "$svc_cmd" | grep -oE '(^|[[:space:]])\./venv/bin/[a-zA-Z0-9_.-]+' | head -1 | tr -d '[:space:]')
+        [ -n "$venv_rel" ] && venv_path="${svc_dir}/${venv_rel#./}"
+    fi
+    # -e, not -x: `activate` is sourced and is not executable. The question this
+    # preflight answers is "has the venv been built", for which existence is the test.
+    if [ -n "$venv_path" ] && [ ! -e "$venv_path" ]; then
+        echo "  SKIP: ${name} — no interpreter at ${venv_path} (venv not built)"
+        log "WARN" "Cannot start ${name}: ${venv_path} missing — build the service venv first"
+        return 1
+    fi
+
+    local child_pid=""
+    if [ "$svc_type" = "docker" ]; then
+        ( cd "$svc_dir" && eval "$svc_cmd" ) >> "${LOG_DIR}/${log_name}.log" 2>&1
+    else
+        ( cd "$svc_dir" && nohup bash -c "$svc_cmd" >> "${LOG_DIR}/${log_name}.log" 2>&1 ) &
+        child_pid=$!
+    fi
+
+    # Wait for the service to come up -- but stop early if the process we launched
+    # has already died, instead of burning the full 60s on a corpse.
     local attempts=0
     local max_attempts=30
     while [ $attempts -lt $max_attempts ]; do
@@ -244,6 +319,11 @@ start_service() {
             echo "  ${name} started successfully (port ${port})"
             log "INFO" "Started ${name} on port ${port}"
             return 0
+        fi
+        if [ -n "$child_pid" ] && ! kill -0 "$child_pid" 2>/dev/null; then
+            echo "  FAILED: ${name} — process exited immediately; see ${LOG_DIR}/${log_name}.log"
+            log "WARN" "Start of ${name} exited immediately (port ${port})"
+            return 1
         fi
         attempts=$((attempts + 1))
     done
@@ -552,12 +632,15 @@ case "${1:-status}" in
         cmd_status "$2"
         ;;
     fix)
+        acquire_lock; cap_cron_log
         cmd_fix
         ;;
     watch)
+        acquire_lock
         cmd_watch
         ;;
     restart)
+        acquire_lock
         cmd_restart "$2"
         ;;
     stop)
