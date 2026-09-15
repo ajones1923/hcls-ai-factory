@@ -1,22 +1,19 @@
-
-E3 · From one protein to a hundred candidates
-
-    demo          E3 · therapeutic-discovery
-    title         From one protein to a hundred candidates
-    label         REPRESENTATIVE
-    started       2026-09-15T22:56:08+00:00
-    prerequisite  gated (informational): MolMIM (G3), DiffDock (G4)
-    target        VCP (p97) from E2's register — AAA+ ATPase inhibition to modulate protein homeostasis
-                  reference compound CB-5083; FTD (frontotemporal dementia)
-    generation    brics backend, 3 seeds -> 12 candidates
-    chemistry QC  12 parsed by RDKit · 6 pass Lipinski Ro5 (0 violations)
-    ranking       by QED (drug-likeness)
-      QED 0.754  MW 252.1   logP 3.65   Ro5×0  Fc1cc(Br)ccc1-c1cccnc1
-      QED 0.649  MW 176.3   logP 1.89   Ro5×0  CN1CCC(c2cccnc2)CC1
-      QED 0.633  MW 177.3   logP 0.83   Ro5×0  CN1CCN(c2cccnc2)CC1
-      QED 0.632  MW 156.2   logP 2.14   Ro5×0  c1cncc(-c2cccnc2)c1
-    GATED — not run here: MolMIM generation (NIM), DiffDock pose prediction (NIM),
-                  chemprop ADMET. No binding affinity is claimed; these are drug-LIKENESS
-                  scores on generated chemistry, not activity against p97.
-    preclinical — a research bench, not a therapeutic claim
-    RESULT        PASS — ran on real input
+demo          E3 · therapeutic-discovery
+title         From one protein to a hundred candidates
+label         REPRESENTATIVE
+started       2026-09-15T23:00:57+00:00
+prerequisite  gated (informational): MolMIM (G3), DiffDock (G4)
+target        VCP (p97) from E2's register — AAA+ ATPase inhibition to modulate protein homeostasis
+              reference compound CB-5083; FTD (frontotemporal dementia)
+generation    brics backend, 3 seeds -> 12 candidates
+chemistry QC  12 parsed by RDKit · 7 pass Lipinski Ro5 (0 violations)
+ranking       by QED (drug-likeness)
+  QED 0.49   MW 430.5   logP 3.65   Ro5×0  COc1cc2ncnc(-c3ncc(F)c(-c4ccccc4)n3)c2cc1N1CCN
+  QED 0.49   MW 430.5   logP 3.65   Ro5×0  COc1cc2c(-c3ncc(F)c(-c4ccccc4)n3)ncnc2cc1N1CCN
+  QED 0.424  MW 498.6   logP 3.4    Ro5×0  CN1CCN(c2cc3ncnc(-c4ncc(F)c(-c5ccccc5)n4)c3cc2
+  QED 0.413  MW 497.6   logP 4.45   Ro5×0  CN1CCC(c2cc3ncnc(-c4ncc(F)c(-c5ccccc5)n4)c3cc2
+GATED — not run here: MolMIM generation (NIM), DiffDock pose prediction (NIM),
+              chemprop ADMET. No binding affinity is claimed; these are drug-LIKENESS
+              scores on generated chemistry, not activity against p97.
+preclinical — a research bench, not a therapeutic claim
+RESULT        PASS — ran on real input

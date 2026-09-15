@@ -1,13 +1,10 @@
-
-A3 · Two patients, same dose, different outcome
-
-    demo          A3 · pharmacogenomics
-    title         Two patients, same dose, different outcome
-    label         LIVE
-    started       2026-09-15T22:56:19+00:00
-    POST          http://localhost:8508/v1/pgx/dosing/warfarin
-    status        200
-    algorithm      IWPC
-    weekly dose    24.6 mg  (3.5 mg/day)
-    category       standard
-    RESULT        PASS — ran on real input
+demo          A3 · pharmacogenomics
+title         Two patients, same dose, different outcome
+label         LIVE
+started       2026-09-15T23:01:09+00:00
+POST          http://localhost:8508/v1/pgx/dosing/warfarin
+status        200
+algorithm      IWPC
+weekly dose    24.6 mg  (3.5 mg/day)
+category       standard
+RESULT        PASS — ran on real input
