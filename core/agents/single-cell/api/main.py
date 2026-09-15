@@ -94,20 +94,6 @@ from api.routes.events import router as events_router
 # =====================================================================
 # Module-level state (populated during lifespan startup)
 # =====================================================================
-            # _CollectionManager wraps the ORM `connections` helper and has no .search();
-            # the RAG engine calls milvus_client.search(...). Passing the manager made every
-            # collection search raise "'_CollectionManager' object has no attribute 'search'",
-            # which the engine caught and logged as a warning -- so retrieval silently
-            # returned zero hits from a service that looked healthy. Same fault in four
-            # services; see core/agents/clinical-trial for the first fix.
-
-from pymilvus import MilvusClient as _MilvusClient
-
-_search_client = _MilvusClient(
-
-    uri=f"http://{settings.MILVUS_HOST}:{settings.MILVUS_PORT}"
-
-)
 
 _engine = None          # SingleCellRAGEngine
 _manager = None         # Collection manager
@@ -317,6 +303,16 @@ async def lifespan(app: FastAPI):
     # -- RAG engine --
     try:
         from src.rag_engine import SingleCellRAGEngine
+        # _CollectionManager wraps the ORM `connections` helper and has no .search(); the RAG
+        # engine calls milvus_client.search(...), so it needs a real MilvusClient.
+        # This MUST stay inside the lifespan try: MilvusClient connects EAGERLY in __init__,
+        # so constructing it at module scope raised MilvusException at import time wherever
+        # Milvus is absent -- which took out 36 tests on a CI runner that has no Milvus while
+        # passing locally, because this box has one running.
+        from pymilvus import MilvusClient as _MilvusClient
+        _search_client = _MilvusClient(
+            uri=f"http://{settings.MILVUS_HOST}:{settings.MILVUS_PORT}"
+        )
         _engine = SingleCellRAGEngine(
             embedding_model=embedder,
             llm_client=llm_client,
