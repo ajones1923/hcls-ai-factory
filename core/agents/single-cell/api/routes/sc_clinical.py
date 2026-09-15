@@ -30,6 +30,32 @@ from src.knowledge import (
 router = APIRouter(prefix="/v1/sc", tags=["single-cell"])
 
 
+
+
+def _as_row(r) -> dict:
+    """Normalise a search hit to a plain dict.
+
+    The RAG engines return dataclass results (NeuroSearchResult / RareDiseaseSearchResult /
+    ...), but these routes were written against dicts. Calling .get() on a dataclass raises
+    AttributeError, which the surrounding try/except swallowed -- so retrieval looked empty
+    from a service that was otherwise healthy. One helper rather than duck-typing per site.
+    """
+    if isinstance(r, dict):
+        out = dict(r)
+    else:
+        out = {
+            "collection": getattr(r, "collection", "unknown"),
+            "record_id": getattr(r, "record_id", ""),
+            "score": getattr(r, "score", 0.0),
+            "text": getattr(r, "text", ""),
+            "metadata": getattr(r, "metadata", {}) or {},
+            "relevance": getattr(r, "relevance", ""),
+        }
+    out.setdefault("metadata", {})
+    out.setdefault("text", out.get("content", ""))
+    out.setdefault("score", 0.0)
+    return out
+
 # =====================================================================
 # Cross-Agent Integration Endpoint
 # =====================================================================

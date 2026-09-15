@@ -17,6 +17,32 @@ from pydantic import BaseModel, Field
 router = APIRouter(prefix="/v1/diagnostic", tags=["rare-disease-diagnostics"])
 
 
+
+
+def _as_row(r) -> dict:
+    """Normalise a search hit to a plain dict.
+
+    The RAG engines return dataclass results (NeuroSearchResult / RareDiseaseSearchResult /
+    ...), but these routes were written against dicts. Calling .get() on a dataclass raises
+    AttributeError, which the surrounding try/except swallowed -- so retrieval looked empty
+    from a service that was otherwise healthy. One helper rather than duck-typing per site.
+    """
+    if isinstance(r, dict):
+        out = dict(r)
+    else:
+        out = {
+            "collection": getattr(r, "collection", "unknown"),
+            "record_id": getattr(r, "record_id", ""),
+            "score": getattr(r, "score", 0.0),
+            "text": getattr(r, "text", ""),
+            "metadata": getattr(r, "metadata", {}) or {},
+            "relevance": getattr(r, "relevance", ""),
+        }
+    out.setdefault("metadata", {})
+    out.setdefault("text", out.get("content", ""))
+    out.setdefault("score", 0.0)
+    return out
+
 # =====================================================================
 # Cross-Agent Integration Endpoint
 # =====================================================================
@@ -367,13 +393,13 @@ async def diagnostic_query(request: QueryRequest, req: Request):
             results = engine.search(request.question, top_k=request.top_k)
             for r in results:
                 evidence_items.append(EvidenceItem(
-                    collection=r.get("collection", "unknown"),
-                    text=r.get("content", r.get("text", "")),
-                    score=r.get("score", 0.0),
-                    metadata=r.get("metadata", {}),
+                    collection=_as_row(r).get("collection", "unknown"),
+                    text=_as_row(r).get("content", _as_row(r).get("text", "")),
+                    score=_as_row(r).get("score", 0.0),
+                    metadata=_as_row(r).get("metadata", {}),
                 ))
             context_text = "\n\n".join(
-                r.get("content", r.get("text", "")) for r in results
+                _as_row(r).get("content", _as_row(r).get("text", "")) for r in results
             )
         except Exception as exc:
             logger.warning(f"Engine search failed: {exc}")
@@ -428,15 +454,15 @@ async def diagnostic_search(request: SearchRequest, req: Request):
             collections=request.collections,
         )
         for r in raw:
-            score = r.get("score", 0.0)
+            score = _as_row(r).get("score", 0.0)
             if score >= request.score_threshold:
                 results.append(SearchResult(
-                    collection=r.get("collection", "unknown"),
-                    text=r.get("content", r.get("text", "")),
+                    collection=_as_row(r).get("collection", "unknown"),
+                    text=_as_row(r).get("content", _as_row(r).get("text", "")),
                     score=score,
-                    metadata=r.get("metadata", {}),
+                    metadata=_as_row(r).get("metadata", {}),
                 ))
-            coll = r.get("collection", "")
+            coll = _as_row(r).get("collection", "")
             if coll and coll not in collections_searched:
                 collections_searched.append(coll)
     except Exception as exc:
@@ -474,7 +500,7 @@ async def diagnose(request: DiagnoseRequest, req: Request):
         try:
             results = engine.search(query, top_k=20)
             context = "\n\n".join(
-                r.get("content", r.get("text", "")) for r in results
+                _as_row(r).get("content", _as_row(r).get("text", "")) for r in results
             )
         except Exception as exc:
             logger.warning(f"Diagnose search failed: {exc}")
@@ -637,7 +663,7 @@ async def interpret_variant(request: VariantInterpretRequest, req: Request):
         try:
             results = engine.search(query, top_k=10)
             context = "\n\n".join(
-                r.get("content", r.get("text", "")) for r in results
+                _as_row(r).get("content", _as_row(r).get("text", "")) for r in results
             )
         except Exception:
             pass
@@ -738,7 +764,7 @@ async def phenotype_match(request: PhenotypeMatchRequest, req: Request):
         try:
             results = engine.search(query, top_k=request.max_results)
             context = "\n\n".join(
-                r.get("content", r.get("text", "")) for r in results
+                _as_row(r).get("content", _as_row(r).get("text", "")) for r in results
             )
         except Exception:
             pass
@@ -849,7 +875,7 @@ async def therapy_search(request: TherapySearchRequest, req: Request):
         try:
             results = engine.search(query, top_k=request.max_results)
             context = "\n\n".join(
-                r.get("content", r.get("text", "")) for r in results
+                _as_row(r).get("content", _as_row(r).get("text", "")) for r in results
             )
         except Exception:
             pass
@@ -957,7 +983,7 @@ async def trial_match(request: TrialMatchRequest, req: Request):
         try:
             results = engine.search(query, top_k=request.max_results)
             context = "\n\n".join(
-                r.get("content", r.get("text", "")) for r in results
+                _as_row(r).get("content", _as_row(r).get("text", "")) for r in results
             )
         except Exception:
             pass
