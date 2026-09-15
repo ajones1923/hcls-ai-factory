@@ -39,7 +39,10 @@ and the **Tuberous Sclerosis** disease-program built on top of them. **Eight eng
 ## Engines 7 & 8 — real compute, not just retrieval
 
 - **Proteins** — structure prediction (ESMFold), ESM-2 embeddings + similarity search over your
-  vector DB, and developability scoring + a developability-guided design optimizer.
+  vector DB, and ProteinMPNN sequence design — all `verified` in the registry. Developability
+  scoring and the developability-guided design optimizer are written and tested (34 tests) but
+  their service is not yet stood up, so the registry marks them **`planned`**; the aggregate
+  Structural Biology engine endpoint (:8581) is `planned` for the same reason.
 - **Single-cell** — real scanpy analysis (QC → clustering → DE → cell-type annotation), with the
   clinical agent reasoning *on top of* computed results.
 
@@ -69,7 +72,7 @@ shared vector database.
 | 8080 | Landing dashboard | | 8573 | Single-cell compute |
 | 19530 | Vector DB (Milvus) | | 8574 | Molecule generation |
 | 3000 | Grafana · 9099 Prometheus | | 8575 | Variant store |
-| | (agents 8521–8544) | | 8576 | Protein developability + design |
+| | (agents 8521–8544) | | 8576 | Protein developability + design *(planned)* |
 
 ## Quickstart
 
