@@ -116,6 +116,11 @@ class CARTSettings(BaseSettings):
         case_sensitive=False,
         env_file=".env",
         env_file_encoding="utf-8",
+        # pydantic-settings v2 defaults to extra="forbid". The repo ships ONE shared
+        # .env (see .env.example) carrying MinIO, Grafana and Milvus values for other
+        # services, so forbidding extras made `cp .env.example .env` -- the documented
+        # quickstart -- raise ValidationError on startup for this service.
+        extra="ignore",
     )
 
 
