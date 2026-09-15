@@ -21,6 +21,22 @@ order.
 
 ## 2. Measured starting state (2026-08-17)
 
+> **Update — 2026-09-15.** Re-measured; the bring-up half of this document is now largely done.
+> **20 of 24 supervised services are healthy** (was 2), **17/17 demos have prerequisites met**
+> (was 7), and **5/17 demos actually run on real input** (was 1: E4, E6, E8, A5, A7).
+> What unblocked it was not new code: 13 of 21 services had no per-service `venv/`, and the
+> platform `.venv` already carried every runtime dependency but `plotly`. Each service's `venv`
+> is now a symlink to it — one interpreter, ~30 GB of duplicated torch avoided, and the same
+> interpreter `run_all_tests.py` has been proving against all along.
+>
+> `health-monitor.sh` had no concurrency guard; with 13 services failing at 60s each, a run took
+> ~13 min against a 5-min cron cadence, so 11 monitors were running at once (three of them 51
+> days old) and `logs/` had reached 536 MB. Guarded, fast-failing, and now 8s per run.
+>
+> **Still open and unchanged:** the agent corpora are unseeded (R9) and `ANTHROPIC_API_KEY` is
+> unset — together these block the remaining 12 demos. `.env` still absent (R1/R2). D1–D6 below
+> are still unanswered.
+
 Every figure below was produced by running a check, not by reading a doc.
 
 | Dimension | State |
@@ -52,7 +68,7 @@ Five acceptance criteria. Each is a command whose output settles it — no judge
 | # | Done when | Command that proves it |
 |---|---|---|
 | **A1** | Every registered `live` capability answers a health probe | `scripts/validate_registry.py --probe` (to be added, R11) |
-| **A2** | All 17 demonstrations run start to finish and write a transcript | `run_demo.py --check-all` reports **17/17**; `run_demo.py --all` exits 0 |
+| **A2** | All 17 demonstrations run start to finish and write a transcript | `run_demo.py <key>` exits 0 for all 17 (`--all` still to be added, R20a). **Note:** `--check-all` proves only that *prerequisites* are met — a demo can be 17/17 ready and 5/17 implemented. Do not read one as the other. |
 | **A3** | The platform survives a reboot unattended | reboot, wait 5 min, `--check-all` still **17/17** |
 | **A4** | A stranger reproduces the quickstart on a clean clone | `run_all_tests.py` → 17 subjects, 0 failed; `run_demo.py E8` → PASS |
 | **A5** | Nothing on the site claims more than the box delivers | `mkdocs build --strict` green **and** every `live` badge backed by A1 |
@@ -102,7 +118,8 @@ Priority: **P0** blocks everything · **P1** blocks a phase · **P2** quality.
 
 | # | Requirement | Pri | Done when |
 |---|---|---|---|
-| R17 | 17/17 demos have prerequisites met | **P0** | `--check-all` reports 17/17 |
+| R17 | 17/17 demos have prerequisites met | **P0** | `--check-all` reports 17/17 — ✅ **done 2026-09-15** |
+| R17a | 17/17 demos have an implemented runner (not "spec only") | **P0** | `run_demo.py <key>` exits 0 for each; **5/17 as of 2026-09-15** |
 | R18 | Every demo writes a diffable transcript | P1 | `demo/transcripts/*.txt` for all 17 |
 | R19 | Each demo's label matches what actually ran | **P0** | LIVE only where the service answered |
 | R20 | Demo catalogue counts regenerated from the runner, not hand-written | P2 | catalogue figures come from `--check-all` |
