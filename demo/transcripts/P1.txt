@@ -1,0 +1,8 @@
+
+P1 · The whole factory, one child
+
+    demo          P1 · tuberous-sclerosis
+    title         The whole factory, one child
+    label         REPRESENTATIVE
+    started       2026-09-15T16:08:39+00:00
+    RESULT        NOT IMPLEMENTED — spec only, see docs/demos/DEMO_CATALOG.md

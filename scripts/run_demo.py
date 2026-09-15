@@ -18,7 +18,7 @@ Usage:
     .venv/bin/python scripts/run_demo.py --check-all      # prerequisites only, runs nothing
 """
 from __future__ import annotations
-import argparse, importlib.util, json, pathlib, socket, subprocess, sys, urllib.request
+import argparse, importlib.util, json, pathlib, socket, subprocess, sys, urllib.error, urllib.request
 from datetime import datetime, timezone
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -29,10 +29,13 @@ LIVE, REPRESENTATIVE, BURST = "LIVE", "REPRESENTATIVE", "BURST"
 
 class Demo:
     def __init__(self, key, subject, title, label, *, port=None, packages=(),
-                 payload=None, gated=(), runner=None):
+                 payload=None, gated=(), runner=None, endpoint=None, assertion=None):
         self.key, self.subject, self.title, self.label = key, subject, title, label
         self.port, self.packages, self.payload = port, packages, payload
         self.gated, self.runner = gated, runner
+        # endpoint + assertion make an HTTP demo declarative: POST the payload, then prove the
+        # response carries real content. HTTP 200 is NOT the pass condition -- see http_demo().
+        self.endpoint, self.assertion = endpoint, assertion
 
     def missing_packages(self):
         return [p for p in self.packages if importlib.util.find_spec(p) is None]
@@ -60,6 +63,92 @@ class Demo:
         return (not blocking), reasons
 
 
+def http_demo(demo):
+    """POST the demo's payload to its endpoint and prove the answer is real.
+
+    A 200 is deliberately NOT the pass condition. The clinical-trial agent, with no trial corpus
+    loaded, answers 200 with a single `NCT-PENDING` placeholder and `total_screened: 0` -- which
+    looks like a match and is not one. Accepting status codes would let that through, and the
+    whole point of this runner (PRD DR-3) is that a LIVE demo which cannot really answer must
+    FAIL rather than quietly degrade to a canned result. So each demo supplies an assertion that
+    has to find actual content, and raises with a specific, actionable reason when it cannot.
+    """
+    def run(log):
+        body = json.loads((ROOT / demo.payload).read_text())
+        url = f"http://localhost:{demo.port}{demo.endpoint}"
+        log(f"POST          {url}")
+        first = next((k for k in ("question", "diagnosis", "scale_name") if k in body), None)
+        if first:
+            log(f"input         {first}={str(body[first])[:88]}")
+        req = urllib.request.Request(
+            url, data=json.dumps(body).encode(),
+            headers={"Content-Type": "application/json"}, method="POST")
+        try:
+            with urllib.request.urlopen(req, timeout=120) as r:
+                status, raw = r.status, r.read().decode()
+        except urllib.error.HTTPError as e:
+            detail = e.read().decode()[:200]
+            raise RuntimeError(f"HTTP {e.code} from {demo.endpoint} — {detail}") from None
+        log(f"status        {status}")
+        data = json.loads(raw)
+        for line in demo.assertion(data):      # raises if the answer is not real
+            log(line)
+    return run
+
+
+def assert_imaging(d):
+    ans = (d.get("answer") or "").strip()
+    if len(ans) < 80:
+        raise RuntimeError(f"answer too thin to be a real RAG response ({len(ans)} chars) — "
+                           "is the imaging corpus loaded?")
+    yield f"answer        {len(ans)} chars"
+    cites = d.get("citations") or d.get("sources") or []
+    yield f"citations     {len(cites)}"
+    yield f"excerpt       {ans[:150].replace(chr(10), ' ')}"
+
+
+def assert_ascvd(d):
+    if "score" not in d:
+        raise RuntimeError(f"no score in response: {list(d)[:8]}")
+    yield f"calculator    {d.get('calculator')}"
+    yield f"score         {d['score']}%  ({d.get('risk_category')})"
+    interp = (d.get("interpretation") or "")[:150]
+    if interp:
+        yield f"interpretation {interp}"
+
+
+def assert_scale(d):
+    if d.get("total_score") is None:
+        raise RuntimeError(f"no total_score in response: {list(d)[:8]}")
+    yield f"scale         {d.get('scale_name')}"
+    yield f"score         {d['total_score']} / {d.get('max_score')}"
+    yield f"reading       {d.get('interpretation')} · {d.get('severity_category', '-')}"
+
+
+def assert_differential(d):
+    diff = d.get("differential") or []
+    if not diff:
+        raise RuntimeError("empty differential — the rare-disease knowledge base returned nothing")
+    yield f"differential  {len(diff)} candidate diagnoses"
+    for row in diff[:3]:
+        yield (f"  candidate   {row.get('disease_id')} {row.get('disease_name')} "
+               f"(confidence {row.get('confidence')}, overlap {row.get('phenotype_overlap')})")
+
+
+def assert_trial_match(d):
+    """Rejects the no-corpus placeholder rather than reporting it as a match."""
+    matches = d.get("matches") or []
+    screened = d.get("total_screened", 0)
+    real = [m for m in matches if m.get("trial_id") and m["trial_id"] != "NCT-PENDING"]
+    if not screened or not real:
+        raise RuntimeError(
+            f"no trial corpus loaded — screened {screened} trials and the only result is the "
+            "'NCT-PENDING' placeholder. Seed the clinical-trial collections first.")
+    yield f"screened      {screened} trials"
+    for m in real[:3]:
+        yield f"  match       {m.get('trial_id')} score={m.get('overall_score')}"
+
+
 DEMOS = [
     Demo("E1", "genomic-foundation", "The variant that was always there", REPRESENTATIVE,
          packages=("duckdb", "statsmodels"), gated=("Parabricks (G2)",)),
@@ -67,11 +156,13 @@ DEMOS = [
     Demo("E3", "therapeutic-discovery", "From one protein to a hundred candidates", REPRESENTATIVE,
          gated=("MolMIM (G3)", "DiffDock (G4)")),
     Demo("E4", "clinical-imaging", "The scan that had already answered", LIVE, port=8524,
-         payload="demo/requests/imaging_query.json"),
+         payload="demo/requests/imaging_query.json",
+         endpoint="/api/ask", assertion=assert_imaging),
     Demo("E5", "precision-oncology", "The molecular tumour board", LIVE, port=8527,
          payload="demo/requests/oncology_query.json"),
     Demo("E6", "cardiology", "Risk that changes management", LIVE, port=8127,
-         payload="demo/requests/cardiology_risk.json"),
+         payload="demo/requests/cardiology_risk.json",
+         endpoint="/v1/cardio/risk/ascvd", assertion=assert_ascvd),
     Demo("E7", "structural-biology", "The shape you have to fit", REPRESENTATIVE,
          gated=("CUDA torch (G1)", "ESMFold (G5)")),
     Demo("E8", "single-cell", "Nine populations from one sample", LIVE,
@@ -85,11 +176,14 @@ DEMOS = [
     Demo("A4", "precision-autoimmune", "Before the third flare", LIVE, port=8532,
          payload="demo/requests/autoimmune_query.json"),
     Demo("A5", "neurology", "NIHSS, and what comes next", LIVE, port=8536,
-         payload="demo/requests/neurology_nihss.json"),
+         payload="demo/requests/neurology_nihss.json",
+         endpoint="/v1/neuro/scale/calculate", assertion=assert_scale),
     Demo("A6", "clinical-trial", "The trial that was open all along", LIVE, port=8539,
-         payload="demo/requests/trial_match.json"),
+         payload="demo/requests/trial_match.json",
+         endpoint="/v1/trial/match", assertion=assert_trial_match),
     Demo("A7", "rare-disease-diagnostic", "Ending the odyssey", LIVE, port=8545,
-         payload="demo/requests/rare_disease_diagnose.json"),
+         payload="demo/requests/rare_disease_diagnose.json",
+         endpoint="/v1/diagnostic/diagnose", assertion=assert_differential),
     Demo("A8", "single-cell", "The engine computes, the agent interprets", LIVE, port=8541,
          payload="demo/requests/single_cell_query.json"),
     Demo("P1", "tuberous-sclerosis", "The whole factory, one child", REPRESENTATIVE, port=8561),
@@ -151,9 +245,10 @@ def execute(demo, verbose=True):
         (TRANSCRIPTS / f"{demo.key}.txt").write_text("\n".join(lines) + "\n")
         return False
 
-    if demo.runner:
+    fn = RUNNERS.get(demo.runner) if demo.runner else (http_demo(demo) if demo.endpoint else None)
+    if fn:
         try:
-            RUNNERS[demo.runner](log)
+            fn(log)
             log("RESULT        PASS — ran on real input")
         except Exception as e:  # noqa: BLE001
             log(f"RESULT        FAIL — {type(e).__name__}: {e}")

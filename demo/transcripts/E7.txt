@@ -1,0 +1,9 @@
+
+E7 · The shape you have to fit
+
+    demo          E7 · structural-biology
+    title         The shape you have to fit
+    label         REPRESENTATIVE
+    started       2026-09-15T16:08:29+00:00
+    prerequisite  gated (informational): CUDA torch (G1), ESMFold (G5)
+    RESULT        NOT IMPLEMENTED — spec only, see docs/demos/DEMO_CATALOG.md

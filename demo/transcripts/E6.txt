@@ -1,0 +1,13 @@
+
+E6 · Risk that changes management
+
+    demo          E6 · cardiology
+    title         Risk that changes management
+    label         LIVE
+    started       2026-09-15T16:08:29+00:00
+    POST          http://localhost:8127/v1/cardio/risk/ascvd
+    status        200
+    calculator    ASCVD_Pooled_Cohort_Equations
+    score         0.9%  (Low)
+    interpretation 10-year ASCVD risk: 0.9% (Low risk). Calculated using the Pooled Cohort Equations for the white female cohort. Inputs: age 45, TC 210, HDL 55, SBP 128
+    RESULT        PASS — ran on real input

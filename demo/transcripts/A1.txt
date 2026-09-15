@@ -1,0 +1,8 @@
+
+A1 · Why this construct, for this patient
+
+    demo          A1 · cart
+    title         Why this construct, for this patient
+    label         LIVE
+    started       2026-09-15T16:08:38+00:00
+    RESULT        NOT IMPLEMENTED — spec only, see docs/demos/DEMO_CATALOG.md

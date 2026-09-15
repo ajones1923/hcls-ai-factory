@@ -1,0 +1,8 @@
+
+A4 · Before the third flare
+
+    demo          A4 · precision-autoimmune
+    title         Before the third flare
+    label         LIVE
+    started       2026-09-15T16:08:39+00:00
+    RESULT        NOT IMPLEMENTED — spec only, see docs/demos/DEMO_CATALOG.md

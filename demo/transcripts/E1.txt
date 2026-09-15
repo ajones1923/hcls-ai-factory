@@ -1,0 +1,9 @@
+
+E1 · The variant that was always there
+
+    demo          E1 · genomic-foundation
+    title         The variant that was always there
+    label         REPRESENTATIVE
+    started       2026-09-15T16:08:28+00:00
+    prerequisite  gated (informational): Parabricks (G2)
+    RESULT        NOT IMPLEMENTED — spec only, see docs/demos/DEMO_CATALOG.md

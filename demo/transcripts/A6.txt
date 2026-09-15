@@ -1,0 +1,11 @@
+
+A6 · The trial that was open all along
+
+    demo          A6 · clinical-trial
+    title         The trial that was open all along
+    label         LIVE
+    started       2026-09-15T16:08:39+00:00
+    POST          http://localhost:8539/v1/trial/match
+    input         diagnosis=B-cell Acute Lymphoblastic Leukemia
+    status        200
+    RESULT        FAIL — RuntimeError: no trial corpus loaded — screened 0 trials and the only result is the 'NCT-PENDING' placeholder. Seed the clinical-trial collections first.
