@@ -4,7 +4,7 @@ A8 · The engine computes, the agent interprets
     demo          A8 · single-cell
     title         The engine computes, the agent interprets
     label         LIVE
-    started       2026-09-15T16:56:36+00:00
+    started       2026-09-15T22:05:35+00:00
     POST          http://localhost:8541/v1/sc/annotate
     status        200
     annotated      5 cell types

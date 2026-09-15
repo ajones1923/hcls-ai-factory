@@ -25,6 +25,32 @@ from src.models import (
 router = APIRouter(prefix="/v1/trial", tags=["clinical-trials"])
 
 
+def _as_row(r) -> dict:
+    """Normalise a search hit to a plain dict.
+
+    TrialRAGEngine.search() returns TrialSearchResult dataclasses, but these routes were
+    written against dicts. Calling .get() on a dataclass raises AttributeError, which the
+    surrounding try/except swallowed -- so searches returned empty and trial matching fell
+    through to a placeholder while still reporting a screened count. One helper here rather
+    than duck-typing at each call site.
+    """
+    if isinstance(r, dict):
+        out = dict(r)
+    else:
+        out = {
+            "collection": getattr(r, "collection", "unknown"),
+            "record_id": getattr(r, "record_id", ""),
+            "score": getattr(r, "score", 0.0),
+            "text": getattr(r, "text", ""),
+            "metadata": getattr(r, "metadata", {}) or {},
+            "relevance": getattr(r, "relevance", ""),
+        }
+    out.setdefault("metadata", {})
+    out.setdefault("text", out.get("content", ""))
+    out.setdefault("score", 0.0)
+    return out
+
+
 # =====================================================================
 # Cross-Agent Integration Endpoint
 # =====================================================================
@@ -431,10 +457,10 @@ async def trial_query(request: QueryRequest, req: Request):
         results = engine.search(request.question, top_k=request.top_k)
         evidence = [
             {
-                "collection": r.get("collection", "unknown"),
-                "text": r.get("content", r.get("text", "")),
-                "score": r.get("score", 0.0),
-                "metadata": r.get("metadata", {}),
+                "collection": _as_row(r).get("collection", "unknown"),
+                "text": _as_row(r).get("text", ""),
+                "score": _as_row(r).get("score", 0.0),
+                "metadata": _as_row(r).get("metadata", {}),
             }
             for r in results
         ]
@@ -493,13 +519,13 @@ async def trial_search(request: SearchRequest, req: Request):
         )
         search_results = [
             SearchResult(
-                collection=r.get("collection", "unknown"),
-                text=r.get("content", r.get("text", "")),
-                score=r.get("score", 0.0),
-                metadata=r.get("metadata", {}),
+                collection=row.get("collection", "unknown"),
+                text=row.get("text", ""),
+                score=row.get("score", 0.0),
+                metadata=row.get("metadata", {}),
             )
-            for r in results
-            if r.get("score", 0.0) >= request.threshold
+            for row in (_as_row(r) for r in results)
+            if row.get("score", 0.0) >= request.threshold
         ]
     except Exception as exc:
         logger.warning(f"Search failed: {exc}")
@@ -608,18 +634,36 @@ async def _do_patient_match(request: PatientMatchRequest, req: Request) -> Patie
             results = engine.search(search_query, top_k=request.max_results * 2)
             total_screened = len(results)
 
+            # engine.search() returns TrialSearchResult dataclasses, not dicts. Treating them
+            # as dicts raised AttributeError on the first row; the surrounding except swallowed
+            # it, leaving `matches` empty while total_screened was already set -- so the route
+            # fell through to the NCT-PENDING placeholder and reported "20 screened, 1 match"
+            # that was not a match at all.
+            def _meta(r):
+                m = getattr(r, "metadata", None)
+                if m is None and isinstance(r, dict):
+                    m = r.get("metadata")
+                return m or {}
+
+            def _attr(r, name, default=None):
+                if isinstance(r, dict):
+                    return r.get(name, default)
+                return getattr(r, name, default)
+
             for i, r in enumerate(results[:request.max_results]):
+                md = _meta(r)
+                score = float(_attr(r, "score", 0.5) or 0.0)
                 matches.append(TrialMatch(
-                    trial_id=r.get("metadata", {}).get("nct_id", f"NCT-RESULT-{i+1:04d}"),
-                    trial_title=r.get("metadata", {}).get("title", r.get("text", "")[:100]),
-                    phase=r.get("metadata", {}).get("phase", "phase_ii"),
-                    status=r.get("metadata", {}).get("status", "recruiting"),
-                    overall_score=round(r.get("score", 0.5), 3),
-                    inclusion_met=r.get("metadata", {}).get("inclusion_met", 0),
-                    inclusion_total=r.get("metadata", {}).get("inclusion_total", 0),
-                    exclusion_clear=r.get("metadata", {}).get("exclusion_clear", 0),
-                    exclusion_total=r.get("metadata", {}).get("exclusion_total", 0),
-                    confidence=round(r.get("score", 0.5) * 0.9, 3),
+                    trial_id=md.get("nct_id") or f"NCT-RESULT-{i+1:04d}",
+                    trial_title=md.get("title") or str(_attr(r, "text", ""))[:100],
+                    phase=md.get("phase", "phase_ii"),
+                    status=md.get("status", "recruiting"),
+                    overall_score=round(score, 3),
+                    inclusion_met=int(md.get("inclusion_met", 0) or 0),
+                    inclusion_total=int(md.get("inclusion_total", 0) or 0),
+                    exclusion_clear=int(md.get("exclusion_clear", 0) or 0),
+                    exclusion_total=int(md.get("exclusion_total", 0) or 0),
+                    confidence=round(score * 0.9, 3),
                 ))
         except Exception as exc:
             logger.warning(f"Trial matching search failed: {exc}")

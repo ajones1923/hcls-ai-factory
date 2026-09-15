@@ -1,7 +1,7 @@
 demo          E8 · single-cell
 title         Nine populations from one sample
 label         LIVE
-started       2026-09-15T16:56:25+00:00
+started       2026-09-15T22:05:24+00:00
 marker panel  8 cell types
 dataset       pbmc3k_raw.h5ad (5.9 MB), local copy
 loaded        2,700 cells x 32,738 genes
@@ -11,7 +11,7 @@ E8 · Nine populations from one sample
     demo          E8 · single-cell
     title         Nine populations from one sample
     label         LIVE
-    started       2026-09-15T16:56:25+00:00
+    started       2026-09-15T22:05:24+00:00
     marker panel  8 cell types
     dataset       pbmc3k_raw.h5ad (5.9 MB), local copy
     loaded        2,700 cells x 32,738 genes
