@@ -26,6 +26,32 @@ from src.knowledge import KNOWLEDGE_VERSION
 router = APIRouter(prefix="/v1/neuro", tags=["neurology"])
 
 
+
+
+def _as_row(r) -> dict:
+    """Normalise a search hit to a plain dict.
+
+    The RAG engines return dataclass results (NeuroSearchResult / RareDiseaseSearchResult /
+    ...), but these routes were written against dicts. Calling .get() on a dataclass raises
+    AttributeError, which the surrounding try/except swallowed -- so retrieval looked empty
+    from a service that was otherwise healthy. One helper rather than duck-typing per site.
+    """
+    if isinstance(r, dict):
+        out = dict(r)
+    else:
+        out = {
+            "collection": getattr(r, "collection", "unknown"),
+            "record_id": getattr(r, "record_id", ""),
+            "score": getattr(r, "score", 0.0),
+            "text": getattr(r, "text", ""),
+            "metadata": getattr(r, "metadata", {}) or {},
+            "relevance": getattr(r, "relevance", ""),
+        }
+    out.setdefault("metadata", {})
+    out.setdefault("text", out.get("content", ""))
+    out.setdefault("score", 0.0)
+    return out
+
 # =====================================================================
 # Cross-Agent Integration Endpoint
 # =====================================================================
@@ -848,10 +874,10 @@ async def neuro_query(request: QueryRequest, req: Request):
         results = engine.search(request.question, top_k=request.top_k)
         evidence = [
             {
-                "collection": r.get("collection", "unknown"),
-                "text": r.get("content", r.get("text", "")),
-                "score": r.get("score", 0.0),
-                "metadata": r.get("metadata", {}),
+                "collection": _as_row(r).get("collection", "unknown"),
+                "text": _as_row(r).get("content", _as_row(r).get("text", "")),
+                "score": _as_row(r).get("score", 0.0),
+                "metadata": _as_row(r).get("metadata", {}),
             }
             for r in results
         ]
@@ -910,13 +936,13 @@ async def neuro_search(request: SearchRequest, req: Request):
         )
         search_results = [
             SearchResult(
-                collection=r.get("collection", "unknown"),
-                text=r.get("content", r.get("text", "")),
-                score=r.get("score", 0.0),
-                metadata=r.get("metadata", {}),
+                collection=_as_row(r).get("collection", "unknown"),
+                text=_as_row(r).get("content", _as_row(r).get("text", "")),
+                score=_as_row(r).get("score", 0.0),
+                metadata=_as_row(r).get("metadata", {}),
             )
             for r in results
-            if r.get("score", 0.0) >= request.threshold
+            if _as_row(r).get("score", 0.0) >= request.threshold
         ]
     except Exception as exc:
         logger.warning(f"Search failed: {exc}")

@@ -85,6 +85,20 @@ from api.routes.events import router as events_router
 # =====================================================================
 # Module-level state (populated during lifespan startup)
 # =====================================================================
+            # _CollectionManager wraps the ORM `connections` helper and has no .search();
+            # the RAG engine calls milvus_client.search(...). Passing the manager made every
+            # collection search raise "'_CollectionManager' object has no attribute 'search'",
+            # which the engine caught and logged as a warning -- so retrieval silently
+            # returned zero hits from a service that looked healthy. Same fault in four
+            # services; see core/agents/clinical-trial for the first fix.
+
+from pymilvus import MilvusClient as _MilvusClient
+
+_search_client = _MilvusClient(
+
+    uri=f"http://{settings.MILVUS_HOST}:{settings.MILVUS_PORT}"
+
+)
 
 _engine = None          # RareDiseaseRAGEngine
 _manager = None         # Collection manager
@@ -302,7 +316,7 @@ async def lifespan(app: FastAPI):
         _engine = RareDiseaseRAGEngine(
             embedding_model=embedder,
             llm_client=llm_client,
-            milvus_client=_manager,
+            milvus_client=_search_client,
         )
         logger.info("Rare Disease RAG engine initialized")
     except Exception as exc:

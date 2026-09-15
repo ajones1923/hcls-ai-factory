@@ -107,11 +107,83 @@ def _insert_records(
         client = MilvusClient(
             uri=f"http://{settings.MILVUS_HOST}:{settings.MILVUS_PORT}"
         )
+        # These collections are structured (neuro_electrophysiology declares test_type,
+        # finding, pattern, ... and no generic text field), and dynamic fields are off. An
+        # unexpected key therefore aborts the whole insert -- which is how a record carrying
+        # `text` killed the batch and the seeder reported "0 total records inserted".
+        # Project each row onto the collection's declared fields, and drop the ones that
+        # carry no usable content rather than inserting a bare vector.
+        try:
+            _fields = client.describe_collection(collection_name).get("fields", [])
+            valid = {fld["name"] for fld in _fields}
+            # Dynamic fields are off and nothing is nullable, so every declared column must be
+            # present on every row or the whole batch is rejected. The parsers legitimately do
+            # not carry all of them (a PubMed record has no `sequence`), so supply a
+            # type-appropriate empty rather than dropping real records.
+            _required = {}
+            for fld in _fields:
+                nm = fld["name"]
+                if nm in ("id", "embedding") or fld.get("auto_id"):
+                    continue
+                t = str(fld.get("type", "")).upper()
+                _required[nm] = 0 if ("INT" in t or "FLOAT" in t or "DOUBLE" in t) else ""
+        except Exception:
+            valid, _required = None, {}
+
+        def _flatten(rec):
+            """Row fields live INSIDE IngestRecord.metadata, not on the record itself.
+
+            The parsers emit IngestRecord(text=..., metadata={pmid, title, ...}); the schema
+            declares pmid/title/... as top-level columns. Reading the dataclass's own
+            attributes yielded {text, metadata, collection_name, record_id, source}, which
+            shares no column with the schema -- hence "0 records inserted" from a seeder that
+            had just embedded 49 real publications.
+            """
+            if isinstance(rec, dict):
+                base = dict(rec)
+                meta = base.pop("metadata", None)
+            else:
+                base = {"text": getattr(rec, "text", ""),
+                        "source": getattr(rec, "source", "")}
+                meta = getattr(rec, "metadata", None)
+            if isinstance(meta, str):
+                try:
+                    import ast as _ast
+                    meta = _ast.literal_eval(meta)
+                except Exception:
+                    meta = None
+            if isinstance(meta, dict):
+                for k, v in meta.items():
+                    base.setdefault(k, v)
+            return base
+
         data_rows = []
         for i, rec in enumerate(records):
-            row = dict(rec) if isinstance(rec, dict) else {"text": texts[i]}
+            row = _flatten(rec)
+            if valid:
+                dropped = {k for k in row if k not in valid}
+                row = {k: v for k, v in row.items() if k in valid}
+                if dropped and i == 0:
+                    logger.info(
+                        "  '%s': ignoring %d field(s) absent from the schema: %s",
+                        collection_name, len(dropped), ", ".join(sorted(dropped)[:6]),
+                    )
+            if not row:
+                continue
+            row = {k: (v if k == "embedding" else
+                       (str(v)[:4096] if not isinstance(v, (int, float, bool)) else v))
+                   for k, v in row.items()}
+            for _k, _default in _required.items():
+                row.setdefault(_k, _default)
             row["embedding"] = embeddings[i]
             data_rows.append(row)
+
+        if not data_rows:
+            logger.warning(
+                "No rows for '%s' survived schema projection -- the seed records and the "
+                "collection schema share no fields.", collection_name,
+            )
+            return 0
 
         client.insert(collection_name=collection_name, data=data_rows)
         client.flush(collection_name)
