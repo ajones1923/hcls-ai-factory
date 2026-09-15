@@ -222,9 +222,11 @@ DEMOS = [
     Demo("E1", "genomic-foundation", "The variant that was always there", REPRESENTATIVE,
          packages=("duckdb", "statsmodels"), gated=("Parabricks (G2)",),
          runner="genomic_foundation"),
-    Demo("E2", "precision-intelligence", "Ask the evidence layer a question", LIVE, port=5001),
+    Demo("E2", "precision-intelligence", "Ask the evidence layer a question", LIVE, port=5001,
+         runner="precision_intelligence"),
     Demo("E3", "therapeutic-discovery", "From one protein to a hundred candidates", REPRESENTATIVE,
-         gated=("MolMIM (G3)", "DiffDock (G4)")),
+         packages=("rdkit",), gated=("MolMIM (G3)", "DiffDock (G4)"),
+         runner="therapeutic_discovery"),
     Demo("E4", "clinical-imaging", "The scan that had already answered", LIVE, port=8524,
          payload="demo/requests/imaging_query.json",
          endpoint="/api/ask", assertion=assert_imaging),
@@ -452,7 +454,132 @@ def run_tsc_program(log):
     log("              qualified clinician, behind a review gate — never diagnosis")
 
 
+
+def run_precision_intelligence(log):
+    """E2 — the evidence layer: annotated variants to ranked druggable targets.
+
+    This is the hand-off between Engine 1 and Engine 3: E1 produces the QC'd variant substrate,
+    E2 annotates and reasons over it, and what comes out is the target E3 designs against. The
+    portal serves that as a target register, so the demo reads it rather than asking an LLM to
+    narrate -- the targets are stored decisions with a mechanism and a provenance, not generated
+    prose.
+    """
+    def get(path):
+        with urllib.request.urlopen(f"http://localhost:5001{path}", timeout=90) as r:
+            return json.loads(r.read().decode())
+
+    ready = get("/api/ready")
+    checks = ready.get("checks", {})
+    log(f"readiness     milvus={checks.get('milvus')} "
+        f"collection_loaded={checks.get('collection_loaded')} llm={checks.get('ollama')}")
+    if not checks.get("milvus") or not checks.get("collection_loaded"):
+        raise RuntimeError(f"evidence layer not ready: {checks}")
+
+    status = get("/api/status")
+    coll = status.get("collection", {})
+    data = status.get("data", {})
+    n = coll.get("num_entities", 0)
+    if not n:
+        raise RuntimeError(
+            f"'{coll.get('name')}' holds no vectors — the clinical evidence base is not loaded")
+    log(f"evidence base {coll.get('name')}: {n:,} vectors (ClinVar / AlphaMissense)")
+    log(f"variant input {'present' if data.get('vcf_exists') else 'ABSENT'} — "
+        f"{data.get('vcf_size')} ({pathlib.Path(str(data.get('vcf_path'))).name})")
+    if not data.get("vcf_exists"):
+        raise RuntimeError("the VCF the evidence layer annotates is not on disk")
+
+    tg = get("/api/targets")
+    targets = tg.get("targets") or []
+    if not targets:
+        raise RuntimeError("no druggable targets registered — E2 produced nothing for E3")
+    summ = tg.get("summary", {})
+    log(f"targets       {summ.get('total')} registered · "
+        f"{summ.get('by_confidence', {}).get('high', 0)} high-confidence · "
+        f"{summ.get('by_status', {}).get('validated', 0)} validated")
+    for t in targets[:4]:
+        log(f"  {t.get('gene'):<8} {t.get('confidence'):<7} {t.get('status', ''):<11} "
+            f"{str(t.get('mechanism', ''))[:70]}")
+
+    vcp = next((t for t in targets if t.get("gene") == "VCP"), None)
+    if vcp:
+        log(f"flagship      VCP (p97) for frontotemporal dementia — {vcp.get('mechanism')}")
+        log(f"              {str(vcp.get('notes', ''))[:110]}")
+    log("decision support for a qualified clinician, not diagnosis")
+
+
+
+def run_therapeutic_discovery(log):
+    """E3 — target to ranked candidate molecules, on the path that runs locally.
+
+    The full ten-stage pipeline ends in DiffDock pose prediction, and the NIMs (MolMIM, DiffDock)
+    are gated. What is NOT gated is the part that matters for an R&D bench: fragment-based
+    generation over a seed set, and real RDKit chemistry on every candidate. So this runs
+    generation + QC + ranking for real and says plainly where the gated boundary is, rather than
+    narrating a docking score nobody computed.
+    """
+    from rdkit import Chem, RDLogger
+    from rdkit.Chem import Descriptors, QED, Crippen, Lipinski
+    RDLogger.DisableLog("rdApp.*")
+
+    # The target comes from E2's register -- this is the actual Engine 2 -> Engine 3 hand-off.
+    try:
+        with urllib.request.urlopen("http://localhost:5001/api/targets", timeout=60) as r:
+            targets = json.loads(r.read().decode()).get("targets") or []
+        vcp = next((t for t in targets if t.get("gene") == "VCP"), None)
+        if vcp:
+            log(f"target        VCP (p97) from E2's register — {vcp.get('mechanism')}")
+            log(f"              reference compound CB-5083; FTD (frontotemporal dementia)")
+    except Exception:
+        log("target        VCP (p97) — E2 register unreachable, using the flagship target")
+
+    seeds = [
+        "COc1cc2c(Nc3ccc(Br)cc3F)ncnc2cc1OCC1CCN(C)CC1",
+        "Cc1ccc(NC(=O)c2ccc(CN3CCN(C)CC3)cc2)cc1Nc1nccc(-c2cccnc2)n1",
+        "CN1CCN(CC1)c1ccc(Nc2ncc(F)c(Nc3ccccc3)n2)cc1",
+    ]
+    body = json.dumps({"seeds": seeds, "n": 12}).encode()
+    req = urllib.request.Request("http://localhost:8574/generate", data=body,
+                                 headers={"Content-Type": "application/json"}, method="POST")
+    with urllib.request.urlopen(req, timeout=240) as r:
+        gen = json.loads(r.read().decode())
+    mols = gen.get("molecules") or []
+    if not mols:
+        raise RuntimeError("molecule generator returned nothing — BRICS needs a seed set it can "
+                           "fragment; check :8574")
+    log(f"generation    {gen.get('backend')} backend, {len(seeds)} seeds -> {len(mols)} candidates")
+
+    # Real chemistry on every candidate -- not a score copied from the generator.
+    rows = []
+    for m in mols:
+        smi = m.get("smiles") if isinstance(m, dict) else m
+        mol = Chem.MolFromSmiles(smi or "")
+        if mol is None:
+            continue
+        mw, logp = Descriptors.MolWt(mol), Crippen.MolLogP(mol)
+        hbd, hba = Lipinski.NumHDonors(mol), Lipinski.NumHAcceptors(mol)
+        violations = sum([mw > 500, logp > 5, hbd > 5, hba > 10])
+        rows.append({"smiles": smi, "qed": round(QED.qed(mol), 3), "mw": round(mw, 1),
+                     "logp": round(logp, 2), "ro5": violations})
+    if not rows:
+        raise RuntimeError("no generated molecule survived RDKit parsing — chemistry QC failed")
+
+    passed = [r for r in rows if r["ro5"] == 0]
+    log(f"chemistry QC  {len(rows)} parsed by RDKit · {len(passed)} pass Lipinski Ro5 "
+        f"(0 violations)")
+    rows.sort(key=lambda r: -r["qed"])
+    log("ranking       by QED (drug-likeness)")
+    for r in rows[:4]:
+        log(f"  QED {r['qed']:<6} MW {r['mw']:<7} logP {r['logp']:<6} Ro5×{r['ro5']}  {r['smiles'][:46]}")
+
+    log("GATED — not run here: MolMIM generation (NIM), DiffDock pose prediction (NIM),")
+    log("              chemprop ADMET. No binding affinity is claimed; these are drug-LIKENESS")
+    log("              scores on generated chemistry, not activity against p97.")
+    log("preclinical — a research bench, not a therapeutic claim")
+
+
 RUNNERS = {"single_cell": run_single_cell,
+           "therapeutic_discovery": run_therapeutic_discovery,
+           "precision_intelligence": run_precision_intelligence,
            "tsc_program": run_tsc_program,
            "genomic_foundation": run_genomic_foundation,
            "structural_biology": run_structural_biology}
