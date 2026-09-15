@@ -1,0 +1,27 @@
+{
+  "cancer_type": "non-small cell lung cancer",
+  "variants": [
+    {
+      "gene": "EGFR",
+      "variant": "L858R",
+      "variant_type": "missense",
+      "vaf": 0.42,
+      "consequence": "activating"
+    },
+    {
+      "gene": "TP53",
+      "variant": "R273H",
+      "variant_type": "missense",
+      "vaf": 0.61,
+      "consequence": "loss_of_function"
+    }
+  ],
+  "biomarkers": {
+    "PD_L1_TPS": 40,
+    "TMB_mut_per_Mb": 7.2,
+    "MSI": "stable"
+  },
+  "prior_therapies": [
+    "carboplatin/pemetrexed"
+  ]
+}

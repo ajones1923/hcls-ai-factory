@@ -1,0 +1,5 @@
+{
+  "positive_antibodies": ["anti-dsDNA", "anti-Sm", "ANA 1:640 homogeneous"],
+  "hla_alleles": ["HLA-DR3"],
+  "symptoms": ["malar rash", "arthralgia", "proteinuria", "fatigue"]
+}

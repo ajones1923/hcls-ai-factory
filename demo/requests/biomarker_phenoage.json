@@ -1,0 +1,14 @@
+{
+  "age": 52,
+  "biomarkers": {
+    "albumin": 4.2,
+    "creatinine": 0.9,
+    "glucose": 95,
+    "crp": 0.8,
+    "lymphocyte_percent": 32,
+    "mcv": 90,
+    "rdw": 13.1,
+    "alkaline_phosphatase": 68,
+    "wbc": 6.2
+  }
+}
