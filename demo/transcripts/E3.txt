@@ -4,6 +4,6 @@ E3 · From one protein to a hundred candidates
     demo          E3 · therapeutic-discovery
     title         From one protein to a hundred candidates
     label         REPRESENTATIVE
-    started       2026-09-15T16:08:28+00:00
+    started       2026-09-15T16:49:59+00:00
     prerequisite  gated (informational): MolMIM (G3), DiffDock (G4)
     RESULT        NOT IMPLEMENTED — spec only, see docs/demos/DEMO_CATALOG.md

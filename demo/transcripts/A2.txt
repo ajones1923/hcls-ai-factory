@@ -4,5 +4,13 @@ A2 · The marker that changes the decision
     demo          A2 · precision-biomarker
     title         The marker that changes the decision
     label         LIVE
-    started       2026-09-15T16:08:38+00:00
-    RESULT        NOT IMPLEMENTED — spec only, see docs/demos/DEMO_CATALOG.md
+    started       2026-09-15T16:50:10+00:00
+    POST          http://localhost:8529/v1/biological-age
+    status        200
+    chronological  52 y
+    biological     53.7 y  (acceleration 1.7)
+    mortality risk NORMAL
+      driver       {'biomarker': 'rdw', 'value': 13.1, 'si_value': 13.1, 'coefficient': 0.3306, 'contribution': 4.3309, 'direction': 'aging'}
+      driver       {'biomarker': 'chronological_age', 'value': 52, 'coefficient': 0.0804, 'contribution': 4.1808, 'direction': 'aging'}
+      driver       {'biomarker': 'mcv', 'value': 90.0, 'si_value': 90.0, 'coefficient': 0.0268, 'contribution': 2.412, 'direction': 'aging'}
+    RESULT        PASS — ran on real input
