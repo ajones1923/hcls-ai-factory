@@ -4,6 +4,19 @@ E3 · From one protein to a hundred candidates
     demo          E3 · therapeutic-discovery
     title         From one protein to a hundred candidates
     label         REPRESENTATIVE
-    started       2026-09-15T22:38:14+00:00
+    started       2026-09-15T22:45:26+00:00
     prerequisite  gated (informational): MolMIM (G3), DiffDock (G4)
-    RESULT        NOT IMPLEMENTED — spec only, see docs/demos/DEMO_CATALOG.md
+    target        VCP (p97) from E2's register — AAA+ ATPase inhibition to modulate protein homeostasis
+                  reference compound CB-5083; FTD (frontotemporal dementia)
+    generation    brics backend, 3 seeds -> 12 candidates
+    chemistry QC  12 parsed by RDKit · 11 pass Lipinski Ro5 (0 violations)
+    ranking       by QED (drug-likeness)
+      QED 0.84   MW 271.3   logP 3.09   Ro5×0  CN1CCC(c2nc(-c3ccccc3)ncc2F)CC1
+      QED 0.837  MW 272.3   logP 2.03   Ro5×0  CN1CCN(c2nc(-c3ccccc3)ncc2F)CC1
+      QED 0.752  MW 204.2   logP 2.29   Ro5×0  COc1nc(-c2ccccc2)ncc1F
+      QED 0.744  MW 300.3   logP 2.89   Ro5×0  COc1nc(-c2nc(-c3ccccc3)ncc2F)ncc1F
+    GATED — not run here: MolMIM generation (NIM), DiffDock pose prediction (NIM),
+                  chemprop ADMET. No binding affinity is claimed; these are drug-LIKENESS
+                  scores on generated chemistry, not activity against p97.
+    preclinical — a research bench, not a therapeutic claim
+    RESULT        PASS — ran on real input
