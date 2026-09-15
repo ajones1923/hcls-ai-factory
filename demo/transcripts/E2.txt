@@ -4,5 +4,5 @@ E2 · Ask the evidence layer a question
     demo          E2 · precision-intelligence
     title         Ask the evidence layer a question
     label         LIVE
-    started       2026-09-15T22:05:23+00:00
+    started       2026-09-15T22:38:14+00:00
     RESULT        NOT IMPLEMENTED — spec only, see docs/demos/DEMO_CATALOG.md

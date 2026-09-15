@@ -4,7 +4,7 @@ E7 · The shape you have to fit
     demo          E7 · structural-biology
     title         The shape you have to fit
     label         REPRESENTATIVE
-    started       2026-09-15T22:05:24+00:00
+    started       2026-09-15T22:38:14+00:00
     prerequisite  gated (informational): CUDA torch (G1), ESMFold (G5)
     sequence      human lysozyme C, 130 aa, 14700 Da
     GRAVY         -0.485      instability 32.13

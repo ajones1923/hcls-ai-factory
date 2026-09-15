@@ -140,6 +140,19 @@ class RegulatoryEvent(str, Enum):
     REMS = "REMS"
     POST_MARKETING_REQ = "post_marketing_requirement"
     COMPLETE_RESPONSE = "complete_response"
+    # Categories the curated corpus carries that the original nine did not cover. Added
+    # rather than discarded: dropping them lost 40 real regulatory records at ingest.
+    PRIME = "prime_designation"                     # EMA
+    CONDITIONAL_APPROVAL = "conditional_approval"   # EMA
+    VARIATION = "variation"                         # EMA Type I/II
+    SUPPLEMENTAL_BLA = "supplemental_bla"           # FDA sBLA
+    ADVISORY_COMMITTEE = "advisory_committee"       # e.g. ODAC
+    GUIDANCE = "guidance_document"
+    BOXED_WARNING = "boxed_warning"
+    PRV_AWARD = "priority_review_voucher"
+    WHO_EML = "who_essential_medicines"
+    PILOT_PROGRAM = "pilot_program"
+    OTHER = "other"
 
 
 class RWEStudyType(str, Enum):

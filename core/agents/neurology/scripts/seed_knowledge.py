@@ -120,15 +120,24 @@ def _insert_records(
             # present on every row or the whole batch is rejected. The parsers legitimately do
             # not carry all of them (a PubMed record has no `sequence`), so supply a
             # type-appropriate empty rather than dropping real records.
-            _required = {}
+            _required, _numeric, _integral = {}, set(), set()
             for fld in _fields:
                 nm = fld["name"]
                 if nm in ("id", "embedding") or fld.get("auto_id"):
                     continue
-                t = str(fld.get("type", "")).upper()
-                _required[nm] = 0 if ("INT" in t or "FLOAT" in t or "DOUBLE" in t) else ""
+                # pymilvus returns a DataType enum whose str() is its NUMERIC CODE
+                # ("10"), not its name -- so matching on str() silently classified every
+                # float column as text. Use .name.
+                _t = fld.get("type", "")
+                t = getattr(_t, "name", str(_t)).upper()
+                is_num = ("INT" in t or "FLOAT" in t or "DOUBLE" in t) and "VECTOR" not in t
+                if is_num:
+                    _numeric.add(nm)
+                    if "INT" in t:
+                        _integral.add(nm)
+                _required[nm] = 0 if is_num else ""
         except Exception:
-            valid, _required = None, {}
+            valid, _required, _numeric, _integral = None, {}, set(), set()
 
         def _flatten(rec):
             """Row fields live INSIDE IngestRecord.metadata, not on the record itself.
@@ -170,9 +179,34 @@ def _insert_records(
                     )
             if not row:
                 continue
-            row = {k: (v if k == "embedding" else
-                       (str(v)[:4096] if not isinstance(v, (int, float, bool)) else v))
-                   for k, v in row.items()}
+            # Coerce to the column's declared type. A blanket str() here silently broke
+            # numeric columns ("{immune_score} field should be a float, but got a str").
+            def _coerce(k, v):
+                if k == "embedding":
+                    return v
+                if k in _numeric:
+                    # int64 and float are different columns; coercing everything to float
+                    # fails an int64 insert ("'float' object cannot be interpreted as an
+                    # integer").
+                    try:
+                        return int(float(v)) if k in _integral else float(v)
+                    except (TypeError, ValueError):
+                        return 0 if k in _integral else 0.0
+                return v if isinstance(v, (int, float, bool)) else str(v)[:4096]
+
+            row = {k: _coerce(k, v) for k, v in row.items()}
+            # Preserve the source text. The parsers and the schemas were designed
+            # independently, so for some collections only one or two columns overlap and the
+            # rest would be filled with empty defaults -- rows that embed correctly (the
+            # vector is built from the real text) but return nothing readable. If the schema
+            # offers a prose column and nothing has filled it, put the record's text there.
+            _src_text = texts[i] if i < len(texts) else ""
+            if _src_text and valid:
+                for _cand in ("description", "text", "summary", "abstract",
+                              "content", "finding", "clinical_correlation"):
+                    if _cand in valid and not row.get(_cand):
+                        row[_cand] = _src_text[:4096]
+                        break
             for _k, _default in _required.items():
                 row.setdefault(_k, _default)
             row["embedding"] = embeddings[i]
