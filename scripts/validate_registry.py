@@ -184,12 +184,28 @@ def main() -> int:
         claimed: dict[int, list[str]] = {}
         SINGLE = {"genomics-engine", "precision-intelligence-engine",
                   "therapeutic-discovery-engine", "singlecell-compute"}
+        # UI/UI+1 is a convention about capabilities that HAVE a front end. Models, NIMs and
+        # platform services are headless -- one port, no UI -- so they allocate a single port.
+        # Before this, supervising one of them (variant-store, molecule-generator, proteinmpnn)
+        # tripped the drift-guard as an unallocated port, which is why they were never added to
+        # health-monitor.sh and therefore never survived a reboot.
+        # `stage` is deliberately absent: a stage is a pipeline step HOSTED BY another
+        # capability's process, not a separately-bound service. mosaicism-vaf declares
+        # :8575 because variant-store serves it at /mosaic — that is one process serving
+        # two capabilities, not a port collision.
+        HEADLESS_TYPES = {"model", "nim", "service"}
         for c in reg.all():
-            if c.type.value not in ("engine", "agent") or not c.endpoint:
+            if not c.endpoint:
+                continue
+            kind = c.type.value
+            if kind not in ("engine", "agent") and kind not in HEADLESS_TYPES:
                 continue
             try:
                 ui_port = int(str(c.endpoint).rsplit(":", 1)[-1])
             except ValueError:
+                continue
+            if kind in HEADLESS_TYPES:
+                claimed.setdefault(ui_port, []).append(f"{c.id}(headless)")
                 continue
             claimed.setdefault(ui_port, []).append(f"{c.id}(ui)")
             if c.id not in SINGLE:

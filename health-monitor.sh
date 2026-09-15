@@ -104,6 +104,15 @@ declare -a SERVICES=(
     "neurology|8536|Neurology Intelligence|/health|python|${SCRIPT_DIR}/core/agents/neurology|./venv/bin/python -m uvicorn api.main:app --host 0.0.0.0 --port 8536"
     "neurology-ui|8535|Neurology UI|/healthz|streamlit|${SCRIPT_DIR}/core/agents/neurology|./venv/bin/streamlit run app/neuro_ui.py --server.port 8535 --server.address 0.0.0.0 --server.headless true"
     "single-cell|8541|Single-Cell Intelligence|/health|python|${SCRIPT_DIR}/core/agents/single-cell|./venv/bin/python -m uvicorn api.main:app --host 0.0.0.0 --port 8541"
+    # ── Model / compute services and the disease program ──
+    # These were registered `live` while nothing ran them: they expose a create_app() factory
+    # rather than a module-level `app`, so they need uvicorn --factory, and nothing supervised
+    # them. Added so they survive a reboot (PRD R10/A3) and so --probe stays green.
+    "variant-store|8575|Variant Store|/stats|python|${SCRIPT_DIR}/core/engines/genomic-foundation/src|${SCRIPT_DIR}/.venv/bin/python -m uvicorn --factory variant_store_service:create_app --host 0.0.0.0 --port 8575"
+    "singlecell-compute|8573|Single-Cell Compute|/docs|python|${SCRIPT_DIR}/core/engines/single-cell/src|${SCRIPT_DIR}/.venv/bin/python -m uvicorn --factory single_cell_service:create_app --host 0.0.0.0 --port 8573"
+    "proteinmpnn|8578|ProteinMPNN Design|/docs|python|${SCRIPT_DIR}/core/engines/structural-biology/src|${SCRIPT_DIR}/.venv/bin/python -m uvicorn --factory proteinmpnn_service:create_app --host 0.0.0.0 --port 8578"
+    "molecule-generator|8574|Molecule Generator|/docs|python|${SCRIPT_DIR}/core/engines/therapeutic-discovery/small-molecule/src|${SCRIPT_DIR}/.venv/bin/python -m uvicorn --factory molecule_gen_service:create_app --host 0.0.0.0 --port 8574"
+    "tuberous-sclerosis|8560|TSC Intelligence Engine|/health|python|${SCRIPT_DIR}/core/disease-programs/tuberous-sclerosis|./venv/bin/python -m uvicorn api.main:app --host 0.0.0.0 --port 8560"
 )
 
 # ============================================================================
@@ -318,10 +327,10 @@ start_service() {
     # Match an absolute venv path first (some commands `source` another service's venv);
     # only fall back to the relative form, which is resolved against $svc_dir.
     local venv_path
-    venv_path=$(printf '%s\n' "$svc_cmd" | grep -oE '(^|[[:space:]])/[^[:space:]]*/venv/bin/[a-zA-Z0-9_.-]+' | head -1 | tr -d '[:space:]')
+    venv_path=$(printf '%s\n' "$svc_cmd" | grep -oE '(^|[[:space:]])/[^[:space:]]*/[.]?venv/bin/[a-zA-Z0-9_.-]+' | head -1 | tr -d '[:space:]')
     if [ -z "$venv_path" ]; then
         local venv_rel
-        venv_rel=$(printf '%s\n' "$svc_cmd" | grep -oE '(^|[[:space:]])\./venv/bin/[a-zA-Z0-9_.-]+' | head -1 | tr -d '[:space:]')
+        venv_rel=$(printf '%s\n' "$svc_cmd" | grep -oE '(^|[[:space:]])\./[.]?venv/bin/[a-zA-Z0-9_.-]+' | head -1 | tr -d '[:space:]')
         [ -n "$venv_rel" ] && venv_path="${svc_dir}/${venv_rel#./}"
     fi
     # -e, not -x: `activate` is sourced and is not executable. The question this
@@ -332,11 +341,18 @@ start_service() {
         return 1
     fi
 
+    # `exec 9>&-` is load-bearing in BOTH branches. fd 9 is the flock held by this run; a
+    # started service inherits every open descriptor, so without closing it the service keeps
+    # the lock for its entire lifetime -- and since services are meant to run forever, the
+    # first successful start would permanently wedge the lock and silently end all
+    # supervision. That is not hypothetical: it happened here, and every tick for the next
+    # five hours logged "Skipped tick: previous run still in progress" while a Streamlit
+    # process sat holding the lock.
     local child_pid=""
     if [ "$svc_type" = "docker" ]; then
-        ( cd "$svc_dir" && eval "$svc_cmd" ) >> "${LOG_DIR}/${log_name}.log" 2>&1
+        ( exec 9>&-; cd "$svc_dir" && eval "$svc_cmd" ) >> "${LOG_DIR}/${log_name}.log" 2>&1
     else
-        ( cd "$svc_dir" && nohup bash -c "$svc_cmd" >> "${LOG_DIR}/${log_name}.log" 2>&1 ) &
+        ( exec 9>&-; cd "$svc_dir" && nohup bash -c "$svc_cmd" >> "${LOG_DIR}/${log_name}.log" 2>&1 ) &
         child_pid=$!
     fi
 
