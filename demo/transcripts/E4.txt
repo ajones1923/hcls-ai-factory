@@ -4,7 +4,7 @@ E4 · The scan that had already answered
     demo          E4 · clinical-imaging
     title         The scan that had already answered
     label         LIVE
-    started       2026-09-15T22:45:26+00:00
+    started       2026-09-15T22:56:08+00:00
     POST          http://localhost:8524/api/ask
     input         question=Imaging protocol for initial staging and CNS evaluation in pediatric B-cell ALL. Brain M
     status        200
