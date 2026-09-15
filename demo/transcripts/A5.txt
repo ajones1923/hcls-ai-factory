@@ -1,7 +1,7 @@
 demo          A5 · neurology
 title         NIHSS, and what comes next
 label         LIVE
-started       2026-09-15T23:01:09+00:00
+started       2026-09-15T23:30:20+00:00
 POST          http://localhost:8536/v1/neuro/scale/calculate
 input         scale_name=nihss
 status        200

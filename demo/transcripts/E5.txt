@@ -1,7 +1,7 @@
 demo          E5 · precision-oncology
 title         The molecular tumour board
 label         LIVE
-started       2026-09-15T23:00:58+00:00
+started       2026-09-15T23:30:09+00:00
 POST          http://localhost:8527/api/therapies/rank
 status        200
 ranked         6 therapies
