@@ -21,6 +21,19 @@ order.
 
 ## 2. Measured starting state (2026-08-17)
 
+> **Update 2 — 2026-09-15 (later).** The acceptance criteria are essentially met.
+> **A1 ✅** `validate_registry.py --probe` reports *"Every live endpoint answered."*
+> **A2 ✅** 17/17 demos run on real input and write transcripts (was 1).
+> **A4 ✅** the quickstart works on a clean clone — `cp .env.example .env` used to break nine
+> services (pydantic-settings `extra="forbid"` on a shared .env, plus a venv resolving
+> pydantic-settings from `~/.local`); both fixed.
+> **A5 ✅** `mkdocs build --strict` green and no `live` badge is unbacked — chemprop-admet,
+> esm2-search and esmfold-model are now actually served, and molmim/diffdock moved to `planned`.
+> **A3** is the one left: services are supervised (32/32) and auto-recover, but a real reboot
+> has not been done.
+> Remaining: `ANTHROPIC_API_KEY` (answer synthesis; retrieval works without it), the gated NIMs,
+> and GPU headroom (~5 GiB allocatable until caches are dropped).
+>
 > **Update — 2026-09-15.** Re-measured; the bring-up half of this document is now largely done.
 > **20 of 24 supervised services are healthy** (was 2), **17/17 demos have prerequisites met**
 > (was 7), and **5/17 demos actually run on real input** (was 1: E4, E6, E8, A5, A7).

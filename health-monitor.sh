@@ -113,6 +113,13 @@ declare -a SERVICES=(
     "proteinmpnn|8578|ProteinMPNN Design|/docs|python|${SCRIPT_DIR}/core/engines/structural-biology/src|${SCRIPT_DIR}/.venv/bin/python -m uvicorn --factory proteinmpnn_service:create_app --host 0.0.0.0 --port 8578"
     "molecule-generator|8574|Molecule Generator|/docs|python|${SCRIPT_DIR}/core/engines/therapeutic-discovery/small-molecule/src|${SCRIPT_DIR}/.venv/bin/python -m uvicorn --factory molecule_gen_service:create_app --host 0.0.0.0 --port 8574"
     "tuberous-sclerosis|8560|TSC Intelligence Engine|/health|python|${SCRIPT_DIR}/core/disease-programs/tuberous-sclerosis|./venv/bin/python -m uvicorn api.main:app --host 0.0.0.0 --port 8560"
+    # Structural biology + ADMET. These were registered live-and-VERIFIED with nothing serving
+    # them; they need admet-ai / transformers, now in the platform venv. ESMFold and ESM2 hold
+    # multi-GB weights, so first start after a cold page cache is slow -- the health wait is
+    # generous by design.
+    "esmfold|8570|ESMFold|/docs|python|${SCRIPT_DIR}/core/engines/structural-biology/src|${SCRIPT_DIR}/.venv/bin/python -m uvicorn --factory esmfold_service:create_app --host 0.0.0.0 --port 8570"
+    "esm2-search|8571|ESM-2 Protein Search|/docs|python|${SCRIPT_DIR}/core/engines/structural-biology/src|${SCRIPT_DIR}/.venv/bin/python -m uvicorn --factory protein_search_service:create_app --host 0.0.0.0 --port 8571"
+    "chemprop-admet|8572|ADMET / Toxicity|/docs|python|${SCRIPT_DIR}/core/engines/therapeutic-discovery/src|${SCRIPT_DIR}/.venv/bin/python -m uvicorn --factory admet_service:create_app --host 0.0.0.0 --port 8572"
 )
 
 # ============================================================================
