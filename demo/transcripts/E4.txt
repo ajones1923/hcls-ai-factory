@@ -1,0 +1,14 @@
+
+E4 · The scan that had already answered
+
+    demo          E4 · clinical-imaging
+    title         The scan that had already answered
+    label         LIVE
+    started       2026-09-15T16:08:28+00:00
+    POST          http://localhost:8524/api/ask
+    input         question=Imaging protocol for initial staging and CNS evaluation in pediatric B-cell ALL. Brain M
+    status        200
+    answer        822 chars
+    citations     20
+    excerpt       Based on the available clinical information and imaging data, here is my analysis:  **Assessment:** The imaging findings are consistent with normal an
+    RESULT        PASS — ran on real input

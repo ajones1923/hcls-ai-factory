@@ -1,0 +1,13 @@
+
+A7 · Ending the odyssey
+
+    demo          A7 · rare-disease-diagnostic
+    title         Ending the odyssey
+    label         LIVE
+    started       2026-09-15T16:08:39+00:00
+    POST          http://localhost:8545/v1/diagnostic/diagnose
+    status        200
+    differential  2 candidate diagnoses
+      candidate   OMIM:230800 Gaucher Disease (confidence 0.1, overlap 0.2)
+      candidate   OMIM:166200 Osteogenesis Imperfecta (confidence 0.1, overlap 0.2)
+    RESULT        PASS — ran on real input

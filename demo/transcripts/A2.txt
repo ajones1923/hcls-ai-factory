@@ -1,0 +1,8 @@
+
+A2 · The marker that changes the decision
+
+    demo          A2 · precision-biomarker
+    title         The marker that changes the decision
+    label         LIVE
+    started       2026-09-15T16:08:38+00:00
+    RESULT        NOT IMPLEMENTED — spec only, see docs/demos/DEMO_CATALOG.md

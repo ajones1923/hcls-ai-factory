@@ -1,0 +1,8 @@
+
+E5 · The molecular tumour board
+
+    demo          E5 · precision-oncology
+    title         The molecular tumour board
+    label         LIVE
+    started       2026-09-15T16:08:29+00:00
+    RESULT        NOT IMPLEMENTED — spec only, see docs/demos/DEMO_CATALOG.md
