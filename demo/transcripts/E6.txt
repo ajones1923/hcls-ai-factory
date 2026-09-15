@@ -4,7 +4,7 @@ E6 · Risk that changes management
     demo          E6 · cardiology
     title         Risk that changes management
     label         LIVE
-    started       2026-09-15T16:50:00+00:00
+    started       2026-09-15T16:56:25+00:00
     POST          http://localhost:8127/v1/cardio/risk/ascvd
     status        200
     calculator    ASCVD_Pooled_Cohort_Equations
