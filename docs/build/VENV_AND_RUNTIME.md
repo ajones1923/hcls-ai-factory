@@ -70,3 +70,40 @@ done
 ```
 
 Related: `docs/build/FACTORY_COMPLETION_WORKBOOK.md` (Phase 1), `docs/build/PORT_MAP.md`.
+
+## Services the supervisor does not know about
+
+`health-monitor.sh`'s SERVICES table covers 24 processes. Several registered capabilities are
+**not in it** and must be started by hand, which is why they sat "registered `live`, nothing
+listening" — the code was fine, nothing was ever asked to run it. All use a `create_app()`
+factory (no `__main__` block), so they need uvicorn's `--factory`:
+
+```bash
+V=$PWD/.venv/bin/python
+( cd core/engines/genomic-foundation/src   && $V -m uvicorn --factory variant_store_service:create_app --port 8575 & )
+( cd core/engines/single-cell/src          && $V -m uvicorn --factory single_cell_service:create_app   --port 8573 & )
+( cd core/engines/structural-biology/src   && $V -m uvicorn --factory proteinmpnn_service:create_app   --port 8578 & )
+( cd core/engines/therapeutic-discovery/small-molecule/src \
+                                           && $V -m uvicorn --factory molecule_gen_service:create_app --port 8574 & )
+# the flagship disease program has its own venv and a normal app object:
+( cd core/disease-programs/tuberous-sclerosis && ./venv/bin/python -m uvicorn api.main:app --port 8560 & )
+```
+
+Still unserved, and still registered `live`:
+
+| Capability | Port | Why |
+|---|---|---|
+| `chemprop-admet` ⚠️ verified | 8572 | `chemprop` not installed |
+| `esm2-search` ⚠️ verified | 8571 | `esm` not installed |
+| `esmfold-model` ⚠️ verified | 8570 | model weights + CUDA |
+| `molmim-nim` | 8001 | gated NIM (NGC) |
+| `diffdock-nim` | 8002 | gated NIM (NGC) |
+
+⚠️ **Three of these carry `maturity: verified`**, which the published honesty ledger defines as
+"live **and additionally proven against real, recorded input**". The site's maturity matrix is
+generated from the registry, so those badges are live on hcls-ai-factory.org while nothing serves
+them. Either start the service or move the status — `scripts/validate_registry.py --probe` will
+tell you which, and fails while the claim and the machine disagree.
+
+**Adding any of these to `health-monitor.sh`** means adding a SERVICES row *and* respecting the
+UI/UI+1 port convention, which `validate_registry.py` cross-checks. See `PORT_MAP.md`.
