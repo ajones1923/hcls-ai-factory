@@ -202,6 +202,22 @@ def assert_annotation(d):
                f"confidence {c.get('confidence')} via {','.join(c.get('markers') or [])}")
 
 
+
+def assert_cart_evidence(d):
+    """A1 — cross-collection CAR-T evidence retrieval over the seeded corpus."""
+    ev = d.get("evidence") or []
+    if not ev:
+        raise RuntimeError(
+            "no evidence returned — the CAR-T collections are empty or unsearchable; "
+            "run core/agents/cart/scripts/seed_*.py")
+    yield f"collections   {d.get('collections_searched')} searched"
+    yield f"evidence      {len(ev)} passages in {d.get('search_time_ms', '?')} ms"
+    for e in ev[:3]:
+        yield (f"  [{e.get('collection')}] {e.get('id')} score={round(float(e.get('score', 0)), 3)}")
+        yield f"      {str(e.get('text',''))[:120]}"
+    yield "decision support for a qualified clinician, not diagnosis"
+
+
 DEMOS = [
     Demo("E1", "genomic-foundation", "The variant that was always there", REPRESENTATIVE,
          packages=("duckdb", "statsmodels"), gated=("Parabricks (G2)",),
@@ -224,7 +240,8 @@ DEMOS = [
     Demo("E8", "single-cell", "Nine populations from one sample", LIVE,
          packages=("scanpy", "anndata"), runner="single_cell"),
     Demo("A1", "cart", "Why this construct, for this patient", LIVE, port=8522,
-         payload="demo/requests/cart_query.json"),
+         payload="demo/requests/cart_query.json",
+         endpoint="/search", assertion=assert_cart_evidence),
     Demo("A2", "precision-biomarker", "The marker that changes the decision", LIVE, port=8529,
          payload="demo/requests/biomarker_phenoage.json",
          endpoint="/v1/biological-age", assertion=assert_biological_age),

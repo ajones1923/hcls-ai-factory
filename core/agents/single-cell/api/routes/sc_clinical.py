@@ -506,16 +506,30 @@ async def search(request: SearchRequest, req: Request):
     engine = _get_engine(req)
     if engine:
         try:
+            # SingleCellRAGEngine.search(question, collections, top_k) -- the call passed
+            # `query=` and a `threshold=` the signature does not accept, so every search
+            # raised TypeError and was swallowed into an empty result.
             results = engine.search(
-                query=request.question,
+                question=request.question,
                 collections=request.collections,
                 top_k=request.top_k,
-                threshold=request.threshold,
             )
+            rows = [_as_row(r) for r in results]
+            if request.threshold:
+                rows = [r for r in rows if r.get("score", 0.0) >= request.threshold]
             return SearchResponse(
-                results=[SearchResult(**r) for r in results],
-                total=len(results),
-                collections_searched=request.collections or ["all"],
+                results=[
+                    SearchResult(
+                        collection=r.get("collection", "unknown"),
+                        text=r.get("text", ""),
+                        score=r.get("score", 0.0),
+                        metadata=r.get("metadata", {}),
+                    )
+                    for r in rows
+                ],
+                total=len(rows),
+                collections_searched=sorted({r.get("collection", "unknown") for r in rows})
+                or (request.collections or []),
             )
         except Exception as exc:
             logger.error(f"Search failed: {exc}")
