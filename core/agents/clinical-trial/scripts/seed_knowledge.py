@@ -137,11 +137,22 @@ def _insert_records(
 
     # --- insert ---
     try:
+        # The content field is named `text` in these collections (see setup_collections.py),
+        # not `text_content`. Writing the wrong name was silently fatal: the schema filter
+        # below drops any key the collection does not declare, so `text_content` vanished and
+        # the insert then failed on the required `text` field being absent. Resolve the name
+        # from the live schema instead of hardcoding either spelling.
+        text_field = "text"
+        if valid_fields:
+            text_field = next(
+                (c for c in ("text", "text_content", "text_summary") if c in valid_fields),
+                "text",
+            )
         insert_data = []
         for record, emb in zip(records, embeddings):
             entry = {
                 "embedding": emb,
-                "text_content": record.text[:8192],
+                text_field: record.text[:8192],
             }
             # Include metadata fields that exist in the collection schema
             for k, v in record.metadata.items():

@@ -300,10 +300,20 @@ async def lifespan(app: FastAPI):
     # -- RAG engine --
     try:
         from src.rag_engine import TrialRAGEngine
+        # _CollectionManager wraps the ORM-style `connections` helper and has no .search();
+        # the engine calls milvus_client.search(...), so it needs a real MilvusClient. Passing
+        # the manager made every collection search raise
+        # "'_CollectionManager' object has no attribute 'search'", which the engine caught and
+        # logged as a warning -- so retrieval returned zero hits from a service that otherwise
+        # looked healthy.
+        from pymilvus import MilvusClient as _MilvusClient
+        _search_client = _MilvusClient(
+            uri=f"http://{settings.MILVUS_HOST}:{settings.MILVUS_PORT}"
+        )
         _engine = TrialRAGEngine(
             embedding_model=embedder,
             llm_client=llm_client,
-            milvus_client=_manager,
+            milvus_client=_search_client,
         )
         logger.info("Clinical Trial RAG engine initialized")
     except Exception as exc:

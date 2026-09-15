@@ -4,7 +4,7 @@ A4 · Before the third flare
     demo          A4 · precision-autoimmune
     title         Before the third flare
     label         LIVE
-    started       2026-09-15T16:56:35+00:00
+    started       2026-09-15T22:05:34+00:00
     POST          http://localhost:8532/differential
     status        200
     differential   1 candidates
