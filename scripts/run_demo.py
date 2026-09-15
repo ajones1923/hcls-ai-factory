@@ -246,7 +246,8 @@ DEMOS = [
     Demo("A8", "single-cell", "The engine computes, the agent interprets", LIVE, port=8541,
          payload="demo/requests/single_cell_annotate.json",
          endpoint="/v1/sc/annotate", assertion=assert_annotation),
-    Demo("P1", "tuberous-sclerosis", "The whole factory, one child", REPRESENTATIVE, port=8561),
+    Demo("P1", "tuberous-sclerosis", "The whole factory, one child", REPRESENTATIVE, port=8560,
+         runner="tsc_program"),
 ]
 BY_KEY = {d.key: d for d in DEMOS}
 
@@ -381,7 +382,61 @@ def run_structural_biology(log):
     log("              narrow a design space, they do not rank designs")
 
 
+
+def run_tsc_program(log):
+    """P1 — the flagship disease program: the whole factory composed for one child.
+
+    Walks the surfaces a clinician would actually see, in order: the cohort, one featured
+    patient's briefing, the provenance chain behind it, and the five disease-specific agents
+    that produced it. Every record is SYNTHETIC and the engine says so in its own health
+    payload -- this demo asserts that watermark rather than trusting it, because a disease
+    program that quietly served real patient data would be the worst failure in the project.
+    """
+    def get(path):
+        with urllib.request.urlopen(f"http://localhost:8560{path}", timeout=60) as r:
+            return json.loads(r.read().decode())
+
+    health = get("/health")
+    if health.get("watermark") != "SYNTHETIC":
+        raise RuntimeError(
+            f"TSC engine did not declare SYNTHETIC data (watermark={health.get('watermark')!r}) — "
+            "refusing to run a disease-program demo that may be serving real patient records")
+    log(f"engine        {health.get('engine')}")
+    log(f"data          {health['watermark']} — synthetic cohort, never a real patient")
+
+    cohort = get("/cohort")
+    n = cohort.get("n_patients", 0)
+    if not n:
+        raise RuntimeError("cohort is empty — the synthetic cohort has not been built")
+    log(f"cohort        {n} patients")
+    for k, v in list((cohort.get("distributions") or {}).get("classification", {}).items())[:4]:
+        log(f"  {k:<34} {v}")
+
+    agents = get("/agents")
+    log(f"agents        {len(agents)} disease-specific agents, dependency-ordered")
+    for a in agents:
+        log(f"  {a.get('name'):<22} emits {a.get('emits')}")
+
+    pid = (health.get("featured") or {}).get("A") or "TSC-0043"
+    brief = get(f"/surfaces/briefing/{pid}")
+    hdr = brief.get("header") or {}
+    log(f"patient       {pid} — {hdr.get('genotype')} {hdr.get('variant')} "
+        f"({hdr.get('classification', '?')})")
+
+    prov = get(f"/provenance/{pid}")
+    if not prov:
+        raise RuntimeError(f"no provenance for {pid} — the audit chain is empty")
+    log(f"provenance    {len(prov)} recorded events behind that briefing")
+    for e in prov[:3]:
+        rec = (e.get("records") or [{}])[0]
+        log(f"  {e.get('event'):<22} by {rec.get('agent')} v{rec.get('agent_version')}")
+
+    log("TSC1/TSC2 gene therapy is preclinical; every output is decision support for a")
+    log("              qualified clinician, behind a review gate — never diagnosis")
+
+
 RUNNERS = {"single_cell": run_single_cell,
+           "tsc_program": run_tsc_program,
            "genomic_foundation": run_genomic_foundation,
            "structural_biology": run_structural_biology}
 
