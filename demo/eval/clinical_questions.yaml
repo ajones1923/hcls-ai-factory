@@ -1,0 +1,73 @@
+# Clinical accuracy eval — HCLS AI Factory
+#
+# The 8,404 subject tests prove the plumbing works. NOTHING measured whether an agent's
+# answer is CLINICALLY CORRECT. This does, on a small curated set where the right answer is
+# externally verifiable and not in dispute.
+#
+# Rules for adding a case:
+#   - `expect` terms must be checkable against a primary source, not a matter of judgement.
+#   - Prefer facts with a single unambiguous value (a gene, an allele, an OR, an NCT number).
+#   - `forbid` catches the specific wrong answer a model plausibly produces — that is what
+#     makes a case discriminating rather than decorative.
+#   - Keep it small and correct. A large eval full of soft assertions measures nothing.
+
+cases:
+  - id: pgx-tpmt
+    agent: pharmacogenomics
+    port: 8508
+    path: /query
+    field: question
+    question: "Which gene variants require thiopurine dose reduction, and what is the CPIC recommendation?"
+    expect: ["TPMT", "NUDT15"]
+    forbid: ["CYP2D6 determines thiopurine"]
+    why: "CPIC thiopurine dosing is TPMT + NUDT15. Naming CYP2D6 would be a real clinical error."
+
+  - id: autoimmune-b27
+    agent: precision-autoimmune
+    port: 8532
+    path: /query
+    field: question
+    question: "Which HLA allele is most strongly associated with ankylosing spondylitis?"
+    expect: ["B*27", "ankylosing"]
+    forbid: ["HLA-DR3 is the strongest", "B*57:01"]
+    why: "HLA-B*27:05, OR ~87 — the strongest known HLA-disease association."
+
+  - id: cart-eliana
+    agent: cart
+    port: 8522
+    path: /api/ask
+    field: question
+    question: "What was the overall remission rate in the ELIANA trial of tisagenlecleucel?"
+    expect: ["81", "ELIANA"]
+    forbid: ["97%", "100%"]
+    why: "ELIANA ORR was 81% (61/75), Maude et al. NEJM 2018;378:439-448."
+
+  - id: trial-eliana-nct
+    agent: clinical-trial
+    port: 8539
+    path: /v1/trial/query
+    field: question
+    question: "What is the NCT registration number of the ELIANA trial?"
+    expect: ["NCT02435849"]
+    forbid: ["NCT04999999"]
+    why: "A wrong NCT number is the canonical hallucination for trial agents."
+
+  - id: neuro-tenecteplase
+    agent: neurology
+    port: 8536
+    path: /v1/neuro/query
+    field: question
+    question: "What does the evidence show for tenecteplase versus alteplase before thrombectomy?"
+    expect: ["tenecteplase"]
+    forbid: ["tenecteplase is contraindicated in stroke"]
+    why: "EXTEND-IA TNK showed non-inferiority/superiority for reperfusion."
+
+  - id: rare-gaucher-gene
+    agent: rare-disease-diagnostic
+    port: 8545
+    path: /v1/diagnostic/query
+    field: question
+    question: "Which gene is mutated in Gaucher disease, and which enzyme is deficient?"
+    expect: ["GBA", "glucocerebrosidase"]
+    forbid: ["HEXA", "hexosaminidase"]
+    why: "GBA1 / acid beta-glucocerebrosidase. HEXA is Tay-Sachs — a classic confusion."
