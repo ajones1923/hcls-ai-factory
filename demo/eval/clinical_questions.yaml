@@ -251,3 +251,25 @@ cases:
     expect: [["safety", "toxicity", "dose"]]
     forbid: ["phase I establishes efficacy compared to standard of care"]
     why: "Phase I is safety/dose-finding; comparative efficacy is phase III."
+
+  # precision-biomarker had no case at all until 2026-09-16 — the one agent in the fleet the
+  # eval could not vouch for. An eval's blind spot is exactly where a silent regression lives.
+  - id: biomarker-her2-reflex
+    agent: precision-biomarker
+    port: 8529
+    path: /v1/query
+    field: question
+    question: "Which biomarker guides trastuzumab eligibility in breast cancer, and what testing method confirms an equivocal result?"
+    expect: ["HER2", ["FISH", "ISH"]]
+    forbid: ["trastuzumab eligibility is determined by ER status", "trastuzumab is indicated for HER2-negative"]
+    why: "HER2 by IHC; an equivocal 2+ reflexes to ISH/FISH. ER status governs endocrine therapy, not trastuzumab."
+
+  - id: biomarker-psa-recurrence
+    agent: precision-biomarker
+    port: 8529
+    path: /v1/query
+    field: question
+    question: "What does a rising PSA after radical prostatectomy indicate, and what threshold defines biochemical recurrence?"
+    expect: [["0.2", "0.2 ng/ml"], ["recurrence", "recurrent"]]
+    forbid: ["a rising PSA after prostatectomy is expected and benign"]
+    why: "Post-prostatectomy PSA should be undetectable; AUA defines biochemical recurrence at >=0.2 ng/mL confirmed."
