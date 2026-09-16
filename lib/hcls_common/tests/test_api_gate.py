@@ -45,8 +45,9 @@ def test_governance_endpoint_and_headers():
 def test_governed_header_appears_when_a_gate_runs():
     c = TestClient(_app())
     r = c.post("/query", json={"patient_context": {"patient_id": "P1"}, "question": "q"})
-    if r.status_code == 200:                      # payload satisfied the contract
-        assert r.headers.get("X-HCLS-Governed") == "input-validation"
+    # No longer conditional: `question` is the declared contract, so this must be a 200.
+    assert r.status_code == 200
+    assert r.headers.get("X-HCLS-Governed") == "input-validation"
 
 
 def test_input_gate_rejects_missing_required():
@@ -57,8 +58,14 @@ def test_input_gate_rejects_missing_required():
 
 
 def test_input_gate_accepts_valid_payload():
+    """The required field is `question`, matching what the live services actually take.
+
+    This asserted `query` until 2026-09-15, when the registry was corrected: eleven
+    capabilities declared `query` while every one of their services requires `question`
+    and returns 422 for `query`. The test was pinning the broken contract.
+    """
     c = TestClient(_app())
-    r = c.post("/query", json={"query": "CD19 CAR-T"})
+    r = c.post("/query", json={"question": "CD19 CAR-T"})
     assert r.status_code == 200
     assert r.json()["ok"] is True
 
