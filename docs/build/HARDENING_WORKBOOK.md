@@ -546,6 +546,70 @@ retrieval quietly returning nothing.
 
 ---
 
+### 3.7 Grounding and corpus — ✅ measured 2026-09-16
+
+**The eval graded the answer and never asked whether retrieval contributed.** That gap hid two
+things at once.
+
+**44 of 113 Milvus collections are empty.** Not broken — *empty*. The service is up, the
+collection is loaded, the query succeeds, and the result set has nothing in it. There is no error
+anywhere in that chain, so the model answers from its own knowledge and the reply looks exactly
+like a sourced one.
+
+| subject | collections | empty | vectors |
+|---|---|---|---|
+| precision-autoimmune | 13 | **8** | 116 |
+| neurology | 13 | 3 | 168 |
+| clinical-trial | 13 | **11** | 178 |
+| pharmacogenomics | 14 | 0 | 240 |
+| single-cell | 11 | **8** | 279 |
+| rare-disease-diagnostic | 13 | **10** | 440 |
+| clinical-imaging | 12 | 2 | 440 |
+| cart | 10 | 2 | 879 |
+| precision-biomarker | 13 | 0 | 1,244 |
+
+**Eight of ten subjects hold fewer than 500 vectors.** Every one of them was passing the clinical
+eval.
+
+**The single-cell agent answers with no evidence at all:**
+
+```
+/v1/sc/query -> answer 2,658 chars · evidence: [] · guidelines_cited: [] · confidence: 0.3
+```
+
+It passed `sc-tcell-marker` on model knowledge alone. The agent is honest enough to report
+confidence 0.3; nothing surfaced it.
+
+**Two checks now make this visible:**
+
+- `scripts/run_clinical_eval.py` reads the evidence count out of whatever key a service uses and
+  returns a new **`UNGROUNDED`** verdict — a right-looking answer with zero retrieved passages is
+  not a pass for a platform whose claim is RAG over a curated corpus, and it counts as a failure.
+  Verified: precision-biomarker `PASS 30 evidence`, single-cell `UNGROUNDED 0 evidence`.
+- `scripts/check_corpus.py` reports per-subject collections, empties and vector counts against a
+  floor, and runs inside `scripts/reboot_check.py`.
+
+Neither fixes the corpus. Seeding it is content work — `docs/build/CORPUS_SEEDING.md` — but it is
+now a number someone can see rather than an absence nobody can.
+
+### 3.8 One pre-commit guard, not two — ✅ done 2026-09-16
+
+The repo shipped `.pre-commit-config.yaml` (gitleaks, `check-added-large-files --maxkb=5120`,
+yaml/json checks) **and** a hand-written `scripts/pre-commit-hook.sh`. Git calls the hand-written
+one, and it never delegated to the framework — so the documented config was dead weight and
+gitleaks never ran locally.
+
+The hand-written hook also **explicitly exempted `docs/assets/videos/*.mp4`** from its 5 MB limit.
+That exemption is exactly how 899 MB of video reached the history: 123 blobs, 84 of them
+superseded re-encodes of the same 22 files, stripped in the H-D4 rewrite that recovered 233 MB per
+clone.
+
+Now: the hook runs `pre-commit run` when the framework is installed, and re-committing a video
+requires an explicit `HCLS_ALLOW_VIDEO_COMMIT=1`. Adding a video is still allowed; doing it by
+accident is not. Verified both paths — blocked without the flag, permitted with it.
+
+---
+
 ## Traps already paid for on this machine
 
 1. **A count is not a cause.** `run_all_tests.py` reported "errors 36" with no traceback and cost a
