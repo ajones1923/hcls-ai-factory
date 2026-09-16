@@ -109,3 +109,57 @@ class TestSubjectScoping:
                     "This drug is certain to work for every patient.",
                     "The therapy carries zero risk for the patient."):
             assert any(x["severity"] == "block" for x in honesty_check(txt)), txt
+
+
+# ── diagnostic certainty: about a patient, or about medicine? (2026-09-16) ────
+class TestDiagnosticCertaintyScoping:
+    """The flagship TSC question was WITHHELD on ~half of identical runs.
+
+    "Which genes cause tuberous sclerosis and which pathway is dysregulated?" is a textbook
+    genetics question, and a correct answer naturally says how the diagnosis is established.
+    The rule fired on that and blocked the answer. A gate that withholds the right answer half
+    the time teaches people to route around it.
+
+    The distinction is the subject: a claim of certainty about A PATIENT (or about this
+    platform's own output) is the thing the rule exists to stop. A statement about how diagnosis
+    works in general is ordinary clinical education.
+    """
+
+    def test_patient_specific_certainty_still_blocks(self):
+        for txt in ("This result confirms the diagnosis of tuberous sclerosis.",
+                    "The patient's diagnosis is confirmed by the variant.",
+                    "This establishes the diagnosis for this patient.",
+                    "In this case the findings confirm the diagnosis.",
+                    "Our analysis provides a definitive diagnosis."):
+            v = honesty_check(txt)
+            assert any(x["severity"] == "block" for x in v), txt
+
+    def test_general_clinical_statements_degrade_to_warn(self):
+        for txt in ("Genetic testing confirms the diagnosis in approximately 85% of cases; "
+                    "for research use only, clinician review required.",
+                    "A definitive diagnosis requires molecular confirmation of TSC1 or TSC2; "
+                    "decision support only."):
+            v = honesty_check(txt)
+            assert not any(x["severity"] == "block" for x in v), txt
+            assert any("general statement" in x["message"] for x in v), txt
+
+    def test_the_flagship_answer_is_not_withheld(self):
+        """The exact shape of answer that was being withheld.
+
+        Asserts the contract the API gate actually applies — it withholds on a `block` finding or
+        a refuted claim, and publishes a `warn` with the disclaimer attached. (`is_publishable`
+        is a stricter, separate notion: it requires a clean `verified`.)
+        """
+        txt = ("Tuberous sclerosis complex is caused by loss-of-function variants in TSC1 or "
+               "TSC2, which dysregulate the mTORC1 pathway. Genetic testing confirms the "
+               "diagnosis in most patients. For research use only — decision support, not a "
+               "diagnosis; clinician review required.")
+        assert not any(x["severity"] == "block" for x in honesty_check(txt))
+        assert verify_text(txt)["status"] != "blocked"
+
+    def test_cure_and_absolutes_are_unaffected_by_scoping(self):
+        """Scoping must not leak into the rules that are unsafe whatever the subject."""
+        for txt in ("Everolimus cures tuberous sclerosis.",
+                    "This therapy works in 100% of cases.",
+                    "The treatment carries zero risk."):
+            assert any(x["severity"] == "block" for x in honesty_check(txt)), txt

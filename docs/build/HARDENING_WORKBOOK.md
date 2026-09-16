@@ -610,6 +610,57 @@ accident is not. Verified both paths — blocked without the flag, permitted wit
 
 ---
 
+### 3.9 The honesty gate was withholding correct answers — ✅ fixed 2026-09-16
+
+The 27-case eval came back 24/27, and one of the misses was the **flagship** question:
+
+> *Which genes cause tuberous sclerosis complex and which pathway is dysregulated?*
+
+Run five times against the same service, the same question returned:
+
+```
+run 1: WITHHELD by honesty gate    585 chars
+run 2: correct (names TSC1/TSC2) 4836 chars
+run 3: WITHHELD by honesty gate    585 chars
+run 4: correct (names TSC1/TSC2) 4888 chars
+```
+
+**The gate was blocking a textbook genetics answer about half the time**, on
+*"Diagnostic-certainty overclaim"* — because a correct answer naturally says how the diagnosis is
+established. A gate that withholds the right answer half the time teaches people to route around
+it, and it made the eval non-deterministic, which is why "27/27" was not reproducible.
+
+**Fix: subject-scope the diagnostic-certainty rules**, the same treatment the regulatory rules got
+when enforcement was turned on. They block on a **self-reference or a patient reference** and
+degrade to `warn` for statements about how diagnosis works in general:
+
+| | |
+|---|---|
+| "The result confirms the diagnosis of the disorder." | **block** |
+| "The patient's diagnosis is confirmed by the variant." | **block** |
+| "Our analysis provides a definitive diagnosis." | **block** |
+| "Genetic testing confirms the diagnosis in 85% of cases." | warn |
+| "A definitive diagnosis requires molecular confirmation of TSC1 or TSC2." | warn |
+
+A `warn` is published with the disclaimer attached; only a `block` or a refuted claim is withheld.
+Verified live afterwards: **5 of 5 runs correct**, none withheld.
+
+**Writing that test found two pre-existing bugs in the safety rules themselves.**
+
+1. **`\b100%\b` never matched anything.** `\b` after `%` requires a following word character, so
+   *"100% of cases"*, *"100% response rate"* and *"a 100%-effective drug"* all passed the
+   absolute-certainty rule. The existing test only appeared to cover it because the sentence also
+   said "cures", which tripped a different rule. The single commonest overclaim token had never
+   fired.
+2. **Only the active voice was matched.** *"The patient's diagnosis is confirmed"* — the more
+   natural way to say the dangerous thing — was not caught at all.
+
+Both fixed and tested. `_SELF_REF` was also widened to the platform's own output nouns
+("the result", "the report", "the finding"), without which the sentence the rule exists for
+degraded to a warning.
+
+---
+
 ## Traps already paid for on this machine
 
 1. **A count is not a cause.** `run_all_tests.py` reported "errors 36" with no traceback and cost a
