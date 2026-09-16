@@ -35,7 +35,7 @@ nibabel>=5.0.0
 SimpleITK>=2.3.0
 
 # Web / API
-streamlit>=1.30.0
+streamlit>=1.58.0.0
 fastapi>=0.109.0
 uvicorn[standard]>=0.27.0
 python-multipart>=0.0.6

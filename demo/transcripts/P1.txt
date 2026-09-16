@@ -4,7 +4,7 @@ P1 · The whole factory, one child
     demo          P1 · tuberous-sclerosis
     title         The whole factory, one child
     label         REPRESENTATIVE
-    started       2026-09-16T16:40:15+00:00
+    started       2026-09-16T16:57:51+00:00
     engine        TSC Intelligence Engine (Engine 7)
     data          SYNTHETIC — synthetic cohort, never a real patient
     cohort        50 patients
