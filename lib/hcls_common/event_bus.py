@@ -58,17 +58,19 @@ except ImportError:
 try:
     from prometheus_client import Counter, Histogram
 
-    EVENTS_EMITTED = Counter(
+    from hcls_common.metrics import metric
+
+    EVENTS_EMITTED = metric(Counter,
         "hcls_events_emitted_total",
         "Total pipeline events emitted",
         ["event_type", "source_stage"],
     )
-    EVENTS_PROCESSED = Counter(
+    EVENTS_PROCESSED = metric(Counter,
         "hcls_events_processed_total",
         "Total pipeline events processed by handlers",
         ["event_type", "handler"],
     )
-    EVENT_LATENCY = Histogram(
+    EVENT_LATENCY = metric(Histogram,
         "hcls_event_processing_seconds",
         "Event handler execution latency",
         ["event_type"],

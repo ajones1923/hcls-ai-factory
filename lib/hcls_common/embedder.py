@@ -42,18 +42,20 @@ logger = logging.getLogger(__name__)
 try:
     from prometheus_client import Counter, Histogram
 
-    _encode_latency = Histogram(
+    from hcls_common.metrics import metric
+
+    _encode_latency = metric(Histogram,
         "hcls_embedder_encode_seconds",
         "Time to encode a batch of texts",
         ["provider"],
         buckets=(0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5),
     )
-    _cache_hits = Counter(
+    _cache_hits = metric(Counter,
         "hcls_embedder_cache_hits_total",
         "Embedding cache hits",
         ["level"],  # memory | disk
     )
-    _cache_misses = Counter(
+    _cache_misses = metric(Counter,
         "hcls_embedder_cache_misses_total",
         "Embedding cache misses",
     )
