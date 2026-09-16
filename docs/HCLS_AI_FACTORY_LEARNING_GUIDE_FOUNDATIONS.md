@@ -272,7 +272,7 @@ All HCLS AI Factory code is released under the **Apache 2.0 license** — meanin
 - Researchers can verify and improve the methods
 - No software license fees for development on DGX Spark
 
-Note: NVIDIA BioNeMo NIMs (MolMIM, DiffDock) are free for development but require an enterprise license for production deployments. The Anthropic Claude API is a paid commercial service. See the [Licensing & Cost Guide](licensing.md) for full details.
+Note: NVIDIA BioNeMo NIMs (MolMIM, DiffDock) are free for development but require an enterprise license for production deployments. The Anthropic Claude API is a paid commercial service. The platform's own code is Apache-2.0; see `LICENSE` in the repository root.
 
 ---
 

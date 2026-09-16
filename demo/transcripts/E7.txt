@@ -1,20 +1,17 @@
-
-E7 · The shape you have to fit
-
-    demo          E7 · structural-biology
-    title         The shape you have to fit
-    label         REPRESENTATIVE
-    started       2026-09-16T16:56:43+00:00
-    prerequisite  gated (informational): CUDA torch (G1), ESMFold (G5)
-    sequence      human lysozyme C, 130 aa, 14700 Da
-    GRAVY         -0.485      instability 32.13
-    pI            9.28   aromaticity 0.1
-    verdict       clean
-    optimiser     scanned 130 positions x 10 substitutions — 415 lower the instability index
-      proposal    C77A  instability 32.13 -> 25.59  (-6.54)
-      proposal    C77E  instability 32.13 -> 25.66  (-6.47)
-      proposal    C77Q  instability 32.13 -> 26.24  (-5.89)
-    caveat        top proposal substitutes a cysteine (C77A); the instability index is sequence-only and cannot see disulfide bonds
-    preclinical — a research bench, not a therapeutic claim; developability proxies
-                  narrow a design space, they do not rank designs
-    RESULT        PASS — ran on real input
+demo          E7 · structural-biology
+title         The shape you have to fit
+label         REPRESENTATIVE
+started       2026-09-16T19:27:14+00:00
+prerequisite  gated (informational): CUDA torch (G1), ESMFold (G5)
+sequence      human lysozyme C, 130 aa, 14700 Da
+GRAVY         -0.485      instability 32.13
+pI            9.28   aromaticity 0.1
+verdict       clean
+optimiser     scanned 130 positions x 10 substitutions — 415 lower the instability index
+  proposal    C77A  instability 32.13 -> 25.59  (-6.54)
+  proposal    C77E  instability 32.13 -> 25.66  (-6.47)
+  proposal    C77Q  instability 32.13 -> 26.24  (-5.89)
+caveat        top proposal substitutes a cysteine (C77A); the instability index is sequence-only and cannot see disulfide bonds
+preclinical — a research bench, not a therapeutic claim; developability proxies
+              narrow a design space, they do not rank designs
+RESULT        PASS — ran on real input

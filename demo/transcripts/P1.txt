@@ -1,28 +1,25 @@
-
-P1 · The whole factory, one child
-
-    demo          P1 · tuberous-sclerosis
-    title         The whole factory, one child
-    label         REPRESENTATIVE
-    started       2026-09-16T16:57:51+00:00
-    engine        TSC Intelligence Engine (Engine 7)
-    data          SYNTHETIC — synthetic cohort, never a real patient
-    cohort        50 patients
-      Pathogenic                         38
-      Variant of Uncertain Significance  10
-      Likely Pathogenic                  1
-      —                                  1
-    agents        5 disease-specific agents, dependency-ordered
-      phenome_mapper         emits phenome_mapped
-      variant_curator        emits variant_curated
-      trajectory_modeler     emits trajectory_forecast
-      tand_surveillance      emits tand_surveyed
-      therapeutics_strategist emits therapeutics_briefed
-    patient       TSC-0043 — TSC2 c.4255del (Likely Pathogenic)
-    provenance    5 recorded events behind that briefing
-      phenome_mapped         by phenome_mapper v0.1.0
-      variant_curated        by variant_curator v0.1.0
-      trajectory_forecast    by trajectory_modeler v0.1.0
-    TSC1/TSC2 gene therapy is preclinical; every output is decision support for a
-                  qualified clinician, behind a review gate — never diagnosis
-    RESULT        PASS — ran on real input
+demo          P1 · tuberous-sclerosis
+title         The whole factory, one child
+label         REPRESENTATIVE
+started       2026-09-16T19:28:17+00:00
+engine        TSC Intelligence Engine (Engine 7)
+data          SYNTHETIC — synthetic cohort, never a real patient
+cohort        50 patients
+  Pathogenic                         38
+  Variant of Uncertain Significance  10
+  Likely Pathogenic                  1
+  —                                  1
+agents        5 disease-specific agents, dependency-ordered
+  phenome_mapper         emits phenome_mapped
+  variant_curator        emits variant_curated
+  trajectory_modeler     emits trajectory_forecast
+  tand_surveillance      emits tand_surveyed
+  therapeutics_strategist emits therapeutics_briefed
+patient       TSC-0043 — TSC2 c.4255del (Likely Pathogenic)
+provenance    5 recorded events behind that briefing
+  phenome_mapped         by phenome_mapper v0.1.0
+  variant_curated        by variant_curator v0.1.0
+  trajectory_forecast    by trajectory_modeler v0.1.0
+TSC1/TSC2 gene therapy is preclinical; every output is decision support for a
+              qualified clinician, behind a review gate — never diagnosis
+RESULT        PASS — ran on real input

@@ -1,15 +1,12 @@
-
-A8 · The engine computes, the agent interprets
-
-    demo          A8 · single-cell
-    title         The engine computes, the agent interprets
-    label         LIVE
-    started       2026-09-16T16:57:37+00:00
-    POST          http://localhost:8541/v1/sc/annotate
-    status        200
-    annotated      5 cell types
-      T cell (CL:0000084) confidence 0.4 via CD3D,CD3E
-      CD8 T (CL:0000625) confidence 0.4 via GZMB,CD8A
-      CD4 T (CL:0000624) confidence 0.4 via IL7R,CCR7
-      B cell (CL:0000236) confidence 0.4 via CD79A,MS4A1
-    RESULT        PASS — ran on real input
+demo          A8 · single-cell
+title         The engine computes, the agent interprets
+label         LIVE
+started       2026-09-16T19:28:05+00:00
+POST          http://localhost:8541/v1/sc/annotate
+status        200
+annotated      5 cell types
+  T cell (CL:0000084) confidence 0.4 via CD3E,CD3D
+  CD8 T (CL:0000625) confidence 0.4 via CD8A,GZMB
+  CD4 T (CL:0000624) confidence 0.4 via CCR7,IL7R
+  B cell (CL:0000236) confidence 0.4 via CD79A,MS4A1
+RESULT        PASS — ran on real input
