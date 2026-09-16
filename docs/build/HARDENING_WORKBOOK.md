@@ -445,6 +445,20 @@ $PY scripts/check_test_depth.py /tmp/t.json --update-baseline   # deliberate, re
 Baseline: `docs/build/test_depth_baseline.json`. Raising it is a PR like any other; lowering it
 should be argued for in the PR description, not done quietly.
 
+⚠️ **The baseline is recorded from CI, not from this box, and the first run proved why.** A
+locally-captured baseline failed instantly in CI: **CI collects fewer tests than a developer
+machine** — 300 cart tests there against 415 here, 665 biomarker against 709, 1,325 imaging
+against 1,365 — because optional and GPU-gated dependencies are absent, so those suites skip or
+fail to collect. A local run now measures at or above the CI baseline and passes, which is the
+right asymmetry: the gate cannot be satisfied by a machine with more installed than the gate has.
+
+That gap (~9% of the suite) is worth knowing on its own: **roughly 700 tests that run here never
+run in CI.** It is not a defect this decision fixes, but it is the reason the number in CI is the
+one that counts.
+
+LOC is counted over `git ls-files` rather than a filesystem walk, so a scratch file in the working
+tree cannot move the ratio.
+
 **The four below the floor, in priority order** — all three 1.0 agents are ~20,000 lines emitting
 clinical prose, which is the exact profile of the faults found this week:
 `neurology` · `rare-disease-diagnostic` · `single-cell (agent)` · then `tuberous-sclerosis` (1.4,

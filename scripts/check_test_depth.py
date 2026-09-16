@@ -26,6 +26,13 @@ a hurry, and tests written to satisfy a number are worth nothing. So both rules 
                       2.0 per 100 lines — below half the median is not a floor anyone has to
                       argue about. A new clinical subject starts at or above it.
 
+**The baseline must be recorded in the environment that enforces it.** CI collects FEWER tests
+than a developer box — 300 cart tests there against 415 here, 665 biomarker against 709 — because
+optional and GPU-gated dependencies are absent, so those suites skip or fail to collect. A
+baseline captured locally therefore fails instantly in CI, which is exactly what happened the
+first time this ran. The committed baseline is the CI one; a local run measures at or above it and
+passes, which is the right asymmetry.
+
 Usage:
     .venv/bin/python scripts/run_all_tests.py --json /tmp/t.json
     .venv/bin/python scripts/check_test_depth.py /tmp/t.json           # report
@@ -37,6 +44,7 @@ from __future__ import annotations
 import argparse
 import json
 import pathlib
+import subprocess
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -74,13 +82,24 @@ CLINICAL: dict[tuple[str, str], str] = {
 
 
 def source_loc(kind: str, name: str) -> int:
-    """Non-test, non-vendored, non-venv python lines."""
-    d = ROOT / BASE[kind] / name
-    return sum(
-        sum(1 for _ in f.open(errors="ignore"))
-        for f in d.rglob("*.py")
-        if not any(x in str(f) for x in ("/venv/", "/tests/", "vendor_", "__pycache__"))
-    )
+    """Non-test, non-vendored python lines, counted over TRACKED files only.
+
+    Walking the filesystem counts whatever happens to be lying in the working tree — a scratch
+    script, a half-finished module — so the same commit measures differently on two machines and
+    the ratchet moves for reasons that have nothing to do with tests. `git ls-files` is the same
+    everywhere.
+    """
+    rel = f"{BASE[kind]}/{name}"
+    out = subprocess.run(["git", "ls-files", "-z", f"{rel}/*.py"], cwd=ROOT,
+                         capture_output=True, text=True).stdout.split("\0")
+    total = 0
+    for f in out:
+        if not f or any(x in f for x in ("/venv/", "/tests/", "vendor_", "__pycache__")):
+            continue
+        fp = ROOT / f
+        if fp.exists():
+            total += sum(1 for _ in fp.open(errors="ignore"))
+    return total
 
 
 def measure(results_path: pathlib.Path) -> list[dict]:
