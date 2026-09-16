@@ -38,14 +38,6 @@ from pydantic import BaseModel, Field
 
 
 
-def _no_sampling(model: str) -> bool:
-    """True when the model rejects temperature/top_p/top_k (400)."""
-    m = (model or "").lower()
-    return any(m.startswith(p) for p in (
-        "claude-opus-5", "claude-opus-4-8", "claude-opus-4-7", "claude-opus-4-6",
-        "claude-sonnet-5", "claude-sonnet-4-6", "claude-fable-5", "claude-mythos-5",
-    ))
-
 
 logger = logging.getLogger(__name__)
 
@@ -125,53 +117,12 @@ async def lifespan(app: FastAPI):
         embedder = None
 
     # ── LLM client ──
-    try:
-        import anthropic
+    # One shared client: eight identical copies of this class are why a single
+    # API change (temperature removed on current models) had to be applied eight
+    # times and was missed in seven of them.
+    from hcls_common.service_llm import build_service_llm
 
-        class _LLMClient:
-            def __init__(self):
-                self.client = anthropic.Anthropic()
-
-            def generate(
-                self, prompt: str, system_prompt: str = "",
-                max_tokens: int = 2048, temperature: float = 0.7,
-            ) -> str:
-                msg = self.client.messages.create(
-                    model=settings.LLM_MODEL,
-                    max_tokens=max_tokens,
-                    # `temperature` is REMOVED on current models (Sonnet 5, Opus 5,
-                    # the 4.6+ family): sending it returns 400 "`temperature` is
-                    # deprecated for this model." and the service silently falls back
-                    # to its stub answer. Sent only where it is still accepted.
-                    **({} if _no_sampling(settings.LLM_MODEL)
-                       else {"temperature": temperature}),
-                    system=system_prompt,
-                    messages=[{"role": "user", "content": prompt}],
-                )
-                return msg.content[0].text
-
-            def generate_stream(
-                self, prompt: str, system_prompt: str = "",
-                max_tokens: int = 2048, temperature: float = 0.7,
-            ):
-                with self.client.messages.stream(
-                    model=settings.LLM_MODEL,
-                    max_tokens=max_tokens,
-                    # `temperature` is REMOVED on current models (Sonnet 5, Opus 5,
-                    # the 4.6+ family): sending it returns 400 "`temperature` is
-                    # deprecated for this model." and the service silently falls back
-                    # to its stub answer. Sent only where it is still accepted.
-                    **({} if _no_sampling(settings.LLM_MODEL)
-                       else {"temperature": temperature}),
-                    system=system_prompt,
-                    messages=[{"role": "user", "content": prompt}],
-                ) as stream:
-                    for text in stream.text_stream:
-                        yield text
-
-        llm_client = _LLMClient()
-    except (ImportError, Exception):
-        llm_client = None
+    llm_client = build_service_llm(settings.LLM_MODEL, service="cart")
 
     # ── Knowledge + query expansion modules ──
     from src import knowledge as kg
