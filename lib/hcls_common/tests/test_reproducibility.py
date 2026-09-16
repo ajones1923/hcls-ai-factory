@@ -69,7 +69,7 @@ class TestReproducibilityManifest:
         manifest = ReproducibilityManifest(
             run_id="test-roundtrip",
             patient_id="HG002",
-            llm_model="claude-sonnet-4-20250514",
+            llm_model="claude-sonnet-5",
         )
         manifest.add_software("numpy", "1.24.0", source="pip")
 
@@ -85,7 +85,7 @@ class TestReproducibilityManifest:
             loaded = ReproducibilityManifest.from_file(path)
             assert loaded.run_id == "test-roundtrip"
             assert loaded.patient_id == "HG002"
-            assert loaded.llm_model == "claude-sonnet-4-20250514"
+            assert loaded.llm_model == "claude-sonnet-5"
             assert len(loaded.software) == 1
 
     def test_detect_python_packages(self):

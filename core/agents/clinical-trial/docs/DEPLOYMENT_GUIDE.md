@@ -467,7 +467,7 @@ All variables use the `TRIAL_` prefix:
 | `TRIAL_STREAMLIT_PORT` | 8128 | No | UI port |
 | `TRIAL_API_KEY` | (empty) | No | API auth key |
 | `TRIAL_CORS_ORIGINS` | localhost:* | No | CORS whitelist |
-| `TRIAL_LLM_MODEL` | claude-sonnet-4-6 | No | LLM model name |
+| `TRIAL_LLM_MODEL` | claude-sonnet-5 | No | LLM model name |
 | `TRIAL_EMBEDDING_MODEL` | BAAI/bge-small-en-v1.5 | No | Embedding model |
 | `TRIAL_EMBEDDING_DIMENSION` | 384 | No | Vector dimension |
 | `TRIAL_TOP_K_PER_COLLECTION` | 5 | No | Search results per collection |

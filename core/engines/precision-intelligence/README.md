@@ -578,7 +578,7 @@ class RAGEngine:
 ```
 
 **Implementation Details:**
-- **Model**: claude-sonnet-4-20250514
+- **Model**: claude-sonnet-5
 - **Temperature**: 0.3 (factual consistency)
 - **Streaming**: Server-Sent Events (SSE)
 - **Grounding**: All responses cite specific variant evidence
@@ -886,7 +886,7 @@ ALPHAMISSENSE_PATH=data/annotations/AlphaMissense_hg38.tsv.gz
 
 # Model Settings
 LLM_PROVIDER=anthropic
-LLM_MODEL=claude-sonnet-4-20250514
+LLM_MODEL=claude-sonnet-5
 EMBEDDING_MODEL=BAAI/bge-small-en-v1.5
 
 # Performance
@@ -899,7 +899,7 @@ TOP_K_RESULTS=20
 ```bash
 # Option 1: Anthropic Claude (Recommended)
 LLM_PROVIDER=anthropic
-LLM_MODEL=claude-sonnet-4-20250514
+LLM_MODEL=claude-sonnet-5
 
 # Option 2: Local Ollama
 LLM_PROVIDER=ollama
@@ -1007,7 +1007,7 @@ echo $ANTHROPIC_API_KEY
 curl https://api.anthropic.com/v1/messages \
   -H "x-api-key: $ANTHROPIC_API_KEY" \
   -H "content-type: application/json" \
-  -d '{"model": "claude-sonnet-4-20250514", "max_tokens": 10, "messages": [{"role": "user", "content": "Hi"}]}'
+  -d '{"model": "claude-sonnet-5", "max_tokens": 10, "messages": [{"role": "user", "content": "Hi"}]}'
 ```
 
 ### No Results for Query

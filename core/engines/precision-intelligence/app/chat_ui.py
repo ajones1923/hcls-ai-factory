@@ -433,8 +433,8 @@ AVAILABLE_MODELS = {
     "llama3.1:8b": {"name": "Llama 3.1 8B", "description": "Standard Q4_K_M", "size": "4.9GB", "provider": "ollama"},
     "llama3.1:70b": {"name": "Llama 3.1 70B", "description": "Best local quality", "size": "40GB", "provider": "ollama"},
     # Cloud models (Anthropic)
-    "claude-sonnet-4-20250514": {"name": "Claude Sonnet 4", "description": "Fast cloud (2-5s)", "size": "Cloud", "provider": "anthropic"},
-    "claude-opus-4-20250514": {"name": "Claude Opus 4", "description": "Best quality (5-10s)", "size": "Cloud", "provider": "anthropic"},
+    "claude-sonnet-5": {"name": "Claude Sonnet 4", "description": "Fast cloud (2-5s)", "size": "Cloud", "provider": "anthropic"},
+    "claude-opus-5": {"name": "Claude Opus 4", "description": "Best quality (5-10s)", "size": "Cloud", "provider": "anthropic"},
 }
 
 

@@ -776,7 +776,7 @@ Pydantic BaseSettings in `config/settings.py`:
 | Paths | `PROJECT_ROOT`, `DATA_DIR`, `CACHE_DIR`, `REFERENCE_DIR` |
 | Milvus | `MILVUS_HOST=localhost`, `MILVUS_PORT=19530` |
 | Embeddings | `EMBEDDING_MODEL=BAAI/bge-small-en-v1.5`, `EMBEDDING_DIMENSION=384` |
-| LLM | `LLM_MODEL=claude-sonnet-4-6`, `ANTHROPIC_API_KEY` |
+| LLM | `LLM_MODEL=claude-sonnet-5`, `ANTHROPIC_API_KEY` |
 | Search | `TOP_K_PER_COLLECTION=5`, `SCORE_THRESHOLD=0.4` |
 | Weights | 14 collection weights summing to ~1.0 |
 | API | `API_PORT=8538`, `STREAMLIT_PORT=8128` |

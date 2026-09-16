@@ -246,7 +246,7 @@ class TestMetricsCollectorInvocations(unittest.TestCase):
         MetricsCollector.record_embedding(duration=0.05)
 
     def test_record_llm_call_no_error(self):
-        MetricsCollector.record_llm_call("claude-sonnet-4-20250514", duration=2.0, input_tokens=100, output_tokens=50)
+        MetricsCollector.record_llm_call("claude-sonnet-5", duration=2.0, input_tokens=100, output_tokens=50)
 
     def test_record_risk_calculation_no_error(self):
         MetricsCollector.record_risk_calculation("ascvd")

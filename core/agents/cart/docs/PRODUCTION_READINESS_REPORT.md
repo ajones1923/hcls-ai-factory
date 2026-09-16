@@ -47,7 +47,7 @@ The CAR-T Intelligence Agent is a production-grade, multi-collection RAG system 
 | Knowledge graph nodes | 106 structured entries across 6 dictionaries |
 | Query expansion | 12 maps, 229 keywords → 1,961 terms |
 | Entity aliases | 60+ for comparative analysis |
-| LLM | Claude Sonnet 4.6 (claude-sonnet-4-6) via Anthropic API |
+| LLM | Claude Sonnet 4.6 (claude-sonnet-5) via Anthropic API |
 | Embedding model | BGE-small-en-v1.5 (384 dimensions) |
 | Export formats | Markdown, JSON, PDF, FHIR R4 |
 | Test suite | 415 tests, all passing |
@@ -864,7 +864,7 @@ All settings can be overridden via environment variables with `CART_` prefix.
 | | EMBEDDING_DIMENSION | 384 |
 | | EMBEDDING_BATCH_SIZE | 32 |
 | **LLM** | LLM_PROVIDER | anthropic |
-| | LLM_MODEL | claude-sonnet-4-6 |
+| | LLM_MODEL | claude-sonnet-5 |
 | | ANTHROPIC_API_KEY | None (from env) |
 | **RAG Search** | TOP_K_PER_COLLECTION | 5 |
 | | SCORE_THRESHOLD | 0.4 |

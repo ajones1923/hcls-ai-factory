@@ -72,7 +72,7 @@ The Biomarker Agent maps to the the AI platform architecture as follows:
 | the AI platform Layer | Agent Component |
 |-----------------|-----------------|
 | Data Layer | Milvus vector store (14 collections), 18 JSON reference files |
-| Model Layer | BAAI/bge-small-en-v1.5 (embedding), Claude claude-sonnet-4-6 (synthesis) |
+| Model Layer | BAAI/bge-small-en-v1.5 (embedding), Claude claude-sonnet-5 (synthesis) |
 | Inference Layer | FastAPI server (8529), RAG engine, 6 clinical analysis engines |
 | Application Layer | Streamlit UI (8528), 8-tab interface |
 | Orchestration | Docker Compose (6 services), health checks, CORS middleware |
@@ -397,7 +397,7 @@ when they appear only in structured metadata fields.
 
 | Setting | Value |
 |---------|-------|
-| Model | claude-sonnet-4-6 |
+| Model | claude-sonnet-5 |
 | Provider | Anthropic API |
 | Environment variable | `ANTHROPIC_API_KEY` |
 | Max retries | 3 |

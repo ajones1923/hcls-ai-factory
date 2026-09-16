@@ -58,7 +58,7 @@ The Pharmacogenomics Intelligence Agent is a production-grade, multi-collection 
 | Seed data records | 240 across 14 JSON files |
 | Knowledge graph | 25 pharmacogenes, 12 drug categories, 12 HLA associations, 116 entity aliases |
 | Query expansion | 14 maps with domain-specific PGx synonyms |
-| LLM | Claude Sonnet 4.6 (claude-sonnet-4-6) via Anthropic API |
+| LLM | Claude Sonnet 4.6 (claude-sonnet-5) via Anthropic API |
 | Embedding model | BGE-small-en-v1.5 (384 dimensions) |
 | Export formats | Markdown, JSON, PDF, FHIR R4 |
 | Test suite | 1,001 tests, all passing in 0.63s |

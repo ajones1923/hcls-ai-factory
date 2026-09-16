@@ -261,7 +261,7 @@ class LlamaLLMClient(BaseNIMClient):
                         chat_messages = [{"role": "user", "content": "Hello."}]
 
                     kwargs: Dict[str, Any] = {
-                        "model": "claude-sonnet-4-20250514",
+                        "model": "claude-sonnet-5",
                         "max_tokens": max_tokens,
                         "messages": chat_messages,
                     }
@@ -357,7 +357,7 @@ class LlamaLLMClient(BaseNIMClient):
                         chat_messages = [{"role": "user", "content": "Hello."}]
 
                     kwargs: Dict[str, Any] = {
-                        "model": "claude-sonnet-4-20250514",
+                        "model": "claude-sonnet-5",
                         "max_tokens": 2048,
                         "messages": chat_messages,
                     }

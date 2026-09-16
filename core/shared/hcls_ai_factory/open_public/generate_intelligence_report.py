@@ -522,7 +522,7 @@ add_table(
         ["VEP", "Ensembl VEP (GRCh38)"],
         ["Milvus", "v2.4 (IVF_FLAT, nlist=1024, COSINE)"],
         ["Embedding", "BGE-small-en-v1.5 (384-dim)"],
-        ["LLM", "claude-sonnet-4-20250514 (temp=0.3)"],
+        ["LLM", "claude-sonnet-5 (temp=0.3)"],
         ["MolMIM", "nvcr.io/nvidia/clara/bionemo-molmim:1.0"],
         ["DiffDock", "nvcr.io/nvidia/clara/diffdock:1.0"],
         ["Hardware", "NVIDIA DGX Spark (GB10, 128 GB)"],

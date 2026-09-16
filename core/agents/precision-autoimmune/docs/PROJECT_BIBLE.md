@@ -678,7 +678,7 @@ All settings use the `AUTO_` environment variable prefix. Defined in
 | Setting | Default | Env Var |
 |---------|---------|---------|
 | ANTHROPIC_API_KEY | "" | AUTO_ANTHROPIC_API_KEY |
-| LLM_MODEL | claude-sonnet-4-6 | AUTO_LLM_MODEL |
+| LLM_MODEL | claude-sonnet-5 | AUTO_LLM_MODEL |
 | LLM_MAX_TOKENS | 4096 | AUTO_LLM_MAX_TOKENS |
 | LLM_TEMPERATURE | 0.2 | AUTO_LLM_TEMPERATURE |
 

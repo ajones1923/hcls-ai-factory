@@ -423,7 +423,7 @@ BGE retrieval requires a task-specific prefix:
 
 ### 9.1 Model
 
-**Claude Sonnet 4.6** (claude-sonnet-4-6) via Anthropic API.
+**Claude Sonnet 4.6** (claude-sonnet-5) via Anthropic API.
 
 ### 9.2 System Prompt
 

@@ -630,7 +630,7 @@ BGE-small-en-v1.5 is a well-validated embedding model for biomedical text:
 | Parameter | Value |
 |-----------|-------|
 | Provider | Anthropic |
-| Model | claude-sonnet-4-6 |
+| Model | claude-sonnet-5 |
 | Max tokens | 2,048 (default) |
 | Temperature | 0.7 |
 | System prompt | Single-cell genomics specialist |
@@ -920,7 +920,7 @@ Pydantic BaseSettings with layered configuration:
 | API_PORT | 8540 | SC_API_PORT |
 | STREAMLIT_PORT | 8130 | SC_STREAMLIT_PORT |
 | EMBEDDING_MODEL | BAAI/bge-small-en-v1.5 | SC_EMBEDDING_MODEL |
-| LLM_MODEL | claude-sonnet-4-6 | SC_LLM_MODEL |
+| LLM_MODEL | claude-sonnet-5 | SC_LLM_MODEL |
 | SCORE_THRESHOLD | 0.4 | SC_SCORE_THRESHOLD |
 | GPU_MEMORY_LIMIT_GB | 120 | SC_GPU_MEMORY_LIMIT_GB |
 | MAX_REQUEST_SIZE_MB | 10 | SC_MAX_REQUEST_SIZE_MB |

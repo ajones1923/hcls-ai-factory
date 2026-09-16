@@ -987,7 +987,7 @@ When `prometheus_client` is not installed, the module silently exports no-op stu
 | UI_PORT | int | 8536 | CARDIO_UI_PORT |
 | EMBEDDING_MODEL | str | "BAAI/bge-small-en-v1.5" | CARDIO_EMBEDDING_MODEL |
 | ANTHROPIC_API_KEY | str | "" | ANTHROPIC_API_KEY |
-| LLM_MODEL | str | "claude-sonnet-4-20250514" | CARDIO_LLM_MODEL |
+| LLM_MODEL | str | "claude-sonnet-5" | CARDIO_LLM_MODEL |
 | MAX_TOKENS | int | 4096 | CARDIO_MAX_TOKENS |
 | TOP_K | int | 8 | CARDIO_TOP_K |
 | SCORE_THRESHOLD | float | 0.38 | CARDIO_SCORE_THRESHOLD |
@@ -1318,7 +1318,7 @@ streamlit run app/cardio_ui.py --server.port 8536
 | UI Framework | Streamlit | NVIDIA dark theme |
 | Vector Database | Milvus | Standalone + etcd + MinIO |
 | Embedding Model | BGE-small-en-v1.5 | 384-dim, sentence-transformers |
-| LLM | Claude (Anthropic) | claude-sonnet-4-20250514 |
+| LLM | Claude (Anthropic) | claude-sonnet-5 |
 | Data Validation | Pydantic | v2 with field validators |
 | Metrics | Prometheus Client | Counters, Histograms, Gauges, Info |
 | Scheduling | APScheduler | BackgroundScheduler |

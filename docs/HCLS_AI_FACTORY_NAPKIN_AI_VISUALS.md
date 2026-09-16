@@ -25,7 +25,7 @@ Patient DNA to drug candidates in under 5 hours on a single NVIDIA DGX Spark.
 
 - Milvus v2.4 vector database (45 collections, IVF_FLAT index, COSINE metric)
 - BGE-small-en-v1.5 embedding model (384 dimensions)
-- Claude LLM synthesis (claude-sonnet-4-20250514, temperature=0.3)
+- Claude LLM synthesis (claude-sonnet-5, temperature=0.3)
 - 8 specialized FastAPI intelligence agents
 - Streamlit UI per agent
 - 201 genes across 13 therapeutic areas (171 druggable, 85%)
@@ -282,7 +282,7 @@ pgx_gene_reference, pgx_drug_guidelines, pgx_drug_interactions, pgx_hla_hypersen
 
 | Parameter | Value |
 |---|---|
-| Model | claude-sonnet-4-20250514 |
+| Model | claude-sonnet-5 |
 | Temperature | 0.3 |
 | Provider | Anthropic |
 | Integration | anthropic Python SDK v0.75.0 |
@@ -1013,7 +1013,7 @@ Every agent exposes:
 
 | Tool | Version |
 |---|---|
-| Claude LLM | claude-sonnet-4-20250514 (Anthropic) |
+| Claude LLM | claude-sonnet-5 (Anthropic) |
 | anthropic (Python SDK) | 0.75.0 |
 | openai (Python SDK) | 2.15.0 |
 | BGE-small-en-v1.5 | BAAI (384-dim embeddings) |

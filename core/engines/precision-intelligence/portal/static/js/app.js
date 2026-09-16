@@ -608,8 +608,8 @@ function getModelDisplayName(model) {
         'llama3.1:8b-instruct-q4_0': 'Llama 8B Q4_0',
         'llama3.1:8b': 'Llama 8B',
         'llama3.1:70b': 'Llama 70B',
-        'claude-sonnet-4-20250514': 'Claude Sonnet',
-        'claude-opus-4-20250514': 'Claude Opus',
+        'claude-sonnet-5': 'Claude Sonnet',
+        'claude-opus-5': 'Claude Opus',
     };
     return names[model] || model;
 }
@@ -690,8 +690,8 @@ function updateModelInfo(model) {
             'llama3.1:8b-instruct-q4_0': 'Q4_0: smaller quantization',
             'llama3.1:8b': '8B: standard Q4_K_M',
             'llama3.1:70b': '70B: ~30-60s, best local quality',
-            'claude-sonnet-4-20250514': 'Sonnet: ~2-5s, fast cloud',
-            'claude-opus-4-20250514': 'Opus: ~5-10s, best quality',
+            'claude-sonnet-5': 'Sonnet: ~2-5s, fast cloud',
+            'claude-opus-5': 'Opus: ~5-10s, best quality',
         };
         infoText.textContent = modelInfo[model] || 'Unknown model';
     }

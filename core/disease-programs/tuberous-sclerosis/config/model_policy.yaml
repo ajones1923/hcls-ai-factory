@@ -4,10 +4,10 @@
 # frontier reasoning where it adds value.
 
 models:
-  haiku: claude-haiku-4-5-20251001
+  haiku: claude-haiku-4-5
   # sonnet 4.6 is the current/latest Sonnet (a valid model ID) and is the deliberate
   # choice here — NOT drift to be "fixed" by downgrading to 4-5 (INFER-1 audit note).
-  sonnet: claude-sonnet-4-6
+  sonnet: claude-sonnet-5
   opus: claude-opus-4-8
   local: llama-3.1-70b-instruct        # Ollama fallback (offline / privacy / budget cap)
 

@@ -582,7 +582,7 @@ QUERY_EXPANSION = {
 
 | Parameter | Value |
 |---|---|
-| Model | `claude-sonnet-4-20250514` |
+| Model | `claude-sonnet-5` |
 | Temperature | 0.3 |
 | Max Tokens | 4096 |
 | API | Anthropic Messages API |
@@ -1273,7 +1273,7 @@ For multi-site deployments (Phase 3), NVIDIA FLARE enables federated model train
 | `MILVUS_PORT` | `19530` | Milvus gRPC port |
 | `MOLMIM_URL` | `http://localhost:8001` | MolMIM NIM endpoint |
 | `DIFFDOCK_URL` | `http://localhost:8002` | DiffDock NIM endpoint |
-| `CLAUDE_MODEL` | `claude-sonnet-4-20250514` | Claude model identifier |
+| `CLAUDE_MODEL` | `claude-sonnet-5` | Claude model identifier |
 | `CLAUDE_TEMPERATURE` | `0.3` | LLM temperature |
 | `PIPELINE_MODE` | `full` | Pipeline execution mode |
 | `NUM_CANDIDATES` | `100` | Number of drug candidates to generate |

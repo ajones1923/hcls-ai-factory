@@ -243,7 +243,7 @@
 #### Instruction Prefix: "Represent this sentence for searching relevant passages: "
 
 ### Claude LLM (Anthropic)
-#### Model: claude-sonnet-4-20250514
+#### Model: claude-sonnet-5
 #### Max Tokens: 4,096
 #### Temperature: 0.2
 #### Streaming: SSE (Server-Sent Events)

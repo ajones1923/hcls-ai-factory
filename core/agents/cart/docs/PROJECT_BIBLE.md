@@ -1284,7 +1284,7 @@ All configuration is managed through `CARTSettings` (defined in `config/settings
 | EMBEDDING_BATCH_SIZE | int | `32` | `CART_EMBEDDING_BATCH_SIZE` |
 | **LLM** | | | |
 | LLM_PROVIDER | str | `anthropic` | `CART_LLM_PROVIDER` |
-| LLM_MODEL | str | `claude-sonnet-4-6` | `CART_LLM_MODEL` |
+| LLM_MODEL | str | `claude-sonnet-5` | `CART_LLM_MODEL` |
 | ANTHROPIC_API_KEY | str (optional) | None | `CART_ANTHROPIC_API_KEY` |
 | **RAG Search** | | | |
 | TOP_K_PER_COLLECTION | int | `5` | `CART_TOP_K_PER_COLLECTION` |
@@ -1482,7 +1482,7 @@ pytest tests/ --cov=src --cov-report=html
 | 7 | `d344c48` | Seed assays (45 records) | Assay seed data and ingest script |
 | 8 | `b93d802` | Seed manufacturing (30 records) | Manufacturing seed data and ingest script |
 | 9 | `9af1263` | Design doc with benchmarks | Architecture documentation and performance data |
-| 10 | `96ad742` | Fix Claude model ID | Corrected LLM_MODEL to claude-sonnet-4-6 |
+| 10 | `96ad742` | Fix Claude model ID | Corrected LLM_MODEL to claude-sonnet-5 |
 | 11 | `3210594` | Citation links + evidence panel | Clickable PubMed/CT.gov links, evidence cards |
 | 12 | `7b519c9` | Comparative analysis mode | Entity parsing, dual retrieval, comparison prompts |
 | 13 | `052c5ec` | README update | Updated documentation |

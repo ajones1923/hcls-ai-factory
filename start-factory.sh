@@ -14,7 +14,7 @@ mkdir -p "$LOG_DIR"
 ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY:-}"
 NIM_ALLOW_MOCK_FALLBACK="${NIM_ALLOW_MOCK_FALLBACK:-true}"
 GRAFANA_PASSWORD="${GRAFANA_PASSWORD:-admin}"
-LLM_MODEL="${LLM_MODEL:-claude-sonnet-4-20250514}"
+LLM_MODEL="${LLM_MODEL:-claude-sonnet-5}"
 LLM_PROVIDER="${LLM_PROVIDER:-anthropic}"
 
 # ─── Colors ───────────────────────────────────────────────────────────────────
@@ -158,7 +158,7 @@ echo -e "${BOLD}  Step 0: Environment${NC}"
 if [ -n "$ANTHROPIC_API_KEY" ]; then
     ok "ANTHROPIC_API_KEY set (${ANTHROPIC_API_KEY:0:12}...)"
     LLM_PROVIDER="anthropic"
-    LLM_MODEL="claude-sonnet-4-20250514"
+    LLM_MODEL="claude-sonnet-5"
 else
     warn "ANTHROPIC_API_KEY not set — RAG Chat will use Ollama (local)"
     LLM_PROVIDER="ollama"

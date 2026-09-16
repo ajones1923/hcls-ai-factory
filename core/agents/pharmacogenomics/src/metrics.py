@@ -293,7 +293,7 @@ def record_llm_call(
 
     Args:
         provider: LLM provider (e.g. ``"anthropic"``, ``"openai"``).
-        model: Model identifier (e.g. ``"claude-sonnet-4-6"``).
+        model: Model identifier (e.g. ``"claude-sonnet-5"``).
         latency: Call latency in **seconds**.
         input_tokens: Number of input tokens used.
         output_tokens: Number of output tokens generated.

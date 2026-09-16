@@ -254,7 +254,7 @@ All settings use the `NEURO_` environment variable prefix:
 | `NEURO_API_PORT` | 8528 | API listen port |
 | `NEURO_STREAMLIT_PORT` | 8529 | Streamlit listen port |
 | `NEURO_EMBEDDING_MODEL` | BAAI/bge-small-en-v1.5 | Embedding model |
-| `NEURO_LLM_MODEL` | claude-sonnet-4-6 | LLM model |
+| `NEURO_LLM_MODEL` | claude-sonnet-5 | LLM model |
 | `NEURO_SCORE_THRESHOLD` | 0.4 | Minimum cosine similarity |
 | `NEURO_API_KEY` | (empty) | API key for auth (empty = no auth) |
 | `NEURO_CORS_ORIGINS` | localhost:8080,8528,8529 | CORS allowlist |

@@ -150,7 +150,7 @@ class TestMetricsConsistency:
         MetricsCollector.record_query("patient_matching", duration=1.0, success=True)
         MetricsCollector.record_search("trial_protocols", duration=0.1, num_results=5)
         MetricsCollector.record_embedding(0.05)
-        MetricsCollector.record_llm_call("claude-sonnet-4-6", 2.0, 500, 200)
+        MetricsCollector.record_llm_call("claude-sonnet-5", 2.0, 500, 200)
         MetricsCollector.record_workflow("safety_signal", 3.0)
         MetricsCollector.record_matching("oncology", 0.85, "phase_iii")
         MetricsCollector.record_safety_signal("high")

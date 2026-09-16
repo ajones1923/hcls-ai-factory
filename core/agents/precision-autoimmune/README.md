@@ -168,7 +168,7 @@ All settings use the `AUTO_` environment variable prefix and can be set via envi
 | `AUTO_MILVUS_PORT` | `19530` | Milvus server port |
 | `AUTO_STREAMLIT_PORT` | `8531` | Streamlit UI port |
 | `AUTO_API_PORT` | `8532` | FastAPI server port |
-| `AUTO_LLM_MODEL` | `claude-sonnet-4-20250514` | Claude model identifier |
+| `AUTO_LLM_MODEL` | `claude-sonnet-5` | Claude model identifier |
 | `AUTO_LLM_MAX_TOKENS` | `4096` | Maximum tokens in LLM response |
 | `AUTO_LLM_TEMPERATURE` | `0.2` | LLM sampling temperature |
 | `AUTO_API_KEY` | (empty) | API key for FastAPI authentication; empty disables auth |

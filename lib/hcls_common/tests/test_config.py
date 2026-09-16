@@ -82,9 +82,9 @@ class TestHCLSSettingsEnvOverride:
             assert s.milvus_host == "milvus-prod"
 
     def test_env_override_llm_model(self):
-        with patch.dict(os.environ, {"HCLS_LLM_MODEL": "claude-sonnet-4-6"}):
+        with patch.dict(os.environ, {"HCLS_LLM_MODEL": "claude-sonnet-5"}):
             s = HCLSSettings()
-            assert s.llm_model == "claude-sonnet-4-6"
+            assert s.llm_model == "claude-sonnet-5"
 
 
 class TestGetSettings:

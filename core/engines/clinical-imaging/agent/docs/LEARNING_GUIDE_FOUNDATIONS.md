@@ -1126,7 +1126,7 @@ All configuration is managed through environment variables with the `IMAGING_` p
 | `IMAGING_MILVUS_HOST` | localhost | Milvus server hostname |
 | `IMAGING_MILVUS_PORT` | 19530 | Milvus server port |
 | `IMAGING_EMBEDDING_MODEL` | BAAI/bge-small-en-v1.5 | Embedding model name |
-| `IMAGING_LLM_MODEL` | claude-sonnet-4-6 | Default LLM (Claude Sonnet 4.6) |
+| `IMAGING_LLM_MODEL` | claude-sonnet-5 | Default LLM (Claude Sonnet 4.6) |
 | `IMAGING_STREAMLIT_PORT` | 8525 | Streamlit UI port |
 | `IMAGING_API_PORT` | 8524 | FastAPI REST API port |
 

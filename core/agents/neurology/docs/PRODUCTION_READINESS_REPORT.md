@@ -666,7 +666,7 @@ All settings use the `NEURO_` environment variable prefix via Pydantic BaseSetti
 |---|---|
 | Database | `MILVUS_HOST`, `MILVUS_PORT` |
 | Embeddings | `EMBEDDING_MODEL` (BGE-small-en-v1.5), `EMBEDDING_DIMENSION` (384) |
-| LLM | `LLM_PROVIDER` (anthropic), `LLM_MODEL` (claude-sonnet-4-6) |
+| LLM | `LLM_PROVIDER` (anthropic), `LLM_MODEL` (claude-sonnet-5) |
 | Search | `SCORE_THRESHOLD` (0.4), per-collection `TOP_K_*` and `WEIGHT_*` |
 | API | `API_HOST`, `API_PORT` (8528), `STREAMLIT_PORT` (8529) |
 | Security | `API_KEY`, `CORS_ORIGINS`, `MAX_REQUEST_SIZE_MB` (10) |

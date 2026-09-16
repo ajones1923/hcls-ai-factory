@@ -322,7 +322,7 @@ CFTR, FBN1, SCN1A, DMD, HTT, KCNQ1, MYH7, SMN1, MECP2, PAH, GBA1, COL5A1, OTC, F
 | RD_STREAMLIT_PORT | 8544 | Streamlit UI port |
 | RD_ANTHROPIC_API_KEY | (none) | Claude API key |
 | RD_EMBEDDING_MODEL | BAAI/bge-small-en-v1.5 | Embedding model |
-| RD_LLM_MODEL | claude-sonnet-4-6 | LLM model identifier |
+| RD_LLM_MODEL | claude-sonnet-5 | LLM model identifier |
 | RD_SCORE_THRESHOLD | 0.4 | Minimum similarity score |
 | RD_API_KEY | (empty) | API authentication key |
 | RD_CORS_ORIGINS | localhost:8080,8134,8544 | Allowed CORS origins |

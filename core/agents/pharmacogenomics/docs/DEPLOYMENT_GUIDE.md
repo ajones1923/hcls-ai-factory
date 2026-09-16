@@ -134,7 +134,7 @@ All environment variables use the `PGX_` prefix. The full list of configurable s
 | `ANTHROPIC_API_KEY` | (required) | Anthropic API key for Claude Sonnet 4.6 |
 | `PGX_MILVUS_HOST` | localhost | Milvus server hostname |
 | `PGX_MILVUS_PORT` | 19530 | Milvus server port |
-| `PGX_LLM_MODEL` | claude-sonnet-4-6 | LLM model identifier |
+| `PGX_LLM_MODEL` | claude-sonnet-5 | LLM model identifier |
 | `PGX_EMBEDDING_MODEL` | BAAI/bge-small-en-v1.5 | Embedding model name |
 | `PGX_EMBEDDING_DIMENSION` | 384 | Embedding vector dimension |
 | `PGX_TOP_K_PER_COLLECTION` | 5 | Maximum results per collection |

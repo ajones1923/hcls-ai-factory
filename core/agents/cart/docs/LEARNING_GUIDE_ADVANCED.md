@@ -1516,7 +1516,7 @@ All configuration flows through `CARTSettings` (Pydantic BaseSettings with `env_
 |---|---|---|
 | `CART_MILVUS_HOST` | localhost | Milvus server hostname |
 | `CART_MILVUS_PORT` | 19530 | Milvus server port |
-| `CART_LLM_MODEL` | claude-sonnet-4-6 | Anthropic model ID |
+| `CART_LLM_MODEL` | claude-sonnet-5 | Anthropic model ID |
 | `CART_TOP_K_PER_COLLECTION` | 5 | Max results per collection |
 | `CART_SCORE_THRESHOLD` | 0.4 | Min cosine similarity |
 | `CART_WEIGHT_LITERATURE` | 0.20 | Literature collection weight |
@@ -1891,7 +1891,7 @@ All fields from `config/settings.py` (`CARTSettings`):
 | EMBEDDING_DIMENSION | int | 384 | CART_EMBEDDING_DIMENSION | Vector dimension |
 | EMBEDDING_BATCH_SIZE | int | 32 | CART_EMBEDDING_BATCH_SIZE | Batch size for embedding |
 | LLM_PROVIDER | str | anthropic | CART_LLM_PROVIDER | LLM provider |
-| LLM_MODEL | str | claude-sonnet-4-6 | CART_LLM_MODEL | LLM model identifier |
+| LLM_MODEL | str | claude-sonnet-5 | CART_LLM_MODEL | LLM model identifier |
 | ANTHROPIC_API_KEY | str | None | ANTHROPIC_API_KEY | Anthropic API key |
 | TOP_K_PER_COLLECTION | int | 5 | CART_TOP_K_PER_COLLECTION | Max results per collection |
 | SCORE_THRESHOLD | float | 0.4 | CART_SCORE_THRESHOLD | Min cosine similarity |

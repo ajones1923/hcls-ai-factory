@@ -111,7 +111,7 @@ This model was selected for its balance of quality and speed on DGX Spark hardwa
 
 ### 2.4 LLM Integration
 
-The system uses **Claude Sonnet 4.6** (claude-sonnet-4-6) via the Anthropic API for synthesis. The PGx system prompt defines 11 domains of expertise and includes strict citation formatting instructions. Key parameters:
+The system uses **Claude Sonnet 4.6** (claude-sonnet-5) via the Anthropic API for synthesis. The PGx system prompt defines 11 domains of expertise and includes strict citation formatting instructions. Key parameters:
 
 - Max tokens: 2,048 (standard), 3,000 (comparative)
 - Temperature: 0.7
