@@ -1,0 +1,20 @@
+{
+ "_comment": "Test-depth ratchet baseline (decision H-D5). RECORDED FROM CI, which is the environment that enforces it: CI collects fewer tests than a developer box (300 cart there vs 415 locally) because optional and GPU-gated dependencies are absent, so a locally-captured baseline fails instantly. A local run measures at or above these numbers and passes, which is the right asymmetry. Regenerate deliberately; a drop below these is a regression, not a new normal.",
+ "recorded_from": "github-actions ubuntu-latest, python 3.12, 2026-09-16",
+ "floor_per_100_loc": 2.0,
+ "tolerance": 0.15,
+ "subjects": {
+  "agent/cart": 1.68,
+  "agent/clinical-trial": 3.78,
+  "agent/neurology": 1.0,
+  "agent/pharmacogenomics": 4.74,
+  "agent/precision-autoimmune": 2.77,
+  "agent/precision-biomarker": 3.22,
+  "agent/rare-disease-diagnostic": 0.99,
+  "agent/single-cell": 0.96,
+  "engine/cardiology": 5.81,
+  "engine/clinical-imaging": 2.15,
+  "engine/precision-oncology": 3.23,
+  "program/tuberous-sclerosis": 1.38
+ }
+}
