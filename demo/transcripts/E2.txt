@@ -1,16 +1,19 @@
-demo          E2 · precision-intelligence
-title         Ask the evidence layer a question
-label         LIVE
-started       2026-09-15T23:30:07+00:00
-readiness     milvus=True collection_loaded=True llm=True
-evidence base genomic_evidence: 60 vectors (ClinVar / AlphaMissense)
-variant input present — 162.72 MB (HG002.genome.vcf.gz)
-targets       6 registered · 4 high-confidence · 4 validated
-  VCP      high    validated   AAA+ ATPase inhibition to modulate protein homeostasis
-  EGFR     high    validated   Tyrosine kinase inhibition
-  BRAF     high    validated   Kinase inhibition
-  KRAS     high    validated   Covalent GTPase inhibition
-flagship      VCP (p97) for frontotemporal dementia — AAA+ ATPase inhibition to modulate protein homeostasis
-              Primary target for FTD drug discovery demo. Reference compound: CB-5083 (VCP/p97 inhibitor).
-decision support for a qualified clinician, not diagnosis
-RESULT        PASS — ran on real input
+
+E2 · Ask the evidence layer a question
+
+    demo          E2 · precision-intelligence
+    title         Ask the evidence layer a question
+    label         LIVE
+    started       2026-09-16T02:35:41+00:00
+    readiness     milvus=True collection_loaded=True llm=True
+    evidence base genomic_evidence: 60 vectors (ClinVar / AlphaMissense)
+    variant input present — 162.72 MB (HG002.genome.vcf.gz)
+    targets       6 registered · 4 high-confidence · 4 validated
+      VCP      high    validated   AAA+ ATPase inhibition to modulate protein homeostasis
+      EGFR     high    validated   Tyrosine kinase inhibition
+      BRAF     high    validated   Kinase inhibition
+      KRAS     high    validated   Covalent GTPase inhibition
+    flagship      VCP (p97) for frontotemporal dementia — AAA+ ATPase inhibition to modulate protein homeostasis
+                  Primary target for FTD drug discovery demo. Reference compound: CB-5083 (VCP/p97 inhibitor).
+    decision support for a qualified clinician, not diagnosis
+    RESULT        PASS — ran on real input
