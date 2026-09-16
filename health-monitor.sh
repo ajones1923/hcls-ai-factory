@@ -28,6 +28,67 @@ MAX_LOG_SIZE=10485760  # 10MB
 mkdir -p "${LOG_DIR}"
 
 # ============================================================================
+# ENVIRONMENT
+# ============================================================================
+# Load .env before starting anything. Without this the supervisor starts every
+# service with NO ANTHROPIC_API_KEY, so an auto-recovery or a reboot silently
+# downgrades the whole fleet from "reasons over retrieved evidence" to
+# "retrieval only" -- and the services still report healthy, because they are
+# designed to degrade gracefully. That failure is invisible from the status
+# table, which is exactly why it has to be handled here rather than by whoever
+# happens to start a service by hand.
+if [ -f "${SCRIPT_DIR}/.env" ]; then
+    set -a
+    # shellcheck disable=SC1091
+    . "${SCRIPT_DIR}/.env"
+    set +a
+fi
+
+# ============================================================================
+# SINGLE-INSTANCE GUARD  +  SELF-TIMEOUT
+# ============================================================================
+# A run that has to give up on N dead services costs N x 60s (30 attempts x 2s).
+# On a partly-built box that exceeds the 5-minute cron cadence, so invocations
+# pile up: 11 concurrent monitors -- three of them 51 days old -- were observed
+# on 2026-09-15, racing each other to start the same services and appending
+# 536 MB to logs/. flock makes a late run skip instead of stack.
+#
+# The self-timeout is the other half: without it a single hung run would hold
+# the lock forever and silently end all supervision.
+#
+# Read-only commands (status / log / help) are deliberately NOT guarded.
+LOCK_FILE="${LOG_DIR}/health-monitor.lock"
+MAX_RUN_SECONDS=${MAX_RUN_SECONDS:-600}
+
+acquire_lock() {
+    exec 9>"${LOCK_FILE}" || return 0
+    if ! flock -n 9; then
+        echo "Another health-monitor run still holds ${LOCK_FILE} — skipping this tick."
+        log "INFO" "Skipped tick: previous run still in progress"
+        exit 0
+    fi
+    # Watchdog: SIGTERM this run if it outlives MAX_RUN_SECONDS, so the lock is
+    # always released. `exec 9>&-` is load-bearing -- without it the watchdog
+    # inherits the lock fd and keeps the lock held after the parent is killed,
+    # silently blocking every later tick for the full MAX_RUN_SECONDS.
+    ( exec 9>&-; sleep "${MAX_RUN_SECONDS}"; kill -TERM $$ 2>/dev/null ) &
+    WATCHDOG_PID=$!
+    trap 'kill "${WATCHDOG_PID}" 2>/dev/null' EXIT
+}
+
+# Cap the cron append-log, which nothing else rotates.
+cap_cron_log() {
+    local f="${LOG_DIR}/cron-health.log"
+    [ -f "$f" ] || return 0
+    local size
+    size=$(stat --format="%s" "$f" 2>/dev/null || echo 0)
+    if [ "$size" -gt "$MAX_LOG_SIZE" ]; then
+        tail -c "$((MAX_LOG_SIZE / 2))" "$f" > "${f}.tmp" && mv "${f}.tmp" "$f"
+        log "INFO" "cron-health.log truncated at ${size} bytes"
+    fi
+}
+
+# ============================================================================
 # SERVICE REGISTRY
 # ============================================================================
 # Format: ID|PORT|NAME|HEALTH_PATH|TYPE|START_DIR|START_CMD
@@ -60,6 +121,22 @@ declare -a SERVICES=(
     "neurology|8536|Neurology Intelligence|/health|python|${SCRIPT_DIR}/core/agents/neurology|./venv/bin/python -m uvicorn api.main:app --host 0.0.0.0 --port 8536"
     "neurology-ui|8535|Neurology UI|/healthz|streamlit|${SCRIPT_DIR}/core/agents/neurology|./venv/bin/streamlit run app/neuro_ui.py --server.port 8535 --server.address 0.0.0.0 --server.headless true"
     "single-cell|8541|Single-Cell Intelligence|/health|python|${SCRIPT_DIR}/core/agents/single-cell|./venv/bin/python -m uvicorn api.main:app --host 0.0.0.0 --port 8541"
+    # ── Model / compute services and the disease program ──
+    # These were registered `live` while nothing ran them: they expose a create_app() factory
+    # rather than a module-level `app`, so they need uvicorn --factory, and nothing supervised
+    # them. Added so they survive a reboot (PRD R10/A3) and so --probe stays green.
+    "variant-store|8575|Variant Store|/stats|python|${SCRIPT_DIR}/core/engines/genomic-foundation/src|${SCRIPT_DIR}/.venv/bin/python -m uvicorn --factory variant_store_service:create_app --host 0.0.0.0 --port 8575"
+    "singlecell-compute|8573|Single-Cell Compute|/docs|python|${SCRIPT_DIR}/core/engines/single-cell/src|${SCRIPT_DIR}/.venv/bin/python -m uvicorn --factory single_cell_service:create_app --host 0.0.0.0 --port 8573"
+    "proteinmpnn|8578|ProteinMPNN Design|/docs|python|${SCRIPT_DIR}/core/engines/structural-biology/src|${SCRIPT_DIR}/.venv/bin/python -m uvicorn --factory proteinmpnn_service:create_app --host 0.0.0.0 --port 8578"
+    "molecule-generator|8574|Molecule Generator|/docs|python|${SCRIPT_DIR}/core/engines/therapeutic-discovery/small-molecule/src|${SCRIPT_DIR}/.venv/bin/python -m uvicorn --factory molecule_gen_service:create_app --host 0.0.0.0 --port 8574"
+    "tuberous-sclerosis|8560|TSC Intelligence Engine|/health|python|${SCRIPT_DIR}/core/disease-programs/tuberous-sclerosis|./venv/bin/python -m uvicorn api.main:app --host 0.0.0.0 --port 8560"
+    # Structural biology + ADMET. These were registered live-and-VERIFIED with nothing serving
+    # them; they need admet-ai / transformers, now in the platform venv. ESMFold and ESM2 hold
+    # multi-GB weights, so first start after a cold page cache is slow -- the health wait is
+    # generous by design.
+    "esmfold|8570|ESMFold|/docs|python|${SCRIPT_DIR}/core/engines/structural-biology/src|${SCRIPT_DIR}/.venv/bin/python -m uvicorn --factory esmfold_service:create_app --host 0.0.0.0 --port 8570"
+    "esm2-search|8571|ESM-2 Protein Search|/docs|python|${SCRIPT_DIR}/core/engines/structural-biology/src|${SCRIPT_DIR}/.venv/bin/python -m uvicorn --factory protein_search_service:create_app --host 0.0.0.0 --port 8571"
+    "chemprop-admet|8572|ADMET / Toxicity|/docs|python|${SCRIPT_DIR}/core/engines/therapeutic-discovery/src|${SCRIPT_DIR}/.venv/bin/python -m uvicorn --factory admet_service:create_app --host 0.0.0.0 --port 8572"
 )
 
 # ============================================================================
@@ -158,6 +235,37 @@ check_gpu() {
     return 1
 }
 
+# GB10 is a UNIFIED-memory part: the GPU allocates from the same pool as the host, and
+# nvidia-smi reports [N/A] for memory here, so MemFree is the only usable signal. It is
+# MemFree and deliberately not MemAvailable -- the page cache counts as "available" to the
+# host but is NOT reclaimable for a CUDA allocation, which is the whole reason the workbook
+# prescribes dropping caches before a GPU run (PRD R5).
+#
+# Without this, `check_gpu` reported HEALTHY whenever nvidia-smi merely ran -- liveness, not
+# usable capacity -- while only 5 GiB of 119 GiB was actually allocatable and anything the
+# size of ESMFold or Parabricks would fail.
+GPU_FREE_WARN_GIB=${GPU_FREE_WARN_GIB:-16}
+
+gpu_free_gib() {
+    awk '/^MemFree:/ {printf "%.1f", $2/1048576}' /proc/meminfo 2>/dev/null
+}
+
+gpu_line() {
+    if ! check_gpu; then
+        echo "  GPU                  :--     NOT RESPONDING"
+        return
+    fi
+    local free
+    free=$(gpu_free_gib)
+    if [ -z "$free" ]; then
+        echo "  GPU                  :--     HEALTHY"
+    elif awk "BEGIN{exit !($free < $GPU_FREE_WARN_GIB)}"; then
+        echo "  GPU                  :--     HEALTHY  (only ${free} GiB allocatable — page cache holds the rest; drop caches before a large model)"
+    else
+        echo "  GPU                  :--     HEALTHY  (${free} GiB allocatable)"
+    fi
+}
+
 # ============================================================================
 # SERVICE MANAGEMENT
 # ============================================================================
@@ -229,13 +337,51 @@ start_service() {
     local log_name
     log_name=$(get_id "$svc")
 
-    if [ "$svc_type" = "docker" ]; then
-        cd "$svc_dir" 2>/dev/null && eval "$svc_cmd" >> "${LOG_DIR}/${log_name}.log" 2>&1
-    else
-        cd "$svc_dir" 2>/dev/null && nohup bash -c "$svc_cmd" >> "${LOG_DIR}/${log_name}.log" 2>&1 &
+    # Preflight 1 — the working directory must exist. Previously `cd ... 2>/dev/null &&`
+    # swallowed this, started nothing, then waited the full 60s to report a generic failure.
+    if [ ! -d "$svc_dir" ]; then
+        echo "  SKIP: ${name} — directory not found: ${svc_dir}"
+        log "WARN" "Cannot start ${name}: missing directory ${svc_dir}"
+        return 1
     fi
 
-    # Wait for service to come up
+    # Preflight 2 — most services start via a per-service ./venv. 13 of 21 of those venvs
+    # do not exist on this box, and waiting 60s to discover that (per service, every 5
+    # minutes) is what produced the pileup. Detect it in O(1) and say so plainly.
+    # Match an absolute venv path first (some commands `source` another service's venv);
+    # only fall back to the relative form, which is resolved against $svc_dir.
+    local venv_path
+    venv_path=$(printf '%s\n' "$svc_cmd" | grep -oE '(^|[[:space:]])/[^[:space:]]*/[.]?venv/bin/[a-zA-Z0-9_.-]+' | head -1 | tr -d '[:space:]')
+    if [ -z "$venv_path" ]; then
+        local venv_rel
+        venv_rel=$(printf '%s\n' "$svc_cmd" | grep -oE '(^|[[:space:]])\./[.]?venv/bin/[a-zA-Z0-9_.-]+' | head -1 | tr -d '[:space:]')
+        [ -n "$venv_rel" ] && venv_path="${svc_dir}/${venv_rel#./}"
+    fi
+    # -e, not -x: `activate` is sourced and is not executable. The question this
+    # preflight answers is "has the venv been built", for which existence is the test.
+    if [ -n "$venv_path" ] && [ ! -e "$venv_path" ]; then
+        echo "  SKIP: ${name} — no interpreter at ${venv_path} (venv not built)"
+        log "WARN" "Cannot start ${name}: ${venv_path} missing — build the service venv first"
+        return 1
+    fi
+
+    # `exec 9>&-` is load-bearing in BOTH branches. fd 9 is the flock held by this run; a
+    # started service inherits every open descriptor, so without closing it the service keeps
+    # the lock for its entire lifetime -- and since services are meant to run forever, the
+    # first successful start would permanently wedge the lock and silently end all
+    # supervision. That is not hypothetical: it happened here, and every tick for the next
+    # five hours logged "Skipped tick: previous run still in progress" while a Streamlit
+    # process sat holding the lock.
+    local child_pid=""
+    if [ "$svc_type" = "docker" ]; then
+        ( exec 9>&-; cd "$svc_dir" && eval "$svc_cmd" ) >> "${LOG_DIR}/${log_name}.log" 2>&1
+    else
+        ( exec 9>&-; cd "$svc_dir" && nohup bash -c "$svc_cmd" >> "${LOG_DIR}/${log_name}.log" 2>&1 ) &
+        child_pid=$!
+    fi
+
+    # Wait for the service to come up -- but stop early if the process we launched
+    # has already died, instead of burning the full 60s on a corpse.
     local attempts=0
     local max_attempts=30
     while [ $attempts -lt $max_attempts ]; do
@@ -244,6 +390,11 @@ start_service() {
             echo "  ${name} started successfully (port ${port})"
             log "INFO" "Started ${name} on port ${port}"
             return 0
+        fi
+        if [ -n "$child_pid" ] && ! kill -0 "$child_pid" 2>/dev/null; then
+            echo "  FAILED: ${name} — process exited immediately; see ${LOG_DIR}/${log_name}.log"
+            log "WARN" "Start of ${name} exited immediately (port ${port})"
+            return 1
         fi
         attempts=$((attempts + 1))
     done
@@ -330,15 +481,12 @@ cmd_status() {
         echo ""
         echo "  },"
         echo "  \"gpu\": \"${gpu_status}\","
+        echo "  \"gpu_free_gib\": $(gpu_free_gib || echo null),"
         echo "  \"summary\": {\"healthy\": ${healthy}, \"total\": ${total}, \"all_healthy\": $([ $healthy -eq $total ] && echo true || echo false)}"
         echo "}"
     else
         echo "  ────────────────────────────────────────────────────────"
-        if check_gpu; then
-            echo "  GPU                  :--     HEALTHY"
-        else
-            echo "  GPU                  :--     NOT RESPONDING"
-        fi
+        gpu_line
         echo "  ────────────────────────────────────────────────────────"
         echo "  Total: ${healthy}/${total} services healthy"
         if [ $healthy -eq $total ]; then
@@ -552,12 +700,15 @@ case "${1:-status}" in
         cmd_status "$2"
         ;;
     fix)
+        acquire_lock; cap_cron_log
         cmd_fix
         ;;
     watch)
+        acquire_lock
         cmd_watch
         ;;
     restart)
+        acquire_lock
         cmd_restart "$2"
         ;;
     stop)

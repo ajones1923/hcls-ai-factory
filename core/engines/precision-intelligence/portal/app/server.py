@@ -414,7 +414,16 @@ def get_status():
     }
 
     # Check data files
-    vcf_path = config.get('VCF_INPUT_PATH', str(PROJECT_ROOT.parent / 'core/engines/genomic-foundation' / 'data' / 'output' / 'HG002.genome.vcf.gz'))
+    # PROJECT_ROOT is core/engines/precision-intelligence, so PROJECT_ROOT.parent is already
+    # core/engines -- appending 'core/engines/...' produced
+    # core/engines/core/engines/genomic-foundation/... and the portal reported vcf_exists:false
+    # for a file that was there all along. Prefer the shared data checkout, which is where the
+    # real GIAB HG002 genome actually lives, and fall back to the engine's own output dir.
+    _repo_root = PROJECT_ROOT.parent.parent.parent   # precision-intelligence -> engines -> core -> repo
+    _default_vcf = _repo_root / 'hcls-ai-factory-core-data' / 'vcf' / 'HG002.genome.vcf.gz'
+    if not _default_vcf.is_file():
+        _default_vcf = PROJECT_ROOT.parent / 'genomic-foundation' / 'data' / 'output' / 'HG002.genome.vcf.gz'
+    vcf_path = config.get('VCF_INPUT_PATH', str(_default_vcf))
     data_status = {
         'vcf_exists': check_file_exists(vcf_path),
         'vcf_path': vcf_path,

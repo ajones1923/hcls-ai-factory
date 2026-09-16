@@ -303,10 +303,20 @@ async def lifespan(app: FastAPI):
     # -- RAG engine --
     try:
         from src.rag_engine import SingleCellRAGEngine
+        # _CollectionManager wraps the ORM `connections` helper and has no .search(); the RAG
+        # engine calls milvus_client.search(...), so it needs a real MilvusClient.
+        # This MUST stay inside the lifespan try: MilvusClient connects EAGERLY in __init__,
+        # so constructing it at module scope raised MilvusException at import time wherever
+        # Milvus is absent -- which took out 36 tests on a CI runner that has no Milvus while
+        # passing locally, because this box has one running.
+        from pymilvus import MilvusClient as _MilvusClient
+        _search_client = _MilvusClient(
+            uri=f"http://{settings.MILVUS_HOST}:{settings.MILVUS_PORT}"
+        )
         _engine = SingleCellRAGEngine(
             embedding_model=embedder,
             llm_client=llm_client,
-            milvus_client=_manager,
+            milvus_client=_search_client,
         )
         logger.info("Single-Cell RAG engine initialized")
     except Exception as exc:

@@ -50,11 +50,15 @@ Add an entry to `lib/hcls_common/capabilities.json` with a full, honest contract
   "id": "my-model", "type": "model", "name": "My Model",
   "domain": "proteins", "serving": "native", "gpu": true, "cost_class": "medium",
   "status": "planned",
-  "endpoint": "localhost:8579", "invoke_path": "/predict",
+  "endpoint": "localhost:8601", "invoke_path": "/predict",
   "inputs":  [{ "name": "sequence", "shape": "scalar", "required": true }],
   "outputs": [{ "name": "structure", "shape": "structure" }]
 }
 ```
+
+> **Port convention (2026-08-15):** the registry advertises the **UI** port and the **API is UI + 1**;
+> `scripts/validate_registry.py` fails the build on a collision. `8601` above is a placeholder — take
+> the next free pair from `docs/build/PORT_MAP.md`, never a port already allocated there.
 - **Typed `Port`s.** Every input/output declares a `ValueShape`:
   `scalar`/`list`/`list_of_objects`/`map`/`file`/`structure`. Add `required`/`enum`/`minimum`/
   `maximum`/`default` where useful — these drive both composer wiring and the input-validation gate.

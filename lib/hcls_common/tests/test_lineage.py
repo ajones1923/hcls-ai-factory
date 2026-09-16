@@ -47,14 +47,14 @@ class TestChainLineage:
 
         class FakeTools:
             def invoke_capability(self, cap_id, payload=None, path="/"):
-                port = {"esmfold-model": "structure", "diffdock-nim": "poses"}.get(cap_id, "out")
+                port = {"esmfold-model": "structure", "proteinmpnn-design": "designs"}.get(cap_id, "out")
                 return {"status": "ok", "result": {port: f"<{cap_id}>"}}
 
         p = Pipeline("x", [
             Node("fold", "esmfold-model", [NodeInput("sequence", value="MKT")]),
-            Node("dock", "diffdock-nim", [
-                NodeInput("protein_structure", from_node="fold", from_port="structure"),
-                NodeInput("ligand_smiles", value="CCO")])])
+            Node("dock", "proteinmpnn-design", [
+                NodeInput("pdb", from_node="fold", from_port="structure"),
+                NodeInput("num_seq", value=2)])])
         out = WorkflowComposer(get_registry(reload=True), tools=FakeTools()).run(
             p, governed=True, patient_id="P0")
         m = chain_lineage(out["artifacts"])

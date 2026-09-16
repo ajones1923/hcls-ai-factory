@@ -87,15 +87,21 @@ def install_governance(app, *, service: str = "", capability_id: str | None = No
         response.headers["X-HCLS-Duration-ms"] = f"{(time.monotonic() - t0) * 1000:.1f}"
         return response
 
+    # The output gate is no longer opt-in: see install_output_honesty for why.
+    install_output_honesty(app, service=service)
+
     @app.get("/governance", tags=["status"])
     def _governance_info():
         return {
             "service": service,
             "capability_id": capability_id,
             "gates_available": ["input-validation", "output-honesty"],
-            "gates_are_opt_in": ("this middleware adds a request id, timing and the service name. "
-                                 "It does NOT gate. A handler must call require_valid_input() and "
-                                 "honesty_flags(); X-HCLS-Governed lists only what actually ran."),
+            "output_gate": ("AUTOMATIC since 2026-09-15: every JSON answer over 200 chars is "
+                            "scanned by the deterministic honesty register and carries the "
+                            "decision-support disclaimer. Block-severity overclaims are WITHHELD "
+                            "by default; set HCLS_HONESTY_ENFORCE=0 to annotate instead."),
+            "input_gate_is_opt_in": ("a handler must still call require_valid_input(); "
+                                     "X-HCLS-Governed lists only what actually ran."),
             "auth": _auth_status(service),
             "how": {
                 "input": "call require_valid_input(capability_id, payload) in POST handlers",
@@ -104,6 +110,109 @@ def install_governance(app, *, service: str = "", capability_id: str | None = No
         }
 
     return app
+
+
+# ── output-honesty response gate ─────────────────────────────────────────────
+DISCLAIMER = (
+    "\n\n---\n*Decision support for a qualified clinician — not a diagnosis, not a "
+    "prescription, and not a substitute for clinical judgement. Generated from retrieved "
+    "evidence; verify every claim against the cited primary source before acting on it.*"
+)
+
+# Response keys that carry prose a clinician might act on.
+_ANSWER_KEYS = ("answer", "response", "summary", "interpretation", "narrative", "brief")
+
+
+def install_output_honesty(app, *, service: str = ""):
+    """Run the deterministic honesty gate over every JSON answer this service returns.
+
+    Why this is middleware and not a line in each handler: the gates were opt-in, and the
+    2026-08-15 audit found them called by 1 of 12 entrypoints. That was survivable while the
+    agents returned retrieved passages. It stopped being survivable the moment an API key was
+    present, because the same endpoints now return generated clinical prose -- dosing, response
+    rates, management guidance -- and a 6,400-character answer was going out with no statement
+    that it is decision support. On a project whose thesis is honesty by construction, that is
+    the one failure that cannot be allowed to depend on twelve handlers remembering.
+
+    Appends the decision-support disclaimer when clinical prose lacks one, attaches any
+    overclaim findings to the payload under `honesty`, and reports them in X-HCLS-Honesty.
+    Content is annotated, never silently rewritten -- except that a `block`-severity finding
+    (a cure claim, diagnostic certainty, a clearance claim about THIS platform) replaces the
+    generated prose, because those must not ship at all. Enforcing by default since
+    2026-09-15; HCLS_HONESTY_ENFORCE=0 annotates instead. Retrieved evidence is never
+    withheld -- only the generated text.
+    """
+    import json as _json
+    import os as _os
+
+    from fastapi import Request
+    from starlette.responses import Response
+
+    @app.middleware("http")
+    async def _output_honesty(request: "Request", call_next):
+        response = await call_next(request)
+        ctype = response.headers.get("content-type", "")
+        if "application/json" not in ctype or response.status_code >= 400:
+            return response
+        body = b""
+        async for chunk in response.body_iterator:
+            body += chunk
+        try:
+            payload = _json.loads(body)
+        except Exception:
+            return Response(content=body, status_code=response.status_code,
+                            headers=dict(response.headers), media_type=response.media_type)
+
+        if isinstance(payload, dict):
+            key = next((k for k in _ANSWER_KEYS
+                        if isinstance(payload.get(k), str) and len(payload[k]) > 200), None)
+            if key:
+                text = payload[key]
+                try:
+                    findings = honesty_flags(text)          # marks the gate as having run
+                except Exception:
+                    findings = []
+                blocking = [f for f in findings if f.get("severity") == "block"]
+                # ENFORCING BY DEFAULT since 2026-09-15 (Adam's decision). Set
+                # HCLS_HONESTY_ENFORCE=0 to annotate instead of withhold.
+                #
+                # Safe to default on only because the regulatory/efficacy rules became
+                # subject-aware first: "this platform is FDA-approved" blocks, while
+                # "tisagenlecleucel is FDA-approved" degrades to a warning. Without that,
+                # enforcement would have withheld correct clinical answers about approved
+                # drugs -- worse than the problem it solves. Rules that are unsafe whatever
+                # the subject (a cure claim, absolute certainty, zero risk) always block.
+                if blocking and _os.getenv("HCLS_HONESTY_ENFORCE", "1") != "0":
+                    payload[key] = (
+                        "**Withheld by the output-honesty gate.**\n\n"
+                        + "\n".join(f"- {f.get('message', '')}" for f in blocking)
+                        + "\n\nThe generated text made a claim this platform must not publish. "
+                          "The retrieved evidence is unchanged and still returned; only the "
+                          "generated prose was withheld. Set HCLS_HONESTY_ENFORCE=0 to receive "
+                          "it annotated instead." + DISCLAIMER)
+                    payload["withheld"] = True
+                elif not _has_disclaimer(text):
+                    payload[key] = text + DISCLAIMER
+                if findings:
+                    payload["honesty"] = findings
+                body = _json.dumps(payload).encode()
+
+        headers = dict(response.headers)
+        headers.pop("content-length", None)
+        out = Response(content=body, status_code=response.status_code,
+                       headers=headers, media_type="application/json")
+        ran = sorted(_GATES_RUN.get(set()) or set())
+        if ran:
+            out.headers["X-HCLS-Governed"] = ",".join(ran)
+        return out
+
+    return app
+
+
+def _has_disclaimer(text: str) -> bool:
+    low = text.lower()
+    return any(p in low for p in ("decision support", "not a diagnosis", "qualified clinician",
+                                  "research use", "not a substitute for clinical"))
 
 
 def require_valid_input(capability_id: str, payload: dict[str, Any] | None) -> dict[str, Any]:

@@ -28,17 +28,22 @@ MLOps, governance).
 | 1 | Genomic Foundation | 5000 (+ store 8575) | GPU variant calling + annotation (Parabricks · DeepVariant + HaplotypeCaller · ClinVar/AlphaMissense · DuckDB Ts/Tv · ACMG SF · VAF/mosaicism · GWAS) |
 | 2 | Precision Intelligence | 5001 | RAG clinical interpretation over the variant foundation; coordinates the 8 agents |
 | 3 | Therapeutic Discovery | 8505 (+8574,8572) | Small-molecule design (MolMIM/BRICS → DiffDock → ADMET → generate-score-reseed; Chai-1 co-fold) |
-| 4 | Clinical Imaging | 8525 | DICOM analysis (VISTA-3D · VILA-M3 · FHIR R4) + cross-modal reasoning with genomics |
+| 4 | Clinical Imaging | 8523 (API 8524) | DICOM analysis (VISTA-3D · VILA-M3 · FHIR R4) + cross-modal reasoning with genomics |
 | 5 | Precision Oncology | 8526 | MTB packets, therapy ranking, trial matching; fusion-first pediatric |
 | 6 | Cardiology | 8126 | 11 workflows + 6 risk calculators (prevention → intervention → rhythm; CAC + ASCVD) |
-| 7 | Large-Molecule / Structural Biology ⭐ | 8579 (fronts models on 8570–8578, excl. 8573) | ESMFold · ESM-2 + Smith-Waterman · ProteinMPNN · developability · MHCflurry · ESM-2 LoRA · Chai-1 |
+| 7 | Large-Molecule / Structural Biology ⭐ | 8581 (fronts models on 8570–8578, excl. 8573) | ESMFold · ESM-2 + Smith-Waterman · ProteinMPNN · developability · MHCflurry · ESM-2 LoRA · Chai-1 |
 | 8 | Single-Cell Analysis ⭐ | 8573 | scanpy compute → cell-type clusters + TME map (shared service) |
 
 
-**Ports are taken from `lib/hcls_common/capabilities.json`** (the registry), which agrees with each
-service's `docker-compose.yml --port` and `api/main.py`. Several Dockerfiles still `EXPOSE` a legacy
-port alongside the current one (cardiology 8536, clinical-trial 8128, single-cell 8130) — those are
-migration leftovers, not live endpoints.
+**Ports above are the UI port, taken from `lib/hcls_common/capabilities.json`** (the registry).
+**The convention, adopted 2026-08-15: the registry advertises the UI port; the API is UI + 1.**
+`scripts/validate_registry.py` enforces it and cross-checks `health-monitor.sh`; both are in the
+merge gate. The full allocation, and why three services moved (imaging 8525→8523, neurology
+8529→8535, structural-biology 8579→8581), is `docs/build/PORT_MAP.md`.
+
+Several Dockerfiles still `EXPOSE` a pre-convention port alongside the current one (cardiology 8536,
+clinical-trial 8128, single-cell 8130) — migration leftovers, not live endpoints. Note that **8536 is
+now neurology's API port**, so a cardiology Dockerfile exposing it is stale, not a second endpoint.
 
 ## The 8 Intelligence Agents
 | Agent | Domain | Port | Key capabilities |
@@ -47,13 +52,13 @@ migration leftovers, not live endpoints.
 | Precision Biomarker Intelligence | Biomarkers | 8528 | PhenoAge/GrimAge, 9-domain risk, genotype-aware; multi-omics join |
 | Pharmacogenomics Intelligence | Drug–gene | 8507 | star-allele calling, CPIC, 9 dosing algorithms (safety interlock) |
 | Precision Autoimmune Intelligence | Autoimmune | 8531 | autoantibody interpretation, HLA analysis, flare prediction |
-| Neurology Intelligence | Neurology | 8529 | stroke triage, dementia eval, EDSS; Parkinson's S+N+G staging |
+| Neurology Intelligence | Neurology | 8535 | stroke triage, dementia eval, EDSS; Parkinson's S+N+G staging |
 | Clinical Trial Intelligence | Clinical trials | 8538 | trial optimization, adaptive design, biomarker strategy |
 | Rare Disease Intelligence | Rare disease | 8544 | HPO matching, ACMG classification, trio, gene-therapy tracking |
 | Single-Cell Intelligence | Single-cell | 8540 | cell-type annotation, TME profiling, drug-response prediction |
 
 **Single-cell — engine vs. agent (not a duplicate):** the *engine* (Engine 8, `singlecell-compute`,
-:8573) is deterministic scanpy *compute*; the *agent* (`single-cell-intelligence-agent`, :8130) is
+:8573) is deterministic scanpy *compute*; the *agent* (`single-cell-intelligence-agent`, :8540) is
 the RAG *reasoning* layer. The engine computes; the agent interprets. **Presentation:** in lists
 name them **"Single-Cell Analysis Engine"** and **"Single-Cell Intelligence Agent"** (the Analysis vs.
 Intelligence contrast reads as two roles, not a duplicate); in diagrams **stack them as one

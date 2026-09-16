@@ -502,7 +502,8 @@ class SingleCellRAGEngine:
                 "collection_name": collection_name,
                 "data": [query_vector],
                 "anns_field": "embedding",
-                "param": search_params,
+                # MilvusClient.search takes `search_params`, not the ORM API's `param`.
+                "search_params": search_params,
                 "limit": top_k,
                 "output_fields": ["*"],
             }
@@ -516,6 +517,22 @@ class SingleCellRAGEngine:
             flat_results = []
             if results and len(results) > 0:
                 for hit in results[0]:
+                    # MilvusClient returns plain dicts ({id, distance, entity}); the ORM API
+                    # returned Hit objects with .id/.score. Handle both.
+                    if isinstance(hit, dict):
+                        record = {
+                            "id": str(hit.get("id", "")),
+                            "score": float(hit.get("distance", hit.get("score", 0.0)) or 0.0),
+                        }
+                        ent = hit.get("entity") or {}
+                        if isinstance(ent, dict):
+                            for k, v in ent.items():
+                                if k != "embedding":
+                                    record[k] = v
+                        record["metadata"] = {k: v for k, v in record.items()
+                                              if k not in ("id", "score", "metadata")}
+                        flat_results.append(record)
+                        continue
                     record = {
                         "id": str(hit.id),
                         "score": float(hit.score) if hasattr(hit, "score") else 0.0,

@@ -8,11 +8,22 @@ Run in CI to prevent drift as new engines/agents are added:
   * every directory under core/engines/ and core/agents/ is represented by
     at least one registered capability.
 
+With --probe, additionally opens a TCP connection to every `live` capability that
+declares an endpoint and fails if nothing answers. That closes the gap the registry
+cannot close on its own: `status: live` is a claim written by a human, and without a
+probe it stays "true" long after the service has stopped existing. Two capabilities
+were already found registered `live` with nothing bound to their ports.
+
+Probing is opt-in because it is environment-dependent -- a clean CI runner has no
+services -- so the merge gate runs it only where the platform is actually up.
+
 Exit code 0 = clean, 1 = problems (prints them). Requires `hcls_common`
 importable (pip install -e lib/hcls_common).
 """
 from __future__ import annotations
 
+import argparse
+import socket
 import sys
 from pathlib import Path
 
@@ -43,7 +54,71 @@ COVERAGE: dict[str, list[str]] = {
 }
 
 
+def probe_live_capabilities(reg, timeout: float = 2.0) -> list[str]:
+    """Every `live` capability with a localhost endpoint must have something listening.
+
+    Deliberately a TCP connect and not an HTTP health check: capabilities here serve over
+    several different frameworks and health paths, and a connect proves the one thing the
+    registry is actually asserting -- that the endpoint exists. A richer check belongs in
+    run_demo.py, which knows each service's contract.
+    """
+    def listening(host: str, port: int) -> bool:
+        with socket.socket() as sk:
+            sk.settimeout(timeout)
+            return sk.connect_ex((host, port)) == 0
+
+    # Every port some capability advertises as its own UI. The UI+1 fallback below must never
+    # be satisfied by one of these: capability UI ports are not spaced two apart, so :8572's
+    # "+1" is :8573 -- which is singlecell-compute's UI, not chemprop-admet's API. Without this
+    # guard, starting one service silently marks its neighbour as answering.
+    claimed_ui = set()
+    for c in reg.all():
+        ep = getattr(c, "endpoint", None)
+        if ep:
+            _, _, pt = str(ep).rpartition(":")
+            if pt.isdigit():
+                claimed_ui.add(int(pt))
+
+    problems: list[str] = []
+    warnings: list[str] = []
+    for cap in reg.all():
+        status = getattr(cap.status, "value", cap.status)
+        endpoint = getattr(cap, "endpoint", None)
+        if status != "live" or not endpoint:
+            continue
+        host, _, port = str(endpoint).rpartition(":")
+        if not port.isdigit():
+            continue
+        host = "127.0.0.1" if host in ("localhost", "") else host
+        ui = int(port)
+
+        # The registry advertises the UI port; the API is UI+1 (docs/build/PORT_MAP.md). A
+        # capability whose API answers is serving even if its UI happens to be down, so those
+        # are two different findings and collapsing them would cry wolf on six agents whose
+        # APIs are healthy and only their Streamlit front end is not running.
+        if listening(host, ui):
+            continue
+        if (ui + 1) not in claimed_ui and listening(host, ui + 1):
+            warnings.append(
+                f"{cap.id}: API answers on :{ui + 1} but the declared endpoint :{ui} (the UI) "
+                "is not running — the capability is serving, its front end is not"
+            )
+            continue
+        where = f":{ui}" if (ui + 1) in claimed_ui else f":{ui} or :{ui + 1}"
+        problems.append(
+            f"{cap.id}: registered 'live' but nothing is listening on {where} — "
+            "either start it or change its status to 'planned'"
+        )
+    for w in warnings:
+        print(f"  warning: {w}")
+    return problems
+
+
 def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--probe", action="store_true",
+                    help="also require every 'live' capability's endpoint to answer")
+    args = ap.parse_args()
     errors: list[str] = []
 
     # 1) Manifest parses + registry rules (enums, unique IDs, honesty rule).
@@ -109,12 +184,28 @@ def main() -> int:
         claimed: dict[int, list[str]] = {}
         SINGLE = {"genomics-engine", "precision-intelligence-engine",
                   "therapeutic-discovery-engine", "singlecell-compute"}
+        # UI/UI+1 is a convention about capabilities that HAVE a front end. Models, NIMs and
+        # platform services are headless -- one port, no UI -- so they allocate a single port.
+        # Before this, supervising one of them (variant-store, molecule-generator, proteinmpnn)
+        # tripped the drift-guard as an unallocated port, which is why they were never added to
+        # health-monitor.sh and therefore never survived a reboot.
+        # `stage` is deliberately absent: a stage is a pipeline step HOSTED BY another
+        # capability's process, not a separately-bound service. mosaicism-vaf declares
+        # :8575 because variant-store serves it at /mosaic — that is one process serving
+        # two capabilities, not a port collision.
+        HEADLESS_TYPES = {"model", "nim", "service"}
         for c in reg.all():
-            if c.type.value not in ("engine", "agent") or not c.endpoint:
+            if not c.endpoint:
+                continue
+            kind = c.type.value
+            if kind not in ("engine", "agent") and kind not in HEADLESS_TYPES:
                 continue
             try:
                 ui_port = int(str(c.endpoint).rsplit(":", 1)[-1])
             except ValueError:
+                continue
+            if kind in HEADLESS_TYPES:
+                claimed.setdefault(ui_port, []).append(f"{c.id}(headless)")
                 continue
             claimed.setdefault(ui_port, []).append(f"{c.id}(ui)")
             if c.id not in SINGLE:
@@ -139,14 +230,24 @@ def main() -> int:
     for cid in reg.type_tag_conflicts():
         errors.append(f"{cid}: tags contradict type (an engine tagged 'agent' or an agent tagged 'engine')")
 
+    # 5) Optional: the registry's `live` claims must survive contact with the machine.
+    n_probed = 0
+    if args.probe:
+        live_eps = [c for c in reg.all()
+                    if getattr(c.status, "value", c.status) == "live" and getattr(c, "endpoint", None)]
+        n_probed = len(live_eps)
+        errors.extend(probe_live_capabilities(reg))
+
     n_eng = len(reg.by_type("engine")) if hasattr(reg, "by_type") else sum(1 for c in reg.all() if c.type.value == "engine")
-    print(f"registry: {len(ids)} capabilities, {n_eng} typed 'engine'")
+    print(f"registry: {len(ids)} capabilities, {n_eng} typed 'engine'"
+          + (f", {n_probed} live endpoints probed" if args.probe else ""))
     if errors:
         print(f"\nFAILED — {len(errors)} problem(s):")
         for e in errors:
             print(f"  - {e}")
         return 1
-    print("OK — manifest valid and every engine/agent directory is registered.")
+    print("OK — manifest valid and every engine/agent directory is registered."
+          + (" Every live endpoint answered." if args.probe else ""))
     return 0
 
 

@@ -1,0 +1,8 @@
+{
+  "marker_genes": ["CD3D", "CD3E", "IL7R", "CCR7", "CD8A", "GZMB", "NKG7", "MS4A1", "CD79A", "LYZ", "CD14", "FCGR3A", "PPBP"],
+  "tissue_type": "peripheral blood",
+  "num_cells": 2638,
+  "cluster_id": "3",
+  "strategy": "marker_based",
+  "top_n": 5
+}
