@@ -546,6 +546,158 @@ retrieval quietly returning nothing.
 
 ---
 
+### 3.7 Grounding and corpus — ✅ measured 2026-09-16
+
+**The eval graded the answer and never asked whether retrieval contributed.** That gap hid two
+things at once.
+
+**44 of 113 Milvus collections are empty.** Not broken — *empty*. The service is up, the
+collection is loaded, the query succeeds, and the result set has nothing in it. There is no error
+anywhere in that chain, so the model answers from its own knowledge and the reply looks exactly
+like a sourced one.
+
+| subject | collections | empty | vectors |
+|---|---|---|---|
+| precision-autoimmune | 13 | **8** | 116 |
+| neurology | 13 | 3 | 168 |
+| clinical-trial | 13 | **11** | 178 |
+| pharmacogenomics | 14 | 0 | 240 |
+| single-cell | 11 | **8** | 279 |
+| rare-disease-diagnostic | 13 | **10** | 440 |
+| clinical-imaging | 12 | 2 | 440 |
+| cart | 10 | 2 | 879 |
+| precision-biomarker | 13 | 0 | 1,244 |
+
+**Eight of ten subjects hold fewer than 500 vectors.** Every one of them was passing the clinical
+eval.
+
+**The single-cell agent answers with no evidence at all:**
+
+```
+/v1/sc/query -> answer 2,658 chars · evidence: [] · guidelines_cited: [] · confidence: 0.3
+```
+
+It passed `sc-tcell-marker` on model knowledge alone. The agent is honest enough to report
+confidence 0.3; nothing surfaced it.
+
+**Two checks now make this visible:**
+
+- `scripts/run_clinical_eval.py` reads the evidence count out of whatever key a service uses and
+  returns a new **`UNGROUNDED`** verdict — a right-looking answer with zero retrieved passages is
+  not a pass for a platform whose claim is RAG over a curated corpus, and it counts as a failure.
+  Verified: precision-biomarker `PASS 30 evidence`, single-cell `UNGROUNDED 0 evidence`.
+- `scripts/check_corpus.py` reports per-subject collections, empties and vector counts against a
+  floor, and runs inside `scripts/reboot_check.py`.
+
+Neither fixes the corpus. Seeding it is content work — `docs/build/CORPUS_SEEDING.md` — but it is
+now a number someone can see rather than an absence nobody can.
+
+### 3.8 One pre-commit guard, not two — ✅ done 2026-09-16
+
+The repo shipped `.pre-commit-config.yaml` (gitleaks, `check-added-large-files --maxkb=5120`,
+yaml/json checks) **and** a hand-written `scripts/pre-commit-hook.sh`. Git calls the hand-written
+one, and it never delegated to the framework — so the documented config was dead weight and
+gitleaks never ran locally.
+
+The hand-written hook also **explicitly exempted `docs/assets/videos/*.mp4`** from its 5 MB limit.
+That exemption is exactly how 899 MB of video reached the history: 123 blobs, 84 of them
+superseded re-encodes of the same 22 files, stripped in the H-D4 rewrite that recovered 233 MB per
+clone.
+
+Now: the hook runs `pre-commit run` when the framework is installed, and re-committing a video
+requires an explicit `HCLS_ALLOW_VIDEO_COMMIT=1`. Adding a video is still allowed; doing it by
+accident is not. Verified both paths — blocked without the flag, permitted with it.
+
+---
+
+### 3.9 The honesty gate was withholding correct answers — ✅ fixed 2026-09-16
+
+The 27-case eval came back 24/27, and one of the misses was the **flagship** question:
+
+> *Which genes cause tuberous sclerosis complex and which pathway is dysregulated?*
+
+Run five times against the same service, the same question returned:
+
+```
+run 1: WITHHELD by honesty gate    585 chars
+run 2: correct (names TSC1/TSC2) 4836 chars
+run 3: WITHHELD by honesty gate    585 chars
+run 4: correct (names TSC1/TSC2) 4888 chars
+```
+
+**The gate was blocking a textbook genetics answer about half the time**, on
+*"Diagnostic-certainty overclaim"* — because a correct answer naturally says how the diagnosis is
+established. A gate that withholds the right answer half the time teaches people to route around
+it, and it made the eval non-deterministic, which is why "27/27" was not reproducible.
+
+**Fix: subject-scope the diagnostic-certainty rules**, the same treatment the regulatory rules got
+when enforcement was turned on. They block on a **self-reference or a patient reference** and
+degrade to `warn` for statements about how diagnosis works in general:
+
+| | |
+|---|---|
+| "The result confirms the diagnosis of the disorder." | **block** |
+| "The patient's diagnosis is confirmed by the variant." | **block** |
+| "Our analysis provides a definitive diagnosis." | **block** |
+| "Genetic testing confirms the diagnosis in 85% of cases." | warn |
+| "A definitive diagnosis requires molecular confirmation of TSC1 or TSC2." | warn |
+
+A `warn` is published with the disclaimer attached; only a `block` or a refuted claim is withheld.
+Verified live afterwards: **5 of 5 runs correct**, none withheld.
+
+**Writing that test found two pre-existing bugs in the safety rules themselves.**
+
+1. **`\b100%\b` never matched anything.** `\b` after `%` requires a following word character, so
+   *"100% of cases"*, *"100% response rate"* and *"a 100%-effective drug"* all passed the
+   absolute-certainty rule. The existing test only appeared to cover it because the sentence also
+   said "cures", which tripped a different rule. The single commonest overclaim token had never
+   fired.
+2. **Only the active voice was matched.** *"The patient's diagnosis is confirmed"* — the more
+   natural way to say the dangerous thing — was not caught at all.
+
+Both fixed and tested. `_SELF_REF` was also widened to the platform's own output nouns
+("the result", "the report", "the finding"), without which the sentence the rule exists for
+degraded to a warning.
+
+---
+
+### 3.10 The flagship's corpus — ✅ measured and repaired 2026-09-16
+
+`scripts/check_corpus.py` reported **zero collections** for the Tuberous Sclerosis program, the
+flagship disease vertical. Four separate things were true at once:
+
+**1. It runs on the in-memory store.** `TSC_USE_MILVUS: "1"` is set in the program's
+`docker-compose.yml`, but the supervisor launches it with uvicorn, so that never applies. Its
+corpus is rebuilt from `SEED_CORPUS` at startup — never stale, but invisible to every corpus
+check, dashboard and operator, and unable to grow beyond what is hard-coded. Documented in
+`.env.example`; the runtime default is deliberately left alone, because with a static corpus
+in-memory is defensible and switching the flagship's store is not a change to make silently.
+
+**2. That corpus is six chunks.** Six. For the flagship.
+
+**3. The Milvus path never flushed.** `client.insert()` with no flush means `num_entities` keeps
+reporting **0** while the rows sit in a growing segment. The loader prints *"Ingested 6 chunks"*
+and every observer sees an empty collection — success reported, nothing visible. Exactly the
+failure mode this platform keeps finding, in the ingest path this time. Fixed.
+
+**4. `upsert()` was an append.** The collection was created with `auto_id=True`, which
+`lib/hcls_common/ingest_persist.py` explicitly warns against — *"PK differs per collection, never
+auto_id; a content-derived id makes re-ingest idempotent."* Running `scripts/load_rag.py` three
+times produced **18 rows of a 6-chunk corpus**, and duplicate passages skew retrieval while
+looking like a healthy corpus. Now a deterministic `blake2b` content key + `client.upsert()`.
+Verified: three consecutive loader runs → **6 live rows, 6 distinct keys**.
+
+A collection created before this change is detected and left alone rather than dropped — by then
+it may hold real ingested literature — and the store logs how to migrate it.
+
+**And the measurement tool was wrong too.** `check_corpus.py` used `num_entities`, which counts
+soft-deleted rows until compaction: after the upsert fix, `tsc_literature` read **18** while
+holding **6**. It now uses `count(*)`. The "44 empty" figure was unaffected (soft deletes only
+inflate, never deflate) and was re-verified by flushing every reportedly-empty collection: all 44
+are genuinely empty.
+
+---
+
 ## Traps already paid for on this machine
 
 1. **A count is not a cause.** `run_all_tests.py` reported "errors 36" with no traceback and cost a

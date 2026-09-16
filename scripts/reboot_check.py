@@ -100,6 +100,18 @@ def check_collections() -> None:
     record("Milvus collections loaded", ok, detail)
 
 
+def check_corpus() -> None:
+    """A loaded collection that is EMPTY is not an error anywhere in the stack."""
+    out = run([PY, "scripts/check_corpus.py"])
+    import re as _re
+    m = _re.search(r"(\d+) of (\d+) collections are empty", out)
+    thin = _re.search(r"(\d+) subject\(s\) below", out)
+    detail = (f"{m.group(1)}/{m.group(2)} collections empty" if m else "could not parse")
+    if thin:
+        detail += f", {thin.group(1)} subjects under the vector floor"
+    record("agent corpora are populated", bool(m) and m.group(1) == "0" and not thin, detail)
+
+
 def check_registry() -> None:
     out = run([PY, "scripts/validate_registry.py", "--probe"])
     probe = next((ln.strip() for ln in out.splitlines() if "endpoint" in ln), "")
@@ -189,6 +201,7 @@ def main() -> int:
 
     check_supervisor()
     check_collections()
+    check_corpus()
     check_registry()
     check_demos()
     check_retrieval()

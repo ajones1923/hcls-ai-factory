@@ -49,6 +49,25 @@ def wait_healthy(port: int, tries: int = 30, gap: int = 2) -> bool:
     return False
 
 
+# Services report retrieval under different keys; single-cell reports none at all.
+_EVIDENCE_KEYS = ("evidence_count", "total_results", "hit_count")
+_EVIDENCE_LISTS = ("sources", "results", "evidence")
+
+
+_LAST_EVIDENCE = {"n": -1}
+
+
+def evidence_count(d: dict) -> int:
+    """How many retrieved passages backed this answer. -1 when the service does not say."""
+    for k in _EVIDENCE_KEYS:
+        if isinstance(d.get(k), int):
+            return d[k]
+    for k in _EVIDENCE_LISTS:
+        if isinstance(d.get(k), list):
+            return len(d[k])
+    return -1
+
+
 def ask(case: dict, timeout: int = 240) -> tuple[str, str]:
     """-> (answer_text, error). Never raises."""
     body = json.dumps({case.get("field", "question"): case["question"]}).encode()
@@ -67,6 +86,7 @@ def ask(case: dict, timeout: int = 240) -> tuple[str, str]:
         return "", type(e).__name__
     for k in ("answer", "response", "summary", "interpretation"):
         if isinstance(d.get(k), str) and d[k]:
+            _LAST_EVIDENCE["n"] = evidence_count(d)
             return d[k], ""
     return "", "no answer field in response"
 
@@ -120,25 +140,33 @@ def main() -> int:
                    for t in c.get("expect", []) if not present(t, low)]
         violated = [t if isinstance(t, str) else "|".join(t)
                     for t in c.get("forbid", []) if present(t, low)]
+        ev = _LAST_EVIDENCE["n"]
         if err:
             verdict, detail = "ERROR", err
         elif violated:
             verdict, detail = "WRONG", "asserted: " + "; ".join(violated)
         elif missing:
             verdict, detail = "MISS", "missing: " + ", ".join(missing)
+        elif c.get("expect_evidence", True) and ev == 0:
+            # The answer is right, and nothing retrieved backs it. For a platform whose claim is
+            # RAG over a curated clinical corpus, that is the model answering from memory with the
+            # look of a sourced result -- the exact failure this eval exists to catch. It is NOT
+            # a pass, and until 2026-09-16 it silently was one.
+            verdict, detail = "UNGROUNDED", f"{len(ans)} chars, 0 evidence"
         else:
-            verdict, detail = "PASS", f"{len(ans)} chars"
+            verdict, detail = "PASS", (f"{len(ans)} chars" +
+                                       (f", {ev} evidence" if ev >= 0 else ", evidence not reported"))
             passed += 1
         print(f"  {c['id']:24s}{c['agent']:26s}{verdict:9s}{detail[:60]}")
         rows.append({**{k: c[k] for k in ("id", "agent")}, "verdict": verdict,
-                     "detail": detail, "answer_chars": len(ans)})
+                     "detail": detail, "answer_chars": len(ans), "evidence": ev})
 
     print(f"\n  {passed}/{len(cases)} clinically correct")
     if a.jsonout:
         json.dump(rows, open(a.jsonout, "w"), indent=1)
         print(f"  wrote {a.jsonout}")
-    # A MISS is informative, not fatal; a WRONG or ERROR is a real failure.
-    return 1 if any(r["verdict"] in ("WRONG", "ERROR") for r in rows) else 0
+    # A MISS is informative, not fatal; WRONG, ERROR and UNGROUNDED are real failures.
+    return 1 if any(r["verdict"] in ("WRONG", "ERROR", "UNGROUNDED") for r in rows) else 0
 
 
 if __name__ == "__main__":

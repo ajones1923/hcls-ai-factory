@@ -35,10 +35,17 @@ _OVERCLAIM_RULES: list[tuple[str, str, str]] = [
     (r"\b(CE[- ]?marked|510\(k\) cleared)\b", "block", "Regulatory-clearance claim — not cleared."),
     (r"\b(definitive|confirmed|certain|conclusive)\s+(diagnos[ie]s|diagnosis)\b", "block", "Diagnostic-certainty overclaim — outputs are decision support, not a diagnosis."),
     (r"\b(confirms?|establishes?)\s+(the\s+)?diagnosis\b", "block", "Diagnostic-certainty overclaim."),
+    # Passive voice was unmatched entirely, and it is the more natural way to say the dangerous
+    # thing: "the patient's diagnosis is confirmed".
+    (r"\bdiagnosis\s+(?:is|was|has been)\s+(?:confirmed|established|definitive|certain)\b", "block", "Diagnostic-certainty overclaim."),
     (r"\b(cure[sd]?|will cure|proven to cure|eradicat\w+)\b", "block", "Cure claim — unsupported and unsafe to assert."),
     (r"\bclinically proven\b", "block", "Efficacy overclaim — 'clinically proven' asserts unestablished clinical efficacy; outputs are research / decision-support."),
     (r"\bproven to (treat|prevent|reverse|stop|halt|slow)\b", "block", "Efficacy overclaim — clinical efficacy is not established here."),
-    (r"\b(100%|guarantee[sd]?|guaranteed|certain to|always works|never fails)\b", "block", "Absolute-certainty overclaim."),
+    # `\b100%\b` never matched: \b after '%' requires a following word character, so "100% of
+    # cases", "100% response rate" and "a 100%-effective drug" all passed. Found 2026-09-16 while
+    # writing a test that assumed it worked; the existing test only appeared to cover it because
+    # "cures" tripped a different rule.
+    (r"(?:\b100\s*%|\b(?:guarantee[sd]?|guaranteed|certain to|always works|never fails)\b)", "block", "Absolute-certainty overclaim."),
     (r"\b(you should (take|stop|start)|discontinue your|prescribe[sd]?)\b", "warn", "Treatment-directive language — outputs inform clinicians, they don't direct patients."),
     (r"\b(safe for all|no side effects|zero risk|completely safe)\b", "block", "Safety overclaim."),
 ]
@@ -60,6 +67,25 @@ _SELF_SCOPED = {
     r"\b(CE[- ]?marked|510\(k\) cleared)\b",
     r"\bclinically proven\b",
 }
+# Diagnostic-certainty is subject-scoped differently from a clearance claim. "FDA-approved"
+# about a named third-party drug is ordinary fact; "confirms the diagnosis" is dangerous whenever
+# it is about A PATIENT, whether or not the sentence names this platform. So these two rules block
+# on a self-reference OR a patient reference, and degrade to `warn` only for statements about how
+# diagnosis works in general -- "genetic testing confirms the diagnosis in ~85% of cases".
+#
+# Measured 2026-09-16: without this, the flagship TSC question ("which genes cause tuberous
+# sclerosis and which pathway is dysregulated?") was WITHHELD on roughly half of identical runs,
+# because a correct educational answer mentions how the diagnosis is established. A gate that
+# blocks the right answer half the time teaches people to route around it.
+_DIAGNOSTIC_SCOPED = {
+    r"\b(definitive|confirmed|certain|conclusive)\s+(diagnos[ie]s|diagnosis)\b",
+    r"\b(confirms?|establishes?)\s+(the\s+)?diagnosis\b",
+    r"\bdiagnosis\s+(?:is|was|has been)\s+(?:confirmed|established|definitive|certain)\b",
+}
+_PATIENT_REF = re.compile(
+    r"\b(this patient|the patient'?s?|your (patient|result|diagnosis)|in this case"
+    r"|for this (patient|individual|case)|the individual'?s?)\b", re.I)
+
 # "this assay / this test / this pipeline" are self-references too: they describe what the
 # platform produced, so a clearance claim attached to them is a claim about us.
 _SELF_REF = re.compile(
@@ -67,6 +93,10 @@ _SELF_REF = re.compile(
     r"|assay|test|pipeline|workflow|model|service|prediction|score)"
     r"|these (results|outputs|predictions)"
     r"|the (platform|factory)|our (platform|system|tool|analysis|assay|test)"
+    # "the result / the report / this finding" is the platform's own output speaking about
+    # itself, even without the word "this". Without these, "The result confirms the diagnosis"
+    # -- which is precisely the sentence the rule exists for -- degraded to a warning.
+    r"|the (results?|report|analysis|output|finding|score|prediction|interpretation)"
     r"|hcls ai factory|we (are|have) (certified|approved|cleared))\b", re.I)
 
 
@@ -99,6 +129,12 @@ def honesty_check(text: str) -> list[dict]:
                     eff = "warn"
                     msg = (msg + " (Scoped: reads as a statement about a third party, not about "
                            "this platform — attribute it to the cited source.)")
+            elif sev == "block" and rx.pattern in _DIAGNOSTIC_SCOPED:
+                sent = _sentence_around(text, m.start())
+                if not (_SELF_REF.search(sent) or _PATIENT_REF.search(sent)):
+                    eff = "warn"
+                    msg = (msg + " (Scoped: reads as a general statement about how diagnosis is "
+                           "established, not a claim about this patient or this platform.)")
             s = max(0, m.start() - 30)
             out.append({"severity": eff, "message": msg,
                         "excerpt": text[s:m.end() + 30].strip()})

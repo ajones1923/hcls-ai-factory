@@ -8,6 +8,13 @@ MAXBYTES=$((5 * 1024 * 1024))   # 5 MB
 fail=0
 
 # Staged, added/copied/modified files only.
+# The repo ships a .pre-commit-config.yaml (gitleaks, check-added-large-files, check-yaml).
+# This hook is what git actually calls, so unless it delegates, that config never runs and the
+# project has two divergent guard systems with only one of them live.
+if command -v pre-commit >/dev/null 2>&1 && [ -f .pre-commit-config.yaml ]; then
+  pre-commit run --hook-stage pre-commit || exit 1
+fi
+
 mapfile -t files < <(git diff --cached --name-only --diff-filter=ACM)
 
 for f in "${files[@]}"; do
@@ -18,7 +25,15 @@ for f in "${files[@]}"; do
   #    and are exempt — the guard exists to catch *accidental* large data/weights,
   #    not to forbid the explainer videos the site embeds.
   case "$f" in
-    docs/assets/videos/*.mp4) ;;
+    docs/assets/videos/*.mp4)
+      # This exemption is how 899 MB of video reached the history: 123 blobs, of which 84 were
+      # superseded re-encodes of the same 22 files, stripped in the 2026-09-16 rewrite. Adding a
+      # video is still allowed -- silently re-adding one is not.
+      if [ "${HCLS_ALLOW_VIDEO_COMMIT:-0}" != "1" ]; then
+        echo "BLOCK: $f is a video. Re-committing one is what grew .git to 899 MB of video."
+        echo "       Deliberate? HCLS_ALLOW_VIDEO_COMMIT=1 git commit ..."
+        fail=1
+      fi ;;
     *)
       sz=$(wc -c < "$f" 2>/dev/null || echo 0)
       if [ "$sz" -gt "$MAXBYTES" ]; then
