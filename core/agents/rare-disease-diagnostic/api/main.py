@@ -86,6 +86,17 @@ from api.routes.events import router as events_router
 # Module-level state (populated during lifespan startup)
 # =====================================================================
 
+
+
+def _no_sampling(model: str) -> bool:
+    """True when the model rejects temperature/top_p/top_k (400)."""
+    m = (model or "").lower()
+    return any(m.startswith(p) for p in (
+        "claude-opus-5", "claude-opus-4-8", "claude-opus-4-7", "claude-opus-4-6",
+        "claude-sonnet-5", "claude-sonnet-4-6", "claude-fable-5", "claude-mythos-5",
+    ))
+
+
 _engine = None          # RareDiseaseRAGEngine
 _manager = None         # Collection manager
 _workflow_engine = None  # Workflow engine
@@ -285,7 +296,12 @@ async def lifespan(app: FastAPI):
                 resp = self.client.messages.create(
                     model=settings.LLM_MODEL,
                     max_tokens=max_tokens,
-                    temperature=temperature,
+                    # `temperature` is REMOVED on current models (Sonnet 5, Opus 5,
+                    # the 4.6+ family): sending it returns 400 "`temperature` is
+                    # deprecated for this model." and the service silently falls back
+                    # to its stub answer. Sent only where it is still accepted.
+                    **({} if _no_sampling(settings.LLM_MODEL)
+                       else {"temperature": temperature}),
                     system=system_prompt or _RD_SYSTEM_PROMPT,
                     messages=messages,
                 )
