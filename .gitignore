@@ -156,3 +156,4 @@ skills/assistant/
 
 # MkDocs build output (published, never tracked)
 /site/
+build.py
