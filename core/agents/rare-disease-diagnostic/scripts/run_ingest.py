@@ -31,6 +31,18 @@ from src.ingest.gene_therapy_parser import GeneTherapyParser
 
 logger = logging.getLogger(__name__)
 
+from hcls_common.ingest_persist import persist_records
+
+
+def _milvus_uri() -> str:
+    try:
+        from config.settings import settings
+        return f"http://{settings.MILVUS_HOST}:{settings.MILVUS_PORT}"
+    except Exception:
+        import os
+        return (f"http://{os.getenv('MILVUS_HOST', 'localhost')}:"
+                f"{os.getenv('MILVUS_PORT', '19530')}")
+
 
 def run_omim(args: argparse.Namespace) -> None:
     """Run the OMIM ingest pipeline."""
@@ -47,6 +59,10 @@ def run_omim(args: argparse.Namespace) -> None:
 
     if args.output:
         _write_output(records, args.output)
+    # Previously stopped at validation: the corpus never changed.
+    if not getattr(args, 'dry_run', False):
+        logger.info("Persisted %d rows", persist_records(
+            records, "rd_diseases", milvus_uri=_milvus_uri()))
 
 
 def run_hpo(args: argparse.Namespace) -> None:
@@ -64,6 +80,10 @@ def run_hpo(args: argparse.Namespace) -> None:
 
     if args.output:
         _write_output(records, args.output)
+    # Previously stopped at validation: the corpus never changed.
+    if not getattr(args, 'dry_run', False):
+        logger.info("Persisted %d rows", persist_records(
+            records, "rd_phenotypes", milvus_uri=_milvus_uri()))
 
 
 def run_orphanet(args: argparse.Namespace) -> None:
@@ -81,6 +101,10 @@ def run_orphanet(args: argparse.Namespace) -> None:
 
     if args.output:
         _write_output(records, args.output)
+    # Previously stopped at validation: the corpus never changed.
+    if not getattr(args, 'dry_run', False):
+        logger.info("Persisted %d rows", persist_records(
+            records, "rd_diseases", milvus_uri=_milvus_uri()))
 
 
 def run_gene_therapy(args: argparse.Namespace) -> None:
@@ -98,6 +122,10 @@ def run_gene_therapy(args: argparse.Namespace) -> None:
 
     if args.output:
         _write_output(records, args.output)
+    # Previously stopped at validation: the corpus never changed.
+    if not getattr(args, 'dry_run', False):
+        logger.info("Persisted %d rows", persist_records(
+            records, "rd_therapies", milvus_uri=_milvus_uri()))
 
 
 def _write_output(records: list, output_path: str) -> None:
@@ -120,6 +148,8 @@ def main() -> None:
         help="Data source to ingest from",
     )
     parser.add_argument("--api-key", default=None, help="API key for the data source")
+    parser.add_argument("--dry-run", action="store_true",
+                        help="Fetch and validate without writing (old behaviour)")
     parser.add_argument("--output", default=None, help="Output JSON file path")
     args = parser.parse_args()
 

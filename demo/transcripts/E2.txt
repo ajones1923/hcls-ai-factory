@@ -4,7 +4,7 @@ E2 · Ask the evidence layer a question
     demo          E2 · precision-intelligence
     title         Ask the evidence layer a question
     label         LIVE
-    started       2026-09-16T04:44:02+00:00
+    started       2026-09-16T15:48:05+00:00
     readiness     milvus=True collection_loaded=True llm=True
     evidence base genomic_evidence: 60 vectors (ClinVar / AlphaMissense)
     variant input present — 162.72 MB (HG002.genome.vcf.gz)

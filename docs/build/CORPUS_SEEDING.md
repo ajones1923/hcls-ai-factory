@@ -33,14 +33,17 @@ for n in c.list_collections():
 
 | Agent | Vectors | Note |
 |---|---:|---|
+| precision-biomarker | 1,244 | `seed_all.py` |
 | cart | 879 | 9 seeders (regulatory, safety, assays, biomarkers, patents, sequences, …) |
-| precision-biomarker | 622 | `seed_all.py` |
 | clinical-imaging | 440 | pre-existing |
-| neurology | 308 | `neuro_electrophysiology` still empty — see below |
-| pharmacogenomics | 240 | |
-| rare-disease | 176 | `rd_diseases` fails on a required `disease_id` |
-| single-cell | 164 | `sc_markers` still empty — see below |
-| clinical-trial | 59 | |
+| rare-disease | 440 | seed + OMIM/HPO/Orphanet/gene-therapy ingest |
+| single-cell | 279 | seed + ingest |
+| pharmacogenomics | 240 | its pipelines always persisted |
+| clinical-trial | 178 | seed + live ClinicalTrials.gov ingest |
+| neurology | 168 | seed + PubMed ingest |
+| precision-autoimmune | 116 | had **no seeder at all** until 2026-09-15 |
+
+**~4,000 vectors across 8 agents**, up from 440 (imaging only).
 
 ## Five traps, each of which fails silently
 
@@ -61,18 +64,44 @@ for n in c.list_collections():
    `"Breakthrough Therapy Designation"`; the enum holds `breakthrough_therapy`. All 40 records
    failed validation and were logged away, leaving the collection empty.
 
-## Known gaps — parser/schema drift, not bugs
+## Ingest: fetch is not persist
 
-`neuro_electrophysiology` and `sc_markers` genuinely share no fields with their seed records: the
-parsers and the collection schemas were designed independently. The seeder now reports this
-explicitly ("No rows survived schema projection") rather than inserting empty rows. Reconciling
-them means deciding which side is canonical — a modelling decision, not a fix.
+Several `run_ingest.py` scripts fetched, parsed, validated — and wrote nothing. They logged
+"N records validated" and left the corpus untouched, which is why agents sat at a few dozen rows
+while their ingest "worked". Fixed in `lib/hcls_common/ingest_persist.py`, **one shared
+implementation** used by clinical-trial, neurology, single-cell and rare-disease.
 
-`rd_diseases` needs a required `disease_id` the parser does not emit.
+`pharmacogenomics` was never broken — its pipelines always persisted. Absence of the function
+name is not absence of the behaviour; check what a script *does*, not what it is called.
 
-**Where only a column or two overlaps**, the seeder writes the record's source text into whatever
-prose column the schema offers (`description`, `text`, `summary`, `abstract`, …). Without that the
-rows embed correctly — the vector is built from the real text — but return nothing readable.
+```bash
+cd core/agents/<agent>
+./venv/bin/python scripts/run_ingest.py --source all            # fetch + persist
+./venv/bin/python scripts/run_ingest.py --source all --dry-run  # the old behaviour
+```
+
+### Why the projection rules live in one file
+
+Each rule below came from a failed insert. Milvus aborts the **whole batch** on a single bad key
+and the caller logs a warning and moves on, so a per-agent copy that misses one fails silently:
+
+- dynamic fields are OFF and nothing is nullable — every declared column must be present, and no
+  undeclared key may appear
+- `str(DataType.FLOAT)` is its numeric **code** (`"10"`), not `"FLOAT"` — use `.name`
+- int64 and float are different; coercing both to float fails an int64 insert
+- only genuine ARRAY columns may take a list; a list in a VARCHAR column aborts the batch
+- **BOOL** is neither numeric nor text — defaulting it to `""` fails the insert
+- the primary key differs per collection (VARCHAR here, int64 there) and is not `auto_id`
+- a content-derived id makes re-ingest idempotent via upsert instead of duplicating the corpus
+
+Two collections previously recorded here as unresolvable parser/schema drift — `sc_markers` and
+`rd_diseases` — load correctly through this projection. The drift was real; it was a projection
+problem, not a modelling one.
+
+**What is still dropped:** PubMed records routed to a domain collection (`neuro_oncology`,
+`neuro_headache`, ...) lose `pmid`/`title`, because those schemas do not declare them. The title
+survives inside the embedded text, so retrieval works, but the structured citation id does not.
+The loader reports exactly which fields it ignored, once per collection.
 
 ## Verify
 
