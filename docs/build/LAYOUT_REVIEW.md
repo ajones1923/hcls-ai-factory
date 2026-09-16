@@ -93,7 +93,7 @@ checks. This is PRD open decision 2 and needs Adam.
 | L3 | Build an aggregator on :8581 **or** keep `structural-biology-engine` `planned` | medium |
 | L4 | Document patterns A/B/C so divergence is deliberate, not accidental | low |
 | L5 | Add `api/` to therapeutic-discovery and single-cell if they are to expose programmatic surfaces | medium |
-| L6 | Rename the 12 stdlib-shadowing modules (`src/collections.py`) | medium |
+| L6 | Rename the 12 stdlib-shadowing modules (`src/vector_collections.py`) | medium |
 
 L1 is the one that matters. The rest are tidiness; L1 is why things drift.
 

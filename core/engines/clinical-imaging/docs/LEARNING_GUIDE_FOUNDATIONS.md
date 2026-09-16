@@ -1439,7 +1439,7 @@ All Pydantic data models used throughout the system. Contains:
 
 Each collection model has a `to_embedding_text()` method that generates the text string used for BGE-small embedding. The quality of the embedding depends on how the text is constructed from the structured fields.
 
-#### src/collections.py (1,420 lines)
+#### src/vector_collections.py (1,420 lines)
 
 Manages the 11 Milvus collections. Contains:
 
@@ -1558,7 +1558,7 @@ Now that you understand the foundations, here are pathways for further learning:
 - Study `src/cross_modal.py` to understand how imaging-to-genomic queries are constructed
 
 **If you are a software developer:**
-- Read `src/collections.py` to understand Milvus schema design and IVF_FLAT index configuration
+- Read `src/vector_collections.py` to understand Milvus schema design and IVF_FLAT index configuration
 - Look at `api/main.py` and the route modules in `api/routes/` to see how the 19+ endpoints are implemented
 - Explore the ingest parsers in `src/ingest/` to understand how data flows from PubMed, ClinicalTrials.gov, and DICOM files into the vector database
 - Study the workflow implementations in `src/workflows/` to understand how clinical pipelines are orchestrated

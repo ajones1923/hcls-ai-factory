@@ -51,11 +51,13 @@ jobs:
     # The 17 engine/agent/disease-program suites — 8,402 tests. Until 2026-08-16 CI gated only the
     # 382 platform-library tests, so a change could break every subject and still merge green.
     #
-    # scripts/run_all_tests.py is used rather than a bare `pytest` because two traps make a naive
-    # invocation wrong: several subjects ship src/collections.py which SHADOWS the stdlib (putting
-    # their src/ on PYTHONPATH kills the interpreter before collection), and zarr/fast-array-utils
-    # register pytest plugins that import an application Settings model at startup and abort
-    # collection for three subjects.
+    # scripts/run_all_tests.py is used rather than a bare `pytest` because a naive invocation is
+    # still wrong in two ways: zarr/fast-array-utils register pytest plugins that import an
+    # application Settings model at startup and abort collection for three subjects, and vendored
+    # third-party code needs gated GPU packages. (A third reason is gone as of 2026-09-16: eleven
+    # subjects shipped src/collections.py, which shadowed the stdlib, so their src/ was withheld
+    # from PYTHONPATH and their suites ran against less code than this job claimed. Those modules
+    # are now src/vector_collections.py.)
     name: Subject suites (8 engines, 8 agents, 1 program)
     runs-on: ubuntu-latest
     # BLOCKING since 2026-09-15. It was advisory because "the first run failed" on this x86

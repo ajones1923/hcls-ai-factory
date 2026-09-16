@@ -20,7 +20,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from sentence_transformers import SentenceTransformer
 
-from src.collections import BiomarkerCollectionManager
+from src.vector_collections import BiomarkerCollectionManager
 
 # -- Setup --------------------------------------------------------------------
 

@@ -17,7 +17,7 @@ from typing import Any, Dict, List, Optional
 import requests
 from loguru import logger
 
-from src.collections import PGxCollectionManager
+from src.vector_collections import PGxCollectionManager
 from src.models import PopulationData
 
 from .base import BaseIngestPipeline, _truncate_utf8

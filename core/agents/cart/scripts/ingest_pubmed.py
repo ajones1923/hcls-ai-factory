@@ -98,7 +98,7 @@ def main():
     # --- Step 4: Parse into CARTLiterature models ---
     logger.info("Parsing articles into CARTLiterature models...")
     from src.ingest.literature_parser import PubMedIngestPipeline
-    from src.collections import CARTCollectionManager
+    from src.vector_collections import CARTCollectionManager
 
     # We need a temporary pipeline just for parsing (no embedder needed yet)
     # Create a dummy embedder for the pipeline init

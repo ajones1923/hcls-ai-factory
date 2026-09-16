@@ -80,7 +80,7 @@ def main():
     # --- Step 1: Initialize pipeline ---
     logger.info("Initializing clinical trials ingest pipeline...")
     from src.ingest.clinical_trials_parser import ImagingTrialsIngestPipeline
-    from src.collections import ImagingCollectionManager
+    from src.vector_collections import ImagingCollectionManager
 
     class DummyEmbedder:
         def encode(self, texts, **kwargs):

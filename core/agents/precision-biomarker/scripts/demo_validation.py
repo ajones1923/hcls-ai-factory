@@ -201,7 +201,7 @@ print("\n═══ TAB 5: Evidence Explorer (RAG) ═══")
 try:
     from sentence_transformers import SentenceTransformer
 
-    from src.collections import BiomarkerCollectionManager
+    from src.vector_collections import BiomarkerCollectionManager
     from src.rag_engine import BiomarkerRAGEngine
 
     embedder = SentenceTransformer("BAAI/bge-small-en-v1.5")

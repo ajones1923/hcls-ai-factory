@@ -1267,7 +1267,7 @@ streamlit run app/cardio_ui.py --server.port 8536
 | src/agent.py | 1,710 | Autonomous agent pipeline, system prompt |
 | src/rag_engine.py | 1,673 | Multi-collection RAG, citation scoring, memory |
 | src/export.py | 1,382 | 4 export formats, report generation |
-| src/collections.py | 1,274 | 12 Milvus collection schemas, workflow weights |
+| src/vector_collections.py | 1,274 | 12 Milvus collection schemas, workflow weights |
 | src/models.py | 722 | 20 Pydantic models, 15 enums, 2 dataclasses |
 | src/scheduler.py | 613 | APScheduler jobs, manual triggers |
 | src/metrics.py | 538 | 26 Prometheus metrics, no-op fallback |

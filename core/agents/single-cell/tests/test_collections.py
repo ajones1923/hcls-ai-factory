@@ -1,4 +1,4 @@
-"""Tests for Milvus collection configurations in src/collections.py.
+"""Tests for Milvus collection configurations in src/vector_collections.py.
 
 Author: Adam Jones
 Date: March 2026
@@ -6,7 +6,7 @@ Date: March 2026
 
 import pytest
 
-from src.collections import (
+from src.vector_collections import (
     ALL_COLLECTIONS,
     COLLECTION_NAMES,
     EMBEDDING_DIM,

@@ -1176,7 +1176,7 @@ This is the retrieval-augmented generation engine. The `AutoimmuneRAGEngine` cla
 
 Key data classes: `SearchHit` (individual result with collection, score, text, relevance tag) and `CrossCollectionResult` (aggregated results from all collections with timing).
 
-#### src/collections.py (562 lines) -- The Collection Manager
+#### src/vector_collections.py (562 lines) -- The Collection Manager
 
 This file defines the schemas for all 14 Milvus collections and provides the `AutoimmuneCollectionManager` class for creating, loading, searching, and managing collections.
 

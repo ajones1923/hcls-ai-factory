@@ -272,7 +272,7 @@ def main():
 
     # --- Step 5: Connect to Milvus ---
     logger.info("Connecting to Milvus...")
-    from src.collections import ImagingCollectionManager
+    from src.vector_collections import ImagingCollectionManager
 
     manager = ImagingCollectionManager(host=args.host, port=args.port)
     manager.connect()

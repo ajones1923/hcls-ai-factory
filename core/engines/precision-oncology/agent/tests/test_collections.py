@@ -17,7 +17,7 @@ _AGENT_ROOT = Path(__file__).resolve().parents[1]
 if str(_AGENT_ROOT) not in sys.path:
     sys.path.insert(0, str(_AGENT_ROOT))
 
-from src.collections import (
+from src.vector_collections import (
     COLLECTION_MODELS,
     COLLECTION_SCHEMAS,
     EMBEDDING_DIM,
@@ -250,18 +250,18 @@ class TestOncoCollectionManagerInit:
 class TestOncoCollectionManagerCreateCollection:
     """Test create_collection with mocked Milvus."""
 
-    @patch("src.collections.utility")
-    @patch("src.collections.Collection")
-    @patch("src.collections.connections")
+    @patch("src.vector_collections.utility")
+    @patch("src.vector_collections.Collection")
+    @patch("src.vector_collections.connections")
     def test_create_unknown_collection_raises(self, mock_conn, mock_col, mock_util):
         """Creating an unknown collection should raise ValueError."""
         manager = OncoCollectionManager()
         with pytest.raises(ValueError, match="Unknown collection"):
             manager.create_collection("nonexistent_collection")
 
-    @patch("src.collections.utility")
-    @patch("src.collections.Collection")
-    @patch("src.collections.connections")
+    @patch("src.vector_collections.utility")
+    @patch("src.vector_collections.Collection")
+    @patch("src.vector_collections.connections")
     def test_create_new_collection(self, mock_conn, mock_col_cls, mock_util):
         """Creating a valid new collection should succeed."""
         mock_util.has_collection.return_value = False

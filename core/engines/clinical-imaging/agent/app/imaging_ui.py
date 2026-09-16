@@ -75,7 +75,7 @@ def init_engine():
     """Initialize all agent components once and cache across sessions."""
     from config.settings import settings
     from sentence_transformers import SentenceTransformer
-    from src.collections import ImagingCollectionManager
+    from src.vector_collections import ImagingCollectionManager
     from src.nim.service_manager import NIMServiceManager
     from src.rag_engine import ImagingRAGEngine
 

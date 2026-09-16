@@ -58,7 +58,7 @@ def main():
         # no COLLECTION_SCHEMAS mapping, unlike neurology's. Build the schemas from the configs.
         from pymilvus import CollectionSchema
 
-        from src.collections import ALL_COLLECTIONS, get_collection_config
+        from src.vector_collections import ALL_COLLECTIONS, get_collection_config
 
         COLLECTION_SCHEMAS = {
             cfg.name: CollectionSchema(fields=cfg.schema_fields, description=cfg.description)
@@ -73,7 +73,7 @@ def main():
                 continue
             schema = COLLECTION_SCHEMAS.get(name)
             if schema is None:
-                logger.warning("  [skip]   %s -- no schema in src/collections.py", name)
+                logger.warning("  [skip]   %s -- no schema in src/vector_collections.py", name)
                 continue
             coll = Collection(name=name, schema=schema)
             try:

@@ -21,7 +21,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from loguru import logger
 
-from src.collections import BiomarkerCollectionManager
+from src.vector_collections import BiomarkerCollectionManager
 
 
 def main():

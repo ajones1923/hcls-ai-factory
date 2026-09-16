@@ -14,7 +14,7 @@ from src.models import (
     CellTypeAnnotation,
     CellTypeConfidence,
 )
-from src.collections import (
+from src.vector_collections import (
     WORKFLOW_COLLECTION_WEIGHTS,
     get_all_collection_names,
 )

@@ -46,7 +46,7 @@ from loguru import logger
 def check_milvus(host, port):
     """Check (a): Milvus connection and collection counts."""
     try:
-        from src.collections import ImagingCollectionManager, OWNED_COLLECTION_SCHEMAS
+        from src.vector_collections import ImagingCollectionManager, OWNED_COLLECTION_SCHEMAS
 
         manager = ImagingCollectionManager(host=host, port=port)
         manager.connect()
@@ -91,7 +91,7 @@ def check_rag_query(host, port):
         from sentence_transformers import SentenceTransformer
 
         from config.settings import settings
-        from src.collections import ImagingCollectionManager
+        from src.vector_collections import ImagingCollectionManager
 
         embedder = SentenceTransformer(settings.EMBEDDING_MODEL)
         manager = ImagingCollectionManager(host=host, port=port)
@@ -237,7 +237,7 @@ def check_cross_modal(host, port):
         try:
             from sentence_transformers import SentenceTransformer
             from config.settings import settings
-            from src.collections import ImagingCollectionManager
+            from src.vector_collections import ImagingCollectionManager
             from src.cross_modal import CrossModalTrigger
 
             embedder = SentenceTransformer(settings.EMBEDDING_MODEL)

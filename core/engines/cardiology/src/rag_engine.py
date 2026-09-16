@@ -37,7 +37,7 @@ from config.settings import settings
 from .models import (
     CardioWorkflowType,
 )
-from .collections import (
+from .vector_collections import (
     get_all_collection_names,
 )
 from .agent import (

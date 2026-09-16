@@ -432,7 +432,7 @@ class MicrobiomeMarker(BaseModel):
 
 ### Step 2: Define the Milvus Schema
 
-Add to `src/collections.py`:
+Add to `src/vector_collections.py`:
 
 ```python
 MICROBIOME_FIELDS = [

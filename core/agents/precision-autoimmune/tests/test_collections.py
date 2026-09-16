@@ -1,5 +1,5 @@
 """
-Tests for src/collections.py — AutoimmuneCollectionManager
+Tests for src/vector_collections.py — AutoimmuneCollectionManager
 
 All external dependencies (pymilvus) are mocked so tests run without Milvus.
 """
@@ -14,7 +14,7 @@ from pymilvus import DataType, MilvusException
 # We need to mock pymilvus before importing the module under test in some cases,
 # but since collections.py imports pymilvus at module level and defines schemas
 # using real pymilvus types, we import normally and mock at call sites.
-from src.collections import (
+from src.vector_collections import (
     _DIM,
     COLLECTION_SCHEMAS,
     INDEX_PARAMS,
@@ -208,7 +208,7 @@ class TestAutoimmuneCollectionManagerInit:
 class TestCollectionManagerConnect:
     """Test connect/disconnect with mocked pymilvus."""
 
-    @patch("src.collections.connections")
+    @patch("src.vector_collections.connections")
     def test_connect_success(self, mock_connections):
         mgr = AutoimmuneCollectionManager(host="testhost", port=19530)
         mgr.connect()
@@ -217,14 +217,14 @@ class TestCollectionManagerConnect:
         )
         assert mgr._connected is True
 
-    @patch("src.collections.connections")
+    @patch("src.vector_collections.connections")
     def test_connect_already_connected_is_noop(self, mock_connections):
         mgr = AutoimmuneCollectionManager()
         mgr._connected = True
         mgr.connect()
         mock_connections.connect.assert_not_called()
 
-    @patch("src.collections.connections")
+    @patch("src.vector_collections.connections")
     def test_connect_failure_raises(self, mock_connections):
         mock_connections.connect.side_effect = MilvusException(message="Connection refused")
         mgr = AutoimmuneCollectionManager()
@@ -232,7 +232,7 @@ class TestCollectionManagerConnect:
             mgr.connect()
         assert mgr._connected is False
 
-    @patch("src.collections.connections")
+    @patch("src.vector_collections.connections")
     def test_disconnect(self, mock_connections):
         mgr = AutoimmuneCollectionManager()
         mgr._connected = True
@@ -240,20 +240,20 @@ class TestCollectionManagerConnect:
         mock_connections.disconnect.assert_called_once_with("autoimmune_agent")
         assert mgr._connected is False
 
-    @patch("src.collections.connections")
+    @patch("src.vector_collections.connections")
     def test_disconnect_when_not_connected_is_noop(self, mock_connections):
         mgr = AutoimmuneCollectionManager()
         mgr.disconnect()
         mock_connections.disconnect.assert_not_called()
 
-    @patch("src.collections.connections")
+    @patch("src.vector_collections.connections")
     def test_ensure_connected_calls_connect(self, mock_connections):
         mgr = AutoimmuneCollectionManager()
         mgr._ensure_connected()
         mock_connections.connect.assert_called_once()
         assert mgr._connected is True
 
-    @patch("src.collections.connections")
+    @patch("src.vector_collections.connections")
     def test_ensure_connected_skips_if_connected(self, mock_connections):
         mgr = AutoimmuneCollectionManager()
         mgr._connected = True
@@ -264,8 +264,8 @@ class TestCollectionManagerConnect:
 class TestCollectionManagerListCollections:
     """Test list_collections filtering."""
 
-    @patch("src.collections.connections")
-    @patch("src.collections.utility")
+    @patch("src.vector_collections.connections")
+    @patch("src.vector_collections.utility")
     def test_list_filters_autoimmune_and_genomic(self, mock_utility, mock_conn):
         mock_utility.list_collections.return_value = [
             "autoimmune_patient_labs",
@@ -283,8 +283,8 @@ class TestCollectionManagerListCollections:
         assert "biomarker_cancer_variants" not in result
         assert "some_other_collection" not in result
 
-    @patch("src.collections.connections")
-    @patch("src.collections.utility")
+    @patch("src.vector_collections.connections")
+    @patch("src.vector_collections.utility")
     def test_list_empty(self, mock_utility, mock_conn):
         mock_utility.list_collections.return_value = []
         mgr = AutoimmuneCollectionManager()
@@ -295,9 +295,9 @@ class TestCollectionManagerListCollections:
 class TestCollectionManagerCreateCollection:
     """Test create_collection with mocked pymilvus."""
 
-    @patch("src.collections.Collection")
-    @patch("src.collections.utility")
-    @patch("src.collections.connections")
+    @patch("src.vector_collections.Collection")
+    @patch("src.vector_collections.utility")
+    @patch("src.vector_collections.connections")
     def test_create_new_collection(self, mock_conn, mock_utility, mock_coll_cls):
         mock_utility.has_collection.return_value = False
         mock_coll = MagicMock()
@@ -311,9 +311,9 @@ class TestCollectionManagerCreateCollection:
         mock_coll.load.assert_called_once()
         assert result is mock_coll
 
-    @patch("src.collections.Collection")
-    @patch("src.collections.utility")
-    @patch("src.collections.connections")
+    @patch("src.vector_collections.Collection")
+    @patch("src.vector_collections.utility")
+    @patch("src.vector_collections.connections")
     def test_create_existing_collection_no_drop(self, mock_conn, mock_utility, mock_coll_cls):
         mock_utility.has_collection.return_value = True
         mock_coll = MagicMock()
@@ -326,9 +326,9 @@ class TestCollectionManagerCreateCollection:
         mock_utility.drop_collection.assert_not_called()
         mock_coll.load.assert_called_once()
 
-    @patch("src.collections.Collection")
-    @patch("src.collections.utility")
-    @patch("src.collections.connections")
+    @patch("src.vector_collections.Collection")
+    @patch("src.vector_collections.utility")
+    @patch("src.vector_collections.connections")
     def test_create_existing_collection_with_drop(self, mock_conn, mock_utility, mock_coll_cls):
         mock_utility.has_collection.return_value = True
         mock_coll = MagicMock()
@@ -357,14 +357,14 @@ class TestCollectionManagerInsert:
         mgr._connected = True
         return mgr
 
-    @patch("src.collections.Collection")
-    @patch("src.collections.connections")
+    @patch("src.vector_collections.Collection")
+    @patch("src.vector_collections.connections")
     def test_insert_empty_records_returns_zero(self, mock_conn, mock_coll_cls):
         mgr = self._make_manager()
         assert mgr.insert("autoimmune_patient_labs", []) == 0
 
-    @patch("src.collections.Collection")
-    @patch("src.collections.connections")
+    @patch("src.vector_collections.Collection")
+    @patch("src.vector_collections.connections")
     def test_insert_skips_records_without_embedding(self, mock_conn, mock_coll_cls):
         mock_coll = MagicMock()
         mock_schema_field_id = MagicMock()
@@ -388,8 +388,8 @@ class TestCollectionManagerInsert:
         result = mgr.insert("autoimmune_patient_labs", records)
         assert result == 0
 
-    @patch("src.collections.Collection")
-    @patch("src.collections.connections")
+    @patch("src.vector_collections.Collection")
+    @patch("src.vector_collections.connections")
     def test_insert_skips_wrong_dimension_embedding(self, mock_conn, mock_coll_cls):
         mock_coll = MagicMock()
         mock_schema_field_id = MagicMock()
@@ -409,8 +409,8 @@ class TestCollectionManagerInsert:
         result = mgr.insert("autoimmune_patient_labs", records)
         assert result == 0
 
-    @patch("src.collections.Collection")
-    @patch("src.collections.connections")
+    @patch("src.vector_collections.Collection")
+    @patch("src.vector_collections.connections")
     def test_insert_valid_records(self, mock_conn, mock_coll_cls):
         mock_coll = MagicMock()
         # Minimal schema: id, embedding, text_chunk
@@ -437,8 +437,8 @@ class TestCollectionManagerInsert:
         assert result == 2
         mock_coll.flush.assert_called_once()
 
-    @patch("src.collections.Collection")
-    @patch("src.collections.connections")
+    @patch("src.vector_collections.Collection")
+    @patch("src.vector_collections.connections")
     def test_insert_milvus_exception_raises(self, mock_conn, mock_coll_cls):
         mock_coll = MagicMock()
         fields = []
@@ -457,8 +457,8 @@ class TestCollectionManagerInsert:
         with pytest.raises(MilvusException):
             mgr.insert("autoimmune_patient_labs", records)
 
-    @patch("src.collections.Collection")
-    @patch("src.collections.connections")
+    @patch("src.vector_collections.Collection")
+    @patch("src.vector_collections.connections")
     def test_insert_truncates_long_strings(self, mock_conn, mock_coll_cls):
         mock_coll = MagicMock()
         f_id = MagicMock()
@@ -496,8 +496,8 @@ class TestCollectionManagerInsert:
 class TestCollectionManagerSearch:
     """Test search and search_all with mocked Milvus."""
 
-    @patch("src.collections.Collection")
-    @patch("src.collections.connections")
+    @patch("src.vector_collections.Collection")
+    @patch("src.vector_collections.connections")
     def test_search_returns_hits(self, mock_conn, mock_coll_cls):
         mock_hit = MagicMock()
         mock_hit.id = "hit1"
@@ -524,8 +524,8 @@ class TestCollectionManagerSearch:
         assert results[0]["id"] == "hit1"
         assert results[0]["score"] == 0.95
 
-    @patch("src.collections.Collection")
-    @patch("src.collections.connections")
+    @patch("src.vector_collections.Collection")
+    @patch("src.vector_collections.connections")
     def test_search_with_filter_expr(self, mock_conn, mock_coll_cls):
         mock_coll = MagicMock()
         mock_coll.schema.fields = [MagicMock(name="id"), MagicMock(name="embedding")]
@@ -542,8 +542,8 @@ class TestCollectionManagerSearch:
         call_kwargs = mock_coll.search.call_args[1]
         assert call_kwargs["expr"] == 'patient_id == "P001"'
 
-    @patch("src.collections.Collection")
-    @patch("src.collections.connections")
+    @patch("src.vector_collections.Collection")
+    @patch("src.vector_collections.connections")
     def test_search_exception_returns_empty(self, mock_conn, mock_coll_cls):
         mock_coll = MagicMock()
         mock_coll.schema.fields = [MagicMock(name="id"), MagicMock(name="embedding")]
@@ -555,8 +555,8 @@ class TestCollectionManagerSearch:
         results = mgr.search("autoimmune_patient_labs", [0.1] * 384)
         assert results == []
 
-    @patch("src.collections.utility")
-    @patch("src.collections.connections")
+    @patch("src.vector_collections.utility")
+    @patch("src.vector_collections.connections")
     def test_search_all_parallel(self, mock_conn, mock_utility):
         mgr = AutoimmuneCollectionManager()
         mgr._connected = True
@@ -577,8 +577,8 @@ class TestCollectionManagerSearch:
         assert "autoimmune_patient_labs" in results
         assert "autoimmune_hla_associations" in results
 
-    @patch("src.collections.utility")
-    @patch("src.collections.connections")
+    @patch("src.vector_collections.utility")
+    @patch("src.vector_collections.connections")
     def test_search_all_with_score_threshold(self, mock_conn, mock_utility):
         mgr = AutoimmuneCollectionManager()
         mgr._connected = True
@@ -601,8 +601,8 @@ class TestCollectionManagerSearch:
         assert len(hits) == 1
         assert hits[0]["id"] == "high"
 
-    @patch("src.collections.utility")
-    @patch("src.collections.connections")
+    @patch("src.vector_collections.utility")
+    @patch("src.vector_collections.connections")
     def test_search_all_specific_collections(self, mock_conn, mock_utility):
         mgr = AutoimmuneCollectionManager()
         mgr._connected = True
@@ -620,9 +620,9 @@ class TestCollectionManagerSearch:
 class TestCollectionManagerStats:
     """Test get_collection_stats and get_collection_count."""
 
-    @patch("src.collections.Collection")
-    @patch("src.collections.utility")
-    @patch("src.collections.connections")
+    @patch("src.vector_collections.Collection")
+    @patch("src.vector_collections.utility")
+    @patch("src.vector_collections.connections")
     def test_get_collection_count(self, mock_conn, mock_utility, mock_coll_cls):
         mock_coll = MagicMock()
         mock_coll.num_entities = 42
@@ -632,9 +632,9 @@ class TestCollectionManagerStats:
         mgr._connected = True
         assert mgr.get_collection_count("autoimmune_patient_labs") == 42
 
-    @patch("src.collections.Collection")
-    @patch("src.collections.utility")
-    @patch("src.collections.connections")
+    @patch("src.vector_collections.Collection")
+    @patch("src.vector_collections.utility")
+    @patch("src.vector_collections.connections")
     def test_get_collection_count_error_returns_zero(self, mock_conn, mock_utility, mock_coll_cls):
         mock_coll_cls.side_effect = Exception("not found")
 
@@ -642,9 +642,9 @@ class TestCollectionManagerStats:
         mgr._connected = True
         assert mgr.get_collection_count("nonexistent") == 0
 
-    @patch("src.collections.Collection")
-    @patch("src.collections.utility")
-    @patch("src.collections.connections")
+    @patch("src.vector_collections.Collection")
+    @patch("src.vector_collections.utility")
+    @patch("src.vector_collections.connections")
     def test_get_collection_stats(self, mock_conn, mock_utility, mock_coll_cls):
         mgr = AutoimmuneCollectionManager()
         mgr._connected = True
@@ -657,9 +657,9 @@ class TestCollectionManagerStats:
         stats = mgr.get_collection_stats()
         assert stats["autoimmune_patient_labs"] == 100
 
-    @patch("src.collections.Collection")
-    @patch("src.collections.utility")
-    @patch("src.collections.connections")
+    @patch("src.vector_collections.Collection")
+    @patch("src.vector_collections.utility")
+    @patch("src.vector_collections.connections")
     def test_get_collection_stats_error_returns_minus_one(self, mock_conn, mock_utility, mock_coll_cls):
         mgr = AutoimmuneCollectionManager()
         mgr._connected = True
@@ -674,7 +674,7 @@ class TestCollectionManagerStats:
 class TestInsertBatch:
     """Test insert_batch divides records into batches."""
 
-    @patch("src.collections.connections")
+    @patch("src.vector_collections.connections")
     def test_insert_batch_calls_insert_multiple_times(self, mock_conn):
         mgr = AutoimmuneCollectionManager()
         mgr._connected = True

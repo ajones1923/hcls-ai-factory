@@ -17,7 +17,7 @@ Defines 14 domain-specific vector collections for rare disease diagnostics:
   - genomic_evidence       -- Shared genomic evidence (read-only)
 
 Follows the same pymilvus pattern as:
-  clinical_trial_intelligence_agent/src/collections.py
+  clinical_trial_intelligence_agent/src/vector_collections.py
 
 Author: Adam Jones
 Date: March 2026

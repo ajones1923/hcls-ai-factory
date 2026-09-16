@@ -41,7 +41,7 @@ COPY data/ /app/data/
 
 # src/ is on the path so `from single_cell_compute import ...` resolves. This engine ships NO
 # module that shadows the standard library, so putting src/ on PYTHONPATH is safe here -- it is
-# NOT safe for the subjects that carry src/collections.py (see scripts/run_all_tests.py).
+# NOT safe for the subjects that carry src/vector_collections.py (see scripts/run_all_tests.py).
 ENV PYTHONPATH="/app:/app/src"
 ENV PYTHONUNBUFFERED=1
 

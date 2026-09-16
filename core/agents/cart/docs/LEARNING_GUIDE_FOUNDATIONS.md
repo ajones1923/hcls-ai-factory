@@ -1253,7 +1253,7 @@ All Pydantic data models used throughout the system. Contains:
 
 Each collection model has a `to_embedding_text()` method that generates the text string used for BGE-small embedding. This is important -- the quality of the embedding depends on how the text is constructed from the structured fields.
 
-#### src/collections.py (1,004 lines)
+#### src/vector_collections.py (1,004 lines)
 
 Manages the 11 Milvus collections. Contains:
 
@@ -1391,7 +1391,7 @@ Now that you understand the foundations, here are pathways for further learning:
 - Try modifying the system prompt in `rag_engine.py` to adjust the LLM's behavior
 
 **If you are a software developer:**
-- Read `src/collections.py` to understand Milvus schema design and index configuration
+- Read `src/vector_collections.py` to understand Milvus schema design and index configuration
 - Look at `api/main.py` to see how the RAG engine is exposed as a REST API
 - Explore the ingest parsers in `src/ingest/` to understand how data flows from PubMed and ClinicalTrials.gov into the vector database
 - Run the test suite: `pytest tests/ -v`

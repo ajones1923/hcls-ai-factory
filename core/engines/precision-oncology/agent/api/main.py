@@ -21,7 +21,7 @@ from pydantic import BaseModel, Field
 from sentence_transformers import SentenceTransformer
 
 from config.settings import settings as _settings_instance
-from src.collections import OncoCollectionManager
+from src.vector_collections import OncoCollectionManager
 from src.rag_engine import OncoRAGEngine
 from src.agent import OncoIntelligenceAgent
 from src.case_manager import OncologyCaseManager

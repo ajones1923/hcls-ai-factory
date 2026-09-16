@@ -61,7 +61,7 @@ def timed_check(name, func):
 
 def check_milvus_connection():
     """Step 1: Verify Milvus connectivity."""
-    from src.collections import OncoCollectionManager
+    from src.vector_collections import OncoCollectionManager
 
     manager = OncoCollectionManager()
     manager.connect()
@@ -71,7 +71,7 @@ def check_milvus_connection():
 
 def check_collection_stats():
     """Step 2: Check all collection stats."""
-    from src.collections import COLLECTION_SCHEMAS, OncoCollectionManager
+    from src.vector_collections import COLLECTION_SCHEMAS, OncoCollectionManager
 
     manager = OncoCollectionManager()
     manager.connect()
@@ -118,7 +118,7 @@ def check_embedding_model():
 def check_vector_search():
     """Step 4: Run sample vector searches across collections."""
     from sentence_transformers import SentenceTransformer
-    from src.collections import OncoCollectionManager
+    from src.vector_collections import OncoCollectionManager
 
     model = SentenceTransformer("BAAI/bge-small-en-v1.5")
     query_vector = model.encode(

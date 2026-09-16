@@ -18,8 +18,8 @@ decision support:
   - genomic_evidence          -- Shared genomic evidence (read-only)
 
 Follows the same pymilvus pattern as:
-  clinical_trial_intelligence_agent/src/collections.py
-  rare_disease_diagnostic_agent/src/collections.py
+  clinical_trial_intelligence_agent/src/vector_collections.py
+  rare_disease_diagnostic_agent/src/vector_collections.py
 
 Author: Adam Jones
 Date: March 2026

@@ -5,7 +5,7 @@ must implement (fetch -> parse), plus shared helpers for record validation,
 batch processing, and the standard run() orchestration method.
 
 Each parser targets one of the 12 Milvus collections defined in
-``src.collections`` and produces ``IngestRecord`` dataclass instances that
+``src.vector_collections`` and produces ``IngestRecord`` dataclass instances that
 downstream embedding and insertion stages consume.
 
 Author: Adam Jones

@@ -236,7 +236,7 @@ api/main.py (FastAPI)
     |       |       |
     |       |       +-> src/rag_engine.py (TrialRAGEngine)
     |       |       |       |
-    |       |       |       +-> src/collections.py (14 schemas)
+    |       |       |       +-> src/vector_collections.py (14 schemas)
     |       |       |       +-> src/query_expansion.py (10 maps)
     |       |       |
     |       |       +-> src/clinical_workflows.py (10 workflows)

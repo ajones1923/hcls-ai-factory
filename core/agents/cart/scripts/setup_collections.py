@@ -19,7 +19,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from loguru import logger
 
-from src.collections import CARTCollectionManager
+from src.vector_collections import CARTCollectionManager
 
 
 def main():

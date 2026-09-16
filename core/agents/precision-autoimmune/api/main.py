@@ -36,7 +36,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 from config.logging import configure_logging
 from config.settings import settings
 from src.agent import AutoimmuneAgent
-from src.collections import AutoimmuneCollectionManager
+from src.vector_collections import AutoimmuneCollectionManager
 from src.diagnostic_engine import DiagnosticEngine
 from src.document_processor import DocumentProcessor
 from src.models import AutoimmunePatientProfile

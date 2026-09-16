@@ -17,7 +17,7 @@ from typing import Any, Dict, List, Optional
 import requests
 from loguru import logger
 
-from src.collections import CARTCollectionManager
+from src.vector_collections import CARTCollectionManager
 from src.models import (
     CARGeneration,
     ClinicalTrial,

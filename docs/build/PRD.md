@@ -79,8 +79,8 @@ PBMC 3k). Added requirements, Dockerfile and compose entry.
 `health-monitor.sh`, failing on any supervised port the registry does not allocate. Both failure
 modes were negative-tested rather than assumed.
 
-**R9 · Remove stdlib shadowing.** 12 files named for stdlib modules, 11 of them `src/collections.py`.
-Imports are package-qualified (`from src.collections import …`) so it works today, but any config
+**R9 · Remove stdlib shadowing.** 12 files named for stdlib modules, 11 of them `src/vector_collections.py`.
+Imports are package-qualified (`from src.vector_collections import …`) so it works today, but any config
 that puts `src/` on `sys.path` kills the interpreter before collection — this happened three times
 during the audit. Rename to `vector_collections.py`.
 

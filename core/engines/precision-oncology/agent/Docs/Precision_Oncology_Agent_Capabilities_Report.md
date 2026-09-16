@@ -917,24 +917,24 @@ These fixes were applied during live demo verification to resolve integration mi
 
 | # | Fix | File | Issue | Resolution |
 |---|---|---|---|---|
-| 1 | `is_connected()` method | `src/collections.py` | `/health` endpoint called `cm.is_connected()` which didn't exist | Added method using `utility.has_collection()` ping |
-| 2 | `list_collections()` method | `src/collections.py` | Health endpoint needed collection listing | Added wrapper around `utility.list_collections()` |
-| 3 | `get_collection_count()` method | `src/collections.py` | Health endpoint needed per-collection counts | Added method returning `col.num_entities` |
+| 1 | `is_connected()` method | `src/vector_collections.py` | `/health` endpoint called `cm.is_connected()` which didn't exist | Added method using `utility.has_collection()` ping |
+| 2 | `list_collections()` method | `src/vector_collections.py` | Health endpoint needed collection listing | Added wrapper around `utility.list_collections()` |
+| 3 | `get_collection_count()` method | `src/vector_collections.py` | Health endpoint needed per-collection counts | Added method returning `col.num_entities` |
 | 4 | `EmbedderWrapper` class | `api/main.py` | Case manager called `.embed()` but SentenceTransformer only has `.encode()` | Created adapter class with both `.encode()` and `.embed()` APIs |
 | 5 | Case route parameter fix | `api/routes/cases.py` | Route passed `variants=` and `vcf_text=` but manager expects `vcf_content_or_variants=` | Fixed to pass correct parameter name |
 | 6 | Case route sync/async fix | `api/routes/cases.py` | Route used `await` on synchronous `create_case()` method | Removed `await`, access CaseSnapshot attributes directly |
 | 7 | Case storage schema mapping | `src/case_manager.py` | `_store_case()` used field names (`case_id`, `text`) not matching Milvus schema (`id`, `text_summary`) | Fixed field names, added type serialization (list→string, dict→string) |
-| 8 | `insert()` flexible kwargs | `src/collections.py` | Case manager calls `insert(collection_name=, data={single_dict})` but method only accepted `List[Dict]` | Updated to handle both single dict and list, with flexible kwargs (`name=`/`collection_name=`, `data=`/`records=`) |
-| 9 | `search()` flexible kwargs | `src/collections.py` | RAG engine calls `search(collection=, vector=, filters=)` but method expected `search(name=, query_vector=, expr=)` | Added parameter aliases, numpy→list conversion, filter dict→expr string builder |
+| 8 | `insert()` flexible kwargs | `src/vector_collections.py` | Case manager calls `insert(collection_name=, data={single_dict})` but method only accepted `List[Dict]` | Updated to handle both single dict and list, with flexible kwargs (`name=`/`collection_name=`, `data=`/`records=`) |
+| 9 | `search()` flexible kwargs | `src/vector_collections.py` | RAG engine calls `search(collection=, vector=, filters=)` but method expected `search(name=, query_vector=, expr=)` | Added parameter aliases, numpy→list conversion, filter dict→expr string builder |
 | 10 | SearchHit conversion | `src/rag_engine.py` | `_search_one()` treated raw dicts (from collection manager) as SearchHit objects with `.score` attribute | Added dict→SearchHit conversion with proper field mapping |
 
 ### Session: March 8, 2026 — Data Expansion & Seed Script Fixes
 
 | # | Fix | File | Issue | Resolution |
 |---|---|---|---|---|
-| 11 | `insert()` alias | `src/collections.py` | Ingest pipelines call `insert()` but only `insert_batch()` existed | Added `insert()` method delegating to `insert_batch()` |
-| 12 | Biomarker field limits | `src/collections.py` | `predictive_value`, `testing_method`, `clinical_cutoff` exceeded VARCHAR limits (100/200 chars) | Increased to VARCHAR(500) |
-| 13 | Guideline version limit | `src/collections.py` | "5th Edition (2022/2024)" = 23 chars > VARCHAR(20) | Increased to VARCHAR(50) |
+| 11 | `insert()` alias | `src/vector_collections.py` | Ingest pipelines call `insert()` but only `insert_batch()` existed | Added `insert()` method delegating to `insert_batch()` |
+| 12 | Biomarker field limits | `src/vector_collections.py` | `predictive_value`, `testing_method`, `clinical_cutoff` exceeded VARCHAR limits (100/200 chars) | Increased to VARCHAR(500) |
+| 13 | Guideline version limit | `src/vector_collections.py` | "5th Edition (2022/2024)" = 23 chars > VARCHAR(20) | Increased to VARCHAR(50) |
 | 14 | Seed script rewrites | `scripts/seed_*.py` (5 files) | Pipeline parsers output field names (`text`, `genes`, `druggable_nodes`) not matching Milvus schema (`text_summary`, `key_genes`, `therapeutic_targets`) | Rewrote 5 seed scripts (pathways, guidelines, trials, resistance, outcomes) to use direct JSON approach |
 | 15 | Trial enrollment type | `scripts/seed_trials.py` | JSON has strings like "1,200" but schema expects INT64 | Added `_parse_enrollment()` conversion |
 | 16 | Knowledge graph imports | `scripts/seed_knowledge.py` | Import names wrong: `THERAPY_PROFILES`, `PATHWAYS`, `RESISTANCE_MECHANISMS`, `BIOMARKERS` | Fixed to: `THERAPY_MAP`, `PATHWAY_MAP`, `RESISTANCE_MAP`, `BIOMARKER_PANELS` |

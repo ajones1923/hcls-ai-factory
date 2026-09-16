@@ -75,7 +75,7 @@ Expected: **17 subjects · 8,402 passed · 0 failed · 0 errors**.
 
 Two traps this script exists to handle — do not hand-roll a replacement without them:
 
-- **`src/collections.py` shadows the standard library** in 11 subjects. Putting their `src/` on
+- **`src/vector_collections.py` shadows the standard library** in 11 subjects. Putting their `src/` on
   `PYTHONPATH` kills the interpreter *before collection*:
   `cannot import name 'namedtuple' from partially initialized module 'collections'`.
 - **`structural-biology/vendor_rfdiffusion/`** is vendored third-party code needing gated GPU

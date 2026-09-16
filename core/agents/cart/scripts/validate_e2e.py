@@ -19,7 +19,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # noqa: F821
 
 from sentence_transformers import SentenceTransformer
 
-from src.collections import CARTCollectionManager
+from src.vector_collections import CARTCollectionManager
 
 # ── Setup ────────────────────────────────────────────────────────────
 

@@ -360,7 +360,7 @@ This chapter walks through a complete worked example: adding a hypothetical `car
 
 ### Step 1: Define the Schema in collections.py
 
-Open `src/collections.py` and add a new schema definition alongside the existing ones:
+Open `src/vector_collections.py` and add a new schema definition alongside the existing ones:
 
 ```python
 # ── cart_imaging ──────────────────────────────────────────────────────
@@ -525,7 +525,7 @@ from typing import Any, List
 from loguru import logger
 from pydantic import BaseModel
 
-from src.collections import CARTCollectionManager
+from src.vector_collections import CARTCollectionManager
 from src.models import ImagingRecord
 
 from .base import BaseIngestPipeline
