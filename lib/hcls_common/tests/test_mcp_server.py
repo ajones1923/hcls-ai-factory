@@ -60,15 +60,19 @@ class TestInvoke:
         ft = make_tools()
         assert ft.invoke_capability("honesty-gate")["status"] == "no_endpoint"
 
+    # These two need a capability that is LIVE with an endpoint. They used molmim-nim until
+    # it was correctly re-marked `planned` (gated NIM, nothing serving it) -- at which point
+    # invoke returns "unavailable" and the tests were asserting the wrong branch. chemprop-admet
+    # is live on :8572 and takes a scalar SMILES, so the behaviour under test is unchanged.
     def test_down_endpoint_reported(self):
         ft = make_tools(up_ports=set())            # nothing up
-        assert ft.invoke_capability("molmim-nim", {"seed_smiles": "CCO"})["status"] == "down"
+        assert ft.invoke_capability("chemprop-admet", {"smiles": "CCO"})["status"] == "down"
 
     def test_live_up_endpoint_calls_http(self):
-        ft = make_tools(up_ports={8001})           # MolMIM NIM "up"
-        r = ft.invoke_capability("molmim-nim", {"seed_smiles": "CCO"}, path="generate")
+        ft = make_tools(up_ports={8572})           # ADMET service "up"
+        r = ft.invoke_capability("chemprop-admet", {"smiles": "CCO"}, path="predict")
         assert r["status"] == "ok"
-        assert ft._calls and ft._calls[0][0].endswith(":8001/generate")
+        assert ft._calls and ft._calls[0][0].endswith(":8572/predict")
 
 
 # ── planning (composer seam) ─────────────────────────────────────────────────
@@ -77,9 +81,9 @@ class TestPlan:
         ft = make_tools()
         plan = ft.plan_pipeline("predict a protein structure and dock a small molecule")
         ids = {c["id"] for c in plan["relevant_capabilities"]}
-        assert ids & {"esmfold-model", "diffdock-nim", "therapeutic-discovery-engine"}
-        # structure-shape edge esmfold -> diffdock should be proposed when both are relevant
-        if {"esmfold-model", "diffdock-nim"} <= ids:
+        assert ids & {"esmfold-model", "proteinmpnn-design", "therapeutic-discovery-engine"}
+        # structure-shape edge esmfold -> proteinmpnn should be proposed when both are relevant
+        if {"esmfold-model", "proteinmpnn-design"} <= ids:
             assert any(e["shape"] == "structure" for e in plan["candidate_wiring"])
 
 

@@ -44,6 +44,37 @@ _OVERCLAIM_RULES: list[tuple[str, str, str]] = [
 ]
 _OVERCLAIM = [(re.compile(p, re.I), sev, msg) for (p, sev, msg) in _OVERCLAIM_RULES]
 
+# ── whose claim is it? ───────────────────────────────────────────────────────
+# Some rules police what THIS PLATFORM asserts about itself; the same words are ordinary,
+# true clinical fact when they describe a third-party product. "This platform is FDA-approved"
+# must never ship. "Tisagenlecleucel is FDA-approved for paediatric r/r B-ALL" is correct, and
+# withholding it would make the agent worse at the job it exists to do.
+#
+# A regex cannot parse subjects, so this is deliberately narrow: these rules escalate to
+# `block` only when the sentence also refers to this system or its output. Otherwise they
+# degrade to `warn` -- still surfaced, still reviewable, but not withheld. The rules that are
+# unsafe REGARDLESS of subject (a cure claim, absolute certainty, "zero risk") are not in this
+# set and always block.
+_SELF_SCOPED = {
+    r"\bFDA[- ]?(approved|cleared)\b",
+    r"\b(CE[- ]?marked|510\(k\) cleared)\b",
+    r"\bclinically proven\b",
+}
+# "this assay / this test / this pipeline" are self-references too: they describe what the
+# platform produced, so a clearance claim attached to them is a claim about us.
+_SELF_REF = re.compile(
+    r"\b(this (platform|system|tool|software|factory|engine|agent|report|analysis|output|result"
+    r"|assay|test|pipeline|workflow|model|service|prediction|score)"
+    r"|these (results|outputs|predictions)"
+    r"|the (platform|factory)|our (platform|system|tool|analysis|assay|test)"
+    r"|hcls ai factory|we (are|have) (certified|approved|cleared))\b", re.I)
+
+
+def _sentence_around(text: str, idx: int) -> str:
+    start = max(text.rfind(".", 0, idx), text.rfind("\n", 0, idx)) + 1
+    end = min([x for x in (text.find(".", idx), text.find("\n", idx)) if x != -1] or [len(text)])
+    return text[start:end + 1]
+
 # A clinical-ish claim with none of these caveats present → missing-disclaimer warning.
 _DISCLAIMER_HINTS = re.compile(
     r"research[- ]use|decision support|not (a )?(diagnos|clinical|substitute)|consult|"
@@ -60,8 +91,16 @@ def honesty_check(text: str) -> list[dict]:
     for rx, sev, msg in _OVERCLAIM:
         m = rx.search(text)
         if m:
+            eff = sev
+            if sev == "block" and rx.pattern in _SELF_SCOPED:
+                # Only a claim about THIS system blocks; the same words about a named
+                # third-party therapy are reportable fact.
+                if not _SELF_REF.search(_sentence_around(text, m.start())):
+                    eff = "warn"
+                    msg = (msg + " (Scoped: reads as a statement about a third party, not about "
+                           "this platform — attribute it to the cited source.)")
             s = max(0, m.start() - 30)
-            out.append({"severity": sev, "message": msg,
+            out.append({"severity": eff, "message": msg,
                         "excerpt": text[s:m.end() + 30].strip()})
     if _CLINICAL_TRIGGER.search(text) and not _DISCLAIMER_HINTS.search(text):
         out.append({"severity": "warn",

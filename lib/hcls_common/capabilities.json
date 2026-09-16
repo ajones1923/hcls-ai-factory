@@ -121,7 +121,7 @@
       "id": "molmim-nim",
       "type": "nim",
       "name": "MolMIM Generator",
-      "description": "Generative small-molecule design from a seed compound (accelerated inference microservice; local/cloud, mock fallback labeled). Runtime requires the MolMIM NIM container (NGC + GPU) deployed; a clearly-labeled mock fallback exists for development.",
+      "description": "Generative small-molecule design from a seed compound (accelerated inference microservice; local/cloud, mock fallback labeled). Runtime requires the MolMIM NIM container (NGC + GPU) deployed; a clearly-labeled mock fallback exists for development. STATUS 2026-09-15: not deployed on this machine \u2014 nothing listens on its port, so the entry is `planned` rather than `live` (the registry's rule is that live means running). Flip back to `live` once the NGC container is up and `validate_registry.py --probe` passes.",
       "domain": "small_molecules",
       "inputs": [
         {
@@ -146,7 +146,7 @@
       "serving": "local_nim",
       "gpu": true,
       "cost_class": "medium",
-      "status": "live",
+      "status": "planned",
       "tags": [
         "generation",
         "bionemo"
@@ -156,7 +156,7 @@
       "id": "diffdock-nim",
       "type": "nim",
       "name": "DiffDock Docking",
-      "description": "Protein-ligand blind docking / 3D pose prediction (accelerated inference microservice; local/cloud, mock fallback labeled). Runtime requires the DiffDock NIM container (NGC + GPU) deployed; a clearly-labeled mock fallback exists for development.",
+      "description": "Protein-ligand blind docking / 3D pose prediction (accelerated inference microservice; local/cloud, mock fallback labeled). Runtime requires the DiffDock NIM container (NGC + GPU) deployed; a clearly-labeled mock fallback exists for development. STATUS 2026-09-15: not deployed on this machine \u2014 nothing listens on its port, so the entry is `planned` rather than `live` (the registry's rule is that live means running). Flip back to `live` once the NGC container is up and `validate_registry.py --probe` passes.",
       "domain": "small_molecules",
       "inputs": [
         {
@@ -181,7 +181,7 @@
       "serving": "local_nim",
       "gpu": true,
       "cost_class": "medium",
-      "status": "live",
+      "status": "planned",
       "tags": [
         "docking",
         "bionemo"

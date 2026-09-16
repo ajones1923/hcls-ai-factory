@@ -8,12 +8,24 @@ def composer():
 
 
 def fold_then_dock():
-    # esmfold (sequence->structure) -> diffdock (structure + ligand -> poses)
-    return Pipeline("fold a protein and dock a molecule", [
+    """A two-node pipeline whose capabilities must BOTH be `live` in the real registry.
+
+    These tests run against the real capability manifest, so this fixture is coupled to the
+    deployment status of whatever it names. It used to chain esmfold -> diffdock-nim; when
+    diffdock was correctly re-marked `planned` (the NIM is gated and nothing serves it), ten
+    tests failed because the composer rightly refuses a planned node.
+
+    proteinmpnn-design has the same shape topology as diffdock (structure + scalar ->
+    list_of_objects) and is live, so the pipeline's meaning is unchanged. If it is ever
+    re-marked planned, swap in another live capability with that topology rather than relaxing
+    the composer -- refusing a non-live node is the behaviour under test.
+    """
+    # esmfold (sequence->structure) -> proteinmpnn (structure + num_seq -> designs)
+    return Pipeline("fold a protein and design sequences for it", [
         Node("fold", "esmfold-model", [NodeInput("sequence", value="MKTAYIAKQR")]),
-        Node("dock", "diffdock-nim", [
-            NodeInput("protein_structure", from_node="fold", from_port="structure"),
-            NodeInput("ligand_smiles", value="CCO"),
+        Node("dock", "proteinmpnn-design", [
+            NodeInput("pdb", from_node="fold", from_port="structure"),
+            NodeInput("num_seq", value=2),
         ]),
     ])
 
@@ -27,7 +39,7 @@ class TestValidate:
     def test_shape_mismatch_is_error(self):
         p = fold_then_dock()
         p.node("dock").inputs[0].from_port = "structure"
-        p.node("dock").inputs[1] = NodeInput("ligand_smiles", from_node="fold", from_port="structure")  # structure->scalar
+        p.node("dock").inputs[1] = NodeInput("num_seq", from_node="fold", from_port="structure")  # structure->scalar
         errs = [i for i in composer().validate(p) if i.severity == "error"]
         assert any("shape mismatch" in i.message for i in errs)
 
@@ -56,15 +68,15 @@ class TestRepair:
     def test_drops_planned_node_and_strips_its_edges(self):
         p = Pipeline("x", [
             Node("g", "genmol-nim", [NodeInput("seed_smiles", value="CCO")]),         # planned -> dropped
-            Node("dock", "diffdock-nim", [
-                NodeInput("protein_structure", from_node="g", from_port="molecules"), # wrong shape + dropped src
-                NodeInput("ligand_smiles", value="CCO")]),
+            Node("dock", "proteinmpnn-design", [
+                NodeInput("pdb", from_node="g", from_port="molecules"),  # wrong shape + dropped src
+                NodeInput("num_seq", value=2)]),
         ])
         repaired, log = composer().repair(p)
         assert "g" not in {n.id for n in repaired.nodes}
         assert any("dropped node 'g'" in m for m in log)
         # the dangling edge into dock was stripped
-        assert all(not i.is_ref for i in repaired.node("dock").inputs if i.name == "protein_structure")
+        assert all(not i.is_ref for i in repaired.node("dock").inputs if i.name == "pdb")
 
 
 # ── NL -> pipeline (deterministic) ───────────────────────────────────────────
@@ -102,7 +114,7 @@ class TestRun:
         assert order == ["fold", "dock"]
         # dock received fold's structure output
         dock_payload = tools.calls[1][1]
-        assert dock_payload["protein_structure"] == "<esmfold-model output>"
+        assert dock_payload["pdb"] == "<esmfold-model output>"
 
     def test_blocked_when_not_runnable(self):
         bad = Pipeline("x", [Node("fold", "esmfold-model")])      # missing input
@@ -110,7 +122,7 @@ class TestRun:
         assert out["status"] == "blocked" and out["checklist"]["errors"]
 
     def test_failure_yields_root_cause(self):
-        tools = FakeTools(fail={"diffdock-nim": {"status": "down", "reason": "service off"}})
+        tools = FakeTools(fail={"proteinmpnn-design": {"status": "down", "reason": "service off"}})
         out = WorkflowComposer(get_registry(reload=True), tools=tools).run(fold_then_dock())
         assert out["status"] == "failed" and out["failed_node"] == "dock"
         assert out["root_cause"]["verdict"] == "system"

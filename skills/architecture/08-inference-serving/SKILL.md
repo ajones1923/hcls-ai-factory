@@ -68,9 +68,11 @@ hardcode a RunPod IP (use Tailscale names/env); claim a model is running when th
 ## Wiring it in
 - Register the service (reference `esmfold-model` / `molmim-nim`):
   ```json
-  { "id": "my-model", "type": "model", "endpoint": "localhost:8579",
+  { "id": "my-model", "type": "model", "endpoint": "localhost:8601",
     "invoke_path": "/predict", "serving": "native", "status": "live", "gpu": true }
   ```
+  The endpoint is the **UI** port and the **API is UI + 1** (convention, 2026-08-15). `8601` is a
+  placeholder — take the next free pair from `docs/build/PORT_MAP.md`.
   Map its directory in `scripts/validate_registry.py`; `python scripts/validate_registry.py` → `OK`.
 - Health + invoke are uniform:
   ```bash

@@ -1,0 +1,10 @@
+{
+  "age": 67,
+  "height_cm": 172,
+  "weight_kg": 78,
+  "vkorc1_genotype": "AG",
+  "cyp2c9_genotype": "*1/*2",
+  "race": "white",
+  "amiodarone": false,
+  "enzyme_inducer": false
+}

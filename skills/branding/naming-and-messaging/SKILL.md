@@ -55,7 +55,7 @@ base, "computes → interprets" link) — never two identical side-by-side nodes
 
 **Worked example — single-cell (the standard):**
 - **Single-Cell Analysis Engine** (`singlecell-compute`, :8573) — scanpy analysis → cell-type clusters.
-- **Single-Cell Intelligence Agent** (`single-cell-intelligence-agent`, :8130) — reasons over them.
+- **Single-Cell Intelligence Agent** (`single-cell-intelligence-agent`, :8540) — reasons over them.
 - Why *Analysis*: it's literally what the engine does, reads like the other engines, and contrasts
   with *Intelligence* without the cold "Compute."
 

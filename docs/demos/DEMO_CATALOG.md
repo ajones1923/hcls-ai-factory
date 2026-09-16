@@ -12,13 +12,19 @@ actually seeing.
 | **REPRESENTATIVE** | A pre-computed or curated result standing in for a long or gated step — said out loud |
 | **BURST** | Running live, but on remote GPUs over the private mesh — say "elastic burst", never "all on one box" |
 
-**Current distribution:** **13 LIVE · 3 REPRESENTATIVE · 1 MIXED.** The three representative ones
-(E1, E3, E7) wait on gated software — Parabricks, the BioNeMo NIMs, and a CUDA-served ESMFold —
-and flip to LIVE when it lands.
+**Current distribution:** **13 LIVE** · **4 REPRESENTATIVE** — and as of **2026-09-15 all seventeen RUN**, on real input,
+writing a transcript to `demo/transcripts/`.
 
-**A LIVE label is a claim about the demo, not a promise the box is up.** Every LIVE demo needs the
-platform running, Milvus seeded, and `ANTHROPIC_API_KEY` set. Ask the runner rather than trusting
-this page:
+The REPRESENTATIVE ones are not stubs. Each runs the part of its pipeline that is not gated and
+states the boundary out loud: E1 loads the real GIAB HG002 genome into the variant store and runs
+the ACMG SF panel but does not call variants (Parabricks); E3 generates and runs real RDKit
+chemistry on candidates but does not dock them (MolMIM/DiffDock are gated NIMs, now correctly
+registered `planned`); E7 folds and optimises on CPU. What each does NOT do is printed in its own
+output, not buried here.
+
+**A LIVE label is a claim about the demo, not a promise the box is up.** A LIVE demo needs the
+platform running and its corpus seeded; `ANTHROPIC_API_KEY` is needed for answer *synthesis*, not
+for retrieval. Ask the runner rather than trusting this page:
 
 ```bash
 .venv/bin/python scripts/run_demo.py --check-all

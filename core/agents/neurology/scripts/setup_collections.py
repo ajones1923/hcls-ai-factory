@@ -54,14 +54,33 @@ def main():
         )
         logger.info("Connected to Milvus at %s:%d", settings.MILVUS_HOST, settings.MILVUS_PORT)
 
+        from pymilvus import Collection
+
+        from src.collections import COLLECTION_SCHEMAS, get_collection_config
+
         existing = utility.list_collections()
+        created = 0
         for name in COLLECTIONS:
             if name in existing:
                 logger.info("  [exists] %s", name)
-            else:
-                logger.info("  [create] %s (placeholder -- full schema in collections.py)", name)
+                continue
+            schema = COLLECTION_SCHEMAS.get(name)
+            if schema is None:
+                logger.warning("  [skip]   %s -- no schema in src/collections.py", name)
+                continue
+            coll = Collection(name=name, schema=schema)
+            try:
+                idx = get_collection_config(name).index_params
+            except Exception:
+                idx = {"metric_type": "COSINE", "index_type": "IVF_FLAT",
+                       "params": {"nlist": 128}}
+            coll.create_index(field_name="embedding", index_params=idx)
+            coll.load()
+            created += 1
+            logger.info("  [create] %s (indexed, loaded)", name)
 
-        logger.info("Collection setup complete.")
+        logger.info("Collection setup complete: %d created, %d already present.",
+                    created, len(COLLECTIONS) - created)
 
     except ImportError:
         logger.warning("pymilvus not installed -- listing collections only")

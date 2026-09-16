@@ -77,6 +77,16 @@ def run(kind: str, name: str) -> dict:
     miss = sorted(set(re.findall(r"No module named '([A-Za-z0-9_]+)'", out)))
     if miss:
         res["note"] = (res["note"] + " · " if res["note"] else "") + "missing: " + ",".join(miss[:5])
+
+    # Keep the reason, not just the count. This table used to report "errors 36" and nothing
+    # else, so a red CI run was undiagnosable from its own log -- you could see THAT four
+    # subjects broke but never WHY, and reproducing locally needs the same dependency set.
+    # Capture the collection errors and the first failure lines for --verbose / --json.
+    detail = []
+    for pat in (r"^ERROR (\S+).*$", r"^FAILED (\S+).*$", r"^E\s+(\w+Error.*)$"):
+        detail += re.findall(pat, out, re.M)
+    res["detail"] = sorted(set(detail))[:12]
+    res["tail"] = out[-1500:] if (res["failed"] or res["errors"]) else ""
     return res
 
 
@@ -98,12 +108,22 @@ def main() -> int:
         flag = "  [src/ withheld: shadows " + ",".join(r["shadowed"]) + "]" if r["shadowed"] else ""
         print(f"  {name:26s}{kind:9s}{r['passed']:6d}{r['failed']:6d}{r['errors']:5d}"
               f"{r['skipped']:6d}  {r['note']}{flag}")
+        for line in r.get("detail", [])[:6]:
+            print(f"        ! {line[:150]}")
     t = lambda k: sum(r[k] for r in rows)
     print(f"\n  {len(rows)} subjects · passed {t('passed')} · failed {t('failed')} "
           f"· errors {t('errors')} · skipped {t('skipped')}")
     if jsonout:
         json.dump(rows, open(jsonout, "w"), indent=1)
         print(f"  wrote {jsonout}")
+
+    # On a red run, print the raw pytest tail for each broken subject. CI logs are the only
+    # artefact anyone reads afterwards, and a count with no traceback wastes a whole cycle.
+    broken = [r for r in rows if r["failed"] or r["errors"]]
+    if broken:
+        for r in broken:
+            print(f"\n{'=' * 78}\n  {r['name']} — {r['errors']} error(s), {r['failed']} failure(s)\n{'=' * 78}")
+            print(r.get("tail") or "(no output captured)")
     return 1 if (t("failed") or t("errors")) else 0
 
 

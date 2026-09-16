@@ -1,0 +1,14 @@
+
+E5 · The molecular tumour board
+
+    demo          E5 · precision-oncology
+    title         The molecular tumour board
+    label         LIVE
+    started       2026-09-16T02:53:11+00:00
+    POST          http://localhost:8527/api/therapies/rank
+    status        200
+    ranked         6 therapies
+      1. osimertinib — evidence A, from EGFR L858R
+      2. erlotinib — evidence A, from EGFR L858R
+      3. gefitinib — evidence A, from EGFR L858R
+    RESULT        PASS — ran on real input

@@ -21,6 +21,38 @@ order.
 
 ## 2. Measured starting state (2026-08-17)
 
+> **Update — 2026-09-15.** Re-measured by running checks, not by reading docs. The bring-up this
+> document describes is done; four of the five acceptance criteria are met.
+>
+> | | 2026-08-17 | 2026-09-15 |
+> |---|---|---|
+> | Services supervised & healthy | 2 | **32/32** |
+> | Demos with prerequisites met | 7/17 | **17/17** |
+> | Demos that actually run on real input | 1/17 | **17/17** |
+> | Registry `live` claims failing a probe | — | **0** |
+> | Corpus vectors | 440 (imaging only) | **3,285 across 8 agents** |
+> | `logs/` | — | 536 MB → 2.6 MB |
+>
+> **A1 ✅** `validate_registry.py --probe` (R11, added) reports *"Every live endpoint answered."*
+> **A2 ✅** 17/17 demos run and write transcripts (R18, R19).
+> **A4 ✅** the quickstart works on a clean clone — `cp .env.example .env` used to break nine
+> services and every scanpy import (pydantic-settings `extra="forbid"` against one shared .env,
+> plus a venv resolving pydantic-settings from `~/.local`). Both fixed.
+> **A5 ✅** `mkdocs build --strict` green and no `live` badge unbacked: chemprop-admet,
+> esm2-search and esmfold-model are now actually served; molmim/diffdock moved to `planned`.
+> **A3** remains — services are supervised and auto-recover (verified by killing two and
+> waiting), but no real reboot has been done.
+>
+> What unblocked it was mostly not new code. 13 of 21 services had no per-service `venv/` while
+> the platform `.venv` already carried every runtime dependency but `plotly`. `health-monitor.sh`
+> had no concurrency guard, so 11 monitors were stacked (three 51 days old) burning 536 MB of
+> logs; a full run is now 8s, down from ~780s.
+>
+> **D2 answered:** the NIMs are not deployable here, so molmim/diffdock are `planned`.
+> **Still open:** `ANTHROPIC_API_KEY` (answer *synthesis*; retrieval works without it across all
+> eight agents), the gated NIMs, GPU headroom (~5 GiB until page caches are dropped), and
+> decisions D1, D3–D6.
+
 Every figure below was produced by running a check, not by reading a doc.
 
 | Dimension | State |
@@ -52,7 +84,7 @@ Five acceptance criteria. Each is a command whose output settles it — no judge
 | # | Done when | Command that proves it |
 |---|---|---|
 | **A1** | Every registered `live` capability answers a health probe | `scripts/validate_registry.py --probe` (to be added, R11) |
-| **A2** | All 17 demonstrations run start to finish and write a transcript | `run_demo.py --check-all` reports **17/17**; `run_demo.py --all` exits 0 |
+| **A2** | All 17 demonstrations run start to finish and write a transcript | `run_demo.py <key>` exits 0 for all 17 (`--all` still to be added). **Note:** `--check-all` proves only that *prerequisites* are met — a demo can be 17/17 ready and 1/17 implemented. Do not read one as the other. |
 | **A3** | The platform survives a reboot unattended | reboot, wait 5 min, `--check-all` still **17/17** |
 | **A4** | A stranger reproduces the quickstart on a clean clone | `run_all_tests.py` → 17 subjects, 0 failed; `run_demo.py E8` → PASS |
 | **A5** | Nothing on the site claims more than the box delivers | `mkdocs build --strict` green **and** every `live` badge backed by A1 |
@@ -102,7 +134,8 @@ Priority: **P0** blocks everything · **P1** blocks a phase · **P2** quality.
 
 | # | Requirement | Pri | Done when |
 |---|---|---|---|
-| R17 | 17/17 demos have prerequisites met | **P0** | `--check-all` reports 17/17 |
+| R17 | 17/17 demos have prerequisites met | **P0** | `--check-all` reports 17/17 — ✅ **done 2026-09-15** |
+| R17a | 17/17 demos have an implemented runner (not "spec only") | **P0** | `run_demo.py <key>` exits 0 for each — ✅ **done 2026-09-15** |
 | R18 | Every demo writes a diffable transcript | P1 | `demo/transcripts/*.txt` for all 17 |
 | R19 | Each demo's label matches what actually ran | **P0** | LIVE only where the service answered |
 | R20 | Demo catalogue counts regenerated from the runner, not hand-written | P2 | catalogue figures come from `--check-all` |
