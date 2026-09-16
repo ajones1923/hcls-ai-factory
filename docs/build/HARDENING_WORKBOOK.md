@@ -484,6 +484,54 @@ asserting a feature that is not there would be the same fault this platform keep
 
 ---
 
+### 3.6 pymilvus 3.0 — ✅ decided 2026-09-16 (H-D3)
+
+Four dependabot PRs (#45 #49 #52 #54) proposing pymilvus 3.0 were held on the reasoning that
+2.6.8 works and a client-API mismatch had already broken retrieval in five services once, so a
+second would present identically. **Tested rather than assumed, that fear does not hold for 3.0 —
+and the hold was hiding a different problem.**
+
+Measured in an isolated venv against the live Milvus server:
+
+| | |
+|---|---|
+| every symbol the code imports (`connections`, `utility`, `Collection`, `MilvusClient`, …) | **present in 3.0.0** |
+| ORM connect + `list_collections` + `Collection.load()` against the running server | **works** — 113 collections, entities returned |
+| `MilvusClient` against the same server | **works** |
+| `hcls_common` Milvus + vector-search tests under 3.0.0 | **37 passed** |
+
+**But every ORM call now warns:**
+
+```
+PyMilvusDeprecationWarning: `connections.connect` is an ORM-style PyMilvus API
+and will be removed in PyMilvus 3.1. Use `MilvusClient` instead.
+```
+
+The codebase uses that ORM surface at roughly **70 call sites** (`connections` 25, `utility` 23,
+`Collection` 22). So 3.0 is safe and **3.1 is the cliff** — and holding the PRs does not avoid that
+work, it only delays discovering it.
+
+**The hold was also masking drift.** The requirement files claimed `==2.4.1` (×4), `>=2.4.0,<2.6`,
+`>=2.4.0` and `>=2.4` across 14 files while **2.6.8 was actually installed** — two of those pins
+the running fleet already violates. The declared dependency and the deployed one had nothing to do
+with each other.
+
+**Decision: `pymilvus>=2.6.8,<3.1`, applied consistently to all 13 live requirement files.**
+
+- it matches what is actually installed, so the files stop lying;
+- it permits 3.0, which is tested and working, without forcing an upgrade on a clinical fleet;
+- **`<3.1` is the point.** It converts the ORM removal from something that arrives silently in a
+  fresh install into a deliberate decision someone has to make. The four dependabot PRs are closed
+  in favour of this, since their intent — allow 3.0 — is satisfied.
+
+**Follow-on work, now visible instead of deferred:** migrate ~70 ORM call sites to `MilvusClient`
+before anyone lifts `<3.1`. `hcls_common.vector_search.search_collection` already handles both
+client shapes, so the search path is done; what remains is connection management and
+`utility.*` calls. Run `scripts/run_clinical_eval.py` after — it is the only detector that notices
+retrieval quietly returning nothing.
+
+---
+
 ## Traps already paid for on this machine
 
 1. **A count is not a cause.** `run_all_tests.py` reported "errors 36" with no traceback and cost a
