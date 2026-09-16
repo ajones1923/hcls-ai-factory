@@ -75,7 +75,7 @@ def main():
     start_time = time.time()
 
     # --- Step 1: Initialize pipeline components ---
-    from src.collections import CARTCollectionManager
+    from src.vector_collections import CARTCollectionManager
     from src.ingest.clinical_trials_parser import ClinicalTrialsIngestPipeline
 
     # Dummy embedder for parsing phase

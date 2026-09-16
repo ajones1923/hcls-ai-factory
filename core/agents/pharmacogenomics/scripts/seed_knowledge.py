@@ -29,7 +29,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from loguru import logger
 
-from src.collections import PGxCollectionManager
+from src.vector_collections import PGxCollectionManager
 
 # Import the seeding utilities from setup_collections
 from scripts.setup_collections import (

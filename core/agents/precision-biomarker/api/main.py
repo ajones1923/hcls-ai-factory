@@ -113,7 +113,7 @@ async def lifespan(app: FastAPI):
 
     # -- Collection manager --
     try:
-        from src.collections import BiomarkerCollectionManager
+        from src.vector_collections import BiomarkerCollectionManager
         _manager = BiomarkerCollectionManager(
             host=settings.MILVUS_HOST,
             port=settings.MILVUS_PORT,

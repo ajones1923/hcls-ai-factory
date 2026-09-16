@@ -105,7 +105,7 @@ def main():
     # --- Step 4: Parse into ImagingLiterature models ---
     logger.info("Parsing articles into ImagingLiterature models...")
     from src.ingest.literature_parser import PubMedImagingIngestPipeline
-    from src.collections import ImagingCollectionManager
+    from src.vector_collections import ImagingCollectionManager
 
     class DummyEmbedder:
         def encode(self, texts, **kwargs):

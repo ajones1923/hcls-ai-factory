@@ -29,7 +29,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 from loguru import logger
 from tqdm import tqdm
 
-from src.collections import PGxCollectionManager
+from src.vector_collections import PGxCollectionManager
 
 
 # ═══════════════════════════════════════════════════════════════════════

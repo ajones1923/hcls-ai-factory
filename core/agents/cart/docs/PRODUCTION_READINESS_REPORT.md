@@ -100,7 +100,7 @@ User Query
 | Agent | `src/agent.py` | 309 | Autonomous plan→search→evaluate→synthesize pipeline |
 | Knowledge Graph | `src/knowledge.py` | 2,249 | 6 structured dictionaries, entity resolution, context injection |
 | Query Expansion | `src/query_expansion.py` | 1,592 | 12 domain-specific expansion maps |
-| Collections | `src/collections.py` | 1,004 | 11 Milvus collection schemas, parallel search |
+| Collections | `src/vector_collections.py` | 1,004 | 11 Milvus collection schemas, parallel search |
 | Models | `src/models.py` | 484 | 11 enums, 10 collection models, 6 query/response models |
 | Export | `src/export.py` | 1,487 | Markdown, JSON, PDF, FHIR R4 rendering |
 | Metrics | `src/metrics.py` | 404 | Prometheus instrumentation |
@@ -385,7 +385,7 @@ CD19, BCMA, CD22, CD20, CD30, CD33, CD38, CD123, GD2, HER2, GPC3, EGFR, EGFRvIII
 
 ## 7. Vector Database & Collections
 
-**File:** `src/collections.py` (1,004 lines)
+**File:** `src/vector_collections.py` (1,004 lines)
 
 ### 7.1 Eleven Milvus Collections
 

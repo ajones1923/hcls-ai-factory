@@ -115,8 +115,8 @@ All 27 pin an explicit base-image tag; none use `:latest`. TSC's `COPY . .` is b
 
 ### 2.1 Standard-library shadowing — 12 files
 
-`src/collections.py` in 11 subjects, plus `precision-autoimmune/config/logging.py`. Imports are
-package-qualified (`from src.collections import …`) so the code works today, but any configuration
+`src/vector_collections.py` in 11 subjects, plus `precision-autoimmune/config/logging.py`. Imports are
+package-qualified (`from src.vector_collections import …`) so the code works today, but any configuration
 that places `src/` on `sys.path` — a routine Docker and pytest pattern — kills the interpreter
 before collection:
 

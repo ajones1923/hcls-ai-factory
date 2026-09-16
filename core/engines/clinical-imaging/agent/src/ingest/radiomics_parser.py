@@ -32,7 +32,7 @@ class RadiomicsRecord(BaseModel):
     """A single radiomics feature record for Milvus storage.
 
     Maps to the imaging_radiomics collection schema defined in
-    src/collections.py (RADIOMICS_FIELDS).
+    src/vector_collections.py (RADIOMICS_FIELDS).
     """
     id: str = Field(..., max_length=200, description="Unique record identifier")
     patient_id: str = Field("", max_length=50)

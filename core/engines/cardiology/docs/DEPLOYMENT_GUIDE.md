@@ -221,7 +221,7 @@ streamlit run app/cardio_ui.py --server.port 8536
 All collections use IVF_FLAT with COSINE similarity. This provides high recall suitable for clinical queries at acceptable latency on DGX Spark.
 
 ```python
-# Default index parameters (in src/collections.py)
+# Default index parameters (in src/vector_collections.py)
 index_params = {
     "index_type": "IVF_FLAT",
     "metric_type": "COSINE",

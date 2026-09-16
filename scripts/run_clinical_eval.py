@@ -37,6 +37,18 @@ def present(term, text_low: str) -> bool:
     return str(term).lower() in text_low
 
 
+def wait_healthy(port: int, tries: int = 30, gap: int = 2) -> bool:
+    """Block until `port` answers /health. Returns False if it never does."""
+    import time
+    for _ in range(tries):
+        try:
+            urllib.request.urlopen(f"http://localhost:{port}/health", timeout=3).read()
+            return True
+        except Exception:
+            time.sleep(gap)
+    return False
+
+
 def ask(case: dict, timeout: int = 240) -> tuple[str, str]:
     """-> (answer_text, error). Never raises."""
     body = json.dumps({case.get("field", "question"): case["question"]}).encode()
@@ -77,14 +89,8 @@ def main() -> int:
     # its stub ("Search completed...") and scores as a MISS -- a false alarm, and false alarms
     # are how a check earns being ignored.
     import time
-    import urllib.request as _u
     for port in sorted({c["port"] for c in cases}):
-        for _ in range(30):
-            try:
-                _u.urlopen(f"http://localhost:{port}/health", timeout=3).read()
-                break
-            except Exception:
-                time.sleep(2)
+        wait_healthy(port)
 
     rows, passed = [], 0
     print(f"{'id':26s}{'agent':26s}{'verdict':9s}detail")
@@ -93,7 +99,16 @@ def main() -> int:
         if err or any(not present(t, ans.lower()) for t in c.get("expect", [])):
             # One retry. These are LLM answers, so a single sample is noisy; a fact the agent
             # knows should survive a second ask. A case that fails twice is a real finding.
-            time.sleep(2)
+            #
+            # A transport error usually means the supervisor cycled that service mid-run: it
+            # restarts anything it finds down every 5 minutes, and a restart plus model load
+            # outlasts any fixed sleep. Sleeping 2s and re-asking produced three false ERRORs
+            # against pharmacogenomics on 2026-09-16 whose answers were in fact correct. Wait
+            # for /health instead -- a false alarm is how a check earns being ignored.
+            if err and not err.startswith("HTTP"):
+                wait_healthy(c["port"])
+            else:
+                time.sleep(2)
             ans2, err2 = ask(c)
             if not err2 and len(ans2) > len(ans):
                 ans, err = ans2, err2

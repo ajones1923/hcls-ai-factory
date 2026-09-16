@@ -26,7 +26,7 @@ from loguru import logger
 from sentence_transformers import SentenceTransformer
 
 from config.settings import settings
-from src.collections import ImagingCollectionManager
+from src.vector_collections import ImagingCollectionManager
 from src.models import ImagingLiterature
 
 COLLECTION_NAME = "imaging_literature"

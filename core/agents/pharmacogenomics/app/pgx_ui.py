@@ -75,7 +75,7 @@ st.warning(
 def init_engine():
     """Initialize the PGx RAG engine (cached across reruns)."""
     try:
-        from src.collections import PGxCollectionManager
+        from src.vector_collections import PGxCollectionManager
         from src.rag_engine import PGxRAGEngine
         from src import knowledge as kg
         from src import query_expansion as qe

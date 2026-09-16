@@ -15,7 +15,7 @@ from typing import Any, List, Optional
 from loguru import logger
 from pydantic import BaseModel
 
-from src.collections import PGxCollectionManager
+from src.vector_collections import PGxCollectionManager
 
 
 def _truncate_utf8(text: str, max_bytes: int) -> str:

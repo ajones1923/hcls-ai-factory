@@ -266,7 +266,7 @@ When the engine detects comparison patterns ("compare", "vs", "versus") in a que
 
 ### 3b. Collection Manager
 
-**File:** `src/collections.py`
+**File:** `src/vector_collections.py`
 **Class:** `CARTCollectionManager`
 
 Manages 11 Milvus collections (10 owned by this agent + 1 read-only `genomic_evidence` from core/engines/precision-intelligence).
@@ -1401,7 +1401,7 @@ The `@st.cache_resource` decorator ensures the embedding model, LLM client, and 
 
 ### How to Add a New Collection
 
-1. **Define the Milvus schema** in `src/collections.py`:
+1. **Define the Milvus schema** in `src/vector_collections.py`:
 
 ```python
 NEW_DOMAIN_FIELDS = [

@@ -16,7 +16,7 @@ from typing import Any, List, Optional
 from loguru import logger
 from pydantic import BaseModel
 
-from src.collections import CARTCollectionManager
+from src.vector_collections import CARTCollectionManager
 
 
 class BaseIngestPipeline(ABC):

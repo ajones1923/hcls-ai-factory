@@ -48,7 +48,7 @@ from pymilvus import (
     Collection,
     CollectionSchema,
 )
-from src.collections import (
+from src.vector_collections import (
     ALL_COLLECTIONS,
     INDEX_TYPE,
     METRIC_TYPE,

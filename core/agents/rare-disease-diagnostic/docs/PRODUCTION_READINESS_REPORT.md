@@ -1517,7 +1517,7 @@ All 10 workflows produce valid `WorkflowResult` objects containing findings, rec
 | 2 | src/agent.py | 2,363 | Autonomous agent pipeline, search plan, plan-search-evaluate-synthesize |
 | 3 | src/clinical_workflows.py | 2,121 | 10 diagnostic workflows, WorkflowEngine, BaseRareDiseaseWorkflow |
 | 4 | src/rag_engine.py | 1,607 | Multi-collection RAG pipeline, embedding, context assembly |
-| 5 | src/collections.py | 1,247 | 14 Milvus collection schemas, field definitions, weights |
+| 5 | src/vector_collections.py | 1,247 | 14 Milvus collection schemas, field definitions, weights |
 | 6 | src/query_expansion.py | 1,156 | 9 synonym maps, 149 entity aliases, workflow-aware boosting |
 | 7 | api/routes/diagnostic_clinical.py | 1,120 | Clinical diagnostic API routes (12 endpoints) |
 | 8 | src/decision_support.py | 1,059 | 6 decision support engines (HPO matcher, ACMG, orphan drug, etc.) |

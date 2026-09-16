@@ -278,12 +278,16 @@ For engineers extending or operating this subject.
 .venv/bin/python scripts/run_all_tests.py {f['slug']}
 ```
 
-Two traps the shared harness handles, which a hand-rolled `pytest` invocation will not:
+What the shared harness handles, which a hand-rolled `pytest` invocation will not:
 
-1. Several subjects ship `src/collections.py`, which **shadows the Python standard library**. Putting
-   their `src/` on `PYTHONPATH` kills the interpreter before collection.
-2. `structural-biology/vendor_rfdiffusion/` is vendored third-party code needing gated GPU packages
+1. `structural-biology/vendor_rfdiffusion/` is vendored third-party code needing gated GPU packages
    and is excluded.
+2. `zarr` and `fast-array-utils` register pytest plugins that import an application `Settings` model
+   at startup and abort collection for three subjects; the harness disables those two by name.
+
+(A third trap is gone as of 2026-09-16: eleven subjects shipped `src/collections.py`, which shadowed
+the standard library, so their `src/` had to be withheld from `PYTHONPATH`. They are now
+`src/vector_collections.py`, and a bare `pytest` inside a subject directory works.)
 
 ## Operational notes
 

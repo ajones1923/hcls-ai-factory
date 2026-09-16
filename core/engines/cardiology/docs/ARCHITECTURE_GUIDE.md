@@ -148,7 +148,7 @@ CardioUI (Streamlit) ──> FastAPI Server ──> Agent Orchestrator
 | **GDMT Optimizer** | `src/gdmt_optimizer.py` | 2,457 | 4-pillar HFrEF therapy optimization with contraindication checking |
 | **Cross-Modal Engine** | `src/cross_modal.py` | 1,734 | Imaging-to-genomics trigger pattern matching and evidence retrieval |
 | **Knowledge Graph** | `src/knowledge.py` | 1,431 | Static domain ontology (conditions, biomarkers, drugs, genes, imaging, guidelines) |
-| **Collections** | `src/collections.py` | 1,226 | Milvus collection CRUD, schema definitions, index management |
+| **Collections** | `src/vector_collections.py` | 1,226 | Milvus collection CRUD, schema definitions, index management |
 | **Export** | `src/export.py` | 1,379 | PDF, CSV, JSON, FHIR report generation |
 | **Metrics** | `src/metrics.py` | 537 | Prometheus instrumentation |
 | **Scheduler** | `src/scheduler.py` | 612 | Periodic ingest scheduling |

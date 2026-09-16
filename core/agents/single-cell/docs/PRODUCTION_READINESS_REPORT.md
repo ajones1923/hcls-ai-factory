@@ -147,7 +147,7 @@ Engine   Engine   Support   Base
 |--------|------|-------|---------|
 | Agent | `src/agent.py` | 2,090 | Autonomous reasoning, system prompt, enums, workflow dispatch |
 | Models | `src/models.py` | 820 | Pydantic data models (15 model classes, 12 enums) |
-| Collections | `src/collections.py` | 1,210 | 12 Milvus collection schemas with field definitions |
+| Collections | `src/vector_collections.py` | 1,210 | 12 Milvus collection schemas with field definitions |
 | RAG Engine | `src/rag_engine.py` | 1,490 | Multi-collection search, conversation memory, LLM synthesis |
 | Clinical Workflows | `src/clinical_workflows.py` | 1,792 | 10 analysis workflows with BaseSCWorkflow pattern |
 | Decision Support | `src/decision_support.py` | 886 | 4 clinical engines (TME, subclonal, target, deconvolution) |
@@ -953,7 +953,7 @@ The `SingleCellSettings.validate()` method checks:
 | Embedding model missing | embedder = None, search disabled | api/main.py lifespan |
 | LLM unavailable | search-only mode | api/main.py lifespan |
 | Cross-agent timeout | 30s timeout, return without enrichment | src/cross_modal.py |
-| Invalid collection name | KeyError with valid collection list | src/collections.py |
+| Invalid collection name | KeyError with valid collection list | src/vector_collections.py |
 | Insufficient gene overlap | Warning return with quality metrics | decision_support.py |
 
 ### 21.2 Resilience Assessment
@@ -1585,7 +1585,7 @@ Top 15 source files by lines of code (42 Python files, 19,929 total LOC, 185 tes
 | 2 | src/knowledge.py | 1,816 | Domain knowledge base: cell types, drugs, markers, immune signatures, LR pairs |
 | 3 | src/clinical_workflows.py | 1,792 | 10 clinical workflow implementations (annotate, TME, drug, spatial, etc.) |
 | 4 | src/rag_engine.py | 1,490 | Multi-collection RAG engine with weighted retrieval and LLM synthesis |
-| 5 | src/collections.py | 1,210 | 12 Milvus collection schemas with index configuration |
+| 5 | src/vector_collections.py | 1,210 | 12 Milvus collection schemas with index configuration |
 | 6 | src/query_expansion.py | 893 | 14 synonym maps, 232 entity aliases, workflow term injection |
 | 7 | src/decision_support.py | 886 | 4 decision support engines: TME classifier, subclonal risk, target validator, deconvolution |
 | 8 | src/models.py | 820 | Pydantic models, enums (SCWorkflowType, EvidenceLevel, TMEClass), dataclasses |

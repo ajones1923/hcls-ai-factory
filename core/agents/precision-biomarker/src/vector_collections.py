@@ -14,7 +14,7 @@ Manages 11 biomarker collections (10 domain-specific + 1 read-only genomic):
   + genomic_evidence             — Shared genomic variants (read-only)
 
 Follows the same pymilvus pattern as:
-  cart_intelligence_agent/src/collections.py (CARTCollectionManager)
+  cart_intelligence_agent/src/vector_collections.py (CARTCollectionManager)
   core/engines/precision-intelligence/src/milvus_client.py (MilvusClient)
 
 Author: Adam Jones
@@ -1031,7 +1031,7 @@ class BiomarkerCollectionManager:
 
     Provides create/drop/insert/search operations across the full set of
     biomarker domain collections, following the same pymilvus patterns as
-    cart_intelligence_agent/src/collections.py (CARTCollectionManager) and
+    cart_intelligence_agent/src/vector_collections.py (CARTCollectionManager) and
     core/engines/precision-intelligence/src/milvus_client.py.
 
     Usage:

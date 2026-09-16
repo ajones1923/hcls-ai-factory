@@ -1013,7 +1013,7 @@ Pydantic BaseSettings with `PGX_` environment variable prefix:
 | `src/knowledge.py` | 2,657 | Knowledge graph (25 genes, 12 categories, 116 aliases) |
 | `app/pgx_ui.py` | 2,152 | 10-tab Streamlit interface |
 | `src/pgx_pipeline.py` | 1,600 | Star allele calling, phenotype translation, drug matching |
-| `src/collections.py` | 1,547 | 15 Milvus collection schemas |
+| `src/vector_collections.py` | 1,547 | 15 Milvus collection schemas |
 | `src/dosing.py` | 1,499 | 9 genotype-guided dosing algorithms |
 | `src/export.py` | 1,307 | Markdown, JSON, PDF, FHIR R4 export |
 | `src/query_expansion.py` | 1,254 | 14 domain-specific expansion maps |

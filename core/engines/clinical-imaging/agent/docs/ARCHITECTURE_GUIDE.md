@@ -108,7 +108,7 @@ The Clinical Imaging Engine (Engine 4) is organized into six interconnected laye
 |                                                                          |
 |  +----------------------------+   +-----------------------------+        |
 |  | Milvus 2.4 (19530)        |   | Collection Manager          |        |
-|  |                            |   | src/collections.py          |        |
+|  |                            |   | src/vector_collections.py          |        |
 |  | 13 imaging collections     |   |                             |        |
 |  | + 1 read-only genomic      |   | - Schema definitions        |        |
 |  | 38,028 vectors total       |   | - CRUD operations           |        |

@@ -83,7 +83,7 @@ configure_logging(
 def init_services():
     """Initialize all backend services (cached)."""
     from src.agent import AutoimmuneAgent
-    from src.collections import AutoimmuneCollectionManager
+    from src.vector_collections import AutoimmuneCollectionManager
     from src.diagnostic_engine import DiagnosticEngine
     from src.document_processor import DocumentProcessor
     from src.knowledge import KNOWLEDGE_VERSION

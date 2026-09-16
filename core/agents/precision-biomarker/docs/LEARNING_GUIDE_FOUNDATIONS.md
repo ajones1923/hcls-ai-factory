@@ -1282,7 +1282,7 @@ GenotypeAdjustmentResult, SearchHit, CrossCollectionResult, AgentQuery,
 AgentResponse, AnalysisResult, PatientHistory (longitudinal tracking), and
 WearableData (wearable device integration).
 
-**src/collections.py** (1,391 lines) -- The Milvus collection manager. Defines
+**src/vector_collections.py** (1,391 lines) -- The Milvus collection manager. Defines
 the schema (field types, dimensions, index parameters) for all 14 collections
 using pymilvus. Implements `connect()`, `disconnect()`, `ensure_collections()`
 (creates collections if they do not exist), `search_all()` (parallel search

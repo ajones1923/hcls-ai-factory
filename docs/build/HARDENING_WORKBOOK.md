@@ -239,11 +239,11 @@ Target: agents import one client; a model or parameter change is one edit.
 ### 2.3 Stop shadowing the stdlib
 
 ```bash
-git ls-files '*/src/collections.py' | wc -l     # 11
-for f in $(git ls-files '*/src/collections.py'); do
+git ls-files '*/src/vector_collections.py' | wc -l     # 11
+for f in $(git ls-files '*/src/vector_collections.py'); do
   git mv "$f" "$(dirname $f)/vector_collections.py"
 done
-grep -rln 'from src.collections\|from .collections\|import collections' core/*/*/src core/*/*/api | head
+grep -rln 'from src.vector_collections\|from .collections\|import collections' core/*/*/src core/*/*/api | head
 ```
 
 Update the imports, then remove the harness workaround:

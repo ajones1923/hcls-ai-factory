@@ -75,7 +75,7 @@ st.warning(
 def init_engine():
     """Initialize the CAR-T RAG engine (cached across reruns)."""
     try:
-        from src.collections import CARTCollectionManager
+        from src.vector_collections import CARTCollectionManager
         from src.rag_engine import CARTRAGEngine
         from src import knowledge as kg
         from src import query_expansion as qe

@@ -106,7 +106,7 @@ def client():
 
     patches = [
         patch("sentence_transformers.SentenceTransformer", return_value=mock_embedder),
-        patch("src.collections.ImagingCollectionManager", return_value=mock_manager),
+        patch("src.vector_collections.ImagingCollectionManager", return_value=mock_manager),
         patch("src.nim.service_manager.NIMServiceManager", return_value=mock_nim),
         patch("src.rag_engine.ImagingRAGEngine", return_value=mock_engine),
         patch("src.cross_modal.CrossModalTrigger", return_value=cross_modal_mock),

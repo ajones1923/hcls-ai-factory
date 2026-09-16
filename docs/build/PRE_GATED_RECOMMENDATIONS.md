@@ -80,7 +80,7 @@ as a nightly job against a running stack.
 
 ### 5. Rename the 12 stdlib-shadowing modules
 
-`src/collections.py` in 11 subjects (plus `precision-autoimmune/config/logging.py`). Imports are
+`src/vector_collections.py` in 11 subjects (plus `precision-autoimmune/config/logging.py`). Imports are
 package-qualified today, so it works — but any config that puts `src/` on `sys.path` kills the
 interpreter *before collection*:
 

@@ -25,7 +25,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from loguru import logger
 
-from src.collections import ImagingCollectionManager
+from src.vector_collections import ImagingCollectionManager
 
 
 def main():

@@ -130,7 +130,7 @@ The codebase comprises 39 Python files (26 source + 13 test) totaling 23,062 lin
 | `src/knowledge.py` | 1,929 | Domain knowledge: 40 trials, 13 areas, 9 agencies, phases, designs |
 | `src/agent.py` | 1,678 | Autonomous reasoning: plan, search, evaluate, synthesize |
 | `src/rag_engine.py` | 1,555 | Multi-collection RAG with weighted retrieval |
-| `src/collections.py` | 1,221 | 14 Milvus collection schemas (IVF_FLAT/COSINE/384-dim) |
+| `src/vector_collections.py` | 1,221 | 14 Milvus collection schemas (IVF_FLAT/COSINE/384-dim) |
 | `src/query_expansion.py` | 1,150 | 10 synonym maps, 140 entity aliases, workflow-aware boosting |
 | `api/routes/trial_clinical.py` | 1,079 | 22 trial-specific API endpoints |
 | `src/ingest/clinicaltrials_parser.py` | 802 | ClinicalTrials.gov XML/JSON parser |
@@ -1068,7 +1068,7 @@ streamlit run app/trial_ui.py --server.port 8128
 | 2 | `src/knowledge.py` | 1,929 | Domain knowledge: 40 trials, 13 areas, 9 agencies |
 | 3 | `src/agent.py` | 1,678 | Autonomous reasoning pipeline |
 | 4 | `src/rag_engine.py` | 1,555 | Multi-collection RAG with weighted retrieval |
-| 5 | `src/collections.py` | 1,221 | 14 Milvus collection schemas |
+| 5 | `src/vector_collections.py` | 1,221 | 14 Milvus collection schemas |
 | 6 | `src/query_expansion.py` | 1,150 | 13 synonym maps, 140 entity aliases |
 | 7 | `api/routes/trial_clinical.py` | 1,079 | 18 trial-specific API endpoints |
 | 8 | `src/ingest/clinicaltrials_parser.py` | 802 | ClinicalTrials.gov XML/JSON parser |

@@ -435,7 +435,7 @@ the same therapy).
 
 ### 3.4 Collections Manager
 
-**File:** `src/collections.py` (665 lines)
+**File:** `src/vector_collections.py` (665 lines)
 **Class:** `OncoCollectionManager`
 
 The collections manager wraps `pymilvus` operations for all 11 Milvus
@@ -1612,7 +1612,7 @@ All weights are configurable via environment variables
 
 To add a 12th collection (e.g., `onco_immunoprofiles`):
 
-1. **Define schema** in `src/collections.py`:
+1. **Define schema** in `src/vector_collections.py`:
    Add a `ONCO_IMMUNOPROFILES_FIELDS` list following the existing pattern.
    Include `id`, `embedding`, `text_chunk`, and domain-specific metadata.
 

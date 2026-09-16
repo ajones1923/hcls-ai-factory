@@ -428,7 +428,7 @@ The Single-Cell Intelligence Agent stores knowledge as 384-dimensional vectors:
 1. Complete the Scanpy PBMC tutorial end-to-end (QC through DE)
 2. Run Demo 2 (TME Profiling) and understand classification logic
 3. Study the TMEClassifier decision tree in `src/decision_support.py`
-4. Explore the 12 Milvus collection schemas in `src/collections.py`
+4. Explore the 12 Milvus collection schemas in `src/vector_collections.py`
 
 ### 7.3 Advanced (Week 5-8)
 

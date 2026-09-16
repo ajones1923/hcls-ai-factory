@@ -1,7 +1,7 @@
 """Unit tests for Cardiology Intelligence Agent Milvus collection schemas.
 
 Tests ALL_COLLECTIONS, WORKFLOW_COLLECTION_WEIGHTS, CollectionConfig,
-and helper functions in src/collections.py.
+and helper functions in src/vector_collections.py.
 
 Author: Adam Jones
 Date: March 2026
@@ -9,7 +9,7 @@ Date: March 2026
 
 import pytest
 
-from src.collections import (
+from src.vector_collections import (
     ALL_COLLECTIONS,
     CARDIO_ONCOLOGY_CONFIG,
     COLLECTION_NAMES,

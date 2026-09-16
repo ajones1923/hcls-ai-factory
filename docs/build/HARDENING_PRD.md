@@ -35,7 +35,7 @@ Every figure was produced by running a check.
 | CI workflow `permissions:` block | **absent** — `GITHUB_TOKEN` takes the repo default |
 | Actions pinned | by tag (`@v4`), not SHA |
 | Vulnerable packages *in the platform venv* | **2** (`pip` 24.0, `accelerate`) — the other 38 flagged are OS Python |
-| Modules shadowing the stdlib | **11** (`src/collections.py`) |
+| Modules shadowing the stdlib | **11** (`src/vector_collections.py`) |
 | `rag_engine.py` implementations | **12**, **13,821 LOC**, 15–67% similar to each other |
 | Per-service `_LLMClient` copies | **8** (+1 shared) — the `temperature` bug lived in all nine |
 | Broken internal doc links | **16** genuinely missing (a further 24 resolve to build-time generated pages) |
@@ -101,7 +101,7 @@ Five acceptance criteria. Each is a command whose output settles it.
 
 | # | Requirement | Pri | Done when |
 |---|---|---|---|
-| C1 | Rename the 11 `src/collections.py` → `vector_collections.py` | P1 | bare `pytest` works without the harness workaround |
+| C1 | Rename the 11 `src/vector_collections.py` → `vector_collections.py` | P1 | bare `pytest` works without the harness workaround |
 | C2 | Extract the shared RAG path into `hcls_common` | P1 | the search/flatten/route logic has one home |
 | C3 | Extract the per-service `_LLMClient` into `hcls_common` | P1 | one place to fix a model or parameter change |
 | C4 | Raise test depth where output is clinical (R25) | P2 | floor agreed and met |

@@ -2,7 +2,7 @@
 """Create all 15 PGx Milvus collections with proper schemas.
 
 Connects to Milvus, creates (or recreates) all pharmacogenomics collections
-defined in src/collections.py, optionally drops existing data, and seeds
+defined in src/vector_collections.py, optionally drops existing data, and seeds
 reference data from data/reference/*.json files.
 
 Usage:
@@ -34,7 +34,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from loguru import logger
 
-from src.collections import COLLECTION_SCHEMAS, PGxCollectionManager
+from src.vector_collections import COLLECTION_SCHEMAS, PGxCollectionManager
 
 
 # ═══════════════════════════════════════════════════════════════════════
