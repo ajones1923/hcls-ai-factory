@@ -273,3 +273,27 @@ cases:
     expect: [["0.2", "0.2 ng/ml"], ["recurrence", "recurrent"]]
     forbid: ["a rising PSA after prostatectomy is expected and benign"]
     why: "Post-prostatectomy PSA should be undetectable; AUA defines biochemical recurrence at >=0.2 ng/mL confirmed."
+
+  # clinical-imaging had no case either. It is the engine behind the cardiac CAD-RADS demo, and
+  # on 2026-09-16 it was answering some questions with a MOCK "normal study" radiology report —
+  # 200 OK, fluent, unrelated to the question. An eval case is what would have caught it.
+  - id: imaging-cadrads-severe
+    agent: clinical-imaging
+    port: 8524
+    path: /api/ask
+    field: question
+    question: "What CAD-RADS category indicates severe stenosis of 70-99 percent?"
+    expect: [["CAD-RADS 4", "CAD-RADS 4A"], ["70-99", "70–99"]]
+    forbid: ["Osseous structures are intact", "No evidence of lymphadenopathy",
+             "CAD-RADS 3 indicates severe stenosis"]
+    why: "CAD-RADS 4A = 70-99% single/two-vessel severe stenosis. The forbid terms are the mock radiology boilerplate: if they reappear, synthesis has silently fallen back to a canned report."
+
+  - id: imaging-plaque-vulnerability
+    agent: clinical-imaging
+    port: 8524
+    path: /api/ask
+    field: question
+    question: "Which coronary CTA findings mark a plaque as high-risk or vulnerable?"
+    expect: [["low-attenuation", "low attenuation", "napkin-ring", "positive remodeling", "positive remodelling", "spotty calc"]]
+    forbid: ["Osseous structures are intact", "No evidence of lymphadenopathy"]
+    why: "High-risk plaque features: low-attenuation core, positive remodelling, napkin-ring sign, spotty calcification. Any of these spellings is correct."

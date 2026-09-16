@@ -10,6 +10,7 @@ from typing import Any, Dict, Generator, List, Optional
 from loguru import logger
 
 from .base import BaseNIMClient
+from hcls_common.llm_text import first_text
 
 
 class LlamaLLMClient(BaseNIMClient):
@@ -269,7 +270,7 @@ class LlamaLLMClient(BaseNIMClient):
                         kwargs["system"] = system_msg
 
                     response = client.messages.create(**kwargs)
-                    text = response.content[0].text
+                    text = first_text(response)
                     logger.info(
                         f"Claude generated {len(text)} chars "
                         f"(input={response.usage.input_tokens}, "
@@ -285,8 +286,10 @@ class LlamaLLMClient(BaseNIMClient):
             return self._mock_response(messages=messages)
 
         raise ConnectionError(
-            "LLM unavailable: local NIM unreachable, cloud NIM failed, "
-            "no Anthropic API key, and mock disabled"
+            "LLM unavailable: local NIM unreachable, cloud NIM failed, and the Anthropic call "
+            "did not return text. Mock clinical prose is disabled by design "
+            "(NIM_ALLOW_MOCK_LLM_TEXT) -- a live clinical endpoint must fail loudly rather than "
+            "answer with a canned report. Check the log line above for the underlying error."
         )
 
     def generate_stream(

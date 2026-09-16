@@ -20,6 +20,7 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, Generator, List, Optional
 
 from loguru import logger
+from hcls_common.llm_text import first_text
 
 # ── Data classes ──────────────────────────────────────────────────────────
 
@@ -532,7 +533,7 @@ class AutoimmuneRAGEngine:
                 system=SYSTEM_PROMPT,
                 messages=messages,
             )
-            answer = response.content[0].text
+            answer = first_text(response)
 
             with self._conversation_lock:
                 self._conversation_history.append({"question": question, "answer": answer})

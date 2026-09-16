@@ -40,6 +40,7 @@ from src.vector_collections import CARTCollectionManager
 from src.rag_engine import CARTRAGEngine
 from src import knowledge as kg
 from src import query_expansion as qe
+from hcls_common.llm_text import first_text
 
 
 # ── Lightweight wrappers ──────────────────────────────────────────────
@@ -70,7 +71,7 @@ class SimpleLLMClient:
             system=system_prompt,
             messages=[{"role": "user", "content": prompt}],
         )
-        return msg.content[0].text
+        return first_text(msg)
 
     def generate_stream(self, prompt, system_prompt="", max_tokens=2048, temperature=0.7):
         with self.client.messages.stream(
