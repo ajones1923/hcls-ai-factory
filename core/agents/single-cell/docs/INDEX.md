@@ -57,7 +57,7 @@
 |------|---------|
 | `config/settings.py` | All configuration with `SC_` env prefix |
 | `src/agent.py` | Core reasoning engine |
-| `src/collections.py` | 12 Milvus collection schemas |
+| `src/vector_collections.py` | 12 Milvus collection schemas |
 | `src/clinical_workflows.py` | 10 analysis workflows |
 | `src/decision_support.py` | 4 clinical engines |
 | `src/knowledge.py` | Domain knowledge base |

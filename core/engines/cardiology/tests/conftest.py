@@ -6,7 +6,7 @@ from pathlib import Path
 
 # ---------------------------------------------------------------------------
 # Ensure the project root is on sys.path so that imports like
-# ``from src.collections import ...`` and ``from config.settings import ...``
+# ``from src.vector_collections import ...`` and ``from config.settings import ...``
 # resolve correctly regardless of how pytest is invoked.
 # ---------------------------------------------------------------------------
 PROJECT_ROOT = Path(__file__).resolve().parent.parent

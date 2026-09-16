@@ -56,7 +56,7 @@ def main():
 
         from pymilvus import Collection
 
-        from src.collections import COLLECTION_SCHEMAS, get_collection_config
+        from src.vector_collections import COLLECTION_SCHEMAS, get_collection_config
 
         existing = utility.list_collections()
         created = 0
@@ -66,7 +66,7 @@ def main():
                 continue
             schema = COLLECTION_SCHEMAS.get(name)
             if schema is None:
-                logger.warning("  [skip]   %s -- no schema in src/collections.py", name)
+                logger.warning("  [skip]   %s -- no schema in src/vector_collections.py", name)
                 continue
             coll = Collection(name=name, schema=schema)
             try:

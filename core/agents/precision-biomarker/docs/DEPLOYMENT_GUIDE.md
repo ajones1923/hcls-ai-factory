@@ -383,7 +383,7 @@ Test file inventory:
 | `test_agent.py`                 | `src/agent.py`                  |
 | `test_api.py`                   | `api/main.py` + routes          |
 | `test_biological_age.py`        | `src/biological_age.py`         |
-| `test_collections.py`           | `src/collections.py`            |
+| `test_collections.py`           | `src/vector_collections.py`            |
 | `test_critical_values.py`       | `src/critical_values.py`        |
 | `test_discordance_detector.py`  | `src/discordance_detector.py`   |
 | `test_disease_trajectory.py`    | `src/disease_trajectory.py`     |
@@ -804,7 +804,7 @@ python3 scripts/seed_all.py
 The `setup_collections.py` script:
 1. Connects to Milvus at `BIOMARKER_MILVUS_HOST:BIOMARKER_MILVUS_PORT`
 2. Drops existing collections if `--drop-existing` is passed
-3. Creates each collection with the schema defined in `src/collections.py`
+3. Creates each collection with the schema defined in `src/vector_collections.py`
 4. Builds IVF_FLAT indexes on each embedding field
 5. Loads all collections into memory
 

@@ -4,10 +4,11 @@
 Why this exists: each subject needed a DIFFERENT pytest invocation, so there was no single
 command that told you the health of the platform. Two traps made that worse:
 
-  1. Several subjects ship `src/collections.py`, which SHADOWS the Python standard library.
-     Putting their `src/` on PYTHONPATH kills the interpreter before collection
-     ("cannot import name 'namedtuple' from partially initialized module 'collections'").
-     So `src/` is added only for subjects that do not shadow a stdlib module.
+  1. `src/` goes on PYTHONPATH for every subject. Until 2026-09-16 it could not: eleven
+     subjects shipped `src/collections.py`, which SHADOWED the standard library and killed the
+     interpreter before collection ("cannot import name 'namedtuple' from partially initialized
+     module 'collections'"), so their `src/` was withheld and their tests ran against less code
+     than CI claimed. Those modules are now `src/vector_collections.py` and the guard is gone.
 
   2. `core/engines/structural-biology/vendor_rfdiffusion/` is VENDORED third-party code whose
      own tests need `rfdiffusion` + `dgl` (gated, GPU-only). Those are not our tests and are
@@ -36,21 +37,10 @@ ROSTER = [
 ]
 BASE = {"engine": "core/engines", "agent": "core/agents", "program": "core/disease-programs"}
 IGNORE = {"structural-biology": ["vendor_rfdiffusion"]}
-STDLIB = set(sys.stdlib_module_names)
-
-
-def shadows_stdlib(src: pathlib.Path) -> list[str]:
-    """Module files under src/ whose name collides with the standard library."""
-    if not src.is_dir():
-        return []
-    return sorted(f.stem for f in src.glob("*.py") if f.stem in STDLIB)
-
-
 def run(kind: str, name: str) -> dict:
     d = ROOT / BASE[kind] / name
     src = d / "src"
-    clash = shadows_stdlib(src)
-    path = [d, ROOT / "lib"] + ([] if clash else ([src] if src.is_dir() else []))
+    path = [d, ROOT / "lib"] + ([src] if src.is_dir() else [])
     env = dict(os.environ, PYTHONPATH=os.pathsep.join(str(p) for p in path))
     # Installing scanpy/anndata brings zarr and fast-array-utils, which register pytest plugins
     # that import an application Settings model at startup and kill COLLECTION for three subjects.
@@ -69,7 +59,7 @@ def run(kind: str, name: str) -> dict:
     res = dict(kind=kind, name=name,
                passed=g(r"(\d+) passed"), failed=g(r"(\d+) failed"),
                errors=g(r"(\d+) error"), skipped=g(r"(\d+) skipped"),
-               shadowed=clash, note="")
+               note="")
     if out == "TIMEOUT":
         res["note"] = "TIMED OUT"
     elif sum(res[k] for k in ("passed", "failed", "errors", "skipped")) == 0:
@@ -105,9 +95,8 @@ def main() -> int:
     for kind, name in roster:
         r = run(kind, name)
         rows.append(r)
-        flag = "  [src/ withheld: shadows " + ",".join(r["shadowed"]) + "]" if r["shadowed"] else ""
         print(f"  {name:26s}{kind:9s}{r['passed']:6d}{r['failed']:6d}{r['errors']:5d}"
-              f"{r['skipped']:6d}  {r['note']}{flag}")
+              f"{r['skipped']:6d}  {r['note']}")
         for line in r.get("detail", [])[:6]:
             print(f"        ! {line[:150]}")
     t = lambda k: sum(r[k] for r in rows)

@@ -2282,17 +2282,17 @@ graph TD
 
 - `/home/adam/projects/hcls-ai-factory/docker-compose.dgx-spark.yml` -- Full stack Docker Compose
 - `/home/adam/projects/hcls-ai-factory/hcls-ai-factory-public/docker-compose.yml` -- Reference stack Docker Compose
-- `/home/adam/projects/hcls-ai-factory/core/engines/cardiology/src/collections.py` -- 12 cardiology collections
-- `/home/adam/projects/hcls-ai-factory/core/agents/clinical-trial/src/collections.py` -- 14 trial collections
-- `/home/adam/projects/hcls-ai-factory/core/agents/neurology/src/collections.py` -- 14 neurology collections
-- `/home/adam/projects/hcls-ai-factory/core/agents/rare-disease-diagnostic/src/collections.py` -- 14 rare disease collections
-- `/home/adam/projects/hcls-ai-factory/core/agents/single-cell/src/collections.py` -- 12 single-cell collections
-- `/home/adam/projects/hcls-ai-factory/core/agents/pharmacogenomics/src/collections.py` -- 15 PGx collections
-- `/home/adam/projects/hcls-ai-factory/core/engines/precision-oncology/agent/agent/src/collections.py` -- 11 oncology collections
-- `/home/adam/projects/hcls-ai-factory/core/agents/cart/src/collections.py` -- 11 CAR-T collections
-- `/home/adam/projects/hcls-ai-factory/core/agents/precision-biomarker/src/collections.py` -- 11 biomarker collections
-- `/home/adam/projects/hcls-ai-factory/core/engines/clinical-imaging/agent/agent/src/collections.py` -- 11 imaging collections
-- `/home/adam/projects/hcls-ai-factory/core/agents/precision-autoimmune/src/collections.py` -- 14 autoimmune collections
+- `/home/adam/projects/hcls-ai-factory/core/engines/cardiology/src/vector_collections.py` -- 12 cardiology collections
+- `/home/adam/projects/hcls-ai-factory/core/agents/clinical-trial/src/vector_collections.py` -- 14 trial collections
+- `/home/adam/projects/hcls-ai-factory/core/agents/neurology/src/vector_collections.py` -- 14 neurology collections
+- `/home/adam/projects/hcls-ai-factory/core/agents/rare-disease-diagnostic/src/vector_collections.py` -- 14 rare disease collections
+- `/home/adam/projects/hcls-ai-factory/core/agents/single-cell/src/vector_collections.py` -- 12 single-cell collections
+- `/home/adam/projects/hcls-ai-factory/core/agents/pharmacogenomics/src/vector_collections.py` -- 15 PGx collections
+- `/home/adam/projects/hcls-ai-factory/core/engines/precision-oncology/agent/agent/src/vector_collections.py` -- 11 oncology collections
+- `/home/adam/projects/hcls-ai-factory/core/agents/cart/src/vector_collections.py` -- 11 CAR-T collections
+- `/home/adam/projects/hcls-ai-factory/core/agents/precision-biomarker/src/vector_collections.py` -- 11 biomarker collections
+- `/home/adam/projects/hcls-ai-factory/core/engines/clinical-imaging/agent/agent/src/vector_collections.py` -- 11 imaging collections
+- `/home/adam/projects/hcls-ai-factory/core/agents/precision-autoimmune/src/vector_collections.py` -- 14 autoimmune collections
 - `/home/adam/projects/hcls-ai-factory/core/engines/cardiology/src/risk_calculators.py` -- 6 cardiovascular risk calculators
 - `/home/adam/projects/hcls-ai-factory/core/agents/neurology/src/clinical_scales.py` -- 10 neurological clinical scales
 

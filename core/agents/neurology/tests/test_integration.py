@@ -15,7 +15,7 @@ from src.models import (
 from src.knowledge import (
     CLINICAL_SCALES,
 )
-from src.collections import (
+from src.vector_collections import (
     WORKFLOW_COLLECTION_WEIGHTS,
     get_all_collection_names,
 )

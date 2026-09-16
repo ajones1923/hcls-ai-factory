@@ -1375,7 +1375,7 @@ The response is a JSON object matching the `AgentResponse` model:
 ```python
 from src.agent import OncoIntelligenceAgent
 from src.rag_engine import OncoRAGEngine
-from src.collections import OncoCollectionManager
+from src.vector_collections import OncoCollectionManager
 
 # Connect to Milvus
 manager = OncoCollectionManager(host="localhost", port=19530)

@@ -1522,7 +1522,7 @@ pytest tests/ --cov=src --cov-report=html
 |------|-------|-------------|
 | `src/__init__.py` | -- | Package init |
 | `src/agent.py` | 309 | CARTIntelligenceAgent: plan-search-synthesize |
-| `src/collections.py` | 1,004 | CARTCollectionManager: 11 schemas + CRUD |
+| `src/vector_collections.py` | 1,004 | CARTCollectionManager: 11 schemas + CRUD |
 | `src/export.py` | 1,487 | Markdown, JSON, PDF export with NVIDIA theme |
 | `src/knowledge.py` | 2,249 | Knowledge graph: 3 dictionaries, 71 entries, 54 aliases |
 | `src/metrics.py` | 404 | Prometheus metrics: counters, histograms, gauges |

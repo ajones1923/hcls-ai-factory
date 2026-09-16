@@ -163,7 +163,7 @@ async def lifespan(app: FastAPI):
     try:
         from config.settings import settings
         from sentence_transformers import SentenceTransformer
-        from src.collections import ImagingCollectionManager
+        from src.vector_collections import ImagingCollectionManager
         from src.nim.service_manager import NIMServiceManager
         from src.rag_engine import ImagingRAGEngine
 

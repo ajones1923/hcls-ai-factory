@@ -17,7 +17,7 @@ import requests
 from loguru import logger
 from pydantic import BaseModel
 
-from src.collections import PGxCollectionManager
+from src.vector_collections import PGxCollectionManager
 from src.models import (
     ClinicalEvidence,
     DrugInteraction,

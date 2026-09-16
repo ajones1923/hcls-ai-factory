@@ -21,7 +21,7 @@ Read-only (created by core/engines/precision-intelligence):
 
 Follows the same pymilvus pattern as:
   core/engines/precision-intelligence/src/milvus_client.py (MilvusClient)
-  core/agents/cart/src/collections.py (CARTCollectionManager)
+  core/agents/cart/src/vector_collections.py (CARTCollectionManager)
 
 Author: Adam Jones
 Date: February 2026
@@ -1198,7 +1198,7 @@ class ImagingCollectionManager:
     Provides create/drop/insert/search operations across the full set of
     imaging domain collections, following the same pymilvus patterns as
     core/engines/precision-intelligence/src/milvus_client.py and
-    core/agents/cart/src/collections.py.
+    core/agents/cart/src/vector_collections.py.
 
     Usage:
         manager = ImagingCollectionManager()

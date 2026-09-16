@@ -30,7 +30,7 @@ from loguru import logger
 def check_milvus(settings) -> bool:
     """Validate that Milvus is accessible and collections exist."""
     try:
-        from src.collections import ImagingCollectionManager
+        from src.vector_collections import ImagingCollectionManager
 
         manager = ImagingCollectionManager(
             host=settings.MILVUS_HOST,
@@ -72,7 +72,7 @@ def show_status(settings):
 def run_immediate_ingest(settings, dry_run: bool = False):
     """Trigger an immediate ingest cycle (PubMed + ClinicalTrials.gov)."""
     from sentence_transformers import SentenceTransformer
-    from src.collections import ImagingCollectionManager
+    from src.vector_collections import ImagingCollectionManager
     from src.scheduler import ImagingIngestScheduler
 
     logger.info("Initializing collection manager and embedder...")

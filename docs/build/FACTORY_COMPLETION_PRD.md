@@ -146,7 +146,7 @@ Priority: **P0** blocks everything · **P1** blocks a phase · **P2** quality.
 |---|---|---|---|
 | R21 | Subject-suite CI job made blocking and green | P1 | `continue-on-error` removed, run green |
 | R22 | `require_valid_input()` / `honesty_flags()` called by handlers, not just available | P1 | coverage 12/12 on the governance page |
-| R23 | 12 stdlib-shadowing modules renamed (`src/collections.py` → `vector_collections.py`) | P2 | bare `pytest` works without the harness |
+| R23 | 12 stdlib-shadowing modules renamed (`src/vector_collections.py` → `vector_collections.py`) | P2 | bare `pytest` works without the harness |
 | R24 | structural-biology aggregator on `:8581`, or the engine stays `planned` | P2 | probe answers, or status unchanged |
 | R25 | Test-depth floor agreed for clinical-output subjects | P2 | recorded; range is currently 4 → 1,966 |
 

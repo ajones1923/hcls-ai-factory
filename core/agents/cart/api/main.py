@@ -58,7 +58,7 @@ if not os.environ.get("ANTHROPIC_API_KEY"):
                 break
 
 from config.settings import settings
-from src.collections import CARTCollectionManager
+from src.vector_collections import CARTCollectionManager
 from src.knowledge import get_knowledge_stats
 from src.models import AgentQuery, CrossCollectionResult, SearchHit
 from src.rag_engine import CARTRAGEngine

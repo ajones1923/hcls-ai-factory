@@ -22,7 +22,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.collections import (
+from src.vector_collections import (
     COLLECTION_MODELS,
     COLLECTION_SCHEMAS,
     EMBEDDING_DIM,
@@ -161,14 +161,14 @@ class TestBiomarkerCollectionManagerInit:
         assert manager.host == "10.0.0.1"
         assert manager.port == 9999
 
-    @patch("src.collections.connections")
+    @patch("src.vector_collections.connections")
     def test_connect_calls_pymilvus(self, mock_connections):
         """connect() calls pymilvus connections.connect."""
         manager = BiomarkerCollectionManager()
         manager.connect()
         mock_connections.connect.assert_called_once()
 
-    @patch("src.collections.connections")
+    @patch("src.vector_collections.connections")
     def test_disconnect_calls_pymilvus(self, mock_connections):
         """disconnect() calls pymilvus connections.disconnect."""
         manager = BiomarkerCollectionManager()
@@ -179,8 +179,8 @@ class TestBiomarkerCollectionManagerInit:
 class TestGetCollectionStats:
     """Test get_collection_stats with mocked pymilvus."""
 
-    @patch("src.collections.Collection")
-    @patch("src.collections.utility")
+    @patch("src.vector_collections.Collection")
+    @patch("src.vector_collections.utility")
     def test_returns_dict_with_counts(self, mock_utility, mock_collection_cls):
         """get_collection_stats returns a dict mapping names to entity counts."""
         mock_utility.has_collection.return_value = True
@@ -197,8 +197,8 @@ class TestGetCollectionStats:
             assert name in stats
             assert stats[name] == 100
 
-    @patch("src.collections.Collection")
-    @patch("src.collections.utility")
+    @patch("src.vector_collections.Collection")
+    @patch("src.vector_collections.utility")
     def test_missing_collection_shows_zero(self, mock_utility, mock_collection_cls):
         """Collections that do not exist show 0 count."""
         mock_utility.has_collection.return_value = False
@@ -214,8 +214,8 @@ class TestGetCollectionStats:
 class TestSearchAll:
     """Test search_all with mocked pymilvus."""
 
-    @patch("src.collections.Collection")
-    @patch("src.collections.utility")
+    @patch("src.vector_collections.Collection")
+    @patch("src.vector_collections.utility")
     def test_search_all_returns_dict_for_all_collections(
         self, mock_utility, mock_collection_cls
     ):
@@ -269,7 +269,7 @@ class TestInsertBatch:
         count = manager.insert_batch("biomarker_reference", records)
         assert count == 3
 
-    @patch("src.collections.utility")
+    @patch("src.vector_collections.utility")
     def test_insert_batch_unknown_collection_raises(self, mock_utility):
         """insert_batch raises ValueError for an unknown collection name."""
         mock_utility.has_collection.return_value = False

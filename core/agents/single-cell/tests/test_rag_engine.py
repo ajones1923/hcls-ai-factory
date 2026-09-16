@@ -38,6 +38,6 @@ class TestRAGPlaceholder:
 
     def test_search_collections_defined(self):
         """Verify collection names available for RAG search."""
-        from src.collections import get_all_collection_names
+        from src.vector_collections import get_all_collection_names
         names = get_all_collection_names()
         assert len(names) == 12

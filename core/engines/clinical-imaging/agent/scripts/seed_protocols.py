@@ -27,7 +27,7 @@ from sentence_transformers import SentenceTransformer
 from pymilvus import connections
 
 from config.settings import settings
-from src.collections import ImagingCollectionManager
+from src.vector_collections import ImagingCollectionManager
 from src.models import ImagingProtocol
 
 COLLECTION_NAME = "imaging_protocols"

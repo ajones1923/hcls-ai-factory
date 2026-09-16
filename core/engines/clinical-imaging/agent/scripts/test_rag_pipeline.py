@@ -25,7 +25,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 from loguru import logger
 
 from config.settings import settings
-from src.collections import ImagingCollectionManager
+from src.vector_collections import ImagingCollectionManager
 from src.nim.service_manager import NIMServiceManager
 from src.rag_engine import ImagingRAGEngine
 

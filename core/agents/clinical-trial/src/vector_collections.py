@@ -17,7 +17,7 @@ Defines 14 domain-specific vector collections for clinical trial intelligence:
   - genomic_evidence         — Shared genomic evidence (read-only)
 
 Follows the same pymilvus pattern as:
-  cardiology_intelligence_agent/src/collections.py
+  cardiology_intelligence_agent/src/vector_collections.py
 
 Author: Adam Jones
 Date: March 2026

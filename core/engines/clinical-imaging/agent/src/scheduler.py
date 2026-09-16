@@ -326,7 +326,7 @@ def start_scheduler() -> Optional[ImagingIngestScheduler]:
     # Lazy-import heavy dependencies so this module stays light
     try:
         from sentence_transformers import SentenceTransformer
-        from src.collections import ImagingCollectionManager
+        from src.vector_collections import ImagingCollectionManager
 
         manager = ImagingCollectionManager(
             host=settings.MILVUS_HOST,

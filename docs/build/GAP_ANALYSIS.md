@@ -72,7 +72,7 @@ failing to green: genomic-foundation 142 → **156**, structural-biology 26 → 
 Every subject needed a different pytest invocation, so no single command reported platform health.
 Added `scripts/run_all_tests.py`, which encodes the two traps that make a naive run wrong:
 
-- **`src/collections.py` shadows the Python standard library** in 12 files across 11 subjects.
+- **`src/vector_collections.py` shadows the Python standard library** in 12 files across 11 subjects.
   Adding their `src/` to `PYTHONPATH` kills the interpreter *before collection*:
   `cannot import name 'namedtuple' from partially initialized module 'collections'`. The harness
   withholds `src/` for exactly those subjects.
@@ -245,7 +245,7 @@ Original recommendation, for the record:
 | G5 | nextflow not installed | Orchestrator missing | low |
 | G7 | `singlecell-compute` mislabelled `live` | Honesty gate | trivial |
 | G8 | scanpy/rdkit/pysam/cyvcf2 absent | Engine runtimes incomplete | low |
-| G9 | `src/collections.py` shadows stdlib (12 files) | Latent catastrophic import failure | low |
+| G9 | `src/vector_collections.py` shadows stdlib (12 files) | Latent catastrophic import failure | low |
 | ~~G12~~ | ~~Neurology/biomarker double port collision~~ | **CLOSED** — convention adopted + gated | done |
 | G13 | structural-biology has no Dockerfile of its own | Cannot be containerised | low |
 | G10 | Test depth uneven (4 → 1,966) | Confidence uneven | high |

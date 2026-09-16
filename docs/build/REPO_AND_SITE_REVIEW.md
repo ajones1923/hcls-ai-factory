@@ -39,7 +39,7 @@ CI ran the **382** platform-library tests and none of the **8,402** subject test
 break all 17 engines/agents and still merge green.
 
 Added a `subjects` job invoking `scripts/run_all_tests.py`. It uses the harness rather than a bare
-`pytest` because two traps make a naive invocation wrong — `src/collections.py` shadows the stdlib
+`pytest` because two traps make a naive invocation wrong — `src/vector_collections.py` shadows the stdlib
 in 11 subjects, and `zarr`/`fast-array-utils` register pytest plugins that abort collection for
 three. Both are documented inline in the workflow.
 

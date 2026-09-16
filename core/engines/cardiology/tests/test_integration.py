@@ -23,7 +23,7 @@ from src.models import (
     SeverityLevel,
     WorkflowResult,
 )
-from src.collections import (
+from src.vector_collections import (
     ALL_COLLECTIONS,
     COLLECTION_NAMES,
     WORKFLOW_COLLECTION_WEIGHTS,

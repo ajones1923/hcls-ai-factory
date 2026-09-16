@@ -15,7 +15,7 @@ Defines 12 domain-specific vector collections for single-cell analysis:
   - genomic_evidence    -- Shared genomic evidence (read-only)
 
 Follows the same pymilvus pattern as:
-  rare_disease_diagnostic_agent/src/collections.py
+  rare_disease_diagnostic_agent/src/vector_collections.py
 
 Author: Adam Jones
 Date: March 2026

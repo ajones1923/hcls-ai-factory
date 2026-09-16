@@ -10,7 +10,7 @@ from typing import Any, Dict, List, Optional
 
 from loguru import logger
 
-from src.collections import CARTCollectionManager
+from src.vector_collections import CARTCollectionManager
 from src.models import RealWorldRecord, RWEStudyType
 
 from .base import BaseIngestPipeline

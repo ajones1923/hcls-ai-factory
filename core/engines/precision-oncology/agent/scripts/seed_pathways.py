@@ -17,7 +17,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from sentence_transformers import SentenceTransformer
 
-from src.collections import OncoCollectionManager
+from src.vector_collections import OncoCollectionManager
 
 
 class SimpleEmbedder:

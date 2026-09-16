@@ -77,7 +77,7 @@ def init_engine():
     """Initialize the Biomarker Intelligence analysis engine (cached across reruns)."""
     try:
         from src.biological_age import BiologicalAgeCalculator
-        from src.collections import BiomarkerCollectionManager
+        from src.vector_collections import BiomarkerCollectionManager
         from src.critical_values import CriticalValueEngine
         from src.discordance_detector import DiscordanceDetector
         from src.disease_trajectory import DiseaseTrajectoryAnalyzer

@@ -50,7 +50,7 @@ ENV PATH="/opt/venv/bin:$PATH"
 COPY src/ /app/src/
 
 # src/ on the path is safe here — this engine ships no module that shadows the standard library.
-# It is NOT safe for the subjects carrying src/collections.py; see scripts/run_all_tests.py.
+# It is NOT safe for the subjects carrying src/vector_collections.py; see scripts/run_all_tests.py.
 ENV PYTHONPATH="/app:/app/src"
 ENV PYTHONUNBUFFERED=1
 

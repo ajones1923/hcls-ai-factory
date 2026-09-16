@@ -1,4 +1,4 @@
-"""Tests for src/collections.py — PGxCollectionManager and schema definitions.
+"""Tests for src/vector_collections.py — PGxCollectionManager and schema definitions.
 
 Tests 15 collection schemas, EMBEDDING_DIM, COLLECTION_SCHEMAS registry,
 and PGxCollectionManager class structure.
@@ -9,7 +9,7 @@ Date: March 2026
 
 import pytest
 from unittest.mock import MagicMock, patch
-from src.collections import (
+from src.vector_collections import (
     EMBEDDING_DIM,
     COLLECTION_SCHEMAS,
     GENE_REFERENCE_SCHEMA,
@@ -155,13 +155,13 @@ class TestPGxCollectionManager:
         assert PGxCollectionManager.SEARCH_PARAMS["metric_type"] == "COSINE"
         assert PGxCollectionManager.SEARCH_PARAMS["params"]["nprobe"] == 16
 
-    @patch("src.collections.connections")
+    @patch("src.vector_collections.connections")
     def test_connect(self, mock_conn):
         mgr = PGxCollectionManager()
         mgr.connect()
         mock_conn.connect.assert_called_once()
 
-    @patch("src.collections.connections")
+    @patch("src.vector_collections.connections")
     def test_disconnect(self, mock_conn):
         mgr = PGxCollectionManager()
         mgr._collections = {"test": MagicMock()}
@@ -169,8 +169,8 @@ class TestPGxCollectionManager:
         mock_conn.disconnect.assert_called_once_with("default")
         assert mgr._collections == {}
 
-    @patch("src.collections.utility")
-    @patch("src.collections.Collection")
+    @patch("src.vector_collections.utility")
+    @patch("src.vector_collections.Collection")
     def test_create_collection_new(self, mock_coll_cls, mock_utility):
         mock_utility.has_collection.return_value = False
         mgr = PGxCollectionManager()
@@ -181,8 +181,8 @@ class TestPGxCollectionManager:
         assert result == mock_coll_instance
         assert "pgx_gene_reference" in mgr._collections
 
-    @patch("src.collections.utility")
-    @patch("src.collections.Collection")
+    @patch("src.vector_collections.utility")
+    @patch("src.vector_collections.Collection")
     def test_get_output_fields_excludes_embedding(self, mock_coll, mock_util):
         mgr = PGxCollectionManager()
         fields = mgr._get_output_fields("pgx_gene_reference")

@@ -369,7 +369,7 @@ Every demo carries exactly one label — **LIVE / REPRESENTATIVE / BURST**. Afte
 | R21 | Remove `continue-on-error` from the subject-suite job and make it green | CI currently reports **success while that job fails**. For a project whose argument is honesty-by-construction, that is the wrong irony to ship. |
 | R11 | `validate_registry.py --probe` — fail CI on a `live` capability that does not answer | Turns the honesty rule from a periodic audit into an enforced invariant. |
 | R22 | Call `require_valid_input()` / `honesty_flags()` in handlers | Coverage is **1/12** for both. The governance page states this honestly; closing it makes the claim strong instead of merely honest. |
-| R23 | Rename the 12 stdlib-shadowing modules | `src/collections.py` shadows the stdlib in 11 subjects; it has produced two false audit results already. |
+| R23 | Rename the 12 stdlib-shadowing modules | `src/vector_collections.py` shadows the stdlib in 11 subjects; it has produced two false audit results already. |
 | R24 | structural-biology aggregator on `:8581`, or leave `planned` | Five services, no aggregator. Status follows evidence. |
 | R25 | Agree a test-depth floor for clinical-output subjects | Range is 4 → 1,966. Pass rate alone is uninformative. |
 
@@ -384,7 +384,7 @@ Each of these cost real time. They are listed so they cost nothing the second ti
    `~/.local/lib/python3.12/site-packages/__editable___hcls_common_*_finder.py`. An empty `MAPPING`
    dict means it is broken; delete both `__editable__*` files and reinstall. This blocked the merge
    gate entirely.
-3. **Never run bare `pytest` across subjects** — `src/collections.py` shadows the stdlib. Use
+3. **Never run bare `pytest` across subjects** — `src/vector_collections.py` shadows the stdlib. Use
    `scripts/run_all_tests.py`, which withholds `src/` where needed.
 4. **`zarr` / `fast-array-utils` register pytest plugins that abort collection** — the harness passes
    `-p no:zarr -p no:fast_array_utils`. `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1` "fixes" it and breaks 38

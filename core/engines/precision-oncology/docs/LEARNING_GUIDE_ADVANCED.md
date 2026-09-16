@@ -675,7 +675,7 @@ also captures "Tagrisso" and "3rd-generation EGFR TKI").
 
 # Chapter 5: Collection Schemas and Indexing
 
-File: `src/collections.py` (665 lines)
+File: `src/vector_collections.py` (665 lines)
 
 ## 5.1 Shared Index Configuration
 
@@ -1661,7 +1661,7 @@ For latency-sensitive deployments:
 
 ## 14.1 Adding a New Collection
 
-1. **Define schema** in `src/collections.py`:
+1. **Define schema** in `src/vector_collections.py`:
 
 ```python
 MY_NEW_FIELDS = [
@@ -1818,7 +1818,7 @@ the agent's persona and behavioral constraints. To modify:
 To switch from BGE-small-en-v1.5 to a different model:
 
 1. Update `EMBEDDING_MODEL` and `EMBEDDING_DIM` in `config/settings.py`
-2. Update `EMBEDDING_DIM` constant in `src/collections.py`
+2. Update `EMBEDDING_DIM` constant in `src/vector_collections.py`
 3. All existing collections must be dropped and recreated (dimension mismatch
    will cause Milvus errors)
 4. Re-run all ingest pipelines to re-embed existing data

@@ -235,7 +235,7 @@ Both automatically detect comparative queries via `_is_comparative()` and route 
 
 ### 2.1 Index Type: IVF_FLAT
 
-The Imaging Agent uses `IVF_FLAT` (Inverted File with Flat quantization) defined in `src/collections.py`:
+The Imaging Agent uses `IVF_FLAT` (Inverted File with Flat quantization) defined in `src/vector_collections.py`:
 
 ```python
 INDEX_PARAMS = {
@@ -354,7 +354,7 @@ class ConferenceRecord(BaseModel):
 
 ### Step 2: Define the Milvus Schema
 
-Add to `src/collections.py`:
+Add to `src/vector_collections.py`:
 
 ```python
 CONFERENCE_FIELDS = [

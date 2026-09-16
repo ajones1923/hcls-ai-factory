@@ -18,7 +18,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from loguru import logger
 
 from config.settings import settings
-from src.collections import AutoimmuneCollectionManager
+from src.vector_collections import AutoimmuneCollectionManager
 
 
 def seed_knowledge(cm: AutoimmuneCollectionManager, embedder):

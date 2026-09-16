@@ -74,7 +74,7 @@ For engineers extending or operating this subject.
 
 Two traps the shared harness handles, which a hand-rolled `pytest` invocation will not:
 
-1. Several subjects ship `src/collections.py`, which **shadows the Python standard library**. Putting
+1. Several subjects ship `src/vector_collections.py`, which **shadows the Python standard library**. Putting
    their `src/` on `PYTHONPATH` kills the interpreter before collection.
 2. `structural-biology/vendor_rfdiffusion/` is vendored third-party code needing gated GPU packages
    and is excluded.
