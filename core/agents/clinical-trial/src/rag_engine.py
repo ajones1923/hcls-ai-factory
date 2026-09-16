@@ -23,7 +23,6 @@ Author: Adam Jones
 Date: March 2026
 """
 
-import json
 import logging
 import re
 import time
@@ -41,6 +40,8 @@ from .agent import (
     TrialWorkflowType,
     TrialResponse,
 )
+from hcls_common.conversation_store import ConversationStore
+from hcls_common.vector_search import search_collection
 
 logger = logging.getLogger(__name__)
 
@@ -52,53 +53,22 @@ CONVERSATION_DIR = Path(__file__).parent.parent / "data" / "cache" / "conversati
 _CONVERSATION_TTL = timedelta(hours=24)
 
 
+_CONVERSATIONS = ConversationStore(CONVERSATION_DIR, _CONVERSATION_TTL)
+
+
 def _save_conversation(session_id: str, history: list):
     """Persist conversation to disk as JSON."""
-    try:
-        CONVERSATION_DIR.mkdir(parents=True, exist_ok=True)
-        path = CONVERSATION_DIR / f"{session_id}.json"
-        data = {
-            "session_id": session_id,
-            "updated": datetime.now(timezone.utc).isoformat(),
-            "messages": history,
-        }
-        path.write_text(json.dumps(data, indent=2))
-    except Exception as exc:
-        logger.warning("Failed to persist conversation %s: %s", session_id, exc)
+    _CONVERSATIONS.save(session_id, history)
 
 
 def _load_conversation(session_id: str) -> list:
-    """Load conversation from disk, respecting 24-hour TTL."""
-    try:
-        path = CONVERSATION_DIR / f"{session_id}.json"
-        if path.exists():
-            data = json.loads(path.read_text())
-            updated = datetime.fromisoformat(data["updated"])
-            if datetime.now(timezone.utc) - updated < _CONVERSATION_TTL:
-                return data.get("messages", [])
-            else:
-                path.unlink(missing_ok=True)  # Expired
-    except Exception as exc:
-        logger.warning("Failed to load conversation %s: %s", session_id, exc)
-    return []
+    """Load conversation from disk, respecting the 24-hour TTL."""
+    return _CONVERSATIONS.load(session_id)
 
 
 def _cleanup_expired_conversations():
     """Remove conversation files older than 24 hours."""
-    try:
-        if not CONVERSATION_DIR.exists():
-            return
-        cutoff = datetime.now(timezone.utc) - _CONVERSATION_TTL
-        for path in CONVERSATION_DIR.glob("*.json"):
-            try:
-                data = json.loads(path.read_text())
-                updated = datetime.fromisoformat(data["updated"])
-                if updated < cutoff:
-                    path.unlink()
-            except Exception:
-                pass
-    except Exception as exc:
-        logger.warning("Conversation cleanup error: %s", exc)
+    _CONVERSATIONS.cleanup_expired()
 
 
 # Allowed characters for Milvus filter expressions to prevent injection
@@ -481,86 +451,13 @@ class TrialRAGEngine:
     ) -> List[dict]:
         """Search a single Milvus collection.
 
-        Performs a vector similarity search on the specified collection
-        with optional scalar field filtering.
-
-        Args:
-            collection_name: Milvus collection name.
-            query_vector: 384-dimensional query embedding.
-            top_k: Maximum number of results.
-            filter_expr: Optional Milvus boolean filter expression
-                (e.g. 'phase == "Phase 3"').
-
-        Returns:
-            List of result dicts from Milvus with score and field values.
+        One implementation for all five engines; see `hcls_common.vector_search`, which
+        documents the two traps (MilvusClient wants `search_params`, not the ORM `param`;
+        the two client APIs return different hit shapes) and why a failure here returns an
+        empty list rather than raising.
         """
-        try:
-            search_params = {
-                "metric_type": "COSINE",
-                "params": {"nprobe": 16},
-            }
-
-            # Build search kwargs
-            search_kwargs = {
-                "collection_name": collection_name,
-                "data": [query_vector],
-                "anns_field": "embedding",
-                # MilvusClient.search takes `search_params`, not the ORM API's `param`.
-                "search_params": search_params,
-                "limit": top_k,
-                "output_fields": ["*"],
-            }
-
-            if filter_expr:
-                search_kwargs["filter"] = filter_expr
-
-            results = self.milvus.search(**search_kwargs)
-
-            # Flatten Milvus search results
-            flat_results = []
-            if results and len(results) > 0:
-                for hit in results[0]:
-                    # MilvusClient returns plain dicts ({id, distance, entity}); the ORM API
-                    # returned Hit objects with .id/.score. Handle both so this works whichever
-                    # client is injected.
-                    if isinstance(hit, dict):
-                        record = {
-                            "id": str(hit.get("id", "")),
-                            "score": float(hit.get("distance", hit.get("score", 0.0)) or 0.0),
-                        }
-                        ent = hit.get("entity") or {}
-                        if isinstance(ent, dict):
-                            for k, v in ent.items():
-                                if k != "embedding":
-                                    record[k] = v
-                        record["metadata"] = {k: v for k, v in record.items()
-                                              if k not in ("id", "score", "metadata")}
-                        flat_results.append(record)
-                        continue
-                    record = {
-                        "id": str(hit.id),
-                        "score": float(hit.score) if hasattr(hit, "score") else 0.0,
-                    }
-                    # Extract entity fields
-                    if hasattr(hit, "entity"):
-                        entity = hit.entity
-                        if hasattr(entity, "fields"):
-                            for field_name, field_value in entity.fields.items():
-                                if field_name != "embedding":
-                                    record[field_name] = field_value
-                        elif isinstance(entity, dict):
-                            for k, v in entity.items():
-                                if k != "embedding":
-                                    record[k] = v
-                    flat_results.append(record)
-
-            return flat_results
-
-        except Exception as exc:
-            logger.warning(
-                "Search failed for collection '%s': %s", collection_name, exc,
-            )
-            return []
+        return search_collection(
+            self.milvus, collection_name, query_vector, top_k, filter_expr)
 
     def _parallel_search(
         self,

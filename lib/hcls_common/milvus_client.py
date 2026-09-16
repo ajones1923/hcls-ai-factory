@@ -38,32 +38,22 @@ logger = logging.getLogger(__name__)
 try:
     from prometheus_client import Counter, Histogram, Gauge
 
-    _search_latency = Histogram(
-        "hcls_milvus_search_seconds",
-        "Milvus search latency",
-        ["collection"],
+    from hcls_common.metrics import metric as _metric
+
+    _search_latency = _metric(
+        Histogram, "hcls_milvus_search_seconds", "Milvus search latency", ["collection"],
         buckets=(0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0),
     )
-    _upsert_latency = Histogram(
-        "hcls_milvus_upsert_seconds",
-        "Milvus upsert latency",
-        ["collection"],
+    _upsert_latency = _metric(
+        Histogram, "hcls_milvus_upsert_seconds", "Milvus upsert latency", ["collection"],
         buckets=(0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0),
     )
-    _cache_hits = Counter(
-        "hcls_milvus_cache_hits_total",
-        "Query cache hits",
-        ["collection"],
-    )
-    _cache_misses = Counter(
-        "hcls_milvus_cache_misses_total",
-        "Query cache misses",
-        ["collection"],
-    )
-    _pool_size_gauge = Gauge(
-        "hcls_milvus_pool_available",
-        "Available connections in pool",
-    )
+    _cache_hits = _metric(
+        Counter, "hcls_milvus_cache_hits_total", "Query cache hits", ["collection"])
+    _cache_misses = _metric(
+        Counter, "hcls_milvus_cache_misses_total", "Query cache misses", ["collection"])
+    _pool_size_gauge = _metric(
+        Gauge, "hcls_milvus_pool_available", "Available connections in pool")
     _HAS_PROMETHEUS = True
 except ImportError:
     _HAS_PROMETHEUS = False

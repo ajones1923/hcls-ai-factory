@@ -41,17 +41,19 @@ from loguru import logger
 try:
     from prometheus_client import Counter, Histogram
 
-    QUERIES_ROUTED = Counter(
+    from hcls_common.metrics import metric
+
+    QUERIES_ROUTED = metric(Counter,
         "hcls_queries_routed_total",
         "Total queries routed across collections",
         ["intent"],
     )
-    ROUTE_LATENCY = Histogram(
+    ROUTE_LATENCY = metric(Histogram,
         "hcls_query_route_seconds",
         "End-to-end query routing latency",
         buckets=[0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0],
     )
-    COLLECTION_SEARCH_LATENCY = Histogram(
+    COLLECTION_SEARCH_LATENCY = metric(Histogram,
         "hcls_collection_search_seconds",
         "Per-collection search latency",
         ["collection"],

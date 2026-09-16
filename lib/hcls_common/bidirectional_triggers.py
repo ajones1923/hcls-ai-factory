@@ -50,12 +50,14 @@ from .event_bus import (
 try:
     from prometheus_client import Counter, Histogram
 
-    TRIGGERS_FIRED = Counter(
+    from hcls_common.metrics import metric
+
+    TRIGGERS_FIRED = metric(Counter,
         "hcls_triggers_fired_total",
         "Total bidirectional triggers fired",
         ["trigger_name"],
     )
-    TRIGGER_LATENCY = Histogram(
+    TRIGGER_LATENCY = metric(Histogram,
         "hcls_trigger_action_seconds",
         "Trigger action execution latency",
         ["trigger_name"],
