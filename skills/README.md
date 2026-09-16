@@ -71,8 +71,7 @@ skills/
 ```
 
 ### `hcls-core-vision-mission/SKILL.md` ⭐ (north star)
-The founding **mission, vision, and principles** — *"No one should die of a disease we could have
-understood in time."* This is the guiding context for **all** work: it governs what to build, how
+The founding **mission, vision, and principles** — *"No one should wait years for a disease we could have understood in a day."* This is the guiding context for **all** work: it governs what to build, how
 to frame it, and what to promise, and every other skill exists to serve it. **Consult it first, on
 every task**; when a technical choice and the mission seem to conflict, the mission wins.
 

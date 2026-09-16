@@ -6,7 +6,7 @@ carry the detail and load on demand.
 
 ## North star (always)
 
-> **No one should die of a disease we could have understood in time.**
+> **No one should wait years for a disease we could have understood in a day.**
 
 Every decision — what to build, how to frame it, what to promise — serves this mission. **When a
 technical choice and the mission conflict, the mission wins.** Full founding vision and principles:

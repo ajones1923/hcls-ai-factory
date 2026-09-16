@@ -11,7 +11,7 @@ description: >-
 # HCLS AI Factory — Core Vision & Mission (North Star)
 
 > **The mission, in one sentence:**
-> *No one should die of a disease we could have understood in time.* — child or adult, in a
+> *No one should wait years for a disease we could have understood in a day.* — child or adult, in a
 > leading research hospital or a clinic with no genetics department at all.
 
 Every engine, every agent, every line of the platform traces back to that sentence. It is the
@@ -83,7 +83,7 @@ This was never meant to be a finish line. Whether it made the world better is me
 a genetics department can still give a family an answer. Some of that will happen in hands that are
 not the author's, which is exactly as it should be. The charge for anyone building here:
 
-> **No one should die of a disease we could have understood in time. Take this, and help make that true.**
+> **No one should wait years for a disease we could have understood in a day. Take this, and help make that true.**
 
 ## Related
 - `build-housekeeping-standards` — how we build (this is *why* we build).

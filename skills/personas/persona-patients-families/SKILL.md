@@ -11,7 +11,7 @@ description: >-
 
 Patients, families, and advocacy groups. They are the reason the project exists and the audience
 most easily harmed by it. They care about hope that is *real* — and the mission line is theirs:
-*no one should die of a disease we could have understood in time.* Restraint here is not tone
+*no one should wait years for a disease we could have understood in a day.* Restraint here is not tone
 management; it is ethics and the protection of vulnerable people.
 
 ## What wins them / What loses them
