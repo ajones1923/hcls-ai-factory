@@ -4,7 +4,25 @@
 Everything else has been verified by running it. This has not — no reboot has happened since the
 bring-up, so the boot path is the only part of the system still taken on trust.
 
-Run this after the next reboot. It takes about five minutes.
+**Run `scripts/reboot_check.py` after the next reboot** — it automates everything below into one
+verdict. The manual commands are kept because when a check fails you need to know what it ran.
+
+```bash
+cd ~/projects/hcls-ai-factory
+set -a && . ./.env && set +a
+.venv/bin/python scripts/reboot_check.py --wait      # --wait: cron's first tick is up to 5 min away
+```
+
+The script refuses to claim A3 is met unless uptime is low — passing on a box that has been up for
+weeks proves the checks work, not that anything came back by itself.
+
+**What actually restarts the fleet.** There are no systemd units for these 32 services. The whole
+boot path is `cron */5 → health-monitor.sh fix`, plus `restart=unless-stopped` on the Docker
+containers and one `@reboot` entry that re-applies the Caddy TLS edge. So the platform is expected
+to be down for up to five minutes after boot and then recover unattended. If it does not, the
+defect is in one of those three things.
+
+The rest of this page is the manual form of the same checks.
 
 ## What was hardened in advance
 
@@ -42,7 +60,7 @@ grep -i 'LLM client init\|LLM features disabled' logs/cart.log | tail -1
 curl -s -m 90 -X POST -H 'Content-Type: application/json' \
   -d '{"question":"CD19 CAR-T toxicity"}' http://localhost:8522/search | head -c 200
 
-# 3. the answers are still clinically correct  (expect 6/6)
+# 3. the answers are still clinically correct  (expect 27/27)
 .venv/bin/python scripts/run_clinical_eval.py
 ```
 
