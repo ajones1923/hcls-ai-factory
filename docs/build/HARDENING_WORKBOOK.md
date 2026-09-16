@@ -394,15 +394,93 @@ registry-backed port checker was prototyped and **rejected**: legitimate infrast
 (8501 Streamlit, 8510 portal) and non-port four-digit numbers (a test count of 8397) make it cry
 wolf, and a check that cries wolf is one nobody runs.
 
-### 3.4 Agree the test-depth floor (H-D5)
+### 3.4 Test-depth floor — ✅ decided 2026-09-16 (H-D5)
+
+**A raw test count is the wrong instrument.** By absolute count the alarming subject is the
+single-cell *engine* with 4 tests — but it is 146 lines of deterministic scanpy glue and 4 tests is
+proportionate. clinical-imaging looks well covered at 1,365 tests and is 65,000 lines, which is
+thinner than it looks. Normalising by source size inverts the ranking:
+
+| subject | tests | src LOC | per 100 |
+|---|---|---|---|
+| single-cell *(agent)* | 185 | 19,332 | **1.0** |
+| rare-disease-diagnostic | 206 | 20,713 | **1.0** |
+| neurology | 208 | 20,849 | **1.0** |
+| tuberous-sclerosis | 92 | 6,370 | **1.4** |
+| clinical-imaging | 1,365 | 65,227 | 2.1 |
+| … | | | |
+| cardiology | 1,966 | 33,853 | 5.8 |
+| single-cell *(engine)* | 4 | 146 | 2.7 — *fine, and exempt anyway* |
+
+**The metric:** tests per 100 non-test source lines.
+**The scope:** subjects that emit **clinical output** — prose or a recommendation a clinician could
+act on. Listed explicitly in `scripts/check_test_depth.py` with the reason for each, because
+inferring it from "has a clinical eval case" is circular: the two worst faults found on 2026-09-16
+(precision-biomarker, clinical-imaging) were both in subjects that had **no** eval case. A thin
+suite on a data-loading engine costs a broken build; a thin suite on a subject that generates
+clinical prose costs a wrong answer that reads exactly like a right one.
+
+**The floor: 2.0** — half the median of 2.8. Below that is not a number anyone has to argue about.
+
+**Enforced as a ratchet, not a cliff.** Four clinical subjects sit below 2.0. Making the floor
+blocking today would either turn CI red on merge or force ~600 tests to be written in a hurry, and
+tests written to satisfy a number are worth nothing. So:
+
+| rule | status |
+|---|---|
+| **RATCHET** — no clinical subject falls below its recorded baseline (±0.15 noise) | **blocking**, in CI |
+| **FLOOR 2.0** — a *new* clinical subject starts at or above it | **blocking**, in CI |
+| **FLOOR 2.0** for the four already below | **advisory**, recorded here |
+
+Backsliding is what actually decays, and the ratchet catches it the day it happens. Verified by
+simulation: deleting 600 pharmacogenomics tests trips `REGRESSION` and exits 1.
 
 ```bash
-$PY scripts/run_all_tests.py --json /tmp/t.json >/dev/null
-$PY -c "import json;r=json.load(open('/tmp/t.json'));r.sort(key=lambda x:x['passed']);print([(x['name'],x['passed']) for x in r[:5]])"
+$PY scripts/run_all_tests.py --json /tmp/t.json
+$PY scripts/check_test_depth.py /tmp/t.json            # report
+$PY scripts/check_test_depth.py /tmp/t.json --enforce  # the CI gate
+$PY scripts/check_test_depth.py /tmp/t.json --update-baseline   # deliberate, reviewed in a PR
 ```
 
-Spread is 4 → 1,966. The single-cell *engine* has 4 tests and is a deterministic scanpy pipeline —
-low count is defensible there. Pick a floor for subjects that emit **clinical** output and record it.
+Baseline: `docs/build/test_depth_baseline.json`. Raising it is a PR like any other; lowering it
+should be argued for in the PR description, not done quietly.
+
+**The four below the floor, in priority order** — all three 1.0 agents are ~20,000 lines emitting
+clinical prose, which is the exact profile of the faults found this week:
+`neurology` · `rare-disease-diagnostic` · `single-cell (agent)` · then `tuberous-sclerosis` (1.4,
+and it has its own construct-validity eval, so it is the least urgent).
+
+---
+
+### 3.5 Data licences — ✅ decided 2026-09-16 (H-D2)
+
+H-D2 read: *"AlphaMissense is CC BY-NC-SA (non-commercial) across 132 tracked files, while the
+platform is Apache-2.0 and the site welcomes commercial use."*
+
+**Measured, the conflict is not in the repository.** No third-party dataset is redistributed here
+— `git ls-files | grep -iE 'alphamissense|clinvar|oncokb|cosmic'` returns nothing. The 134 files
+are code that *reads* the data and docs that explain how to obtain it. Apache-2.0 code reading
+CC BY-NC-SA data on a user's own machine is the user's obligation, not a defect in the licence
+grant on this code.
+
+**The real defect was that the repository contradicted itself.**
+`core/agents/rare-disease-diagnostic/docs/RARE_DISEASE_DIAGNOSTIC_AGENT_RESEARCH_PAPER.md` listed
+AlphaMissense as **CC BY 4.0**, while `docs/build/ACQUISITION_MANIFEST.md` correctly said
+**CC BY-NC-SA 4.0, non-commercial**. The error ran in the permissive direction — it told a
+commercial reader the data was free to use. Corrected.
+
+**Resolution: `DATA_LICENSES.md` at the repository root**, linked from the README's licence
+section. It states the governing fact (nothing is redistributed, with the command to verify it),
+names the three datasets that are gated in practice (AlphaMissense non-commercial; OncoKB and
+COSMIC licence-required; OMIM registration), and lists **every** external dataset the platform
+reads with a link to its own terms page — deliberately linking to the authority rather than
+asserting terms in a table that will go stale.
+
+It also records that the platform degrades cleanly without AlphaMissense *by construction*:
+`ingest_vcf.py` checks `.exists()`, logs "AlphaMissense annotation will be skipped", and continues
+on ClinVar significance alone. A first draft of that sentence claimed an `HCLS_SKIP_ALPHAMISSENSE`
+env flag; no such flag exists, and it was replaced with the mechanism that does. A licence file
+asserting a feature that is not there would be the same fault this platform keeps finding.
 
 ---
 

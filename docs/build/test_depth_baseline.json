@@ -1,0 +1,19 @@
+{
+ "_comment": "Test-depth ratchet baseline (decision H-D5). Regenerate deliberately with scripts/check_test_depth.py --update-baseline; a drop below these numbers is a regression, not a new normal.",
+ "floor_per_100_loc": 2.0,
+ "tolerance": 0.15,
+ "subjects": {
+  "agent/single-cell": 0.96,
+  "agent/rare-disease-diagnostic": 0.99,
+  "agent/neurology": 1.0,
+  "program/tuberous-sclerosis": 1.44,
+  "engine/clinical-imaging": 2.09,
+  "agent/cart": 2.32,
+  "agent/precision-autoimmune": 2.77,
+  "engine/precision-oncology": 3.23,
+  "agent/precision-biomarker": 3.44,
+  "agent/clinical-trial": 3.78,
+  "agent/pharmacogenomics": 4.74,
+  "engine/cardiology": 5.81
+ }
+}
