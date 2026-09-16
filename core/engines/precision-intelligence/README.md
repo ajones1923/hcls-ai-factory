@@ -598,12 +598,20 @@ class RAGEngine:
 ### Download Annotation Data
 
 ```bash
-# From HCLS AI Factory root (recommended):
-./setup-data.sh --stage2
+# No automated downloader ships for the annotation data. Fetch both manually:
+mkdir -p data/annotations && cd data/annotations
 
-# This downloads ClinVar (~480 MB) and AlphaMissense (~614 MB)
-# with automatic verification. See docs/DATA_SETUP.md for details.
+# ClinVar (~480 MB)
+wget https://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/clinvar.vcf.gz
+wget https://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/clinvar.vcf.gz.md5
+md5sum -c clinvar.vcf.gz.md5
+
+# AlphaMissense (~614 MB) — see the DGX Spark Deployment Guide, section 6.3,
+# for the source and the gzip integrity check.
 ```
+
+> Earlier revisions of this README pointed at a repository-root `setup-data.sh --stage2`.
+> That script was never written; the commands above are the real procedure.
 
 ### Installation
 

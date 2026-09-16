@@ -119,6 +119,15 @@ jobs:
       # matrix generator, so a malformed registry breaks the site build here
       # (before Netlify) rather than publishing a stale page.
       - run: mkdocs build --strict
+      # `mkdocs build --strict` checks the SITE. It cannot see two things:
+      #   * links in markdown that mkdocs does not publish (engine READMEs, QUICKSTARTs);
+      #   * a command that names a script which does not exist. Twenty-six references across
+      #     five guides told the reader to run `./setup-data.sh --all` — a script documented
+      #     with a full flag interface that was never written, so the documented FIRST STEP of
+      #     this repository failed immediately. `start-services.sh` and `run_pipeline.py` were
+      #     the same. A broken link is a nuisance; a confident instruction to run a command
+      #     that does not exist is the honesty failure this platform exists to avoid.
+      - run: python scripts/check_docs.py --all
 
   # NOTE: per-component test jobs (path-filtered matrix over core/engines and
   # core/agents) land with the dependency-pinning work (constraints + extras),

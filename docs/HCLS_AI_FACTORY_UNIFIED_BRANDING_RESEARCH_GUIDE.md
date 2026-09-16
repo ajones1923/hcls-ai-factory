@@ -779,7 +779,7 @@ all 8 agents while allowing domain-specific content:
 # [Agent Name]
 > One-line description of the agent's clinical purpose
 
-**Part of the [Precision Intelligence Engine](../engines/precision-intelligence-network.md)**
+**Part of the [Precision Intelligence Engine](factory/engines/precision-intelligence-engine.md)**
 
 ## Overview
 2-3 paragraphs describing the agent's purpose, target user, and key capabilities.
@@ -801,10 +801,9 @@ Table of all collections with record counts and descriptions.
 ## Quick Links
 | Resource | Link |
 |----------|------|
-| Demo Guide | [View](demo-guide.md) |
-| API Documentation | [View](api-docs.md) |
-| Deployment Guide | [View](deployment.md) |
-| Learning Guide | [View](learning-guide.md) |
+| Demo Guide | [View](HCLS_AI_FACTORY_DEMO_GUIDE.md) |
+| Deployment Guide | [View](HCLS_AI_FACTORY_DGX_SPARK_DEPLOYMENT_GUIDE.md) |
+| Learning Guide | [View](HCLS_AI_FACTORY_LEARNING_GUIDE_FOUNDATIONS.md) |
 
 ## By the Numbers
 | Metric | Value |

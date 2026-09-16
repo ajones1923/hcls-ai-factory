@@ -50,7 +50,7 @@ The Precision Biomarker Intelligence Agent transforms raw lab results into clini
 
 ### Demo Guide
 
-For a complete walkthrough of all 8 UI tabs with both sample patients, see the **[Demo Guide](demo-guide.md)**.
+For a complete walkthrough of all 8 UI tabs with both sample patients, see the **[Demo Guide](DEMO_GUIDE.md)**.
 
 ## Architecture
 

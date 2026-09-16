@@ -57,7 +57,7 @@ cp .env.example .env
 
 ```bash
 # Start services in dependency order
-./start-services.sh
+./start-factory.sh
 
 # This starts:
 # 1. Infrastructure (Milvus, monitoring)
@@ -322,7 +322,7 @@ watch -n 1 nvidia-smi
 
 | Action | Command / URL |
 |---|---|
-| Start services | `./start-services.sh` |
+| Start services | `./start-factory.sh` |
 | Launch demo | `python run_pipeline.py --mode demo` |
 | Landing page | http://localhost:8080 |
 | Genomics portal | http://localhost:5000 |
