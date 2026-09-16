@@ -75,3 +75,179 @@ cases:
     expect: [["GBA", "GBA1"], ["glucocerebrosidase", "beta-glucosidase"]]
     forbid: ["HEXA", "hexosaminidase"]
     why: "GBA1 / acid beta-glucocerebrosidase. HEXA is Tay-Sachs — a classic confusion."
+
+  # ── added 2026-09-16, before the Phase-2 de-duplication ─────────────────────
+  # This eval is the only detector for a refactor that changes an ANSWER rather than
+  # breaking a test. Six cases was thin cover for consolidating 13,821 lines of RAG code,
+  # so the set was widened first. Every fact below is well-established and externally
+  # checkable; every `forbid` names a specific wrong answer a model plausibly produces.
+
+  - id: pgx-clopidogrel
+    agent: pharmacogenomics
+    port: 8508
+    path: /query
+    field: question
+    question: "Which gene determines clopidogrel response, and what happens in poor metabolizers?"
+    expect: ["CYP2C19"]
+    forbid: ["CYP2D6 determines clopidogrel", "CYP2C9 determines clopidogrel"]
+    why: "CPIC clopidogrel is CYP2C19. Poor metabolizers get reduced active metabolite."
+
+  - id: pgx-abacavir
+    agent: pharmacogenomics
+    port: 8508
+    path: /query
+    field: question
+    question: "Which HLA allele must be screened before prescribing abacavir, and why?"
+    expect: [["B*57:01", "B*5701", "B5701"]]
+    forbid: ["B*15:02 before abacavir", "HLA-B*58:01 before abacavir"]
+    why: "HLA-B*57:01 → abacavir hypersensitivity. B*15:02 is carbamazepine/SJS — a classic swap."
+
+  - id: pgx-dpyd
+    agent: pharmacogenomics
+    port: 8508
+    path: /query
+    field: question
+    question: "Which gene variant causes severe fluoropyrimidine toxicity with 5-FU or capecitabine?"
+    expect: ["DPYD"]
+    forbid: ["UGT1A1 causes fluoropyrimidine", "TPMT causes fluoropyrimidine"]
+    why: "DPYD deficiency → 5-FU toxicity. UGT1A1 is irinotecan; TPMT is thiopurines."
+
+  - id: cart-zuma
+    agent: cart
+    port: 8522
+    path: /api/ask
+    field: question
+    question: "Which CAR-T product was studied in ZUMA-1, and for which disease?"
+    expect: [["axicabtagene", "axi-cel", "Yescarta"]]
+    forbid: ["ZUMA-1 studied tisagenlecleucel"]
+    why: "ZUMA-1 = axicabtagene ciloleucel in large B-cell lymphoma. Tisagenlecleucel was JULIET/ELIANA."
+
+  - id: cart-target
+    agent: cart
+    port: 8522
+    path: /api/ask
+    field: question
+    question: "Which antigen do tisagenlecleucel and axicabtagene ciloleucel target?"
+    expect: ["CD19"]
+    forbid: ["target CD20", "target BCMA"]
+    why: "Both are CD19-directed. BCMA is ide-cel/cilta-cel; CD20 is rituximab."
+
+  - id: onco-egfr
+    agent: precision-oncology
+    port: 8527
+    path: /api/ask
+    field: question
+    question: "What is the first-line targeted therapy for EGFR exon 19 deletion NSCLC?"
+    expect: [["osimertinib", "Tagrisso"]]
+    forbid: ["vemurafenib for EGFR", "crizotinib for EGFR"]
+    why: "Osimertinib is first-line for EGFR-mutant NSCLC. Vemurafenib is BRAF; crizotinib ALK."
+
+  - id: onco-braf
+    agent: precision-oncology
+    port: 8527
+    path: /api/ask
+    field: question
+    question: "Which mutation does vemurafenib target, and in which cancer is it most established?"
+    expect: [["BRAF", "V600"]]
+    forbid: ["vemurafenib targets EGFR", "vemurafenib targets KRAS"]
+    why: "Vemurafenib targets BRAF V600E, established in melanoma."
+
+  - id: neuro-nihss-range
+    agent: neurology
+    port: 8536
+    path: /v1/neuro/query
+    field: question
+    question: "What is the score range of the NIHSS and what does a higher score mean?"
+    expect: ["42"]
+    forbid: ["NIHSS ranges 0 to 30", "NIHSS ranges 0 to 100"]
+    why: "NIHSS is 0–42; higher = more severe deficit."
+
+  - id: neuro-thrombolysis-window
+    agent: neurology
+    port: 8536
+    path: /v1/neuro/query
+    field: question
+    question: "What is the standard IV thrombolysis time window from stroke symptom onset?"
+    expect: [["4.5", "4½", "three to four and a half"]]
+    forbid: ["window is 24 hours for IV thrombolysis", "window is 12 hours for IV thrombolysis"]
+    why: "IV alteplase within 4.5 h of onset. 24 h applies to selected thrombectomy, not IV lysis."
+
+  - id: rare-tsc-genes
+    agent: rare-disease-diagnostic
+    port: 8545
+    path: /v1/diagnostic/query
+    field: question
+    question: "Which genes cause tuberous sclerosis complex and which pathway is dysregulated?"
+    expect: [["TSC1", "TSC2"], ["mTOR", "mTORC1"]]
+    forbid: ["caused by NF1", "caused by PTEN"]
+    why: "TSC1/TSC2 loss → mTORC1 hyperactivation. NF1 is neurofibromatosis."
+
+  - id: rare-taysachs
+    agent: rare-disease-diagnostic
+    port: 8545
+    path: /v1/diagnostic/query
+    field: question
+    question: "Which enzyme is deficient in Tay-Sachs disease and which gene is responsible?"
+    expect: [["HEXA", "hexosaminidase"]]
+    forbid: ["Tay-Sachs is caused by GBA", "glucocerebrosidase deficiency causes Tay-Sachs"]
+    why: "HEXA / beta-hexosaminidase A. GBA is Gaucher — the reciprocal of the existing Gaucher case."
+
+  - id: autoimmune-celiac
+    agent: precision-autoimmune
+    port: 8532
+    path: /query
+    field: question
+    question: "Which HLA haplotypes confer susceptibility to coeliac disease?"
+    expect: [["DQ2", "DQ2.5"]]
+    forbid: ["coeliac is HLA-B27", "coeliac is HLA-DR3 only"]
+    why: "HLA-DQ2 (and DQ8). B27 is spondyloarthropathy."
+
+  - id: autoimmune-sle-specific
+    agent: precision-autoimmune
+    port: 8532
+    path: /query
+    field: question
+    question: "Which autoantibodies are most specific for systemic lupus erythematosus?"
+    expect: [["anti-Sm", "Smith", "dsDNA"]]
+    forbid: ["anti-CCP is most specific for lupus", "rheumatoid factor is specific for lupus"]
+    why: "Anti-Sm and anti-dsDNA are SLE-specific. Anti-CCP is rheumatoid arthritis."
+
+  - id: cardio-chadsvasc
+    agent: cardiology
+    port: 8127
+    path: /v1/cardio/query
+    field: question
+    question: "What does the CHA2DS2-VASc score estimate, and in which condition is it used?"
+    expect: [["stroke", "thromboembolic"], ["atrial fibrillation", "AF"]]
+    forbid: ["CHA2DS2-VASc estimates bleeding risk"]
+    why: "It estimates stroke risk in AF. Bleeding risk is HAS-BLED — the classic confusion."
+
+  - id: cardio-hasbled
+    agent: cardiology
+    port: 8127
+    path: /v1/cardio/query
+    field: question
+    question: "What does the HAS-BLED score estimate?"
+    expect: ["bleeding"]
+    forbid: ["HAS-BLED estimates stroke risk"]
+    why: "The reciprocal of the case above; together they catch a swapped pair."
+
+  - id: sc-tcell-marker
+    agent: single-cell
+    port: 8541
+    path: /v1/sc/query
+    field: question
+    question: "Which canonical marker genes identify T cells in single-cell RNA-seq of PBMCs?"
+    expect: [["CD3D", "CD3E", "CD3"]]
+    forbid: ["T cells are identified by MS4A1", "T cells are identified by CD79A"]
+    why: "CD3D/CD3E mark T cells. MS4A1 (CD20) and CD79A are B-cell markers."
+
+  - id: trial-phase-definition
+    agent: clinical-trial
+    port: 8539
+    path: /v1/trial/query
+    field: question
+    question: "What is the primary objective of a phase I oncology trial?"
+    expect: [["safety", "toxicity", "dose"]]
+    forbid: ["phase I establishes efficacy compared to standard of care"]
+    why: "Phase I is safety/dose-finding; comparative efficacy is phase III."

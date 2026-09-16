@@ -20,6 +20,46 @@ logger = logging.getLogger(__name__)
 router = APIRouter(tags=["meta-agent"])
 
 
+def _as_result(result) -> dict:
+    """Normalise whatever the pipeline returned into the shape this route expects.
+
+    Three different things can arrive here and the route assumed one of them:
+      * AgentResponse  — a pydantic model (agent.run), fields .answer / .evidence
+      * str            — rag.query returns plain prose
+      * dict           — some paths already return one
+
+    Calling .get() on the pydantic model raised
+    "'AgentResponse' object has no attribute 'get'" and the route 500'd. Same class of bug as
+    the dataclass-vs-dict mismatch that silently emptied retrieval in five other services.
+    """
+    if isinstance(result, dict):
+        return result
+    if isinstance(result, str):
+        return {"answer": result, "sources": [], "confidence": 0.0}
+
+    answer = getattr(result, "answer", "") or ""
+    sources = []
+    ev = getattr(result, "evidence", None)
+    for attr in ("results", "hits", "items", "sources"):
+        rows = getattr(ev, attr, None) if ev is not None else None
+        if isinstance(rows, list) and rows:
+            for r in rows:
+                sources.append(r if isinstance(r, dict) else {
+                    "collection": getattr(r, "collection", "unknown"),
+                    "text": getattr(r, "text", "") or getattr(r, "content", ""),
+                    "score": float(getattr(r, "score", 0.0) or 0.0),
+                    "metadata": getattr(r, "metadata", {}) or {},
+                })
+            break
+    return {
+        "answer": answer,
+        "sources": sources,
+        "confidence": float(getattr(result, "confidence", 0.0) or 0.0),
+        "follow_up_questions": list(getattr(result, "follow_up_questions", []) or []),
+    }
+
+
+
 # ---------------------------------------------------------------------------
 # Cross-Agent Integration Endpoint
 # ---------------------------------------------------------------------------
@@ -182,7 +222,11 @@ async def ask(req: AskRequest):
         # Comparative / complex queries -> Intelligence Agent
         if agent is not None and _is_comparative(req.question):
             logger.info("Routing comparative query through intelligence agent")
-            result = await agent.run(
+            # NOT awaited: src/agent.py:run and src/rag_engine.py:query are synchronous
+            # (`def`, not `async def`). Awaiting them raised
+            # "object AgentResponse can't be used in 'await' expression" and the route
+            # returned 500 for every request — the whole /api/ask endpoint was dead.
+            result = agent.run(
                 question=req.question,
                 cancer_type=req.cancer_type,
                 gene=req.gene,
@@ -192,7 +236,7 @@ async def ask(req: AskRequest):
         elif agent is not None:
             # Attempt full agent pipeline; fall back to RAG on failure
             try:
-                result = await agent.run(
+                result = agent.run(
                     question=req.question,
                     cancer_type=req.cancer_type,
                     gene=req.gene,
@@ -203,14 +247,14 @@ async def ask(req: AskRequest):
                 logger.warning(
                     "Intelligence agent failed, falling back to RAG engine"
                 )
-                result = await rag.query(
+                result = rag.query(
                     question=req.question,
                     cancer_type=req.cancer_type,
                     gene=req.gene,
                     top_k=req.top_k,
                 )
         else:
-            result = await rag.query(
+            result = rag.query(
                 question=req.question,
                 cancer_type=req.cancer_type,
                 gene=req.gene,
@@ -223,6 +267,7 @@ async def ask(req: AskRequest):
     elapsed_ms = round((time.time() - t0) * 1000, 1)
 
     # Normalise result into response schema
+    result = _as_result(result)
     sources = []
     for src in result.get("sources", []):
         sources.append(
