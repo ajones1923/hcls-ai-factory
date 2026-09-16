@@ -10,6 +10,7 @@ stated in the document rather than removed.
 | [`PRD.md`](PRD.md) | What to build, in what order, and what is blocked |
 | [`BUILD_GUIDE.md`](BUILD_GUIDE.md) | Cold clone → running platform |
 | [`PORT_MAP.md`](PORT_MAP.md) | The canonical allocation and the convention behind it |
+| [`REBOOT_CHECK.md`](REBOOT_CHECK.md) | **PRD A3 — what to run after a reboot, and the three failures that are invisible from the status table** |
 | [`CORPUS_SEEDING.md`](CORPUS_SEEDING.md) | **How to seed the agent corpora, and the five traps that fail silently** |
 | [`VENV_AND_RUNTIME.md`](VENV_AND_RUNTIME.md) | **Which venv each service uses, and the two traps that break them** (`venv/` is gitignored, so this is the only record) |
 | [`BEST_PRACTICES_AUDIT.md`](BEST_PRACTICES_AUDIT.md) | Security, design, and factual accuracy |
