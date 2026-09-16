@@ -24,6 +24,22 @@ if str(PROJECT_ROOT) not in sys.path:
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
 
+from hcls_common.ingest_persist import persist_records
+
+
+
+DRY_RUN = "--dry-run" in sys.argv          # fetch + validate without writing (the old behaviour)
+
+
+def _milvus_uri() -> str:
+    try:
+        from config.settings import settings
+        return f"http://{settings.MILVUS_HOST}:{settings.MILVUS_PORT}"
+    except Exception:
+        import os
+        return (f"http://{os.getenv('MILVUS_HOST', 'localhost')}:"
+                f"{os.getenv('MILVUS_PORT', '19530')}")
+
 
 def run_parser(source: str):
     """Run a specific ingest parser by source name."""
@@ -46,6 +62,7 @@ def run_parser(source: str):
         sys.exit(1)
 
     total_records = 0
+    total_written = 0
     for src in sources:
         name, parser_cls = parser_map[src]
         logger.info("Running %s ingest ...", name)
@@ -56,8 +73,13 @@ def run_parser(source: str):
             "  %s: %d validated records in %.1fs",
             name, stats.total_validated, stats.duration_seconds,
         )
+        # This used to stop here: fetched, validated, and wrote nothing. The log said
+        # "N validated records" and the corpus never changed.
+        if not DRY_RUN:
+            total_written += persist_records(records, "neuro_literature",
+                                             milvus_uri=_milvus_uri())
 
-    logger.info("Ingest complete: %d total validated records", total_records)
+    logger.info("Ingest complete: %d validated, %d persisted", total_records, total_written)
 
 
 def main():

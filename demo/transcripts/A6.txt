@@ -4,12 +4,12 @@ A6 · The trial that was open all along
     demo          A6 · clinical-trial
     title         The trial that was open all along
     label         LIVE
-    started       2026-09-16T04:44:49+00:00
+    started       2026-09-16T15:48:50+00:00
     POST          http://localhost:8539/v1/trial/match
     input         diagnosis=B-cell Acute Lymphoblastic Leukemia
     status        200
     screened      30 trials
+      match       NCT02666898 score=0.78
       match       NCT02435849 score=0.763
       match       NCT05536349 score=0.761
-      match       NCT01878708 score=0.754
     RESULT        PASS — ran on real input

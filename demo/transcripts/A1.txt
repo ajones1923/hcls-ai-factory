@@ -4,12 +4,12 @@ A1 · Why this construct, for this patient
     demo          A1 · cart
     title         Why this construct, for this patient
     label         LIVE
-    started       2026-09-16T04:44:48+00:00
+    started       2026-09-16T15:48:50+00:00
     POST          http://localhost:8522/search
     input         question=CAR-T therapy options for relapsed/refractory pediatric B-cell ALL targeting CD19. Compa
     status        200
     collections   11 searched
-    evidence      30 passages in 526.3485908508301 ms
+    evidence      30 passages in 341.97425842285156 ms
       [Literature] US10875927B2 score=0.951
           This patent covers a chimeric antigen receptor construct targeting CD19 optimized for the treatment of mantle cell lymph
       [Literature] US10253098B2 score=0.927
