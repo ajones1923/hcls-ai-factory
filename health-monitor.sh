@@ -28,6 +28,23 @@ MAX_LOG_SIZE=10485760  # 10MB
 mkdir -p "${LOG_DIR}"
 
 # ============================================================================
+# ENVIRONMENT
+# ============================================================================
+# Load .env before starting anything. Without this the supervisor starts every
+# service with NO ANTHROPIC_API_KEY, so an auto-recovery or a reboot silently
+# downgrades the whole fleet from "reasons over retrieved evidence" to
+# "retrieval only" -- and the services still report healthy, because they are
+# designed to degrade gracefully. That failure is invisible from the status
+# table, which is exactly why it has to be handled here rather than by whoever
+# happens to start a service by hand.
+if [ -f "${SCRIPT_DIR}/.env" ]; then
+    set -a
+    # shellcheck disable=SC1091
+    . "${SCRIPT_DIR}/.env"
+    set +a
+fi
+
+# ============================================================================
 # SINGLE-INSTANCE GUARD  +  SELF-TIMEOUT
 # ============================================================================
 # A run that has to give up on N dead services costs N x 60s (30 attempts x 2s).

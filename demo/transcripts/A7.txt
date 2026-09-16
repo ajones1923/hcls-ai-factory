@@ -4,7 +4,7 @@ A7 · Ending the odyssey
     demo          A7 · rare-disease-diagnostic
     title         Ending the odyssey
     label         LIVE
-    started       2026-09-16T02:35:54+00:00
+    started       2026-09-16T02:53:23+00:00
     POST          http://localhost:8545/v1/diagnostic/diagnose
     status        200
     differential  2 candidate diagnoses

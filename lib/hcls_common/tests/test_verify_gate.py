@@ -79,3 +79,33 @@ class TestAdversarialVerify:
         assert v["status"] == "blocked"          # the hallucinated stat is caught
         assert any(f["verdict"] == "refuted" for f in v["flagged"])
         assert not is_publishable(v)
+
+
+# ── whose claim is it? (subject scoping, 2026-09-15) ─────────────────────────
+class TestSubjectScoping:
+    """A clearance claim about THIS platform must block; the same words about a named
+    third-party therapy are ordinary clinical fact and must not be withheld.
+
+    This distinction is what made it safe to enforce the gate by default. Without it,
+    "Tisagenlecleucel is FDA-approved for paediatric r/r B-ALL" -- true, and exactly what a
+    CAR-T agent exists to tell you -- would have been withheld as an overclaim.
+    """
+
+    def test_self_referential_clearance_blocks(self):
+        for txt in ("This platform is FDA-approved for patients.",
+                    "This assay is FDA-cleared for diagnosing the variant.",
+                    "Our test is CE-marked for patient use."):
+            assert any(x["severity"] == "block" for x in honesty_check(txt)), txt
+
+    def test_third_party_clearance_is_a_warning_not_a_block(self):
+        v = honesty_check("Tisagenlecleucel is FDA-approved for paediatric r/r B-ALL patients.")
+        assert v, "should still be reported"
+        assert not any(x["severity"] == "block" for x in v)
+        assert any("third party" in x["message"] for x in v)
+
+    def test_unsafe_regardless_of_subject_still_blocks(self):
+        """A cure claim, absolute certainty and zero-risk are unsafe whoever the subject is."""
+        for txt in ("Pembrolizumab cures the disease in patients.",
+                    "This drug is certain to work for every patient.",
+                    "The therapy carries zero risk for the patient."):
+            assert any(x["severity"] == "block" for x in honesty_check(txt)), txt

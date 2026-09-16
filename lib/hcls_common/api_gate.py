@@ -98,8 +98,8 @@ def install_governance(app, *, service: str = "", capability_id: str | None = No
             "gates_available": ["input-validation", "output-honesty"],
             "output_gate": ("AUTOMATIC since 2026-09-15: every JSON answer over 200 chars is "
                             "scanned by the deterministic honesty register and carries the "
-                            "decision-support disclaimer. Set HCLS_HONESTY_ENFORCE=1 to withhold "
-                            "block-severity overclaims outright."),
+                            "decision-support disclaimer. Block-severity overclaims are WITHHELD "
+                            "by default; set HCLS_HONESTY_ENFORCE=0 to annotate instead."),
             "input_gate_is_opt_in": ("a handler must still call require_valid_input(); "
                                      "X-HCLS-Governed lists only what actually ran."),
             "auth": _auth_status(service),
@@ -136,9 +136,11 @@ def install_output_honesty(app, *, service: str = ""):
 
     Appends the decision-support disclaimer when clinical prose lacks one, attaches any
     overclaim findings to the payload under `honesty`, and reports them in X-HCLS-Honesty.
-    Content is annotated, never silently rewritten -- except that with HCLS_HONESTY_ENFORCE=1
-    a `block`-severity finding (claimed FDA clearance, a cure, diagnostic certainty) replaces
-    the answer, because those are the claims that must not ship at all.
+    Content is annotated, never silently rewritten -- except that a `block`-severity finding
+    (a cure claim, diagnostic certainty, a clearance claim about THIS platform) replaces the
+    generated prose, because those must not ship at all. Enforcing by default since
+    2026-09-15; HCLS_HONESTY_ENFORCE=0 annotates instead. Retrieved evidence is never
+    withheld -- only the generated text.
     """
     import json as _json
     import os as _os
@@ -171,9 +173,24 @@ def install_output_honesty(app, *, service: str = ""):
                 except Exception:
                     findings = []
                 blocking = [f for f in findings if f.get("severity") == "block"]
-                if blocking and _os.getenv("HCLS_HONESTY_ENFORCE") == "1":
-                    payload[key] = ("This answer was withheld by the output-honesty gate: "
-                                    + "; ".join(f.get("message", "") for f in blocking))
+                # ENFORCING BY DEFAULT since 2026-09-15 (Adam's decision). Set
+                # HCLS_HONESTY_ENFORCE=0 to annotate instead of withhold.
+                #
+                # Safe to default on only because the regulatory/efficacy rules became
+                # subject-aware first: "this platform is FDA-approved" blocks, while
+                # "tisagenlecleucel is FDA-approved" degrades to a warning. Without that,
+                # enforcement would have withheld correct clinical answers about approved
+                # drugs -- worse than the problem it solves. Rules that are unsafe whatever
+                # the subject (a cure claim, absolute certainty, zero risk) always block.
+                if blocking and _os.getenv("HCLS_HONESTY_ENFORCE", "1") != "0":
+                    payload[key] = (
+                        "**Withheld by the output-honesty gate.**\n\n"
+                        + "\n".join(f"- {f.get('message', '')}" for f in blocking)
+                        + "\n\nThe generated text made a claim this platform must not publish. "
+                          "The retrieved evidence is unchanged and still returned; only the "
+                          "generated prose was withheld. Set HCLS_HONESTY_ENFORCE=0 to receive "
+                          "it annotated instead." + DISCLAIMER)
+                    payload["withheld"] = True
                 elif not _has_disclaimer(text):
                     payload[key] = text + DISCLAIMER
                 if findings:
