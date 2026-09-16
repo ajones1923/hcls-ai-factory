@@ -107,6 +107,19 @@ maybe_drop_caches() {
     fi
 }
 
+# Milvus does not reload collections after a restart: a seeded, indexed collection answers
+# "collection not loaded" until something calls load_collection(). Nothing did, so a reboot
+# silently dropped every agent to zero retrieval while all services still reported healthy.
+# Idempotent and cheap (one state query per collection when everything is already loaded).
+load_milvus_collections() {
+    [ "${LOAD_MILVUS_COLLECTIONS:-1}" = "1" ] || return 0
+    local py="${SCRIPT_DIR}/.venv/bin/python"
+    [ -x "$py" ] || return 0
+    "$py" "${SCRIPT_DIR}/scripts/load_collections.py" --quiet 2>&1 | while read -r line; do
+        [ -n "$line" ] && log "INFO" "milvus: $line"
+    done
+}
+
 # Cap the cron append-log, which nothing else rotates.
 cap_cron_log() {
     local f="${LOG_DIR}/cron-health.log"
@@ -733,6 +746,7 @@ case "${1:-status}" in
     fix)
         acquire_lock; cap_cron_log; maybe_drop_caches
         cmd_fix
+        load_milvus_collections
         ;;
     watch)
         acquire_lock
