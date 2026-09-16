@@ -1,16 +1,19 @@
-demo          E1 · genomic-foundation
-title         The variant that was always there
-label         REPRESENTATIVE
-started       2026-09-15T23:29:08+00:00
-prerequisite  gated (informational): Parabricks (G2)
-source        HG002.genome.vcf.gz (GIAB HG002, publicly consented — never a patient)
-loaded        first 200,000 records into DuckDB
-PASS          64,008 (32.0% — the rest are gVCF reference blocks, not failures)
-Ts/Tv         2.332
-              NB: computed over a leading slice, not the whole genome — it is the QC signal working, not a genome-wide figure (that is ~2.0-2.1)
-ACMG SF panel 82 genes, 40 conditions
-              ACMG SF v3.2 (curated; validate against the official publication before clinical use)
-SF filter     1 of 3 reportable
-  reportable  BRCA1 Pathogenic -> Hereditary breast and ovarian cancer
-decision support for a qualified clinician, not diagnosis
-RESULT        PASS — ran on real input
+
+E1 · The variant that was always there
+
+    demo          E1 · genomic-foundation
+    title         The variant that was always there
+    label         REPRESENTATIVE
+    started       2026-09-16T02:34:40+00:00
+    prerequisite  gated (informational): Parabricks (G2)
+    source        HG002.genome.vcf.gz (GIAB HG002, publicly consented — never a patient)
+    loaded        first 200,000 records into DuckDB
+    PASS          64,008 (32.0% — the rest are gVCF reference blocks, not failures)
+    Ts/Tv         2.332
+                  NB: computed over a leading slice, not the whole genome — it is the QC signal working, not a genome-wide figure (that is ~2.0-2.1)
+    ACMG SF panel 82 genes, 40 conditions
+                  ACMG SF v3.2 (curated; validate against the official publication before clinical use)
+    SF filter     1 of 3 reportable
+      reportable  BRCA1 Pathogenic -> Hereditary breast and ovarian cancer
+    decision support for a qualified clinician, not diagnosis
+    RESULT        PASS — ran on real input

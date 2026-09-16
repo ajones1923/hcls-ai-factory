@@ -1,17 +1,20 @@
-demo          A1 · cart
-title         Why this construct, for this patient
-label         LIVE
-started       2026-09-15T23:30:20+00:00
-POST          http://localhost:8522/search
-input         question=CAR-T therapy options for relapsed/refractory pediatric B-cell ALL targeting CD19. Compa
-status        200
-collections   11 searched
-evidence      30 passages in 309.49902534484863 ms
-  [Literature] US10875927B2 score=0.951
-      This patent covers a chimeric antigen receptor construct targeting CD19 optimized for the treatment of mantle cell lymph
-  [Literature] US10253098B2 score=0.927
-      The invention relates to a chimeric antigen receptor (CAR) construct for the treatment of CD19-expressing malignancies, 
-  [Literature] WO2018067992A1 score=0.918
-      This patent application describes a bispecific tandem chimeric antigen receptor simultaneously targeting CD19 and CD22 o
-decision support for a qualified clinician, not diagnosis
-RESULT        PASS — ran on real input
+
+A1 · Why this construct, for this patient
+
+    demo          A1 · cart
+    title         Why this construct, for this patient
+    label         LIVE
+    started       2026-09-16T02:35:54+00:00
+    POST          http://localhost:8522/search
+    input         question=CAR-T therapy options for relapsed/refractory pediatric B-cell ALL targeting CD19. Compa
+    status        200
+    collections   11 searched
+    evidence      30 passages in 315.0036334991455 ms
+      [Literature] US10875927B2 score=0.951
+          This patent covers a chimeric antigen receptor construct targeting CD19 optimized for the treatment of mantle cell lymph
+      [Literature] US10253098B2 score=0.927
+          The invention relates to a chimeric antigen receptor (CAR) construct for the treatment of CD19-expressing malignancies, 
+      [Literature] WO2018067992A1 score=0.918
+          This patent application describes a bispecific tandem chimeric antigen receptor simultaneously targeting CD19 and CD22 o
+    decision support for a qualified clinician, not diagnosis
+    RESULT        PASS — ran on real input
