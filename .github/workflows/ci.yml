@@ -93,7 +93,16 @@ jobs:
           # scanpy/anndata -> single-cell. sentence-transformers pulls torch and dominates the
           # install time; drop it only by also skipping the suites that import it.
       - name: Run all 17 suites
-        run: .venv/bin/python scripts/run_all_tests.py
+        run: .venv/bin/python scripts/run_all_tests.py --json /tmp/subject_tests.json
+
+      # Test-depth ratchet (decision H-D5). A raw test count is the wrong instrument -- the
+      # single-cell engine's 4 tests cover 146 lines and are proportionate, while
+      # clinical-imaging's 1,365 cover 65,000 and are not. This normalises by source size and
+      # applies only to subjects that emit clinical output, where a thin suite costs a wrong
+      # answer that reads exactly like a right one. Blocking rule is the RATCHET: no clinical
+      # subject may fall below its recorded baseline.
+      - name: Test-depth ratchet
+        run: .venv/bin/python scripts/check_test_depth.py /tmp/subject_tests.json --enforce
 
   registry:
     name: Capability registry validation

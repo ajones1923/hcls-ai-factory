@@ -18,6 +18,7 @@ from typing import Optional
 
 import requests
 import streamlit as st
+from hcls_common.api_client import auth_headers
 
 # =====================================================================
 # Configuration
@@ -177,7 +178,8 @@ st.warning(
 def api_get(endpoint: str, params: dict = None) -> Optional[dict]:
     """GET request to cardiology API."""
     try:
-        resp = requests.get(f"{API_BASE}{endpoint}", params=params, timeout=30)
+        resp = requests.get(f"{API_BASE}{endpoint}", params=params,
+                            headers=auth_headers(service="cardiology"), timeout=30)
         resp.raise_for_status()
         return resp.json()
     except Exception as e:
@@ -188,7 +190,7 @@ def api_get(endpoint: str, params: dict = None) -> Optional[dict]:
 def api_post(endpoint: str, data: dict) -> Optional[dict]:
     """POST request to cardiology API."""
     try:
-        resp = requests.post(f"{API_BASE}{endpoint}", json=data, timeout=60)
+        resp = requests.post(f"{API_BASE}{endpoint}", json=data, headers=auth_headers(service="cardiology"), timeout=60)
         resp.raise_for_status()
         return resp.json()
     except Exception as e:

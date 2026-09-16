@@ -122,3 +122,9 @@ monitoring · docs · scripts · demo · data   ·   docker-compose.dgx-spark.ym
 ## License
 
 Apache-2.0. Built by Adam Jones.
+
+**The code is Apache-2.0; the data it reads is not.** No third-party dataset is redistributed here
+— you download each from its source under that source's terms. Several are **non-commercial**,
+most notably **AlphaMissense (CC BY-NC-SA 4.0)**, the most-referenced external artefact in this
+codebase. Every dataset the platform reads, and where to check its terms:
+[`DATA_LICENSES.md`](DATA_LICENSES.md).

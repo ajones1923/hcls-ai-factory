@@ -17,6 +17,7 @@ from typing import Optional
 
 import requests
 import streamlit as st
+from hcls_common.api_client import auth_headers
 
 # =====================================================================
 # Configuration
@@ -159,7 +160,7 @@ st.warning(
 def api_get(path: str, timeout: int = 15) -> Optional[dict]:
     """GET request to trial API with error handling."""
     try:
-        resp = requests.get(f"{API_BASE}{path}", timeout=timeout)
+        resp = requests.get(f"{API_BASE}{path}", headers=auth_headers(service="clinical-trial"), timeout=timeout)
         resp.raise_for_status()
         return resp.json()
     except requests.exceptions.ConnectionError:
@@ -180,7 +181,7 @@ def api_post(path: str, data: dict, timeout: int = 60) -> Optional[dict]:
             f"{API_BASE}{path}",
             json=data,
             timeout=timeout,
-            headers={"Content-Type": "application/json"},
+            headers=auth_headers({"Content-Type": "application/json"}, "clinical-trial"),
         )
         resp.raise_for_status()
         return resp.json()
@@ -305,7 +306,7 @@ with tab_dashboard:
     # Metrics
     st.subheader("Service Metrics")
     try:
-        resp = requests.get(f"{API_BASE}/metrics", timeout=10)
+        resp = requests.get(f"{API_BASE}/metrics", headers=auth_headers(service="clinical-trial"), timeout=10)
         if resp.status_code == 200:
             st.code(resp.text, language="text")
     except Exception:

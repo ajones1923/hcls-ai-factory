@@ -1315,7 +1315,7 @@ Clinical geneticists and rare disease specialists spend an average of 40-60 minu
 | ClinicalTrials.gov | 3,200+ rare disease trials | Daily | API v2 | Public domain |
 | Reactome | 2,600+ pathways | Quarterly | Download | CC0 1.0 |
 | KEGG | 550+ pathways | Monthly | API | Academic license |
-| AlphaMissense | 71M predictions | Major releases | Download | CC BY 4.0 |
+| AlphaMissense | 71M predictions | Major releases | Download | **CC BY-NC-SA 4.0 — non-commercial** |
 | PubMed | 45,000+ rare disease | Daily | E-utilities API | Public domain |
 
 ### 17.2 Data Ingestion Pipeline
