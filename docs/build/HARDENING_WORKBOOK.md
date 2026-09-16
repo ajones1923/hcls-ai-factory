@@ -361,11 +361,38 @@ rule catches the whole defect class with no false alarms.
 > the honesty failure this platform exists to avoid — the documentation equivalent of a `live`
 > capability that is mock-served.
 
-### 3.3 Label what is superseded
+### 3.3 Stale ports — ✅ done 2026-09-16
 
-`docs/HCLS_AI_FACTORY_DEMO_GUIDE.md` still prints pre-convention ports (8529 neurology, 8128
-clinical-trial, 8130 single-cell). It is superseded on ports by `docs/demos/DEMO_CATALOG.md` and
-`docs/build/PORT_MAP.md`. Add a banner rather than deleting — provenance has value.
+`docs/HCLS_AI_FACTORY_DEMO_GUIDE.md` and `docs/HCLS_AI_FACTORY_DGX_SPARK_DEPLOYMENT_GUIDE.md`
+both printed pre-convention ports. The deployment guide's agent table had **eleven of eleven rows
+wrong**, including the retired 81xx API block and rare-disease with its two ports transposed.
+
+Corrected against `docs/build/PORT_MAP.md` and **verified against the running fleet** rather than
+the registry alone — all eleven documented API ports answer `/health` with 200.
+
+The failure mode here is worse than a stale number. The retired ports are mostly dead:
+
+```
+8103 → refused   8107 → refused   8128 → refused   8130 → refused   8134 → refused
+8529 → 200
+```
+
+`8529` answers. The old guide listed it as **neurology**; it is **precision-biomarker's** API since
+the 2026-08-15 sweep. A reader following that guide would not see a connection error — they would
+get fluent, confident clinical answers from the wrong agent. A dead port fails loudly; a
+reassigned one fails silently, which is the same class of fault as a `live` capability that is
+mock-served.
+
+Both guides now carry a banner naming `PORT_MAP.md` and the registry as the authority, so the
+provenance is kept rather than quietly overwritten.
+
+**Still stale, deliberately left:** the retired ports also appear in point-in-time documents —
+`HCLS_AI_FACTORY_v1.3.0_RELEASE_REPORT.md`, `build/GAP_ANALYSIS.md`, `build/PRD.md`, the
+architecture-research and infographic-prompt files (8107 in 17 files, 8134 in 15, 8128 and 8130 in
+11 each). Those record what was true when written and rewriting them would destroy that. A
+registry-backed port checker was prototyped and **rejected**: legitimate infrastructure ports
+(8501 Streamlit, 8510 portal) and non-port four-digit numbers (a test count of 8397) make it cry
+wolf, and a check that cries wolf is one nobody runs.
 
 ### 3.4 Agree the test-depth floor (H-D5)
 
