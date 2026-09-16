@@ -132,6 +132,30 @@ cap_cron_log() {
     fi
 }
 
+# Cap the PER-SERVICE logs too. Only this script's own log and the cron log were capped, while
+# the 32 service logs grew unbounded -- they reached 466 MB once already, on a box where page
+# cache competes with the GPU for unified memory. Truncation keeps the most recent half, because
+# the tail is what a post-mortem reads.
+#
+# Services append via `>>` from nohup, so the fd keeps its offset after truncation: writing to a
+# shortened file would leave a sparse gap. Copy-and-replace in place instead of `: >` for that
+# reason.
+cap_service_logs() {
+    local f size
+    for f in "${LOG_DIR}"/*.log; do
+        [ -f "$f" ] || continue
+        case "$(basename "$f")" in
+            cron-health.log|health-monitor.log) continue ;;   # handled above
+        esac
+        size=$(stat --format="%s" "$f" 2>/dev/null || echo 0)
+        if [ "$size" -gt "$MAX_LOG_SIZE" ]; then
+            tail -c "$((MAX_LOG_SIZE / 2))" "$f" > "${f}.tmp" 2>/dev/null \
+                && cat "${f}.tmp" > "$f" && rm -f "${f}.tmp" \
+                && log "INFO" "$(basename "$f") truncated at ${size} bytes"
+        fi
+    done
+}
+
 # ============================================================================
 # SERVICE REGISTRY
 # ============================================================================
@@ -744,7 +768,7 @@ case "${1:-status}" in
         cmd_status "$2"
         ;;
     fix)
-        acquire_lock; cap_cron_log; maybe_drop_caches
+        acquire_lock; cap_cron_log; cap_service_logs; maybe_drop_caches
         cmd_fix
         load_milvus_collections
         ;;
