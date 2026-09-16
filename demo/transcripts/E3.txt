@@ -4,17 +4,17 @@ E3 · From one protein to a hundred candidates
     demo          E3 · therapeutic-discovery
     title         From one protein to a hundred candidates
     label         REPRESENTATIVE
-    started       2026-09-16T02:35:42+00:00
+    started       2026-09-16T02:53:11+00:00
     prerequisite  gated (informational): MolMIM (G3), DiffDock (G4)
     target        VCP (p97) from E2's register — AAA+ ATPase inhibition to modulate protein homeostasis
                   reference compound CB-5083; FTD (frontotemporal dementia)
     generation    brics backend, 3 seeds -> 12 candidates
-    chemistry QC  12 parsed by RDKit · 12 pass Lipinski Ro5 (0 violations)
+    chemistry QC  12 parsed by RDKit · 11 pass Lipinski Ro5 (0 violations)
     ranking       by QED (drug-likeness)
-      QED 0.851  MW 288.4   logP 1.4    Ro5×0  COc1cc2ncnc(OC)c2cc1N1CCN(C)CC1
-      QED 0.841  MW 355.5   logP 2.2    Ro5×0  COc1ncnc2cc(C3CCN(C)CC3)c(N3CCN(C)CC3)cc12
-      QED 0.817  MW 356.5   logP 1.14   Ro5×0  COc1ncnc2cc(N3CCN(C)CC3)c(N3CCN(C)CC3)cc12
-      QED 0.775  MW 273.1   logP 2.34   Ro5×0  CN1CCN(c2ccc(Br)cc2F)CC1
+      QED 0.826  MW 274.4   logP 2.09   Ro5×0  CN1CCC(c2ccnc(C3CCN(C)CC3)n2)CC1
+      QED 0.825  MW 254.3   logP 2.35   Ro5×0  CN1CCC(c2ccnc(-c3cccnc3)n2)CC1
+      QED 0.824  MW 253.3   logP 2.95   Ro5×0  CN1CCC(c2ccnc(-c3ccccc3)n2)CC1
+      QED 0.824  MW 350.2   logP 3.85   Ro5×0  CN1CCC(c2ccnc(-c3ccc(Br)cc3F)n2)CC1
     GATED — not run here: MolMIM generation (NIM), DiffDock pose prediction (NIM),
                   chemprop ADMET. No binding affinity is claimed; these are drug-LIKENESS
                   scores on generated chemistry, not activity against p97.
