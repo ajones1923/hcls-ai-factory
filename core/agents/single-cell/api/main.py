@@ -97,14 +97,6 @@ from api.routes.events import router as events_router
 
 
 
-def _no_sampling(model: str) -> bool:
-    """True when the model rejects temperature/top_p/top_k (400)."""
-    m = (model or "").lower()
-    return any(m.startswith(p) for p in (
-        "claude-opus-5", "claude-opus-4-8", "claude-opus-4-7", "claude-opus-4-6",
-        "claude-sonnet-5", "claude-sonnet-4-6", "claude-fable-5", "claude-mythos-5",
-    ))
-
 
 _engine = None          # SingleCellRAGEngine
 _manager = None         # Collection manager
@@ -285,36 +277,13 @@ async def lifespan(app: FastAPI):
 
     # -- LLM client --
     llm_client = None
-    try:
-        import anthropic
+    # One shared client. Eight identical copies of this class are why removing
+    # `temperature` (400 on current models) took eight edits and missed seven.
+    # The default system prompt is the only genuine per-service difference.
+    from hcls_common.service_llm import build_service_llm
 
-        class _LLMClient:
-            def __init__(self):
-                self.client = anthropic.Anthropic()
-
-            def generate(
-                self, prompt: str, system_prompt: str = "",
-                max_tokens: int = 2048, temperature: float = 0.7,
-            ) -> str:
-                messages = [{"role": "user", "content": prompt}]
-                resp = self.client.messages.create(
-                    model=settings.LLM_MODEL,
-                    max_tokens=max_tokens,
-                    # `temperature` is REMOVED on current models (Sonnet 5, Opus 5,
-                    # the 4.6+ family): sending it returns 400 "`temperature` is
-                    # deprecated for this model." and the service silently falls back
-                    # to its stub answer. Sent only where it is still accepted.
-                    **({} if _no_sampling(settings.LLM_MODEL)
-                       else {"temperature": temperature}),
-                    system=system_prompt or _SC_SYSTEM_PROMPT,
-                    messages=messages,
-                )
-                return resp.content[0].text
-
-        llm_client = _LLMClient()
-        logger.info("Anthropic LLM client initialized")
-    except Exception as exc:
-        logger.warning(f"LLM client unavailable: {exc}")
+    llm_client = build_service_llm(
+        settings.LLM_MODEL, service="single-cell", default_system=_SC_SYSTEM_PROMPT)
 
     # -- RAG engine --
     try:
