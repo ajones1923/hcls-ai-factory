@@ -1,0 +1,26 @@
+# Code owners — reviewers auto-requested on a PR touching these paths.
+#
+# Single maintainer today, so every line is the same owner. The value is not gatekeeping:
+# it is that the areas below have each cost real debugging time, and a future second
+# maintainer should inherit the map rather than rediscover it.
+
+*                                   @ajones1923
+
+# The honesty surface. A change here changes what the platform claims about itself.
+/lib/hcls_common/capabilities.json  @ajones1923
+/lib/hcls_common/verify_gate.py     @ajones1923
+/lib/hcls_common/api_gate.py        @ajones1923
+/docs/honesty/                      @ajones1923
+
+# Shared platform code. One edit here lands in every engine and agent — which is the point,
+# and also why it needs a second look.
+/lib/hcls_common/                   @ajones1923
+
+# Operations. The supervisor has produced two silent outages (a leaked flock fd, and
+# services started without .env); it is not a file to change casually.
+/health-monitor.sh                  @ajones1923
+/.github/workflows/                 @ajones1923
+
+# Clinical correctness.
+/demo/eval/                         @ajones1923
+/scripts/run_clinical_eval.py       @ajones1923
