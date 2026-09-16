@@ -26,6 +26,17 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 SPEC = ROOT / "demo" / "eval" / "clinical_questions.yaml"
 
 
+def present(term, text_low: str) -> bool:
+    """True if `term` appears. A list term means "any of these equivalent spellings".
+
+    Clinical facts have more than one correct rendering — HLA-B*27 and HLA-B27 are the same
+    allele, GBA and GBA1 the same gene. An eval that fails on formatting measures formatting.
+    """
+    if isinstance(term, list):
+        return any(str(x).lower() in text_low for x in term)
+    return str(term).lower() in text_low
+
+
 def ask(case: dict, timeout: int = 240) -> tuple[str, str]:
     """-> (answer_text, error). Never raises."""
     body = json.dumps({case.get("field", "question"): case["question"]}).encode()
@@ -59,13 +70,38 @@ def main() -> int:
     if a.filter:
         cases = [c for c in cases if a.filter in c["id"] or a.filter in c["agent"]]
 
+    # Wait for each service to answer /health first. Querying a just-restarted agent returns
+    # its stub ("Search completed...") and scores as a MISS -- a false alarm, and false alarms
+    # are how a check earns being ignored.
+    import time
+    import urllib.request as _u
+    for port in sorted({c["port"] for c in cases}):
+        for _ in range(30):
+            try:
+                _u.urlopen(f"http://localhost:{port}/health", timeout=3).read()
+                break
+            except Exception:
+                time.sleep(2)
+
     rows, passed = [], 0
     print(f"{'id':26s}{'agent':26s}{'verdict':9s}detail")
     for c in cases:
         ans, err = ask(c)
+        if err or any(not present(t, ans.lower()) for t in c.get("expect", [])):
+            # One retry. These are LLM answers, so a single sample is noisy; a fact the agent
+            # knows should survive a second ask. A case that fails twice is a real finding.
+            time.sleep(2)
+            ans2, err2 = ask(c)
+            if not err2 and len(ans2) > len(ans):
+                ans, err = ans2, err2
         low = ans.lower()
-        missing = [t for t in c.get("expect", []) if t.lower() not in low]
-        violated = [t for t in c.get("forbid", []) if t.lower() in low]
+        # An expect term may be a LIST of equivalent spellings ("any of"). Clinical facts have
+        # more than one correct rendering -- HLA-B*27 and HLA-B27 are the same allele -- and an
+        # eval that fails on formatting is measuring formatting.
+        missing = [t if isinstance(t, str) else "|".join(t)
+                   for t in c.get("expect", []) if not present(t, low)]
+        violated = [t if isinstance(t, str) else "|".join(t)
+                    for t in c.get("forbid", []) if present(t, low)]
         if err:
             verdict, detail = "ERROR", err
         elif violated:

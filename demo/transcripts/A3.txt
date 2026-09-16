@@ -4,7 +4,7 @@ A3 · Two patients, same dose, different outcome
     demo          A3 · pharmacogenomics
     title         Two patients, same dose, different outcome
     label         LIVE
-    started       2026-09-16T02:53:23+00:00
+    started       2026-09-16T04:44:49+00:00
     POST          http://localhost:8508/v1/pgx/dosing/warfarin
     status        200
     algorithm      IWPC

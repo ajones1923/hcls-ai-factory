@@ -132,17 +132,12 @@ LANDMARK_TRIALS: List[Dict[str, Any]] = [
         "sponsor": "Bristol-Myers Squibb",
         "significance": "Novel immunostimulatory approach in relapsed/refractory myeloma",
     },
-    {
-        "nct_id": "NCT02370498",
-        "title": "ELIANA: Tisagenlecleucel in Pediatric ALL",
-        "phase": "Phase II",
-        "status": "Completed",
-        "therapeutic_area": "hematology",
-        "conditions": ["Acute Lymphoblastic Leukemia"],
-        "interventions": ["Tisagenlecleucel (CAR-T)"],
-        "sponsor": "Novartis",
-        "significance": "First FDA-approved CAR-T therapy",
-    },
+    # REMOVED 2026-09-15: a second record titled "ELIANA" carrying NCT02370498. ELIANA is
+    # NCT02435849 (kept below, Maude et al. NEJM 2018;378:439-448) — both cannot be right, and
+    # the mislabelled one ranked ABOVE the correct one for an ELIANA query, so the agent
+    # intermittently answered with the wrong registration number. Deleted rather than
+    # re-titled: asserting a title for a trial id nobody has verified is the same error again.
+    # Surfaced by scripts/run_clinical_eval.py, which is what that eval is for.
     {
         "nct_id": "NCT04368728",
         "title": "RECOVERY: Dexamethasone in Hospitalized COVID-19",

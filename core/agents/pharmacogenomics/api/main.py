@@ -41,6 +41,17 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel, Field
 
+
+
+def _no_sampling(model: str) -> bool:
+    """True when the model rejects temperature/top_p/top_k (400)."""
+    m = (model or "").lower()
+    return any(m.startswith(p) for p in (
+        "claude-opus-5", "claude-opus-4-8", "claude-opus-4-7", "claude-opus-4-6",
+        "claude-sonnet-5", "claude-sonnet-4-6", "claude-fable-5", "claude-mythos-5",
+    ))
+
+
 logger = logging.getLogger(__name__)
 
 # =====================================================================
@@ -133,7 +144,12 @@ async def lifespan(app: FastAPI):
                 msg = self.client.messages.create(
                     model=settings.LLM_MODEL,
                     max_tokens=max_tokens,
-                    temperature=temperature,
+                    # `temperature` is REMOVED on current models (Sonnet 5, Opus 5,
+                    # the 4.6+ family): sending it returns 400 "`temperature` is
+                    # deprecated for this model." and the service silently falls back
+                    # to its stub answer. Sent only where it is still accepted.
+                    **({} if _no_sampling(settings.LLM_MODEL)
+                       else {"temperature": temperature}),
                     system=system_prompt,
                     messages=[{"role": "user", "content": prompt}],
                 )
@@ -146,7 +162,12 @@ async def lifespan(app: FastAPI):
                 with self.client.messages.stream(
                     model=settings.LLM_MODEL,
                     max_tokens=max_tokens,
-                    temperature=temperature,
+                    # `temperature` is REMOVED on current models (Sonnet 5, Opus 5,
+                    # the 4.6+ family): sending it returns 400 "`temperature` is
+                    # deprecated for this model." and the service silently falls back
+                    # to its stub answer. Sent only where it is still accepted.
+                    **({} if _no_sampling(settings.LLM_MODEL)
+                       else {"temperature": temperature}),
                     system=system_prompt,
                     messages=[{"role": "user", "content": prompt}],
                 ) as stream:
