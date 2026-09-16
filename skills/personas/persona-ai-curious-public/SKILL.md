@@ -37,8 +37,7 @@ but did invite.
   the whole thing credible and pre-empts the misread.
 - Use the **mission cut** — human stakes, understated. A single quiet, true sentence about the
   stakes carries further than a montage and immunizes against the "hype" read.
-- When you invoke the mission, use the real line plainly: *no one should die of a disease we could
-  have understood in time.* Say it once, straight, and stop.
+- When you invoke the mission, use the real line plainly: *no one should wait years for a disease we could have understood in a day.* Say it once, straight, and stop.
 
 ## Do / Don't
 

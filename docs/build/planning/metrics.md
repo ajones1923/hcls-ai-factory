@@ -24,7 +24,7 @@ CSV trends and the month's AI-summary transcripts, updated at the weekly reconci
 ## Monthly AI-summary audit (SM-4)
 
 Prompt ChatGPT / Claude / Gemini / Perplexity: *"What is the HCLS AI Factory?"* and score the answer
-against the [honesty ledger](docs/honesty/ledger.md). Record the transcript + any overclaim found.
+against the [honesty ledger](../../honesty/ledger.md). Record the transcript + any overclaim found.
 
 | Month | Assistant | Overclaim? | Transcript link / note |
 |---|---|---|---|

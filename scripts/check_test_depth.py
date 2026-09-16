@@ -44,6 +44,7 @@ from __future__ import annotations
 import argparse
 import json
 import pathlib
+import re
 import subprocess
 import sys
 
@@ -118,6 +119,27 @@ def measure(results_path: pathlib.Path) -> list[dict]:
     return out
 
 
+
+def check_readme_badge(rows: list[dict]) -> tuple[bool, str]:
+    """The README advertises a test count. Verify the repo still earns it.
+
+    A badge is a claim, and a claim nobody checks is how "8,000 tests" survives the deletion of
+    3,000 of them. The badge uses `N+` semantics deliberately: adding tests never breaks the
+    build, and only dropping below the advertised floor does.
+    """
+    readme = ROOT / "README.md"
+    if not readme.exists():
+        return True, "no README"
+    m = re.search(r"tests-([\d%2C,]+)%2B", readme.read_text())
+    if not m:
+        return True, "no test-count badge"
+    advertised = int(m.group(1).replace("%2C", "").replace(",", ""))
+    actual = sum(r["tests"] for r in rows)
+    ok = actual >= advertised
+    return ok, (f"README advertises {advertised:,}+, this run passed {actual:,}"
+                + ("" if ok else "  << the badge overstates the repo"))
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -171,7 +193,10 @@ def main() -> int:
         print("\n  Known-thin (advisory, recorded in HARDENING_WORKBOOK 3.4): "
               + ", ".join(f"{k} {v}" for k, v in below_floor))
 
-    failed = bool(violations or new_below)
+    badge_ok, badge_detail = check_readme_badge(rows)
+    print(f"\n  {'PASS' if badge_ok else 'FAIL'}  README test-count badge — {badge_detail}")
+
+    failed = bool(violations or new_below) or not badge_ok
     if not failed:
         print("\n  OK — no clinical subject regressed, and no new one starts below the floor.")
     return 1 if (failed and a.enforce) else 0

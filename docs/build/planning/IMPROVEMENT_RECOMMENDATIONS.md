@@ -1,5 +1,12 @@
 # HCLS AI Factory — Comprehensive Improvement Recommendations
 
+> **Superseded — point-in-time record, February 2026.** Moved out of the repository root on
+> 2026-09-16 because it read as current guidance to anyone landing on the project. Most of what it
+> recommends has since been done or overtaken; the live plan is
+> [`HARDENING_PRD.md`](../HARDENING_PRD.md) and [`HARDENING_WORKBOOK.md`](../HARDENING_WORKBOOK.md).
+> Kept for provenance, not as instructions.
+
+
 **Date:** 2026-02-27
 **Scope:** End-to-end audit of all components across the HCLS AI Factory
 **Method:** Deep code review of every source file across all pipelines, orchestrator, shared library, landing page, infrastructure, tests, CI/CD, Docker configs, and documentation

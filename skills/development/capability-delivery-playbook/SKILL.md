@@ -19,8 +19,7 @@ show.
 ## The flow (run in order — each step gates the next)
 
 ### 1. Mission check — does it serve the north star?
-Before writing code, confirm the capability advances the mission: *no one should die of a disease we
-could have understood in time*. Favor integration over silos, access/affordability over complexity,
+Before writing code, confirm the capability advances the mission: *no one should wait years for a disease we could have understood in a day*. Favor integration over silos, access/affordability over complexity,
 honesty over polish. If a technical choice and the mission conflict, the mission wins. If it doesn't
 widen reach, deepen the genome→molecule story, or make a patient's afternoon more real, reconsider.
 → `hcls-core-vision-mission`.

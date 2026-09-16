@@ -7,6 +7,12 @@
 Eight Engines · Eight Intelligence Agents · One Platform — open-source (Apache-2.0),
 running end-to-end on one NVIDIA DGX Spark ($4,699). No cloud lock-in.
 
+[![CI](https://github.com/ajones1923/hcls-ai-factory/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ajones1923/hcls-ai-factory/actions/workflows/ci.yml)
+[![tests](https://img.shields.io/badge/tests-8%2C100%2B%20passing-brightgreen)](https://github.com/ajones1923/hcls-ai-factory/actions/workflows/ci.yml)
+[![license](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
+[![python](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue)](https://github.com/ajones1923/hcls-ai-factory/actions/workflows/ci.yml)
+[![docs](https://img.shields.io/badge/docs-hcls--ai--factory.org-0b7285)](https://hcls-ai-factory.org)
+
 <br>
 
 <img src="docs/brief/architecture.svg" alt="HCLS AI Factory architecture — 8 engines, 8 intelligence agents, and the flagship Tuberous Sclerosis Complex disease program on one platform" width="900">
@@ -76,11 +82,58 @@ shared vector database.
 
 ## Quickstart
 
-```bash
-# bring up the platform
-docker compose -f docker-compose.dgx-spark.yml up -d
+### Run it on a laptop — no GPU, no entitlement, no data download
 
-# drive it from an assistant (MCP): point your client at
+**This is the honest entry point, and it is exactly what CI does on a stock x86 Ubuntu runner on
+every pull request.** No DGX, no NVIDIA account, no 500 GB download:
+
+```bash
+git clone https://github.com/ajones1923/hcls-ai-factory.git && cd hcls-ai-factory
+python -m venv .venv && .venv/bin/pip install --upgrade pip
+.venv/bin/pip install -e lib/hcls_common
+.venv/bin/pip install pytest pytest-asyncio fastapi "uvicorn[standard]" streamlit httpx \
+    duckdb statsmodels biopython peft pymilvus loguru anthropic prometheus-client apscheduler \
+    python-multipart tqdm python-dotenv flask flask-cors nibabel pydicom highdicom tenacity \
+    reportlab python-docx lxml plotly scanpy anndata sentence-transformers
+
+.venv/bin/python scripts/run_all_tests.py       # 17 suites, 8,191 tests
+.venv/bin/python scripts/validate_registry.py   # the capability manifest
+```
+
+That exercises the platform layer, all eight engines, all eight agents and the disease program —
+the logic, the schemas, the governance gates and the workflow composer. What it does **not** do is
+call a GPU, a gated model, or a clinical corpus. Those need the real thing.
+
+### What a full end-to-end run actually needs
+
+You cannot `docker compose up` your way to a working factory, and this section exists so you find
+that out here rather than three hours in:
+
+| Requirement | Detail |
+|---|---|
+| **GPU box** | An NVIDIA DGX Spark, or an equivalent CUDA machine. The repo is developed on aarch64 (GB10, 128 GB unified memory); several NVIDIA artefacts are x86-only and burst to a remote host instead. |
+| **NGC entitlement** | Parabricks (Stage 1 variant calling) and the BioNeMo NIMs are gated behind an NVIDIA account. |
+| **Anthropic API key** | Every agent's clinical synthesis. Without it the agents still retrieve evidence but return no prose — deliberately, rather than a stub. |
+| **~500 GB of data** | Stage 1 (FASTQ + GRCh38) has a working downloader. **Stages 2 and 3 are manual** — no automated downloader ships for ClinVar or AlphaMissense. |
+| **Licences** | Several datasets are **non-commercial**, most notably AlphaMissense (CC BY-NC-SA 4.0). Read [`DATA_LICENSES.md`](DATA_LICENSES.md) before a commercial deployment. |
+
+```bash
+# Stage 1 data (automated, idempotent — skips what it already has)
+cd core/engines/genomic-foundation
+./run.sh check && ./run.sh login && ./run.sh download && ./run.sh reference
+
+# Stages 2 & 3 are manual — section 6 of the DGX Spark Deployment Guide has the exact commands
+# docs/HCLS_AI_FACTORY_DGX_SPARK_DEPLOYMENT_GUIDE.md
+
+# bring the platform up
+cd - && docker compose -f docker-compose.dgx-spark.yml up -d
+./start-factory.sh                              # non-Docker services, health-checked
+```
+
+### Drive it
+
+```bash
+# from an assistant (MCP): point your client at
 python -m hcls_common.mcp_server        # tools: list/describe/health/invoke/plan/compose_workflow
 
 # or compose a pipeline in code
