@@ -76,6 +76,37 @@ acquire_lock() {
     trap 'kill "${WATCHDOG_PID}" 2>/dev/null' EXIT
 }
 
+# ── GPU headroom (PRD R5) ───────────────────────────────────────────────────
+# GB10 is unified memory: the GPU allocates from the same pool as the host, and the page
+# cache is NOT reclaimable for a CUDA allocation. So a box that has been up a while shows
+# plenty of "available" memory to the host while ESMFold or Parabricks cannot allocate.
+# Dropping caches needs root, so this is a no-op without it -- it is wired here so that the
+# drop happens as part of bring-up for whoever does have root, rather than being a manual
+# step someone has to remember (which is exactly how it was missed).
+#
+#   GPU_DROP_CACHES=0   to disable
+#   GPU_FREE_MIN_GIB    threshold below which a drop is attempted (default 16)
+GPU_DROP_CACHES=${GPU_DROP_CACHES:-1}
+GPU_FREE_MIN_GIB=${GPU_FREE_MIN_GIB:-16}
+
+maybe_drop_caches() {
+    [ "$GPU_DROP_CACHES" = "1" ] || return 0
+    local free
+    free=$(gpu_free_gib)
+    [ -n "$free" ] || return 0
+    awk "BEGIN{exit !($free < $GPU_FREE_MIN_GIB)}" || return 0
+    if [ "$(id -u)" = "0" ]; then
+        sync && echo 3 > /proc/sys/vm/drop_caches 2>/dev/null \
+            && log "INFO" "Dropped page cache: ${free} GiB free was below ${GPU_FREE_MIN_GIB} GiB"
+    elif sudo -n true 2>/dev/null; then
+        sync && sudo -n sysctl -w vm.drop_caches=3 >/dev/null 2>&1 \
+            && log "INFO" "Dropped page cache via sudo: ${free} GiB free"
+    else
+        log "WARN" "GPU has only ${free} GiB allocatable and caches cannot be dropped \
+(needs root). Large models will fail to allocate. Run: sudo sysctl -w vm.drop_caches=3"
+    fi
+}
+
 # Cap the cron append-log, which nothing else rotates.
 cap_cron_log() {
     local f="${LOG_DIR}/cron-health.log"
@@ -700,7 +731,7 @@ case "${1:-status}" in
         cmd_status "$2"
         ;;
     fix)
-        acquire_lock; cap_cron_log
+        acquire_lock; cap_cron_log; maybe_drop_caches
         cmd_fix
         ;;
     watch)
