@@ -45,6 +45,7 @@ if not os.environ.get("ANTHROPIC_API_KEY"):
                     break
 
 from src.export import export_markdown, export_json, export_pdf, generate_filename
+from hcls_common.llm_text import first_text
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -116,7 +117,7 @@ def init_engine():
                         system=system_prompt,
                         messages=[{"role": "user", "content": prompt}],
                     )
-                    return msg.content[0].text
+                    return first_text(msg)
 
                 def generate_stream(self, prompt, system_prompt="", max_tokens=2048, temperature=0.7):
                     with self.client.messages.stream(

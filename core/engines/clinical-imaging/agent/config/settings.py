@@ -82,6 +82,15 @@ class ImagingSettings(BaseSettings):
 
     NIM_MODE: str = "local"  # "local", "cloud", or "mock"
     NIM_ALLOW_MOCK_FALLBACK: bool = True
+
+    # Mock CLINICAL PROSE is a separate decision from mock imaging NIMs, and the answer is no.
+    # VISTA-3D / MAISI / VILA-M3 are not running on this box and their mocks keep the demo
+    # surfaces alive, clearly labelled. The LLM is different: its output is the clinical answer
+    # itself. On 2026-09-16 a Claude call failed with "'ThinkingBlock' object has no attribute
+    # 'text'", the fallback chain reached the mock, and /api/ask returned a canned "normal study"
+    # radiology report -- 200 OK, fluent, and unrelated to the question asked. A `live`
+    # capability is never mock-served; this defaults OFF so that failure is loud.
+    NIM_ALLOW_MOCK_LLM_TEXT: bool = False
     NGC_API_KEY: Optional[str] = None
 
     # ── NVIDIA Cloud NIM Endpoints ──

@@ -26,6 +26,7 @@ from datetime import datetime
 from enum import Enum, unique
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Tuple
+from hcls_common.llm_text import first_text
 
 logger = logging.getLogger(__name__)
 
@@ -1859,7 +1860,7 @@ Format your response in markdown with clear sections.
                 system=self.system_prompt,
                 messages=[{"role": "user", "content": synthesis_prompt}],
             )
-            return response.content[0].text
+            return first_text(response)
         except Exception as exc:
             logger.error("Synthesis call failed: %s", exc)
             return (

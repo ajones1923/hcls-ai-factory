@@ -439,3 +439,40 @@ class TestNIMServiceManager:
         manager = NIMServiceManager(mock_settings)
         with pytest.raises(KeyError, match="Unknown NIM service"):
             manager.get_client("nonexistent")
+
+
+# ── mock clinical prose must be unmistakable (2026-09-16) ────────────────────
+class TestSimulatedOutputIsLabelled:
+    """A mock that reads like a real model output is the fault, not the mock itself.
+
+    VISTA-3D / MAISI / VILA-M3 / Nemotron Nano are not running on this deployment and their
+    mocks keep the demo surfaces alive — legitimately, as long as nobody can mistake the output
+    for a real one. VILA-M3 was already honest (`is_mock=True`, `model="vila-m3-mock"`, both
+    surfaced by the API). Nemotron Nano returned a bare string: a complete, fluent CT protocol
+    with no marker at all.
+    """
+
+    def test_label_is_prepended_once(self):
+        from src.nim.base import SIMULATED_PREFIX, label_simulated
+        once = label_simulated("Standard CT chest protocol")
+        assert once.startswith(SIMULATED_PREFIX)
+        assert label_simulated(once) == once, "labelling twice must not stack banners"
+
+    def test_non_strings_pass_through(self):
+        from src.nim.base import label_simulated
+        assert label_simulated(None) is None
+
+    def test_nemotron_mock_output_is_labelled(self):
+        from src.nim.base import SIMULATED_PREFIX
+        from src.nim.nemotron_nano_client import NemotronNanoClient
+
+        c = NemotronNanoClient(base_url="http://127.0.0.1:1", mock_enabled=True)
+        out = c.generate("What is the standard CT chest protocol?")
+        assert isinstance(out, str) and out.startswith(SIMULATED_PREFIX), (
+            "unlabelled mock clinical prose is indistinguishable from a real model output")
+
+    def test_vilam3_mock_already_carries_its_own_flag(self):
+        """Left alone deliberately — it flags itself structurally, which the API surfaces."""
+        c = VILAM3Client(base_url="http://127.0.0.1:1", mock_enabled=True)
+        r = c._mock_response(mode="vqa", image_path="x.png", question="findings?")
+        assert r.is_mock is True and "mock" in r.model

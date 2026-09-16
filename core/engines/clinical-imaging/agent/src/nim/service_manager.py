@@ -67,9 +67,10 @@ class NIMServiceManager:
             cloud_url=cloud_url,
             cloud_vlm_model=cloud_vlm_model,
         )
+        # Clinical prose is never mock-served -- see NIM_ALLOW_MOCK_LLM_TEXT in settings.
         self._llm = LlamaLLMClient(
             base_url=settings.NIM_LLM_URL,
-            mock_enabled=mock_enabled,
+            mock_enabled=getattr(settings, "NIM_ALLOW_MOCK_LLM_TEXT", False),
             anthropic_api_key=getattr(settings, "ANTHROPIC_API_KEY", None),
             nvidia_api_key=resolved_nvidia_key,
             cloud_url=cloud_url,

@@ -45,6 +45,7 @@ from .agent import (
 )
 from hcls_common.conversation_store import ConversationStore
 from hcls_common.vector_search import search_collection
+from hcls_common.llm_text import first_text
 
 logger = logging.getLogger(__name__)
 
@@ -1468,7 +1469,7 @@ def create_rag_engine(
                         system=system_prompt,
                         messages=[{"role": "user", "content": prompt}],
                     )
-                    return response.content[0].text
+                    return first_text(response)
 
                 def generate_stream(
                     self,

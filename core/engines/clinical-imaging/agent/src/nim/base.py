@@ -9,6 +9,27 @@ from loguru import logger
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 
+
+SIMULATED_PREFIX = "[SIMULATED — NIM not running on this deployment; not a real model output]"
+
+
+def label_simulated(text: str) -> str:
+    """Mark mock clinical prose as simulated, unmistakably and in-band.
+
+    VISTA-3D, MAISI, VILA-M3 and Nemotron Nano are not running on this box, and their mocks keep
+    the demo surfaces alive. That is legitimate — as long as nobody can mistake the output for a
+    real model's. Until 2026-09-16 these mocks returned fluent, unlabelled clinical prose:
+    plausible radiology findings and a complete CT protocol, indistinguishable from the real
+    thing at a glance.
+
+    The LLM text client is the exception and does NOT get a label — its output IS the clinical
+    answer, so it is disabled outright (see NIM_ALLOW_MOCK_LLM_TEXT). A label is right for a
+    stand-in surface; for the answer itself, the only honest option is not to serve one.
+    """
+    if not isinstance(text, str) or text.startswith(SIMULATED_PREFIX):
+        return text
+    return f"{SIMULATED_PREFIX}\n\n{text}"
+
 class BaseNIMClient(ABC):
     """Abstract base for all NIM service clients."""
 

@@ -10,6 +10,7 @@ from typing import List, Dict, Optional, Generator
 from abc import ABC, abstractmethod
 import os
 from loguru import logger
+from hcls_common.llm_text import first_text
 
 
 def _record_usage(model, usage) -> None:
@@ -95,7 +96,7 @@ class AnthropicClient(BaseLLMClient):
             ]
         )
         _record_usage(self.model, getattr(message, "usage", None))   # COST-2 ledger
-        return message.content[0].text
+        return first_text(message)
 
     def generate_stream(
         self,

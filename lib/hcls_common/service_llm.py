@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import logging
 from typing import Any, Iterator
+from hcls_common.llm_text import first_text
 
 logger = logging.getLogger(__name__)
 
@@ -68,7 +69,7 @@ class ServiceLLM:
                  max_tokens: int = 2048, temperature: float | None = 0.7) -> str:
         msg = self.client.messages.create(
             **self._kwargs(prompt, system_prompt, max_tokens, temperature))
-        return msg.content[0].text
+        return first_text(msg)
 
     def generate_stream(self, prompt: str, system_prompt: str = "",
                         max_tokens: int = 2048,

@@ -17,7 +17,7 @@ from typing import Any, Dict, List, Optional
 
 from loguru import logger
 
-from .base import BaseNIMClient
+from .base import BaseNIMClient, label_simulated
 
 
 # ── Query classification patterns ──────────────────────────────────
@@ -166,7 +166,7 @@ class NemotronNanoClient(BaseNIMClient):
         # Fall back to mock
         if self.mock_enabled:
             logger.info("Using mock response for Nemotron Nano (service unavailable)")
-            return self._mock_response(prompt=prompt)
+            return label_simulated(self._mock_response(prompt=prompt))
 
         raise ConnectionError(
             "Nemotron Nano unavailable and mock disabled"
@@ -213,7 +213,7 @@ class NemotronNanoClient(BaseNIMClient):
                 if msg.get("role") == "user":
                     last_user_msg = msg.get("content", "")
                     break
-            return self._mock_response(prompt=last_user_msg)
+            return label_simulated(self._mock_response(prompt=last_user_msg))
 
         raise ConnectionError(
             "Nemotron Nano unavailable and mock disabled"

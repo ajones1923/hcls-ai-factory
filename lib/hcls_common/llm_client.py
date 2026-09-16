@@ -28,6 +28,7 @@ from collections import OrderedDict
 from datetime import date
 from functools import lru_cache
 from typing import Any, Dict, Generator, List, Optional, Tuple
+from hcls_common.llm_text import first_text
 
 logger = logging.getLogger(__name__)
 
@@ -457,7 +458,7 @@ class AnthropicClient(_RetryMixin, BaseLLMClient):
         if _HAS_PROMETHEUS:
             _input_tokens.labels(provider=self.provider).inc(input_tok)
             _output_tokens.labels(provider=self.provider).inc(output_tok)
-        return message.content[0].text
+        return first_text(message)
 
     def generate(
         self,
