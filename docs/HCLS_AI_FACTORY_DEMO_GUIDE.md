@@ -313,7 +313,14 @@ Claude will identify VCP as the primary target with:
 
 ## Intelligence Agent Demo Scenarios
 
-### Clinical Trial Intelligence Agent (Port 8538/8128)
+> **Ports here were stale until 2026-09-16** and are corrected against
+> [`docs/build/PORT_MAP.md`](build/PORT_MAP.md), which is the authority: the capability registry
+> advertises the **UI** port and the **API is always UI + 1**. Four of the four agent headings in
+> this section predated that convention — neurology was listed on 8528/8529, which is
+> precision-biomarker's pair, and rare-disease on 8134, which the port sweep retired. If a port
+> here ever disagrees with `PORT_MAP.md` or the registry, they are right and this guide is wrong.
+
+### Clinical Trial Intelligence Agent (UI 8538 · API 8539)
 
 **Query:** "Find open clinical trials for VCP mutations in frontotemporal dementia."
 
@@ -322,7 +329,7 @@ Claude will identify VCP as the primary target with:
 - Searches ClinicalTrials.gov via embedded trial registrations
 - Ranks trials by eligibility match strength and geographic proximity
 
-### Rare Disease Diagnostic Agent (Port 8134/8544)
+### Rare Disease Diagnostic Agent (UI 8544 · API 8545)
 
 **Query:** "Differential diagnosis for a patient with progressive myopathy, Paget disease of bone, and early-onset dementia."
 
@@ -331,7 +338,7 @@ Claude will identify VCP as the primary target with:
 - Cross-references rare disease databases (OMIM, Orphanet)
 - Generates diagnostic workup recommendations
 
-### Neurology Intelligence Agent (Port 8528/8529)
+### Neurology Intelligence Agent (UI 8535 · API 8536)
 
 **Query:** "What are the neurodegenerative implications of VCP R155H mutation?"
 
@@ -340,7 +347,7 @@ Claude will identify VCP as the primary target with:
 - Links genetic variants to neurodegenerative phenotypes
 - Integrates neuropathology evidence and treatment guidelines
 
-### Single-Cell Intelligence Agent (Port 8540/8130)
+### Single-Cell Intelligence Agent (UI 8540 · API 8541)
 
 **Query:** "What cell types express VCP at highest levels in the brain?"
 
