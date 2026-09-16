@@ -202,60 +202,109 @@ Verify by pushing a deliberately failing branch and confirming the merge button 
 
 ---
 
-## Phase 2 — De-duplicate  (~2–3 days)
+## Phase 2 — De-duplicate  ✅ done 2026-09-16
 
-**Do not start this until the clinical eval has been expanded.** The eval is the only thing that
-will tell you a refactor changed an answer; six cases is thin cover for touching 13,821 lines.
+**Gate respected:** the clinical eval was expanded from 6 to 23 cases *before* any refactor, then
+to 25. It is the only thing that can tell you a refactor changed an answer.
 
-### 2.1 Extract the RAG path
+### 2.1 Extract the RAG path — done, and **smaller than this PRD claimed**
 
-Twelve `rag_engine.py` files, 13,821 LOC, 15–67% similar. The parts that are genuinely shared —
-and that broke identically in five services — are:
+The PRD asserted "twelve `rag_engine.py` files, 13,821 LOC, 15–67% similar" and proposed
+extracting the shared RAG path. Measured rather than assumed, that premise does not hold. Hashing
+every function body with names, strings and comments normalised away:
 
-- building the Milvus client (must be a `MilvusClient`, constructed **inside** the lifespan)
-- the search call (`search_params=`, not the ORM's `param=`)
-- flattening results (dicts from `MilvusClient`, Hit objects from the ORM)
-- normalising a hit for the routes (`_as_row`)
+| function | in files | distinct bodies |
+|---|---|---|
+| `query` | 12 | **12** |
+| `retrieve` | 7 | 7 |
+| `_rerank_results` | 5 | 5 |
+| `_build_context` | 5 | 5 |
+| `_search_collection` | 5 | **1** |
+| `_save_conversation` / `_load_conversation` / `_cleanup_expired_conversations` | 5 | **1** |
 
-Move those into `hcls_common` — follow `ingest_persist.py`, which documents each trap beside the
-code that handles it. Leave the domain-specific weighting and prompts in each agent.
+The engines have genuinely **diverged**, they are not copies: twelve distinct `query` bodies in
+twelve files. Forcing them behind one abstraction would invent coupling that the code does not
+have, and would put the domain-specific weighting and prompts — the part that is supposed to
+differ per agent — behind a shared seam.
 
-```bash
-grep -c 'search_params' core/*/*/src/rag_engine.py core/*/*/*/src/rag_engine.py
-$PY scripts/run_clinical_eval.py | tail -2      # after each service is migrated
+What *was* duplicated is real and now shared:
+
+- `hcls_common.vector_search.search_collection` — 88 lines × 5, identical in **every line of
+  code**, differing only in one docstring example and one comment. It is the hottest path in the
+  platform: every clinical answer passes through it once per collection searched.
+- `hcls_common.conversation_store.ConversationStore` — the session-memory trio, byte-identical in
+  five subjects and **tested in none of them**.
+
+~520 lines removed; 24 tests added where there were none.
+
+**The extraction also exposed a latent fault in the platform library.** Adding a `hcls_common`
+import to an engine that had none made a cardiology test fail with:
+
+```
+ValueError: Duplicated timeseries in CollectorRegistry: {'hcls_milvus_search_seconds', …}
 ```
 
-### 2.2 Extract the LLM client
+Every Prometheus collector in `hcls_common` was created at MODULE level inside a
+`try: … except ImportError:` block, so a duplicate registration — a `ValueError`, not an
+`ImportError` — killed the import of the module and every caller with it. Reaching it needs
+nothing exotic: `mock.patch("src.rag_engine.X")` resolves its target by importing
+`src.rag_engine`, and if the test already imported a bare `rag_engine`, Python holds two module
+objects for the same file and runs its imports twice.
 
-Eight per-service `_LLMClient` classes plus `hcls_common.llm_client`. The `temperature` removal had
-to be applied in **nine** places; the next model change will too.
+Seven library modules carried that fragility (19 registrations). `hcls_common.metrics.metric()`
+now reuses a collector already registered under the same name, and re-raises any `ValueError`
+that is *not* a re-registration so genuine misuse still fails. 8 tests.
+
+A library module must not explode because it was imported twice — and this one would have, for
+any subject that later imported `hcls_common` from a module reachable under two names.
+
+**The honest conclusion is the finding.** "13,821 duplicated lines" was an estimate from file
+sizes and surface similarity. The duplication that survives measurement is ~4% of that. Recording
+the refutation is worth more than delivering the number the plan first promised.
+
+### 2.2 Extract the LLM client — done (PR #140)
+
+Eight per-service `_LLMClient` classes, byte-for-byte alike apart from which `settings.LLM_MODEL`
+they read. That is why the `temperature` removal had to be applied in nine places and was missed
+in eight of them — every agent's synthesis 400'd, each route caught it and fell back to a stub, so
+the fleet reported healthy while answering "Search completed. See evidence passages below."
+
+Now `hcls_common.service_llm`: −361 lines, 22 tests, one edit for the next model change. The only
+genuine per-service difference — the default system prompt, which five of the eight baked in —
+stays a parameter.
 
 ```bash
-git grep -l '_no_sampling' -- '*/api/main.py' | wc -l    # 8 today
+git grep -l 'class _LLMClient' -- '*/api/main.py' | wc -l    # 0
 ```
 
-Target: agents import one client; a model or parameter change is one edit.
+### 2.3 Stop shadowing the stdlib — done (PR #141)
 
-### 2.3 Stop shadowing the stdlib
+Eleven subjects shipped `src/collections.py`; **nine files import both it and the real
+`collections`**, so putting a subject's `src/` on `PYTHONPATH` killed the interpreter before
+collection. The harness worked around it by withholding `src/` from nine of seventeen subjects —
+meaning those nine suites ran against less code than CI claimed.
+
+Renamed to `src/vector_collections.py`; imports, `mock.patch` string targets (these resolve by
+string, so a missed one fails *silently*), and 108 prose references updated; the withholding guard
+removed.
+
+| | subjects | passed | failed | errors | `src/` withheld |
+|---|---|---|---|---|---|
+| before | 17 | 8397 | 0 | 0 | **9** |
+| after | 17 | 8397 | 0 | 0 | **0** |
 
 ```bash
-git ls-files '*/src/vector_collections.py' | wc -l     # 11
-for f in $(git ls-files '*/src/vector_collections.py'); do
-  git mv "$f" "$(dirname $f)/vector_collections.py"
-done
-grep -rln 'from src.vector_collections\|from .collections\|import collections' core/*/*/src core/*/*/api | head
+( cd core/agents/cart && PYTHONPATH="$PWD:$PWD/src" ../../../$PY -m pytest -q )   # 415 passed
 ```
 
-Update the imports, then remove the harness workaround:
+### 🚦 Phase 2 gate — ✅ met
 
-```bash
-grep -n 'shadows_stdlib\|src/ withheld' scripts/run_all_tests.py
-( cd core/agents/cart && ../../../$PY -m pytest -q )   # bare pytest should now work
-```
+One LLM client · one search path · one conversation store · bare `pytest` works in every subject ·
+eval unchanged (25/25, no answer altered by any of the three refactors).
 
-### 🚦 Phase 2 gate
-
-One RAG path · one LLM client · bare `pytest` works in each subject · eval unchanged.
+The gate originally read "one RAG path". It is recorded as met on the measured finding above
+rather than the assumed one: the twelve `query` implementations are not duplicates and were
+deliberately left alone.
 
 ---
 

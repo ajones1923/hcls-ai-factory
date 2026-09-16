@@ -38,23 +38,25 @@ logger = logging.getLogger(__name__)
 try:
     from prometheus_client import Counter, Histogram
 
-    _api_calls = Counter(
+    from hcls_common.metrics import metric
+
+    _api_calls = metric(Counter,
         "hcls_llm_api_calls_total",
         "LLM API calls",
         ["provider", "status"],  # status: success | error | rate_limited
     )
-    _latency = Histogram(
+    _latency = metric(Histogram,
         "hcls_llm_latency_seconds",
         "LLM generation latency",
         ["provider"],
         buckets=(0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0, 30.0, 60.0),
     )
-    _input_tokens = Counter(
+    _input_tokens = metric(Counter,
         "hcls_llm_input_tokens_total",
         "Total input tokens",
         ["provider"],
     )
-    _output_tokens = Counter(
+    _output_tokens = metric(Counter,
         "hcls_llm_output_tokens_total",
         "Total output tokens",
         ["provider"],

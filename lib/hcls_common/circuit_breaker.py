@@ -47,22 +47,24 @@ logger = logging.getLogger(__name__)
 try:
     from prometheus_client import Counter, Gauge
 
-    _cb_state_gauge = Gauge(
+    from hcls_common.metrics import metric
+
+    _cb_state_gauge = metric(Gauge,
         "hcls_circuit_breaker_state",
         "Current circuit breaker state (0=closed, 1=open, 2=half_open)",
         ["name"],
     )
-    _cb_rejected_total = Counter(
+    _cb_rejected_total = metric(Counter,
         "hcls_circuit_breaker_rejected_total",
         "Total requests rejected by open circuit breaker",
         ["name"],
     )
-    _cb_failure_total = Counter(
+    _cb_failure_total = metric(Counter,
         "hcls_circuit_breaker_failure_total",
         "Total failures recorded by circuit breaker",
         ["name"],
     )
-    _cb_success_total = Counter(
+    _cb_success_total = metric(Counter,
         "hcls_circuit_breaker_success_total",
         "Total successes recorded by circuit breaker",
         ["name"],
