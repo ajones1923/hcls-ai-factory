@@ -2207,32 +2207,42 @@ For multi-institutional deployments, NVIDIA FLARE enables federated learning acr
 
 The Precision Intelligence Engine includes 8 intelligence agents. Each agent provides a Streamlit frontend and a FastAPI backend:
 
-| # | Agent | Streamlit Port | API Port | Domain |
+> **Every port pair in this table was pre-convention until 2026-09-16.** The convention, set by
+> the 2026-08-15 port sweep: the capability registry advertises the **UI** port and the **API is
+> always UI + 1**. The old listing had eleven of eleven rows wrong — neurology on 8528/8529 (which
+> is precision-biomarker's pair), rare-disease with its two ports transposed, and the retired
+> 81xx API block throughout. Authority is [`docs/build/PORT_MAP.md`](build/PORT_MAP.md) and the
+> registry; if they disagree with this table, this table is wrong.
+
+| # | Service | UI Port | API Port | Domain |
 |---|---|---|---|---|
-| 1 | Precision Oncology | 8503 | 8103 | Molecular tumor board decision support |
-| 2 | Precision Biomarker | 8502 | 8102 | Genotype-aware biomarker interpretation |
-| 3 | CAR-T Intelligence | 8504 | 8104 | Cellular immunotherapy intelligence |
-| 4 | Imaging Intelligence | 8524 | 8105 | Medical imaging AI (CT, MRI, X-ray) |
-| 5 | Precision Autoimmune | 8506 | 8106 | Autoimmune and immune-mediated conditions |
-| 6 | Pharmacogenomics | 8507 | 8107 | Drug-gene interaction and dosing |
-| 7 | Cardiology Intelligence | 8527 | 8126 | Cardiovascular clinical decision support |
-| 8 | Clinical Trial Intelligence | 8538 | 8128 | Trial matching, eligibility, enrollment optimization |
-| 9 | Rare Disease Diagnostic | 8134 | 8544 | Rare disease differential diagnosis and gene panel analysis |
-| 10 | Neurology Intelligence | 8528 | 8529 | Neurological condition assessment and treatment planning |
-| 11 | Single-Cell Intelligence | 8540 | 8130 | Single-cell transcriptomics and cell-type analysis |
+| 1 | CAR-T Intelligence *(agent)* | 8521 | 8522 | Cellular immunotherapy intelligence |
+| 2 | Imaging Intelligence *(engine)* | 8523 | 8524 | Medical imaging AI (CT, MRI, X-ray) |
+| 3 | Precision Oncology *(engine)* | 8526 | 8527 | Molecular tumor board decision support |
+| 4 | Precision Biomarker *(agent)* | 8528 | 8529 | Genotype-aware biomarker interpretation |
+| 5 | Precision Autoimmune *(agent)* | 8531 | 8532 | Autoimmune and immune-mediated conditions |
+| 6 | Pharmacogenomics *(agent)* | 8507 | 8508 | Drug-gene interaction and dosing |
+| 7 | Cardiology Intelligence *(engine)* | 8126 | 8127 | Cardiovascular clinical decision support |
+| 8 | Clinical Trial Intelligence *(agent)* | 8538 | 8539 | Trial matching, eligibility, enrollment optimization |
+| 9 | Rare Disease Diagnostic *(agent)* | 8544 | 8545 | Rare disease differential diagnosis and gene panel analysis |
+| 10 | Neurology Intelligence *(agent)* | 8535 | 8536 | Neurological condition assessment and treatment planning |
+| 11 | Single-Cell Intelligence *(agent)* | 8540 | 8541 | Single-cell transcriptomics and cell-type analysis |
+
+Eight of these are the intelligence agents; imaging, oncology and cardiology are engines that
+front an agent. "Intelligence" names an agent, never an engine.
 
 ```bash
-# Deploy all 8 intelligence agents
+# Deploy the 8 intelligence agents and the 3 agent-fronted engines
 docker compose up -d \
   oncology-agent biomarker-agent cart-agent imaging-agent \
   autoimmune-agent pharmacogenomics-agent cardiology-agent \
   clinical-trial-agent rare-disease-agent neurology-agent single-cell-agent
 
-# Verify new agents
-curl -s http://localhost:8538/health  # Clinical Trial Intelligence
-curl -s http://localhost:8134/health  # Rare Disease Diagnostic
-curl -s http://localhost:8528/health  # Neurology Intelligence
-curl -s http://localhost:8540/health  # Single-Cell Intelligence
+# Verify — health lives on the API port (UI + 1)
+curl -s http://localhost:8539/health  # Clinical Trial Intelligence
+curl -s http://localhost:8545/health  # Rare Disease Diagnostic
+curl -s http://localhost:8536/health  # Neurology Intelligence
+curl -s http://localhost:8541/health  # Single-Cell Intelligence
 ```
 
 ---
