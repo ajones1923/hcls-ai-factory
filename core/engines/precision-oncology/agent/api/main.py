@@ -32,6 +32,7 @@ from src.cross_modal import OncoCrossModalTrigger
 from api.routes import meta_agent, cases, trials, reports, events
 
 import src.knowledge as knowledge_module
+from hcls_common.llm_text import first_text
 
 logger = logging.getLogger(__name__)
 
@@ -111,7 +112,7 @@ async def lifespan(app: FastAPI):
                     model=self._model, max_tokens=4096,
                     system=system, messages=user_msgs,
                 )
-                return resp.content[0].text
+                return first_text(resp)
 
             def chat_stream(self, messages):
                 system = ""

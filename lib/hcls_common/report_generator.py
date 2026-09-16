@@ -29,6 +29,7 @@ from datetime import datetime
 from io import BytesIO
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
+from hcls_common.llm_text import first_text
 
 logger = logging.getLogger(__name__)
 
@@ -797,7 +798,7 @@ Format the response in clear markdown sections.
                 messages=[{"role": "user", "content": synthesis_prompt}],
             )
 
-            recommendation = response.content[0].text
+            recommendation = first_text(response)
             confidence = 0.7  # Moderate confidence for AI-generated recommendation
             follow_ups = [
                 "What are the ADMET properties of the top candidates?",

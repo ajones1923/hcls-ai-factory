@@ -26,6 +26,7 @@ from datetime import datetime
 from pathlib import Path
 
 import streamlit as st
+from hcls_common.llm_text import first_text
 
 # Page config MUST be the first Streamlit command
 st.set_page_config(
@@ -134,7 +135,7 @@ def init_engine():
                         system=system_prompt,
                         messages=[{"role": "user", "content": prompt}],
                     )
-                    return msg.content[0].text
+                    return first_text(msg)
 
                 def generate_stream(
                     self,
