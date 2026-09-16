@@ -59,7 +59,15 @@ def main() -> int:
     total_empty = []
     for name in utility.list_collections(using="corpuscheck"):
         try:
-            n = Collection(name, using="corpuscheck").num_entities
+            col = Collection(name, using="corpuscheck")
+            # `num_entities` counts soft-deleted rows until compaction, so a collection that has
+            # been re-ingested reports MORE than it holds: tsc_literature read 18 while holding
+            # 6 live rows. count(*) is the number an operator actually wants.
+            try:
+                col.load()
+                n = int(col.query(expr="", output_fields=["count(*)"])[0]["count(*)"])
+            except Exception:
+                n = col.num_entities
         except Exception:
             n = 0
         subject = PREFIXES.get(name.split("_")[0], name.split("_")[0])

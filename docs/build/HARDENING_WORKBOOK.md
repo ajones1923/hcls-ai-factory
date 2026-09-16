@@ -661,6 +661,43 @@ degraded to a warning.
 
 ---
 
+### 3.10 The flagship's corpus — ✅ measured and repaired 2026-09-16
+
+`scripts/check_corpus.py` reported **zero collections** for the Tuberous Sclerosis program, the
+flagship disease vertical. Four separate things were true at once:
+
+**1. It runs on the in-memory store.** `TSC_USE_MILVUS: "1"` is set in the program's
+`docker-compose.yml`, but the supervisor launches it with uvicorn, so that never applies. Its
+corpus is rebuilt from `SEED_CORPUS` at startup — never stale, but invisible to every corpus
+check, dashboard and operator, and unable to grow beyond what is hard-coded. Documented in
+`.env.example`; the runtime default is deliberately left alone, because with a static corpus
+in-memory is defensible and switching the flagship's store is not a change to make silently.
+
+**2. That corpus is six chunks.** Six. For the flagship.
+
+**3. The Milvus path never flushed.** `client.insert()` with no flush means `num_entities` keeps
+reporting **0** while the rows sit in a growing segment. The loader prints *"Ingested 6 chunks"*
+and every observer sees an empty collection — success reported, nothing visible. Exactly the
+failure mode this platform keeps finding, in the ingest path this time. Fixed.
+
+**4. `upsert()` was an append.** The collection was created with `auto_id=True`, which
+`lib/hcls_common/ingest_persist.py` explicitly warns against — *"PK differs per collection, never
+auto_id; a content-derived id makes re-ingest idempotent."* Running `scripts/load_rag.py` three
+times produced **18 rows of a 6-chunk corpus**, and duplicate passages skew retrieval while
+looking like a healthy corpus. Now a deterministic `blake2b` content key + `client.upsert()`.
+Verified: three consecutive loader runs → **6 live rows, 6 distinct keys**.
+
+A collection created before this change is detected and left alone rather than dropped — by then
+it may hold real ingested literature — and the store logs how to migrate it.
+
+**And the measurement tool was wrong too.** `check_corpus.py` used `num_entities`, which counts
+soft-deleted rows until compaction: after the upsert fix, `tsc_literature` read **18** while
+holding **6**. It now uses `count(*)`. The "44 empty" figure was unaffected (soft deletes only
+inflate, never deflate) and was re-verified by flushing every reportedly-empty collection: all 44
+are genuinely empty.
+
+---
+
 ## Traps already paid for on this machine
 
 1. **A count is not a cause.** `run_all_tests.py` reported "errors 36" with no traceback and cost a
