@@ -24,6 +24,22 @@ from datetime import datetime, timezone
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 TRANSCRIPTS = ROOT / "demo" / "transcripts"
 
+
+def _headers() -> dict:
+    """Request headers, carrying the API key when the gate is on.
+
+    The gate is fail-closed once HCLS_API_KEY is set (lib/hcls_common/api_auth.py), so a runner
+    that sends no credential turns 17/17 into 17 x 401 the moment auth is enabled. Health and
+    docs stay open by design; the clinical routes do not.
+    """
+    import os
+    h = {"Content-Type": "application/json"}
+    key = os.getenv("HCLS_API_KEY")
+    if key:
+        h["X-API-Key"] = key
+    return h
+
+
 LIVE, REPRESENTATIVE, BURST = "LIVE", "REPRESENTATIVE", "BURST"
 
 
@@ -82,7 +98,7 @@ def http_demo(demo):
             log(f"input         {first}={str(body[first])[:88]}")
         req = urllib.request.Request(
             url, data=json.dumps(body).encode(),
-            headers={"Content-Type": "application/json"}, method="POST")
+            headers=_headers(), method="POST")
         try:
             with urllib.request.urlopen(req, timeout=120) as r:
                 status, raw = r.status, r.read().decode()

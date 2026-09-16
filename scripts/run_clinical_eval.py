@@ -41,8 +41,11 @@ def ask(case: dict, timeout: int = 240) -> tuple[str, str]:
     """-> (answer_text, error). Never raises."""
     body = json.dumps({case.get("field", "question"): case["question"]}).encode()
     url = f"http://localhost:{case['port']}{case['path']}"
-    req = urllib.request.Request(url, data=body,
-                                 headers={"Content-Type": "application/json"}, method="POST")
+    import os
+    headers = {"Content-Type": "application/json"}
+    if os.getenv("HCLS_API_KEY"):           # gate is fail-closed once the key is set
+        headers["X-API-Key"] = os.environ["HCLS_API_KEY"]
+    req = urllib.request.Request(url, data=body, headers=headers, method="POST")
     try:
         with urllib.request.urlopen(req, timeout=timeout) as r:
             d = json.loads(r.read().decode())
