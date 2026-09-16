@@ -45,15 +45,20 @@ tags:
 Before running the demo, all pipeline data must be downloaded. This is a one-time step (~500 GB).
 
 ```bash
-# Download all required data (run once)
-./setup-data.sh --all
+# Stage 1 — genomics FASTQ + GRCh38 reference (~300 GB). Automated, idempotent:
+cd core/engines/genomic-foundation
+./run.sh check          # prerequisites
+./run.sh login          # NGC login (needed for Parabricks)
+./run.sh download       # FASTQ, with MD5 verification and retry
+./run.sh reference      # GRCh38 reference genome
 
-# Verify data is ready
-./setup-data.sh --status
-# All 7 components should show [OK]
+# Stage 2 (ClinVar + AlphaMissense) and Stage 3 (PDB cache) are MANUAL.
 ```
 
-> If data was previously downloaded, `setup-data.sh` will detect existing files and skip them. See [Stage 0: Data Acquisition](DATA_SETUP.md) for troubleshooting.
+> There is no repository-root `setup-data.sh --all` / `--status`; earlier revisions of this guide
+> described one, but it was never written. `./run.sh download` skips files it already has, so a
+> re-run is safe. Full procedure and troubleshooting: section 6 of the
+> [DGX Spark Deployment Guide](HCLS_AI_FACTORY_DGX_SPARK_DEPLOYMENT_GUIDE.md).
 
 ### Step 1: Verify Hardware
 
@@ -81,8 +86,8 @@ cp .env.example .env
 ### Step 3: Start All Services
 
 ```bash
-# Start services in dependency order
-./start-services.sh
+# Start services in dependency order (validates health and reports status)
+./start-factory.sh
 
 # This starts:
 # 1. Infrastructure (Milvus, monitoring)
@@ -116,17 +121,14 @@ All 10 services should show green status:
 ### Step 5: Verify Demo Data
 
 ```bash
-# Verify all data is downloaded and ready
-./setup-data.sh --status
-
-# Or check individual files
+# Check the files directly — there is no `--status` command
 ls core/engines/genomic-foundation/data/ref/GRCh38.fa              # 3.1 GB reference
 ls core/engines/genomic-foundation/data/input/HG002_R1.fastq.gz    # ~100 GB read 1
 ls core/engines/genomic-foundation/data/input/HG002_R2.fastq.gz    # ~100 GB read 2
 ls core/engines/precision-intelligence/data/annotations/                # ClinVar + AlphaMissense
 ```
 
-> If any files are missing, run `./setup-data.sh --all` to download them. See Stage 0 above.
+> If any files are missing, re-run the Stage 0 commands above; the downloader skips what is already present.
 
 ---
 
@@ -149,8 +151,9 @@ ls core/engines/precision-intelligence/data/annotations/                # ClinVa
 #### Launch Pipeline
 
 ```bash
-# Launch demo mode
-python run_pipeline.py --mode demo
+cd core/engines/genomic-foundation
+./run.sh test     # chr20 only, ~5-20 min — the one to use in a live demo
+# ./run.sh full   # whole genome, 120-240 min
 ```
 
 **Show:** Genomics portal at http://localhost:5000
@@ -399,10 +402,10 @@ watch -n 1 nvidia-smi
 
 | Action | Command / URL |
 |---|---|
-| Download data | `./setup-data.sh --all` |
-| Check data status | `./setup-data.sh --status` |
-| Start services | `./start-services.sh` |
-| Launch demo | `python run_pipeline.py --mode demo` |
+| Download Stage 1 data | `cd core/engines/genomic-foundation && ./run.sh download` |
+| Check data | `ls core/engines/genomic-foundation/data/input/` |
+| Start services | `./start-factory.sh` |
+| Launch demo | `.venv/bin/python scripts/run_demo.py --list` |
 | Landing page | http://localhost:8080 |
 | Genomics portal | http://localhost:5000 |
 | Chat interface | http://localhost:8501 |

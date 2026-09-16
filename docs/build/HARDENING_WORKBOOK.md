@@ -324,25 +324,42 @@ git clone --depth 1 https://github.com/ajones1923/hcls-ai-factory /tmp/clonetest
 du -sh /tmp/clonetest && rm -rf /tmp/clonetest
 ```
 
-### 3.2 Fix the 16 broken doc links
+### 3.2 Doc links and commands — ✅ done 2026-09-16
+
+The raw link scan reports 40 hits; **29 resolve to build-time generated pages**
+(`honesty/maturity-matrix.md`, `factory/engines/<id>.md`, `brief/README.md`) and are not broken.
+`mkdocs build --strict` passing is the authority on those. Eleven were genuinely broken, pointing
+at `licensing.md`, `DATA_SETUP.md`, `demo-guide.md` and friends — files that were never written.
+They are repointed at the real documents, or de-linked where the prose already carries the fact.
+
+**The larger finding was not the links.** Chasing `DATA_SETUP.md` turned up 26 references across
+five guides instructing the reader to run a repository-root `setup-data.sh` with `--all` / `--stage1` /
+`--stage2` / `--stage3` / `--status` — a script documented with a complete flag interface, called *"the
+recommended approach"*, and **never written**. `start-services.sh` and `run_pipeline.py` were the
+same. The documented first step of a public open-source repository failed immediately, and the
+manual procedure that does work was labelled "for reference" underneath it.
+
+Corrected to what exists: `core/engines/genomic-foundation/run.sh {check,login,download,reference,test,full}`
+for Stage 1, the explicit manual procedure for Stages 2 and 3 (no automated downloader ships for
+ClinVar or AlphaMissense — that is now stated rather than implied), and `./start-factory.sh` for
+services.
+
+`scripts/check_docs.py` now guards both, and runs in CI beside `mkdocs build --strict`:
 
 ```bash
-$PY - <<'PY'
-import pathlib, re
-root = pathlib.Path("docs"); bad = []
-for md in root.rglob("*.md"):
-    for m in re.finditer(r"\]\(([^)#:]+\.md)[#)]", md.read_text(errors="ignore")):
-        if not (md.parent / m.group(1)).resolve().exists():
-            bad.append((str(md.relative_to(root)), m.group(1)))
-for a, b in bad: print(f"{a} -> {b}")
-print(len(bad), "links")
-PY
+.venv/bin/python scripts/check_docs.py          # docs/ + the genomics & intelligence engines
+.venv/bin/python scripts/check_docs.py --all    # every tracked markdown file
 ```
 
-Most point at `licensing.md`, `DATA_SETUP.md`, `demo-guide.md` — files that were never written.
-Write them or drop the links. **24 of the 40 raw hits resolve to build-time generated pages
-(`maturity-matrix.md`, `factory/engines/index.md`) and are not broken** — `mkdocs --strict` passing
-with 0 warnings is the authority.
+It knows about the generated pages, follows `cd` inside a fenced block, and treats
+NVFlare's provisioning-created `start.sh` / `fl_admin.sh` as legitimately absent — a check that
+cries wolf is one nobody runs. It deliberately stops at *does a script by this name exist in the
+repo at all*: proving the reader's working directory needs a shell interpreter, and the weaker
+rule catches the whole defect class with no false alarms.
+
+> A broken link is a nuisance. A confident instruction to run a command that does not exist is
+> the honesty failure this platform exists to avoid — the documentation equivalent of a `live`
+> capability that is mock-served.
 
 ### 3.3 Label what is superseded
 

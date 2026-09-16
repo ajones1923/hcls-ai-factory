@@ -391,10 +391,13 @@ The genomics pipeline requires ~300 GB of data: HG002 FASTQ files (~200 GB), the
 
 ```bash
 # Download all Stage 1 data with auto-retry and checksum verification
-./setup-data.sh --stage1
+./run.sh download      # FASTQ, with MD5 verification and auto-retry
+./run.sh reference     # GRCh38 reference genome
 ```
 
-This handles FASTQ download, MD5 verification, reference genome setup, and FASTQ merging. See [docs/DATA_SETUP.md](../docs/DATA_SETUP.md) for troubleshooting.
+This handles FASTQ download, MD5 verification, reference genome setup, and FASTQ merging.
+`scripts/02-download-data-conservative.sh` is the most patient variant when NCBI FTP is flaky, and
+`scripts/verify-existing-downloads.sh` checks what you already have without re-fetching it.
 
 **From this directory** (standalone):
 
@@ -423,7 +426,7 @@ cd core/engines/genomic-foundation
 ./run.sh full       # Full genome analysis (120-240 min)
 ```
 
-> **Tip**: If running as part of the full HCLS AI Factory, use `./setup-data.sh --stage1` from the repository root instead of `./run.sh download` — it provides automatic retry on checksum failures and idempotent re-runs.
+> **Tip**: `./run.sh download` already retries on checksum failure and skips files it already has, so a re-run is safe. (Earlier revisions of this README pointed at a repository-root `setup-data.sh --stage1`; no such script exists.)
 
 ### Option 2: Web Portal
 

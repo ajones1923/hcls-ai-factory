@@ -194,7 +194,7 @@ The platform deploys 13 services across 13 ports:
 | etcd | 2379 | Milvus metadata store |
 | MinIO | 9000 | Milvus object storage |
 
-> **Note:** Services 1–4 and 6–13 are launched via `docker compose up`. The Streamlit UIs (Chat on 8501, Discovery UI on 8505, Discovery Portal on 8510) and RAG API (5001) are started via `./start-services.sh`, which handles both Docker and non-Docker services. For the simplest deployment, run `./start-services.sh start` which orchestrates everything.
+> **Note:** Services 1–4 and 6–13 are launched via `docker compose up`. The Streamlit UIs (Chat on 8501, Discovery UI on 8505, Discovery Portal on 8510) and RAG API (5001) are started via `./start-factory.sh`, which handles both Docker and non-Docker services, validates health, and reports status. For the simplest deployment, run `./start-factory.sh` — it orchestrates everything. (Earlier revisions named a `start-services.sh`; no such script exists.)
 
 ### 2.4 Data Flow
 
@@ -567,30 +567,35 @@ mkdir -p monitoring/data/{grafana,prometheus}
 
 ## 6. Stage 0: Data Acquisition
 
-> **Automated setup**: The `setup-data.sh` script handles all data downloads with automatic retry, checksum verification, and progress tracking. Run `./setup-data.sh --all` from the repository root to download everything. This is a one-time step (~500 GB total). See [Stage 0: Data Acquisition](DATA_SETUP.md) for complete troubleshooting.
+> **There is no repository-root `setup-data.sh`.** Earlier revisions of this guide described one,
+> with `--all` / `--stage1` / `--stage2` / `--stage3` / `--status` flags. It was never written, so
+> every instruction to run it failed on the first step. The procedure below is the real one, and
+> it is what this guide now documents — not a fallback.
+>
+> Data acquisition is a one-time step of roughly 500 GB and is **not** fully automated. Stage 1 has
+> a working downloader; Stages 2 and 3 are manual, documented below.
 
 ```bash
-# Recommended: Automated download of all data (~500 GB)
-./setup-data.sh --all
+# Stage 1 — Genomics: FASTQ + GRCh38 reference (~300 GB). This is automated.
+cd core/engines/genomic-foundation
+./run.sh check          # prerequisites
+./run.sh login          # NGC login (needed for Parabricks)
+./run.sh download       # FASTQ, with MD5 verification and retry
+./run.sh reference      # GRCh38 reference genome
 
-# Or download by stage
-./setup-data.sh --stage1    # Genomics: FASTQ + reference (~300 GB)
-./setup-data.sh --stage2    # RAG/Chat: ClinVar + AlphaMissense (~2 GB)
-./setup-data.sh --stage3    # Drug Discovery: PDB cache (optional)
-
-# Check status
-./setup-data.sh --status
+# Stage 2 — RAG/Chat: ClinVar + AlphaMissense (~2 GB).  MANUAL — see 6.2 and 6.3 below.
+# Stage 3 — Drug Discovery: PDB cache (optional).        MANUAL — see 6.4 below.
 ```
 
-The sections below document the manual process for reference. For most deployments, `setup-data.sh` is the recommended approach.
+Sections 6.1–6.4 give the exact commands for each dataset.
 
 ### 6.1 GRCh38 Reference Genome
 
 ```bash
-# Automated (recommended):
-./setup-data.sh --stage1    # Downloads reference as part of Stage 1
-
-# Manual alternative:
+# Via the genomic-foundation engine (recommended):
+#   cd core/engines/genomic-foundation && ./run.sh reference
+#
+# Or directly:
 cd genomics/data/reference
 
 wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/001/405/GCA_000001405.15_GRCh38/seqs_for_alignment_pipelines.ucsc_ids/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.gz
@@ -610,10 +615,7 @@ ls -lh GRCh38.fa*
 ### 6.2 ClinVar Database
 
 ```bash
-# Automated (recommended):
-./setup-data.sh --stage2    # Downloads ClinVar + AlphaMissense with verification
-
-# Manual alternative:
+# No automated downloader ships for ClinVar. This is the procedure:
 cd rag/data/clinvar
 
 wget https://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/clinvar.vcf.gz
@@ -629,10 +631,8 @@ echo "ClinVar download complete"
 ### 6.3 AlphaMissense Database
 
 ```bash
-# Automated (recommended):
-./setup-data.sh --stage2    # Downloads AlphaMissense with gzip integrity check
-
-# Manual alternative:
+# No automated downloader ships for AlphaMissense. This is the procedure:
+# (check the gzip integrity yourself after download -- see the verification step below)
 cd rag/data/alphamissense
 
 wget https://storage.googleapis.com/dm_alphamissense/AlphaMissense_hg38.tsv.gz
@@ -655,12 +655,12 @@ echo "AlphaMissense download complete"
 ### 6.4 HG002 Sample Data
 
 ```bash
-# Automated (recommended):
-./setup-data.sh --stage1
-# Downloads all 68 FASTQ files with MD5 verification, auto-retry,
-# and merges into HG002_R1.fastq.gz + HG002_R2.fastq.gz
+# Recommended -- the genomic-foundation engine's own downloader:
+#   cd core/engines/genomic-foundation && ./run.sh download
+# Fetches all 68 FASTQ files with MD5 verification and auto-retry, then merges
+# into HG002_R1.fastq.gz + HG002_R2.fastq.gz
 
-# Manual alternative (not recommended — no checksum retry):
+# Manual alternative (no checksum retry):
 cd genomics/data/fastq
 
 # GIAB HG002 30x WGS, 2x250 bp paired-end
@@ -671,7 +671,7 @@ echo "HG002 download complete — verify file sizes match expected ~200 GB"
 ls -lh *.fastq.gz
 ```
 
-> **Troubleshooting FASTQ downloads**: FASTQ files are the most failure-prone download (~200 GB across 68 files from NCBI FTP). If downloads fail checksum verification, the `setup-data.sh` script automatically retries with progressively more conservative settings. See [DATA_SETUP.md](DATA_SETUP.md) for detailed troubleshooting.
+> **Troubleshooting FASTQ downloads**: FASTQ files are the most failure-prone download (~200 GB across 68 files from NCBI FTP). If a download fails checksum verification, `core/engines/genomic-foundation/run.sh download` retries with progressively more conservative settings; `scripts/02-download-data-conservative.sh` is the most patient variant, and `scripts/verify-existing-downloads.sh` checks what you already have without re-fetching it.
 
 ---
 

@@ -260,7 +260,7 @@ code_block(
 spacer()
 
 H2("Step 3: Start All Services")
-code_block("./start-services.sh", "bash")
+code_block("./start-factory.sh", "bash")
 body("Services start in dependency order: infrastructure \u2192 Stage 1 \u2192 Stage 2 \u2192 Stage 3 \u2192 landing page.")
 
 H2("Step 4: Verify All Services Healthy")
@@ -414,7 +414,7 @@ H1("Quick Reference")
 add_table(
     ["Action", "Command / URL"],
     [
-        ["Start services", "./start-services.sh"],
+        ["Start services", "./start-factory.sh"],
         ["Launch demo", "python run_pipeline.py --mode demo"],
         ["Landing page", "http://localhost:8080"],
         ["Genomics portal", "http://localhost:5000"],
