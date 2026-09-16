@@ -41,7 +41,7 @@ _mock_settings.EMBEDDING_MODEL = "BAAI/bge-small-en-v1.5"
 _mock_settings.CITATION_HIGH_THRESHOLD = 0.85
 _mock_settings.CITATION_MEDIUM_THRESHOLD = 0.70
 _mock_settings.ANTHROPIC_API_KEY = ""
-_mock_settings.LLM_MODEL = "claude-sonnet-4-20250514"
+_mock_settings.LLM_MODEL = "claude-sonnet-5"
 _mock_settings.MILVUS_HOST = "localhost"
 _mock_settings.MILVUS_PORT = 19530
 

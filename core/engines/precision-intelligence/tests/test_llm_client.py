@@ -69,9 +69,9 @@ class TestLLMClientFactory:
             with _mock_anthropic():
                 client = LLMClient.create(
                     provider="anthropic",
-                    model="claude-3-opus-20240229"
+                    model="claude-opus-5"
                 )
-                assert client.model == "claude-3-opus-20240229"
+                assert client.model == "claude-opus-5"
 
 
 class TestAnthropicClient:

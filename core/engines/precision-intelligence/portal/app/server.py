@@ -663,8 +663,8 @@ def model_api():
         'llama3.1:8b-instruct-q4_0': 'ollama',
         'llama3.1:8b': 'ollama',
         'llama3.1:70b': 'ollama',
-        'claude-sonnet-4-20250514': 'anthropic',
-        'claude-opus-4-20250514': 'anthropic',
+        'claude-sonnet-5': 'anthropic',
+        'claude-opus-5': 'anthropic',
     }
 
     if request.method == 'GET':

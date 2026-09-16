@@ -68,7 +68,7 @@ Guidelines:
 
 MAX_TOOL_ITERATIONS = 5
 CLAUDE_TIMEOUT_SECONDS = 120
-DEFAULT_MODEL = "claude-sonnet-4-20250514"
+DEFAULT_MODEL = "claude-sonnet-5"
 
 # CAR-T Milvus collection names
 CART_COLLECTIONS = [

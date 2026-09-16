@@ -153,7 +153,7 @@
 | Dermatology | 9 | IL31RA, TYK2, IL13, COL7A1, FLG |
 
 ### LLM Integration
-- **Provider:** Anthropic Claude (claude-sonnet-4-20250514)
+- **Provider:** Anthropic Claude (claude-sonnet-5)
 - **Temperature:** 0.3 (factual consistency)
 - **RAG grounding:** All responses cite retrieved variant evidence
 - **System prompt:** Expert genomics assistant with variant interpretation, gene function, clinical significance, pharmacogenomics, drug target identification

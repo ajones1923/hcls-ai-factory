@@ -199,7 +199,7 @@ The RAG pipeline in `rag_engine.py` (23 KB) implements a multi-stage retrieval s
      Disease: Frontotemporal Dementia, ALS, IBMPFD
    ```
 
-4. **Claude inference:** The assembled context + knowledge base + user query are sent to `claude-sonnet-4-20250514` (temperature=0.3, max_tokens=4096).
+4. **Claude inference:** The assembled context + knowledge base + user query are sent to `claude-sonnet-5` (temperature=0.3, max_tokens=4096).
 
 **Why temperature=0.3?** Lower temperature produces more deterministic, factual responses. For clinical genomics, hallucination is dangerous — the model should report only what the evidence supports.
 

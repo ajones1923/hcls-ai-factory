@@ -245,6 +245,18 @@ def extract_json(text: str) -> Any:
 # Abstract base
 # ---------------------------------------------------------------------------
 
+# Models on which `temperature`/`top_p`/`top_k` are removed (400 if sent).
+_NO_SAMPLING_PREFIXES = (
+    "claude-opus-5", "claude-opus-4-8", "claude-opus-4-7", "claude-opus-4-6",
+    "claude-sonnet-5", "claude-sonnet-4-6", "claude-fable-5", "claude-mythos-5",
+)
+
+
+def _rejects_sampling(model: str) -> bool:
+    m = (model or "").lower()
+    return any(m.startswith(p) for p in _NO_SAMPLING_PREFIXES)
+
+
 class BaseLLMClient(ABC):
     """Abstract base class for LLM provider clients."""
 
@@ -399,7 +411,7 @@ class AnthropicClient(_RetryMixin, BaseLLMClient):
     def __init__(
         self,
         api_key: Optional[str] = None,
-        model: str = "claude-sonnet-4-20250514",
+        model: str = "claude-sonnet-5",
     ) -> None:
         try:
             import anthropic
@@ -423,13 +435,19 @@ class AnthropicClient(_RetryMixin, BaseLLMClient):
         max_tokens: int,
         temperature: float,
     ) -> str:
-        message = self._client.messages.create(
+        # Sampling parameters were REMOVED on the current models: temperature / top_p /
+        # top_k return 400 "`temperature` is deprecated for this model." on Sonnet 5,
+        # Opus 5 and the 4.6+ family. Older models still accept them, so send it only
+        # where it is valid rather than dropping the argument from our own API.
+        kwargs = dict(
             model=self.model,
             max_tokens=max_tokens,
-            temperature=temperature,
             system=system_prompt or "",
             messages=[{"role": "user", "content": prompt}],
         )
+        if temperature is not None and not _rejects_sampling(self.model):
+            kwargs["temperature"] = temperature
+        message = self._client.messages.create(**kwargs)
         # Record token usage
         input_tok = getattr(message.usage, "input_tokens", 0)
         output_tok = getattr(message.usage, "output_tokens", 0)
@@ -768,7 +786,7 @@ class LLMClientFactory:
         if provider == "anthropic":
             return AnthropicClient(
                 api_key=api_key,
-                model=model or "claude-sonnet-4-20250514",
+                model=model or "claude-sonnet-5",
             )
         elif provider == "openai":
             return OpenAIClient(

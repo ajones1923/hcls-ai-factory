@@ -250,7 +250,7 @@ print(anthropic.Anthropic().messages.create(
   messages=[{'role':'user','content':'reply OK'}]).content[0].text)"
 ```
 
-> **The code pins `claude-sonnet-4-20250514` in 36 places and `claude-sonnet-4-6` in 23.** Both are
+> **The code pins `claude-sonnet-5` in 36 places and `claude-sonnet-5` in 23.** Both are
 > old. Decide a model policy and set it in one place rather than 59.
 
 **✅ Done when:** an agent returns cited output end-to-end:

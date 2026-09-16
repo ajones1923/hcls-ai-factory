@@ -615,7 +615,7 @@ All settings can be overridden via environment variables prefixed with
 | `BIOMARKER_STREAMLIT_PORT`     | `8528`             | Streamlit port                  |
 | `ANTHROPIC_API_KEY`            | (none)             | Claude API key (required)       |
 | `BIOMARKER_LLM_PROVIDER`      | `anthropic`        | LLM provider                    |
-| `BIOMARKER_LLM_MODEL`         | `claude-sonnet-4-6` | Claude model ID             |
+| `BIOMARKER_LLM_MODEL`         | `claude-sonnet-5` | Claude model ID             |
 | `BIOMARKER_EMBEDDING_MODEL`   | `BAAI/bge-small-en-v1.5` | Embedding model          |
 | `BIOMARKER_EMBEDDING_DIMENSION`| `384`             | Embedding dimensions            |
 | `BIOMARKER_EMBEDDING_BATCH_SIZE`| `32`             | Embedding batch size            |

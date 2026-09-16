@@ -1218,5 +1218,5 @@ async def knowledge_version():
         ],
         "embedding_model": "BAAI/bge-small-en-v1.5",
         "embedding_dimension": 384,
-        "llm_model": "claude-sonnet-4-6",
+        "llm_model": "claude-sonnet-5",
     }

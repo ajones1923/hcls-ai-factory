@@ -159,7 +159,7 @@ The HCLS AI Factory comprises three application pipeline stages running on a sin
 | Genomic Foundation Engine | NVIDIA Parabricks | 4.6.0-1 |
 | Vector Database | Milvus | 2.4 (with etcd + MinIO) |
 | Embedding Model | BGE-small-en-v1.5 | 384 dimensions |
-| LLM | Anthropic Claude | claude-sonnet-4-20250514 |
+| LLM | Anthropic Claude | claude-sonnet-5 |
 | Molecule Generation | BioNeMo MolMIM NIM | 1.0 |
 | Molecular Docking | BioNeMo DiffDock NIM | 1.0 |
 | Cheminformatics | RDKit | Python library |
@@ -528,7 +528,7 @@ ANTHROPIC_API_KEY=sk-ant-api03-XXXXXXXXXXXX
 NGC_API_KEY=XXXXXXXXXXXX
 
 # === Model Configuration ===
-CLAUDE_MODEL=claude-sonnet-4-20250514
+CLAUDE_MODEL=claude-sonnet-5
 CLAUDE_TEMPERATURE=0.3
 
 # === Reference Data ===
@@ -1198,7 +1198,7 @@ client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 def query_claude(question: str, context: str) -> str:
     """Send RAG query to Claude with retrieved genomic context."""
     response = client.messages.create(
-        model="claude-sonnet-4-20250514",
+        model="claude-sonnet-5",
         max_tokens=4096,
         temperature=0.3,
         messages=[{
@@ -1218,7 +1218,7 @@ Question: {question}"""
 
 | Parameter | Value |
 |---|---|
-| Model | claude-sonnet-4-20250514 |
+| Model | claude-sonnet-5 |
 | Temperature | 0.3 |
 | Max Tokens | 4096 |
 
@@ -2250,7 +2250,7 @@ curl -s http://localhost:8540/health  # Single-Cell Intelligence
 | `MILVUS_PORT` | `19530` | Milvus server port |
 | `MOLMIM_URL` | `http://localhost:8001` | MolMIM NIM endpoint |
 | `DIFFDOCK_URL` | `http://localhost:8002` | DiffDock NIM endpoint |
-| `CLAUDE_MODEL` | `claude-sonnet-4-20250514` | Claude model identifier |
+| `CLAUDE_MODEL` | `claude-sonnet-5` | Claude model identifier |
 | `CLAUDE_TEMPERATURE` | `0.3` | Claude sampling temperature |
 | `PIPELINE_MODE` | `full` | Pipeline execution mode |
 | `NUM_CANDIDATES` | `100` | Number of molecules to generate |
@@ -2410,7 +2410,7 @@ Response: {"status": "ready"}
       "similarity_score": 0.94
     }
   ],
-  "model": "claude-sonnet-4-20250514",
+  "model": "claude-sonnet-5",
   "tokens_used": 1847
 }
 ```
@@ -2549,7 +2549,7 @@ class PipelineConfig(BaseModel):
     min_dock_score: float = -6.0
     molmim_url: str = "http://localhost:8001"
     diffdock_url: str = "http://localhost:8002"
-    claude_model: str = "claude-sonnet-4-20250514"
+    claude_model: str = "claude-sonnet-5"
     claude_temperature: float = 0.3
 
 class PipelineRun(BaseModel):

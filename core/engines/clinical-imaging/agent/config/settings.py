@@ -63,7 +63,7 @@ class ImagingSettings(BaseSettings):
 
     # ── LLM ──
     LLM_PROVIDER: str = "anthropic"
-    LLM_MODEL: str = "claude-sonnet-4-20250514"
+    LLM_MODEL: str = "claude-sonnet-5"
     ANTHROPIC_API_KEY: Optional[str] = None
 
     # ── Deployment Tier ──

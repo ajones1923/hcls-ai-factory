@@ -545,7 +545,7 @@ BIOMARKER_MILVUS_HOST=milvus-standalone
 BIOMARKER_MILVUS_PORT=19530
 BIOMARKER_API_HOST=0.0.0.0
 BIOMARKER_API_PORT=8529
-BIOMARKER_LLM_MODEL=claude-sonnet-4-6
+BIOMARKER_LLM_MODEL=claude-sonnet-5
 BIOMARKER_METRICS_ENABLED=True
 BIOMARKER_API_KEY=your-strong-api-key-here
 BIOMARKER_CORS_ORIGINS=http://localhost:8080
@@ -614,7 +614,7 @@ which uses Pydantic `BaseSettings` with `env_prefix="BIOMARKER_"`.
 | Variable                       | Default       | Description                          |
 |--------------------------------|---------------|--------------------------------------|
 | `BIOMARKER_LLM_PROVIDER`     | `anthropic`   | LLM provider name                    |
-| `BIOMARKER_LLM_MODEL`        | `claude-sonnet-4-6` | Model identifier              |
+| `BIOMARKER_LLM_MODEL`        | `claude-sonnet-5` | Model identifier              |
 | `BIOMARKER_ANTHROPIC_API_KEY`| *(required)*  | Anthropic API key                    |
 | `BIOMARKER_LLM_MAX_RETRIES`  | `3`           | Max retry attempts for LLM calls     |
 
@@ -709,7 +709,7 @@ BIOMARKER_EMBEDDING_BATCH_SIZE=32
 
 # ── LLM ──
 BIOMARKER_LLM_PROVIDER=anthropic
-BIOMARKER_LLM_MODEL=claude-sonnet-4-6
+BIOMARKER_LLM_MODEL=claude-sonnet-5
 BIOMARKER_LLM_MAX_RETRIES=3
 
 # ── RAG ──
@@ -1350,7 +1350,7 @@ curl -s https://api.anthropic.com/v1/messages \
     -H "x-api-key: ${BIOMARKER_ANTHROPIC_API_KEY}" \
     -H "anthropic-version: 2023-06-01" \
     -H "content-type: application/json" \
-    -d '{"model":"claude-sonnet-4-6","max_tokens":10,"messages":[{"role":"user","content":"hi"}]}'
+    -d '{"model":"claude-sonnet-5","max_tokens":10,"messages":[{"role":"user","content":"hi"}]}'
 ```
 
 **Common causes:**

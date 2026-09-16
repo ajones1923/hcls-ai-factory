@@ -69,7 +69,7 @@ class AutoimmuneSettings(BaseSettings):
 
     # ── LLM ──────────────────────────────────────────────────────────────
     ANTHROPIC_API_KEY: str = ""
-    LLM_MODEL: str = "claude-sonnet-4-20250514"
+    LLM_MODEL: str = "claude-sonnet-5"
     LLM_MAX_TOKENS: int = 4096
     LLM_TEMPERATURE: float = 0.2
 

@@ -77,7 +77,7 @@ The Oncology Agent maps to the the AI platform architecture as follows:
 | the AI platform Layer | Agent Component |
 |-----------------|-----------------|
 | Data Layer | Milvus vector store (11 collections), 10 JSON seed files |
-| Model Layer | BAAI/bge-small-en-v1.5 (embedding), Claude claude-sonnet-4-6 (synthesis) |
+| Model Layer | BAAI/bge-small-en-v1.5 (embedding), Claude claude-sonnet-5 (synthesis) |
 | Inference Layer | FastAPI server (8527), RAG engine, therapy ranker, trial matcher |
 | Application Layer | Streamlit UI (8526), multi-tab MTB interface |
 | Orchestration | Docker Compose (6 services), health checks, APScheduler |
@@ -242,7 +242,7 @@ User Question
     v
 [4. SYNTHESIZE] --> AgentResponse
     |   - Knowledge injection (genes, therapies, resistance, pathways, biomarkers)
-    |   - Claude claude-sonnet-4-6 generates answer with citations
+    |   - Claude claude-sonnet-5 generates answer with citations
     |   - Markdown report attached
     |
     v
@@ -391,7 +391,7 @@ contribute to embedding similarity even when they appear only in metadata.
 
 | Setting | Value |
 |---------|-------|
-| Model | claude-sonnet-4-6 |
+| Model | claude-sonnet-5 |
 | Provider | Anthropic API |
 | Environment variable | `ANTHROPIC_API_KEY` |
 | Configuration prefix | `ONCO_` |
@@ -628,7 +628,7 @@ User Question
 [Prompt Assembly] -- Domain Knowledge + Evidence + Question + Instructions
       |
       v
-[LLM Synthesis] -- Claude claude-sonnet-4-6 -> answer with citations
+[LLM Synthesis] -- Claude claude-sonnet-5 -> answer with citations
       |
       v
 AgentResponse

@@ -480,7 +480,7 @@ User Query
 [Knowledge Augmentation] ── Disease-specific context from knowledge.py
     |
     v
-[Claude Synthesis] ── claude-sonnet-4-20250514 (max 4096 tokens, temp 0.2)
+[Claude Synthesis] ── claude-sonnet-5 (max 4096 tokens, temp 0.2)
     |
     v
 [Response + Citations]
@@ -842,7 +842,7 @@ Features:
 |---|---|
 | **Milvus** | HOST, PORT, 14 collection names |
 | **Embedding** | Model (bge-small-en-v1.5), dimension (384), instruction prefix |
-| **LLM** | Model (claude-sonnet-4-20250514), max_tokens (4096), temperature (0.2) |
+| **LLM** | Model (claude-sonnet-5), max_tokens (4096), temperature (0.2) |
 | **RAG** | top_k (5), score_threshold (0.40), max_evidence (30), memory_size (3) |
 | **Chunking** | max_chunk_size (2500), chunk_overlap (200) |
 | **Flare** | imminent (0.8), high (0.6), moderate (0.4) |

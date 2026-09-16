@@ -1924,7 +1924,7 @@ All settings use the `BIOMARKER_` prefix and are defined in `config/settings.py`
 | Env Var                          | Type | Default           | Description               |
 |----------------------------------|------|-------------------|---------------------------|
 | `BIOMARKER_LLM_PROVIDER`        | str  | `anthropic`       | LLM provider name         |
-| `BIOMARKER_LLM_MODEL`           | str  | `claude-sonnet-4-6`| Model ID              |
+| `BIOMARKER_LLM_MODEL`           | str  | `claude-sonnet-5`| Model ID              |
 | `BIOMARKER_ANTHROPIC_API_KEY`   | str  | `None`            | Anthropic API key          |
 | `BIOMARKER_LLM_MAX_RETRIES`    | int  | `3`               | Max retry attempts         |
 

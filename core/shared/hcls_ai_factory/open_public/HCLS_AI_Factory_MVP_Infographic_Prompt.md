@@ -176,7 +176,7 @@ Use small colored dots: NVIDIA green for Stage 1, teal for Stage 2, orange for S
 **Sub-row 3: LLM Reasoning (left-to-right)**
 
 7. **Anthropic Claude** [LLM icon, navy badge]
-   claude-sonnet-4-20250514 | temp=0.3
+   claude-sonnet-5 | temp=0.3
    RAG-grounded clinical reasoning
    10 therapeutic area query expansion maps
 

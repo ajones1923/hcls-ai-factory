@@ -580,7 +580,7 @@ code_block(
 H3("4. Claude Inference")
 body(
     "The assembled context + knowledge base + user query are sent to "
-    "claude-sonnet-4-20250514 (temperature=0.3, max_tokens=4096)."
+    "claude-sonnet-5 (temperature=0.3, max_tokens=4096)."
 )
 
 H3("Why temperature=0.3?")

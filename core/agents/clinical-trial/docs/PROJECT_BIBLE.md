@@ -336,7 +336,7 @@ All variables use the `TRIAL_` prefix:
 | `TRIAL_MILVUS_PORT` | 19530 | Milvus server port |
 | `TRIAL_EMBEDDING_MODEL` | BAAI/bge-small-en-v1.5 | Embedding model name |
 | `TRIAL_EMBEDDING_DIMENSION` | 384 | Embedding vector dimension |
-| `TRIAL_LLM_MODEL` | claude-sonnet-4-6 | LLM model for synthesis |
+| `TRIAL_LLM_MODEL` | claude-sonnet-5 | LLM model for synthesis |
 | `TRIAL_ANTHROPIC_API_KEY` | (none) | Anthropic API key |
 | `TRIAL_API_PORT` | 8538 | FastAPI server port |
 | `TRIAL_STREAMLIT_PORT` | 8128 | Streamlit UI port |
@@ -372,7 +372,7 @@ All variables use the `TRIAL_` prefix:
 | Layer | Technology | Version/Details |
 |---|---|---|
 | Compute | NVIDIA DGX Spark | CUDA 12.x |
-| LLM | Claude (Anthropic) | claude-sonnet-4-6 |
+| LLM | Claude (Anthropic) | claude-sonnet-5 |
 | Vector DB | Milvus | 2.x with etcd + MinIO |
 | Embeddings | BGE-small-en-v1.5 | 384 dimensions, sentence-transformers |
 | API Framework | FastAPI | Uvicorn ASGI server |

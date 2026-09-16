@@ -33,7 +33,7 @@ class FakeSettings:
     EMBEDDING_MODEL = "BAAI/bge-small-en-v1.5"
     EMBEDDING_DIM = 384
     BGE_INSTRUCTION = "Represent this sentence for searching relevant passages: "
-    LLM_MODEL = "claude-sonnet-4-20250514"
+    LLM_MODEL = "claude-sonnet-5"
     LLM_MAX_TOKENS = 4096
     LLM_TEMPERATURE = 0.2
     TOP_K_PER_COLLECTION = 5
@@ -620,7 +620,7 @@ class TestQuery:
         mock_cm.search_all.return_value = {}
         engine.query("test")
         call_kwargs = mock_llm.messages.create.call_args[1]
-        assert call_kwargs["model"] == "claude-sonnet-4-20250514"
+        assert call_kwargs["model"] == "claude-sonnet-5"
         assert call_kwargs["max_tokens"] == 4096
 
     def test_query_includes_conversation_history_in_messages(self, engine, mock_cm, mock_llm):

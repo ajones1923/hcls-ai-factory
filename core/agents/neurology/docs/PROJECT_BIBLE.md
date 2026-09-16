@@ -195,7 +195,7 @@ neurology_intelligence_agent/
 | Conversation TTL | 24 hours |
 | Citation high threshold | 0.75 |
 | Citation medium threshold | 0.60 |
-| LLM model | claude-sonnet-4-6 |
+| LLM model | claude-sonnet-5 |
 | LLM max tokens | 2048 |
 | LLM temperature | 0.7 |
 

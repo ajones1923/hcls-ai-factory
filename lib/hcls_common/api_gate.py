@@ -123,6 +123,43 @@ DISCLAIMER = (
 _ANSWER_KEYS = ("answer", "response", "summary", "interpretation", "narrative", "brief")
 
 
+
+# Keys a service uses to return the passages an answer was built from.
+_EVIDENCE_KEYS = ("citations", "sources", "evidence", "results", "matches")
+
+_VERIFY_LLM: Any = None
+_VERIFY_LLM_TRIED = False
+
+
+def _verify_llm():
+    """Lazy singleton LLM client for adversarial claim checking (None if no key).
+
+    Built once per process: the middleware runs per request and constructing a client each
+    time would add a connection setup to every answer.
+    """
+    global _VERIFY_LLM, _VERIFY_LLM_TRIED
+    if _VERIFY_LLM_TRIED:
+        return _VERIFY_LLM
+    _VERIFY_LLM_TRIED = True
+    import os
+    if not (os.getenv("ANTHROPIC_API_KEY") or "").strip():
+        return None
+    try:
+        from hcls_common.llm_client import AnthropicClient
+        _VERIFY_LLM = AnthropicClient()
+    except Exception:
+        _VERIFY_LLM = None
+    return _VERIFY_LLM
+
+
+def _evidence_from(payload: dict) -> list:
+    for k in _EVIDENCE_KEYS:
+        v = payload.get(k)
+        if isinstance(v, list) and v:
+            return v
+    return []
+
+
 def install_output_honesty(app, *, service: str = ""):
     """Run the deterministic honesty gate over every JSON answer this service returns.
 
@@ -172,6 +209,34 @@ def install_output_honesty(app, *, service: str = ""):
                     findings = honesty_flags(text)          # marks the gate as having run
                 except Exception:
                     findings = []
+                # ── adversarial layer ────────────────────────────────────────
+                # The deterministic register above catches PHRASING ("cures", "zero risk").
+                # It cannot catch a fabricated statistic or an invented trial number, which is
+                # the actual failure mode of generated clinical prose. This extracts atomic
+                # claims and asks a model to REFUTE each against the passages the answer was
+                # built from -- refutation, not confirmation, is what catches invented numbers.
+                # Off when there is no evidence to check against, or no key, or
+                # HCLS_VERIFY_CLAIMS=0. It must never break generation.
+                refuted: list = []
+                if _os.getenv("HCLS_VERIFY_CLAIMS", "1") != "0":
+                    evidence = _evidence_from(payload)
+                    llm = _verify_llm() if evidence else None
+                    if llm is not None:
+                        try:
+                            from hcls_common.verify_gate import verify_claims
+                            rep = verify_claims(text, evidence, llm)
+                            _mark_gate("claim-verification")
+                            payload["verification"] = {
+                                "claims": len(rep["claims"]),
+                                "supported": rep["supported"],
+                                "refuted": rep["refuted"],
+                                "unsupported": rep["unsupported"],
+                                "flagged": rep["flagged"][:8],
+                            }
+                            refuted = [x for x in rep["flagged"] if x.get("verdict") == "refuted"]
+                        except Exception as exc:          # never break the answer
+                            payload["verification"] = {"error": f"{type(exc).__name__}"}
+
                 blocking = [f for f in findings if f.get("severity") == "block"]
                 # ENFORCING BY DEFAULT since 2026-09-15 (Adam's decision). Set
                 # HCLS_HONESTY_ENFORCE=0 to annotate instead of withhold.
@@ -182,10 +247,14 @@ def install_output_honesty(app, *, service: str = ""):
                 # enforcement would have withheld correct clinical answers about approved
                 # drugs -- worse than the problem it solves. Rules that are unsafe whatever
                 # the subject (a cure claim, absolute certainty, zero risk) always block.
-                if blocking and _os.getenv("HCLS_HONESTY_ENFORCE", "1") != "0":
+                if (blocking or refuted) and _os.getenv("HCLS_HONESTY_ENFORCE", "1") != "0":
+                    reasons = [f.get("message", "") for f in blocking]
+                    reasons += [f"Claim contradicted by the cited evidence: "
+                                f"{r.get('claim', '')[:140]} — {r.get('why', '')[:140]}"
+                                for r in refuted]
                     payload[key] = (
                         "**Withheld by the output-honesty gate.**\n\n"
-                        + "\n".join(f"- {f.get('message', '')}" for f in blocking)
+                        + "\n".join(f"- {m}" for m in reasons)
                         + "\n\nThe generated text made a claim this platform must not publish. "
                           "The retrieved evidence is unchanged and still returned; only the "
                           "generated prose was withheld. Set HCLS_HONESTY_ENFORCE=0 to receive "

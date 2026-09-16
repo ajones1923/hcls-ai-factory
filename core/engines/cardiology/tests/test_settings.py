@@ -176,7 +176,7 @@ class TestLLMConfig(unittest.TestCase):
 
     def test_llm_model(self):
         settings = CardioSettings()
-        self.assertEqual(settings.LLM_MODEL, "claude-sonnet-4-6")
+        self.assertEqual(settings.LLM_MODEL, "claude-sonnet-5")
 
     def test_llm_provider(self):
         settings = CardioSettings()

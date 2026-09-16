@@ -358,7 +358,7 @@ class MetricsCollector:
         """Record metrics for an LLM API call.
 
         Args:
-            model: Model identifier (e.g. ``"claude-sonnet-4-6"``).
+            model: Model identifier (e.g. ``"claude-sonnet-5"``).
             duration: Call latency in seconds.
             input_tokens: Number of input tokens.
             output_tokens: Number of output tokens.

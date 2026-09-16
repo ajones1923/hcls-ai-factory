@@ -159,7 +159,7 @@ The agent follows the **Plan-Search-Evaluate-Synthesize-Report** pattern:
 | UI framework | Streamlit | 1.33.0 |
 | Vector database | Milvus | 2.4 |
 | Embedding model | BGE-small-en-v1.5 | 384-dim |
-| LLM | Claude Sonnet (Anthropic) | claude-sonnet-4-6 |
+| LLM | Claude Sonnet (Anthropic) | claude-sonnet-5 |
 | Containerization | Docker | Multi-stage |
 | Orchestration | Docker Compose | 3.8 |
 | Validation | Pydantic | 2.7.4 |

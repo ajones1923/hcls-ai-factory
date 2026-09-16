@@ -1175,7 +1175,7 @@ All settings use the `CART_` prefix for environment variable override (via Pydan
 | `CART_MILVUS_PORT` | 19530 | Milvus gRPC port |
 | `CART_EMBEDDING_MODEL` | BAAI/bge-small-en-v1.5 | Embedding model identifier |
 | `CART_EMBEDDING_DIMENSION` | 384 | Vector dimension |
-| `CART_LLM_MODEL` | claude-sonnet-4-6 | Claude model identifier |
+| `CART_LLM_MODEL` | claude-sonnet-5 | Claude model identifier |
 | `CART_TOP_K_PER_COLLECTION` | 5 | Max results per collection per query |
 | `CART_SCORE_THRESHOLD` | 0.4 | Minimum cosine similarity threshold |
 | `CART_WEIGHT_LITERATURE` | 0.20 | Literature collection weight |

@@ -141,7 +141,7 @@ _NEMO_CONFIG_YAML = """\
 models:
   - type: main
     engine: anthropic
-    model: claude-sonnet-4-20250514
+    model: claude-sonnet-5
 
 instructions:
   - type: general

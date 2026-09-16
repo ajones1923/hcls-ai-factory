@@ -101,7 +101,7 @@ class TestHelperFunctions:
         metrics.update_collection_sizes({"pgx_drug_guidelines": 100})
 
     def test_record_llm_call(self):
-        metrics.record_llm_call("anthropic", "claude-sonnet-4-6", 1.5, 500, 200)
+        metrics.record_llm_call("anthropic", "claude-sonnet-5", 1.5, 500, 200)
 
     def test_record_embedding(self):
         metrics.record_embedding(0.05)

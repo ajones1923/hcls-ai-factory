@@ -248,7 +248,7 @@ RD_API_KEY=your-api-key-here
 RD_EMBEDDING_MODEL=BAAI/bge-small-en-v1.5
 
 # LLM model
-RD_LLM_MODEL=claude-sonnet-4-6
+RD_LLM_MODEL=claude-sonnet-5
 ```
 
 ### 5.3 Run Tests
@@ -361,7 +361,7 @@ curl http://localhost:8134/health
 | RD_EMBEDDING_DIMENSION | 384 | Embedding dimension |
 | RD_EMBEDDING_BATCH_SIZE | 32 | Embedding batch size |
 | RD_LLM_PROVIDER | anthropic | LLM provider |
-| RD_LLM_MODEL | claude-sonnet-4-6 | LLM model |
+| RD_LLM_MODEL | claude-sonnet-5 | LLM model |
 | RD_SCORE_THRESHOLD | 0.4 | Minimum similarity score |
 | RD_API_KEY | (empty) | API authentication key |
 | RD_CORS_ORIGINS | localhost:8080,8134,8544 | CORS allowed origins |

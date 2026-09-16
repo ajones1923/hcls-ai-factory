@@ -305,7 +305,7 @@ def record_llm_call(
 
     Args:
         provider: LLM provider (e.g. ``"anthropic"``, ``"openai"``).
-        model: Model identifier (e.g. ``"claude-sonnet-4-20250514"``).
+        model: Model identifier (e.g. ``"claude-sonnet-5"``).
         latency: Call latency in **seconds**.
         estimated_cost: Estimated cost in USD (default 0).
     """

@@ -49,7 +49,7 @@ class SingleCellSettings(BaseSettings):
 
     # ── LLM ──
     LLM_PROVIDER: str = "anthropic"
-    LLM_MODEL: str = "claude-sonnet-4-6"
+    LLM_MODEL: str = "claude-sonnet-5"
     ANTHROPIC_API_KEY: Optional[str] = None
 
     # ── RAG Search ──

@@ -177,7 +177,7 @@ def sample_settings():
             TOP_K=5,
             SCORE_THRESHOLD=0.4,
             LLM_PROVIDER="anthropic",
-            LLM_MODEL="claude-sonnet-4-20250514",
+            LLM_MODEL="claude-sonnet-5",
         )
     except Exception:
         # Fallback: return a MagicMock with the expected attributes
@@ -188,7 +188,7 @@ def sample_settings():
         s.TOP_K = 5
         s.SCORE_THRESHOLD = 0.4
         s.LLM_PROVIDER = "anthropic"
-        s.LLM_MODEL = "claude-sonnet-4-20250514"
+        s.LLM_MODEL = "claude-sonnet-5"
         s.COLLECTION_LITERATURE = "onco_literature"
         s.COLLECTION_TRIALS = "onco_trials"
         s.COLLECTION_VARIANTS = "onco_variants"

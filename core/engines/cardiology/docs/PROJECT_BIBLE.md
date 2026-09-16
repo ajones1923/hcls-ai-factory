@@ -81,7 +81,7 @@ The Cardiology Intelligence Agent is built as part of the HCLS AI Factory Precis
 | Enums | 16 |
 | Pydantic models | 13 |
 | Dataclasses | 1 (SearchPlan) |
-| LLM | Claude Sonnet 4.6 (claude-sonnet-4-6) |
+| LLM | Claude Sonnet 4.6 (claude-sonnet-5) |
 | Embedding model | BGE-small-en-v1.5 (384-dim) |
 
 ---
@@ -750,7 +750,7 @@ All configuration via `config/settings.py` (181 lines) using Pydantic BaseSettin
 | **Paths** | PROJECT_ROOT, DATA_DIR, CACHE_DIR, REFERENCE_DIR, RAG_PIPELINE_ROOT |
 | **Milvus** | MILVUS_HOST (localhost), MILVUS_PORT (19530), 13 collection names |
 | **Embeddings** | EMBEDDING_MODEL (BGE-small-en-v1.5), EMBEDDING_DIMENSION (384), EMBEDDING_BATCH_SIZE (32) |
-| **LLM** | LLM_PROVIDER (anthropic), LLM_MODEL (claude-sonnet-4-6), ANTHROPIC_API_KEY |
+| **LLM** | LLM_PROVIDER (anthropic), LLM_MODEL (claude-sonnet-5), ANTHROPIC_API_KEY |
 | **RAG Search** | TOP_K_PER_COLLECTION (5), SCORE_THRESHOLD (0.4), 13 collection weights |
 | **PubMed** | NCBI_API_KEY, PUBMED_MAX_RESULTS (5000) |
 | **API Server** | API_HOST (0.0.0.0), API_PORT (8126) |

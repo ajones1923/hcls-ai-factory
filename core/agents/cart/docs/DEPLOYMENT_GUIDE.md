@@ -293,7 +293,7 @@ environment variables prefixed with `CART_`.
 | Variable | Type | Default | Env Override |
 |----------|------|---------|-------------|
 | `LLM_PROVIDER` | str | `anthropic` | `CART_LLM_PROVIDER` |
-| `LLM_MODEL` | str | `claude-sonnet-4-6` | `CART_LLM_MODEL` |
+| `LLM_MODEL` | str | `claude-sonnet-5` | `CART_LLM_MODEL` |
 | `ANTHROPIC_API_KEY` | str | `None` | `CART_ANTHROPIC_API_KEY` |
 
 ### 5.6 RAG Search Settings
@@ -656,7 +656,7 @@ docker compose logs cart-api | grep -i "model"
 docker compose exec cart-api env | grep ANTHROPIC
 # Verify key is valid
 curl -H "x-api-key: $ANTHROPIC_API_KEY" https://api.anthropic.com/v1/messages \
-  -d '{"model":"claude-sonnet-4-6","max_tokens":10,"messages":[{"role":"user","content":"hi"}]}'
+  -d '{"model":"claude-sonnet-5","max_tokens":10,"messages":[{"role":"user","content":"hi"}]}'
 ```
 
 **Empty search results:**
@@ -908,7 +908,7 @@ All variables use the `CART_` prefix for Pydantic settings injection.
 | `CART_MILVUS_PORT` | No | `19530` | Milvus server port |
 | `CART_API_PORT` | No | `8522` | FastAPI server port |
 | `CART_STREAMLIT_PORT` | No | `8521` | Streamlit UI port |
-| `CART_LLM_MODEL` | No | `claude-sonnet-4-6` | Claude model ID |
+| `CART_LLM_MODEL` | No | `claude-sonnet-5` | Claude model ID |
 | `CART_EMBEDDING_MODEL` | No | `BAAI/bge-small-en-v1.5` | Sentence embedding model |
 | `CART_TOP_K_PER_COLLECTION` | No | `5` | Results per collection |
 | `CART_SCORE_THRESHOLD` | No | `0.4` | Minimum similarity score |

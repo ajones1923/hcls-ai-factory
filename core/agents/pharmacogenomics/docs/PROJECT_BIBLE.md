@@ -81,7 +81,7 @@ The Pharmacogenomics Intelligence Agent is built as part of the HCLS AI Factory,
 | Dosing algorithms | 9 genotype-guided |
 | Clinical workflows | 8 |
 | Test suite | 1,001 tests, all passing in 0.48s |
-| LLM | Claude Sonnet 4.6 (claude-sonnet-4-6) |
+| LLM | Claude Sonnet 4.6 (claude-sonnet-5) |
 | Embedding model | BGE-small-en-v1.5 (384-dim) |
 
 ---
@@ -663,7 +663,7 @@ Pydantic BaseSettings with `PGX_` environment variable prefix. Key settings:
 |---------|---------|-------------|
 | `MILVUS_HOST` | localhost | Milvus server host |
 | `MILVUS_PORT` | 19530 | Milvus server port |
-| `LLM_MODEL` | claude-sonnet-4-6 | LLM model ID |
+| `LLM_MODEL` | claude-sonnet-5 | LLM model ID |
 | `EMBEDDING_MODEL` | BAAI/bge-small-en-v1.5 | Embedding model |
 | `EMBEDDING_DIMENSION` | 384 | Embedding vector dimension |
 | `TOP_K_PER_COLLECTION` | 5 | Results per collection |

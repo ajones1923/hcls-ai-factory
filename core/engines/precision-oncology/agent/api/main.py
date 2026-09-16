@@ -97,7 +97,7 @@ async def lifespan(app: FastAPI):
         class _OncoLLMClient:
             def __init__(self):
                 self._client = anthropic.Anthropic()
-                self._model = getattr(settings, 'LLM_MODEL', 'claude-sonnet-4-20250514')
+                self._model = getattr(settings, 'LLM_MODEL', 'claude-sonnet-5')
 
             def chat(self, messages):
                 system = ""

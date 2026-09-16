@@ -59,7 +59,7 @@ class AnthropicClient(BaseLLMClient):
     def __init__(
         self,
         api_key: Optional[str] = None,
-        model: str = "claude-sonnet-4-20250514",
+        model: str = "claude-sonnet-5",
     ):
         try:
             import anthropic
@@ -354,7 +354,7 @@ class LLMClient:
         if provider == "anthropic":
             return AnthropicClient(
                 api_key=api_key,
-                model=model or "claude-sonnet-4-20250514",
+                model=model or "claude-sonnet-5",
             )
         elif provider == "openai":
             return OpenAIClient(

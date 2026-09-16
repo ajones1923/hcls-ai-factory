@@ -214,7 +214,7 @@ All configuration is via environment variables with `SC_` prefix:
 | `SC_API_PORT` | 8540 | FastAPI server port |
 | `SC_STREAMLIT_PORT` | 8130 | Streamlit UI port |
 | `SC_EMBEDDING_MODEL` | BAAI/bge-small-en-v1.5 | Sentence-transformer model |
-| `SC_LLM_MODEL` | claude-sonnet-4-6 | Anthropic model name |
+| `SC_LLM_MODEL` | claude-sonnet-5 | Anthropic model name |
 | `SC_SCORE_THRESHOLD` | 0.4 | Minimum search similarity |
 | `SC_API_KEY` | (empty) | API authentication key |
 | `SC_MAX_REQUEST_SIZE_MB` | 10 | Max request body size |
