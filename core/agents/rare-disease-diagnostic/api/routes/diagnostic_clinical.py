@@ -766,8 +766,14 @@ async def phenotype_match(request: PhenotypeMatchRequest, req: Request):
             context = "\n\n".join(
                 _as_row(r).get("content", _as_row(r).get("text", "")) for r in results
             )
-        except Exception:
-            pass
+        except Exception as exc:
+            # Swallowing this left `context` empty and the endpoint carried on, returning
+            # therapy options with NO retrieved evidence behind them and no sign that anything
+            # had failed. Retrieval may legitimately be unavailable, so this still degrades
+            # rather than raising — but it says so.
+            logger.warning(
+                "Therapy-search retrieval failed (%s: %s); continuing WITHOUT retrieved "
+                "context — the response is model knowledge only.", type(exc).__name__, exc)
 
     matches: List[DiseaseMatch] = []
 
