@@ -12,13 +12,13 @@ short names; the number is the file prefix): `01` summary/executive one-pager ·
 (mTOR) · `03` problem_solution · `04` engine7_hero · `05` engine7_portrait · `06`
 engine7_landscape · `07` architecture_ai_tiering · `08` patient_journey · `09` mosaic_recovery ·
 `10` omniverse_four_scenes · `11` omniverse_pipeline · `12` omniverse_hero · `13`
-validation_scorecard · `14` trust_layer · `15` engine7_demo_flow · `16` cincinnati_roadmap ·
+validation_scorecard · `14` trust_layer · `15` engine7_demo_flow · `16` institutional_roadmap ·
 `17` generalization · `18` small_cheap_open.
 
 **Handout docs** (`../`): `TSC_DEMO_RUNBOOK`, `TSC_ENGINE_LEARN_GUIDE` (8–9th grade),
 `TSC_ENGINE_LEARN_GUIDE_ADVANCED` (12th), `TSC_ENGINE_OMNIVERSE_VISUALS_GUIDE`,
 `TSC_INTELLIGENCE_ENGINE_RESEARCH_PAPER` / `_PRD`, `TSC_DIGITAL_TWIN_RESEARCH_PAPER` / `_PRD`,
-`TSC_INTELLIGENCE_ENGINE_PEDIATRIC_IMPACT`, `TSC_INTELLIGENCE_ENGINE_CCHMC_HANDOVER`.
+`TSC_INTELLIGENCE_ENGINE_PEDIATRIC_IMPACT`, `TSC_INTELLIGENCE_ENGINE_the host institution_HANDOVER`.
 
 ## Universal rules (apply to every recipe)
 
@@ -31,7 +31,7 @@ validation_scorecard · `14` trust_layer · `15` engine7_demo_flow · `16` cinci
 
 ---
 
-## Recipe 1 — Cincinnati Children's / Dr. Hagedorn (the meeting that matters)
+## Recipe 1 — the host institution / the CHIO (the meeting that matters)
 
 *Goal: earn the retrospective biobank study. Audience: a CHIO + TSC clinicians. Tone: clinical-first,
 humble, "let's test it on your specimens" — not a vendor pitch.*
@@ -44,10 +44,10 @@ humble, "let's test it on your specimens" — not a vendor pitch.*
    substance.
 5. **`validation_scorecard`** — the numbers *and* the honest "construct validity, not clinical validity"
    caveat. A CHIO trusts the caveat more than the numbers.
-6. **`cincinnati_roadmap`** — close on the ask: the retrospective NMI study on already-banked tissue, with
+6. **`institutional_roadmap`** — close on the ask: the retrospective NMI study on already-banked tissue, with
    the five touchpoints and the biobank starred.
 
-**Leave behind:** `CCHMC_HANDOVER` + `PEDIATRIC_IMPACT` + `LEARN_GUIDE_ADVANCED`.
+**Leave behind:** `the host institution_HANDOVER` + `PEDIATRIC_IMPACT` + `LEARN_GUIDE_ADVANCED`.
 **Lead number:** *"6 of 6 mosaics recovered — diagnoses your blood tests would have missed."*
 **Avoid:** opening with Omniverse flash; any hint of overclaiming clinical validity.
 
@@ -62,7 +62,7 @@ humble, "let's test it on your specimens" — not a vendor pitch.*
 3. **`validation_scorecard`** — it works, and we measure it (credible = sales-ready).
 4. **`omniverse_hero`** *(or `omniverse_four_scenes`)* — the differentiated wow: Omniverse precision-
    medicine visuals authored on a Spark, rendered on RunPod (a natural NVIDIA + the platform story).
-5. **`cincinnati_roadmap`** — named-institution traction (a CHIO engagement) = the GTM proof point.
+5. **`institutional_roadmap`** — named-institution traction (a CHIO engagement) = the GTM proof point.
 
 **Talking point to add (no infographic needed):** *small, cheap, open, and reusable* — one $4,699 Spark,
 Apache 2.0, and the "swap the box labels" generalization to NF1/NF2/Rett. That is the platform thesis.
@@ -97,7 +97,7 @@ Apache 2.0, and the "swap the box labels" generalization to NF1/NF2/Rett. That i
 3. **`omniverse_four_scenes`** — families respond to *seeing* it; the body atlas and the glowing cells land.
 4. **`validation_scorecard`** — be honest that it is not yet tested on real patients. Families deserve, and
    respect, that candor.
-5. **`cincinnati_roadmap`** — "here is how it could reach a child like yours."
+5. **`institutional_roadmap`** — "here is how it could reach a child like yours."
 
 **Leave behind:** `LEARN_GUIDE` (8–9th grade) + `PEDIATRIC_IMPACT`.
 **Lead with:** the diagnostic-odyssey hope. **Avoid:** jargon and any promise of a cure or a timeline.
@@ -113,7 +113,7 @@ Apache 2.0, and the "swap the box labels" generalization to NF1/NF2/Rett. That i
 3. **`mosaic_recovery`** — the central hypothesis (mosaic recovery from tissue).
 4. **`validation_scorecard`** — the methods and the construct-vs-clinical-validity distinction — this
    audience cares most about exactly this.
-5. **`cincinnati_roadmap`** — the proposed prospective study and the collaboration.
+5. **`institutional_roadmap`** — the proposed prospective study and the collaboration.
 
 **Leave behind:** `RESEARCH_PAPER` + `LEARN_GUIDE_ADVANCED`.
 **Lead with:** the methodology and the honest validation framing.
@@ -124,7 +124,7 @@ Apache 2.0, and the "swap the box labels" generalization to NF1/NF2/Rett. That i
 
 *One image, one document.*
 
-- **For a clinician:** `mosaic_recovery` (image) + `CCHMC_HANDOVER` (doc).
+- **For a clinician:** `mosaic_recovery` (image) + `the host institution_HANDOVER` (doc).
 - **For an exec:** `engine7_hero` (image) + `DEMO_RUNBOOK` (doc).
 - **For anyone curious:** `engine7_portrait` (image) + `LEARN_GUIDE` (doc).
 
@@ -134,10 +134,10 @@ Apache 2.0, and the "swap the box labels" generalization to NF1/NF2/Rett. That i
 
 | Audience | Open with | Close with | Lead number |
 | --- | --- | --- | --- |
-| Cincinnati / Hagedorn | `03` problem_solution | `16` cincinnati_roadmap | 6/6 mosaics recovered |
-| the platform execs | `04` engine7_hero | `16` cincinnati_roadmap | named CHIO + $4,699 box |
+| the host institution / the CHIO | `03` problem_solution | `16` institutional_roadmap | 6/6 mosaics recovered |
+| the platform execs | `04` engine7_hero | `16` institutional_roadmap | named CHIO + $4,699 box |
 | Keynote | `04` engine7_hero | `15` engine7_demo_flow | the live twin scrub |
-| Families | `03` problem_solution | `16` cincinnati_roadmap | ending the odyssey |
+| Families | `03` problem_solution | `16` institutional_roadmap | ending the odyssey |
 | Researchers | `03` problem_solution | `13` validation_scorecard | the validation method |
 
 *Across every recipe: lead with the pain, show the work, prove it with measured numbers, say the honest

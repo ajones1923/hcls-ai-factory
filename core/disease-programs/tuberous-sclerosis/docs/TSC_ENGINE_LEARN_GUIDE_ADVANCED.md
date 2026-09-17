@@ -347,7 +347,7 @@ gently, and never as an alarm.
 
 **Discourse-marker detection.** Concerns about behavior, mood, attention, and learning often appear first
 as *hedged, tentative* language. The agent uses a **diagnostic-uncertainty discourse-marker taxonomy** —
-a method developed by researchers at Cincinnati Children's (the **Marshall-Hagedorn** approach) — to
+a method developed by researchers at the host institution (the **Marshall-Hagedorn** approach) — to
 detect exactly those markers (hedging, deferral, third-party attribution, conditional language) across the
 six recognized **TAND clusters**: behavioral, psychiatric, intellectual, academic, neuropsychological, and
 psychosocial.
@@ -518,7 +518,7 @@ cohort, plus the Omniverse 3-D twins rendered via RunPod. This is the version th
 engagement.
 
 **Phase 2 — the institution.** A real deployment connects to a hospital's components. For a beachhead at
-**Cincinnati Children's**, five touchpoints map cleanly onto the engine: the **Discover Together Biobank**
+**the host institution**, five touchpoints map cleanly onto the engine: the **Discover Together Biobank**
 (banked surgical tissue — the substrate that feeds the Variant Curator and the highest-leverage piece);
 the research infrastructure that houses it; the **Division of Biomedical Informatics** (the methodological
 and sponsorship home, and the source of the TAND discourse methodology); the **TSC clinical program** (the

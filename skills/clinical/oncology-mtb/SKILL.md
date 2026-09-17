@@ -65,7 +65,7 @@ emerge.
 
 **Pediatric MTBs lean on RNA fusion detection** (**Arriba / STAR-Fusion over RNA-seq**) to catch the
 fusion drivers above; robust RNA-fusion calling is a **recommended near-term registry addition**, not
-yet a fully wired live capability. Flag it plainly so a **St. Jude / Cincinnati Children's** demo of
+yet a fully wired live capability. Flag it plainly so a **St. Jude / the host institution** demo of
 D4 is airtight rather than overclaimed — this is exactly the item carried in the
 `demo-foundation-alignment` honesty ledger. Do not present fusion coverage as complete until that
 capability is registered, verified, and live.

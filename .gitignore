@@ -161,3 +161,6 @@ build.py
 # Basic-auth hash for the Streamlit UIs — see caddy/ui-auth.conf.example
 caddy/ui-auth.conf
 .caddy-ui-password
+
+# Institution-specific pitch material — kept locally, not published (see audit 2026-09-16)
+core/disease-programs/tuberous-sclerosis/docs/infographics/16_institution_variant.md

@@ -1,7 +1,9 @@
 """
 The Marshall-Hagedorn diagnostic-uncertainty discourse-marker taxonomy and the six
 TAND clusters (PRD §3 FR-TS-3; master paper §11). Versioned configuration — a direct
-extension of Dr. Hagedorn's published clinical-NLP methodology to TSC neuropsychiatry.
+extension of published clinical-NLP work on diagnostic-uncertainty discourse
+(Marshall, Nickels, Brady, Hagedorn 2023) to TSC neuropsychiatry. The citation is stated
+here because the comment previously asserted a published method without pointing at it.
 
 The marker patterns are deliberately conservative substrings; the LLM (Sonnet) layer
 adds nuance over these when keyed. This taxonomy is the versioned artifact a future

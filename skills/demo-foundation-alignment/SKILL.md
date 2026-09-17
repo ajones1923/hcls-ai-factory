@@ -97,7 +97,7 @@ When you plan, add, or modify any capability, answer all of these before it is "
 - α-synuclein SAA, plasma p-tau217, NSD-ISS / SynNeurGe staging: **research- / trial-use biomarker
   inputs and frameworks the agents reason over — not routine clinical diagnostics.**
 - Pediatric RNA fusion detection (Arriba / STAR-Fusion): **recommended near-term registry
-  addition** to make the pediatric MTB (D4) fully airtight for a St. Jude / Cincinnati audience.
+  addition** to make the pediatric MTB (D4) fully airtight for a St. Jude / the host institution audience.
 - "One box, elastic burst": heavy / ARM-incompatible models (Chai-1/2, RFdiffusion, Evo 2) burst
   to RunPod over a private Tailscale mesh — **say "elastic burst," never imply everything runs
   locally.**

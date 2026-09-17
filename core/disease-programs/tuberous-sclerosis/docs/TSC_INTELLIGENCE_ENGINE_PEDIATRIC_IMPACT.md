@@ -49,7 +49,7 @@ This is the layer that changes the number's character, and it is the part that m
 
 ### Open-source removes the gatekeeping
 
-A commercial product reaches the patients of paying customers. An open engine reaches **the patients of every center that chooses to run it** — Cincinnati Children's, TGen, City of Hope, a TSC program at any academic medical center, and, because it runs on a single desktop-class NVIDIA DGX Spark with elastic burst compute, potentially centers in lower-resourced health systems that could never license enterprise clinical AI. The addressable population is not a customer base; it is the TSC population that any adopting center serves, at no licensing cost and with no vendor lock-in.
+A commercial product reaches the patients of paying customers. An open engine reaches **the patients of every center that chooses to run it** — the host institution, TGen, City of Hope, a TSC program at any academic medical center, and, because it runs on a single desktop-class NVIDIA DGX Spark with elastic burst compute, potentially centers in lower-resourced health systems that could never license enterprise clinical AI. The addressable population is not a customer base; it is the TSC population that any adopting center serves, at no licensing cost and with no vendor lock-in.
 
 ### Replication turns one disease into a class
 

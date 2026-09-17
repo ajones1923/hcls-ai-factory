@@ -222,7 +222,7 @@ notes, and gently surface them.
 **How it works, plainly.** People write about worries in soft, hedging language: *"seems a bit
 distracted,"* *"mom reports some trouble,"* *"will reassess next visit."* This agent is trained to
 notice exactly those **discourse markers** — the little uncertainty phrases — using a method developed
-by researchers at Cincinnati Children's (the **Marshall-Hagedorn** approach). It then scores how
+by researchers at the host institution (the **Marshall-Hagedorn** approach). It then scores how
 strong and how repeated the pattern is across many notes.
 
 Two safety rules make it trustworthy and calm:
@@ -391,7 +391,7 @@ Right now, everything runs on synthetic (made-up) data. The single most importan
 test the engine on **real tissue** — and there is a smart, low-risk way to start.
 
 Many hospitals keep a **biobank**: a carefully stored, consent-approved collection of tissue samples
-from past surgeries. Cincinnati Children's has one called the **Discover Together Biobank**. The
+from past surgeries. The host institution has one called the **Discover Together Biobank**. The
 proposed first real study is a **retrospective "no-mutation-identified" re-analysis**: take patients
 who were told years ago that their blood test found nothing, and run the Variant Curator on their
 *already-stored* tissue. If it recovers diagnoses that were missed, that is a real, publishable

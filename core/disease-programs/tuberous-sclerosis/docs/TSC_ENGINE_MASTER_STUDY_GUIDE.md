@@ -41,7 +41,7 @@ software, statistics, visualization, validation, and strategy.
 | 7 | The 3-D digital twin (Omniverse) | `10` four_scenes, `11` pipeline | OMNIVERSE_VISUALS_GUIDE |
 | 8 | Trust: how we know it works | `13` validation_scorecard + `14` trust_layer | LEARN_GUIDE_ADVANCED, Part 11 |
 | 9 | The live demo, end to end | `15` engine7_demo_flow | TSC_DEMO_RUNBOOK |
-| 10 | Strategy & the road ahead | `16` cincinnati_roadmap + `17` generalization + `18` small_cheap_open | CCHMC_HANDOVER; LEARN_GUIDE_ADVANCED, Parts 13–14 |
+| 10 | Strategy & the road ahead | `16` institutional_roadmap + `17` generalization + `18` small_cheap_open | the host institution_HANDOVER; LEARN_GUIDE_ADVANCED, Parts 13–14 |
 | 11 | Synthesis & mastery check | `08` patient_journey, `01` executive one-pager (+ all) | — |
 
 ---
@@ -335,20 +335,20 @@ guiding line: *lead with the tissue, show the glass, tell the truth.*
 
 ## Module 10 — Strategy and the road ahead
 
-**🎯 Objective.** Understand the two-phase plan, the Cincinnati touchpoints, and why the biobank is the
+**🎯 Objective.** Understand the two-phase plan, the host institution touchpoints, and why the biobank is the
 wedge.
 
-**📊 Look — `story_cincinnati_roadmap`, then `story_generalization` and `story_small_cheap_open`.** The
-roadmap shows the Cincinnati path (Phase 1 → bridge study → Phase 2's five touchpoints, biobank starred).
+**📊 Look — `story_institutional_roadmap`, then `story_generalization` and `story_small_cheap_open`.** The
+roadmap shows the host institution path (Phase 1 → bridge study → Phase 2's five touchpoints, biobank starred).
 The generalization poster shows the *reusable-engine* thesis (TSC today → NF1/NF2/Rett/Williams tomorrow,
 "swap the box labels"); the small/cheap/open poster shows the *positioning* thesis (one ~$4,699 Spark +
 RunPod, Apache 2.0, vs. closed hyperscale).
 
 **📖 Read.** **Phase 1** is the complete synthetic demo on the Spark (+ RunPod render) — the version that
-earns the meeting. **Phase 2** connects to a real institution. For Cincinnati Children's, five touchpoints
+earns the meeting. **Phase 2** connects to a real institution. For the host institution, five touchpoints
 map onto the engine: the **Discover Together Biobank** (banked tissue — the substrate, and the
-highest-leverage piece), the **Winslow Pavilion** (infrastructure), the **Division of Biomedical
-Informatics / Dr. Hagedorn** (methodology + sponsor), the **TSC clinic** (patients), and **Epic + the
+highest-leverage piece), the **the research pavilion** (infrastructure), the **Division of Biomedical
+Informatics / the CHIO** (methodology + sponsor), the **TSC clinic** (patients), and **Epic + the
 LIMS** (data plumbing). The smart first real study is a **retrospective "no-mutation-identified"
 re-analysis**: run the Variant Curator on *already-banked, already-consented* tissue from patients told
 years ago that nothing was found. If it recovers missed diagnoses, that is a concrete, publishable result —
@@ -364,7 +364,7 @@ generalization.
 - Why is a *retrospective* study the smart first step?
 - What turns this from "a demo" into "a result"?
 
-**📚 Go deeper.** `TSC_INTELLIGENCE_ENGINE_CCHMC_HANDOVER`; `LEARN_GUIDE_ADVANCED`, Parts 13–14.
+**📚 Go deeper.** `TSC_INTELLIGENCE_ENGINE_the host institution_HANDOVER`; `LEARN_GUIDE_ADVANCED`, Parts 13–14.
 
 ---
 
@@ -399,7 +399,7 @@ whose wedge is a tissue biobank.
 
 **Teach it to lock it in.** The fastest way to confirm 100% understanding is to teach it. Use the
 `STORYBOARD.md` recipes: pick an audience, choose the infographics in order, and narrate each from memory.
-If you can run the "Cincinnati / Hagedorn" recipe out loud, you understand the system.
+If you can run the "the host institution / the CHIO" recipe out loud, you understand the system.
 
 ---
 
@@ -412,7 +412,7 @@ ordered index and `STORYBOARD.md` for the audience deck-recipes.
 **Documents** (`docs/`): this guide; `TSC_ENGINE_LEARN_GUIDE` (8–9th grade) and `_ADVANCED` (12th);
 `TSC_ENGINE_OMNIVERSE_VISUALS_GUIDE`; `TSC_DEMO_RUNBOOK`; `TSC_INTELLIGENCE_ENGINE_RESEARCH_PAPER` / `_PRD`;
 `TSC_DIGITAL_TWIN_RESEARCH_PAPER` / `_PRD`; `TSC_INTELLIGENCE_ENGINE_PEDIATRIC_IMPACT`;
-`TSC_INTELLIGENCE_ENGINE_CCHMC_HANDOVER`.
+`TSC_INTELLIGENCE_ENGINE_the host institution_HANDOVER`.
 
 *SYNTHETIC demonstration data throughout · decision support, clinician review required · not FDA-cleared ·
 Apache 2.0 · Engine 7 of the HCLS AI Factory.*

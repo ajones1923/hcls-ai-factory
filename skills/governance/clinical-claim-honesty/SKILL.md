@@ -52,7 +52,7 @@ Carry these forward verbatim in intent; do not soften a label upward:
 - **α-synuclein SAA, plasma p-tau217, NSD-ISS / SynNeurGe staging: research- / trial-use biomarker
   inputs and frameworks the agents reason over — not routine clinical diagnostics.**
 - **Pediatric RNA fusion detection (Arriba / STAR-Fusion): recommended near-term addition** to make
-  the pediatric molecular tumor board airtight for a St. Jude / Cincinnati audience.
+  the pediatric molecular tumor board airtight for a St. Jude / the host institution audience.
 - **All clinical outputs: decision support only** — never autonomous diagnosis or prescribing.
 
 ## Where this applies (there is no exempt surface)
