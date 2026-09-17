@@ -1,3 +1,7 @@
+# Copyright 2026 Adam Jones
+# SPDX-License-Identifier: Apache-2.0
+# Part of the HCLS AI Factory — https://github.com/ajones1923/hcls-ai-factory
+# Licensed under the Apache License, Version 2.0. See LICENSE and NOTICE.
 """One Milvus similarity search for the RAG engines.
 
 Five subjects carried `_search_collection` — 88 lines each, identical in every line of code and

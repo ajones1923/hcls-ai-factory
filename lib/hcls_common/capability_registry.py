@@ -1,3 +1,7 @@
+# Copyright 2026 Adam Jones
+# SPDX-License-Identifier: Apache-2.0
+# Part of the HCLS AI Factory — https://github.com/ajones1923/hcls-ai-factory
+# Licensed under the Apache License, Version 2.0. See LICENSE and NOTICE.
 """
 Capability Registry — the single source of truth for everything the HCLS AI Factory
 can do (engines, agents, accelerated inference services, pipeline stages, platform

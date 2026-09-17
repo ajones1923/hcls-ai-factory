@@ -1,0 +1,43 @@
+HCLS AI Factory
+Copyright 2026 Adam Jones
+
+This product includes software developed by Adam Jones
+(https://github.com/ajones1923/hcls-ai-factory · https://hcls-ai-factory.org).
+
+Licensed under the Apache License, Version 2.0. Under section 4(d) of that
+licence, any redistribution of this work or of derivative works — in source or
+object form, modified or unmodified — must include a readable copy of the
+attribution notices contained in this file.
+
+ORIGIN AND PROVENANCE
+
+  Project inception      15 January 2026
+  First public commit    20 January 2026
+  Public repository      github.com/ajones1923/hcls-ai-factory (public since inception)
+  Tagged releases        v1.0.0 … v2.0.0
+  Citation metadata      CITATION.cff (CFF 1.2.0)
+
+The complete authorship history is the public commit record of that repository.
+
+WHAT THIS COVERS
+
+  The eight compute engines, the eight clinical intelligence agents, the
+  Tuberous Sclerosis disease program, and the shared platform layer in
+  lib/hcls_common — the capability registry, the assistant tool-surface, the
+  workflow composer, the single-box MLOps layer, and the governance gates,
+  including the clinical-overclaim honesty gate.
+
+THIRD-PARTY SOFTWARE AND DATA
+
+  This work builds on third-party open-source software under its own licences,
+  and it READS third-party datasets that are NOT redistributed here and carry
+  their own terms — several of them non-commercial. See DATA_LICENSES.md before
+  any commercial deployment.
+
+IF YOU BUILD ON THIS
+
+  You are welcome to. That is the point of the licence. Retain this file, keep
+  the copyright notice, and state what you changed — that is all section 4 asks,
+  and it is the difference between building on the work and claiming it.
+
+  Please cite it: see CITATION.cff, or the "How to cite" section of README.md.
