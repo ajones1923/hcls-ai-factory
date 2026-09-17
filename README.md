@@ -78,7 +78,11 @@ shared vector database.
 | 8080 | Landing dashboard | | 8573 | Single-cell compute |
 | 19530 | Vector DB (Milvus) | | 8574 | Molecule generation |
 | 3000 | Grafana · 9099 Prometheus | | 8575 | Variant store |
-| | (agents 8521–8544) | | 8576 | Protein developability + design *(planned)* |
+| | (agents 8126–8545) | | 8576 | Protein developability + design *(planned)* |
+
+> **UIs are loopback-only.** The Streamlit interfaces bind to `127.0.0.1`; LAN access goes
+> through Caddy with basic auth on 8721–8725. The agent APIs are unchanged and require
+> `X-API-Key`. See `.env.example`.
 
 ## Quickstart
 
