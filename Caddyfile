@@ -28,6 +28,53 @@
 	reverse_proxy localhost:8560
 }
 
+# ── Streamlit UIs — authenticated LAN access (SEC, 2026-09-16) ───────────────
+# These five UIs answered HTTP 200 from the LAN with no credential, and two of them
+# (biomarker :8528, rag-chat :8501) import the RAG engine and the Anthropic client
+# IN-PROCESS — so the X-API-Key gate on the agent APIs protected them not at all.
+# Anyone on the network could generate clinical prose billed to the platform's key.
+#
+# The fix has two halves and needs both:
+#   1. the supervisor now binds every Streamlit UI to 127.0.0.1, so the port is not
+#      reachable from the network at all;
+#   2. these blocks put LAN access back, behind TLS and basic auth.
+#
+# Credentials live in caddy/ui-auth.conf — gitignored, mode 600, because a bcrypt hash
+# in a public repo is an offline-cracking target. See caddy/ui-auth.conf.example.
+# Streamlit needs websockets; Caddy's reverse_proxy upgrades them without extra config.
+# Ports come from the free 8721-8799 range: :8443 is already held by another project
+# on this box, and the first attempt at these blocks failed to load because of it.
+
+192.168.68.107:8721, localhost:8721 {
+	tls internal
+	import caddy/ui-auth.conf
+	reverse_proxy localhost:8501 # RAG Chat UI
+}
+
+192.168.68.107:8722, localhost:8722 {
+	tls internal
+	import caddy/ui-auth.conf
+	reverse_proxy localhost:8505 # Drug Discovery UI
+}
+
+192.168.68.107:8723, localhost:8723 {
+	tls internal
+	import caddy/ui-auth.conf
+	reverse_proxy localhost:8510 # Discovery Portal
+}
+
+192.168.68.107:8724, localhost:8724 {
+	tls internal
+	import caddy/ui-auth.conf
+	reverse_proxy localhost:8528 # Precision Biomarker UI
+}
+
+192.168.68.107:8725, localhost:8725 {
+	tls internal
+	import caddy/ui-auth.conf
+	reverse_proxy localhost:8535 # Neurology UI
+}
+
 :80 {
 	redir https://{host}{uri}
 }

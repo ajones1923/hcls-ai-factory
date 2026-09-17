@@ -166,9 +166,9 @@ cap_service_logs() {
 declare -a SERVICES=(
     "genomics|5000|Genomics Portal|/health|python|${SCRIPT_DIR}/core/engines/genomic-foundation/web-portal|./venv/bin/python app/server.py"
     "rag-api|5001|RAG/Chat API|/health|python|${SCRIPT_DIR}/core/engines/precision-intelligence|./venv/bin/python3 portal/app/server.py"
-    "rag-chat|8501|RAG Chat UI|/healthz|streamlit|${SCRIPT_DIR}/core/engines/precision-intelligence|./venv/bin/streamlit run app/chat_ui.py --server.port 8501 --server.address 0.0.0.0 --server.headless true"
-    "drug-discovery|8505|Drug Discovery|/healthz|streamlit|${SCRIPT_DIR}/core/engines/therapeutic-discovery|./venv/bin/streamlit run app/discovery_ui.py --server.port 8505 --server.headless true"
-    "drug-portal|8510|Discovery Portal|/healthz|streamlit|${SCRIPT_DIR}/hcls-orchestrator|source ${SCRIPT_DIR}/core/engines/therapeutic-discovery/venv/bin/activate && streamlit run portal/app.py --server.port 8510 --server.headless true"
+    "rag-chat|8501|RAG Chat UI|/healthz|streamlit|${SCRIPT_DIR}/core/engines/precision-intelligence|./venv/bin/streamlit run app/chat_ui.py --server.port 8501 --server.address 127.0.0.1 --server.headless true"
+    "drug-discovery|8505|Drug Discovery|/healthz|streamlit|${SCRIPT_DIR}/core/engines/therapeutic-discovery|./venv/bin/streamlit run app/discovery_ui.py --server.port 8505 --server.address 127.0.0.1 --server.headless true"
+    "drug-portal|8510|Discovery Portal|/healthz|streamlit|${SCRIPT_DIR}/hcls-orchestrator|source ${SCRIPT_DIR}/core/engines/therapeutic-discovery/venv/bin/activate && streamlit run portal/app.py --server.port 8510 --server.address 127.0.0.1 --server.headless true"
     "landing|8080|Landing Page|/health|python|${SCRIPT_DIR}/landing-page|./venv/bin/python server.py"
     "milvus|19530|Milvus|TCP|docker|${SCRIPT_DIR}/core/engines/precision-intelligence|docker compose up -d milvus"
     "grafana|3000|Grafana|/api/health|docker|${SCRIPT_DIR}/core/engines/therapeutic-discovery/monitoring|docker compose up -d grafana"
@@ -177,7 +177,7 @@ declare -a SERVICES=(
     "dcgm|9400|DCGM Exporter|/metrics|docker|${SCRIPT_DIR}/core/engines/therapeutic-discovery/monitoring|docker compose up -d dcgm-exporter"
     # ── Intelligence Agents ──
     "biomarker|8529|Precision Biomarker|/health|python|${SCRIPT_DIR}/core/agents/precision-biomarker|./venv/bin/python -m uvicorn api.main:app --host 0.0.0.0 --port 8529"
-    "biomarker-ui|8528|Biomarker UI|/healthz|streamlit|${SCRIPT_DIR}/core/agents/precision-biomarker|./venv/bin/streamlit run app/biomarker_ui.py --server.port 8528 --server.address 0.0.0.0 --server.headless true"
+    "biomarker-ui|8528|Biomarker UI|/healthz|streamlit|${SCRIPT_DIR}/core/agents/precision-biomarker|./venv/bin/streamlit run app/biomarker_ui.py --server.port 8528 --server.address 127.0.0.1 --server.headless true"
     "oncology|8527|Precision Oncology|/health|python|${SCRIPT_DIR}/core/engines/precision-oncology/agent|./venv/bin/python -m uvicorn api.main:app --host 0.0.0.0 --port 8527"
     "cart|8522|CAR-T Intelligence|/health|python|${SCRIPT_DIR}/core/agents/cart|./venv/bin/python -m uvicorn api.main:app --host 0.0.0.0 --port 8522"
     "imaging|8524|Imaging Intelligence|/health|python|${SCRIPT_DIR}/core/engines/clinical-imaging/agent|./venv/bin/python -m uvicorn api.main:app --host 0.0.0.0 --port 8524"
@@ -187,7 +187,7 @@ declare -a SERVICES=(
     "clinical-trial|8539|Clinical Trial Intelligence|/health|python|${SCRIPT_DIR}/core/agents/clinical-trial|./venv/bin/python -m uvicorn api.main:app --host 0.0.0.0 --port 8539"
     "rare-disease|8545|Rare Disease Diagnostic|/health|python|${SCRIPT_DIR}/core/agents/rare-disease-diagnostic|./venv/bin/python -m uvicorn api.main:app --host 0.0.0.0 --port 8545"
     "neurology|8536|Neurology Intelligence|/health|python|${SCRIPT_DIR}/core/agents/neurology|./venv/bin/python -m uvicorn api.main:app --host 0.0.0.0 --port 8536"
-    "neurology-ui|8535|Neurology UI|/healthz|streamlit|${SCRIPT_DIR}/core/agents/neurology|./venv/bin/streamlit run app/neuro_ui.py --server.port 8535 --server.address 0.0.0.0 --server.headless true"
+    "neurology-ui|8535|Neurology UI|/healthz|streamlit|${SCRIPT_DIR}/core/agents/neurology|./venv/bin/streamlit run app/neuro_ui.py --server.port 8535 --server.address 127.0.0.1 --server.headless true"
     "single-cell|8541|Single-Cell Intelligence|/health|python|${SCRIPT_DIR}/core/agents/single-cell|./venv/bin/python -m uvicorn api.main:app --host 0.0.0.0 --port 8541"
     # ── Model / compute services and the disease program ──
     # These were registered `live` while nothing ran them: they expose a create_app() factory
