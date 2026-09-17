@@ -1,0 +1,39 @@
+{
+  "title": "HCLS AI Factory: an open precision-medicine platform",
+  "description": "<p>An Apache-2.0 precision-medicine platform: eight compute engines, eight clinical intelligence agents, and the Tuberous Sclerosis Complex disease program, running end to end on a single NVIDIA DGX Spark.</p><p>Engines: Genomic Foundation (GPU variant calling), Precision Intelligence (annotation and clinical RAG), Therapeutic Discovery (generation, docking, ADMET), Clinical Imaging, Precision Oncology, Cardiology, Single-Cell, and Structural Biology. Agents: CAR-T, Precision Biomarker, Pharmacogenomics, Precision Autoimmune, Neurology, Rare Disease, Single-Cell, and Clinical Trial &mdash; clinical decision support grounded in retrieved evidence, with citations.</p><p>Governance includes a clinical-overclaim honesty gate, a typed capability registry in which a <em>live</em> capability can never be mock-served, and a 21 CFR Part 11 reproducibility manifest. Decision support for a qualified clinician &mdash; never autonomous diagnosis.</p><p>The code is Apache-2.0. Third-party datasets are read rather than redistributed and carry their own terms, several of them non-commercial; see DATA_LICENSES.md.</p>",
+  "creators": [
+    {
+      "name": "Jones, Adam",
+      "affiliation": "Independent"
+    }
+  ],
+  "license": {
+    "id": "Apache-2.0"
+  },
+  "upload_type": "software",
+  "access_right": "open",
+  "keywords": [
+    "precision medicine",
+    "genomics",
+    "clinical decision support",
+    "drug discovery",
+    "retrieval-augmented generation",
+    "bioinformatics",
+    "computational biology",
+    "tuberous sclerosis complex",
+    "open source",
+    "NVIDIA DGX Spark"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/ajones1923/hcls-ai-factory",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    },
+    {
+      "identifier": "https://hcls-ai-factory.org",
+      "relation": "isDocumentedBy",
+      "scheme": "url"
+    }
+  ]
+}
