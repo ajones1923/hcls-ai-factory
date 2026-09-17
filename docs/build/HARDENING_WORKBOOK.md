@@ -756,6 +756,60 @@ down; only the `UNGROUNDED` verdict added this morning made the gap visible at a
 
 ---
 
+### 3.12 The UIs were an unauthenticated path around the API gate — ✅ closed 2026-09-16
+
+Turning the API gate fail-closed protected the twelve clinical **APIs**. It did nothing for the
+**UIs**, and two of them do not use the API at all:
+
+```
+:8528 precision-biomarker   imports the RAG engine and `anthropic` IN-PROCESS
+:8501 rag-chat              same
+:8505 :8510 :8535           reachable, unauthenticated
+```
+
+All five answered **HTTP 200 from the LAN with no credential**. Anyone on the network could open
+the biomarker UI and generate clinical prose billed to the platform's Anthropic key — the exact
+hole that was closed on the APIs, still open on the surface a human actually uses.
+
+**Both halves were needed:**
+
+1. the supervisor now binds every Streamlit UI to `127.0.0.1`, so the port is not on the network
+   at all. Three were explicitly `--server.address 0.0.0.0`; two specified no address and
+   defaulted to every interface;
+2. Caddy puts LAN access back on **8721–8725**, behind TLS and basic auth.
+
+Verified from the LAN address, not localhost:
+
+| | |
+|---|---|
+| `http://<lan-ip>:8501/ … :8535/` | **refused** — not reachable from the network |
+| `https://<lan-ip>:8721/`, `:8724/` without credentials | **401** |
+| same with credentials | **200** |
+| `http://localhost:8501/` | **200** — local browser unaffected |
+| supervisor | **32/32 healthy** |
+
+Credentials live in `caddy/ui-auth.conf` — gitignored, mode 600. A bcrypt hash in a public repo is
+an offline-cracking target, so only `caddy/ui-auth.conf.example` is tracked. The plaintext is in
+`.caddy-ui-password` (gitignored, 600).
+
+⚠️ Ports are **8721–8725**, not 8443–8447 as first written: `:8443` is already held by another
+project on this box, and the first reload failed to load because of it.
+
+⚠️ `/etc/caddy/Caddyfile` (what systemd loads at boot) is root-owned and now **out of sync** with
+the repo file. The `@reboot` cron reloads from the repo, so the UI routes come back on boot — but
+only because that cron exists, and only if `caddy/ui-auth.conf` is present. It is
+`validate`-guarded, so a missing credentials file leaves the previous edge running rather than
+taking TLS down.
+
+**Deliberately not changed:** the TSC engine (`:8560`) answers `/eval` and `/cohort`
+unauthenticated. Its gate exists and is conditional on `TSC_API_KEY`, and the code says why —
+*"Unset (default) = open, preserving the trusted-LAN synthetic-demo posture. MUST be set before
+any non-LAN exposure or real PHI."* The data is watermarked *"SYNTHETIC — TSC Intelligence Engine
+demonstration data"*. That is a recorded decision, not an oversight; setting `TSC_API_KEY` would
+also require the demo runner to send that key rather than `HCLS_API_KEY`.
+
+---
+
 ## Traps already paid for on this machine
 
 1. **A count is not a cause.** `run_all_tests.py` reported "errors 36" with no traceback and cost a

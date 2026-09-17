@@ -1,0 +1,16 @@
+# Basic-auth credentials for the Streamlit UIs, imported by the root Caddyfile.
+#
+# The real file (caddy/ui-auth.conf) is gitignored and mode 600: a bcrypt hash in a PUBLIC
+# repository is an offline-cracking target, which is the opposite of the point.
+#
+# Generate:
+#   PW=$(python3 -c "import secrets,string;a=string.ascii_letters+string.digits;print(''.join(secrets.choice(a) for _ in range(24)))")
+#   printf '%s\n' "$PW" > .caddy-ui-password && chmod 600 .caddy-ui-password
+#   printf 'basicauth {\n\tadam %s\n}\n' "$(caddy hash-password --plaintext "$PW")" \
+#       > caddy/ui-auth.conf && chmod 600 caddy/ui-auth.conf
+#   caddy validate --config Caddyfile --adapter caddyfile && caddy reload --config Caddyfile
+#
+# Caddy 2.6 spells this `basicauth`; 2.8+ renamed it `basic_auth`.
+basicauth {
+	adam $2a$14$REPLACE_WITH_A_REAL_BCRYPT_HASH
+}
