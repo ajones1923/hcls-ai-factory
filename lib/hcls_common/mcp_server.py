@@ -1,3 +1,7 @@
+# Copyright 2026 Adam Jones
+# SPDX-License-Identifier: Apache-2.0
+# Part of the HCLS AI Factory — https://github.com/ajones1923/hcls-ai-factory
+# Licensed under the Apache License, Version 2.0. See LICENSE and NOTICE.
 """
 Assistant Tool-Surface (A2) — exposes the HCLS AI Factory's Capability Registry as
 tools an AI assistant (Claude, Cursor, AI Playground, custom agents) can call to

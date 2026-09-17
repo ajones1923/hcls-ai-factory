@@ -1,6 +1,6 @@
 # TSC Intelligence Engine — Product Requirements Document (v0.1)
 
-### HCLS AI Factory, Engine 7 · Cincinnati Children's Demonstration Build
+### HCLS AI Factory, Engine 7 · Institutional Demonstration Build
 
 **Owner:** Adam M. Jones (architect, sole engineer for the v0.1 build)
 **Target:** A working, end-to-end, 5-agent + orchestrator + 3-surface demonstration on a single NVIDIA DGX Spark (RunPod for extra GPU as needed), against a synthetic 50-patient TSC cohort.
@@ -14,7 +14,7 @@
 
 This PRD has been **executed**. A working v0.1 is implemented and running on the NVIDIA DGX Spark.
 
-- **Acceptance criteria AC-1 through AC-7 (the buildable set) are met.** The synthetic 50-patient cohort is generated and version-controlled; all five agents are operational against it; the orchestrator routes the 13 event types and maintains projections; the three clinician surfaces render; the audit/provenance trail is complete and queryable; the demo runbook executes end-to-end; the repository (code, config, prompts, cohort pipeline, this PRD) is complete. AC-8 (clinical review of sampled notes) and AC-9 (delivery at Cincinnati Children's) are inherently the institution's and remain.
+- **Acceptance criteria AC-1 through AC-7 (the buildable set) are met.** The synthetic 50-patient cohort is generated and version-controlled; all five agents are operational against it; the orchestrator routes the 13 event types and maintains projections; the three clinician surfaces render; the audit/provenance trail is complete and queryable; the demo runbook executes end-to-end; the repository (code, config, prompts, cohort pipeline, this PRD) is complete. AC-8 (clinical review of sampled notes) and AC-9 (delivery at the host institution) are inherently the institution's and remain.
 - **~63 Python files, ~2,870 LOC; 41 automated tests pass in under one second.** Run: `python3 -m pytest tests/unit tests/eval -q` and `python3 scripts/dry_run_demo.py`.
 - **Deterministic/classical FRs are fully real** — the ACMG-AMP combinatorial classifier (FR-VC-5/6), the Gaussian-process trajectory intervals (FR-TM-5), the Marshall-Hagedorn discourse detection (FR-TS-3), the ITSC surveillance-gap analyzer (FR-PM-7), and the trial eligibility matcher (FR-TR-3).
 - **The LLM FRs reason for real when keyed** — verified live: the Variant Curator produced a genuine `claude-opus-4-8` ACMG narrative; the deterministic validator stays authoritative. The test suite is pinned offline (`TSC_OFFLINE=1`) so it never incurs API cost.
@@ -33,7 +33,7 @@ Subsequent work has carried the engine well beyond the v0.1 walking skeleton; th
 - **Production substrate now real with runs-here fallbacks:** statsmodels mixed-effects, the LangGraph runtime (verified byte-equivalent), and PostgreSQL/Redis/MinIO/Milvus behind env flags, with SQLite/in-memory/filesystem defaults so the engine runs on a bare Spark.
 - **Omniverse / OpenUSD digital-twin layer (Surface d).** The Spark authors four scene kinds from real projections — lesion-trajectory twin (envelope radii = the prediction intervals), mosaic "powers-of-ten" cell field (exactly the recovered VAF fraction glows), whole-child organ atlas (organs lit by the phenome), and a 50-patient population array (seven recovered mosaics ringed in gold) — with MDL materials for film-quality RTX. Authoring is CPU-side and dependency-free; rendering is a RunPod RTX step.
 
-**The honest edges still hold.** All data remains synthetic and watermarked. The faithful BAMSurgeon→Parabricks blinded-calling substrate needs a burst GPU and is unbuilt; Synthea/FHIR + Epic/Clarity, the biobank LIMS, imaging-AI/PACS, IAM, and SIEM remain Phase-1 work; frontier-model note/imaging *generation* and patient-specific (segmented) anatomy are documented upgrades; the RTX render runs off-box. Nothing is FDA-cleared. Prospective validation on real Cincinnati specimens is the next step.
+**The honest edges still hold.** All data remains synthetic and watermarked. The faithful BAMSurgeon→Parabricks blinded-calling substrate needs a burst GPU and is unbuilt; Synthea/FHIR + Epic/Clarity, the biobank LIMS, imaging-AI/PACS, IAM, and SIEM remain Phase-1 work; frontier-model note/imaging *generation* and patient-specific (segmented) anatomy are documented upgrades; the RTX render runs off-box. Nothing is FDA-cleared. Prospective validation on real the host institution specimens is the next step.
 
 ---
 
@@ -74,7 +74,7 @@ The engine reuses the HCLS AI Factory v1.3.0 substrate (LangGraph, Milvus RAG, t
 
 1. **Demonstrate mosaic recovery as a credible, auditable capability.** Show, live, that the Variant Curator recovers a low-VAF somatic mosaic variant in tissue (Patient A: 8.3% VAF *TSC2* frameshift in tuber tissue) that blood-based testing would report as NMI, classifies it correctly under ACMG-AMP (Likely Pathogenic, PVS1+PM2+PP4), recommends ddPCR validation, and exposes a complete provenance trail.
 2. **Demonstrate cross-agent coordination on a single patient.** Show that one patient's genomic, phenotypic, trajectory, TAND, and therapeutic outputs assemble into coherent clinician surfaces (Patient B's four-quadrant in-visit dashboard; Patient C's therapeutics brief; a one-screen pre-visit briefing) through the deterministic orchestrator.
-3. **Demonstrate that the TAND agent is a direct extension of published CCHMC research**, not an external graft — the Marshall-Hagedorn diagnostic-uncertainty methodology applied to TSC longitudinal notes.
+3. **Demonstrate that the TAND agent is a direct extension of published the host institution research**, not an external graft — the Marshall-Hagedorn diagnostic-uncertainty methodology applied to TSC longitudinal notes.
 4. **Demonstrate the cost and infrastructure thesis**: a clinically interesting multi-agent engine running first on a single DGX Spark with burst-to-RunPod for GPU-heavy steps, reproducibly, on version-controlled synthetic data.
 5. **Produce a reusable engine, not a one-off demo.** The orchestrator, shared event-sourced state, synthetic-cohort pipeline, and agent contracts are written so that "swap the box labels, keep the wiring" replication to other institutions and adjacent diseases (NF1/NF2, Rett, Williams, mTORopathies) is a configuration exercise, not a rewrite.
 
@@ -100,7 +100,7 @@ v0.1 is successful if, at the demo (target early Q3 2026), the following are sim
 | S3 | Every agent output carries full provenance | Provenance record present and queryable for each output |
 | S4 | The engine reproduces from a clean checkout on the Spark+RunPod | Cohort regen (~12 hr) + dry runs in W8 |
 | S5 | The do-not-overclaim boundary holds throughout the demo | Every deferred capability is marked as Phase-1 in the narrative |
-| S6 | Clinician reviewer (CCHMC TSC lead or designee) finds the outputs clinically legible | W8 clinician review pass |
+| S6 | Clinician reviewer (the institution's TSC lead or designee) finds the outputs clinically legible | W8 clinician review pass |
 
 Quantitative per-agent eval targets (vs synthetic ground truth) are owned by the evaluation section and summarized here for orientation: Variant Curator recovers all 7 mosaic variants at VAF ≥5% with correct ACMG class, no false-positive Pathogenic, <5 min/case; Phenome Mapper recall ≥90% / precision ≥85%, full cohort <1 hr; Trajectory Modeler forecasts Patient B's SEGA crossing threshold within a 12–18-month window with no false alarms; TAND detects embedded signals with no spurious flags; Therapeutics Strategist produces correct trial matches with appropriate hedging and full attribution, <3 min.
 
@@ -108,7 +108,7 @@ Quantitative per-agent eval targets (vs synthetic ground truth) are owned by the
 
 | Capability | v0.1 (demo, now) | Institutional Phase-1 (later) |
 |------------|------------------|-------------------------------|
-| Patient data | 50-patient synthetic cohort, version-controlled | Real CCHMC cohort under IRB |
+| Patient data | 50-patient synthetic cohort, version-controlled | Real the host institution cohort under IRB |
 | Genomics entry point | BAM (BAMSurgeon-inserted variants on NA12878-derived BAMs) | Raw FASTQ from sequencing core |
 | Variant calling | Parabricks-equivalent, mosaic-aware | Production validated pipeline |
 | Structured data | Synthetic, Clarity-shaped | Live Epic Clarity/Caboodle + biobank LIMS |
@@ -116,13 +116,13 @@ Quantitative per-agent eval targets (vs synthetic ground truth) are owned by the
 | Surfaces | Standalone watermarked web apps | Integrated clinician workflow |
 | Regulatory | Synthetic; no IRB required | IRB; SaMD posture determined |
 
-The institutional context — the Winslow Research Pavilion as the infrastructure envelope, and the five CCHMC source areas (Discover Together Biobank, Biomedical Informatics, the TSC clinical/research program, and the Epic Clarity/Caboodle + LIMS data plumbing) that feed the engine — is the destination this build argues toward. v0.1 builds the engine; Phase-1 wires it to those sources. As the project mantra puts it: a biobank without an intelligence layer is a freezer full of tubes. This PRD specifies the intelligence layer; it does not pretend the wiring is already done.
+The institutional context — the research pavilion as the infrastructure envelope, and the five the host institution source areas (Discover Together Biobank, Biomedical Informatics, the TSC clinical/research program, and the Epic Clarity/Caboodle + LIMS data plumbing) that feed the engine — is the destination this build argues toward. v0.1 builds the engine; Phase-1 wires it to those sources. As the project mantra puts it: a biobank without an intelligence layer is a freezer full of tubes. This PRD specifies the intelligence layer; it does not pretend the wiring is already done.
 
 ### 1.6 Users and personas
 
 **Adam M. Jones — builder (primary, now).** Architect of the HCLS AI Factory; designs, implements, runs, and demos the engine on the DGX Spark with RunPod burst. Needs reproducible builds, version-controlled synthetic data, clear agent contracts, and an orchestrator that fails conservatively (a down agent yields a "pending" surface tile, never silent missing output).
 
-**CCHMC leadership and Dr. Philip A. Hagedorn's informatics team — demo audience (primary, near-term).** Skeptical, sophisticated clinical and informatics readers. They need to see that the TAND agent extends Hagedorn's own published methodology (Marshall et al. 2023; Nickels et al. 2024), that mosaic recovery addresses the real NMI gap, and that every claim is bounded and attributable. They will be persuaded by the audit trail and the explicit do-not-overclaim discipline, not by polish. Hagedorn has offered to engage his team and the faculty TSC lead.
+**the host institution leadership and the CHIO's informatics team — demo audience (primary, near-term).** Skeptical, sophisticated clinical and informatics readers. They need to see that the TAND agent extends the CHIO's own published methodology (Marshall et al. 2023; Nickels et al. 2024), that mosaic recovery addresses the real NMI gap, and that every claim is bounded and attributable. They will be persuaded by the audit trail and the explicit do-not-overclaim discipline, not by polish. The CHIO has offered to engage his team and the faculty TSC lead.
 
 **Open-source community — adopters (ongoing).** Engineers and informaticians cloning the Apache 2.0 repo. They need a clean scaffold from the `precision_oncology_agent` template, documented agent interfaces, the synthetic-cohort pipeline (Synthea + BAMSurgeon + frontier-model notes/reports), and a "swap the box labels" replication path.
 
@@ -183,7 +183,7 @@ The engine is a directed pipeline with a fan-in. The TSC-Phenome Mapper runs fir
                          └──────────────────────────────────────────────┘
 ```
 
-Three properties of this diagram matter for the engineering. First, the five CCHMC source areas sit outside the engine boundary. They feed it; they are not part of it. This is the "swap the box labels, keep the wiring" replication argument made concrete: another institution's biobank and EHR plug into the same left edge. Second, the orchestrator sits below the agents, not between them; agents do not call each other directly, they emit and consume events. Third, the surfaces pull from materialized state, never from a live agent invocation, so a slow or failed agent degrades to a "pending" panel rather than a broken page.
+Three properties of this diagram matter for the engineering. First, the five the host institution source areas sit outside the engine boundary. They feed it; they are not part of it. This is the "swap the box labels, keep the wiring" replication argument made concrete: another institution's biobank and EHR plug into the same left edge. Second, the orchestrator sits below the agents, not between them; agents do not call each other directly, they emit and consume events. Third, the surfaces pull from materialized state, never from a live agent invocation, so a slow or failed agent degrades to a "pending" panel rather than a broken page.
 
 ### 2.2 Reuse vs net-new
 
@@ -364,7 +364,7 @@ With the architecture, repo, data model, and deployment fixed, Section 3 turns t
 
 ## 3. Functional Requirements — Cohort Generation, Variant Curator, Phenome Mapper
 
-This section specifies the first three buildable components of the TSC Intelligence Engine to implementation grade: the synthetic cohort pipeline that produces the engine's only data, the TSC-Variant Curator (Agent 1), and the TSC-Phenome Mapper (Agent 2). Section §2 established the engine's architecture and the source-area mapping onto CCHMC. Here the contract tightens into numbered functional requirements (FRs), each with acceptance criteria, I/O schemas, model-tier assignments, deterministic-tool specs, endpoints, provenance hooks, and per-component evaluation targets measured against synthetic ground truth.
+This section specifies the first three buildable components of the TSC Intelligence Engine to implementation grade: the synthetic cohort pipeline that produces the engine's only data, the TSC-Variant Curator (Agent 1), and the TSC-Phenome Mapper (Agent 2). Section §2 established the engine's architecture and the source-area mapping onto the host institution. Here the contract tightens into numbered functional requirements (FRs), each with acceptance criteria, I/O schemas, model-tier assignments, deterministic-tool specs, endpoints, provenance hooks, and per-component evaluation targets measured against synthetic ground truth.
 
 Two framing constraints govern everything below. First, the demo runs on **synthetic data only** — generated on Adam's DGX Spark with RunPod GPU burst, version-controlled, regenerable in ~12 hours. No Epic Clarity, Caboodle, or biobank LIMS feed is built; those are institutional Phase-1 work and are marked as such wherever the architecture touches them. Second, every numeric target in this section is a **demo eval target against synthetic ground truth, not a clinical-validation claim**. The cohort is the answer key; passing the eval means the engine reproduces what we deliberately injected, nothing more.
 
@@ -695,7 +695,7 @@ The Trajectory Modeler is the one agent in the engine that is deliberately **not
 
 ### 4.2 TAND Surveillance Agent (Agent 4) — FR-TS-*
 
-The TAND Surveillance Agent surfaces under-recognized TSC-Associated Neuropsychiatric Disorders, the features the TOSCA registry showed are missed or unaddressed in 30–50% of patients despite affecting ~90%. Its method is a direct extension of Hagedorn's published clinical-NLP work on diagnostic-uncertainty language (Marshall/Nickels/Brady/Hagedorn 2023; Nickels et al. 2024) — it is an extension of his team's own research, not an external graft. The agent reads longitudinal notes for the linguistic *markers of uncertainty around* the six TAND clusters, not for diagnoses. It never diagnoses, never interrupts; it produces pre-visit briefing material.
+The TAND Surveillance Agent surfaces under-recognized TSC-Associated Neuropsychiatric Disorders, the features the TOSCA registry showed are missed or unaddressed in 30–50% of patients despite affecting ~90%. Its method is a direct extension of the CHIO's published clinical-NLP work on diagnostic-uncertainty language (Marshall/Nickels/Brady/Hagedorn 2023; Nickels et al. 2024) — it is an extension of his team's own research, not an external graft. The agent reads longitudinal notes for the linguistic *markers of uncertainty around* the six TAND clusters, not for diagnoses. It never diagnoses, never interrupts; it produces pre-visit briefing material.
 
 **FR-TS-1 — Per-note discourse analysis (Sonnet).** For each clinical note in a patient's longitudinal record, the agent SHALL run a Sonnet pass that, for each of the **six TAND clusters** (behavioral, psychiatric, intellectual, academic, neuropsychological, psychosocial), extracts spans exhibiting the **Marshall-Hagedorn diagnostic-uncertainty discourse markers**: hedging, deferral, third-party attribution, conditional framing, and follow-up-without-formalization. Each extracted span carries the cluster label, the marker type(s), the verbatim text span with character offsets, and the note ID/date.
 - *Acceptance:* On the synthetic notes with deliberately embedded TAND signals (Patient B's scattered under-recognized signals being the canonical set), every embedded signal is recovered with its correct cluster and at least one correct marker type.
@@ -836,7 +836,7 @@ These functional requirements define behavior and interfaces; Section 5 turns to
 
 ## 5. Non-Functional Requirements, Data Specs, Evaluation Harness & Integration
 
-Section 4 specified what each of the five agents and the deterministic orchestrator produce. This section specifies the constraints those components run under, the data they consume, how we measure whether they work, and — critically for a skeptical CCHMC audience — which integration surfaces are real in v0.1 versus described architecturally as institutional Phase-1 work. The governing principle throughout: the build is the argument. Every requirement here is testable against the 50-patient synthetic cohort running on the DGX Spark, with RunPod GPUs attached for the genomics and cohort-generation bursts. Nothing in this section depends on access to real patient data, an Epic instance, or a biobank LIMS.
+Section 4 specified what each of the five agents and the deterministic orchestrator produce. This section specifies the constraints those components run under, the data they consume, how we measure whether they work, and — critically for a skeptical the host institution audience — which integration surfaces are real in v0.1 versus described architecturally as institutional Phase-1 work. The governing principle throughout: the build is the argument. Every requirement here is testable against the 50-patient synthetic cohort running on the DGX Spark, with RunPod GPUs attached for the genomics and cohort-generation bursts. Nothing in this section depends on access to real patient data, an Epic instance, or a biobank LIMS.
 
 ### 5.1 Non-Functional Requirements
 
@@ -898,7 +898,7 @@ A per-tier token/cost ledger is recorded for every call (Haiku/Sonnet/Opus + loc
 | NFR-LIC-3 | Reference databases are used within their terms: gnomAD (open), ClinVar/dbSNP (public domain), HPO (open), SNOMED-CT (license required for production; demo uses only HPO/ICD-10 mappings to avoid SNOMED redistribution), LOVD-TSC (open, cite) |
 | NFR-LIC-4 | Claude (API) and any proprietary model weights are *runtime dependencies*, not redistributed; the repo contains no model weights |
 
-SNOMED-CT carries a licensing constraint we honor conservatively: the synthetic demo normalizes to HPO and ICD-10 only, and any SNOMED dependency is deferred to institutional Phase-1 where CCHMC's existing license applies.
+SNOMED-CT carries a licensing constraint we honor conservatively: the synthetic demo normalizes to HPO and ICD-10 only, and any SNOMED dependency is deferred to institutional Phase-1 where the host institution's existing license applies.
 
 #### 5.1.5 Privacy, no-real-data, watermarking
 
@@ -1006,14 +1006,14 @@ This is the section that most directly governs credibility, so it states plainly
 
 | Integration | v0.1 status | Phase-1 (institutional) |
 |-------------|-------------|-------------------------|
-| Epic Clarity / Caboodle | **Stubbed** — Synthea-derived Clarity-shaped relational extracts stand in for Clarity table structures | Real read-only extract against CCHMC's Clarity/Caboodle, governed by data-use agreement |
+| Epic Clarity / Caboodle | **Stubbed** — Synthea-derived Clarity-shaped relational extracts stand in for Clarity table structures | Real read-only extract against the host institution's Clarity/Caboodle, governed by data-use agreement |
 | FHIR R4 | **Simulated** — Synthea-native FHIR bundles; the FHIR ingest path is exercised against synthetic bundles | Real FHIR endpoint integration; SMART-on-FHIR auth |
 | Biobank LIMS | **Not built** — banked-tissue provenance is represented as fields in `cohort_meta.json` | Discover Together Biobank LIMS linkage: banked tuber/AML/SEGA specimen -> Variant Curator |
 | Imaging / PACS | **Reports only** — frontier-model imaging *text reports*; no DICOM, no imaging-AI inference | PACS + imaging-AI pipeline (e.g., longitudinal SEGA volumetrics); a separate institutional effort |
 | IAM / SSO | **Local** — demo auth only; standalone web apps, not embedded in Epic | Enterprise IAM/SSO, role-based access |
 | Audit / SIEM | **Local append-only log** — PHI-safe by construction (NFR-PRIV-5) | Export to institutional SIEM; retention policy |
 
-Two architectural commitments make the Phase-1 path credible without overclaiming it now. First, the **source-area model**: the five CCHMC areas (Discover Together Biobank, Biomedical Informatics/Hagedorn, the TSC clinical & research program, and the Clarity/Caboodle + LIMS data plumbing) are *sources that feed the engine*, not parts of it. The Winslow Research Pavilion is the physical envelope. In v0.1, each source is replaced by a synthetic stand-in with the same shape, so the wiring is real even when the box behind it is simulated. Replication to another site is "swap the box labels, keep the wiring" — a biobank without an intelligence layer is a freezer full of tubes.
+Two architectural commitments make the Phase-1 path credible without overclaiming it now. First, the **source-area model**: the five the host institution areas (Discover Together Biobank, Biomedical Informatics/the CHIO, the TSC clinical & research program, and the Clarity/Caboodle + LIMS data plumbing) are *sources that feed the engine*, not parts of it. The research pavilion is the physical envelope. In v0.1, each source is replaced by a synthetic stand-in with the same shape, so the wiring is real even when the box behind it is simulated. Replication to another site is "swap the box labels, keep the wiring" — a biobank without an intelligence layer is a freezer full of tubes.
 
 Second, the **audit and provenance schema is built Phase-1-ready**: PHI-safe today (synthetic only), but structured so that turning on real Clarity/FHIR/LIMS feeds requires configuration and a data-use agreement, not a rewrite. The integration boundaries are interfaces, not assumptions baked through the agents.
 
@@ -1022,9 +1022,9 @@ With the constraints, data, evaluation gates, and integration boundaries fixed, 
 
 ## 6. Build Plan, Test Plan, Risk Register, Dependencies & Roadmap
 
-This section is the operational contract for the eight-week build. It turns the architecture described earlier into a dated task breakdown, a test plan that culminates in the three-act demo runbook, a risk register I will actively manage, an honest dependency map, and a roadmap that connects the synthetic-data demo running now on the Spark to the institutional, real-data work that is explicitly out of scope for this phase. The recurring discipline throughout: the build is the argument. Every claim in the demo must be backed by something a skeptic on Hagedorn's team can open, inspect, and reproduce.
+This section is the operational contract for the eight-week build. It turns the architecture described earlier into a dated task breakdown, a test plan that culminates in the three-act demo runbook, a risk register I will actively manage, an honest dependency map, and a roadmap that connects the synthetic-data demo running now on the Spark to the institutional, real-data work that is explicitly out of scope for this phase. The recurring discipline throughout: the build is the argument. Every claim in the demo must be backed by something a skeptic on the CHIO's team can open, inspect, and reproduce.
 
-A note on ownership before the tables: the owner column reads "Adam" on every line, because this is a single-builder eight-week sprint on my DGX Spark with RunPod burst capacity. That is a deliberate constraint, not an oversight. A solo build with a fixed cohort and a fixed demo target is the cheapest honest way to test whether the engine is worth an institutional Phase 1. Where collaboration is assumed (clinician note review, the TSC faculty lead, Hagedorn's informatics team), it appears in the dependency map, not as build labor.
+A note on ownership before the tables: the owner column reads "Adam" on every line, because this is a single-builder eight-week sprint on my DGX Spark with RunPod burst capacity. That is a deliberate constraint, not an oversight. A solo build with a fixed cohort and a fixed demo target is the cheapest honest way to test whether the engine is worth an institutional Phase 1. Where collaboration is assumed (clinician note review, the TSC faculty lead, the CHIO's informatics team), it appears in the dependency map, not as build labor.
 
 ### 6.1 Build Plan: Task Breakdown by Week
 
@@ -1090,7 +1090,7 @@ W1 exit gate: a 10-patient pilot slice exists end to end as BAMs, VCFs, and Clar
 
 | ID | Task | Depends on |
 |----|------|-----------|
-| T-35 | Encode the Marshall-Hagedorn discourse-marker taxonomy (hedging, deferral, third-party attribution, conditional, follow-up-without-formalization) as a structured rubric | Marshall/Hagedorn 2023, Nickels 2024 |
+| T-35 | Encode the Marshall-Hagedorn discourse-marker taxonomy (hedging, deferral, third-party attribution, conditional, follow-up-without-formalization) as a structured rubric | Marshall/the CHIO 2023, Nickels 2024 |
 | T-36 | TAND Agent: per-note Sonnet discourse analysis across the 6 TAND clusters (behavioral, psychiatric, intellectual, academic, neuropsychological, psychosocial) | T-35, T-21 |
 | T-37 | TAND Agent: deterministic scoring/aggregation layer (non-LLM) | T-36 |
 | T-38 | TAND Agent: Opus briefing-summary generation, framed as pre-visit briefing material, never interruptive, never diagnostic | T-37 |
@@ -1185,7 +1185,7 @@ Total runtime ≤ 30 min with 15 min discussion headroom, achieved on three cons
 | R-05 | TAND agent over-flags, eroding the "briefing not alert" discipline and clinician trust | Med / High | Deterministic scoring/aggregation layer downstream of the LLM discourse pass; zero-spurious-flag unit test (T-39); alert-surface recalibration trigger at > ~3 alerts/clinician/week; cluster-set de-scope available |
 | R-06 | Eight weeks slips for a solo builder | Med / Med | Fixed de-scope order (6.1.7); Act One protected; weekly exit gates; featured patients authored early so the demo narrative is testable before the cohort is complete |
 | R-07 | Overclaiming creep — institutional integrations (Epic/Clarity/LIMS, imaging AI) get described as built | Low / High | Every surface and the delivery doc explicitly marks these as architectural, not built; known-limitations doc in T-61; demo Act Three frames them as Phase-1 institutional work |
-| R-08 | Clinical-collaboration dependency stalls (TSC faculty lead or Hagedorn's team unavailable in the window) | Med / Med | The synthetic demo is self-contained and requires no real data or IRB; clinician review (T-58) is a quality enhancer, not a blocker for the demo to run; engagement framed as offered, not assumed |
+| R-08 | Clinical-collaboration dependency stalls (TSC faculty lead or the CHIO's team unavailable in the window) | Med / Med | The synthetic demo is self-contained and requires no real data or IRB; clinician review (T-58) is a quality enhancer, not a blocker for the demo to run; engagement framed as offered, not assumed |
 
 ### 6.4 Dependencies
 
@@ -1193,14 +1193,14 @@ Total runtime ≤ 30 min with 15 min discussion headroom, achieved on three cons
 
 **External tooling & data.** Synthea (MIT) + TSC modules; BAMSurgeon over NA12878-derived BAMs; NVIDIA Parabricks (RunPod GPU); snpEff/VEP. Reference resources: ClinVar, gnomAD v4, LOVD-TSC, dbSNP, HPO, SNOMED-CT, PubMed/PMC, ClinicalTrials.gov, FDA. Compute: my DGX Spark (GB10 Grace Blackwell, ~1,000 TOPS, 128 GB unified LPDDR5x, 4 TB NVMe) as the primary, with RunPod GPUs for burst variant calling, parallel cohort generation, and heavier local inference.
 
-**Clinical collaboration (enhancers, not blockers).** Dr. Philip A. Hagedorn (CHIO, CCHMC) and the Division of Biomedical Informatics — the Marshall-Hagedorn discourse methodology that the TAND agent extends, plus output-surfacing review and sponsorship. The CCHMC TSC clinical & research faculty lead — note/imaging realism review and demo audience. None of these gate the synthetic demo running on the Spark; they shape its credibility and its path to a real Phase 1.
+**Clinical collaboration (enhancers, not blockers).** the CHIO (CHIO, the host institution) and the Division of Biomedical Informatics — the Marshall-Hagedorn discourse methodology that the TAND agent extends, plus output-surfacing review and sponsorship. The institution's TSC clinical & research faculty lead — note/imaging realism review and demo audience. None of these gate the synthetic demo running on the Spark; they shape its credibility and its path to a real Phase 1.
 
 ### 6.5 Roadmap
 
 - **v0.1 — Synthetic demo (this build, target early Q3 2026).** The 50-patient (or de-scoped 30) deterministic cohort, all five agents, the deterministic orchestrator, the three clinician surfaces, and the three-act demo. Runs on Spark + RunPod. No real data, no IRB, no Epic/LIMS integration. This is what exists now.
 - **v0.2 — Hardening & breadth.** Expand the synthetic cohort and the literature partition; widen the eval harness; add the deferred alert categories and the full TAND cluster set if de-scoped; tighten provenance drill-through and the regeneration tooling. Still fully synthetic.
 - **v0.3 — Real-data validation prep (institutional, gated).** Define the IRB protocol; specify the Epic Clarity/Caboodle + biobank LIMS data-plumbing contracts (the Phenome Mapper / TAND / Trajectory ingestion that is explicitly not built in the demo); design a shadow-mode validation against curated real Variant Curator cases sourced from the Discover Together Biobank's banked tuber/AML/SEGA tissue. No autonomous output; molecular-geneticist sign-off retained. SaMD posture assessed here as institutional work, not asserted.
-- **v1.0 — Institutional deployment.** Production ingestion within the CCHMC envelope (the Winslow Pavilion as infrastructure, the five CCHMC source areas feeding the engine), validated real-data agents under IRB, integrated clinician surfaces, and a replication pattern ("swap the box labels, keep the wiring") toward partner sites such as TGen and City of Hope. This is the destination, not the deliverable of this build.
+- **v1.0 — Institutional deployment.** Production ingestion within the host institution envelope (the research pavilion as infrastructure, the five the host institution source areas feeding the engine), validated real-data agents under IRB, integrated clinician surfaces, and a replication pattern ("swap the box labels, keep the wiring") toward partner sites such as TGen and City of Hope. This is the destination, not the deliverable of this build.
 
 ### 6.6 Acceptance Criteria (AC-1 .. AC-9)
 
@@ -1218,4 +1218,4 @@ The build is accepted when all nine hold against a clean cohort regeneration:
 | AC-8 | Every surface claim drills through to a complete provenance record; synthetic watermark present on all surfaces and artifacts |
 | AC-9 | Three consecutive end-to-end dry runs complete the three-act demo in ≤ 30 min with no manual intervention beyond scripted events, and the known-limitations doc correctly marks all unbuilt institutional integrations |
 
-These nine criteria are the contract. Meeting them is what earns the conversation with Hagedorn's team that the final section frames; missing any of them is a reason to keep building rather than to demo. The closing section ties this build back to the institutional thesis it is meant to test.
+These nine criteria are the contract. Meeting them is what earns the conversation with the CHIO's team that the final section frames; missing any of them is a reason to keep building rather than to demo. The closing section ties this build back to the institutional thesis it is meant to test.

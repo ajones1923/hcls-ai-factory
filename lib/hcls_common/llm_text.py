@@ -1,3 +1,7 @@
+# Copyright 2026 Adam Jones
+# SPDX-License-Identifier: Apache-2.0
+# Part of the HCLS AI Factory — https://github.com/ajones1923/hcls-ai-factory
+# Licensed under the Apache License, Version 2.0. See LICENSE and NOTICE.
 """Extract the answer text from an Anthropic message.
 
 `response.content[0].text` is the obvious line and it is wrong. The content list is a sequence

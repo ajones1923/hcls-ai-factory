@@ -33,7 +33,7 @@ anchor frame, then feed it back as a **style-reference image** for the rest.
 | 13 | [13_story_validation_scorecard.md](13_story_validation_scorecard.md) | Story | Measured results + the honest construct-validity caveat |
 | 14 | [14_story_trust_layer.md](14_story_trust_layer.md) | Story | Why you can trust it — the five honesty disciplines |
 | 15 | [15_engine7_demo_flow.md](15_engine7_demo_flow.md) | Demo | The 3-act live-demo process/steps (mirrors the runbook) |
-| 16 | [16_story_cincinnati_roadmap.md](16_story_cincinnati_roadmap.md) | Story | Phase 1 → biobank study → Phase 2 (the 5 CCHMC touchpoints) |
+| 16 | [16_story_institutional_roadmap.md](16_story_institutional_roadmap.md) | Story | Phase 1 → biobank study → Phase 2 (the 5 the host institution touchpoints) |
 | 17 | [17_story_generalization.md](17_story_generalization.md) | Story | One engine, many diseases ("swap the box labels") |
 | 18 | [18_story_small_cheap_open.md](18_story_small_cheap_open.md) | Story | Small · Cheap · Open — the positioning thesis |
 
@@ -49,7 +49,7 @@ anchor frame, then feed it back as a **style-reference image** for the rest.
 ## How to use
 
 - See **[STORYBOARD.md](STORYBOARD.md)** for deck recipes (which numbers to show, in what order,
-  for which audience — Hagedorn/Cincinnati, the platform execs, keynote, families, researchers).
+  for which audience — the CHIO/the host institution, the platform execs, keynote, families, researchers).
 - See **`../TSC_ENGINE_MASTER_STUDY_GUIDE`** to study them as a learning path (each module pairs
   a numbered infographic with in-depth reading).
 - **Keep the labels** — every prompt carries SYNTHETIC / decision-support / not-FDA-cleared

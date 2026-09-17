@@ -15,10 +15,10 @@ The launch version. Each of the 18 frames is a **slide**, and each has two thing
   (mosaicism = a *misprint in only some copies of a book*; the uncertainty envelope = a *hurricane
   forecast cone*; the orchestrator = an *air-traffic controller*; construct validity = a *flight
   simulator*; "swap the box labels, keep the wiring").
-- **No institution or person named in the content.** Cincinnati Children's and the CHIO are *not*
+- **No institution or person named in the content.** the host institution and the CHIO are *not*
   named anywhere in the v2 slides or scripts — a partner children's hospital, a tissue biobank, a
   clinical-informatics sponsor, and "a diagnostic-uncertainty NLP method" are used instead. (A
-  Cincinnati-specific variant of the roadmap slide remains in the parent folder for the direct pitch.)
+  the host institution-specific variant of the roadmap slide remains in the parent folder for the direct pitch.)
 
 ## How to produce the video
 

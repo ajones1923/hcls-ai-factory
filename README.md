@@ -78,7 +78,11 @@ shared vector database.
 | 8080 | Landing dashboard | | 8573 | Single-cell compute |
 | 19530 | Vector DB (Milvus) | | 8574 | Molecule generation |
 | 3000 | Grafana · 9099 Prometheus | | 8575 | Variant store |
-| | (agents 8521–8544) | | 8576 | Protein developability + design *(planned)* |
+| | (agents 8126–8545) | | 8576 | Protein developability + design *(planned)* |
+
+> **UIs are loopback-only.** The Streamlit interfaces bind to `127.0.0.1`; LAN access goes
+> through Caddy with basic auth on 8721–8725. The agent APIs are unchanged and require
+> `X-API-Key`. See `.env.example`.
 
 ## Quickstart
 
@@ -172,9 +176,25 @@ monitoring · docs · scripts · demo · data   ·   docker-compose.dgx-spark.ym
 > verticals under `core/disease-programs/`, and the shared platform layer in `lib/hcls_common/`.
 > See `docs/STRUCTURE.md` for the full layout.
 
+## How to cite
+
+If you build on this, please cite it. Machine-readable metadata is in
+[`CITATION.cff`](CITATION.cff); GitHub renders a "Cite this repository" button from it.
+
+```
+Jones, A. (2026). HCLS AI Factory: an open precision-medicine platform —
+eight compute engines, eight clinical intelligence agents, and the Tuberous
+Sclerosis disease program. https://github.com/ajones1923/hcls-ai-factory
+```
+
 ## License
 
-Apache-2.0. Built by Adam Jones.
+Apache-2.0. Built by Adam Jones. Copyright 2026 Adam Jones.
+
+**Building on this is welcome — that is the point of the licence.** Apache-2.0 §4 asks
+three things of anyone redistributing this work or a derivative: keep the copyright notice,
+include a readable copy of [`NOTICE`](NOTICE), and state what you changed. That is the
+difference between building on the work and claiming it.
 
 **The code is Apache-2.0; the data it reads is not.** No third-party dataset is redistributed here
 — you download each from its source under that source's terms. Several are **non-commercial**,

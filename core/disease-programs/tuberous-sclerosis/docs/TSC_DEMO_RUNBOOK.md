@@ -1,4 +1,4 @@
-# TSC Intelligence Engine — Cincinnati Children's Demo Runbook
+# TSC Intelligence Engine — Institutional Demo Runbook
 
 ### A three-act walkthrough · one DGX Spark + RunPod (Omniverse RTX) · SYNTHETIC data
 
@@ -7,7 +7,7 @@
 **Live driver:** `venv/bin/python scripts/demo_runbook.py` (prints this with *live* numbers + authors every scene)
 **License:** Apache 2.0 · 2026
 
-> **What this is.** The script you walk Cincinnati Children's through. Three acts — mosaic
+> **What this is.** The script you walk the host institution through. Three acts — mosaic
 > recovery, the longitudinal twin, scale & infrastructure — each with the story, exactly what
 > to show, the measured number, and the line to say. Everything runs on the Spark on synthetic
 > data ($0); the film-quality render is a RunPod RTX pod, off-box. Decision support, clinician
@@ -105,14 +105,14 @@ That's what makes a forecast safe to put in front of a family."*
 
 **The thesis.** *"Everything you just saw ran on a single $4,699 DGX Spark, on synthetic data,
 for $0 — and the film-quality render is a RunPod RTX pod, off-box. This is the engine. Phase 2
-is your institution: the **Discover Together Biobank** as the substrate, the **Winslow Pavilion**
-as the envelope, **Dr. Hagedorn's BMI** as the methodology, the **TSC clinic** as the patients,
+is your institution: the **Discover Together Biobank** as the substrate, the **the research pavilion**
+as the envelope, **the CHIO's BMI** as the methodology, the **TSC clinic** as the patients,
 **Epic + the LIMS** as the plumbing. Point us at the biobank and we'll show whether the recovery
 yield holds on your specimens."*
 
 **The honest caveat (say it out loud).** *"These are construct-validity metrics on synthetic
 data with known ground truth — they prove the logic recovers the planted signal, not prospective
-clinical accuracy. The real test is running the Variant Curator on actual Cincinnati specimens.
+clinical accuracy. The real test is running the Variant Curator on actual the host institution specimens.
 That's exactly the Phase-1 study we're proposing."*
 
 ---

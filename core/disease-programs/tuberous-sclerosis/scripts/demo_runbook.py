@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Guided 3-act demo runbook for Cincinnati Children's (run on the DGX Spark).
+Guided 3-act demo runbook for the host institution (run on the DGX Spark).
 
     venv/bin/python scripts/demo_runbook.py
 
@@ -41,7 +41,7 @@ def main() -> None:
     pct = lambda x: f"{round(100 * x)}%" if x is not None else "—"
 
     _rule("═")
-    print("  TSC INTELLIGENCE ENGINE — CINCINNATI CHILDREN'S DEMO RUNBOOK")
+    print("  TSC INTELLIGENCE ENGINE — INSTITUTIONAL DEMO RUNBOOK")
     print("  Engine 7 · HCLS AI Factory · one DGX Spark + RunPod (Omniverse RTX)")
     print("  SYNTHETIC demonstration data · decision support · not FDA-cleared")
     _rule("═")
@@ -132,7 +132,7 @@ def main() -> None:
     "Everything you just saw ran on a single $4,699 DGX Spark, on synthetic data, for
      $0 — and the beautiful render is a RunPod RTX pod, off-box. This is the engine.
      Phase 2 is your institution: the Discover Together Biobank as the substrate, the
-     Winslow Pavilion as the envelope, Dr. Hagedorn's BMI as the methodology, the TSC
+     the research pavilion as the envelope, the CHIO's BMI as the methodology, the TSC
      clinic as the patients, Epic + the LIMS as the plumbing. Point us at the biobank
      and we'll show whether the recovery yield holds on your specimens."
 

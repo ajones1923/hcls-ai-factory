@@ -1,3 +1,7 @@
+# Copyright 2026 Adam Jones
+# SPDX-License-Identifier: Apache-2.0
+# Part of the HCLS AI Factory — https://github.com/ajones1923/hcls-ai-factory
+# Licensed under the Apache License, Version 2.0. See LICENSE and NOTICE.
 """Headers for calling a governed HCLS API from a first-party client.
 
 The API gate went fail-closed on 2026-09-16 — every clinical route requires `X-API-Key`, which
