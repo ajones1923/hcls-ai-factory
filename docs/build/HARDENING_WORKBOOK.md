@@ -698,6 +698,64 @@ are genuinely empty.
 
 ---
 
+### 3.11 Corpus seeding, and why single-cell was ungrounded — 2026-09-16
+
+The corpus was the stated ceiling: 44 empty collections, eight subjects under 500 vectors. Three
+subjects shipped a PubMed ingester and eight did not, which is most of the reason.
+
+**`hcls_common.pubmed` + `scripts/ingest_literature.py`** join two pieces that already existed
+separately — a fetcher (now shared, stdlib-only, with NCBI rate limits and 5xx retry) and
+`ingest_persist`, which projects a record onto whatever schema a collection declares. Every
+literature collection here declares a *different* schema (`text` vs `text_chunk` vs
+`abstract_text`), and dynamic fields are off, so the projection step is not optional.
+
+Seeded from real PubMed literature:
+
+| collection | rows |
+|---|---|
+| `rd_literature` | 116 |
+| `sc_literature` | 150 |
+| `autoimmune_literature` | 149 |
+| `trial_literature` | 150 |
+| `neuro_literature` | 149 |
+
+**44 → 40 empty collections; 4,050 → 4,764 vectors.** rare-disease crossed the floor, and
+`rare-tsc-genes` — which had been retrieving **0 evidence** and getting withheld — now passes with
+**25 evidence**.
+
+**Two bugs surfaced in the projection while doing it:**
+
+1. `ingest_persist` ignored each VARCHAR's declared `max_length`. One 3,704-character abstract
+   aborted a 149-row batch with *"length of varchar field text_chunk exceeds max length"*. Losing
+   148 good rows to one long one is the wrong trade; it truncates now.
+2. Truncating by **characters** still overflowed — Milvus measures VARCHAR width in **UTF-8
+   bytes**, so a 2,999-character cut came back at 3,074 bytes. Any abstract with a Greek letter or
+   an en-dash hit it. Now byte-safe.
+
+### Why single-cell answered with no evidence — and it was never the corpus
+
+Seeding `sc_literature` changed nothing: the agent still returned `evidence: []`, confidence 0.3.
+**Three defects in series**, each hidden by the one in front of it:
+
+1. The route called `engine.query(question=…, **domain=…**, …)`. The engine's signature has no
+   `domain`, so **every query raised `TypeError`** and fell through to a bare-LLM fallback that
+   returns exactly `evidence=[], guidelines_cited=[], confidence=0.3`. That fallback signature is
+   what made the agent look like it was merely under-seeded. The error *was* logged, every time,
+   and nobody was reading it.
+2. Fixing that exposed `QueryResponse(**result)` on an object, not a dict — the same defect
+   precision-oncology's `/api/ask` had. Mapped explicitly.
+3. Then 25 validation errors: `SCResponse.citations` holds **dicts**, `guidelines_cited` is
+   `List[str]`. Rendered.
+4. And finally: **this agent defines two different classes named `SCResponse`** — a dataclass in
+   `src/agent.py` with a `results` field, which is what the engine returns, and a pydantic model
+   in `src/models.py` with `search_results`. Reading `search_results` produced an empty evidence
+   list from a response holding 25 hits.
+
+`sc-tcell-marker`: **UNGROUNDED → PASS, 25 evidence.** Every layer reported success on the way
+down; only the `UNGROUNDED` verdict added this morning made the gap visible at all.
+
+---
+
 ## Traps already paid for on this machine
 
 1. **A count is not a cause.** `run_all_tests.py` reported "errors 36" with no traceback and cost a
