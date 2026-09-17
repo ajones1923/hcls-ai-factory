@@ -42,6 +42,20 @@ def _type_name(field: dict) -> str:
     return getattr(t, "name", str(t)).upper()
 
 
+def _truncate_utf8(value: str, limit: int) -> str:
+    """Cut a string to `limit` BYTES, not characters.
+
+    Milvus measures VARCHAR width in UTF-8 bytes. Truncating by character count still overflows
+    on any abstract containing a Greek letter, an en-dash or a named entity — a 2,999-character
+    cut came back at 3,074 bytes and aborted the batch again. The ellipsis is 3 bytes itself, so
+    it is part of the budget.
+    """
+    keep = limit - 3                                 # room for the ellipsis
+    out = value.encode("utf-8")[:keep]
+    # A cut can land mid-codepoint; drop the partial tail rather than raise.
+    return out.decode("utf-8", errors="ignore") + "..."
+
+
 def _record_text(rec: Any) -> str:
     for attr in ("text", "content", "summary"):
         v = getattr(rec, attr, None) if not isinstance(rec, dict) else rec.get(attr)
@@ -101,6 +115,16 @@ def persist_records(records: Iterable[Any], default_collection: str, *,
         # BOOL is neither numeric nor text: defaulting it to "" fails the insert.
         bools = {f["name"] for f in fields if _type_name(f) == "BOOL"}
         text_field = next((c for c in _TEXT_FIELDS if c in valid), None)
+        # VARCHAR columns declare a max_length and Milvus rejects the WHOLE batch if any row
+        # exceeds it: one 3,704-character abstract aborted a 149-row insert into
+        # autoimmune_literature with "length of varchar field text_chunk exceeds max length".
+        # Truncating is right here — the alternative is losing 148 good rows to one long one.
+        limits = {}
+        for f in fields:
+            if "VARCHAR" in _type_name(f):
+                n = (f.get("params") or {}).get("max_length")
+                if isinstance(n, int) and n > 0:
+                    limits[f["name"]] = n
 
         texts = [_record_text(r) for r in rows]
         vectors = model.encode(texts, show_progress_bar=False).tolist()
@@ -122,6 +146,11 @@ def persist_records(records: Iterable[Any], default_collection: str, *,
                     continue
                 row.setdefault(name, False if name in bools
                                else (0 if name in numeric else ""))
+
+            for name, limit in limits.items():      # respect each VARCHAR's declared width
+                v = row.get(name)
+                if isinstance(v, str) and len(v.encode("utf-8")) > limit:
+                    row[name] = _truncate_utf8(v, limit)
 
             for name, value in list(row.items()):   # coerce to the declared type
                 if name in ("id", "embedding"):

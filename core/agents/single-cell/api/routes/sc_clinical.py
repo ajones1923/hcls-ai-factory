@@ -463,6 +463,17 @@ async def _llm_fallback(request: Request, prompt: str, system_prompt: str = "") 
 # Endpoints
 # =====================================================================
 
+def _citation_str(c) -> str:
+    """Render a citation dict as the one-line string the response model declares."""
+    if not isinstance(c, dict):
+        return str(c)
+    source = c.get("source") or c.get("collection") or "source"
+    ident = c.get("id") or c.get("record_id") or ""
+    score = c.get("score")
+    tail = f" (score {score:.3f})" if isinstance(score, (int, float)) else ""
+    return f"{source}:{ident}{tail}".strip()
+
+
 @router.post("/query", response_model=QueryResponse)
 async def query(request: QueryRequest, req: Request):
     """RAG-powered Q&A query across single-cell knowledge collections."""
@@ -471,13 +482,38 @@ async def query(request: QueryRequest, req: Request):
     engine = _get_engine(req)
     if engine:
         try:
+            # SingleCellRAGEngine.query(question, workflow=None, top_k=5, patient_context=None).
+            # It was called with `domain=`, which the signature does not accept, so EVERY query
+            # raised TypeError and fell through to the bare-LLM fallback below — answering with
+            # no evidence, confidence 0.3, and a logged error nobody was reading. The agent's
+            # entire corpus was unreachable through this endpoint.
             result = engine.query(
                 question=request.question,
-                domain=request.domain,
                 patient_context=request.patient_context,
                 top_k=request.top_k,
             )
-            return QueryResponse(**result)
+            # …and it returns an SCResponse, not a dict, so `QueryResponse(**result)` would have
+            # raised even once the keyword was fixed. Same defect as precision-oncology's
+            # /api/ask. Map the fields explicitly.
+            # This agent defines TWO classes called SCResponse: a dataclass in src/agent.py
+            # (field `results`) that the engine actually returns, and a pydantic model in
+            # src/models.py (field `search_results`). Reading only `search_results` silently
+            # produced an empty evidence list from a response that had 25 hits in `results`.
+            hits = (getattr(result, "results", None)
+                    or getattr(result, "search_results", None) or [])
+            return QueryResponse(
+                answer=getattr(result, "answer", "") or "",
+                evidence=[h.model_dump() if hasattr(h, "model_dump")
+                          else (h if isinstance(h, dict) else {"text": str(h)})
+                          for h in hits],
+                # SCResponse.citations holds DICTS ({source, id, confidence, score}), while
+                # QueryResponse.guidelines_cited is List[str] — 25 citations meant 25 validation
+                # errors and another silent fall-through to the bare-LLM path. Render them.
+                guidelines_cited=[c if isinstance(c, str) else _citation_str(c)
+                                  for c in (getattr(result, "citations", None) or [])],
+                confidence=float(getattr(result, "confidence", 0.0) or 0.0),
+                domain_applied=request.domain,
+            )
         except Exception as exc:
             logger.error(f"RAG query failed: {exc}")
 
