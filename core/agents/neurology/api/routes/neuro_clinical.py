@@ -137,6 +137,9 @@ class QueryResponse(BaseModel):
     evidence: List[dict]
     guidelines_cited: List[str] = []
     confidence: float
+    # False when retrieval returned nothing: the prose is then the model's own general
+    # knowledge, not an answer grounded in this knowledge base. Confidence is 0.0 there.
+    grounded: bool = True
     domain_applied: Optional[str] = None
 
 
@@ -888,27 +891,51 @@ async def neuro_query(request: QueryRequest, req: Request):
     # Generate answer via LLM
     llm = _get_llm(req)
     answer = "Search completed. See evidence passages below."
-    confidence = 0.5
+    # Confidence used to start at 0.5 and rise 0.05 per hit, so an answer with NO evidence
+    # still reported 0.5 — a coin flip presented as moderate confidence. It is now 0.0
+    # until there is something behind the answer.
+    confidence = 0.0
+    grounded = bool(evidence)
     guidelines_cited = []
 
     if llm:
         context = "\n\n".join(e["text"] for e in evidence if e["text"])
-        prompt = (
-            f"Neurology question: {request.question}\n\n"
-            f"Retrieved evidence:\n{context}\n\n"
-            f"Provide a comprehensive answer citing specific evidence. "
-            f"Include relevant AAN, AHA/ASA, ILAE, or IHS guideline references."
-        )
+        if evidence:
+            prompt = (
+                f"Neurology question: {request.question}\n\n"
+                f"Retrieved evidence:\n{context}\n\n"
+                f"Provide a comprehensive answer citing specific evidence. "
+                f"Include relevant AAN, AHA/ASA, ILAE, or IHS guideline references."
+            )
+        else:
+            # Asking for "specific evidence" with an empty context invited invented citations.
+            prompt = (
+                f"Neurology question: {request.question}\n\n"
+                f"NO evidence was retrieved from the knowledge base for this question. "
+                f"Answer from general knowledge only. Do NOT cite specific studies, "
+                f"guidelines or figures as though they had been retrieved, and state plainly "
+                f"that no source material was available."
+            )
         if request.patient_context:
             prompt += f"\n\nPatient context: {request.patient_context}"
 
         try:
             answer = llm.generate(prompt)
-            confidence = min(0.95, 0.5 + len(evidence) * 0.05)
+            if evidence:
+                confidence = min(0.95, 0.5 + len(evidence) * 0.05)
+            else:
+                confidence = 0.0
+                answer = (
+                    "No evidence was retrieved from the knowledge base for this question, so "
+                    "the following is the model's general knowledge and is not grounded in "
+                    "this platform's sources.\n\n" + answer
+                )
             # Extract guideline references from answer
             for gline in ["AAN Guideline", "AHA/ASA", "ILAE", "IHS", "ICHD-3",
                           "NCCN", "AAN Practice", "McDonald Criteria", "MDS-UPDRS"]:
-                if gline.lower() in answer.lower():
+                # A name the model happened to write is not a citation. It counts only if
+                # it also appears in the retrieved evidence this answer was built from.
+                if gline.lower() in answer.lower() and gline.lower() in context.lower():
                     guidelines_cited.append(gline)
         except Exception as exc:
             logger.warning(f"LLM generation failed: {exc}")
@@ -918,6 +945,7 @@ async def neuro_query(request: QueryRequest, req: Request):
         evidence=evidence,
         guidelines_cited=guidelines_cited,
         confidence=confidence,
+        grounded=grounded,
         domain_applied=request.domain,
     )
 
