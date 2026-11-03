@@ -18,11 +18,33 @@ class BaseImagingWorkflow(ABC):
     BODY_REGION: str = ""
     MODELS_USED: List[str] = []
 
+    # Keys a canned payload carries so run() can label the result truthfully. _mock_inference()
+    # is reachable from infer() as well as from run(), so the payload is marked at the source
+    # rather than at each of the call sites.
+    CANNED_KEY = "_canned_findings"
+    SYNTHETIC_PASS_KEY = "_synthetic_input_forward_pass"
+
     def __init__(self, mock_mode: bool = True, nim_clients: Optional[Dict] = None, mock_overrides: Optional[Dict] = None):
         self.mock_mode = mock_mode
         self.nim_clients = nim_clients or {}
         self.mock_overrides = mock_overrides
+        self._mock_inference = self._marking_mock_inference(self._mock_inference)
         logger.info(f"Initialized {self.WORKFLOW_NAME} workflow (mock={mock_mode})")
+
+    def _marking_mock_inference(self, inner):
+        """Stamp every canned payload, whoever asked for it.
+
+        Until 2026-11-03 `mock_mode` was the only signal, and it described what the CALLER
+        requested, not what came back: with mock_mode=False a workflow still returned
+        _mock_inference(), so the API served fixed findings with is_mock=False. Marking the
+        payload here means a new workflow cannot forget to.
+        """
+        def marked(*args, **kwargs):
+            out = inner(*args, **kwargs)
+            if isinstance(out, dict):
+                out.setdefault(self.CANNED_KEY, True)
+            return out
+        return marked
 
     @abstractmethod
     def preprocess(self, input_path: str) -> Any:
@@ -87,7 +109,15 @@ class BaseImagingWorkflow(ABC):
                     result.severity = FindingSeverity(override_severity)
 
             result.inference_time_ms = (time.time() - start) * 1000
-            result.is_mock = self.mock_mode
+            # is_mock describes the FINDINGS, not the mode that was asked for.
+            canned = bool(self.mock_mode or (isinstance(raw, dict) and raw.get(self.CANNED_KEY)))
+            result.is_mock = canned
+            if not canned:
+                result.findings_provenance = "measured"
+            elif isinstance(raw, dict) and raw.get(self.SYNTHETIC_PASS_KEY):
+                result.findings_provenance = "canned_after_synthetic_forward_pass"
+            else:
+                result.findings_provenance = "canned"
             result.workflow_name = self.WORKFLOW_NAME
             return result
         except Exception as e:
