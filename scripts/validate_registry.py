@@ -182,8 +182,13 @@ def main() -> int:
 
         # a port may be claimed once and once only, across BOTH sources
         claimed: dict[int, list[str]] = {}
+        # tuberous-sclerosis-engine added 2026-11-03: it serves its portal HTML at / AND its
+        # JSON API from one FastAPI app on :8560 (verified on the live box — :8560/ returns the
+        # portal, :8560/health returns JSON, :8561 is closed), so the convention was allocating
+        # it a second port that nothing uses or will use.
         SINGLE = {"genomics-engine", "precision-intelligence-engine",
-                  "therapeutic-discovery-engine", "singlecell-compute"}
+                  "therapeutic-discovery-engine", "singlecell-compute",
+                  "tuberous-sclerosis-engine"}
         # UI/UI+1 is a convention about capabilities that HAVE a front end. Models, NIMs and
         # platform services are headless -- one port, no UI -- so they allocate a single port.
         # Before this, supervising one of them (variant-store, molecule-generator, proteinmpnn)
@@ -224,6 +229,34 @@ def main() -> int:
                 errors.append(
                     f"health-monitor.sh supervises '{name}' on :{port_}, which the registry does "
                     f"not allocate under UI/UI+1 — the supervisor has drifted from the registry"
+                )
+
+        # ...AND THE REVERSE. The check above only caught drift in one direction, so a port the
+        # registry allocates for a `live` capability could go unsupervised indefinitely, which is
+        # exactly what happened: on 2026-11-03 nine of the eleven agent UIs (:8126, :8521, :8523,
+        # :8526, :8531, :8538, :8540, :8544, :8507) had no entry in health-monitor.sh and were
+        # closed on the live box, while the registry advertised each as the endpoint of a `live`
+        # capability. health-monitor.sh is the actual deployment mechanism, so an allocated port
+        # nobody supervises is a `live` claim with nothing behind it.
+        supervised_ports = set(supervised.values())
+        for port_, who in sorted(claimed.items()):
+            if port_ in supervised_ports:
+                continue
+            owners = [w for w in who if not w.endswith("(headless)") or True]
+            live_owners = []
+            for w in owners:
+                cid = w.rsplit("(", 1)[0]
+                try:
+                    cap = reg.get(cid)
+                except Exception:
+                    continue
+                if getattr(cap.status, "value", cap.status) == "live":
+                    live_owners.append(w)
+            if live_owners:
+                errors.append(
+                    f":{port_} is allocated to {live_owners} and is `live`, but no entry in "
+                    f"health-monitor.sh supervises it — nothing starts it, and nothing restarts "
+                    f"it after a reboot, so the `live` status has no deployment behind it"
                 )
 
     # 4b) taxonomy drift-guard: tags must not contradict type (engine tagged 'agent' or vice versa)
