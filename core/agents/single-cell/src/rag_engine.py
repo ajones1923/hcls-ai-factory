@@ -777,25 +777,48 @@ class SingleCellRAGEngine:
         conversation_section = self._format_conversation_history()
         workflow_section = self._format_workflow_instructions(workflow)
 
-        prompt = (
-            f"## Retrieved Evidence\n\n{context}\n\n"
-            f"{patient_section}"
-            f"{conversation_section}"
-            f"{workflow_section}"
-            f"---\n\n"
-            f"## Question\n\n{question}\n\n"
-            f"Please provide a comprehensive, evidence-based single-cell genomics "
-            f"analysis grounded in the retrieved evidence above. "
-            f"Follow the system prompt instructions for Cell Ontology citation format, "
-            f"severity badges, cell type annotation scoring, TME classification, "
-            f"and structured output sections.\n\n"
-            f"Cite sources using clickable markdown links where PMIDs are available: "
-            f"[PMID:12345678](https://pubmed.ncbi.nlm.nih.gov/12345678/). "
-            f"For clinical trials, use [NCT01234567](https://clinicaltrials.gov/study/NCT01234567). "
-            f"For Cell Ontology references, use [CL:0000084](https://www.ebi.ac.uk/ols4/ontologies/cl/classes/CL_0000084). "
-            f"For collection-sourced evidence, use [Collection:record-id]. "
-            f"Prioritise [high relevance] citations and atlas references."
-        )
+        if not results:
+            # `_build_context` returns "No evidence found in the knowledge base." for an empty
+            # result set, and the instructions below then asked for an answer "grounded in the
+            # retrieved evidence above" with example PMID and NCT citation formats. The model
+            # has nothing to ground in and a format to fill, so it fills it from its weights.
+            # Same defect, same fix, as the cart, pharmacogenomics, precision-biomarker and
+            # precision-autoimmune agents.
+            prompt = (
+                f"## NO RETRIEVED EVIDENCE\n\n"
+                f"The knowledge base returned 0 results for this question.\n\n"
+                f"{patient_section}"
+                f"{conversation_section}"
+                f"{workflow_section}"
+                f"---\n\n"
+                f"## Question\n\n{question}\n\n"
+                f"State plainly, in your first sentence, that no source material was available "
+                f"and that what follows is general background rather than an evidence-grounded "
+                f"analysis. Do NOT cite anything: do not fabricate a PMID, an NCT number, a "
+                f"Cell Ontology id or a [Collection:record-id], because there are none to "
+                f"cite. Do not assign annotation confidence scores or a TME classification on "
+                f"no evidence; say what data would be needed instead."
+            )
+        else:
+            prompt = (
+                f"## Retrieved Evidence\n\n{context}\n\n"
+                f"{patient_section}"
+                f"{conversation_section}"
+                f"{workflow_section}"
+                f"---\n\n"
+                f"## Question\n\n{question}\n\n"
+                f"Please provide a comprehensive, evidence-based single-cell genomics "
+                f"analysis grounded in the retrieved evidence above. "
+                f"Follow the system prompt instructions for Cell Ontology citation format, "
+                f"severity badges, cell type annotation scoring, TME classification, "
+                f"and structured output sections.\n\n"
+                f"Cite sources using clickable markdown links where PMIDs are available: "
+                f"[PMID:12345678](https://pubmed.ncbi.nlm.nih.gov/12345678/). "
+                f"For clinical trials, use [NCT01234567](https://clinicaltrials.gov/study/NCT01234567). "
+                f"For Cell Ontology references, use [CL:0000084](https://www.ebi.ac.uk/ols4/ontologies/cl/classes/CL_0000084). "
+                f"For collection-sourced evidence, use [Collection:record-id]. "
+                f"Prioritise [high relevance] citations and atlas references."
+            )
 
         answer = self.llm.generate(
             prompt=prompt,
