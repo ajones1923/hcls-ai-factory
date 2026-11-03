@@ -15,39 +15,51 @@ delete the entry and add the citation anyway — the next reader will ask the sa
 
 ---
 
-## 1. EuroSCORE II — LVEF coefficients look mis-slotted
+## 1–2. EuroSCORE II — SETTLED 2026-11-03, four coefficients were wrong
 
-`core/engines/cardiology/src/risk_calculators.py` (coefficient table)
+`core/engines/cardiology/src/risk_calculators.py`
 
-```
-"lvef_21_30": 0.3150652
-"lvef_31_50": 0.1084443
-"lvef_le_20":  0.9346919
-```
+The suspicion in this entry was correct and understated. Verified against the primary source
+(Nashef SAM et al., "EuroSCORE II", Eur J Cardiothorac Surg 2012;41(4):734-745, **Table 6**,
+the final logistic model) and cross-checked against two independent calculator
+implementations. Four coefficients were wrong, not one:
 
-`lvef_21_30` is byte-identical to `creat_cc_50_85` in the same table, which is the signature of
-a copy-paste. A secondary calculator source tabulates the LV-function betas as moderate
-(EF 31–50) **0.3151**, poor (EF 21–30) **0.8084**, very poor (≤20) **0.9347** — i.e. the repo's
-`21_30` value appears to be the *moderate* coefficient, and 0.1084443 matches nothing found.
+| Field | Was | Table 6 |
+|---|---|---|
+| `creat_cc_lt_50` | 0.6521653 | **0.8592256** |
+| `creat_cc_50_85` | 0.3150652 | **0.303553** |
+| `lvef_31_50` | 0.1084443 | **0.3150652** |
+| `lvef_21_30` | 0.3150652 | **0.8084096** |
 
-Every other EuroSCORE II beta in the table matched that source exactly, which makes this trio
-the outlier. Monotonic ordering is preserved, so outputs stay plausible and a reference case is
-the only way to catch it.
+The LV-moderate coefficient (0.3150652) had been copied into both the LV-poor and the renal
+moderate slots. **Poor ventricular function was therefore scored with the moderate
+coefficient — 0.3151 instead of 0.8084.** For a 72-year-old with poor LV, NYHA III, urgent,
+two procedures, predicted operative mortality was 2.93% where it should be 4.83%. EuroSCORE II
+decides whether to operate, so this understated surgical risk for exactly the patients in whom
+the number is decisive.
 
-- **Settle with:** Nashef et al., *EuroSCORE II*, Eur J Cardiothorac Surg 2012, coefficient
-  table; or the official documentation at euroscore.org.
-- **Secondary source checked:** https://metricgate.com/docs/euroscore-ii-cardiac-surgery/
-- **Also fix when settled:** `tests/test_risk_calculators.py` range-asserts this calculator
-  (`0 ≤ v ≤ 100`) rather than checking a published reference case, which is why the suite is
-  green. Add a reference case for ASCVD, MAGGIC and EuroSCORE II at the same time.
+The age term (§2) was also wrong, as suspected: it returned 0 at age ≤60 and
+`coeff × (age − 60)` above. The published coding is a count that is **1 at age ≤60 and rises by
+one per year after**, so every patient's linear predictor was short by one unit of 0.0285181.
+Small, systematic, and in the direction of understating risk.
 
-## 2. EuroSCORE II — age term coding
+All 2,046 cardiology tests passed both before and after. Monotonic ordering was preserved, so
+every output stayed plausible — which is why a suite of range assertions could not see it.
+Pinned now in `tests/test_euroscore_ii_reference.py` (45 cases, every Table 6 coefficient).
 
-`risk_calculators.py` uses `coeff × (age − 60)`, contributing 0 below age 60. The published
-coding, as far as the check could establish, is 1 for age ≤ 60 and +1 per year after, i.e.
-`× max(1, age − 59)`. Effect is small but systematic.
+⚠️ **Still open — three fourth-decimal differences.** The primary table was read once for
+these and the repo may well be right; the effect of each is negligible (fifth significant
+figure), so they were NOT changed on a single reading:
 
-- **Settle with:** the same Nashef 2012 table.
+| Field | Repo | Single reading of Table 6 |
+|---|---|---|
+| `poor_mobility` | 0.2407818 | 0.2407181 (digits transposed either way) |
+| `critical_preoperative_state` | 1.0862550 | 1.086517 |
+| `urgency_salvage` | 1.3626972 | 1.362947 |
+
+- **Settle with:** a second reading of Nashef 2012 Table 6, or euroscore.org's documentation.
+- ⚠️ **Do not substitute the paper's UNIVARIABLE coefficients** (e.g. CC ≤50 at 1.688774,
+  CC 50–85 at 0.6674962). Those belong to the derivation analysis, not the final model.
 
 ## 3. CYP2D6 activity score 1.0 — phenotype boundary
 
@@ -188,11 +200,20 @@ cases live in `core/engines/cardiology/tests/test_score_reference_cases.py`,
 | ACR TI-RADS | Tessler 2017 | all five feature tables, level mapping and FNA size thresholds correct |
 | ACR Lung-RADS v2022 | ACR | solid-nodule size bands correct (baseline; see §6d) |
 | ACMG/AMP combining rules | Richards 2015, Table 5 | every row correct, including conflicting-evidence → VUS |
+| ASCVD Pooled Cohort Equations | Goff 2013, Appendix 7 + guideline vignette | all four cohorts' coefficients correct; vignette reproduced within 0.09 pp |
+| EuroSCORE II | Nashef 2012, Table 6 | **4 coefficients wrong, corrected** (see §1–2); 3 fourth-decimal values still open |
 
-Still unverified, and still the entries that matter: ASCVD Pooled Cohort Equations, EuroSCORE II
-(§1, §2), MAGGIC and PhenoAge (§8). All four are regression models, so verifying them needs
-their coefficient tables and a published worked example — a case invented from the repo's own
-coefficients would only pin current behaviour.
+**ASCVD note for anyone comparing against the ACC/AHA calculator:** the guideline's vignette
+(55-year-old, TC 213, HDL 50, SBP 120 untreated, non-smoker, non-diabetic) gives 5.3% for white
+men and this platform displays **5.4%**. The individual coefficient sum is 60.6995; the
+guideline prints 60.69, which is that truncated, and truncating through to the end reproduces
+5.3%. The full-precision path is the more defensible one, so this is a presentational
+difference of one tenth of a point, not drift. The other three cohorts display exactly the
+published 6.1% / 2.1% / 3.0%.
+
+Still unverified: **MAGGIC** and **PhenoAge** (§8). Both are regression/point models needing
+their published tables and a worked example — a case invented from the repo's own coefficients
+would only pin current behaviour.
 
 ## 7. CAR-T knowledge base — approval dates and REMS
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Measure whether the agents' answers are CLINICALLY CORRECT, not merely returned.
 
-The 18 subject suites (8,532 tests) prove the plumbing. They cannot tell you that an agent
+The 18 subject suites (8,609 tests) prove the plumbing. They cannot tell you that an agent
 said TPMT when the right answer was TPMT, or that it invented an NCT number. This asks a small
 set of questions whose correct answers are externally verifiable, and scores the prose.
 

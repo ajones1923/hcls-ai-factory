@@ -199,12 +199,34 @@ _MAGGIC_MORTALITY_3Y: Dict[int, float] = {
 
 _EUROSCORE_II_BETA0 = -5.324537
 
+# AUDIT FIX (2026-11-03). Four of these were wrong, in the pattern CLINICAL_REVIEW §1
+# suspected: a copy-paste had put the LV-moderate coefficient into two other slots.
+#
+# Verified against the PRIMARY source -- Nashef SAM et al., "EuroSCORE II",
+# Eur J Cardiothorac Surg 2012;41(4):734-745, Table 6 (final logistic model), read at
+# https://academic.oup.com/ejcts/article/41/4/734/646622 -- and cross-checked against two
+# independent calculator implementations. What changed:
+#
+#   creat_cc_lt_50  0.6521653 -> 0.8592256   (matched no published value)
+#   creat_cc_50_85  0.3150652 -> 0.303553    (held the LV-moderate coefficient)
+#   lvef_31_50      0.1084443 -> 0.3150652   (matched no published value)
+#   lvef_21_30      0.3150652 -> 0.8084096   (held the LV-moderate coefficient)
+#
+# The LV error was the serious one: poor LV function (EF 21-30) was being scored with the
+# MODERATE coefficient, 0.3151 instead of 0.8084, understating the mortality contribution of
+# poor ventricular function by a factor of ~2.6 in the linear predictor. Monotonic ordering was
+# preserved, so every output stayed plausible -- which is why a range-asserting test suite could
+# not see it.
+#
+# ⚠️ Table 6 is the FINAL MULTIVARIABLE model. The same paper also prints UNIVARIABLE
+# coefficients (e.g. CC <=50 at 1.688774, CC 50-85 at 0.6674962) which belong to the derivation
+# analysis and must never be substituted here.
 _EUROSCORE_II_COEFFICIENTS: Dict[str, float] = {
     # Patient-related factors
-    "age": 0.0285181,              # per year over 60
+    "age": 0.0285181,              # per year above 60; the term is 1 at age <= 60 (see below)
     "female": 0.2196434,
-    "creat_cc_lt_50": 0.6521653,   # CrCl < 50 ml/min (not on dialysis)
-    "creat_cc_50_85": 0.3150652,   # CrCl 50-85 ml/min
+    "creat_cc_lt_50": 0.8592256,   # CrCl <= 50 ml/min, not on dialysis (Table 6)
+    "creat_cc_50_85": 0.303553,    # CrCl 50-85 ml/min (Table 6)
     "creat_on_dialysis": 0.6421508,
     "extracardiac_arteriopathy": 0.5360268,
     "poor_mobility": 0.2407818,
@@ -219,8 +241,10 @@ _EUROSCORE_II_COEFFICIENTS: Dict[str, float] = {
     "nyha_class_iii": 0.2958358,
     "nyha_class_iv": 0.5597929,
     "ccs_class_4_angina": 0.2226147,
-    "lvef_21_30": 0.3150652,
-    "lvef_31_50": 0.1084443,
+    # LV function, reference category is good (LVEF >= 51%). Table 6:
+    #   moderate (31-50%) 0.3150652 · poor (21-30%) 0.8084096 · very poor (<=20%) 0.9346919
+    "lvef_31_50": 0.3150652,
+    "lvef_21_30": 0.8084096,
     "lvef_le_20": 0.9346919,
     "recent_mi": 0.1528943,
     "pulm_hyp_moderate": 0.1788899,    # systolic PA pressure 31-55 mmHg
@@ -1586,12 +1610,22 @@ def calculate_maggic(
 def _euroscore_age_term(age: int) -> float:
     """Compute the EuroSCORE II age contribution.
 
-    For age <= 60, contribution is 0 (reference).
-    For age > 60, contribution = coefficient * (age - 60).
+    The age variable is a TRANSFORMED count, not raw years. Nashef 2012 states it directly:
+    the term is 1 for age <= 60 and increases by one per year thereafter, so age 61 gives 2,
+    age 62 gives 3, and so on. The contribution is `coefficient * that count`.
+
+    AUDIT FIX (2026-11-03, CLINICAL_REVIEW §2): this returned 0.0 for age <= 60 and
+    `coefficient * (age - 60)` above it, i.e. the count was one too low at every age and zero
+    rather than one at or below 60. The effect is small and systematic -- every patient's
+    linear predictor was short by 0.0285181, which lowers predicted mortality slightly across
+    the board. Small and systematic is the kind of error a calibration check catches and an
+    individual plausible-looking result does not.
+
+    Source: Nashef SAM et al., Eur J Cardiothorac Surg 2012;41(4):734-745 (age coding stated
+    in the text; coefficient 0.0285181 in Table 6).
     """
-    if age <= 60:
-        return 0.0
-    return _EUROSCORE_II_COEFFICIENTS["age"] * (age - 60)
+    count = 1 if age <= 60 else 1 + (age - 60)
+    return _EUROSCORE_II_COEFFICIENTS["age"] * count
 
 
 def _euroscore_renal_term(
