@@ -106,6 +106,26 @@ suggested it changes no classification in the current cohort, which is worth con
 - **Settle with:** Richards et al., ACMG/AMP 2015, Table 3 (criteria definitions). The
   combining rules in `acmg.py` were checked against Table 5 and matched.
 
+## 6b. Tuberous sclerosis — PP4 now applies the diagnostic criteria, with one gap
+
+`src/agents/variant_curator/annotation.py`
+
+PP4 used to be granted for any recorded phenotype at all, so a lone nonspecific seizure
+earned a supporting pathogenic criterion. It now requires the recorded features to meet the
+TSC clinical diagnostic criteria — 2 major, or 1 major plus ≥2 minor (Northrup 2021).
+
+What could not be settled: three of the major features are defined with counts — ≥3
+hypomelanotic macules, ≥3 angiofibromas, ≥2 angiomyolipomas — and the cohort's phenotype
+records carry an HPO term with no count, so presence is all the code can read. A patient
+with one hypomelanotic macule is currently counted as having the major feature.
+
+- **Settle with:** the Northrup 2021 criteria table, then either add counts to the phenotype
+  records (`src/cohort/clinical.py`) or mark those three features as count-unverified in the
+  criterion's rationale.
+- **Also:** the `HPO` dict in `src/cohort/clinical.py` is commented "Canonical TSC
+  major-feature codes" but includes seizure, infantile spasms, intellectual disability and
+  autism, none of which are TSC diagnostic criteria. The comment, not the codes, is wrong.
+
 ## 7. CAR-T knowledge base — approval dates and REMS
 
 `core/agents/cart/src/knowledge.py` dates Yescarta's ZUMA-7 indication 2021-03-05 and ZUMA-5

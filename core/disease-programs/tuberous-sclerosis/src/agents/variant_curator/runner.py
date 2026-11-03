@@ -19,7 +19,8 @@ from pathlib import Path
 from config.settings import settings
 from src.agents.base import Agent, AgentContext, AgentOutput
 from src.agents.variant_curator.acmg import classify
-from src.agents.variant_curator.annotation import annotate, assign_criteria
+from src.agents.variant_curator.annotation import (annotate, assign_criteria,
+                                                    meets_tsc_clinical_criteria)
 from src.agents.variant_curator.schema import (
     CriterionOut, VariantCuratorOutput, VariantInterpretation,
 )
@@ -79,14 +80,20 @@ class VariantCurator(Agent):
     def run(self, ctx: AgentContext) -> AgentOutput:
         router = get_router()
         variants, source, artifacts_filtered = _variants_for(ctx)
-        phenotype_consistent = bool(ctx.cohort.get("phenotypes"))
+        # PP4 asserts the phenotype is HIGHLY SPECIFIC for TSC. This used to be
+        # `bool(ctx.cohort.get("phenotypes"))` -- any recorded phenotype at all, including a
+        # lone nonspecific seizure, earned a supporting pathogenic criterion. It now asks
+        # whether the recorded features actually meet the TSC clinical diagnostic criteria.
+        phenotype_consistent, phenotype_basis = meets_tsc_clinical_criteria(
+            ctx.cohort.get("phenotypes"))
 
         interps: list[VariantInterpretation] = []
         for v in variants:
             af = v.get("af")
             mosaic = af is not None and af < MOSAIC_VAF_CEILING and ctx.cohort.get("genomics", {}).get("tissue_vaf") is not None
             ann = annotate(v)
-            crits = assign_criteria(ann, mosaic=mosaic, phenotype_consistent=phenotype_consistent)
+            crits = assign_criteria(ann, mosaic=mosaic, phenotype_consistent=phenotype_consistent,
+                                    phenotype_basis=phenotype_basis)
             classification, rule = classify(crits)
             sb = v.get("strand_balance")
             interps.append(VariantInterpretation(

@@ -37,8 +37,13 @@ def _lesion_scene(q: dict, provenance: dict) -> LesionScene:
 
     # forecast horizons: radius = mean; envelope radii = the prediction-interval UPPER bounds
     cp = q.get("crossing_probability", {})
-    for h in (6, 12, 18):
-        f = (q.get("forecast") or {}).get(f"m{h}")
+    # Read the horizons the modeller actually produced rather than the literal (6, 12, 18):
+    # `horizons_months` is configurable in trajectory_config.yaml, and a fourth horizon would
+    # have been dropped from the scene without a word.
+    forecasts = q.get("forecast") or {}
+    horizons = sorted(int(k[1:]) for k in forecasts if k.startswith("m") and k[1:].isdigit())
+    for h in horizons:
+        f = forecasts.get(f"m{h}")
         if not f:
             continue
         mean = f["mean_cm"]
