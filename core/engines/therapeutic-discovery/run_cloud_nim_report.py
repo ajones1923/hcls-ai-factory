@@ -182,17 +182,26 @@ def main():
                 ligand_smiles=mol["smiles"],
                 num_poses=NUM_DOCK_POSES,
             )
-            best_score = min(p["docking_score"] for p in poses) if poses else 0.0
+            # Cloud DiffDock reports a POSE CONFIDENCE (log-odds, higher is better), not a
+            # kcal/mol affinity -- so take the max, not the min, and rank on the calibrated
+            # probability. See nim_clients._parse_cloud_response for the source.
+            best_conf = max(p["confidence"] for p in poses) if poses else 0.0
+            best_raw = max((p["confidence_score"] for p in poses
+                            if p.get("confidence_score") is not None), default=None)
             mol["docking_poses"] = len(poses)
-            mol["best_docking_score"] = best_score
-            mol["all_pose_scores"] = [p["docking_score"] for p in poses]
+            mol["score_type"] = poses[0].get("score_type", "diffdock_confidence") if poses else None
+            mol["best_pose_confidence"] = best_conf
+            mol["best_confidence_score"] = best_raw
+            mol["all_pose_confidence_scores"] = [p.get("confidence_score") for p in poses]
             docking_results.append(mol)
-            print(f"score={best_score:.3f} ({len(poses)} poses)")
+            print(f"confidence={best_conf:.3f} ({len(poses)} poses)")
         except Exception as e:
             print(f"FAILED: {e}")
             mol["docking_poses"] = 0
-            mol["best_docking_score"] = 0.0
-            mol["all_pose_scores"] = []
+            mol["score_type"] = None
+            mol["best_pose_confidence"] = 0.0
+            mol["best_confidence_score"] = None
+            mol["all_pose_confidence_scores"] = []
 
     dock_time = time.time() - t2
     print(f"  Docked {len(docking_results)} molecules in {dock_time:.1f}s")
@@ -203,12 +212,11 @@ def main():
     print("\n[5/6] Ranking candidates...")
     for mol in molecules:
         gen = mol["generation_score"]
-        dock = mol.get("best_docking_score", 0.0)
         qed = mol["properties"]["qed"]
 
-        # Normalize docking: DiffDock returns scores (more negative = better binding)
-        # Range: -12 kcal/mol (excellent) → 1.0, 0 kcal/mol (no binding) → 0.0
-        dock_normalized = max(0.0, min(1.0, -dock / 12.0))
+        # DiffDock's confidence is already a probability in [0, 1] after calibration; it is a
+        # POSE-quality term, not an affinity, so the composite says nothing about potency.
+        dock_normalized = max(0.0, min(1.0, mol.get("best_pose_confidence", 0.0)))
 
         mol["composite_score"] = round(
             0.3 * gen + 0.4 * dock_normalized + 0.3 * qed, 4
@@ -220,11 +228,11 @@ def main():
         mol["rank"] = i + 1
 
     # Print top candidates
-    print(f"\n  {'Rank':<6}{'ID':<14}{'QED':>6}{'Dock':>8}{'Composite':>10}")
-    print("  " + "-" * 44)
+    print(f"\n  {'Rank':<6}{'ID':<14}{'QED':>6}{'PoseConf':>10}{'Composite':>10}")
+    print("  " + "-" * 46)
     for mol in molecules[:10]:
         print(f"  #{mol['rank']:<5}{mol['id']:<14}{mol['properties']['qed']:>6.3f}"
-              f"{mol['best_docking_score']:>8.3f}{mol['composite_score']:>10.4f}")
+              f"{mol.get('best_pose_confidence', 0.0):>10.3f}{mol['composite_score']:>10.4f}")
 
     # =========================================================================
     # Step 6: Save results and generate PDF report
@@ -300,7 +308,9 @@ def _generate_pdf_report(results: dict):
                 f"latent space with CMA-ES optimization for QED (drug-likeness). "
                 f"<b>{pipeline['num_passed_qc']}</b> passed Lipinski Rule of Five filtering. "
                 f"Candidates were docked against {pipeline['pdb_id']} (VCP/p97) using DiffDock's "
-                f"SE(3)-equivariant diffusion model and ranked by composite score.",
+                f"SE(3)-equivariant diffusion model and ranked by composite score. DiffDock "
+                f"predicts a binding POSE and a confidence that the pose is within 2 A RMSD of "
+                f"the true one; it does not predict binding affinity, so no potency is implied.",
                 self.styles['BodyJustified']
             ))
             elements.append(Spacer(1, 6))
@@ -389,7 +399,8 @@ def _generate_pdf_report(results: dict):
             elements.append(Spacer(1, 6))
 
             top = self.real_results["top_candidates"]
-            cand_header = ['Rank', 'ID', 'Dock\nScore', 'QED', 'MW\n(Da)', 'LogP', 'Composite']
+            # "Pose conf." not "Dock score": DiffDock scores pose plausibility, not affinity.
+            cand_header = ['Rank', 'ID', 'Pose\nconf.', 'QED', 'MW\n(Da)', 'LogP', 'Composite']
             cand_data = [cand_header]
 
             for c in top:
@@ -397,7 +408,7 @@ def _generate_pdf_report(results: dict):
                 cand_data.append([
                     f"#{c['rank']}",
                     c['id'],
-                    f"{c['best_docking_score']:.3f}",
+                    f"{c.get('best_pose_confidence', 0.0):.3f}",
                     f"{props['qed']:.3f}",
                     f"{props['mw']:.1f}",
                     f"{props['logp']:.2f}",
