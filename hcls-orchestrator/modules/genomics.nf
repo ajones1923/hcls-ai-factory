@@ -1,6 +1,22 @@
 /*
  * Genomics Pipeline Module
  * FASTQ → VCF variant calling
+ *
+ * WHAT THIS ACTUALLY RUNS (clarified 2026-11-03): FastQC → `bwa mem` → GATK
+ * HaplotypeCaller → snpEff. These are real tool invocations, not mocks -- but they are a
+ * CPU, open-source stack and NOT the GPU toolchain the project documents for Stage 1
+ * (NVIDIA Parabricks `fq2bam` with BWA-MEM2, then DeepVariant; see
+ * core/engines/genomic-foundation/README.md). Specifically: `bwa mem`, not BWA-MEM2; no
+ * Parabricks anywhere; HaplotypeCaller rather than DeepVariant. Treat timing or accuracy
+ * figures quoted for the Parabricks path as NOT applicable to this module.
+ *
+ * It is also not the live path: Nextflow does not run on the DGX Spark (see main.nf), and
+ * the genomics engine is driven by core/engines/genomic-foundation.
+ *
+ * Known gap: GENOMICS_GATK_HAPLOTYPECALLER is handed `params.bwa_index` as its `reference`
+ * input, so the BWA index directory doubles as the reference bundle; and when
+ * `params.bwa_index` / `params.known_sites` are unset the channels are empty, which makes
+ * the downstream processes silently never execute rather than reporting a missing input.
  */
 
 process GENOMICS_FASTQC {

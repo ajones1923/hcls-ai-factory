@@ -1,6 +1,15 @@
 /*
  * Drug Discovery Pipeline Module
  * Target Hypothesis → Drug Candidates
+ *
+ * STATUS (2026-11-03): NOT RUNNABLE. Two processes below --
+ * DRUG_DISCOVERY_GENERATE_MOLECULES and DRUG_DISCOVERY_DOCKING -- were mock
+ * implementations that produced random numbers under the MolMIM and DiffDock names and
+ * wrote versions.yml claiming those tools. The fabricated bodies have been replaced with
+ * an explicit failure, so this workflow now fails fast instead of emitting invented
+ * chemistry. Nextflow does not run on the DGX Spark in any case (see main.nf); the active
+ * orchestrator is run_pipeline.py, which calls the real NIM clients in
+ * core/engines/therapeutic-discovery/src/nim_clients.py.
  */
 
 process DRUG_DISCOVERY_PREP_TARGET {
@@ -54,8 +63,9 @@ process DRUG_DISCOVERY_PREP_TARGET {
 process DRUG_DISCOVERY_GENERATE_MOLECULES {
     tag "$sample_id"
     label 'gpu'
-    errorStrategy { task.attempt <= 2 ? 'retry' : 'ignore' }
-    maxRetries 2
+    // Was `ignore` on final attempt: a failed stage emitted nothing and the workflow carried
+    // on as if it had succeeded. A missing model is a hard stop, not a warning.
+    errorStrategy 'terminate'
     publishDir "${params.outdir}/drug_discovery/molecules", mode: 'copy'
 
     input:
@@ -68,106 +78,41 @@ process DRUG_DISCOVERY_GENERATE_MOLECULES {
     script:
     """
     #!/usr/bin/env python3
-    import json
-    import random
-    import hashlib
-    from datetime import datetime
+    #
+    # HONESTY FIX (2026-11-03). This process was labeled MolMIM and wrote
+    # `versions.yml` claiming `molmim: 1.0`, but no MolMIM service was ever contacted. It
+    # built "molecules" by string-replacing substrings of the seed SMILES -- producing
+    # strings that are frequently not valid chemistry -- and filled molecular_weight, logP,
+    # hbd, hba, tpsa, rotatable_bonds and qed from random.uniform()/random.randint(). The
+    # downstream rank process then ordered candidates by those random numbers.
+    #
+    # There is a real MolMIM client in the repo:
+    #   core/engines/therapeutic-discovery/src/nim_clients.py (local NIM + NVIDIA cloud)
+    # It is driven by run_pipeline.py, which is the ACTIVE orchestrator (see main.nf). Wiring
+    # it in here needs the engine's Python environment inside the task container, which this
+    # workflow does not define. Until it does, this process FAILS rather than fabricating.
+    import sys
 
-    with open('${prepared}') as f:
-        data = json.load(f)
-
-    seed_smiles = data.get('reference_smiles', '')
-    num_molecules = data.get('config', {}).get('num_molecules', 20)
-    gene = data.get('gene', 'UNKNOWN')
-
-    # In production, call MolMIM NIM service
-    # For now, generate mock molecules from the seed compound
-    # If no seed provided, use a generic drug-like scaffold
-    if not seed_smiles:
-        seed_smiles = 'c1ccc2c(c1)cc(cn2)NC(=O)c1ccccc1'  # Generic quinoline amide scaffold
-
-    # Simple atom-swap diversification for mock data
-    # Each swap produces a structurally distinct analogue
-    atom_swaps = [
-        ('F', 'Cl'), ('Cl', 'F'), ('C(=O)', 'C(=S)'), ('O', 'S'),
-        ('N', 'C'), ('c1ccc', 'c1cnc'), ('CC', 'CCC'), ('NH', 'N(C)'),
-        ('F', 'Br'), ('OC', 'OCC'), ('(C)', '(CC)'), ('NC', 'NCC'),
-    ]
-
-    molecules = []
-    seen_smiles = set()
-
-    # First molecule is always the seed
-    seen_smiles.add(seed_smiles)
-    mol_id = hashlib.md5(f'{sample_id}-0-{seed_smiles}'.encode()).hexdigest()[:8]
-    molecules.append({
-        'id': f'{sample_id}-mol-{mol_id}',
-        'smiles': seed_smiles,
-        'target_gene': gene,
-        'generation_score': 1.0,
-        'method': 'MolMIM-seed',
-        'properties': {
-            'molecular_weight': round(random.uniform(420, 520), 1),
-            'logP': round(random.uniform(3.0, 5.0), 2),
-            'hbd': random.randint(1, 3),
-            'hba': random.randint(5, 8),
-            'tpsa': round(random.uniform(70, 110), 1),
-            'rotatable_bonds': random.randint(5, 9),
-            'qed': round(random.uniform(0.35, 0.55), 3)
-        },
-        'generated_at': datetime.now().isoformat()
-    })
-
-    # Generate analogues via atom swaps
-    for i in range(1, num_molecules):
-        swap = atom_swaps[i % len(atom_swaps)]
-        smiles = seed_smiles.replace(swap[0], swap[1], 1)
-        # If swap produced no change, try a different approach
-        if smiles == seed_smiles or smiles in seen_smiles:
-            # Insert a methyl group at a random bond position
-            insert_pos = min(i * 3, len(seed_smiles) - 1)
-            smiles = seed_smiles[:insert_pos] + 'C' + seed_smiles[insert_pos:]
-        seen_smiles.add(smiles)
-        mol_id = hashlib.md5(f'{sample_id}-{i}-{smiles}'.encode()).hexdigest()[:8]
-
-        molecules.append({
-            'id': f'{sample_id}-mol-{mol_id}',
-            'smiles': smiles,
-            'target_gene': gene,
-            'generation_score': round(random.uniform(0.7, 0.95), 3),
-            'method': 'MolMIM',
-            'properties': {
-                'molecular_weight': round(random.uniform(420, 520), 1),
-                'logP': round(random.uniform(3.0, 5.0), 2),
-                'hbd': random.randint(1, 3),
-                'hba': random.randint(5, 8),
-                'tpsa': round(random.uniform(70, 110), 1),
-                'rotatable_bonds': random.randint(5, 9),
-                'qed': round(random.uniform(0.35, 0.55), 3)
-            },
-            'generated_at': datetime.now().isoformat()
-        })
-
-    output = {
-        'sample': '${sample_id}',
-        'target_gene': gene,
-        'molecules': molecules,
-        'generation_config': {**data.get('config', {}), 'pdb_ids': data.get('pdb_ids', [])}
-    }
-
-    with open('${sample_id}.molecules.json', 'w') as f:
-        json.dump(output, f, indent=2)
-
-    with open('versions.yml', 'w') as f:
-        f.write('"${task.process}":\\n  molmim: 1.0\\n')
+    sys.stderr.write(
+        "DRUG_DISCOVERY_GENERATE_MOLECULES is not implemented.\\n"
+        "This process previously emitted randomly-generated 'molecules' labeled MolMIM.\\n"
+        "That has been removed; there is no simulated path.\\n"
+        "\\n"
+        "To generate molecules for real, use the active orchestrator:\\n"
+        "  cd hcls-orchestrator && python run_pipeline.py --mode demo\\n"
+        "with a MolMIM backend configured (NIM_MODE=cloud + NVIDIA_API_KEY, or a local\\n"
+        "NIM container on :8001). See core/engines/therapeutic-discovery/src/nim_clients.py.\\n"
+    )
+    sys.exit(1)
     """
 }
 
 process DRUG_DISCOVERY_DOCKING {
     tag "$sample_id"
     label 'gpu'
-    errorStrategy { task.attempt <= 2 ? 'retry' : 'ignore' }
-    maxRetries 2
+    // Was `ignore` on final attempt: a failed stage emitted nothing and the workflow carried
+    // on as if it had succeeded. A missing model is a hard stop, not a warning.
+    errorStrategy 'terminate'
     publishDir "${params.outdir}/drug_discovery/docking", mode: 'copy'
 
     input:
@@ -180,54 +125,30 @@ process DRUG_DISCOVERY_DOCKING {
     script:
     """
     #!/usr/bin/env python3
-    import json
-    import random
+    #
+    # HONESTY FIX (2026-11-03). This process was labeled DiffDock and wrote
+    # `versions.yml` claiming `diffdock: 1.0`, but no DiffDock service was ever contacted.
+    # Binding scores came from random.uniform(-12, -6) and were presented as kcal/mol; the
+    # per-pose "contacts" were residue names with random.randint(100, 500) sequence numbers,
+    # i.e. invented binding-site evidence for a protein whose structure was never read.
+    #
+    # The real client is core/engines/therapeutic-discovery/src/nim_clients.py
+    # (DiffDockClient / CloudDiffDockClient), driven by run_pipeline.py. Note that DiffDock
+    # predicts a POSE and a confidence, not a kcal/mol affinity -- the random numbers were
+    # fabricating a quantity the named tool does not even produce.
+    import sys
 
-    with open('${molecules}') as f:
-        data = json.load(f)
-
-    molecules = data.get('molecules', [])
-    target_gene = data.get('target_gene', 'UNKNOWN')
-
-    # Determine structure ID from generation config or first available PDB
-    gen_config = data.get('generation_config', {})
-    pdb_ids = gen_config.get('pdb_ids', [])
-    structure_id = pdb_ids[0] if pdb_ids else 'NONE'
-
-    # In production, call DiffDock NIM service
-    # For now, generate mock docking scores
-
-    docking_results = []
-    for mol in molecules:
-        docking_score = round(random.uniform(-12, -6), 2)
-        confidence = round(random.uniform(0.6, 0.95), 2)
-
-        docking_results.append({
-            'molecule_id': mol['id'],
-            'smiles': mol['smiles'],
-            'structure_id': structure_id,
-            'docking_score': docking_score,
-            'confidence': confidence,
-            'poses': ${params.docking_poses},
-            'contacts': [
-                f'ALA{random.randint(100, 500)}',
-                f'GLY{random.randint(100, 500)}',
-                f'ASP{random.randint(100, 500)}'
-            ]
-        })
-
-    output = {
-        'sample': '${sample_id}',
-        'target_gene': target_gene,
-        'structure': structure_id,
-        'docking_results': docking_results
-    }
-
-    with open('${sample_id}.docking.json', 'w') as f:
-        json.dump(output, f, indent=2)
-
-    with open('versions.yml', 'w') as f:
-        f.write('"${task.process}":\\n  diffdock: 1.0\\n')
+    sys.stderr.write(
+        "DRUG_DISCOVERY_DOCKING is not implemented.\\n"
+        "This process previously emitted random binding scores and invented contact\\n"
+        "residues labeled DiffDock. That has been removed; there is no simulated path.\\n"
+        "\\n"
+        "To dock for real, use the active orchestrator:\\n"
+        "  cd hcls-orchestrator && python run_pipeline.py --mode demo\\n"
+        "with a DiffDock backend (NIM_MODE=cloud + NVIDIA_API_KEY, or a local NIM container\\n"
+        "on :8002) and a cached PDB file for the target structure.\\n"
+    )
+    sys.exit(1)
     """
 }
 
@@ -329,11 +250,11 @@ workflow DRUG_DISCOVERY {
     DRUG_DISCOVERY_PREP_TARGET(ch_targets)
     ch_versions = ch_versions.mix(DRUG_DISCOVERY_PREP_TARGET.out.versions)
 
-    // Generate molecules with MolMIM
+    // Generate molecules (NOT IMPLEMENTED -- fails; see the process body)
     DRUG_DISCOVERY_GENERATE_MOLECULES(DRUG_DISCOVERY_PREP_TARGET.out.prepared)
     ch_versions = ch_versions.mix(DRUG_DISCOVERY_GENERATE_MOLECULES.out.versions)
 
-    // Dock molecules with DiffDock
+    // Dock molecules (NOT IMPLEMENTED -- fails; see the process body)
     DRUG_DISCOVERY_DOCKING(DRUG_DISCOVERY_GENERATE_MOLECULES.out.molecules)
     ch_versions = ch_versions.mix(DRUG_DISCOVERY_DOCKING.out.versions)
 
