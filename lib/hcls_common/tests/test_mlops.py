@@ -17,7 +17,10 @@ class TestRuns:
         s.log_param(rid, "device", "cpu")
         s.end_run(rid)
         run = s.get_run(rid)
-        assert run["status"] == "completed" and run["ended_at"] is not None
+        # "complete", not "completed": end_run's old default wrote a status outside
+        # RUN_STATES, which set_status() would have rejected, so runs closed by the default
+        # never matched search_runs(status="complete"). This test pinned that.
+        assert run["status"] == "complete" and run["ended_at"] is not None
         assert run["params"]["sequence_len"] == 20 and run["params"]["device"] == "cpu"
         assert run["metrics"]["mean_plddt"] == 0.83
         assert run["manifest"]["model"] == "esmfold_v1"

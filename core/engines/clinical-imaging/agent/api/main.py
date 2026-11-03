@@ -12,6 +12,7 @@ Author: Adam Jones
 Date: February 2026
 """
 
+import os
 import time
 from collections import defaultdict
 from contextlib import asynccontextmanager
@@ -300,8 +301,21 @@ try:  # pragma: no cover - platform lib is optional at import time
     from hcls_common.api_gate import install_governance
     install_api_key_auth(app, service="imaging")
     install_governance(app, service="imaging", capability_id="imaging-intelligence-agent")
-except Exception:  # never take a running service down over the gate
-    pass
+except Exception as _gate_err:  # noqa: BLE001
+    # This was `except Exception: pass`, which FAILED OPEN: if hcls_common was missing or
+    # install raised, the service booted with no authentication and no governance, silently,
+    # while the comment above promised it fails closed. Decide by whether a key is
+    # configured: if one is, the operator expects the gate and an unauthenticated start is
+    # worse than no start; if none is, the gate was a no-op anyway, so say so and continue.
+    if os.environ.get("HCLS_API_KEY") or os.environ.get("HCLS_API_KEY_IMAGING"):
+        raise RuntimeError(
+            "an HCLS API key is configured but the auth/governance gate could not be "
+            "installed; refusing to start imaging unauthenticated"
+        ) from _gate_err
+    logger.warning(
+        "auth/governance gate NOT installed for imaging (%s). No API key is configured, so "
+        "this service is open by design on a trusted network.", _gate_err
+    )
 
 
 from config.settings import settings as _settings
@@ -378,7 +392,6 @@ app.include_router(live_analysis_router, tags=["Live Analysis"])
 # Static Files — serve sample images for UI display
 # =====================================================================
 
-import os
 _sample_images_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "sample_images")
 if os.path.isdir(_sample_images_dir):
     app.mount("/images", StaticFiles(directory=_sample_images_dir), name="sample_images")
