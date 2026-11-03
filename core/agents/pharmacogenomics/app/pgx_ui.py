@@ -725,6 +725,13 @@ def run_query(question, collections_filter=None):
                 max_tokens=2048,
                 temperature=0.7,
             )
+            # This UI imports the RAG engine and calls it IN-PROCESS, so the output-honesty
+            # gate -- which is response middleware on the FastAPI app -- never ran on the
+            # surface a clinician actually reads. Applied here, with the same decisions.
+            # Only the generated branch: _format_evidence_only returns retrieved passages,
+            # which the gate never rewrites.
+            from hcls_common.api_gate import gate_text
+            response, _findings = gate_text(response)
         else:
             response = _format_evidence_only(evidence)
 

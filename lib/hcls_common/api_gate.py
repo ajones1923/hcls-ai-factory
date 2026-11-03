@@ -357,13 +357,7 @@ def install_output_honesty(app, *, service: str = ""):
                 reasons += [f"Claim contradicted by the cited evidence: "
                             f"{r.get('claim', '')[:140]} — {r.get('why', '')[:140]}"
                             for r in refuted]
-                container[key] = (
-                    "**Withheld by the output-honesty gate.**\n\n"
-                    + "\n".join(f"- {m}" for m in reasons)
-                    + "\n\nThe generated text made a claim this platform must not publish. "
-                      "The retrieved evidence is unchanged and still returned; only the "
-                      "generated prose was withheld. Set HCLS_HONESTY_ENFORCE=0 to receive "
-                      "it annotated instead." + DISCLAIMER)
+                container[key] = withheld_message(reasons, evidence_returned=True)
                 withheld += 1
                 changed = True
             elif _needs_disclaimer(text, findings):
@@ -413,6 +407,55 @@ def _has_disclaimer(text: str) -> bool:
     low = text.lower()
     return any(p in low for p in ("decision support", "not a diagnosis", "qualified clinician",
                                   "research use", "not a substitute for clinical"))
+
+
+def withheld_message(reasons: list[str], *, evidence_returned: bool) -> str:
+    """The text that replaces withheld prose.
+
+    One builder for both callers -- the response middleware and `gate_text` -- so the wording
+    cannot drift between the HTTP surface and the in-process UI surface. `evidence_returned`
+    adds the sentence about retrieved passages, which is only true where a payload carries
+    them alongside the answer.
+    """
+    body = "\n".join(f"- {m}" for m in reasons)
+    tail = ("The generated text made a claim this platform must not publish. ")
+    if evidence_returned:
+        tail += ("The retrieved evidence is unchanged and still returned; only the generated "
+                 "prose was withheld. ")
+    tail += "Set HCLS_HONESTY_ENFORCE=0 to receive it annotated instead."
+    return f"**Withheld by the output-honesty gate.**\n\n{body}\n\n{tail}{DISCLAIMER}"
+
+
+def gate_text(text: str) -> tuple[str, list[dict]]:
+    """Apply the output-honesty gate to one piece of generated prose, outside HTTP.
+
+    Returns `(text_to_show, findings)`, with the same decisions the response middleware makes:
+    a `block`-severity finding replaces the prose, anything else gets the decision-support
+    disclaimer appended when it is missing.
+
+    This exists because `install_output_honesty` is middleware, and a Streamlit UI that imports
+    its agent's RAG engine and calls it in-process never crosses the HTTP boundary -- eight of
+    the fourteen UIs in this repo work that way, so the gate that is "automatic since
+    2026-09-15" never ran on the surface a clinician actually reads. Those UIs call this.
+
+    `HCLS_HONESTY_ENFORCE=0` annotates instead of withholding, as it does in the middleware.
+    """
+    import os as _os
+
+    if not isinstance(text, str) or not text:
+        return text, []
+    try:
+        findings = honesty_flags(text)
+    except Exception:
+        return text, []
+
+    blocking = [f for f in findings if f.get("severity") == "block"]
+    if blocking and _os.getenv("HCLS_HONESTY_ENFORCE", "1") != "0":
+        reasons = [f.get("message", "") for f in blocking]
+        return withheld_message(reasons, evidence_returned=False), findings
+    if _needs_disclaimer(text, findings):
+        return text + DISCLAIMER, findings
+    return text, findings
 
 
 def require_valid_input(capability_id: str, payload: dict[str, Any] | None) -> dict[str, Any]:

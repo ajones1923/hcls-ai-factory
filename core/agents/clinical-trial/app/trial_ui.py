@@ -23,7 +23,11 @@ from hcls_common.api_client import auth_headers
 # Configuration
 # =====================================================================
 
-API_BASE = os.environ.get("TRIAL_API_BASE", "http://localhost:8538")
+# The default used to be :8538, which is this agent's UI port, not its API. Every call
+# from this UI got a refused connection; once the UI port is supervised it would get
+# Streamlit HTML back instead, which is worse. The API is :8539 (health-monitor.sh,
+# and the registry's api_endpoint).
+API_BASE = os.environ.get("TRIAL_API_BASE", "http://localhost:8539")
 
 NVIDIA_THEME = {
     "bg_primary": "#1a1a2e",
