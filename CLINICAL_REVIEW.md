@@ -148,7 +148,25 @@ Any remaining per-entry resolution/method/ligand claims in
 `core/engines/precision-intelligence/src/knowledge.py` should be checked the same way, one
 entry at a time, against https://data.rcsb.org/rest/v1/core/entry/<ID>.
 
-## 10. Demo VCF — HGVS internal consistency
+## 10. TSC corpus — prevalence figures in the TAND entries
+
+`core/disease-programs/tuberous-sclerosis/src/rag/corpus.py`
+
+Both TAND entries had DOIs that resolved to unrelated papers; those are corrected (the TOSCA
+TAND findings paper and de Vries 2015's TAND Checklist paper, both verified via Crossref).
+What was *not* verified is the text each entry carries:
+
+- "TAND features are present in ~90% of TSC patients … 30-50% of features go unrecognized in
+  routine care."
+- "The TAND consensus framework defines six clusters … and the TAND-L lifetime checklist."
+
+The cluster list and the checklist are consistent with the de Vries work as far as this check
+could tell, but the percentages were not traced to a figure or table.
+
+- **Settle with:** the two papers now cited in that file. If a figure does not support a
+  number, change the text rather than the citation.
+
+## 11. Demo VCF — HGVS internal consistency
 
 `data/demo/demo_variants.vcf` pairs `c.463C>T` with `p.Arg155His` (a C>T at that position gives
 Arg→Cys; R155H needs c.464G>A) and `c.1234G>A` with `p.Arg412His` (a G at the codon's first
