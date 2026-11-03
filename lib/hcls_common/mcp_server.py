@@ -204,7 +204,7 @@ class FactoryTools:
                 "signals": [s.to_dict() for s in sigs]}
 
     def chain_lineage(self, artifacts: Any) -> dict[str, Any]:
-        """Composed-chain reproducibility manifest (21 CFR Part 11) from a governed workflow run's
+        """Composed-chain reproducibility manifest (Part 11-minded, not compliant) from a governed workflow run's
         artifacts: the lineage graph, where each hop actually ran, the chain-level honesty floor,
         and a deterministic replay hash."""
         from hcls_common.lineage import chain_lineage as _chain_lineage

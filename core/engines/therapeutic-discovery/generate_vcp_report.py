@@ -306,8 +306,9 @@ class VCPReportGenerator:
         elements.append(Spacer(1, 6))
 
         elements.append(Paragraph(
-            "High-resolution structures of VCP/p97 from Cryo-EM and X-ray crystallography "
-            "provide the molecular templates for structure-based drug design.",
+            "Cryo-EM structures of VCP/p97 provide the molecular templates for "
+            "structure-based drug design. No inhibitor-bound VCP co-structure is used here: "
+            "none of the entries below contains a bound small-molecule inhibitor.",
             self.styles['BodyJustified']
         ))
         elements.append(Spacer(1, 10))
@@ -317,10 +318,13 @@ class VCPReportGenerator:
 
         struct_data = [
             ['PDB ID', 'Method', 'Resolution', 'Description', 'Drug Design Utility'],
-            ['5FTK', 'X-ray', '2.3 Å', 'VCP + CB-5083 inhibitor', 'Reference for inhibitor design'],
-            ['8OOI', 'Cryo-EM', '2.9 Å', 'VCP hexamer (ADP-bound)', 'Native architecture'],
-            ['9DIL', 'Cryo-EM', '3.2 Å', 'VCP-p47 complex', 'Cofactor interactions'],
-            ['7K56', 'Cryo-EM', '2.4 Å', 'VCP D2 domain (ATP)', 'Active site targeting'],
+            # Verified against data.rcsb.org 2026-11-03. 5FTK was described as a 2.3 A X-ray
+            # structure of VCP with CB-5083; it is a 2.4 A cryo-EM structure of p97 with ADP,
+            # and no entry here carries CB-5083.
+            ['5FTK', 'Cryo-EM', '2.4 A', 'p97 bound to ADP', 'Apo-like pocket reference'],
+            ['8OOI', 'Cryo-EM', '2.61 A', 'p97/VCP ADP.Pi state', 'Native architecture'],
+            ['9DIL', 'Cryo-EM', '3.3 A', 'VCP/p97 + VCPIP1 (VCIP135)', 'Cofactor interactions'],
+            ['7K56', 'Cryo-EM', '3.9 A', 'VCP dodecamer (H1299 cells)', 'Oligomeric state'],
         ]
 
         table = Table(struct_data, colWidths=[0.7*inch, 0.7*inch, 0.7*inch, 1.8*inch, 2.1*inch])
@@ -344,10 +348,10 @@ class VCPReportGenerator:
         # Primary structure details
         elements.append(Paragraph("Primary Docking Structure: PDB 5FTK", self.styles['SubSection']))
         elements.append(Paragraph(
-            "The 2.3 Å crystal structure of VCP bound to CB-5083 was selected as the primary "
-            "template for molecular docking. This structure captures the inhibitor-bound "
-            "conformation of the D2 ATPase domain and provides validated coordinates for "
-            "the ATP-competitive binding pocket.",
+            "The 2.4 Å cryo-EM structure of p97 bound to ADP was selected as the primary "
+            "template for molecular docking. It is not an inhibitor co-structure, so it does "
+            "not capture an inhibitor-bound conformation; docking into it assumes the "
+            "nucleotide-bound pocket is a usable proxy.",
             self.styles['BodyJustified']
         ))
         elements.append(Spacer(1, 10))
@@ -529,7 +533,8 @@ class VCPReportGenerator:
             ("Validated Drug Target",
              "VCP/p97 is a well-validated therapeutic target for FTD, ALS, and IBM with proven druggability demonstrated by clinical-stage inhibitor CB-5083."),
             ("Structural Templates Available",
-             "Four high-resolution structures (2.3-3.2 Å) from Cryo-EM and X-ray provide comprehensive coverage of VCP conformational states and binding sites."),
+             "Four cryo-EM structures (2.4-3.9 Å) cover several VCP conformational and "
+             "oligomeric states. None is inhibitor-bound."),
             ("Novel Candidates Generated",
              "4 novel drug candidates generated with favorable docking scores (-8.26 to -10.95 kcal/mol) and drug-like properties (QED 0.36-0.45, MW < 500 Da, LogP < 5)."),
         ]

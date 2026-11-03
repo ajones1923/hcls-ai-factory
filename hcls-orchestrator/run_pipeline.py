@@ -195,7 +195,9 @@ def run_demo_pipeline(num_molecules: int = 20, output_dir: Path = None):
         local = _find_structure_file(pdb_id)
         structures.append({
             'pdb_id': pdb_id,
-            'method': 'Cryo-EM' if pdb_id != '5FTK' else 'X-ray',
+            # All four VCP entries used here are cryo-EM per their RCSB records (checked
+            # 2026-11-03); 5FTK was singled out as X-ray and is not.
+            'method': 'Cryo-EM',
             # `prepared: True` used to be hard-coded for every entry although this stage does
             # no preparation at all. Report what is actually on disk instead.
             'local_file': str(local) if local else None,

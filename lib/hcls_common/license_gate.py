@@ -6,7 +6,7 @@
 Dependency-pin + license gate (A7).
 
 Two checks that keep the Apache-2.0 platform redistributable and reproducible:
-  * every dependency is exact-pinned (``==``) — for 21 CFR Part 11 reproducibility;
+  * every dependency is exact-pinned (``==``) — for run-to-run reproducibility;
   * every bundled package is permissively licensed — non-commercial / academic-only licenses
     are blockers, copyleft / ShareAlike are flagged for derivative-redistribution review.
 
