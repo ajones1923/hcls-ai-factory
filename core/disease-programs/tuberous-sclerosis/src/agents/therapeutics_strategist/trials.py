@@ -55,15 +55,31 @@ def _eval(crit: dict, profile: dict) -> str:
     return "requires_clarification"
 
 
+# _eval answers "is this criterion satisfied" in eligibility words, which invert for an
+# exclusion: a satisfied exclusion criterion means the condition is PRESENT and the patient is
+# excluded. Translated so the output cannot be misread as "eligible on an exclusion".
+_EXCLUSION_WORDS = {
+    "eligible": "present",              # condition met -> excludes the patient
+    "ineligible": "absent",             # condition not met -> no bar
+    "requires_clarification": "unverified",
+}
+
+
 def match_trials(profile: dict) -> list[dict]:
     out = []
     for trial in SNAPSHOT:
         crits = [{"text": c["text"], "status": _eval(c, profile)} for c in trial["inclusion"]]
-        excl = [{"text": c["text"], "status": _eval(c, profile)} for c in trial["exclusion"]]
+        excl = [{"text": c["text"], "status": _EXCLUSION_WORDS[_eval(c, profile)]}
+                for c in trial["exclusion"]]
         statuses = [c["status"] for c in crits]
-        if "ineligible" in statuses:
+        # Exclusion criteria were evaluated and returned, but only `statuses` (inclusion) fed
+        # the verdict, so an exclusion could never make a patient ineligible. An unverified
+        # exclusion must also stop a plain "eligible": you cannot clear someone against a bar
+        # nobody checked.
+        excl_statuses = [c["status"] for c in excl]
+        if "ineligible" in statuses or "present" in excl_statuses:
             verdict = "ineligible"
-        elif "requires_clarification" in statuses:
+        elif "requires_clarification" in statuses or "unverified" in excl_statuses:
             verdict = "requires_clarification"
         else:
             verdict = "eligible"

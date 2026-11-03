@@ -216,7 +216,13 @@ class FactoryTools:
 # --------------------------------------------------------------------------- #
 def build_server(tools: FactoryTools | None = None):
     """Build a FastMCP server exposing the factory tools. Imports mcp lazily."""
-    from mcp.server.fastmcp import FastMCP
+    try:
+        from mcp.server.fastmcp import FastMCP
+    except ModuleNotFoundError as exc:  # the package is an extra, not a core dependency
+        raise ModuleNotFoundError(
+            "the MCP tool-surface needs the 'mcp' package, which is not a core dependency: "
+            "pip install 'hcls-common[mcp]' (or pip install mcp)"
+        ) from exc
 
     ft = tools or FactoryTools()
     mcp = FastMCP("hcls-ai-factory")
@@ -238,8 +244,15 @@ def build_server(tools: FactoryTools | None = None):
         return ft.check_factory_health()
 
     @mcp.tool()
-    def invoke_capability(capability_id: str, payload: dict | None = None, path: str = "/") -> dict:
-        """Invoke a live capability's endpoint. Refuses to invoke planned/mock capabilities."""
+    def invoke_capability(capability_id: str, payload: dict | None = None,
+                          path: str | None = None) -> dict:
+        """Invoke a live capability's endpoint. Refuses to invoke planned/mock capabilities.
+
+        `path` defaults to None, NOT "/": FactoryTools.invoke_capability resolves
+        `path or cap.invoke_path or "/"`, so a default of "/" is truthy and silently
+        overrode every capability's registered invoke_path, sending each call to the
+        service root. Pass a path only to override the registry on purpose.
+        """
         return ft.invoke_capability(capability_id, payload, path)
 
     @mcp.tool()

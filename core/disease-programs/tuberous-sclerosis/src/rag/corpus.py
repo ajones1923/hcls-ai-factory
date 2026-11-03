@@ -21,7 +21,10 @@ SEED_CORPUS = [
              "genetically defined epilepsy; mTOR inhibitors also reduce SEGA and renal AML volume."},
     {"id": "tosca-tand", "partition": "pubmed_pmc", "pub_year": 2018,
      "section": "tand",
-     "source_uri": "https://doi.org/10.1016/j.ejpn.2018.05.006",
+     # de Vries et al., "TSC-associated neuropsychiatric disorders (TAND): findings from the
+     # TOSCA natural history study", Orphanet J Rare Dis 2018 (DOI verified via Crossref
+     # 2026-11-03). The previous DOI resolved to Curatolo 2018 on epilepsy management.
+     "source_uri": "https://doi.org/10.1186/s13023-018-0901-8",
      "text": "TOSCA natural-history registry: TAND features are present in ~90% of TSC patients but are "
              "formally evaluated and addressed in only a minority; 30-50% of features go unrecognized "
              "in routine care."},
@@ -33,13 +36,19 @@ SEED_CORPUS = [
              "identified cohort; affected tissue and high read depth are required."},
     {"id": "mtorc1-next-gen", "partition": "fda_actions", "pub_year": 2024,
      "section": "emerging",
-     "source_uri": "https://clinicaltrials.gov/",
+     # Deliberately not a specific citation: this entry summarises a development landscape
+     # rather than one paper, so it points at the registry and is labelled "emerging".
+     # Treat it as orientation, not evidence.
+     "source_uri": "https://clinicaltrials.gov/search?cond=Tuberous%20Sclerosis%20Complex",
      "text": "Next-generation selective mTORC1 inhibitors are in clinical development for TSC, aiming to "
              "improve the therapeutic index relative to rapalogs; trial eligibility commonly requires a "
              "confirmed TSC1/TSC2 molecular diagnosis and a stable anti-seizure regimen."},
-    {"id": "tand-consensus", "partition": "itsc_guidelines", "pub_year": 2018,
+    {"id": "tand-consensus", "partition": "itsc_guidelines", "pub_year": 2015,
      "section": "tand",
-     "source_uri": "https://doi.org/10.1016/j.ejpn.2018.05.014",
+     # de Vries et al., "Tuberous Sclerosis Associated Neuropsychiatric Disorders (TAND) and
+     # the TAND Checklist", Pediatr Neurol 2015 (DOI verified via Crossref 2026-11-03). The
+     # previous DOI resolved to a paper on neonatal brachial plexus injuries.
+     "source_uri": "https://doi.org/10.1016/j.pediatrneurol.2014.10.004",
      "text": "The TAND consensus framework defines six clusters (behavioral, psychiatric, intellectual, "
              "academic, neuropsychological, psychosocial) and the TAND-L lifetime checklist for "
              "systematic screening."},

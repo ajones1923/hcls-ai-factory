@@ -55,6 +55,25 @@ _SAMPLE_PATHS = {
 # =====================================================================
 
 
+def _safe_upload_path(tmp_dir: str, filename: Optional[str], fallback: str) -> str:
+    """Resolve a client-supplied filename to a path INSIDE tmp_dir.
+
+    The name arrives from the uploader, and os.path.join(tmp_dir, name) with "../" segments
+    in it escapes the temp directory and writes wherever the service user can reach. Reduce
+    to a basename, then confirm containment before returning.
+    """
+    name = os.path.basename(filename or "") or fallback
+    # basename() only understands POSIX separators; drop Windows ones and NULs as well.
+    name = name.replace("\\", "_").replace("\x00", "")
+    if name in (".", ".."):
+        name = fallback
+    root = os.path.realpath(tmp_dir)
+    path = os.path.realpath(os.path.join(root, name))
+    if path != root and not path.startswith(root + os.sep):
+        raise HTTPException(status_code=400, detail="Invalid filename")
+    return path
+
+
 @router.post("/upload")
 async def analyze_uploaded_dicom(
     file: UploadFile = File(...),
@@ -73,7 +92,7 @@ async def analyze_uploaded_dicom(
     # Save to temp location
     suffix = ".dcm" if not file.filename.lower().endswith(".dcm") else ""
     tmp_dir = tempfile.mkdtemp(prefix="dicom_upload_")
-    tmp_path = os.path.join(tmp_dir, file.filename + suffix)
+    tmp_path = _safe_upload_path(tmp_dir, file.filename + suffix, "upload.dcm")
 
     try:
         content = await file.read()
@@ -113,8 +132,7 @@ async def analyze_uploaded_series(
     try:
         # Save all slices
         for i, f in enumerate(files):
-            fname = f.filename or f"slice_{i:04d}.dcm"
-            fpath = os.path.join(tmp_dir, fname)
+            fpath = _safe_upload_path(tmp_dir, f.filename, f"slice_{i:04d}.dcm")
             content = await f.read()
             with open(fpath, "wb") as out:
                 out.write(content)

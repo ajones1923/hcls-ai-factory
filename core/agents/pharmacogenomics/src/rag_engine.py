@@ -677,6 +677,23 @@ class PGxRAGEngine:
                 f"{evidence.knowledge_context}"
             )
 
+        if not sections:
+            # Nothing retrieved. The grounded prompt below asks for an answer "grounded in the
+            # evidence above" and for citations "using the links provided in each evidence
+            # item" — with "No evidence found." as the evidence, that invites invented
+            # citations. Ask for general knowledge and forbid dressing it as sourced.
+            return (
+                f"## NO RETRIEVED EVIDENCE\n\n"
+                f"Nothing was retrieved from the knowledge base for this question.\n\n"
+                f"---\n\n"
+                f"## Question\n\n"
+                f"{question}\n\n"
+                f"Answer from general knowledge only. Do NOT cite studies, guidelines, "
+                f"identifiers or figures as if they had been retrieved, and do not fabricate "
+                f"links. State plainly, in your first sentence, that no source material was "
+                f"available for this question."
+            )
+
         return (
             f"## Retrieved Evidence\n\n"
             f"{evidence_text}"
