@@ -2,11 +2,18 @@
 
 > **Framing note.** This program's docs were written when it was conceived as "Engine 7,"
 > and much of the collateral (papers, infographics) still uses that "Engine 7 / Seven Engines"
-> framing. In the current canonical model it is a **disease-program** — a vertical that
-> *composes* the eight horizontal engines and eight agents for one condition — not a ninth
-> engine. Engine 7 is structural-biology and Engine 8 is single-cell. See the root
-> `README.md`, `CONTRIBUTING.md`, and `docs/STRUCTURE.md` for the canonical framing; the
+> framing. In the current canonical model it is a **disease-program** — a vertical whose
+> design *composes* the eight horizontal engines and eight agents for one condition, rather
+> than a ninth engine. Engine 7 is structural-biology and Engine 8 is single-cell. See the
+> root `README.md`, `CONTRIBUTING.md`, and `docs/STRUCTURE.md` for the canonical framing; the
 > "Engine 7" wording in this folder is historical and reconciled incrementally.
+>
+> **What composes today.** As the code stands, this program is self-contained: its five
+> agents, orchestrator, Milvus store and embeddings are its own, and it imports nothing from
+> the other engines or agents. The one shared dependency wired in is `hcls_common`'s
+> output-honesty gate (see `api/main.py`; `/health` reports whether it loaded). The
+> composition over the foundational engines described in §6.4 of the research paper is the
+> design, not the current wiring.
 
 Five coordinated agents plus a deterministic orchestrator that turn dispersed TSC
 evidence (genomics, notes, imaging, trajectories) into reviewable clinician-facing

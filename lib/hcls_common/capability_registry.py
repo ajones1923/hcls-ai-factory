@@ -184,6 +184,18 @@ class Capability:
     inputs: list[Port] = field(default_factory=list)
     outputs: list[Port] = field(default_factory=list)
     endpoint: str | None = None            # url or host:port (None for libraries)
+    # AUDIT FIX (2026-11-03): `endpoint` advertises the port a human opens, which for all eleven
+    # agents is the Streamlit UI (convention since 2026-08-15: registry advertises the UI port,
+    # the HTTP API is UI+1). `invoke_capability` built its POST URL from that field, so every
+    # agent invocation was aimed at Streamlit rather than at FastAPI. The demo transcripts
+    # confirm the split: they exercise 8508/8522/8524/8527/8529/8532/8536/8539/8541/8545/8127,
+    # each exactly one above the registry's advertised port.
+    #
+    # The two are now separate fields rather than one field with a +1 rule applied to it: the
+    # non-agent entries (genomics :5000, Milvus :19530, the NIMs, the model services) advertise
+    # their API directly, and incrementing those would have broken what currently works.
+    # `api_base` resolves to the API when one is declared and to `endpoint` otherwise.
+    api_endpoint: str | None = None         # host:port of the HTTP API, when it differs from the UI
     invoke_path: str = "/"                 # POST path on the endpoint (e.g. /fold, /admet)
     serving: Serving = Serving.NATIVE
     gpu: bool = False
@@ -204,6 +216,7 @@ class Capability:
             inputs=[Port.from_dict(p) for p in d.get("inputs", [])],
             outputs=[Port.from_dict(p) for p in d.get("outputs", [])],
             endpoint=d.get("endpoint"),
+            api_endpoint=d.get("api_endpoint"),
             invoke_path=d.get("invoke_path", "/"),
             serving=Serving(d.get("serving", "native")),
             gpu=d.get("gpu", False),
@@ -212,6 +225,11 @@ class Capability:
             maturity=MaturityTier(d["maturity"]) if d.get("maturity") else None,
             tags=d.get("tags", []),
         )
+
+    @property
+    def api_base(self) -> str | None:
+        """Where to send an HTTP call: the declared API, else the advertised endpoint."""
+        return self.api_endpoint or self.endpoint
 
     def to_dict(self) -> dict[str, Any]:
         d = asdict(self)

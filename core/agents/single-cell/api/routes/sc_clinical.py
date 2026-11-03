@@ -142,6 +142,10 @@ class QueryResponse(BaseModel):
     evidence: List[dict]
     guidelines_cited: List[str] = []
     confidence: float
+    # False when the engine was unavailable and the answer came from the bare LLM: the prose is
+    # then the model's own general knowledge, not an answer grounded in this knowledge base.
+    # Confidence is 0.0 there. Same convention as the clinical-trial and neurology agents.
+    grounded: bool = True
     domain_applied: Optional[str] = None
 
 
@@ -512,24 +516,29 @@ async def query(request: QueryRequest, req: Request):
                 guidelines_cited=[c if isinstance(c, str) else _citation_str(c)
                                   for c in (getattr(result, "citations", None) or [])],
                 confidence=float(getattr(result, "confidence", 0.0) or 0.0),
+                grounded=bool(hits),
                 domain_applied=request.domain,
             )
         except Exception as exc:
             logger.error(f"RAG query failed: {exc}")
 
-    # LLM fallback
+    # Bare-LLM fallback: the RAG engine was unavailable or raised, so nothing here was
+    # retrieved. The system prompt used to say "provide evidence-based answers" with no
+    # evidence to be based on, and the response reported confidence 0.3 — a number that
+    # described nothing, since there was no retrieval behind it to be 30% confident in.
     system_prompt = (
-        "You are a single-cell genomics intelligence system. "
-        "Provide evidence-based answers about single-cell analysis, "
-        "cell types, gene expression, TME profiling, and spatial "
-        "transcriptomics."
+        "You are a single-cell genomics intelligence system. The knowledge base is "
+        "unavailable for this request, so you have no retrieved evidence. Say so in your "
+        "first sentence and answer from general knowledge only. Do not cite PMIDs, NCT "
+        "numbers, Cell Ontology ids or collection records — you have none."
     )
     answer = await _llm_fallback(req, request.question, system_prompt)
     return QueryResponse(
         answer=answer,
         evidence=[],
         guidelines_cited=[],
-        confidence=0.3,
+        confidence=0.0,
+        grounded=False,
         domain_applied=request.domain,
     )
 

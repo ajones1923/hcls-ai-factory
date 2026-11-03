@@ -70,7 +70,9 @@ async def lifespan(app: FastAPI):
 
 def create_app() -> FastAPI:
     app = FastAPI(title="TSC Intelligence Engine API", version="0.1.0",
-                  description="Engine 7 of the HCLS AI Factory — SYNTHETIC demonstration data.",
+                  description="A disease-program of the HCLS AI Factory — SYNTHETIC demonstration data. "
+                              "(Engine 7 is structural-biology; this program is a vertical, "
+                              "not an engine.)",
                   lifespan=lifespan)
     app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
@@ -90,6 +92,25 @@ def create_app() -> FastAPI:
                 return JSONResponse({"detail": "missing or invalid X-API-Key"}, status_code=401)
             return await call_next(request)
 
+    # AUDIT FIX (2026-11-03): this program had no hcls_common governance at all. Every other
+    # service in the factory installs the output-honesty gate, which scans clinician-facing
+    # prose for overclaims and appends the decision-support disclaimer; the TAND briefings and
+    # therapeutics briefs served here bypassed both. `hcls_common` has never been a dependency
+    # of this program, so a missing import WARNS rather than refusing to start -- taking the
+    # flagship program down over a newly added dependency would be the worse failure. What is
+    # not acceptable is leaving it ungoverned silently, so /health reports which it is.
+    app.state.governance = "not-installed"
+    try:
+        from hcls_common.api_gate import install_governance   # noqa: WPS433
+        install_governance(app, service="tuberous-sclerosis",
+                           capability_id="tsc-intelligence-program")
+        app.state.governance = "hcls_common output-honesty gate"
+    except Exception as _gov_err:                             # noqa: BLE001
+        app.state.governance = f"NOT INSTALLED ({type(_gov_err).__name__}: {_gov_err})"
+        print(f"[TSC] WARNING: hcls_common governance gate not installed — clinical prose is "
+              f"served without the overclaim register or the decision-support disclaimer "
+              f"({_gov_err}). Install with: pip install -e lib/hcls_common", file=sys.stderr)
+
     from api.routes import (
         agents, cohort, eval, events, provenance, surfaces, system, variant_curator, viz,
     )
@@ -101,10 +122,15 @@ def create_app() -> FastAPI:
     def health():
         return {
             "status": "ok",
-            "engine": "TSC Intelligence Engine (Engine 7)",
+            # Not "Engine 7": that is structural-biology in the canonical model. This is a
+            # disease-program, a vertical over the engines.
+            "program": "TSC Intelligence disease-program",
             "patients": app.state.manifest["n_patients"],
             "featured": app.state.featured,
             "reasoning": "live" if get_router().online else "offline (deterministic stubs)",
+            # Reported, not assumed: a reader must be able to tell whether the prose this
+            # program serves went through the platform's honesty gate.
+            "governance": getattr(app.state, "governance", "unknown"),
             "watermark": "SYNTHETIC",
         }
 
@@ -145,7 +171,7 @@ PORTAL_HTML = """<!doctype html><html><head><meta charset="utf-8">
  .row a{color:#7fb0ff;font-size:13px} footer{color:#6f86b3;font-size:12px;margin-top:30px}
 </style></head><body><div class="wrap">
 <h1>TSC Intelligence Engine</h1>
-<p class="sub">Engine 7 · HCLS AI Factory · five agents + deterministic orchestrator · one NVIDIA DGX Spark</p>
+<p class="sub">Disease-program · HCLS AI Factory · five agents + deterministic orchestrator · one NVIDIA DGX Spark</p>
 <div class="wm">SYNTHETIC demonstration data — decision support, clinician review required. Not FDA-cleared.</div>
 
 <h2>Clinician surfaces</h2>

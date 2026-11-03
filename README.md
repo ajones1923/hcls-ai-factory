@@ -12,7 +12,7 @@ NIM endpoints unless you stand them up yourself; the rest is local. No vendor lo
 not autonomous diagnosis or prescribing. See [`SECURITY.md`](SECURITY.md).
 
 [![CI](https://github.com/ajones1923/hcls-ai-factory/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ajones1923/hcls-ai-factory/actions/workflows/ci.yml)
-[![tests](https://img.shields.io/badge/tests-8%2C331%20passing-brightgreen)](https://github.com/ajones1923/hcls-ai-factory/actions/workflows/ci.yml)
+[![tests](https://img.shields.io/badge/tests-8%2C392%20passing-brightgreen)](https://github.com/ajones1923/hcls-ai-factory/actions/workflows/ci.yml)
 [![license](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 [![python](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue)](https://github.com/ajones1923/hcls-ai-factory/actions/workflows/ci.yml)
 [![docs](https://img.shields.io/badge/docs-hcls--ai--factory.org-0b7285)](https://hcls-ai-factory.org)
@@ -109,7 +109,7 @@ python -m venv .venv && .venv/bin/pip install --upgrade pip
     python-multipart tqdm python-dotenv flask flask-cors nibabel pydicom highdicom tenacity \
     reportlab python-docx lxml plotly scanpy anndata sentence-transformers
 
-.venv/bin/python scripts/run_all_tests.py       # 18 suites, 8,331 tests
+.venv/bin/python scripts/run_all_tests.py       # 18 suites, 8,392 tests
 .venv/bin/python scripts/validate_registry.py   # the capability manifest
 ```
 
