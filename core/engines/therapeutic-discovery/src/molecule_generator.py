@@ -43,8 +43,12 @@ class MoleculeGenerator:
     - Pre-computed demo molecules
     """
 
-    def __init__(self, use_bionemo: bool = True, output_dir: Path = None):
+    def __init__(self, use_bionemo: bool = True, output_dir: Path = None,
+                 require_real: bool = False):
+        """`require_real=True` refuses the non-model fallback instead of returning a
+        hand-written library that would read as generated output."""
         self.use_bionemo = use_bionemo
+        self.require_real = require_real
         self.output_dir = output_dir or Path(__file__).parent.parent / "outputs" / "molecules"
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -99,8 +103,16 @@ class MoleculeGenerator:
         """
         if self.use_bionemo and self.bionemo_available:
             return self._generate_bionemo(seed_smiles, target_gene, num_molecules, diversity)
-        else:
-            return self._generate_fallback(seed_smiles, target_gene, num_molecules, diversity)
+
+        if self.require_real:
+            raise RuntimeError(
+                "Real generative-model output was required, but no MolMIM/BioNeMo backend is "
+                "reachable from MoleculeGenerator. This module's only other path is a "
+                "hand-written analogue library, which is not model output. Use "
+                "src.nim_clients.create_nim_clients() with NIM_MODE=cloud|local instead."
+            )
+
+        return self._generate_fallback(seed_smiles, target_gene, num_molecules, diversity)
 
     def _generate_bionemo(
         self,
@@ -109,15 +121,20 @@ class MoleculeGenerator:
         num_molecules: int,
         diversity: float,
     ) -> List[GeneratedMolecule]:
-        """Generate molecules using BioNeMo MolMIM."""
-        molecules = []
+        """BioNeMo MolMIM generation -- NOT IMPLEMENTED in this module.
 
-        # BioNeMo API call would go here
-        # For now, return demo molecules
-        print(f"BioNeMo generation for {target_gene} from seed: {seed_smiles[:50]}...")
-
-        # Placeholder - actual BioNeMo integration
-        return self._generate_fallback(seed_smiles, target_gene, num_molecules, diversity)
+        This method never called BioNeMo: it printed a "BioNeMo generation ..." line and
+        returned the local fallback, so a caller that asked for MolMIM got a hand-written
+        analogue library labeled as if a model had produced it. There is a real MolMIM client
+        (`nim_clients.MolMIMClient` / `CloudMolMIMClient`, used by `pipeline.py`); this module
+        is the RDKit-only path. Rather than fake the model, say so.
+        """
+        raise NotImplementedError(
+            "MoleculeGenerator has no BioNeMo/MolMIM implementation. Use "
+            "src.nim_clients.create_nim_clients() (NIM_MODE=cloud|local) for real MolMIM "
+            "generation, or construct MoleculeGenerator(use_bionemo=False) to use the "
+            "explicitly-labeled RDKit/library fallback."
+        )
 
     def _generate_fallback(
         self,
@@ -172,28 +189,35 @@ class MoleculeGenerator:
         ]
 
         # Generate the seed as first molecule
+        seed_props = self._calculate_properties(seed_mol)
+        seed_props["provenance"] = "input_seed"
         molecules.append(GeneratedMolecule(
             smiles=seed_smiles,
             name=f"{target_gene}_seed",
             source_seed=seed_smiles,
             generation_method="seed",
             target_gene=target_gene,
-            properties=self._calculate_properties(seed_mol),
+            properties=seed_props,
             score=1.0,
         ))
 
-        # Add pre-designed VCP inhibitor analogues
+        # Add pre-designed VCP inhibitor analogues. These are hand-written, NOT model output;
+        # `score` is a fixed rank-order placeholder, not a prediction -- labeled as such so a
+        # downstream surface cannot present it as a generative-model confidence.
         vcp_analogues = self._get_vcp_inhibitor_analogues()
         for i, (smiles, name) in enumerate(vcp_analogues[:num_molecules-1]):
             mol = Chem.MolFromSmiles(smiles)
             if mol:
+                props = self._calculate_properties(mol)
+                props["provenance"] = "hand_written_analogue_library"
+                props["score_is_placeholder"] = True
                 molecules.append(GeneratedMolecule(
                     smiles=smiles,
                     name=name,
                     source_seed=seed_smiles,
                     generation_method="analogue_library",
                     target_gene=target_gene,
-                    properties=self._calculate_properties(mol),
+                    properties=props,
                     score=0.85 - (i * 0.05),
                 ))
 
@@ -245,30 +269,45 @@ class MoleculeGenerator:
         ]
 
     def _get_demo_molecules(self, target_gene: str, num_molecules: int) -> List[GeneratedMolecule]:
-        """Get pre-computed demo molecules."""
-        if target_gene.upper() == "VCP":
-            analogues = self._get_vcp_inhibitor_analogues()
-            molecules = []
-            for i, (smiles, name) in enumerate(analogues[:num_molecules]):
-                molecules.append(GeneratedMolecule(
-                    smiles=smiles,
-                    name=name,
-                    source_seed="CB-5083",
-                    generation_method="demo_library",
-                    target_gene=target_gene,
-                    properties={
-                        "molecular_weight": 450 + i * 10,
-                        "logP": 3.5 + i * 0.1,
-                        "hbd": 2,
-                        "hba": 6,
-                        "lipinski_violations": 0,
-                    },
-                    score=0.9 - (i * 0.05),
-                ))
-            return molecules
-        else:
-            # Generic demo molecules
+        """Get the hand-written demo analogue library (no model involved).
+
+        The properties used to be invented from the list index (`450 + i * 10` Da,
+        `3.5 + i * 0.1` logP, hbd/hba/violations hard-coded) -- plausible-looking numbers that
+        belonged to no molecule. They are now computed from the SMILES with RDKit; without
+        RDKit they are reported as unavailable rather than guessed.
+        """
+        if target_gene.upper() != "VCP":
+            # No library for other targets; say nothing rather than invent molecules.
             return []
+
+        try:
+            from rdkit import Chem
+            has_rdkit = True
+        except ImportError:
+            has_rdkit = False
+
+        analogues = self._get_vcp_inhibitor_analogues()
+        molecules = []
+        for i, (smiles, name) in enumerate(analogues[:num_molecules]):
+            props: Dict[str, Any] = {}
+            if has_rdkit:
+                rdmol = Chem.MolFromSmiles(smiles)
+                if rdmol is not None:
+                    props = self._calculate_properties(rdmol)
+            if not props:
+                props = {"properties_unavailable": "RDKit not installed; not computed"}
+            props["provenance"] = "hand_written_analogue_library"
+            props["score_is_placeholder"] = True
+            molecules.append(GeneratedMolecule(
+                smiles=smiles,
+                name=name,
+                source_seed="CB-5083",
+                generation_method="demo_library",
+                target_gene=target_gene,
+                properties=props,
+                score=0.9 - (i * 0.05),
+            ))
+        return molecules
 
     def save_molecules(self, molecules: List[GeneratedMolecule], filename: str = None) -> Path:
         """Save generated molecules to JSON."""
@@ -291,7 +330,9 @@ def generate_vcp_molecules(num_molecules: int = 10) -> List[GeneratedMolecule]:
     except ImportError:
         from cryoem_evidence import get_vcp_inhibitor_seed
 
-    generator = MoleculeGenerator()
+    # This module has no generative-model backend (see _generate_bionemo); ask for the
+    # labeled RDKit/library path explicitly rather than appearing to try MolMIM first.
+    generator = MoleculeGenerator(use_bionemo=False)
     seed = get_vcp_inhibitor_seed()
 
     if seed is None:

@@ -127,14 +127,25 @@ class DockingResult(BaseModel):
     """
     molecule_id: str
     structure_id: str
-    docking_score: float = Field(..., description="Docking score (lower is better)")
+    # `docking_score` is a binding energy in kcal/mol (lower is better) and is None when the
+    # docking method does not predict one. DiffDock does not: it predicts a POSE and a
+    # confidence, so its results carry `confidence_score` instead. Keeping these apart stops
+    # a confidence being read (and normalized) as an affinity.
+    score_type: str = Field(
+        "binding_energy",
+        description="'binding_energy' (kcal/mol, lower better) or 'diffdock_confidence' (log-odds, higher better)",
+    )
+    docking_score: Optional[float] = Field(None, description="Binding energy kcal/mol (lower is better)")
+    confidence_score: Optional[float] = Field(
+        None, description="Raw pose confidence (DiffDock log-odds; higher is better)"
+    )
     binding_energy: Optional[float] = Field(None, description="Binding energy kcal/mol")
     pose_file: Optional[str] = Field(None, description="Path to docked pose")
     rmsd: Optional[float] = Field(None, description="RMSD to reference pose")
     contacts: List[str] = Field(default_factory=list, description="Residues in contact")
     hydrogen_bonds: int = Field(0)
     method: str = Field("DiffDock", description="Docking method used")
-    confidence: float = Field(0.0, ge=0, le=1)
+    confidence: float = Field(0.0, ge=0, le=1, description="Calibrated P(pose within 2 A RMSD)")
 
 
 class PediatricSafetyFlag(BaseModel):
@@ -165,7 +176,9 @@ class RankedCandidate(BaseModel):
     target_gene: str
 
     # Scores
-    docking_score: float
+    score_type: str = Field("binding_energy", description="Units of docking_score / confidence_score")
+    docking_score: Optional[float] = None       # kcal/mol; None if the method predicts no affinity
+    confidence_score: Optional[float] = None    # raw pose confidence (DiffDock log-odds)
     generation_score: float
     qed_score: Optional[float] = None
     composite_score: float = Field(..., description="Weighted composite score")

@@ -9,6 +9,7 @@ Based on NVIDIA NIM API specifications from phase-5-6.pdf.
 """
 import os
 import json
+import math
 import time
 import requests
 from pathlib import Path
@@ -564,6 +565,19 @@ class CloudDiffDockClient(DiffDockClient):
             ...
         }
         Each index corresponds to one docking pose.
+
+        UNITS (this was wrong until 2026-11-03): `position_confidence` is DiffDock's
+        CONFIDENCE score c, not a binding energy. DiffDock's confidence model is a binary
+        classifier trained to predict whether a pose is within 2 A RMSD of the true pose, so
+        c is a log-odds: HIGHER is better, and sigmoid(c) is the predicted probability.
+        (Corso, Stark, Jing, Barzilay & Jaakkola, "DiffDock: Diffusion Steps, Twists, and
+        Turns for Molecular Docking", ICLR 2023 — sec. 3 "confidence model"; c > 0 high
+        confidence, -1.5 < c < 0 moderate, c < -1.5 low.)
+
+        Writing c into `docking_score` made it look like a kcal/mol affinity, which the
+        ranking stage then normalized with `-score / 12.0` — inverting the sign AND inventing
+        a unit. DiffDock predicts a POSE, not an affinity, so `docking_score` is left None
+        and the confidence is reported as what it is.
         """
         poses = []
 
@@ -580,20 +594,25 @@ class CloudDiffDockClient(DiffDockClient):
         num_poses = max(len(confidence_scores), len(ligand_positions), 1)
 
         for i in range(num_poses):
-            score = confidence_scores[i] if i < len(confidence_scores) else 0.0
+            raw = confidence_scores[i] if i < len(confidence_scores) else None
             position = ligand_positions[i] if i < len(ligand_positions) else ""
 
-            poses.append({
+            pose = {
                 "pose_id": i + 1,
-                "docking_score": float(score),
-                "confidence": float(score),
-                "rmsd": 0.0,
+                "score_type": "diffdock_confidence",
+                "docking_score": None,          # DiffDock gives no binding energy
+                "confidence_score": None if raw is None else float(raw),
+                # sigmoid(c) = P(RMSD < 2 A) per the ICLR 2023 confidence model
+                "confidence": 0.0 if raw is None else 1.0 / (1.0 + math.exp(-float(raw))),
+                "rmsd": None,                   # not returned by the API; do not claim 0.0
                 "hydrogen_bonds": 0,
                 "contacts": [],
                 "ligand_position": position,
-            })
+            }
+            poses.append(pose)
 
-        poses.sort(key=lambda x: x["docking_score"])
+        # Best pose first: higher confidence is better.
+        poses.sort(key=lambda x: (x["confidence_score"] is None, -(x["confidence_score"] or 0.0)))
         return poses
 
 
@@ -718,6 +737,7 @@ class MockDiffDockClient(DiffDockClient):
 
             poses.append({
                 "pose_id": i + 1,
+                "score_type": "binding_energy",   # simulated kcal/mol; see _provenance below
                 "docking_score": round(base_score + i * 0.5, 2),
                 "confidence": round(confidence - i * 0.05, 3),
                 "rmsd": round(random.uniform(0.5, 3.0), 2) if i > 0 else 0.0,

@@ -560,8 +560,12 @@ class DrugDiscoveryPipeline:
                 self.docking_results.append(DockingResult(
                     molecule_id=mol.id,
                     structure_id=primary,
-                    docking_score=best_pose.get("docking_score", 0),
-                    confidence=best_pose.get("confidence", 0),
+                    # Carry the method's own units through instead of forcing everything into
+                    # `docking_score`: DiffDock reports a pose confidence, not an affinity.
+                    score_type=best_pose.get("score_type", "binding_energy"),
+                    docking_score=best_pose.get("docking_score"),
+                    confidence_score=best_pose.get("confidence_score"),
+                    confidence=best_pose.get("confidence", 0) or 0,
                     hydrogen_bonds=best_pose.get("hydrogen_bonds", 0),
                     contacts=best_pose.get("contacts", []),
                     method="DiffDock",
@@ -587,15 +591,23 @@ class DrugDiscoveryPipeline:
 
             # Calculate composite score
             gen_score = mol.generation_score
-            dock_score = dock_result.docking_score if dock_result else 0
             qed_score = mol.properties.qed if mol.properties else 0.5
 
-            # Normalize docking score (lower/more negative is better binding)
-            # Range: -12 kcal/mol (excellent) → 1.0, 0 kcal/mol (no binding) → 0.0
-            if dock_result is not None:
+            # Normalize the docking term ACCORDING TO ITS UNITS. Until 2026-11-03 every
+            # result was normalized as if it were a kcal/mol affinity (`-score / 12`), which
+            # silently inverted the sign of a DiffDock confidence (higher = better) and gave
+            # it a unit it never had. See DockingResult.score_type.
+            dock_score = dock_result.docking_score if dock_result else None
+            if dock_result is None:
+                dock_normalized = 0.0  # No docking data = worst score
+            elif dock_result.score_type == "diffdock_confidence":
+                # `confidence` is already P(pose within 2 A RMSD) in [0, 1].
+                dock_normalized = max(0.0, min(1.0, dock_result.confidence))
+            elif dock_score is not None:
+                # Binding energy, kcal/mol: -12 (excellent) → 1.0, 0 (no binding) → 0.0
                 dock_normalized = max(0.0, min(1.0, -dock_score / 12.0))
             else:
-                dock_normalized = 0.0  # No docking data = worst score
+                dock_normalized = 0.0  # scored by no quantity we can rank on
 
             composite = (
                 self.config.generation_weight * gen_score +
@@ -609,7 +621,9 @@ class DrugDiscoveryPipeline:
                 smiles=mol.smiles,
                 name=mol.name,
                 target_gene=mol.target_gene,
+                score_type=dock_result.score_type if dock_result else "binding_energy",
                 docking_score=dock_score,
+                confidence_score=dock_result.confidence_score if dock_result else None,
                 generation_score=gen_score,
                 qed_score=qed_score,
                 composite_score=round(composite, 4),

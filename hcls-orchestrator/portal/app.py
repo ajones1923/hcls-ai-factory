@@ -8,6 +8,7 @@ A comprehensive dashboard for end-to-end drug discovery workflows.
 import streamlit as st
 import json
 import subprocess
+import sys
 import os
 from pathlib import Path
 from datetime import datetime
@@ -589,24 +590,32 @@ def render_drug_discovery():
                 help="CB-5083 structure for VCP"
             )
 
-            if st.button("🚀 Generate Molecules", type="primary", use_container_width=True):
-                with st.spinner("Generating molecules with MolMIM..."):
-                    import time
-                    time.sleep(2)
-                st.success(f"Generated {num_molecules} molecules! View in Results tab.")
+            # This button used to sleep for two seconds under a "Generating molecules with
+            # MolMIM..." spinner and then report success, having generated nothing. These
+            # Quick Controls are not wired to the generator, so they are disabled rather than
+            # left to claim work they did not do.
+            st.button("🚀 Generate Molecules", type="primary", use_container_width=True,
+                      disabled=True,
+                      help="Not wired up — use the Drug Discovery UI or run_pipeline.py.")
+            st.warning(
+                "**Generation from this panel is not implemented.** These controls do not "
+                "reach MolMIM; nothing would be generated. Use the **Embedded UI** view "
+                f"(Drug Discovery UI on :8505), or run the pipeline directly:\n\n"
+                f"```\ncd {Path(__file__).resolve().parent.parent}\n"
+                "python run_pipeline.py --mode demo --molecules "
+                f"{num_molecules}\n```"
+            )
 
         with col2:
             st.markdown("### NIM Services")
 
-            services = [
-                ("MolMIM", "localhost:8001", False),
-                ("DiffDock", "localhost:8002", False),
-            ]
-
-            for name, url, status in services:
-                icon = "🟢" if status else "🟡"
-                mode = "Online" if status else "Mock Mode"
-                st.markdown(f"{icon} **{name}** - {mode}")
+            # The status for each NIM was previously a hard-coded `False` rendered as
+            # "Mock Mode" — a fixed label, not a reading. Probe the service instead, and say
+            # "Unreachable" rather than "Mock Mode", which implied a working substitute.
+            for name, port in (("MolMIM", 8001), ("DiffDock", 8002)):
+                up = get_service_status(f"http://{SERVICE_HOST}:{port}/v1/health")
+                st.markdown(f"{'🟢' if up else '🔴'} **{name}** - "
+                            f"{'Online' if up else f'Unreachable on :{port}'}")
 
             st.markdown("---")
 
@@ -688,33 +697,52 @@ def render_run_pipeline():
 
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        if st.button("🚀 Launch Pipeline", type="primary", use_container_width=True):
+        # Only Demo mode has a runnable implementation (run_pipeline.py --mode demo). The
+        # other three modes take uploaded files this page never forwards anywhere, so their
+        # button is disabled instead of pretending.
+        demo_mode = "Demo" in mode
+
+        if not demo_mode:
+            st.button("🚀 Launch Pipeline", type="primary", use_container_width=True,
+                      disabled=True, help="Only Demo mode can be launched from this portal.")
+            st.warning(
+                "**This mode cannot be launched from the portal.** The uploader above does "
+                "not yet hand files to the orchestrator. Run it from a shell instead:\n\n"
+                f"```\ncd {ORCHESTRATOR_DIR}\n"
+                "python run_pipeline.py --mode <full|target|drug> --input <your file>\n```\n"
+                "Note that `run_pipeline.py` currently implements only `--mode demo`."
+            )
+        elif st.button("🚀 Launch Pipeline", type="primary", use_container_width=True):
             st.markdown("### Pipeline Execution")
 
-            progress = st.progress(0)
-            status = st.empty()
+            # This used to be a loop of ten `time.sleep(0.5)` calls printing stage names,
+            # ending in "Pipeline completed successfully!" and balloons — no pipeline ran.
+            # Now it executes the real orchestrator and shows its actual output and exit code.
+            runner = ORCHESTRATOR_DIR / "run_pipeline.py"
+            if not runner.is_file():
+                st.error(f"Orchestrator not found at {runner} — cannot launch.")
+            else:
+                cmd = [sys.executable, str(runner), "--mode", "demo",
+                       "--molecules", str(int(num_mol))]
+                st.caption(f"Running: `{' '.join(cmd)}`")
+                with st.spinner("Running the demo pipeline — this is the real run, please wait…"):
+                    try:
+                        proc = subprocess.run(cmd, cwd=str(ORCHESTRATOR_DIR),
+                                              capture_output=True, text=True, timeout=1800)
+                        out, rc = (proc.stdout or "") + (proc.stderr or ""), proc.returncode
+                    except subprocess.TimeoutExpired:
+                        out, rc = "Pipeline exceeded the 30-minute timeout.", -1
+                    except Exception as e:                       # noqa: BLE001 - surface it
+                        out, rc = f"{type(e).__name__}: {e}", -1
 
-            stages = [
-                "Initializing pipeline...",
-                "Stage 1: Normalizing target...",
-                "Stage 2: Discovering structures...",
-                "Stage 3: Preparing structures...",
-                "Stage 4: Generating molecules...",
-                "Stage 5: Chemistry QC...",
-                "Stage 6: Generating conformers...",
-                "Stage 7: Molecular docking...",
-                "Stage 8: Ranking candidates...",
-                "Stage 9: Generating report...",
-            ]
-
-            import time
-            for i, stage in enumerate(stages):
-                status.markdown(f"**{stage}**")
-                progress.progress((i + 1) / len(stages))
-                time.sleep(0.5)
-
-            st.success("✅ Pipeline completed successfully!")
-            st.balloons()
+                st.code(out or "(no output)", language="text")
+                if rc == 0:
+                    st.success("Pipeline exited 0. Output paths are in the log above.")
+                else:
+                    st.error(
+                        f"Pipeline FAILED (exit code {rc}). No results were produced — "
+                        "read the log above for the cause."
+                    )
 
 
 def render_monitoring():

@@ -13,6 +13,17 @@
  *  workflow does not run there (a prior attempt crashed at JVM/cgroup-v2 startup).
  *  The ACTIVE orchestrator is `run_pipeline.py` in this directory. This .nf is
  *  retained as the declarative reference / future-cluster target, not the live path.
+ *
+ *  STATUS (2026-11-03): this workflow is INCOMPLETE as a reference, not merely unrun.
+ *  Two drug-discovery processes were mock implementations that generated random numbers
+ *  under the MolMIM and DiffDock names and wrote versions.yml claiming those tools; the
+ *  fabricated bodies have been removed and now fail explicitly (see
+ *  modules/drug_discovery.nf). So `--mode full|target|drug|demo` cannot complete, by
+ *  design, until the processes call the real NIM clients in
+ *  core/engines/therapeutic-discovery/src/nim_clients.py.
+ *
+ *  modules/genomics.nf is real but is a CPU bwa/GATK/snpEff stack, NOT the Parabricks +
+ *  DeepVariant toolchain documented for Stage 1 -- see the note in that file.
  * ========================================================
  */
 

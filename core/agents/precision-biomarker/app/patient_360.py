@@ -491,7 +491,17 @@ def render_patient_360(patient_data: dict[str, Any] | None = None):
 
 
 def render_demo_patient_360():
-    """Render with demo data for showcasing the platform."""
+    """Render with demo data for showcasing the platform.
+
+    Everything below is SYNTHETIC: an invented patient with invented values, used to
+    exercise the layout. The banner says so on the page itself, because nothing in the
+    rendered output otherwise distinguishes it from a real patient's results.
+    """
+    st.error(
+        "**SYNTHETIC DEMONSTRATION DATA.** This is an invented patient (DEMO-VCP-001). "
+        "Every variant, biomarker, candidate and score on this page is illustrative and "
+        "was not produced by a pipeline run. Not for clinical, diagnostic, or treatment use."
+    )
     demo_data = {
         "patient_id": "DEMO-VCP-001",
         "age": 45,
@@ -556,8 +566,12 @@ def render_demo_patient_360():
              "source": "PhenoAge (Levine et al. 2018)", "pmid": "29676998", "confidence": "95% CI: [44.7, 51.7]"},
             {"agent": "Biomarker Agent", "finding": "CYP2D6 *1/*2: Normal Metabolizer — no drug restrictions",
              "source": "CPIC Guideline", "pmid": "31562822"},
-            {"agent": "Drug Discovery", "finding": "CB-5083-A7 binds VCP D2 domain at -9.2 kcal/mol",
-             "source": "DiffDock (PDB:5FTK)", "confidence": "Top 1/50 candidates"},
+            # DiffDock predicts a binding POSE and a confidence that the pose is within 2 A
+            # RMSD of the true one -- it does NOT predict a binding affinity, so a kcal/mol
+            # figure can never be sourced to it. (Corso et al., ICLR 2023.)
+            {"agent": "Drug Discovery", "finding": "CB-5083-A7 pose predicted in the VCP D2 domain",
+             "source": "DiffDock pose prediction (PDB:5FTK) — no affinity predicted",
+             "confidence": "Top 1/50 by composite score (illustrative)"},
             {"agent": "Biomarker Agent", "finding": "Pre-diabetic trajectory detected: HbA1c 5.9%, fasting glucose 108",
              "source": "ADA Criteria 2024", "confidence": "Moderate risk"},
         ],
