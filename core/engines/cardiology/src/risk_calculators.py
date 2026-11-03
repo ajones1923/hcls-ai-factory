@@ -694,12 +694,31 @@ def calculate_heart_score(
             "for HEART Score."
         )
 
-    # Compute troponin ratio
+    # Compute troponin ratio.
+    #
+    # AUDIT FIX (2026-11-03): this defaulted to a ratio of 0.0 when no troponin had been
+    # measured, which scored the T component 0 -- the same as a normal troponin -- and made
+    # the interpretation state "Troponin <= 1x ULN (ratio 0.00)" about a patient whose
+    # troponin was never drawn. A missing measurement is not a normal measurement, and the
+    # two points that component can contribute are the difference between the low-risk band
+    # (0-3, consider discharge) and the moderate band (4-6, admit for serial troponins).
+    #
+    # Troponin is one of the five required HEART components, so an absent one is handled the
+    # way this function already handles the other required components it cannot infer:
+    # by refusing rather than substituting a favourable value.
     troponin_val = inp.troponin
     if troponin_val is not None and troponin_uln > 0:
         troponin_ratio = troponin_val / troponin_uln
     else:
-        troponin_ratio = _extra(extra, "troponin_ratio", 0.0)
+        troponin_ratio = _extra(extra, "troponin_ratio")
+        if troponin_ratio is None:
+            raise RiskCalculatorError(
+                "HEART Score requires a troponin. Provide `troponin` (with `troponin_uln` "
+                "if the assay differs from the 0.04 default) or an explicit "
+                "`troponin_ratio` in extra. A troponin that has not been drawn cannot be "
+                "scored as normal: the T component is worth up to 2 points, which spans "
+                "the discharge/admit boundary."
+            )
 
     # --- Compute each component ---
     h_score, h_label = _heart_history_score(int(history_suspicion))

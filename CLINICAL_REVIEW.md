@@ -152,6 +152,48 @@ the 2026-08-13 accuracy pass still holds.
   https://radiologyassistant.nl/cardiovascular/cad-rads/coronary-artery-disease-reporting-and-data-system
   and https://radiopaedia.org/articles/cad-rads
 
+## 6d. Radiology scoring — two edges the published charts do not define
+
+Both of these were checked against their charts on 2026-11-03 and the point tables, size bands
+and management thresholds all matched. These are the two edges the charts leave open, now
+written into the code rather than left as silent choices.
+
+**ACR TI-RADS, a total of exactly 1 point.** The chart names 0, 2, 3, 4–6 and 7+. One point is
+reachable (mixed cystic/solid composition with no other suspicious feature) and is not in the
+list. `points_to_tirads` treats it as TR2. Management is identical either way — neither 1 nor 2
+points warrants FNA or follow-up at any size — so nothing turns on it clinically, but it is a
+choice and should be a documented one.
+
+**ACR Lung-RADS v2022, baseline only.** `classify_solid_nodule_lung_rads` takes a diameter and
+nothing else. Lung-RADS also keys on exam context: at follow-up, a NEW 4–6 mm solid nodule is
+category 3 rather than 2, a new 6–8 mm nodule is 4A rather than 3, and a growing nodule moves
+up a category. So on a follow-up LDCT this can under-call by one category. The fix is to give
+the workflow a prior exam to compare against, not to change the thresholds.
+
+- **Settle with:** Tessler FN et al., J Am Coll Radiol 2017;14(5):587-595 (TI-RADS); the ACR
+  Lung-RADS v2022 assessment categories.
+
+## 6e. Risk scores verified against their publications (no action needed)
+
+Recorded so the next reader knows what has been checked rather than re-deriving it. Reference
+cases live in `core/engines/cardiology/tests/test_score_reference_cases.py`,
+`core/engines/clinical-imaging/agent/tests/test_radiology_reference_cases.py` and
+`core/disease-programs/tuberous-sclerosis/tests/unit/test_acmg_table5_reference.py`.
+
+| Instrument | Source | Result |
+|---|---|---|
+| CHA2DS2-VASc | Lip, Chest 2010 | all components and both age bands correct |
+| HAS-BLED | Pisters, Chest 2010 | correct, including renal/liver and drugs/alcohol scoring separately and E being age >65 |
+| HEART | Six 2008 / Backus 2013 | bands correct; one defect found and fixed (missing troponin scored as normal) |
+| ACR TI-RADS | Tessler 2017 | all five feature tables, level mapping and FNA size thresholds correct |
+| ACR Lung-RADS v2022 | ACR | solid-nodule size bands correct (baseline; see §6d) |
+| ACMG/AMP combining rules | Richards 2015, Table 5 | every row correct, including conflicting-evidence → VUS |
+
+Still unverified, and still the entries that matter: ASCVD Pooled Cohort Equations, EuroSCORE II
+(§1, §2), MAGGIC and PhenoAge (§8). All four are regression models, so verifying them needs
+their coefficient tables and a published worked example — a case invented from the repo's own
+coefficients would only pin current behaviour.
+
 ## 7. CAR-T knowledge base — approval dates and REMS
 
 `core/agents/cart/src/knowledge.py` dates Yescarta's ZUMA-7 indication 2021-03-05 and ZUMA-5

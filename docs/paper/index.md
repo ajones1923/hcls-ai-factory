@@ -35,7 +35,7 @@ neurology, rare disease, trial matching and single-cell interpretation.
 
 Every capability is declared in a machine-readable registry that is the input to continuous
 integration, not a description of it. Documentation, including the public capability-maturity
-matrix, is generated from that registry. We report **8,407 passing tests across all 18 subjects**,
+matrix, is generated from that registry. We report **8,532 passing tests across all 18 subjects**,
 44 pharmacogenomic gene–drug pairs verified against consortium guidance, and a single-cell workflow
 reproducible from a clean clone on commodity CPU.
 
@@ -234,13 +234,25 @@ registry does not allocate.
 ### 6.1 Test health
 
 ```
-18 subjects · 8,407 passed · 0 failed · 0 errors · 211 skipped
+18 subjects · 8,532 passed · 0 failed · 0 errors · 211 skipped
 ```
 
 That figure is measured on a clean checkout, without local reference data: the 211 skips are
 tests asserting on unpublished reference data, which skip rather than fail, so a fresh clone
 reports honestly rather than appearing broken. A checkout with the local datasets present runs
 more tests, not fewer. The platform library adds 613 tests on top of the 18 subject suites.
+
+**What that number does and does not establish.** Most of these tests prove the plumbing: that
+a function is callable, that the engine dispatches, that bad input is rejected, that a value
+lands in a plausible range. A test that asserts `0 <= risk <= 100` cannot tell you the
+coefficient behind it is in the right slot. Since 2026-11-03 a subset are *reference cases* --
+a described patient in, the number the publication gives out, checkable by hand against the
+citation -- and those are the only tests here that speak to clinical correctness. Verified that
+way so far: CHA2DS2-VASc, HAS-BLED and HEART (Lip 2010; Pisters 2010; Six 2008/Backus 2013),
+ACR TI-RADS 2017 and Lung-RADS v2022 size bands, and every row of the ACMG/AMP 2015 Table 5
+combining rules. Still unverified, and recorded as such in `CLINICAL_REVIEW.md`: the ASCVD
+Pooled Cohort Equations, EuroSCORE II, MAGGIC and PhenoAge, all four of which are regression
+models that need their published coefficient tables and a worked example to check.
 
 ### 6.2 Verified clinical content
 
