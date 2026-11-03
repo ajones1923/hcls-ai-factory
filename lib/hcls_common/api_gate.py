@@ -124,12 +124,79 @@ DISCLAIMER = (
 )
 
 # Response keys that carry prose a clinician might act on.
-_ANSWER_KEYS = ("answer", "response", "summary", "interpretation", "narrative", "brief")
-
-
+# AUDIT FIX (2026-11-03): the first six were the whole list, so an answer returned under
+# `recommendation` or `rationale` -- which several routes do -- was never scanned.
+_ANSWER_KEYS = (
+    "answer", "response", "summary", "interpretation", "narrative", "brief",
+    "recommendation", "rationale", "assessment", "explanation", "impression",
+    "conclusion", "advice", "guidance", "report", "discussion", "findings",
+    "answer_text", "clinical_interpretation", "plan",
+)
 
 # Keys a service uses to return the passages an answer was built from.
 _EVIDENCE_KEYS = ("citations", "sources", "evidence", "results", "matches")
+
+# Keys this gate writes into the payload itself. Never scan or rewrite our own annotations.
+_GATE_KEYS = ("honesty", "verification", "withheld")
+
+# The walk is bounded so a pathological payload cannot turn one response into a long scan.
+_MAX_WALK_DEPTH = 6
+_MAX_WALK_NODES = 2000
+
+
+def _answer_slots(payload: Any) -> list[tuple]:
+    """Every answer-key string in the payload, at any depth.
+
+    Returns `(container, key, path, text)` so the caller can rewrite in place.
+
+    AUDIT FIX (2026-11-03): this used to be `next((k for k in _ANSWER_KEYS ...))` over the
+    top-level dict only, which left three ways past the gate: prose nested under another key
+    (`{"result": {"interpretation": ...}}`), a second answer key in the same payload once the
+    first one matched, and a list payload, which was not looked at at all.
+
+    Subtrees under `_EVIDENCE_KEYS` are skipped. Retrieved evidence is quoted source material;
+    the gate annotates generated prose and must never rewrite a passage a clinician will check
+    the answer against.
+    """
+    out: list[tuple] = []
+    budget = [0]
+
+    def walk(node, path: str, depth: int) -> None:
+        if depth > _MAX_WALK_DEPTH or budget[0] > _MAX_WALK_NODES:
+            return
+        if isinstance(node, dict):
+            for k, v in node.items():
+                budget[0] += 1
+                if k in _EVIDENCE_KEYS or k in _GATE_KEYS:
+                    continue
+                p = f"{path}.{k}" if path else k
+                if isinstance(v, str):
+                    if k in _ANSWER_KEYS:
+                        out.append((node, k, p, v))
+                elif isinstance(v, (dict, list)):
+                    walk(v, p, depth + 1)
+        elif isinstance(node, list):
+            for i, v in enumerate(node):
+                budget[0] += 1
+                if isinstance(v, (dict, list)):
+                    walk(v, f"{path}[{i}]", depth + 1)
+
+    walk(payload, "", 0)
+    return out
+
+
+def _needs_disclaimer(text: str, findings: list) -> bool:
+    """Whether to append the decision-support footer.
+
+    Two triggers, deliberately: the register's own missing-disclaimer finding (which keys on
+    clinical trigger words), and the pre-existing length rule, kept so that nothing which used
+    to be disclaimed stops being disclaimed.
+    """
+    if _has_disclaimer(text):
+        return False
+    if len(text) > 200:
+        return True
+    return any("disclaimer" in (f.get("message") or "").lower() for f in findings)
 
 _VERIFY_LLM: Any = None
 _VERIFY_LLM_TRIED = False
@@ -182,6 +249,17 @@ def install_output_honesty(app, *, service: str = ""):
     generated prose, because those must not ship at all. Enforcing by default since
     2026-09-15; HCLS_HONESTY_ENFORCE=0 annotates instead. Retrieved evidence is never
     withheld -- only the generated text.
+
+    Scope, after the 2026-11-03 audit: every string under an `_ANSWER_KEYS` key at any depth
+    in a JSON body, of any length, in a dict or a list payload. Subtrees under
+    `_EVIDENCE_KEYS` are skipped so quoted source material is never rewritten.
+
+    What it still does NOT cover, so nobody has to re-derive it: a streamed body
+    (`text/event-stream`, `application/x-ndjson`) is passed through unscanned and marked
+    `X-HCLS-Honesty: not-scanned`; prose returned under a key outside `_ANSWER_KEYS` is
+    invisible to it; and a module that calls its own generator in-process, without crossing
+    the HTTP boundary, bypasses middleware entirely -- those handlers must still call
+    `honesty_flags()` or `assert_publishable()` themselves.
     """
     import json as _json
     import os as _os
@@ -193,6 +271,13 @@ def install_output_honesty(app, *, service: str = ""):
     async def _output_honesty(request: "Request", call_next):
         response = await call_next(request)
         ctype = response.headers.get("content-type", "")
+        # A streamed answer cannot be scanned without buffering it, and buffering it would
+        # defeat the point of streaming. The gate does not run, and says so rather than
+        # letting the response look like every other gated one.
+        if any(s in ctype for s in ("text/event-stream", "application/x-ndjson")):
+            response.headers["X-HCLS-Honesty"] = (
+                "not-scanned; streamed response (the gate cannot buffer a stream)")
+            return response
         if "application/json" not in ctype or response.status_code >= 400:
             return response
         body = b""
@@ -204,79 +289,121 @@ def install_output_honesty(app, *, service: str = ""):
             return Response(content=body, status_code=response.status_code,
                             headers=dict(response.headers), media_type=response.media_type)
 
-        if isinstance(payload, dict):
-            key = next((k for k in _ANSWER_KEYS
-                        if isinstance(payload.get(k), str) and len(payload[k]) > 200), None)
-            if key:
-                text = payload[key]
-                try:
-                    findings = honesty_flags(text)          # marks the gate as having run
-                except Exception:
-                    findings = []
-                # ── adversarial layer ────────────────────────────────────────
-                # The deterministic register above catches PHRASING ("cures", "zero risk").
-                # It cannot catch a fabricated statistic or an invented trial number, which is
-                # the actual failure mode of generated clinical prose. This extracts atomic
-                # claims and asks a model to REFUTE each against the passages the answer was
-                # built from -- refutation, not confirmation, is what catches invented numbers.
-                # Off when there is no evidence to check against, or no key, or
-                # HCLS_VERIFY_CLAIMS=0. It must never break generation.
-                refuted: list = []
-                if _os.getenv("HCLS_VERIFY_CLAIMS", "1") != "0":
-                    evidence = _evidence_from(payload)
-                    llm = _verify_llm() if evidence else None
-                    if llm is not None:
-                        try:
-                            from hcls_common.verify_gate import verify_claims
-                            rep = verify_claims(text, evidence, llm)
-                            _mark_gate("claim-verification")
-                            payload["verification"] = {
-                                "claims": len(rep["claims"]),
-                                "supported": rep["supported"],
-                                "refuted": rep["refuted"],
-                                "unsupported": rep["unsupported"],
-                                "flagged": rep["flagged"][:8],
-                            }
-                            refuted = [x for x in rep["flagged"] if x.get("verdict") == "refuted"]
-                        except Exception as exc:          # never break the answer
-                            payload["verification"] = {"error": f"{type(exc).__name__}"}
+        slots = _answer_slots(payload)
+        # At most one claim-verification call per response: it costs an LLM round trip, so it
+        # runs against the longest answer, which is the generated prose in every payload shape
+        # seen in this repo. The deterministic register runs over all of them.
+        primary = max(range(len(slots)), key=lambda i: len(slots[i][3])) if slots else -1
+        all_findings: list[dict] = []
+        changed = False
+        withheld = 0
+        verified = False
 
-                blocking = [f for f in findings if f.get("severity") == "block"]
-                # ENFORCING BY DEFAULT since 2026-09-15 (Adam's decision). Set
-                # HCLS_HONESTY_ENFORCE=0 to annotate instead of withhold.
-                #
-                # Safe to default on only because the regulatory/efficacy rules became
-                # subject-aware first: "this platform is FDA-approved" blocks, while
-                # "tisagenlecleucel is FDA-approved" degrades to a warning. Without that,
-                # enforcement would have withheld correct clinical answers about approved
-                # drugs -- worse than the problem it solves. Rules that are unsafe whatever
-                # the subject (a cure claim, absolute certainty, zero risk) always block.
-                if (blocking or refuted) and _os.getenv("HCLS_HONESTY_ENFORCE", "1") != "0":
-                    reasons = [f.get("message", "") for f in blocking]
-                    reasons += [f"Claim contradicted by the cited evidence: "
-                                f"{r.get('claim', '')[:140]} — {r.get('why', '')[:140]}"
-                                for r in refuted]
-                    payload[key] = (
-                        "**Withheld by the output-honesty gate.**\n\n"
-                        + "\n".join(f"- {m}" for m in reasons)
-                        + "\n\nThe generated text made a claim this platform must not publish. "
-                          "The retrieved evidence is unchanged and still returned; only the "
-                          "generated prose was withheld. Set HCLS_HONESTY_ENFORCE=0 to receive "
-                          "it annotated instead." + DISCLAIMER)
-                    payload["withheld"] = True
-                elif not _has_disclaimer(text):
-                    payload[key] = text + DISCLAIMER
-                if findings:
-                    payload["honesty"] = findings
-                body = _json.dumps(payload).encode()
+        for idx, (container, key, path, text) in enumerate(slots):
+            try:
+                findings = honesty_flags(text)              # marks the gate as having run
+            except Exception:
+                findings = []
+            # ── adversarial layer ────────────────────────────────────────────
+            # The deterministic register above catches PHRASING ("cures", "zero risk").
+            # It cannot catch a fabricated statistic or an invented trial number, which is
+            # the actual failure mode of generated clinical prose. This extracts atomic
+            # claims and asks a model to REFUTE each against the passages the answer was
+            # built from -- refutation, not confirmation, is what catches invented numbers.
+            # Off when there is no evidence to check against, or no answer, or
+            # HCLS_VERIFY_CLAIMS=0. It must never break generation.
+            refuted: list = []
+            if idx == primary and _os.getenv("HCLS_VERIFY_CLAIMS", "1") != "0":
+                evidence = _evidence_from(payload) if isinstance(payload, dict) else []
+                if not evidence and isinstance(container, dict):
+                    evidence = _evidence_from(container)
+                llm = _verify_llm() if evidence else None
+                if llm is not None:
+                    report: dict = {}
+                    try:
+                        from hcls_common.verify_gate import verify_claims
+                        rep = verify_claims(text, evidence, llm)
+                        _mark_gate("claim-verification")
+                        verified = True
+                        report = {
+                            "claims": len(rep["claims"]),
+                            "supported": rep["supported"],
+                            "refuted": rep["refuted"],
+                            "unsupported": rep["unsupported"],
+                            "flagged": rep["flagged"][:8],
+                        }
+                        refuted = [x for x in rep["flagged"] if x.get("verdict") == "refuted"]
+                    except Exception as exc:              # never break the answer
+                        report = {"error": f"{type(exc).__name__}"}
+                    if isinstance(payload, dict):
+                        payload["verification"] = report
+
+            blocking = [f for f in findings if f.get("severity") == "block"]
+            # ENFORCING BY DEFAULT since 2026-09-15 (Adam's decision). Set
+            # HCLS_HONESTY_ENFORCE=0 to annotate instead of withhold.
+            #
+            # Safe to default on only because the regulatory/efficacy rules became
+            # subject-aware first: "this platform is FDA-approved" blocks, while
+            # "tisagenlecleucel is FDA-approved" degrades to a warning. Without that,
+            # enforcement would have withheld correct clinical answers about approved
+            # drugs -- worse than the problem it solves. Rules that are unsafe whatever
+            # the subject (a cure claim, absolute certainty, zero risk) always block.
+            #
+            # Length is NOT a condition here. It used to be -- only strings over 200
+            # characters were looked at -- and "This platform cures the patient's disease."
+            # is 41 characters.
+            if (blocking or refuted) and _os.getenv("HCLS_HONESTY_ENFORCE", "1") != "0":
+                reasons = [f.get("message", "") for f in blocking]
+                reasons += [f"Claim contradicted by the cited evidence: "
+                            f"{r.get('claim', '')[:140]} — {r.get('why', '')[:140]}"
+                            for r in refuted]
+                container[key] = (
+                    "**Withheld by the output-honesty gate.**\n\n"
+                    + "\n".join(f"- {m}" for m in reasons)
+                    + "\n\nThe generated text made a claim this platform must not publish. "
+                      "The retrieved evidence is unchanged and still returned; only the "
+                      "generated prose was withheld. Set HCLS_HONESTY_ENFORCE=0 to receive "
+                      "it annotated instead." + DISCLAIMER)
+                withheld += 1
+                changed = True
+            elif _needs_disclaimer(text, findings):
+                container[key] = text + DISCLAIMER
+                changed = True
+            for f in findings:
+                all_findings.append({**f, "path": path})
+
+        if all_findings and isinstance(payload, dict):
+            payload["honesty"] = all_findings
+            changed = True
+        if withheld and isinstance(payload, dict):
+            payload["withheld"] = True
+            changed = True
+        if changed:
+            body = _json.dumps(payload).encode()
 
         headers = dict(response.headers)
         headers.pop("content-length", None)
         out = Response(content=body, status_code=response.status_code,
                        headers=headers, media_type="application/json")
-        ran = sorted(_GATES_RUN.get(set()) or set())
+        # AUDIT FIX (2026-11-03): this read the gates out of the contextvar, which the inner
+        # middleware sets in a different context -- so the automatic output gate, the one gate
+        # that always runs, never appeared in X-HCLS-Governed. This middleware knows what it
+        # ran, so it unions its own gates with whatever the inner middleware reported.
+        ran = {g for g in (headers.get("x-hcls-governed") or "").split(",") if g}
+        if slots:
+            ran.add("output-honesty")
+        if verified:
+            ran.add("claim-verification")
         if ran:
-            out.headers["X-HCLS-Governed"] = ",".join(ran)
+            out.headers["X-HCLS-Governed"] = ",".join(sorted(ran))
+        # The docstring promised this header since 2026-09-15 and nothing ever set it.
+        if slots:
+            sev = [f.get("severity") for f in all_findings]
+            out.headers["X-HCLS-Honesty"] = "; ".join(
+                [f"scanned={len(slots)}"]
+                + ([f"block={sev.count('block')}"] if "block" in sev else [])
+                + ([f"warn={sev.count('warn')}"] if "warn" in sev else [])
+                + ([f"withheld={withheld}"] if withheld else []))
         return out
 
     return app
