@@ -120,6 +120,13 @@ class TherapyRanker:
         # Step 3: Rank by evidence level
         therapies.sort(key=lambda t: EVIDENCE_LEVEL_ORDER.get(t.get("evidence_level", "E"), 4))
 
+        # Step 3.5: Identify combination regimens BEFORE the safety checks below, so that
+        # resistance, contraindication and evidence lookup apply to them too. This used to sit
+        # after step 6 as "step 6.5", which is why combos carried hard-coded False flags.
+        for combo in self._identify_combo_therapies(therapies, cancer_type):
+            if combo["drug_name"].lower() not in {t["drug_name"].lower() for t in therapies}:
+                therapies.append(combo)
+
         # Step 4: Check for resistance
         for t in therapies:
             drug_name = t.get("drug_name", "")
@@ -136,20 +143,28 @@ class TherapyRanker:
             t["contraindication_flag"] = self._check_contraindication(
                 t, prior_lower
             )
+            # _check_contraindication and _check_resistance both match on drug_name, which
+            # for a combination is "dabrafenib + trametinib" and matches no single prior
+            # therapy. Look inside the regimen so a patient who already failed a component
+            # is not re-offered the combination unflagged.
+            used_components = [
+                c for c in t.get("components", []) if c.lower().strip() in prior_lower
+            ]
+            if used_components:
+                t["contraindication_flag"] = True
+                detail = (
+                    "already received: " + ", ".join(sorted(used_components))
+                )
+                t["resistance_detail"] = (
+                    f"{t.get('resistance_detail')}; {detail}"
+                    if t.get("resistance_detail") else detail
+                )
 
         # Step 6: Retrieve supporting evidence
         for t in therapies:
             drug_name = t.get("drug_name", "")
             evidence = self._fetch_supporting_evidence(drug_name, cancer_type)
             t["supporting_evidence"] = evidence
-
-        # Step 6.5: Identify combination therapies
-        combo_therapies = self._identify_combo_therapies(therapies, cancer_type)
-        if combo_therapies:
-            for combo in combo_therapies:
-                drug_key = combo["drug_name"].lower()
-                if drug_key not in {t["drug_name"].lower() for t in therapies}:
-                    therapies.append(combo)
 
         # Assign final ranks (resistance/contraindicated therapies demoted)
         therapies = self._assign_final_ranks(therapies)
@@ -176,6 +191,56 @@ class TherapyRanker:
     # ------------------------------------------------------------------
     # Variant-driven therapy identification
     # ------------------------------------------------------------------
+
+    # Synonyms seen in case data for the cancer_types spellings in knowledge.py. Matching is
+    # substring-based on top of this, so "metastatic colorectal carcinoma" still matches
+    # "colorectal".
+    _CANCER_SYNONYMS = {
+        "crc": "colorectal",
+        "colorectal carcinoma": "colorectal",
+        "nsclc": "nsclc",
+        "non-small cell lung cancer": "nsclc",
+        "lung adenocarcinoma": "nsclc",
+        "rcc": "renal cell",
+        "hcc": "hepatocellular",
+        "gbm": "glioblastoma",
+        "breast carcinoma": "breast",
+    }
+
+    @staticmethod
+    def _downgrade(level: str, steps: int = 1) -> str:
+        """Move an evidence level down `steps` tiers, bottoming out at the weakest."""
+        ladder = ["A", "B", "C", "D", "E"]
+        try:
+            return ladder[min(len(ladder) - 1, ladder.index(level.upper()) + steps)]
+        except ValueError:
+            return "E"
+
+    def _cancer_type_applies(self, cancer_type: str, allowed: List[str]) -> bool:
+        """Is `cancer_type` among the indications `allowed`?
+
+        Nothing gated on cancer type before this: _identify_variant_therapies and
+        _identify_combo_therapies both took a cancer_type argument and never read it, so a
+        BRAF V600E melanoma case was offered "encorafenib + cetuximab" (BEACON, colorectal
+        only) at evidence level A, and a PD-L1 TPS>=50 case got the NSCLC first-line
+        pembrolizumab line whatever the tumour was.
+
+        An empty `allowed` means the source data does not state an indication, which is
+        treated as unknown rather than approved.
+        """
+        if not allowed:
+            return False
+        if any("tissue-agnostic" in a.lower() for a in allowed):
+            return True
+        if not cancer_type:
+            return False
+        ct = cancer_type.lower().strip()
+        ct = self._CANCER_SYNONYMS.get(ct, ct)
+        for a in allowed:
+            al = a.lower().strip()
+            if al in ct or ct in al:
+                return True
+        return False
 
     def _identify_variant_therapies(
         self, gene: str, variant: str, cancer_type: str
@@ -207,15 +272,44 @@ class TherapyRanker:
 
         # Get drug list from targeted_therapies or drugs
         drugs = target_info.get("targeted_therapies", target_info.get("drugs", []))
+        gene_level_inference = False
         if variant_matched:
             evidence_level = target_info.get("evidence_level", "C")
         elif target_info.get("gene_level_actionable", False):
             evidence_level = target_info.get("default_evidence_level", "C")
+            gene_level_inference = True
         elif key_variants:
-            # Gene has known variants but this specific variant wasn't matched
-            evidence_level = target_info.get("evidence_level", "C")
+            # The gene has known actionable variants and THIS variant is not one of them.
+            # This branch used to hand back the gene's top evidence_level unchanged, so an
+            # EGFR C797S or an exon-20 insertion was offered osimertinib and erlotinib at
+            # level A — the level earned by L858R, not by this variant. Evidence for a
+            # different variant is not evidence for this one: infer, but say so and drop a
+            # tier.
+            evidence_level = self._downgrade(target_info.get("evidence_level", "C"))
+            gene_level_inference = True
         else:
             return []
+
+        # A variant listed as a resistance mechanism for this gene is surfaced with a flag
+        # rather than silently ranked. Which drug it defeats is drug-specific (T790M is
+        # osimertinib's indication and 1st/2nd-gen TKI resistance), so this does not presume
+        # to pick: it marks the variant so a reviewer sees it.
+        resistance_variants = [r.upper() for r in target_info.get("resistance_mutations", [])]
+        variant_is_resistance = bool(variant) and any(
+            r in variant.upper() for r in resistance_variants
+        )
+        review_note = ""
+        if variant_is_resistance:
+            review_note = (
+                f"{variant} is listed as a resistance mechanism for {gene_upper}. Whether it "
+                f"defeats a given drug in this list is drug-specific and is NOT encoded here "
+                f"(for example T790M is osimertinib's indication while conferring resistance "
+                f"to earlier-generation TKIs). Confirm per drug before acting."
+            )
+
+        indicated = self._cancer_type_applies(cancer_type, target_info.get("cancer_types", []))
+        if not indicated:
+            evidence_level = self._downgrade(evidence_level)
 
         for drug in drugs:
             if isinstance(drug, str):
@@ -239,6 +333,13 @@ class TherapyRanker:
                 "source": "variant",
                 "source_gene": gene_upper,
                 "source_variant": variant,
+                "variant_matched": variant_matched,
+                # True when the recommendation rests on the gene rather than on this variant.
+                "gene_level_inference": gene_level_inference,
+                "variant_is_resistance_mutation": variant_is_resistance,
+                "review_note": review_note,
+                "indicated_for_cancer_type": indicated,
+                "approved_cancer_types": list(target_info.get("cancer_types", [])),
             })
 
         return therapies
@@ -269,7 +370,7 @@ class TherapyRanker:
         therapies = []
 
         # MSI-H -> pembrolizumab, nivolumab, dostarlimab
-        msi = biomarkers.get("MSI", "").upper()
+        msi = str(biomarkers.get("MSI") or "").upper()
         if msi in ("MSI-H", "MSI-HIGH", "DMMR"):
             msi_drugs = [
                 ("pembrolizumab", "Keytruda", "A",
@@ -314,7 +415,7 @@ class TherapyRanker:
 
         # HRD / BRCA -> PARP inhibitors + platinum-based chemotherapy
         hrd = biomarkers.get("HRD")
-        brca = biomarkers.get("BRCA", "").upper()
+        brca = str(biomarkers.get("BRCA") or "").upper()
         if hrd in (True, "positive", "Positive") or brca in ("BRCA1", "BRCA2", "POSITIVE"):
             parp_drugs = [
                 ("olaparib", "Lynparza"),
@@ -351,7 +452,7 @@ class TherapyRanker:
                 })
 
         # PTEN loss -> consider mTOR/PI3K inhibitors
-        pten = biomarkers.get("PTEN", "").upper()
+        pten = str(biomarkers.get("PTEN") or "").upper()
         if pten in ("LOSS", "DELETED", "MUTATION", "LOST"):
             therapies.append({
                 "drug_name": "alpelisib",
@@ -385,7 +486,7 @@ class TherapyRanker:
             })
 
         # NTRK fusion -> larotrectinib, entrectinib
-        ntrk = biomarkers.get("NTRK", "").upper()
+        ntrk = str(biomarkers.get("NTRK") or "").upper()
         if ntrk in ("FUSION", "POSITIVE", "NTRK1", "NTRK2", "NTRK3"):
             therapies.append({
                 "drug_name": "larotrectinib",
@@ -634,6 +735,7 @@ class TherapyRanker:
     _COMBO_REGIMENS = [
         {
             "combo_name": "dabrafenib + trametinib",
+            "cancer_types": ["melanoma", "NSCLC", "thyroid"],
             "components": ["dabrafenib", "trametinib"],
             "target": "BRAF",
             "evidence_level": "A",
@@ -641,6 +743,7 @@ class TherapyRanker:
         },
         {
             "combo_name": "encorafenib + binimetinib",
+            "cancer_types": ["melanoma"],
             "components": ["encorafenib", "binimetinib"],
             "target": "BRAF",
             "evidence_level": "A",
@@ -648,6 +751,7 @@ class TherapyRanker:
         },
         {
             "combo_name": "encorafenib + cetuximab",
+            "cancer_types": ["colorectal"],
             "components": ["encorafenib", "cetuximab"],
             "target": "BRAF",
             "evidence_level": "A",
@@ -655,6 +759,7 @@ class TherapyRanker:
         },
         {
             "combo_name": "ipilimumab + nivolumab",
+            "cancer_types": ["melanoma", "renal cell", "colorectal", "hepatocellular", "NSCLC"],
             "components": ["ipilimumab", "nivolumab"],
             "target": "PD-1/CTLA-4",
             "evidence_level": "A",
@@ -662,6 +767,7 @@ class TherapyRanker:
         },
         {
             "combo_name": "lenvatinib + pembrolizumab",
+            "cancer_types": ["endometrial", "renal cell"],
             "components": ["lenvatinib", "pembrolizumab"],
             "target": "VEGFR/PD-1",
             "evidence_level": "A",
@@ -669,6 +775,7 @@ class TherapyRanker:
         },
         {
             "combo_name": "trastuzumab + pertuzumab",
+            "cancer_types": ["breast"],
             "components": ["trastuzumab", "pertuzumab"],
             "target": "HER2",
             "evidence_level": "A",
@@ -698,20 +805,30 @@ class TherapyRanker:
             components = regimen["components"]
             # If at least one component is already in the therapy list
             overlap = [c for c in components if c.lower() in existing_drugs]
-            if overlap:
-                combos.append({
-                    "drug_name": regimen["combo_name"],
-                    "brand_name": "",
-                    "category": "combination regimen",
-                    "targets": [regimen["target"]],
-                    "evidence_level": regimen["evidence_level"],
-                    "guideline_recommendation": regimen["guideline"],
-                    "source": "combination",
-                    "resistance_flag": False,
-                    "resistance_detail": None,
-                    "contraindication_flag": False,
-                    "supporting_evidence": [],
-                })
+            if not overlap:
+                continue
+            # cancer_types comes from each regimen's own guideline string; a regimen is not
+            # offered for a tumour its approval does not cover.
+            if not self._cancer_type_applies(cancer_type, regimen.get("cancer_types", [])):
+                continue
+            combos.append({
+                "drug_name": regimen["combo_name"],
+                "components": list(components),
+                "brand_name": "",
+                "category": "combination regimen",
+                "targets": [regimen["target"]],
+                "evidence_level": regimen["evidence_level"],
+                "guideline_recommendation": regimen["guideline"],
+                "source": "combination",
+                "approved_cancer_types": list(regimen.get("cancer_types", [])),
+                "indicated_for_cancer_type": True,
+                # resistance_flag / contraindication_flag / supporting_evidence are no
+                # longer hard-coded here: combos used to be appended AFTER steps 4-6, so
+                # they shipped resistance_flag=False and an empty evidence list by
+                # construction, and a patient who had already failed dabrafenib+trametinib
+                # was re-offered it unflagged. rank_therapies() now identifies combos
+                # before those checks so the same loops cover them.
+            })
 
         return combos
 
