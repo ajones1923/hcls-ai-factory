@@ -384,10 +384,12 @@ class MRIBrainMSLesionWorkflow(BaseImagingWorkflow):
 
             logger.info(f"MRI brain model forward pass succeeded: {model_info}")
 
-            # Return mock clinical results enriched with real model metadata
+            # The forward pass above ran on a SYNTHETIC volume, not on the supplied image, so
+            # the clinical findings below are still the canned ones. Say exactly that: a real
+            # model ran, and it did not read this patient's pixels.
             mock = self._mock_inference()
             mock["model_info"] = model_info
-            mock["real_model_used"] = True
+            mock[self.SYNTHETIC_PASS_KEY] = True
             return mock
 
         except Exception as e:
@@ -626,8 +628,9 @@ class MRIBrainMSLesionWorkflow(BaseImagingWorkflow):
         model_info = inference_result.get("model_info", {})
         if model_info:
             measurements["weights_loaded"] = 1.0 if model_info.get("weights_loaded") else 0.0
-        if inference_result.get("real_model_used"):
-            measurements["real_model_used"] = 1.0
+        if inference_result.get(self.SYNTHETIC_PASS_KEY):
+            # A model ran, on synthetic input. Named so it cannot be read as "measured here".
+            measurements["synthetic_input_forward_pass"] = 1.0
 
         # Per-lesion volumes for trending
         for lesion in lesions:

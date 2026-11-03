@@ -68,6 +68,8 @@ class WorkflowRunResponse(BaseModel):
     inference_time_ms: float
     nim_services_used: List[str]
     is_mock: bool
+    # "measured" | "canned" | "canned_after_synthetic_forward_pass" — see WorkflowResult.
+    findings_provenance: str = "canned"
     cross_modal: Optional[CrossModalResponse] = None
 
 
@@ -209,6 +211,7 @@ async def run_workflow(name: str, request: WorkflowRunRequest):
         inference_time_ms=result.inference_time_ms,
         nim_services_used=result.nim_services_used,
         is_mock=result.is_mock,
+        findings_provenance=result.findings_provenance,
         cross_modal=cross_modal_response,
     )
 
