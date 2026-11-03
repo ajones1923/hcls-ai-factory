@@ -24,7 +24,7 @@ Modules:
     meta_agent      Meta-agent orchestration using Claude tool-use for clinical intelligence
     report_generator  Unified clinical report generation (Markdown, JSON, PDF)
     knowledge_version  Semantic versioning for all agent knowledge bases
-    reproducibility    Reproducibility manifest for FDA 21 CFR Part 11 compliance
+    reproducibility    Per-run reproducibility manifest (Part 11-minded, not compliant)
     event_monitor      Live event bus monitor for cross-agent intelligence visualization
 """
 

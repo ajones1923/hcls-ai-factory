@@ -8,6 +8,7 @@ Author: Adam Jones
 Date: March 2026
 """
 
+import re
 from typing import Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException, Request
@@ -15,6 +16,90 @@ from loguru import logger
 from pydantic import BaseModel, Field
 
 router = APIRouter(prefix="/v1/diagnostic", tags=["rare-disease-diagnostics"])
+
+# Longest label first: a plain substring scan matched "Pathogenic" inside "Likely Pathogenic".
+_ACMG_LABELS = ("Likely Pathogenic", "Likely Benign", "Pathogenic", "Benign", "VUS")
+# Wording that reverses the label it sits in front of.
+_NEGATIONS = ("not ", "non-", "rather than ", "cannot be ", "is unlikely to be ", "neither ")
+
+
+def _parse_acmg_classification(answer: str) -> Optional[str]:
+    """Read the classification an interpretation states, or None if it states none.
+
+    The previous loop tested ("Pathogenic", "Likely Pathogenic", "Likely Benign", "Benign")
+    in that order with a case-folded substring test, so "not pathogenic" and "Likely
+    Pathogenic" both returned "Pathogenic". Because the prompt itself lists every label as an
+    instruction, nearly any reply contained the word and was classified Pathogenic.
+
+    Preference order: an explicit "final classification: X" line, then an unambiguous mention.
+    Ambiguous or absent returns None so the caller can say it does not know.
+    """
+    if not answer:
+        return None
+
+    def labels_in(text: str) -> set:
+        """Labels asserted in `text`, ignoring negated ones.
+
+        Longest label first, masking each as it is consumed, so "Pathogenic" cannot also
+        match inside "Likely Pathogenic" and turn one verdict into two.
+        """
+        found = set()
+        remaining = text
+        for label in _ACMG_LABELS:
+            pattern = rf"\b{re.escape(label)}\b"
+            for m in re.finditer(pattern, remaining, re.IGNORECASE):
+                prefix = remaining[max(0, m.start() - 24):m.start()].lower()
+                if any(neg in prefix for neg in _NEGATIONS):
+                    continue
+                found.add("VUS" if label.upper() == "VUS" else label)
+            remaining = re.sub(pattern, "#" * len(label), remaining, flags=re.IGNORECASE)
+        return found
+
+    # An explicit verdict line wins, wherever it sits in the reply.
+    for m in re.finditer(
+        r"(?:final\s+)?classification\s*(?:is)?\s*[:\-]?\s*([^\n.;]{0,60})", answer, re.IGNORECASE
+    ):
+        stated = labels_in(m.group(1))
+        if len(stated) == 1:
+            return stated.pop()
+
+    # Otherwise accept a mention only if the reply is not weighing several labels at once.
+    mentioned = labels_in(answer)
+    return mentioned.pop() if len(mentioned) == 1 else None
+
+
+def _extract_cited_criteria(answer: str) -> List["ACMGCriterion"]:
+    """Return the ACMG codes the interpretation actually cites.
+
+    `met` is set only where the text says so. Criteria were previously manufactured from the
+    classification itself — a Pathogenic label asserted PVS1, PS1 and PM2 as met with no
+    evidence, i.e. the argument for the call was generated from the call.
+    """
+    try:
+        from src.knowledge import ACMG_CRITERIA as _ACMG_DB
+    except Exception:
+        _ACMG_DB = {}
+
+    out: List[ACMGCriterion] = []
+    for code in sorted({m.group(0).upper() for m in re.finditer(r"\b(?:PVS1|PS[1-4]|PM[1-6]|PP[1-5]|BA1|BS[1-4]|BP[1-7])\b", answer or "", re.IGNORECASE)}):
+        m = re.search(rf"\b{code}\b", answer, re.IGNORECASE)
+        sentence = ""
+        if m:
+            start = answer.rfind(".", 0, m.start()) + 1
+            end = answer.find(".", m.end())
+            sentence = answer[start:end if end != -1 else len(answer)].strip()
+        lowered = sentence.lower()
+        met = not any(
+            phrase in lowered
+            for phrase in ("not met", "not applicable", "does not apply", "no evidence", "cannot be applied")
+        )
+        out.append(ACMGCriterion(
+            code=code,
+            strength=_ACMG_DB.get(code, {}).get("strength", ""),
+            met=met,
+            evidence=sentence or f"{code} cited without accompanying text",
+        ))
+    return out
 
 
 
@@ -234,11 +319,15 @@ class VariantInterpretResponse(BaseModel):
     variant: str
     classification: str = ""
     acmg_criteria: List[ACMGCriterion] = []
-    pathogenicity_score: float = 0.0
+    # None, not 0.0: nothing here computes a pathogenicity score, and a literal 0.0 reads as
+    # "scored, and benign".
+    pathogenicity_score: Optional[float] = None
     clinvar_significance: Optional[str] = None
     alphamissense_score: Optional[float] = None
     gene_disease_associations: List[Dict] = []
     recommendations: List[str] = []
+    # Why a field is empty or a classification absent, so the caller is not left guessing.
+    notes: List[str] = []
 
 
 # -- Phenotype Matching --
@@ -610,19 +699,11 @@ async def diagnose(request: DiagnoseRequest, req: Request):
         except Exception as exc:
             logger.warning(f"Knowledge base lookup for differential failed: {exc}")
 
-        # If knowledge base also returned nothing, create LLM-derived candidates
-        if not differential and phenotype_summary and phenotype_summary != f"Patient presents with {len(request.phenotypes)} phenotypic features.":
-            for i in range(min(3, request.max_diagnoses)):
-                differential.append(DiagnosisCandidate(
-                    disease_id=f"LLM-{i+1}",
-                    disease_name="See analysis below",
-                    confidence=max(0.3, 0.8 - i * 0.15),
-                    phenotype_overlap=0.0,
-                    gene_match=False,
-                    inheritance_pattern="See analysis",
-                    source="LLM clinical reasoning",
-                    evidence=[],
-                ))
+        # There used to be a fallback here that emitted up to three placeholder candidates
+        # named "See analysis below" carrying confidence 0.8, 0.65 and 0.5 — ranked
+        # confidences for diseases that had never been named, over zero phenotype overlap and
+        # an empty evidence list. A caller sorting by confidence got pure noise at the top.
+        # An empty differential plus the narrative is the honest result, so nothing is added.
 
     if not differential:
         recommendations = [
@@ -668,12 +749,22 @@ async def interpret_variant(request: VariantInterpretRequest, req: Request):
         except Exception:
             pass
 
-    classification = "VUS"
+    classification = "Unclassified"
     acmg_criteria: List[ACMGCriterion] = []
     recommendations: List[str] = []
     gene_disease: List[Dict] = []
+    notes: List[str] = []
 
-    if llm:
+    if llm and not context.strip():
+        # No retrieved evidence. The prompt below asks for an ACMG classification "per the
+        # evidence", so running it here produced a confident classification with nothing
+        # behind it. Refuse instead: an unclassified variant is a usable answer, a
+        # fabricated Pathogenic call is not.
+        notes.append(
+            "No evidence was retrieved for this variant, so no classification was attempted. "
+            "Check that the knowledge base is populated and reachable."
+        )
+    elif llm:
         prompt = (
             f"ACMG/AMP variant classification:\n"
             f"Gene: {request.gene}\n"
@@ -700,35 +791,33 @@ async def interpret_variant(request: VariantInterpretRequest, req: Request):
 
         try:
             answer = llm.generate(prompt, max_tokens=4096)
-            # Parse classification from LLM response
-            for cls_label in ["Pathogenic", "Likely Pathogenic", "Likely Benign", "Benign"]:
-                if cls_label.lower() in answer.lower():
-                    classification = cls_label
-                    break
+            parsed = _parse_acmg_classification(answer)
+            if parsed is None:
+                # The reply never stated a classification we could read. Say so rather than
+                # letting a default stand in for a call nobody made.
+                classification = "Unclassified"
+                notes.append(
+                    "The model's reply did not state a classification that could be parsed; "
+                    "read the full text below rather than relying on this field."
+                )
+            else:
+                classification = parsed
+            acmg_criteria = _extract_cited_criteria(answer)
             recommendations = [answer]
         except Exception as exc:
             logger.error(f"LLM variant interpretation failed: {exc}")
+            notes.append(f"Variant interpretation failed: {exc}")
 
-    # Populate ACMG criteria based on classification
-    if not acmg_criteria and classification:
-        try:
-            from src.knowledge import ACMG_CRITERIA as _ACMG_DB
-            if classification.lower() in ("pathogenic", "likely pathogenic"):
-                relevant = ["PVS1", "PS1", "PM1", "PM2", "PP3"]
-            elif classification.lower() == "vus":
-                relevant = ["PM2", "PP3", "BP4"]
-            else:
-                relevant = ["BA1", "BS1", "BP4"]
-            for code in relevant:
-                if code in _ACMG_DB:
-                    acmg_criteria.append(ACMGCriterion(
-                        code=code,
-                        strength=_ACMG_DB[code].get("strength", ""),
-                        met=code in ("PVS1", "PS1", "PM2") if classification.lower() in ("pathogenic", "likely pathogenic") else False,
-                        evidence=_ACMG_DB[code].get("description", ""),
-                    ))
-        except Exception as exc:
-            logger.warning(f"ACMG criteria population failed: {exc}")
+    # ACMG criteria used to be invented here: given a "Pathogenic" label the route asserted
+    # PVS1, PS1 and PM2 as met=True without any evidence for them, which is the whole
+    # argument for the classification manufactured from the classification. Criteria now come
+    # only from _extract_cited_criteria() above, i.e. codes the model actually cited, with
+    # `met` set only where it said so explicitly.
+    if not acmg_criteria:
+        notes.append(
+            "No ACMG criteria were extracted; criteria are reported only when the "
+            "interpretation cites them, never derived from the classification."
+        )
 
     if not recommendations:
         recommendations = [
@@ -743,11 +832,12 @@ async def interpret_variant(request: VariantInterpretRequest, req: Request):
         variant=request.variant,
         classification=classification,
         acmg_criteria=acmg_criteria,
-        pathogenicity_score=0.0,
+        pathogenicity_score=None,
         clinvar_significance=None,
         alphamissense_score=None,
         gene_disease_associations=gene_disease,
         recommendations=recommendations,
+        notes=notes,
     )
 
 

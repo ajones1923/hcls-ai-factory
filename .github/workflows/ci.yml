@@ -48,7 +48,8 @@ jobs:
       - run: pytest -q
 
   subjects:
-    # The 17 engine/agent/disease-program suites — 8,402 tests. Until 2026-08-16 CI gated only the
+    # The 18 engine/agent/disease-program/orchestrator suites — 8,257 tests on a clean
+    # checkout (local datasets, which are gitignored, add more and are not available here). Until 2026-08-16 CI gated only the
     # 382 platform-library tests, so a change could break every subject and still merge green.
     #
     # scripts/run_all_tests.py is used rather than a bare `pytest` because a naive invocation is

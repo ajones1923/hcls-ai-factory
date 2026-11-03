@@ -168,7 +168,11 @@ declare -a SERVICES=(
     "rag-api|5001|RAG/Chat API|/health|python|${SCRIPT_DIR}/core/engines/precision-intelligence|./venv/bin/python3 portal/app/server.py"
     "rag-chat|8501|RAG Chat UI|/healthz|streamlit|${SCRIPT_DIR}/core/engines/precision-intelligence|./venv/bin/streamlit run app/chat_ui.py --server.port 8501 --server.address 127.0.0.1 --server.headless true"
     "drug-discovery|8505|Drug Discovery|/healthz|streamlit|${SCRIPT_DIR}/core/engines/therapeutic-discovery|./venv/bin/streamlit run app/discovery_ui.py --server.port 8505 --server.address 127.0.0.1 --server.headless true"
-    "drug-portal|8510|Discovery Portal|/healthz|streamlit|${SCRIPT_DIR}/hcls-orchestrator|source ${SCRIPT_DIR}/core/engines/therapeutic-discovery/venv/bin/activate && streamlit run portal/app.py --server.port 8510 --server.address 127.0.0.1 --server.headless true"
+    # Call the venv's streamlit directly. `source activate && streamlit` depended on PATH, and
+    # that venv's activate still exports VIRTUAL_ENV=.../drug-discovery-pipeline/venv (its
+    # pre-move path), so PATH never gained the venv bin and every start died with
+    # "streamlit: command not found" — a restart loop the monitor could not break.
+    "drug-portal|8510|Discovery Portal|/healthz|streamlit|${SCRIPT_DIR}/hcls-orchestrator|${SCRIPT_DIR}/core/engines/therapeutic-discovery/venv/bin/streamlit run portal/app.py --server.port 8510 --server.address 127.0.0.1 --server.headless true"
     "landing|8080|Landing Page|/health|python|${SCRIPT_DIR}/landing-page|./venv/bin/python server.py"
     "milvus|19530|Milvus|TCP|docker|${SCRIPT_DIR}/core/engines/precision-intelligence|docker compose up -d milvus"
     "grafana|3000|Grafana|/api/health|docker|${SCRIPT_DIR}/core/engines/therapeutic-discovery/monitoring|docker compose up -d grafana"

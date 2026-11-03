@@ -25,7 +25,7 @@ After install, `import hcls_common` works from anywhere — no `sys.path` hacks.
 | **AI Workflow Composer** | `workflow_composer.py` | Natural-language goal → a validated, executable, governed pipeline (shape-based wiring, cycle detection, self-repair, structured root-cause). |
 | **Governance gates** | `verify_gate.py`, `governance.py`, `license_gate.py` | Clinical-overclaim honesty gate, dual-model second-opinion verification, and a permissive-license/dependency-pin gate. |
 | **Single-box MLOps** | `mlops.py` | Experiment tracking, model registry, run lineage, stage transitions (SQLite — no warehouse). |
-| **Reproducibility** | `reproducibility.py` | 21 CFR Part 11-style run manifests (GPU + package capture). |
+| **Reproducibility** | `reproducibility.py` | Part 11-minded run manifests (not compliant) (GPU + package capture). |
 | **Shared infra** | `config.py`, embedding/LLM/Milvus clients, `event_monitor.py` | Configuration, vector-DB client, LLM wrappers, event bus. |
 
 ## Run the tests
