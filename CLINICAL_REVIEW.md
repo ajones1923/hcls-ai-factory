@@ -126,6 +126,32 @@ with one hypomelanotic macule is currently counted as having the major feature.
   major-feature codes" but includes seizure, infantile spasms, intellectual disability and
   autism, none of which are TSC diagnostic criteria. The comment, not the codes, is wrong.
 
+## 6c. Coronary CTA — the HRP modifier threshold
+
+`core/engines/clinical-imaging/agent/src/workflows/ct_coronary_angiography.py`
+
+The HRP modifier used to fire on a **single** high-risk plaque feature. It is now gated at two
+(`HRP_MIN_FEATURES = 2`), which is what two independent secondary sources state: HRP replaced
+the term "vulnerable plaque" and kept its definition of **at least two** of low-attenuation
+plaque (<30 HU), positive remodeling, spotty calcification and the napkin-ring sign.
+
+Two things were **not** settled:
+
+- The primary modifier table (Cury et al., CAD-RADS 2.0, J Cardiovasc Comput Tomogr 2022 —
+  already cited by this engine's test suite) was not read for the change.
+- Both secondary sources qualify the rule as ≥2 features **in the same plaque**. This workflow
+  cannot evaluate that: `high_risk_plaque_features` is a case-level list with no plaque
+  identity, so two features found in two different plaques currently count as HRP.
+
+The demo case carries three features, so its headline (`CAD-RADS 4A/P3/HRP`) is unchanged and
+the 2026-08-13 accuracy pass still holds.
+
+- **Settle with:** the CAD-RADS 2.0 modifier table. If plaque identity matters, the feature
+  list needs to become per-plaque before the rule can be applied properly.
+- **Secondary sources checked:**
+  https://radiologyassistant.nl/cardiovascular/cad-rads/coronary-artery-disease-reporting-and-data-system
+  and https://radiopaedia.org/articles/cad-rads
+
 ## 7. CAR-T knowledge base — approval dates and REMS
 
 `core/agents/cart/src/knowledge.py` dates Yescarta's ZUMA-7 indication 2021-03-05 and ZUMA-5
