@@ -12,7 +12,10 @@ mkdir -p "$LOG_DIR"
 # ─── Configuration ────────────────────────────────────────────────────────────
 # Set your API key here (or export ANTHROPIC_API_KEY before running)
 ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY:-}"
-NIM_ALLOW_MOCK_FALLBACK="${NIM_ALLOW_MOCK_FALLBACK:-true}"
+# false, matching create_nim_clients()'s own default. Defaulting to true here exported
+# "mock is acceptable" to every service, so an unreachable NIM silently produced mock
+# chemistry on a box that reported healthy.
+NIM_ALLOW_MOCK_FALLBACK="${NIM_ALLOW_MOCK_FALLBACK:-false}"
 GRAFANA_PASSWORD="${GRAFANA_PASSWORD:-admin}"
 LLM_MODEL="${LLM_MODEL:-claude-sonnet-5}"
 LLM_PROVIDER="${LLM_PROVIDER:-anthropic}"
@@ -132,7 +135,7 @@ start_streamlit_service() {
         NIM_ALLOW_MOCK_FALLBACK="$NIM_ALLOW_MOCK_FALLBACK" \
         nohup ./venv/bin/streamlit run "$app_file" \
             --server.port "$port" \
-            --server.address 0.0.0.0 \
+            --server.address 127.0.0.1 \
             --server.headless true \
             > "$LOG_DIR/${name}.log" 2>&1 &
     )
@@ -250,8 +253,10 @@ start_streamlit_service "drug-discovery-ui" 8505 \
     "$TRANSFER_DIR/core/engines/therapeutic-discovery" \
     "app/discovery_ui.py"
 
+# The portal lives in hcls-orchestrator; therapeutic-discovery/portal/app.py does not
+# exist, and start_streamlit_service only WARNs, so bring-up looked merely slow.
 start_streamlit_service "discovery-portal" 8510 \
-    "$TRANSFER_DIR/core/engines/therapeutic-discovery" \
+    "$TRANSFER_DIR/hcls-orchestrator" \
     "portal/app.py"
 
 echo ""

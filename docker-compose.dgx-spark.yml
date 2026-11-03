@@ -169,8 +169,11 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     ports:
-      - "8505:8501"
-      - "8105:8000"
+      # Was 8505:8501, which collided with therapeutic-discovery-engine below, so
+      # `docker compose up -d` could not start both. Imaging's registered ports are
+      # 8523 (UI) and 8524 (API) under the UI / UI+1 convention.
+      - "8523:8501"
+      - "8524:8000"
     environment:
       <<: *common-env
       AGENT_NAME: imaging-intelligence-agent
