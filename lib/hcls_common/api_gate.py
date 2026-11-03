@@ -254,12 +254,19 @@ def install_output_honesty(app, *, service: str = ""):
     in a JSON body, of any length, in a dict or a list payload. Subtrees under
     `_EVIDENCE_KEYS` are skipped so quoted source material is never rewritten.
 
-    What it still does NOT cover, so nobody has to re-derive it: a streamed body
-    (`text/event-stream`, `application/x-ndjson`) is passed through unscanned and marked
-    `X-HCLS-Honesty: not-scanned`; prose returned under a key outside `_ANSWER_KEYS` is
-    invisible to it; and a module that calls its own generator in-process, without crossing
-    the HTTP boundary, bypasses middleware entirely -- those handlers must still call
-    `honesty_flags()` or `assert_publishable()` themselves.
+    What it still does NOT cover, so nobody has to re-derive it:
+
+    * A streamed body (`text/event-stream`, `application/x-ndjson`) cannot be buffered here
+      without destroying the point of streaming, so this middleware passes it through and
+      marks it `X-HCLS-Honesty: not-scanned`. A route that streams generated prose gates
+      itself with `gate_token_stream`, which judges the completed answer and emits a terminal
+      verdict event; it then sets `X-HCLS-Honesty` itself and this middleware defers to it.
+      That is weaker than the non-streaming path -- the tokens are already sent -- and the
+      client has to honour the verdict.
+    * Prose returned under a key outside `_ANSWER_KEYS` is invisible to it.
+    * A module that calls its own generator in-process, without crossing the HTTP boundary,
+      bypasses middleware entirely. Those callers use `gate_text()`, which makes the same
+      decisions; the Streamlit UIs do exactly that.
     """
     import json as _json
     import os as _os
@@ -275,7 +282,10 @@ def install_output_honesty(app, *, service: str = ""):
         # defeat the point of streaming. The gate does not run, and says so rather than
         # letting the response look like every other gated one.
         if any(s in ctype for s in ("text/event-stream", "application/x-ndjson")):
-            response.headers["X-HCLS-Honesty"] = (
+            # A route that gates its own stream with `gate_token_stream` sets this header
+            # itself; do not overwrite its claim with a weaker one.
+            response.headers.setdefault(
+                "X-HCLS-Honesty",
                 "not-scanned; streamed response (the gate cannot buffer a stream)")
             return response
         if "application/json" not in ctype or response.status_code >= 400:
@@ -456,6 +466,58 @@ def gate_text(text: str) -> tuple[str, list[dict]]:
     if _needs_disclaimer(text, findings):
         return text + DISCLAIMER, findings
     return text, findings
+
+
+def gate_token_stream(tokens):
+    """Wrap a token generator so the completed answer still goes through the honesty gate.
+
+    Yields `("token", text)` for each token as it arrives, then exactly one
+    `("verdict", payload)` at the end, where payload is::
+
+        {"withheld": bool,
+         "text":  <the full gated answer>,
+         "delta": <what to append to the tokens already sent>,
+         "findings": [...]}
+
+    `delta` exists so that a client which only knows how to concatenate tokens -- the contract
+    both of these routes already had -- still SEES the gate's verdict instead of silently
+    ignoring an event type it was not written for. When the gate only appended a disclaimer,
+    the delta is that disclaimer. When it withheld the prose, the delta is the withheld notice,
+    appended, because the tokens cannot be recalled. A client that understands the verdict
+    should use `text` and replace what it displayed.
+
+    THE LIMITATION, STATED PLAINLY: tokens are already on the wire by the time there is a
+    complete answer to judge. A stream cannot be un-sent. So the verdict is a correction
+    after the fact, and a client that renders tokens as they arrive MUST honour the terminal
+    verdict -- replacing what it displayed when `withheld` is true, and appending the
+    disclaimer when the verdict text carries one. That is weaker than the non-streaming path,
+    where the gate decides before anything is sent.
+
+    This exists because `install_output_honesty` skips `text/event-stream` entirely -- it
+    cannot buffer a stream without destroying the reason for streaming -- and two routes
+    (`/query/stream` on the precision-biomarker and precision-autoimmune agents) stream
+    generated clinical prose. Before this, those were the only HTTP paths in the factory where
+    a clinical answer reached a caller with no overclaim register and no disclaimer.
+    """
+    collected: list[str] = []
+    for token in tokens:
+        collected.append(token if isinstance(token, str) else str(token))
+        yield "token", collected[-1]
+    full = "".join(collected)
+    shown, findings = gate_text(full)
+    withheld = shown != full and shown.startswith("**Withheld by the output-honesty gate.**")
+    if shown == full:
+        delta = ""
+    elif shown.startswith(full):
+        delta = shown[len(full):]          # the gate appended (the disclaimer)
+    else:
+        delta = "\n\n" + shown             # the gate replaced; tokens cannot be recalled
+    yield "verdict", {
+        "withheld": withheld,
+        "text": shown,
+        "delta": delta,
+        "findings": findings,
+    }
 
 
 def require_valid_input(capability_id: str, payload: dict[str, Any] | None) -> dict[str, Any]:

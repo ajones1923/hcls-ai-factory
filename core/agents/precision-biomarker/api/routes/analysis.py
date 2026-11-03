@@ -514,7 +514,15 @@ def rag_query_stream(request: QueryRequest, req: Request):
         patient_profile = PatientProfile(**request.patient_profile.model_dump())
 
     def event_generator():
-        try:
+        # The output-honesty gate is response middleware and skips text/event-stream, because
+        # it cannot buffer a stream without destroying the point of streaming. That left this
+        # route serving generated clinical prose with no overclaim register and no
+        # decision-support disclaimer. gate_token_stream judges the COMPLETED answer and emits
+        # a terminal `honesty` event; a client that renders tokens as they arrive must honour
+        # it, replacing what it displayed when `withheld` is true.
+        from hcls_common.api_gate import gate_token_stream
+
+        def _tokens():
             for chunk in engine.query_stream(
                 question=request.question,
                 patient_profile=patient_profile,
@@ -523,9 +531,21 @@ def rag_query_stream(request: QueryRequest, req: Request):
                 year_max=request.year_max,
             ):
                 if chunk["type"] == "token":
-                    yield f"data: {json.dumps({'type': 'token', 'content': chunk['content']})}\n\n"
-                elif chunk["type"] == "done":
-                    yield f"data: {json.dumps({'type': 'done'})}\n\n"
+                    yield chunk["content"]
+
+        try:
+            for kind, payload in gate_token_stream(_tokens()):
+                if kind == "token":
+                    yield f"data: {json.dumps({'type': 'token', 'content': payload})}\n\n"
+                else:
+                    # The delta goes out through the normal token channel first, so a client
+                    # that switches on `type` and ignores anything unfamiliar still receives
+                    # the gate's verdict rather than the ungated prose alone. The typed
+                    # honesty event follows for clients that can act on it properly.
+                    if payload["delta"]:
+                        yield f"data: {json.dumps({'type': 'token', 'content': payload['delta']})}\n\n"
+                    yield f"data: {json.dumps({'type': 'honesty', **payload})}\n\n"
+            yield f"data: {json.dumps({'type': 'done'})}\n\n"
         except Exception as e:
             logger.exception(f"Streaming query failed: {e}")
             yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
@@ -533,6 +553,8 @@ def rag_query_stream(request: QueryRequest, req: Request):
     return StreamingResponse(
         event_generator(),
         media_type="text/event-stream",
+        headers={"X-HCLS-Honesty": "in-stream; terminal 'honesty' event carries the verdict"},
+
     )
 
 

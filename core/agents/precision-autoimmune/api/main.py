@@ -436,20 +436,42 @@ async def query_stream(req: QueryRequest):
         raise HTTPException(503, "RAG engine not initialized")
 
     async def event_generator():
-        try:
-            for chunk in rag.query_stream(
+        # The output-honesty gate is response middleware and skips text/event-stream, because
+        # it cannot buffer a stream without destroying the point of streaming. That left this
+        # route serving generated clinical prose with no overclaim register and no
+        # decision-support disclaimer. gate_token_stream judges the COMPLETED answer and emits
+        # a terminal `honesty` event; a client that renders tokens as they arrive must honour
+        # it, replacing what it displayed when `withheld` is true.
+        from hcls_common.api_gate import gate_token_stream
+
+        def _tokens():
+            yield from rag.query_stream(
                 question=req.question,
                 patient_context=req.patient_context,
                 patient_id=req.patient_id,
                 collections_filter=req.collections_filter,
-            ):
-                yield f"data: {json.dumps({'text': chunk})}\n\n"
+            )
+
+        try:
+            for kind, payload in gate_token_stream(_tokens()):
+                if kind == "token":
+                    yield f"data: {json.dumps({'text': payload})}\n\n"
+                else:
+                    # `text` carries the delta so a client that only concatenates tokens --
+                    # this route's existing contract -- still sees the verdict instead of
+                    # ignoring an event type it was not written for. `honesty` carries the
+                    # structured verdict for a client that can replace what it displayed.
+                    yield f"data: {json.dumps({'text': payload['delta'], 'honesty': payload})}\n\n"
             yield "data: [DONE]\n\n"
         except Exception as exc:
             logger.error(f"Streaming query failed: {exc}")
             yield f"data: {json.dumps({'error': 'Internal processing error'})}\n\n"
 
-    return StreamingResponse(event_generator(), media_type="text/event-stream")
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={"X-HCLS-Honesty": "in-stream; terminal 'honesty' event carries the verdict"},
+    )
 
 
 @app.post("/search")
