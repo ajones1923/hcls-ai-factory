@@ -10,6 +10,10 @@
 # (2,700 cells -> 9 clusters -> CD4 T / B / NK / CD14+ & FCGR3A+ monocytes / DC / megakaryocytes).
 #
 # CPU-served by design: scanpy + leidenalg run on the Grace cores. No CUDA needed.
+#
+# The PBMC 3k dataset is fetched over the network on the first `demo=true` request, not shipped
+# in the image. On an air-gapped host, mount a directory holding scanpy's pbmc3k file and point
+# SC_DATASET_DIR at it, or pass h5ad_path instead.
 # =============================================================================
 
 # Stage 1: builder — compile the scientific wheels once
@@ -37,7 +41,17 @@ COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 COPY src/ /app/src/
-COPY data/ /app/data/
+
+# This used to be `COPY data/ /app/data/`. There is no data/ directory in this engine -- not
+# gitignored, simply absent -- so `docker build` failed on it with "no source files were
+# specified" and the image could never be built from a checkout.
+#
+# The directory is still needed, which is presumably why that line was there: scanpy writes
+# downloaded datasets to `settings.datasetdir`, which defaults to ./data relative to the
+# working directory, and the runtime user cannot create it. So it is created here instead of
+# copied, and the chown below makes it writable. The PBMC 3k demo is NOT bundled in the image;
+# `demo=true` downloads it on first use. See single_cell_service.py.
+RUN mkdir -p /app/data
 
 # src/ is on the path so `from single_cell_compute import ...` resolves. This engine ships NO
 # module that shadows the standard library, so putting src/ on PYTHONPATH is safe here -- it is
