@@ -35,7 +35,7 @@ neurology, rare disease, trial matching and single-cell interpretation.
 
 Every capability is declared in a machine-readable registry that is the input to continuous
 integration, not a description of it. Documentation, including the public capability-maturity
-matrix, is generated from that registry. We report **8,402 passing tests across all 17 subjects**,
+matrix, is generated from that registry. We report **8,385 passing tests across all 18 subjects**,
 44 pharmacogenomic gene–drug pairs verified against consortium guidance, and a single-cell workflow
 reproducible from a clean clone on commodity CPU.
 
@@ -223,7 +223,7 @@ rather than substituting a cached result.
 
 ### 5.4 Generated documentation
 
-Per-subject documentation — 68 guides across the 17 subjects — is generated from repository facts:
+Per-subject documentation — 68 guides across the 18 subjects — is generated from repository facts:
 ports, test counts, registered capabilities and module inventories. A guide cannot state a port the
 registry does not allocate.
 
@@ -234,12 +234,13 @@ registry does not allocate.
 ### 6.1 Test health
 
 ```
-17 subjects · 8,402 passed · 0 failed · 0 errors
+18 subjects · 8,385 passed · 0 failed · 0 errors · 211 skipped
 ```
 
-From a clean clone, without local reference data, the same command reports **8,194 passed with 213
-skips** — tests that assert on unpublished reference data skip rather than fail, so a fresh clone
-reports honestly rather than appearing broken.
+That figure is measured on a clean checkout, without local reference data: the 211 skips are
+tests asserting on unpublished reference data, which skip rather than fail, so a fresh clone
+reports honestly rather than appearing broken. A checkout with the local datasets present runs
+more tests, not fewer. The platform library adds 510 tests on top of the 18 subject suites.
 
 ### 6.2 Verified clinical content
 
@@ -280,7 +281,7 @@ memory and 34% of 20 cores. The machine is not the constraint at this stage of t
   pixels; the CT reasoning path is planned, and the cardiac CT workflow is explicitly representative.
 - **The structural-biology engine is aggregated only at the model level.** Five services are
   reachable individually; the engine-level endpoint is not yet served.
-- **Nothing is continuously deployed.** All 17 subjects are declared and buildable; the reference
+- **Nothing is continuously deployed.** All 18 subjects are declared and buildable; the reference
   machine does not run them persistently.
 - **Authentication ships disabled.** Every service can enforce an API key and fails closed once
   configured; the default preserves an open trusted-network posture.
@@ -316,7 +317,7 @@ Source, documentation and the complete audit trail are public under Apache-2.0 a
 git clone https://github.com/ajones1923/hcls-ai-factory && cd hcls-ai-factory
 python3 -m venv --system-site-packages .venv
 .venv/bin/pip install -e lib/hcls_common
-.venv/bin/python scripts/run_all_tests.py        # 17 subjects
+.venv/bin/python scripts/run_all_tests.py        # 18 subjects
 .venv/bin/python scripts/validate_registry.py    # registry, ports, supervisor
 .venv/bin/python scripts/run_demo.py E8          # a live demonstration
 ```

@@ -233,8 +233,20 @@ class BiologicalAgeCalculator:
         ci_lower = biological_age - 1.96 * se
         ci_upper = biological_age + 1.96 * se
 
-        # Classify mortality risk with confidence qualifier
-        # Levine et al. 2018 PMID:29676998; Liu et al. 2019 PMID:30567591
+        # A MISSING BIOMARKER CONTRIBUTES ZERO TO xb, which is not a neutral assumption: zero is
+        # not a plausible value for any of the nine, and every omitted term shifts the estimate
+        # by that marker's coefficient times its typical value. Measured on this code for a
+        # healthy 50-year-old: the full panel gives a biological age of 46.2; omitting RDW alone
+        # (coefficient 0.3306, typical 13 %) gives -0.7, and an empty panel gives -30.9. The
+        # partial-model standard error of 6.5 years does not begin to cover a 47-year shift, so
+        # the wider confidence interval was not describing the error it was there for.
+        #
+        # PhenoAge is defined on all nine markers plus age (Levine et al. 2018,
+        # PMID:29676998); there is no published partial-panel variant. The number is still
+        # returned -- it is the sum of the terms that were supplied, which is useful for
+        # inspecting contributions -- but it is NOT presented as a PhenoAge estimate and the
+        # mortality verdict is withheld rather than read off a biased value.
+        phenoage_valid = not missing
         if age_acceleration > 5:
             risk = "HIGH"
         elif age_acceleration > 2:
@@ -243,6 +255,10 @@ class BiologicalAgeCalculator:
             risk = "NORMAL"
         else:
             risk = "LOW"  # Aging slower than expected
+
+        if not phenoage_valid:
+            # "LOW -- aging slower than expected" was the verdict a missing RDW produced.
+            risk = "INDETERMINATE"
 
         # Add confidence qualifier based on data completeness
         if len(missing) > 3:
@@ -262,12 +278,29 @@ class BiologicalAgeCalculator:
             "mortality_score": round(mortality_score, 6),
             "mortality_risk": risk,
             "risk_confidence": risk_confidence,
+            # PhenoAge is defined on all nine markers; False means `biological_age` above is the
+            # sum of the supplied terms only, with every missing term contributing zero, and is
+            # not a PhenoAge value. Read `missing_biomarkers` before using the number.
+            "phenoage_valid": phenoage_valid,
+            "biological_age_is_biased": not phenoage_valid,
+            "status": "complete" if phenoage_valid else "incomplete_panel",
+            "warning": None if phenoage_valid else (
+                f"PhenoAge requires all {len(PHENOAGE_COEFFICIENTS)} biomarkers; "
+                f"{len(missing)} missing ({', '.join(missing)}). Each missing marker "
+                f"contributes zero to the linear predictor, which biases the estimate by that "
+                f"marker's coefficient times its true value — omitting RDW alone moves a "
+                f"healthy 50-year-old's estimate from 46.2 to -0.7 years. The mortality verdict "
+                f"is withheld (INDETERMINATE) rather than read off this value."
+            ),
             "confidence_interval": {
                 "lower": round(ci_lower, 1),
                 "upper": round(ci_upper, 1),
                 "confidence_level": 0.95,
                 "standard_error": se,
-                "note": f"Based on {n_available}/{len(PHENOAGE_COEFFICIENTS)} biomarkers available",
+                "note": (f"Based on {n_available}/{len(PHENOAGE_COEFFICIENTS)} biomarkers available"
+                         + ("" if phenoage_valid else
+                            " — this interval describes sampling error in the full model and does "
+                            "NOT cover the bias from the missing markers")),
             },
             "top_aging_drivers": contributions[:5],
             "all_contributions": contributions,

@@ -228,7 +228,14 @@ class AcuteStrokeTriageWorkflow(BaseNeuroWorkflow):
             stroke_type_str = "ischemic"
         findings.append(f"Stroke type: {stroke_type_str}")
 
-        onset = inputs.get("onset_hours", 0.0)
+        onset = inputs.get("onset_hours", 0.0) or 0.0
+        # 0.0 is this workflow's standing marker for "onset time unknown" (see the branches
+        # below), and a MISSING onset_hours defaulted to it. That is the right marker and the
+        # wrong consequence: an unknown onset used to leave tPA eligibility untouched, so the
+        # verdict came out "tPA ELIGIBLE -- administer IV alteplase urgently" for a patient
+        # whose time of onset nobody knew. Thrombolysis cannot be cleared against a window that
+        # has not been established.
+        onset_known = onset > 0.0
         age = inputs.get("age", 0)
         sbp = inputs.get("blood_pressure_systolic", 0)
         glucose = inputs.get("blood_glucose", 0.0)
@@ -249,11 +256,19 @@ class AcuteStrokeTriageWorkflow(BaseNeuroWorkflow):
             if onset > 4.5:
                 tpa_eligible = False
                 tpa_reasons.append(f"Onset {onset:.1f}h exceeds 4.5-hour window")
-            elif onset == 0:
+            elif not onset_known:
+                # NOT eligible, rather than eligible-with-a-note. AHA/ASA 2019 requires a
+                # established onset within the window; for wake-up or unwitnessed stroke the
+                # route to thrombolysis is DWI-FLAIR mismatch (WAKE-UP, NEJM 2018), which is a
+                # finding this workflow does not have.
+                tpa_eligible = False
                 findings.append(
                     "Unknown onset: consider MRI DWI-FLAIR mismatch for tPA eligibility"
                 )
-                tpa_reasons.append("Onset unknown -- DWI-FLAIR mismatch assessment needed")
+                tpa_reasons.append(
+                    "Onset time not established -- tPA requires a known onset within 4.5h, or "
+                    "DWI-FLAIR mismatch on MRI (WAKE-UP); neither is available here"
+                )
 
             # Age exclusion for 3-4.5h window
             if 3.0 < onset <= 4.5 and age > 80:
@@ -317,8 +332,13 @@ class AcuteStrokeTriageWorkflow(BaseNeuroWorkflow):
             # -- Thrombectomy eligibility --
             thrombectomy_eligible = False
             if lvo or nihss >= 6:
-                # Standard window: 0-6 hours
-                if onset <= 6.0 and nihss >= 6:
+                # Standard window: 0-6 hours. `onset_known` matters here too: with onset 0.0
+                # standing for "unknown", `onset <= 6.0` was true for every unknown-onset
+                # patient, so they were cleared on the standard window and the extended-window
+                # branch below -- which says `or onset == 0` and routes exactly those patients
+                # through DAWN/DEFUSE-3 imaging criteria -- could never be reached for anyone
+                # with NIHSS >= 6.
+                if onset_known and onset <= 6.0 and nihss >= 6:
                     if aspects_result is None or aspects_result.score >= 6:
                         thrombectomy_eligible = True
                         findings.append(
@@ -333,7 +353,7 @@ class AcuteStrokeTriageWorkflow(BaseNeuroWorkflow):
                         ])
 
                 # Extended window: 6-24 hours (DAWN/DEFUSE-3)
-                elif 6.0 < onset <= 24.0 or onset == 0:
+                elif (onset_known and 6.0 < onset <= 24.0) or not onset_known:
                     dawn_eligible = False
                     defuse3_eligible = False
 

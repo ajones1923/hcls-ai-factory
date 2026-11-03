@@ -15,14 +15,36 @@ warns: a conversation that fails to persist must never take down the answer the 
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
+import re
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
 DEFAULT_TTL = timedelta(hours=24)
+
+# `session_id` arrives in a request payload and used to be interpolated straight into a
+# filename, so an id of "../../etc/cron.d/pwn" wrote JSON outside the conversation directory
+# and an id of "../../../some/other.json" read a file that is not a conversation. Every
+# operation here swallows its exception by design, so both failed silently.
+_SAFE_SESSION_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
+
+
+def safe_session_name(session_id: str) -> str:
+    """A filesystem-safe stem for a session id, preserving distinctness.
+
+    An id that is already safe is used as-is, so existing conversation files keep their names.
+    Anything else is replaced by a digest of the original rather than by a stripped version of
+    it: two ids that sanitized to the same name would serve one session's history to another.
+    """
+    sid = "" if session_id is None else str(session_id)
+    if _SAFE_SESSION_ID.match(sid):
+        return sid
+    digest = hashlib.sha256(sid.encode("utf-8", "surrogatepass")).hexdigest()[:32]
+    return f"sid-{digest}"
 
 
 class ConversationStore:
@@ -33,7 +55,14 @@ class ConversationStore:
         self.ttl = ttl
 
     def _path(self, session_id: str) -> Path:
-        return self.directory / f"{session_id}.json"
+        path = self.directory / f"{safe_session_name(session_id)}.json"
+        # Belt and braces: the name is already constrained above, and this makes the
+        # containment the actual invariant rather than a property of the regex.
+        root = self.directory.resolve()
+        resolved = path.resolve()
+        if resolved.parent != root:
+            raise ValueError(f"session id escapes the conversation directory: {session_id!r}")
+        return path
 
     def save(self, session_id: str, history: list) -> None:
         """Persist conversation to disk as JSON."""
