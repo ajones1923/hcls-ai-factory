@@ -1045,13 +1045,24 @@ def render_evidence(evidence_list: list):
 
     with st.expander(f"📚 Retrieved Evidence ({len(evidence_list)} items)", expanded=False):
         for i, ev in enumerate(evidence_list, 1):
-            score_color = "green" if ev['score'] > 0.7 else "orange" if ev['score'] > 0.5 else "red"
+            # score is None for gene-name expansion hits: those are exact matches
+            # on the `gene` metadata field, with no embedding and so no
+            # similarity. Label them instead of showing an invented number.
+            score = ev.get('score')
+            score_color = (
+                "green" if (score or 0) > 0.7
+                else "orange" if (score or 0) > 0.5
+                else "red"
+            )
 
             col1, col2, col3 = st.columns([3, 1, 1])
             with col1:
                 st.markdown(f"**{i}. {ev.get('gene', 'Unknown gene')}** - {ev['chrom']}:{ev['pos']}")
             with col2:
-                st.markdown(f":{score_color}[Score: {ev['score']:.2f}]")
+                if score is None:
+                    st.markdown(":gray[Gene-name match]")
+                else:
+                    st.markdown(f":{score_color}[Score: {score:.2f}]")
             with col3:
                 # AlphaMissense badge
                 am_score = ev.get('am_pathogenicity')
@@ -1466,7 +1477,10 @@ def trigger_report_refresh(query: str, evidence: list, response: str):
                         'consequence': ev.get('consequence', ''),
                         'impact': ev.get('impact', ''),
                         'clinical_significance': ev.get('clinical_significance', ''),
-                        'score': ev.get('score', 0),
+                        # None for gene-name matches; the report must not read it
+                        # as a measured similarity of 0.
+                        'score': ev.get('score'),
+                        'retrieval_method': ev.get('retrieval_method', 'semantic'),
                         'am_pathogenicity': ev.get('am_pathogenicity', ''),
                         'am_class': ev.get('am_class', ''),
                         'text_summary': ev.get('text_summary', ''),

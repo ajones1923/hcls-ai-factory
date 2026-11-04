@@ -252,7 +252,16 @@ def export_markdown(
                 targets = ", ".join(targets)
             ev_level = tx.get("evidence_level", tx.get("level", ""))
             line = tx.get("line_of_therapy", tx.get("line", ""))
-            notes = tx.get("notes", tx.get("rationale", ""))
+            notes = tx.get("notes", tx.get("rationale", tx.get("review_note", "")))
+            # The ranker decides per drug whether this tumour is within the drug's
+            # approved indications. Without this the reader saw only the evidence
+            # tier, which is the whole signal, and could not see a mismatch.
+            indicated = tx.get("indicated_for_cancer_type")
+            if indicated is False:
+                notes = f"**NOT INDICATED for this tumour type.** {notes}".strip()
+            elif tx.get("indication_unverified"):
+                notes = f"Indication unverified against a label. {notes}".strip()
+            notes = notes.replace("|", "/").replace("\n", " ")
             lines.append(f"| {idx} | {name} | {targets} | {ev_level} | {line} | {notes} |")
         lines.append("")
 
@@ -930,6 +939,17 @@ def export_fhir_r4(
         guideline = tx.get("guideline_recommendation", tx.get("rationale", ""))
         if guideline:
             med_request["note"].append({"text": guideline})
+        # A proposal that is outside the drug's approved indications must say so in
+        # the resource itself, not only in the evidence tier.
+        if tx.get("indicated_for_cancer_type") is False:
+            note = "NOT within the approved indications for this tumour type."
+            if tx.get("review_note"):
+                note = f"{note} {tx['review_note']}"
+            med_request["note"].append({"text": note})
+        elif tx.get("indication_unverified"):
+            med_request["note"].append({
+                "text": "Indication for this tumour type is unverified against a drug label.",
+            })
         entries.append({
             "fullUrl": f"urn:uuid:{med_id}",
             "resource": med_request,

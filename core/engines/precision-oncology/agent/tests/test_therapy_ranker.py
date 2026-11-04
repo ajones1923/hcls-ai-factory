@@ -275,7 +275,15 @@ class TestBiomarkerDrivenTherapy:
         assert "pembrolizumab" in drug_names
 
     def test_tmb_h_identifies_pembrolizumab(self, ranker):
-        """TMB-H (>=10) should identify pembrolizumab."""
+        """TMB-H should identify pembrolizumab.
+
+        Docstring corrected: it said "TMB-H (>=10)". The labelled definition of
+        TMB-H is >=13 mut/Mb (KEYTRUDA, DailyMed setid
+        9333c79b-d487-4538-a9f0-71b91a02b287, published 2026-11-02, section 1.16);
+        >=10 was KEYNOTE-158's cohort cut-off. The TMB used here (15.0) is above
+        the labelled threshold either way; see
+        test_therapy_indication_gating.py for the 10-to-13 band.
+        """
         therapies = ranker._identify_biomarker_therapies(
             biomarkers={"TMB": 15.0},
             cancer_type="NSCLC",

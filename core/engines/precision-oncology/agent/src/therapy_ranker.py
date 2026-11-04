@@ -28,6 +28,288 @@ logger = logging.getLogger(__name__)
 # Evidence level ordering: lower value = stronger evidence
 EVIDENCE_LEVEL_ORDER = {"A": 0, "B": 1, "C": 2, "D": 3, "E": 4, "VUS": 5}
 
+# An evidence level this module does not recognise must sort LAST, not into the
+# middle of the ladder. Every lookup used to default to 4, which is level E's
+# rank: a therapy whose level was missing, or written in another vocabulary
+# (AMP/ASCO/CAP "I"/"II"/"IA", CIViC "R1"), ranked as though it were level E and
+# could win the dedupe against a genuine level-E entry.
+UNKNOWN_EVIDENCE_RANK = max(EVIDENCE_LEVEL_ORDER.values()) + 1
+
+_warned_evidence_levels: set = set()
+
+
+def evidence_rank(level: Optional[str]) -> int:
+    """Rank an evidence level for sorting; an unrecognised level sorts last."""
+    key = (level or "").strip().upper()
+    if key in EVIDENCE_LEVEL_ORDER:
+        return EVIDENCE_LEVEL_ORDER[key]
+    if key not in _warned_evidence_levels:
+        _warned_evidence_levels.add(key)
+        logger.warning(
+            "Unrecognised evidence level %r: ranking it last (weaker than E/VUS)",
+            level,
+        )
+    return UNKNOWN_EVIDENCE_RANK
+
+
+# ---------------------------------------------------------------------------
+# Per-DRUG (and per-driver) approved indications, from the drug's own FDA label.
+#
+# WHY THIS EXISTS: `ACTIONABLE_TARGETS[gene]["cancer_types"]` is a per-GENE list
+# — "tumours in which this gene matters" — and the gate was using it as
+# "tumours in which these drugs are approved". The two are not the same list,
+# and the gene list is the wider of the two, so the gate never fired.
+# `ACTIONABLE_TARGETS["EGFR"]["cancer_types"]` is
+# ['NSCLC', 'head and neck', 'colorectal', 'glioblastoma'] at evidence_level A,
+# so an EGFR L858R GLIOBLASTOMA returned osimertinib, erlotinib, gefitinib,
+# afatinib and dacomitinib at level A with indicated_for_cancer_type=True —
+# none of which is approved in glioblastoma.
+#
+# Keys are (drug lower-cased, driver) where driver is the gene symbol or the
+# biomarker name, because an indication is a (drug, biomarker, tumour) triple:
+# entrectinib is approved in ROS1-positive NSCLC *only*, and in NTRK
+# fusion-positive solid tumours of *any* site.
+#
+# Each entry carries the label it was read from. Every one below was retrieved
+# on 2026-11-03 from DailyMed (dailymed.nlm.nih.gov/dailymed/services/v2/spls/
+# <setid>.xml), section 1 INDICATIONS AND USAGE. Nothing is entered here from
+# memory: a drug with no retrieved label is simply absent, and the gate reports
+# that as unverified rather than guessing.
+#
+#   tumors:   tumour terms the label's INDICATIONS AND USAGE covers for this
+#             driver; ["tissue-agnostic"] for a site-agnostic indication; []
+#             when the label carries NO indication for this driver.
+#   excluded: tumours the label explicitly carves out (Limitations of Use).
+VERIFIED_DRUG_INDICATIONS: Dict[tuple, Dict[str, Any]] = {
+    # --- EGFR ---------------------------------------------------------------
+    ("osimertinib", "EGFR"): {
+        "tumors": ["NSCLC"],
+        "label": "TAGRISSO, AstraZeneca, DailyMed setid 5e81b4a7-b971-45e1-9c31-29cea8c87ce7 "
+                 "(published 2026-09-25) §1.1-1.5: NSCLC only",
+    },
+    ("gefitinib", "EGFR"): {
+        "tumors": ["NSCLC"],
+        "label": "Gefitinib tablets, DailyMed setid 3dd135f0-5db1-4236-9756-04533b66dc9d §1: "
+                 "metastatic NSCLC with exon 19 del / exon 21 L858R only",
+    },
+    ("afatinib", "EGFR"): {
+        "tumors": ["NSCLC"],
+        "label": "Afatinib tablets, DailyMed setid ec5b9e00-3eab-4dbd-9bb3-75865b1af485 "
+                 "(published 2026-09-04) §1.1-1.2: NSCLC only",
+    },
+    ("dacomitinib", "EGFR"): {
+        "tumors": ["NSCLC"],
+        "label": "VIZIMPRO, Pfizer, DailyMed setid 4ab27d2f-e385-4e9c-b324-fa69c10b855a "
+                 "(published 2026-06-25) §1: metastatic NSCLC only",
+    },
+    ("erlotinib", "EGFR"): {
+        "tumors": ["NSCLC"],
+        "excluded": [],
+        "label": "TARCEVA, DailyMed setid 5783976b-0862-44e5-9b19-0f41d236d5c3 §1.1-1.2: NSCLC, "
+                 "and pancreatic cancer with gemcitabine. The pancreatic indication is NOT "
+                 "EGFR-mutation-selected, so it is not listed as an EGFR-driver indication here.",
+    },
+    ("amivantamab", "EGFR"): {
+        "tumors": ["NSCLC"],
+        "label": "RYBREVANT FASPRO, Janssen, DailyMed setid "
+                 "9e58b045-e352-4f62-99bf-77fae1bebc69 (published 2026-10-30) §1.1-1.4: NSCLC only",
+    },
+    # --- ALK ----------------------------------------------------------------
+    ("alectinib", "ALK"): {
+        "tumors": ["NSCLC"],
+        "label": "ALECENSA, Genentech, DailyMed setid (published 2026-08-27) §1.1-1.2: ALK+ NSCLC only",
+    },
+    ("brigatinib", "ALK"): {
+        "tumors": ["NSCLC"],
+        "label": "ALUNBRIG, Takeda, DailyMed (published 2026-01-19) §1: ALK+ metastatic NSCLC only",
+    },
+    ("ceritinib", "ALK"): {
+        "tumors": ["NSCLC"],
+        "label": "ZYKADIA, Novartis, DailyMed (published 2026-10-30) §1: ALK+ metastatic NSCLC only",
+    },
+    ("lorlatinib", "ALK"): {
+        "tumors": ["NSCLC"],
+        "label": "LORBRENA, Pfizer, DailyMed setid 2b34d62d-e02a-4af3-bc0d-1571dd4ee76d "
+                 "(published 2026-06-29) §1: ALK+ metastatic NSCLC only",
+    },
+    ("crizotinib", "ALK"): {
+        "tumors": ["NSCLC", "anaplastic large cell lymphoma", "inflammatory myofibroblastic tumor"],
+        "label": "XALKORI, Pfizer, DailyMed setid 2a51b0de-47d6-455e-a94c-d2c737b04ff7 "
+                 "(published 2026-11-02) §1.1-1.3",
+    },
+    # --- ROS1 ---------------------------------------------------------------
+    ("crizotinib", "ROS1"): {
+        "tumors": ["NSCLC"],
+        "label": "XALKORI §1.1: ROS1-positive metastatic NSCLC (the ALCL and IMT indications are "
+                 "ALK-positive, not ROS1)",
+    },
+    ("entrectinib", "ROS1"): {
+        "tumors": ["NSCLC"],
+        "label": "ROZLYTREK, Genentech, DailyMed setid c7c71b0c-2549-4495-86b6-c2807fa54908 "
+                 "(published 2026-10-16) §1.1: ROS1-positive metastatic NSCLC",
+    },
+    ("repotrectinib", "ROS1"): {
+        "tumors": ["NSCLC"],
+        "label": "AUGTYRO, E.R. Squibb, DailyMed setid fb526827-40ba-4462-94cf-179ae3b0cb8a "
+                 "(published 2026-08-11) §1.1: ROS1-positive NSCLC",
+    },
+    ("lorlatinib", "ROS1"): {
+        "tumors": [],
+        "label": "LORBRENA §1 carries an ALK-positive NSCLC indication ONLY — no ROS1 indication "
+                 "at any site (DailyMed, published 2026-06-29)",
+    },
+    # --- BRAF ---------------------------------------------------------------
+    ("vemurafenib", "BRAF"): {
+        "tumors": ["melanoma", "Erdheim-Chester"],
+        "label": "ZELBORAF, Genentech, DailyMed (published 2026-09-04) §1.1-1.2",
+    },
+    ("dabrafenib", "BRAF"): {
+        "tumors": ["tissue-agnostic"],
+        "excluded": ["colorectal"],
+        "label": "TAFINLAR, Novartis, DailyMed (published 2026-05-21) §1: melanoma, NSCLC, "
+                 "anaplastic thyroid, low-grade glioma, and (with trametinib) BRAF V600E solid "
+                 "tumours; Limitation of Use excludes colorectal cancer for known intrinsic "
+                 "resistance to BRAF inhibition",
+    },
+    ("encorafenib", "BRAF"): {
+        "tumors": ["melanoma", "colorectal", "NSCLC"],
+        "label": "BRAFTOVI, Array BioPharma, DailyMed (published 2026-03-02) §1.1-1.3",
+    },
+    # --- KRAS G12C ----------------------------------------------------------
+    ("sotorasib", "KRAS"): {
+        "tumors": ["NSCLC", "colorectal"],
+        "label": "LUMAKRAS, Amgen, DailyMed (published 2025-01-30) §1.1-1.2: KRAS G12C NSCLC, and "
+                 "KRAS G12C mCRC with panitumumab",
+    },
+    ("adagrasib", "KRAS"): {
+        "tumors": ["NSCLC"],
+        "label": "KRAZATI, Mirati, DailyMed (published 2026-10-23) §1: KRAS G12C locally advanced "
+                 "or metastatic NSCLC; no colorectal indication in the retrieved label",
+    },
+    # --- HER2 ---------------------------------------------------------------
+    ("trastuzumab deruxtecan", "HER2"): {
+        "tumors": ["tissue-agnostic"],
+        "label": "ENHERTU, Daiichi Sankyo, DailyMed (published 2026-05-28) §1: breast, NSCLC, "
+                 "gastric, and HER2 IHC3+ solid tumours after prior systemic treatment",
+    },
+    ("tucatinib", "HER2"): {
+        "tumors": ["breast", "colorectal"],
+        "label": "TUKYSA, Seagen, DailyMed (published 2026-10-19) §1.1: HER2+ breast cancer, and "
+                 "RAS wild-type HER2+ colorectal cancer with trastuzumab",
+    },
+    # --- NTRK (tissue-agnostic) ---------------------------------------------
+    ("larotrectinib", "NTRK"): {
+        "tumors": ["tissue-agnostic"],
+        "label": "VITRAKVI, Bayer, DailyMed (published 2026-05-25) §1: NTRK fusion-positive solid "
+                 "tumours, any site",
+    },
+    ("entrectinib", "NTRK"): {
+        "tumors": ["tissue-agnostic"],
+        "label": "ROZLYTREK §1.2: NTRK fusion-positive solid tumours, any site",
+    },
+    ("repotrectinib", "NTRK"): {
+        "tumors": ["tissue-agnostic"],
+        "label": "AUGTYRO §1.2: NTRK fusion-positive solid tumours, any site (12 years and older)",
+    },
+    # --- RET ----------------------------------------------------------------
+    ("selpercatinib", "RET"): {
+        "tumors": ["tissue-agnostic"],
+        "label": "RETEVMO, Eli Lilly, DailyMed (published 2026-09-14) §1.1-1.4: RET fusion NSCLC, "
+                 "RET-mutant medullary thyroid, RET fusion thyroid, and RET fusion solid tumours",
+    },
+    # --- MET ----------------------------------------------------------------
+    ("capmatinib", "MET"): {
+        "tumors": ["NSCLC"],
+        "label": "TABRECTA, Novartis, DailyMed (published 2026-10-28) §1: MET exon 14 skipping "
+                 "metastatic NSCLC only",
+    },
+    # --- PIK3CA / PTEN ------------------------------------------------------
+    ("alpelisib", "PIK3CA"): {
+        "tumors": ["breast"],
+        "label": "PIQRAY, Novartis, DailyMed (published 2025-12-16) §1: PIK3CA-mutated HR+/HER2- "
+                 "advanced or metastatic breast cancer with fulvestrant. (VIJOICE, the same "
+                 "molecule, is indicated for PIK3CA-Related Overgrowth Spectrum, not cancer.)",
+    },
+    ("alpelisib", "PTEN"): {
+        "tumors": [],
+        "label": "PIQRAY §1 is selected on a PIK3CA mutation, not on PTEN status; no PTEN-loss "
+                 "indication exists in the retrieved label (DailyMed, published 2025-12-16)",
+    },
+    # --- IDH1 ---------------------------------------------------------------
+    ("ivosidenib", "IDH1"): {
+        "tumors": ["AML", "myelodysplastic syndromes", "cholangiocarcinoma"],
+        "label": "TIBSOVO, Servier, DailyMed (published 2025-12-22) §1.1-1.4",
+    },
+    ("vorasidenib", "IDH1"): {
+        "tumors": ["astrocytoma", "oligodendroglioma", "glioma"],
+        "label": "VORANIGO, Servier, DailyMed (published 2026-09-17) §1: Grade 2 astrocytoma or "
+                 "oligodendroglioma with a susceptible IDH1/IDH2 mutation",
+    },
+    # --- PARP inhibitors, BRCA/HRD ------------------------------------------
+    ("olaparib", "BRCA"): {
+        "tumors": ["ovarian", "fallopian tube", "primary peritoneal", "breast", "prostate",
+                   "pancreatic"],
+        "label": "LYNPARZA, AstraZeneca, DailyMed (published 2026) §1.1-1.8",
+    },
+    ("rucaparib", "BRCA"): {
+        "tumors": ["ovarian", "fallopian tube", "primary peritoneal", "prostate"],
+        "label": "RUBRACA, DailyMed §1.1-1.2: BRCA-mutated recurrent ovarian cancer, and "
+                 "BRCA-mutated mCRPC. No breast indication.",
+    },
+    ("niraparib", "BRCA"): {
+        "tumors": ["ovarian", "fallopian tube", "primary peritoneal"],
+        "label": "ZEJULA, DailyMed §1.1-1.2: advanced/recurrent epithelial ovarian, fallopian "
+                 "tube or primary peritoneal cancer only",
+    },
+    ("talazoparib", "BRCA"): {
+        "tumors": ["breast", "prostate"],
+        "label": "TALZENNA, Pfizer, DailyMed §1.1-1.2: gBRCAm HER2-negative breast cancer, and "
+                 "HRR-mutated metastatic prostate cancer with enzalutamide",
+    },
+    # --- Immunotherapy biomarkers -------------------------------------------
+    ("pembrolizumab", "MSI-H"): {
+        "tumors": ["tissue-agnostic"],
+        "label": "KEYTRUDA, Merck, DailyMed setid 9333c79b-d487-4538-a9f0-71b91a02b287 "
+                 "(published 2026-11-02): MSI-H/dMMR solid tumours, any site",
+    },
+    ("nivolumab", "MSI-H"): {
+        "tumors": ["colorectal"],
+        "label": "OPDIVO, Bristol-Myers Squibb, DailyMed (published 2026): the MSI-H/dMMR "
+                 "indications are colorectal cancer only — there is no tissue-agnostic MSI-H "
+                 "indication in the retrieved label",
+    },
+    ("dostarlimab", "MSI-H"): {
+        "tumors": ["tissue-agnostic"],
+        "label": "JEMPERLI, GSK, DailyMed (published 2026) §1.3: dMMR recurrent or advanced solid "
+                 "tumours, any site (§1.1 endometrial and §1.2 MSI-H/dMMR rectal are "
+                 "site-specific)",
+    },
+    ("pembrolizumab", "TMB-H"): {
+        "tumors": ["tissue-agnostic"],
+        "label": "KEYTRUDA setid 9333c79b-d487-4538-a9f0-71b91a02b287 (published 2026-11-02) "
+                 "§1.16: TMB-H [>=13 mut/Mb] solid tumours, any site",
+    },
+    ("atezolizumab", "TMB-H"): {
+        "tumors": [],
+        "label": "TECENTRIQ, Genentech, DailyMed setid 6fa682c9-a312-4932-9831-f286908660ee "
+                 "(published 2026-10-16): INDICATIONS AND USAGE does not mention tumour "
+                 "mutational burden at all — there is no TMB-H indication at any site",
+    },
+    ("pembrolizumab", "PD-L1_TPS"): {
+        "tumors": ["NSCLC"],
+        "label": "KEYTRUDA setid 9333c79b-d487-4538-a9f0-71b91a02b287 (published 2026-11-02): the "
+                 "Tumor Proportion Score (TPS) indications are NSCLC; other tumours are selected "
+                 "on Combined Positive Score (CPS), not TPS",
+    },
+}
+
+# Pembrolizumab's TMB-H indication threshold, from the label cited above. The
+# code used >= 10 mut/Mb and said "FDA-approved for TMB-H (>=10 mut/Mb)".
+TMB_H_LABEL_THRESHOLD = 13.0
+# KEYNOTE-158's TMB-H cohort cut-off, and the figure BIOMARKER_PANELS still
+# carries. Between the two the recommendation is reported, but not as approved.
+TMB_H_TRIAL_THRESHOLD = 10.0
+
 
 class TherapyRanker:
     """Evidence-based therapy ranking engine for precision oncology.
@@ -110,15 +392,15 @@ class TherapyRanker:
             elif drug and drug in all_therapies:
                 # Keep the one with stronger evidence
                 existing = all_therapies[drug]
-                existing_level = EVIDENCE_LEVEL_ORDER.get(existing.get("evidence_level", "E"), 4)
-                new_level = EVIDENCE_LEVEL_ORDER.get(t.get("evidence_level", "E"), 4)
+                existing_level = evidence_rank(existing.get("evidence_level"))
+                new_level = evidence_rank(t.get("evidence_level"))
                 if new_level < existing_level:
                     all_therapies[drug] = t
 
         therapies = list(all_therapies.values())
 
         # Step 3: Rank by evidence level
-        therapies.sort(key=lambda t: EVIDENCE_LEVEL_ORDER.get(t.get("evidence_level", "E"), 4))
+        therapies.sort(key=lambda t: evidence_rank(t.get("evidence_level")))
 
         # Step 3.5: Identify combination regimens BEFORE the safety checks below, so that
         # resistance, contraindication and evidence lookup apply to them too. This used to sit
@@ -242,6 +524,87 @@ class TherapyRanker:
                 return True
         return False
 
+    def _drug_indication_status(
+        self, drug_name: str, driver: str, cancer_type: str
+    ) -> Dict[str, Any]:
+        """Is THIS DRUG approved for THIS DRIVER in THIS TUMOUR, per its own label?
+
+        The per-gene `cancer_types` list answers a different question ("is this gene
+        relevant in this tumour"), and because it is the wider list, using it as the
+        gate meant the gate never fired: EGFR TKIs came back at level A with
+        indicated_for_cancer_type=True for glioblastoma, because EGFR's gene-level list
+        names glioblastoma.
+
+        Returns a dict with:
+          indicated: True  - the drug's label covers this driver in this tumour
+                     False - the label was retrieved and does NOT cover it
+                     None  - no label has been retrieved for this (drug, driver);
+                             the answer is unknown and must not be asserted
+          approved_cancer_types: what the label says, when known
+          label: the citation
+          note: reviewer-facing explanation when indicated is not True
+        """
+        entry = VERIFIED_DRUG_INDICATIONS.get((drug_name.lower().strip(), driver.upper().strip()))
+        if entry is None:
+            entry = VERIFIED_DRUG_INDICATIONS.get((drug_name.lower().strip(), driver.strip()))
+        if entry is None:
+            return {
+                "indicated": None,
+                "approved_cancer_types": [],
+                "label": "",
+                "note": (
+                    f"The approved indications for {drug_name} with a {driver} driver have NOT "
+                    f"been verified against a label. The tumour list carried here is the "
+                    f"gene-level list from ACTIONABLE_TARGETS, which states where the GENE is "
+                    f"relevant, not where the DRUG is approved. Confirm against the FDA label "
+                    f"(Drugs@FDA / DailyMed) or the NCCN guideline for this tumour before acting."
+                ),
+            }
+
+        tumors = list(entry.get("tumors", []))
+        excluded = list(entry.get("excluded", []))
+        label = entry.get("label", "")
+
+        if excluded and self._cancer_type_applies(cancer_type, excluded):
+            return {
+                "indicated": False,
+                "approved_cancer_types": tumors,
+                "label": label,
+                "note": (
+                    f"{drug_name} is explicitly NOT indicated in {cancer_type} for a {driver} "
+                    f"driver: the label carries a Limitation of Use excluding it. Label: {label}"
+                ),
+            }
+
+        if not tumors:
+            return {
+                "indicated": False,
+                "approved_cancer_types": [],
+                "label": label,
+                "note": (
+                    f"{drug_name} has NO approved indication for a {driver} driver at any tumour "
+                    f"site. Label: {label}"
+                ),
+            }
+
+        if self._cancer_type_applies(cancer_type, tumors):
+            return {
+                "indicated": True,
+                "approved_cancer_types": tumors,
+                "label": label,
+                "note": "",
+            }
+
+        return {
+            "indicated": False,
+            "approved_cancer_types": tumors,
+            "label": label,
+            "note": (
+                f"{drug_name} is not approved in {cancer_type or 'an unstated tumour type'} for a "
+                f"{driver} driver; its labelled indications are {tumors}. Label: {label}"
+            ),
+        }
+
     def _identify_variant_therapies(
         self, gene: str, variant: str, cancer_type: str
     ) -> List[Dict]:
@@ -307,9 +670,12 @@ class TherapyRanker:
                 f"to earlier-generation TKIs). Confirm per drug before acting."
             )
 
-        indicated = self._cancer_type_applies(cancer_type, target_info.get("cancer_types", []))
-        if not indicated:
-            evidence_level = self._downgrade(evidence_level)
+        # The gene-level list says where the GENE is relevant. It is kept as a
+        # fallback for drugs whose own label has not been read, but it is no longer
+        # what decides `indicated_for_cancer_type` on its own.
+        gene_list_applies = self._cancer_type_applies(
+            cancer_type, target_info.get("cancer_types", [])
+        )
 
         for drug in drugs:
             if isinstance(drug, str):
@@ -321,12 +687,39 @@ class TherapyRanker:
             else:
                 continue
 
+            # Per-drug gate: the drug's own label decides whether it is indicated
+            # for this driver in this tumour.
+            status = self._drug_indication_status(drug_name, gene_upper, cancer_type)
+            drug_level = evidence_level
+            drug_note = review_note
+            if status["indicated"] is True:
+                indicated = True
+                approved_types = status["approved_cancer_types"]
+            elif status["indicated"] is False:
+                # The label was retrieved and does not cover this tumour. That is a
+                # stronger statement than "the gene list omits it", so drop two
+                # tiers rather than one, and say why.
+                indicated = False
+                approved_types = status["approved_cancer_types"]
+                drug_level = self._downgrade(evidence_level, steps=2)
+                drug_note = f"{drug_note} {status['note']}".strip()
+            else:
+                # No label retrieved for this (drug, driver): unknown, not approved.
+                # Behave as before — gate on the gene-level list — but mark the
+                # recommendation as unverified so no reader mistakes it for a
+                # label-confirmed indication.
+                indicated = gene_list_applies
+                approved_types = list(target_info.get("cancer_types", []))
+                if not gene_list_applies:
+                    drug_level = self._downgrade(evidence_level)
+                drug_note = f"{drug_note} {status['note']}".strip()
+
             therapies.append({
                 "drug_name": drug_name,
                 "brand_name": drug_details.get("brand_name", ""),
                 "category": drug_details.get("category", "targeted therapy"),
                 "targets": [gene_upper],
-                "evidence_level": evidence_level,
+                "evidence_level": drug_level,
                 "guideline_recommendation": drug_details.get(
                     "guideline", f"Consider for {gene_upper}-mutant {cancer_type}"
                 ),
@@ -337,9 +730,13 @@ class TherapyRanker:
                 # True when the recommendation rests on the gene rather than on this variant.
                 "gene_level_inference": gene_level_inference,
                 "variant_is_resistance_mutation": variant_is_resistance,
-                "review_note": review_note,
+                "review_note": drug_note,
                 "indicated_for_cancer_type": indicated,
-                "approved_cancer_types": list(target_info.get("cancer_types", [])),
+                "approved_cancer_types": list(approved_types),
+                # True when no FDA label has been read for this (drug, driver), so
+                # `approved_cancer_types` is the gene-level list, not an indication.
+                "indication_unverified": status["indicated"] is None,
+                "indication_label": status["label"],
             })
 
         return therapies
@@ -369,6 +766,51 @@ class TherapyRanker:
         """
         therapies = []
 
+        def _entry(
+            drug_name: str,
+            brand: str,
+            category: str,
+            targets: List[str],
+            level: str,
+            guideline: str,
+            driver: str,
+            source_biomarker: str,
+            source: str = "biomarker",
+        ) -> Dict[str, Any]:
+            """Build a biomarker therapy dict with the per-drug indication gate applied.
+
+            This function used to take `cancer_type` and never read it: the MSI, TMB,
+            HRD/BRCA, PTEN, PD-L1 and NTRK blocks all emitted unconditionally, so a
+            PD-L1 TPS 80 PROSTATE case got "First-line monotherapy for PD-L1 TPS >= 50%
+            NSCLC (KEYNOTE-024)" at level A as its rank-1 recommendation, and an MSI-H
+            ENDOMETRIAL case got nivolumab at level A quoting a colorectal approval.
+            The biomarker dicts also omitted `indicated_for_cancer_type`, so no
+            downstream consumer could warn.
+            """
+            status = self._drug_indication_status(drug_name, driver, cancer_type)
+            out_level = level
+            note = ""
+            if status["indicated"] is False:
+                out_level = self._downgrade(level, steps=2)
+                note = status["note"]
+            elif status["indicated"] is None:
+                note = status["note"]
+            return {
+                "drug_name": drug_name,
+                "brand_name": brand,
+                "category": category,
+                "targets": list(targets),
+                "evidence_level": out_level,
+                "guideline_recommendation": guideline,
+                "source": source,
+                "source_biomarker": source_biomarker,
+                "indicated_for_cancer_type": status["indicated"],
+                "approved_cancer_types": status["approved_cancer_types"],
+                "indication_unverified": status["indicated"] is None,
+                "indication_label": status["label"],
+                "review_note": note,
+            }
+
         # MSI-H -> pembrolizumab, nivolumab, dostarlimab
         msi = str(biomarkers.get("MSI") or "").upper()
         if msi in ("MSI-H", "MSI-HIGH", "DMMR"):
@@ -381,37 +823,46 @@ class TherapyRanker:
                  "FDA-approved for dMMR solid tumors (GARNET trial)."),
             ]
             for drug_name, brand, level, guideline in msi_drugs:
-                therapies.append({
-                    "drug_name": drug_name,
-                    "brand_name": brand,
-                    "category": "immunotherapy",
-                    "targets": ["MSI-H"],
-                    "evidence_level": level,
-                    "guideline_recommendation": guideline,
-                    "source": "biomarker",
-                    "source_biomarker": "MSI-H",
-                })
+                therapies.append(_entry(
+                    drug_name, brand, "immunotherapy", ["MSI-H"], level, guideline,
+                    driver="MSI-H", source_biomarker="MSI-H",
+                ))
 
         # TMB-H -> pembrolizumab, atezolizumab
+        #
+        # The labelled definition of TMB-H is >= 13 mut/Mb (KEYTRUDA, DailyMed setid
+        # 9333c79b-d487-4538-a9f0-71b91a02b287, published 2026-11-02, §1.16), not the
+        # >= 10 this block used while claiming "FDA-approved for TMB-H (>=10 mut/Mb)".
+        # KEYNOTE-158's cohort used >= 10, which is where that figure came from, so a
+        # patient between the two is still reported — as a trial-supported candidate,
+        # not as an approved indication.
         tmb = biomarkers.get("TMB")
-        if tmb is not None and isinstance(tmb, (int, float)) and tmb >= 10:
+        if tmb is not None and isinstance(tmb, (int, float)) and tmb >= TMB_H_TRIAL_THRESHOLD:
+            meets_label = tmb >= TMB_H_LABEL_THRESHOLD
+            if meets_label:
+                pembro_level = "A"
+                pembro_guideline = (
+                    f"FDA-approved for TMB-H (>={TMB_H_LABEL_THRESHOLD:.0f} mut/Mb) solid tumors. "
+                    f"Patient TMB: {tmb} mut/Mb (KEYNOTE-158)."
+                )
+            else:
+                pembro_level = "B"
+                pembro_guideline = (
+                    f"Patient TMB {tmb} mut/Mb is BELOW the labelled TMB-H definition of "
+                    f">={TMB_H_LABEL_THRESHOLD:.0f} mut/Mb (KEYTRUDA label, DailyMed, published "
+                    f"2026-11-02, section 1.16), so this is NOT within the approved indication. "
+                    f"KEYNOTE-158's TMB-H cohort used >={TMB_H_TRIAL_THRESHOLD:.0f} mut/Mb."
+                )
             tmb_drugs = [
-                ("pembrolizumab", "Keytruda", "A",
-                 f"FDA-approved for TMB-H (>=10 mut/Mb) solid tumors. Patient TMB: {tmb} mut/Mb (KEYNOTE-158)."),
+                ("pembrolizumab", "Keytruda", pembro_level, pembro_guideline),
                 ("atezolizumab", "Tecentriq", "B",
                  f"Evidence supports activity in TMB-H tumors. Patient TMB: {tmb} mut/Mb (IMvigor211, POPLAR)."),
             ]
             for drug_name, brand, level, guideline in tmb_drugs:
-                therapies.append({
-                    "drug_name": drug_name,
-                    "brand_name": brand,
-                    "category": "immunotherapy",
-                    "targets": ["TMB-H"],
-                    "evidence_level": level,
-                    "guideline_recommendation": guideline,
-                    "source": "biomarker",
-                    "source_biomarker": "TMB-H",
-                })
+                therapies.append(_entry(
+                    drug_name, brand, "immunotherapy", ["TMB-H"], level, guideline,
+                    driver="TMB-H", source_biomarker="TMB-H",
+                ))
 
         # HRD / BRCA -> PARP inhibitors + platinum-based chemotherapy
         hrd = biomarkers.get("HRD")
@@ -424,94 +875,57 @@ class TherapyRanker:
                 ("talazoparib", "Talzenna"),
             ]
             for drug_name, brand in parp_drugs:
-                therapies.append({
-                    "drug_name": drug_name,
-                    "brand_name": brand,
-                    "category": "PARP inhibitor",
-                    "targets": ["HRD", "BRCA"],
-                    "evidence_level": "A" if brca else "B",
-                    "guideline_recommendation": (
-                        f"Consider {brand} ({drug_name}) for HRD-positive / BRCA-mutant tumors."
-                    ),
-                    "source": "biomarker",
-                    "source_biomarker": "HRD/BRCA",
-                })
-            # Platinum compounds are also effective in HRD/BRCA
+                therapies.append(_entry(
+                    drug_name, brand, "PARP inhibitor", ["HRD", "BRCA"],
+                    "A" if brca else "B",
+                    f"Consider {brand} ({drug_name}) for HRD-positive / BRCA-mutant tumors.",
+                    driver="BRCA", source_biomarker="HRD/BRCA",
+                ))
+            # Platinum compounds are also effective in HRD/BRCA. This is a biology
+            # claim from the literature, not a labelled biomarker indication: no
+            # platinum label selects patients on BRCA or HRD status. It is left at
+            # level B and marked unverified rather than being re-levelled here —
+            # recorded as an open question in CLINICAL_REVIEW.md.
             for plat_name in ("carboplatin", "cisplatin"):
-                therapies.append({
-                    "drug_name": plat_name,
-                    "brand_name": "",
-                    "category": "platinum chemotherapy",
-                    "targets": ["HRD", "BRCA"],
-                    "evidence_level": "B",
-                    "guideline_recommendation": (
-                        "BRCA/HRD-positive tumors show enhanced platinum sensitivity."
-                    ),
-                    "source": "biomarker",
-                    "source_biomarker": "HRD/BRCA",
-                })
+                therapies.append(_entry(
+                    plat_name, "", "platinum chemotherapy", ["HRD", "BRCA"], "B",
+                    "BRCA/HRD-positive tumors show enhanced platinum sensitivity.",
+                    driver="BRCA", source_biomarker="HRD/BRCA",
+                ))
 
         # PTEN loss -> consider mTOR/PI3K inhibitors
         pten = str(biomarkers.get("PTEN") or "").upper()
         if pten in ("LOSS", "DELETED", "MUTATION", "LOST"):
-            therapies.append({
-                "drug_name": "alpelisib",
-                "brand_name": "Piqray",
-                "category": "PI3K inhibitor",
-                "targets": ["PTEN", "PI3K"],
-                "evidence_level": "C",
-                "guideline_recommendation": (
-                    "Consider PI3K pathway inhibition for PTEN-loss tumors. "
-                    "PI3K/AKT/mTOR pathway activation may predict response."
-                ),
-                "source": "biomarker",
-                "source_biomarker": "PTEN_loss",
-            })
+            therapies.append(_entry(
+                "alpelisib", "Piqray", "PI3K inhibitor", ["PTEN", "PI3K"], "C",
+                "Consider PI3K pathway inhibition for PTEN-loss tumors. "
+                "PI3K/AKT/mTOR pathway activation may predict response.",
+                driver="PTEN", source_biomarker="PTEN_loss",
+            ))
 
         # PD-L1 TPS >= 50% -> pembrolizumab first-line
         pdl1 = biomarkers.get("PD-L1_TPS")
         if pdl1 is not None and isinstance(pdl1, (int, float)) and pdl1 >= 50:
-            therapies.append({
-                "drug_name": "pembrolizumab",
-                "brand_name": "Keytruda",
-                "category": "immunotherapy",
-                "targets": ["PD-L1"],
-                "evidence_level": "A",
-                "guideline_recommendation": (
-                    f"First-line monotherapy for PD-L1 TPS >= 50% NSCLC. "
-                    f"Patient PD-L1 TPS: {pdl1}% (KEYNOTE-024)."
-                ),
-                "source": "biomarker",
-                "source_biomarker": "PD-L1_TPS",
-            })
+            therapies.append(_entry(
+                "pembrolizumab", "Keytruda", "immunotherapy", ["PD-L1"], "A",
+                f"First-line monotherapy for PD-L1 TPS >= 50% NSCLC. "
+                f"Patient PD-L1 TPS: {pdl1}% (KEYNOTE-024).",
+                driver="PD-L1_TPS", source_biomarker="PD-L1_TPS",
+            ))
 
         # NTRK fusion -> larotrectinib, entrectinib
         ntrk = str(biomarkers.get("NTRK") or "").upper()
         if ntrk in ("FUSION", "POSITIVE", "NTRK1", "NTRK2", "NTRK3"):
-            therapies.append({
-                "drug_name": "larotrectinib",
-                "brand_name": "Vitrakvi",
-                "category": "targeted therapy",
-                "targets": ["NTRK"],
-                "evidence_level": "A",
-                "guideline_recommendation": (
-                    "FDA-approved for NTRK fusion-positive solid tumors (NAVIGATE, SCOUT)."
-                ),
-                "source": "biomarker",
-                "source_biomarker": "NTRK",
-            })
-            therapies.append({
-                "drug_name": "entrectinib",
-                "brand_name": "Rozlytrek",
-                "category": "targeted therapy",
-                "targets": ["NTRK", "ROS1"],
-                "evidence_level": "A",
-                "guideline_recommendation": (
-                    "FDA-approved for NTRK fusion-positive solid tumors (STARTRK-2)."
-                ),
-                "source": "biomarker",
-                "source_biomarker": "NTRK",
-            })
+            therapies.append(_entry(
+                "larotrectinib", "Vitrakvi", "targeted therapy", ["NTRK"], "A",
+                "FDA-approved for NTRK fusion-positive solid tumors (NAVIGATE, SCOUT).",
+                driver="NTRK", source_biomarker="NTRK",
+            ))
+            therapies.append(_entry(
+                "entrectinib", "Rozlytrek", "targeted therapy", ["NTRK", "ROS1"], "A",
+                "FDA-approved for NTRK fusion-positive solid tumors (STARTRK-2).",
+                driver="NTRK", source_biomarker="NTRK",
+            ))
 
         # Also check BIOMARKER_PANELS for any additional mappings
         for panel_key, panel_info in BIOMARKER_PANELS.items():
@@ -533,7 +947,18 @@ class TherapyRanker:
                 meets = patient_value.upper() in [pv.upper() for pv in positive_values]
 
             if meets:
+                # NOTE: as of 2026-11-03 no entry in BIOMARKER_PANELS carries a
+                # `marker`, `threshold` or `drugs` key, so this loop never emits
+                # anything (marker_name is "" and `biomarkers.get("")` is None, so the
+                # `continue` above always fires). It is gated anyway, so that the day
+                # those keys appear it does not reproduce the ungated-biomarker defect
+                # this commit fixes. Recorded in CLINICAL_REVIEW.md.
                 panel_drugs = panel_info.get("drugs", [])
+                panel_cancer_types = panel_info.get("cancer_types", [])
+                panel_applies = self._cancer_type_applies(cancer_type, panel_cancer_types)
+                panel_level = panel_info.get("evidence_level", "C")
+                if not panel_applies:
+                    panel_level = self._downgrade(panel_level)
                 for pd in panel_drugs:
                     drug_name = pd if isinstance(pd, str) else pd.get("name", "")
                     if drug_name and drug_name.lower() not in {t["drug_name"].lower() for t in therapies}:
@@ -542,10 +967,17 @@ class TherapyRanker:
                             "brand_name": pd.get("brand_name", "") if isinstance(pd, dict) else "",
                             "category": "biomarker-directed",
                             "targets": [marker_name],
-                            "evidence_level": panel_info.get("evidence_level", "C"),
+                            "evidence_level": panel_level,
                             "guideline_recommendation": panel_info.get("guideline", ""),
                             "source": "biomarker_panel",
                             "source_biomarker": panel_key,
+                            "indicated_for_cancer_type": panel_applies,
+                            "approved_cancer_types": list(panel_cancer_types),
+                            "indication_unverified": True,
+                            "review_note": (
+                                f"{drug_name} comes from BIOMARKER_PANELS[{panel_key!r}], whose "
+                                f"cancer_types list has not been verified against a label."
+                            ),
                         })
 
         return therapies
@@ -854,8 +1286,8 @@ class TherapyRanker:
         flagged = [t for t in therapies if t.get("resistance_flag") or t.get("contraindication_flag")]
 
         # Sort each group by evidence level
-        clean.sort(key=lambda t: EVIDENCE_LEVEL_ORDER.get(t.get("evidence_level", "E"), 4))
-        flagged.sort(key=lambda t: EVIDENCE_LEVEL_ORDER.get(t.get("evidence_level", "E"), 4))
+        clean.sort(key=lambda t: evidence_rank(t.get("evidence_level")))
+        flagged.sort(key=lambda t: evidence_rank(t.get("evidence_level")))
 
         # Combine: clean first, then flagged
         ranked = clean + flagged

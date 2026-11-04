@@ -309,6 +309,169 @@ class LocalVEPAnnotator(VariantAnnotator):
             raise RuntimeError("VEP annotation timed out after 1 hour")
 
 
+# ---------------------------------------------------------------------------
+# ClinVar aggregate germline classification -> internal impact tier
+#
+# Primary sources (retrieved 2026-11-03):
+#  * ClinVar's own release VCF header,
+#    https://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/clinvar.vcf.gz
+#    (##fileDate=2026-11-01):
+#      CLNSIG     "Aggregate germline classification for this single variant;
+#                  multiple values are separated by a vertical bar"
+#      CLNSIGCONF "Conflicting germline classification for this single variant"
+#    The distinct CLNSIG values in that release include `Pathogenic`,
+#    `Likely_pathogenic`, `Pathogenic/Likely_pathogenic` and
+#    `Conflicting_classifications_of_pathogenicity` as four SEPARATE aggregate
+#    terms; the conflicting term travels with
+#    `CLNREVSTAT=criteria_provided,_conflicting_classifications` and a
+#    CLNSIGCONF field enumerating the submissions that disagree. It is
+#    therefore not a pathogenic call.
+#  * NCBI, ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/README (updated
+#    2026-01-13): "ClinicalSignificance  character, semicolon-separated list of
+#    aggregate values of germline classification calculated for this variant."
+#  * NCBI ClinVar_VCV.xsd, typeSubmitterReviewStatusValue, enumerates
+#    "criteria provided, conflicting classifications".
+#  * NCBI, ncbi/clinvar `somatic_classifications/ClassificationOnClinVar.md`:
+#    a "Conflicting classifications of ..." aggregate is what ClinVar reports
+#    when submitters' terms disagree across the pathogenic / uncertain / benign
+#    boundary, with the conflicting terms and submission counts given.
+#
+# Mapping policy, and what it deliberately does NOT claim:
+#  * Pathogenic, Likely pathogenic and their aggregates stay in the HIGH tier
+#    (the tier the chat UI's triage filter uses) but carry distinct
+#    `consequence` labels, so the ACMG/AMP difference between a reportable
+#    Pathogenic call and a Likely pathogenic one survives into the report.
+#  * Conflicting classifications of pathogenicity sits with Uncertain
+#    significance (MODERATE) and is tagged `clinvar:conflicting`. ClinVar's own
+#    aggregation rule makes it a disagreement, not a consensus pathogenic call.
+#  * Risk-allele and non-classification terms (drug response, risk factor,
+#    association, Affects, protective, other, not provided) are recognised but
+#    given NO impact tier: assigning one would be a severity claim no retrieved
+#    document supports. See CLINICAL_REVIEW.md §13.
+#  * An unrecognised term leaves `impact` untouched and logs a warning, rather
+#    than being guessed into a tier.
+#
+# Keys are lower-cased exact ClinVar terms (underscores in the VCF are spaces
+# in the tab-delimited release).
+#
+# Each value is (impact tier, consequence label, tag). The tag is what makes the
+# tier reachable downstream: `consequence` is overwritten by ClinVar's molecular
+# `Type` column whenever that is present, so without the tag the
+# Pathogenic / Likely pathogenic / Conflicting distinction would again be
+# invisible to any consumer that reads only `impact`.
+_CLINVAR_IMPACT_BY_TERM: Dict[str, Tuple[Optional[str], Optional[str], Optional[str]]] = {
+    # --- pathogenic family -------------------------------------------------
+    'pathogenic': ('HIGH', 'pathogenic variant', 'clinvar:pathogenic'),
+    'pathogenic, low penetrance': (
+        'HIGH', 'pathogenic variant, low penetrance', 'clinvar:pathogenic_low_penetrance'),
+    'pathogenic/likely pathogenic': (
+        'HIGH', 'pathogenic/likely pathogenic variant', 'clinvar:pathogenic_likely_pathogenic'),
+    'pathogenic/likely pathogenic/pathogenic, low penetrance': (
+        'HIGH', 'pathogenic/likely pathogenic variant, low penetrance',
+        'clinvar:pathogenic_likely_pathogenic'),
+    'pathogenic/likely pathogenic/established risk allele': (
+        'HIGH', 'pathogenic/likely pathogenic variant', 'clinvar:pathogenic_likely_pathogenic'),
+    'pathogenic/pathogenic, low penetrance': (
+        'HIGH', 'pathogenic variant, low penetrance', 'clinvar:pathogenic_low_penetrance'),
+    'likely pathogenic': ('HIGH', 'likely pathogenic variant', 'clinvar:likely_pathogenic'),
+    'likely pathogenic, low penetrance': (
+        'HIGH', 'likely pathogenic variant, low penetrance',
+        'clinvar:likely_pathogenic_low_penetrance'),
+    'likely pathogenic/likely risk allele': (
+        'HIGH', 'likely pathogenic variant', 'clinvar:likely_pathogenic'),
+    # --- disagreement between submitters ----------------------------------
+    'conflicting classifications of pathogenicity': (
+        'MODERATE', 'variant with conflicting classifications of pathogenicity',
+        'clinvar:conflicting'),
+    # --- uncertain ---------------------------------------------------------
+    'uncertain significance': ('MODERATE', 'VUS', 'clinvar:uncertain_significance'),
+    'uncertain significance/uncertain risk allele': (
+        'MODERATE', 'VUS', 'clinvar:uncertain_significance'),
+    'uncertain risk allele': (
+        'MODERATE', 'uncertain risk allele', 'clinvar:uncertain_risk_allele'),
+    # --- benign family -----------------------------------------------------
+    'benign': ('LOW', 'benign variant', 'clinvar:benign'),
+    'likely benign': ('LOW', 'likely benign variant', 'clinvar:likely_benign'),
+    'benign/likely benign': ('LOW', 'benign/likely benign variant', 'clinvar:benign_likely_benign'),
+    # --- recognised, but no severity tier asserted ------------------------
+    'established risk allele': (None, 'established risk allele', 'clinvar:established_risk_allele'),
+    'likely risk allele': (None, 'likely risk allele', 'clinvar:likely_risk_allele'),
+    'risk allele': (None, 'risk allele', 'clinvar:risk_allele'),
+    'risk factor': (None, 'risk factor', 'clinvar:risk_factor'),
+    'drug response': (None, 'drug response', 'clinvar:drug_response'),
+    'association': (None, 'association', 'clinvar:association'),
+    'association not found': (None, 'association not found', 'clinvar:association_not_found'),
+    'affects': (None, 'affects', 'clinvar:affects'),
+    'protective': (None, 'protective', 'clinvar:protective'),
+    'confers sensitivity': (None, 'confers sensitivity', 'clinvar:confers_sensitivity'),
+    'other': (None, None, 'clinvar:other'),
+    'not provided': (None, None, 'clinvar:not_provided'),
+    'no classification for the single variant': (None, None, 'clinvar:no_classification'),
+    'no classifications from unflagged records': (None, None, 'clinvar:no_classification'),
+}
+
+# Most-severe-wins when ClinVar reports several aggregate values for one variant
+# (e.g. `Pathogenic|other`, `Benign/Likely_benign|drug_response`).
+_IMPACT_SEVERITY = {'HIGH': 3, 'MODERATE': 2, 'LOW': 1}
+
+_warned_clinvar_terms: set = set()
+
+
+def map_clinvar_significance(
+    clinical_significance: Optional[str],
+) -> Tuple[Optional[str], Optional[str], List[str]]:
+    """Map a ClinVar aggregate germline classification to (impact, consequence, tags).
+
+    `clinical_significance` is the raw ClinVar string: one or more aggregate
+    terms separated by ';' (tab-delimited release) or '|' (VCF). Returns
+    ``(None, None, [])`` for an empty or wholly unrecognised value, so the
+    caller leaves any existing impact alone rather than inventing one.
+
+    See `_CLINVAR_IMPACT_BY_TERM` for the primary sources and the mapping policy.
+    """
+    if not clinical_significance:
+        return None, None, []
+
+    raw_terms = [
+        t.strip()
+        for part in str(clinical_significance).split(';')
+        for t in part.split('|')
+        if t.strip()
+    ]
+
+    best_impact: Optional[str] = None
+    best_consequence: Optional[str] = None
+    tags: List[str] = []
+    recognised = False
+
+    for term in raw_terms:
+        key = term.lower().replace('_', ' ')
+        if key not in _CLINVAR_IMPACT_BY_TERM:
+            if key not in _warned_clinvar_terms:
+                _warned_clinvar_terms.add(key)
+                logger.warning(
+                    f"Unrecognised ClinVar germline classification {term!r}: "
+                    "no impact tier assigned"
+                )
+            continue
+        recognised = True
+        impact, consequence, tag = _CLINVAR_IMPACT_BY_TERM[key]
+        if tag and tag not in tags:
+            tags.append(tag)
+        if impact is not None and (
+            best_impact is None
+            or _IMPACT_SEVERITY[impact] > _IMPACT_SEVERITY[best_impact]
+        ):
+            best_impact = impact
+            best_consequence = consequence
+        elif best_consequence is None and consequence is not None:
+            best_consequence = consequence
+
+    if not recognised:
+        return None, None, []
+    return best_impact, best_consequence, tags
+
+
 class ClinVarAnnotator:
     """
     Fast local ClinVar annotation using pre-downloaded variant_summary.txt.gz.
@@ -431,21 +594,25 @@ class ClinVarAnnotator:
                     variant.disease_associations = '; '.join(clean_phenotypes[:3])  # Limit to 3 diseases
                     variant.tags.append(f"disease:{variant.disease_associations}")
 
-            # Set consequence/impact based on clinical significance
+            # Set consequence/impact from the ClinVar aggregate germline
+            # classification, matching exact terms (see
+            # map_clinvar_significance for the primary sources). The previous
+            # substring chain stamped "Conflicting classifications of
+            # pathogenicity" as HIGH impact, identical to an unambiguous
+            # Pathogenic call, and its `elif 'likely pathogenic'` branch was
+            # unreachable because every such string also contains
+            # 'pathogenic'.
             if data['clinical_significance']:
-                sig_lower = data['clinical_significance'].lower()
-                if 'pathogenic' in sig_lower:
-                    variant.impact = 'HIGH'
-                    variant.consequence = data['variant_type'] or 'pathogenic variant'
-                elif 'likely pathogenic' in sig_lower:
-                    variant.impact = 'HIGH'
-                    variant.consequence = data['variant_type'] or 'likely pathogenic variant'
-                elif 'benign' in sig_lower:
-                    variant.impact = 'LOW'
-                    variant.consequence = data['variant_type'] or 'benign variant'
-                elif 'uncertain' in sig_lower:
-                    variant.impact = 'MODERATE'
-                    variant.consequence = data['variant_type'] or 'VUS'
+                impact, consequence, sig_tags = map_clinvar_significance(
+                    data['clinical_significance']
+                )
+                if impact is not None:
+                    variant.impact = impact
+                if consequence is not None:
+                    variant.consequence = data['variant_type'] or consequence
+                for tag in sig_tags:
+                    if tag not in variant.tags:
+                        variant.tags.append(tag)
 
             # Add HGVS notation if available
             if data['hgvs']:

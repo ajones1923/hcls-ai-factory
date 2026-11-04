@@ -767,3 +767,123 @@ def test_african_american_increases_dose(self):
 plus `test_smoker_increases_dose` and `test_cyp4f2_effect`, which assert two terms the model
 does not contain. This is the EuroSCORE II blind spot (§1–2) exactly: range and direction
 assertions cannot see a wrong coefficient, which is the argument for reference cases.
+
+---
+
+## 22. `precision-oncology/agent/src/knowledge.py` — 51 per-gene evidence levels and indication lists, declared unverified
+
+`ACTIONABLE_TARGETS` (2,053-line module, 51 gene entries). Each entry carries an
+`evidence_level` and a `cancer_types` list, and `therapy_ranker.py` used the latter as the
+gate deciding whether a therapy is "indicated" for the patient's tumour. **No part of this
+table had ever been checked against a label or a guideline.**
+
+### What a spot-check of the twelve highest-consequence entries found (2026-11-03)
+
+Checked against the drugs' own FDA labels, retrieved from DailyMed (section 1 INDICATIONS AND
+USAGE). The citation for each is on the matching `VERIFIED_DRUG_INDICATIONS` entry in
+`therapy_ranker.py`.
+
+| Gene | `cancer_types` (level) | Verdict against the labels |
+|---|---|---|
+| **EGFR** | NSCLC, head and neck, colorectal, glioblastoma (A) | **Over-broad.** All six listed drugs (osimertinib, erlotinib, gefitinib, afatinib, dacomitinib, amivantamab) are NSCLC-only for an EGFR driver. Head and neck, colorectal and glioblastoma are unsupported; the colorectal entry conflates anti-EGFR *antibodies* given on RAS-wild-type status with TKIs given on an activating mutation. |
+| **ROS1** | NSCLC, cholangiocarcinoma, glioblastoma (A) | **Over-broad.** Every ROS1 label is NSCLC-only. Worse, `lorlatinib` is in the drug list and has **no ROS1 indication at all** (LORBRENA is ALK-positive NSCLC). |
+| **MET** | NSCLC, renal cell, hepatocellular, gastric (A) | **Over-broad.** capmatinib is MET-exon-14 NSCLC only; `crizotinib` is in the list but its label carries ALK and ROS1 indications, not MET. |
+| **PIK3CA** | breast, endometrial, cervical, head and neck, colorectal (A) | **Over-broad.** PIQRAY is PIK3CA-mutant HR+/HER2− breast cancer with fulvestrant; the other four are unsupported. |
+| **KRAS** | NSCLC, colorectal, pancreatic (A) | **Over-broad.** sotorasib covers NSCLC and mCRC (with panitumumab); adagrasib's retrieved label is NSCLC only; pancreatic is unsupported by either. |
+| **ALK** | NSCLC, anaplastic large cell lymphoma, neuroblastoma (A) | **Partly wrong.** NSCLC correct for all five drugs; ALCL correct for crizotinib only; **neuroblastoma is unsupported**, and crizotinib's third indication — inflammatory myofibroblastic tumour — is missing. |
+| **BRAF** | melanoma, NSCLC, colorectal, thyroid, hairy cell leukemia (A) | **Nearly right as a union, wrong per drug.** Melanoma/NSCLC/colorectal/thyroid are each covered by *some* drug; **hairy cell leukemia is not in any of the three labels** (ZELBORAF's second indication is Erdheim-Chester disease). TAFINLAR explicitly carries a Limitation of Use **excluding colorectal cancer**, which the gene-level list cannot express. |
+| **HER2** | breast, gastric, NSCLC, colorectal, endometrial (A) | **Correct as a union** (ENHERTU covers breast, gastric, NSCLC and HER2 IHC3+ solid tumours; TUKYSA covers breast and RAS-wild-type CRC) — but no single drug covers the list. |
+| **NTRK** | tissue-agnostic + sites (A) | **Correct.** larotrectinib, entrectinib and repotrectinib all carry site-agnostic NTRK-fusion indications. |
+| **BRCA1 / BRCA2** | breast, ovarian, prostate, pancreatic (A) | **Correct as a union** (LYNPARZA covers all four) — wrong per drug: RUBRACA has no breast or pancreatic indication, ZEJULA is ovarian only, TALZENNA is breast and prostate. |
+| **IDH1** | glioma, AML, cholangiocarcinoma (A) | **Correct** (TIBSOVO: AML, MDS, cholangiocarcinoma; VORANIGO: grade-2 astrocytoma/oligodendroglioma). MDS is missing from the list. |
+| **RET** | NSCLC, medullary thyroid, papillary thyroid (A) | **Correct, and narrower than the label** — RETEVMO also has a site-agnostic RET-fusion indication. Erring narrow is the safe direction. |
+
+**The systematic pattern:** `cancer_types` is a *gene-relevance* list, not an indication list,
+and it is the wider of the two. Seven of the twelve were over-broad; of the five that were
+defensible as a union, three were wrong drug-by-drug. So the defect is in the mechanism, not in
+individual rows, and that is what was fixed: the gate now decides per **(drug, driver)** pair
+against `VERIFIED_DRUG_INDICATIONS`, which carries the label citation and the Limitations of
+Use. A pair with no retrieved label reports `indication_unverified=True` and a note naming the
+document needed — the old behaviour, now declared.
+
+### What is still unverified, and what would settle it
+
+- **The remaining 39 `ACTIONABLE_TARGETS` entries' `cancer_types` lists and all 51
+  `evidence_level` values.** Nothing in this work verified an *evidence level*: the levels were
+  left as found and only *lowered* where a label contradicted the indication.
+- **`THERAPY_MAP` (30 drugs) `approved_indications` free text**, `RESISTANCE_MAP`,
+  `PATHWAY_MAP`, `BIOMARKER_PANELS` (20 panels, with their own `evidence_level` and
+  `cancer_types`), `ENTITY_ALIASES` and `PEDIATRIC_DOSING` — none read in this pass.
+  `PEDIATRIC_DOSING` is the most consequential of those: it is dosing.
+- **Settle with:** each drug's FDA label via Drugs@FDA (`accessdata.fda.gov/scripts/cder/daf/`)
+  or DailyMed, section 1; the NCCN guideline for the tumour; and OncoKB's own published level
+  definitions (`oncokb.org/levels`) for what each letter is supposed to mean — the A–E ladder in
+  this repo is not defined anywhere in it.
+- **Then:** move each verified pair into `VERIFIED_DRUG_INDICATIONS` with its citation. The
+  `indication_unverified` flag makes the remaining surface countable; it should reach zero.
+
+### Open questions this pass deliberately did not answer
+
+1. **Platinum chemotherapy in HRD/BRCA** is emitted at level B on "BRCA/HRD-positive tumors
+   show enhanced platinum sensitivity". No platinum label selects patients on BRCA or HRD
+   status, so there is no label to gate it with. Left at level B, flagged
+   `indication_unverified`. *Settle with:* the NCCN ovarian/breast guidelines, or the trial that
+   the level B is meant to rest on.
+2. **Atezolizumab for TMB-H** was emitted at level B on "evidence supports activity"
+   (IMvigor211, POPLAR). The TECENTRIQ label does not mention tumour mutational burden at all,
+   so the gate now treats it as not indicated and drops it two tiers. *Open:* what tier a
+   literature signal with no labelled indication deserves. The two-tier drop is a ranking
+   policy chosen here for consistency, not a value read from a source.
+3. **dostarlimab's MSI-H vs dMMR scope.** JEMPERLI §1.3 covers **dMMR** recurrent or advanced
+   solid tumours site-agnostically, while its MSI-H indication (§1.2) is locally advanced rectal
+   cancer. The engine treats MSI-H and dMMR as one biomarker, so dostarlimab is gated as
+   site-agnostic. *Settle with:* the JEMPERLI label §1.1–1.3 plus whether the engine should
+   separate MSI-H from dMMR at all.
+4. **The `BIOMARKER_PANELS` loop in `_identify_biomarker_therapies` is dead code.** No panel
+   carries the `marker`, `threshold` or `drugs` keys it reads, so it has never emitted a
+   recommendation. It has been gated anyway so it cannot reproduce finding A-8 when those keys
+   appear, but someone should decide whether it is meant to work at all.
+
+## 23. `precision-intelligence/src/knowledge.py` — 201-gene knowledge graph, first read 2026-11-03
+
+2,684 lines, never read by any previous audit. Two structures:
+
+- **`KNOWLEDGE_CONNECTIONS`** — 201 genes across 13 therapeutic areas, each with `protein`,
+  `function`, `pathway`, `diseases`, `drugs`, `drug_status`, `pdb_ids`, `druggable`. It is
+  injected into the LLM's context by `rag_engine._build_prompt` via
+  `format_knowledge_for_prompt`, so every field is read to the clinician through the model.
+- **`GENE_REFERENCE_DATA`** — 73 genes with `uniprot_id`, `reference_smiles`, `reference_drug`.
+  These seed the drug-discovery stage: a wrong SMILES or a wrong structure silently generates
+  chemistry against the wrong target.
+
+**Good news, verified so the next reader need not re-check it.** Unlike the oncology table,
+this module asserts **no evidence levels and no indications** — it is descriptive. And its
+identifiers check out:
+
+- **73 / 73 `uniprot_id` values are correct** (UniProtKB REST, 2026-11-03). 64 resolve to the
+  human gene they are filed under; the other nine are pathogen targets correctly mapped to
+  their organism's accession — `GYRA`→P0AES4 (*E. coli* DNA gyrase A), `INHA`→P9WGR1 (*M.
+  tuberculosis*), `HIV1_PR`/`HIV1_RT`/`HIV1_IN`→P03367/P03366/Q76353 (HIV-1 Gag-Pol),
+  `HCV_NS3`/`HCV_NS5B`→P26664/Q9WMX2, `SARS2_MPRO`/`SARS2_RDRP`→P0DTD1 (both cleaved from
+  pp1ab, so one accession for two targets is right).
+- **23 / 23 `pdb_ids` checked resolve to the correct protein** (RCSB PDB REST, polymer-entity
+  UniProt cross-reference, for VCP, C9orf72, MAPT, EGFR, KRAS, BRCA1, ALK, CFTR, PCSK9, TTR,
+  CYP2D6, TPMT). The demo structures are right: 5FTK, 7K56 and 8OOI all map to **P55072**, VCP.
+
+**What is NOT verified, and what would settle it:**
+
+- **`drug_status`** is a regulatory claim in free text ("FDA approved", "Clinical development",
+  "Phase I") for 201 genes. Not one was checked. A stale "FDA approved" is the same class of
+  error as the oncology indication lists. *Settle with:* Drugs@FDA / DailyMed per drug, and
+  ClinicalTrials.gov for the phase claims.
+- **`drugs`** — the per-gene drug lists, including compound codes with phases (e.g.
+  "CB-5083 (Phase I)"). CB-5083's development status in particular should be re-checked before
+  any demo narration rests on it.
+- **`diseases`, `pathway`, `function`, `protein`** — descriptive prose read into the LLM
+  context. Plausible on inspection, unchecked. *Settle with:* UniProt entry function sections
+  and OMIM / MONDO for the disease associations.
+- **`reference_smiles`** (73 structures) — not parsed or compared with the named
+  `reference_drug` in this pass. *Settle with:* PubChem / ChEMBL canonical SMILES for each
+  `reference_drug`; an RDKit round-trip plus an InChIKey comparison would make this a test
+  rather than a review item.
+- `src/target_hypothesis.py`, `src/llm_client.py` and `src/milvus_client.py` remain unread.
