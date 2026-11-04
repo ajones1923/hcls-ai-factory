@@ -131,8 +131,13 @@ def facts_for(kind, name, title, idx):
         "demo_key": DEMO_KEY[(kind, idx)],
         "path": str(root.relative_to(ROOT)),
         "py_files": len(py), "loc": loc, "test_files": len(tests),
+        # `maturity` is projected because it is the field the public matrix badges a
+        # capability with INSTEAD of its status -- leaving it out of this projection meant
+        # every generated maturity statement reported "none declared" for a capability that
+        # declared one. A projection that silently drops the load-bearing field makes the
+        # documents built on it wrong in the one place they are most read.
         "capabilities": [{"id": c["id"], "type": c.get("type"), "status": c.get("status"),
-                          "endpoint": c.get("endpoint"),
+                          "maturity": c.get("maturity"), "endpoint": c.get("endpoint"),
                           "description": (c.get("description") or "")[:400]} for c in caps],
         "ui_port": ui, "api_port": (None if (single or not ui) else ui + 1),
         "single_service": single,

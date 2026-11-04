@@ -11,13 +11,13 @@
    "result": "PASS",
    "date": "2026-11-04",
    "reviewer": "claim-integrity review",
-   "evidence": "The CAD-RADS constants carry inline attribution -- `OBSTRUCTIVE_PCT = 70.0` to CAD-RADS 2.0, `LEFT_MAIN_PCT = 50.0`, `HRP_MIN_FEATURES = 2` -- and the unsettled edges are already open: §6c (HRP modifier, including that the primary Cury et al. 2022 table was not read for the change and the same-plaque qualifier is unimplemented), §6d (two scoring edges the published charts do not define) and §6f (ACR Lung-RADS v2022, no part-solid or non-solid table). The scheduler intervals are operational, not clinical. No uncited clinical constant found beyond what is recorded."
+   "evidence": "The CAD-RADS constants carry inline attribution -- `OBSTRUCTIVE_PCT = 70.0` to CAD-RADS 2.0, `LEFT_MAIN_PCT = 50.0`, `HRP_MIN_FEATURES = 2` -- and the unsettled edges are already open: \u00a76c (HRP modifier, including that the primary Cury et al. 2022 table was not read for the change and the same-plaque qualifier is unimplemented), \u00a76d (two scoring edges the published charts do not define) and \u00a76f (ACR Lung-RADS v2022, no part-solid or non-solid table). The scheduler intervals are operational, not clinical. No uncited clinical constant found beyond what is recorded."
   },
   "6": {
    "result": "FAIL",
    "date": "2026-11-04",
    "reviewer": "claim-integrity review",
-   "evidence": "`imaging-intelligence-agent` is `status: live` with NO maturity tier, while its own description says the CT path (VISTA-3D, VILA-M3) is \"planned/placeholder, not yet live\" and that MAISI is \"research/augmentation/QA only, never diagnostic\". The public matrix badges a capability on its tier where one exists and on serving status otherwise, so it renders a flat `live` and the caveats never reach the badge. Same shape as the TSC finding. NOT fixed: the tier is an S4 owner decision, recommended `research-use`. The pattern is now gated platform-wide by `tests/test_caveats_reach_the_badge.py`, which freezes the four capabilities in this position so a fifth cannot appear while they are decided."
+   "evidence": "`imaging-intelligence-agent` was `status: live` with NO maturity tier, while its own description said the CT path (VISTA-3D, VILA-M3) is \"planned/placeholder, not yet live\" and that MAISI is \"research/augmentation/QA only, never diagnostic\". The public matrix badges on tier where one exists and on serving status otherwise, so it rendered a flat `live` and the caveats never reached the badge. FIXED: now `maturity: research-use`; it remains `status: live`. The pattern is gated platform-wide by `tests/test_caveats_reach_the_badge.py`."
   }
  },
  "therapeutic-discovery": {
@@ -31,7 +31,7 @@
    "result": "FAIL",
    "date": "2026-11-04",
    "reviewer": "claim-integrity review",
-   "evidence": "The drug-likeness cut-offs carry no citation and one deviates from the canonical source without saying so: `max_mw = 550` against Lipinski's Rule of Five MW <= 500, plus `max_logp = 5.0` and `max_lipinski_violations = 1`. They decide which generated molecules pass QC and reach the report. Now open as `CLINICAL_REVIEW.md` §9b; not changed, because moving a filter threshold changes the output set. The computation itself is sound -- all descriptors come from RDKit, and the pipeline refuses to mark QC passed when RDKit is missing."
+   "evidence": "The drug-likeness cut-offs carry no citation and one deviates from the canonical source without saying so: `max_mw = 550` against Lipinski's Rule of Five MW <= 500, plus `max_logp = 5.0` and `max_lipinski_violations = 1`. They decide which generated molecules pass QC and reach the report. Now open as `CLINICAL_REVIEW.md` \u00a79b; not changed, because moving a filter threshold changes the output set. The computation itself is sound -- all descriptors come from RDKit, and the pipeline refuses to mark QC passed when RDKit is missing."
   },
   "6": {
    "result": "PASS",
@@ -71,13 +71,13 @@
    "result": "FAIL",
    "date": "2026-11-04",
    "reviewer": "claim-integrity review",
-   "evidence": "Five clinical constants carry no primary source and were in no review record: SEGA growth 0.026 cm/month, eGFR 60.0, seizure frequency 15.0/month, surveillance cadence multipliers 0.5/0.75/1.0 with a 3-month floor, and mosaic VAF ceiling 0.30. Now open as `CLINICAL_REVIEW.md` §5b. None were changed -- a clinical value moves only with a cited primary source. The 1.8 cm and 4.0 cm thresholds were already open as §5, which is check 4 working as intended."
+   "evidence": "Five clinical constants carry no primary source and were in no review record: SEGA growth 0.026 cm/month, eGFR 60.0, seizure frequency 15.0/month, surveillance cadence multipliers 0.5/0.75/1.0 with a 3-month floor, and mosaic VAF ceiling 0.30. Now open as `CLINICAL_REVIEW.md` \u00a75b. None were changed -- a clinical value moves only with a cited primary source. The 1.8 cm and 4.0 cm thresholds were already open as \u00a75, which is check 4 working as intended."
   },
   "6": {
    "result": "FAIL",
    "date": "2026-11-04",
    "reviewer": "claim-integrity review",
-   "evidence": "`tuberous-sclerosis-engine` declares `status: live` and NO `maturity` tier, so the public maturity matrix badges the flagship disease program on serving status alone. Its own description carries the caveats in prose (\"gene-therapy correction of TSC1/TSC2 is preclinical\"), which is the exact defect fixed for `therapeutic-discovery-engine` on 2026-11-04 by adding `maturity: preclinical`. Recommended: `maturity: research-use`. NOT applied -- the tier changes the badge on the public site for the flagship program and more than one tier is defensible, so it is an S4 owner decision."
+   "evidence": "`tuberous-sclerosis-engine` declared `status: live` and NO `maturity` tier, so the public maturity matrix badged the flagship disease program on serving status alone while its own description said the gene-therapy arm is preclinical. Same defect fixed for `therapeutic-discovery-engine` on 2026-11-04. FIXED: now `maturity: research-use`. The tier is orthogonal to serving -- it remains `status: live` and still answers on :8560."
   }
  }
 }

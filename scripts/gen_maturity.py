@@ -292,8 +292,11 @@ def render(facts: dict, tests: pathlib.Path | None) -> str:
           "| Capability | Status | Maturity tier | Endpoint |", "| --- | --- | --- | --- |"]
     if facts["capabilities"]:
         for c in facts["capabilities"]:
-            L.append(f"| `{c['id']}` | {c.get('status', '—')} | "
-                     f"{c.get('maturity', '*none declared*')} | "
+            # `or`, not a .get() default: subject_facts projects the key whether or not the
+            # registry set it, so an untiered capability arrives as an explicit None and a
+            # default would never fire -- the table rendered the word "None".
+            L.append(f"| `{c['id']}` | {c.get('status') or '—'} | "
+                     f"{c.get('maturity') or '*none declared*'} | "
                      f"{c.get('endpoint') or '—'} |")
     else:
         L.append("| *none registered* | — | — | — |")

@@ -13,11 +13,13 @@ tier where one is declared, **otherwise its serving status**. So a capability wh
 description says a modality is "planned/placeholder, not yet live" is badged a flat `live` on
 the public site, and the caveat that exists is invisible to the one surface most readers see.
 
-Four capabilities are in that position today (listed below). This test does not pick their
-tiers -- which tier is right is a judgement with public consequences, and more than one is
-defensible for most of them. It freezes the set, so a seventh cannot appear by accident while
-the six are decided. The sibling `test_verified_tier_is_earned.py` guards the other direction,
-where a declared tier claims more than the description supports.
+Four capabilities were in that position when this was written. Three were tiered
+`research-use` the same day on the evidence of their own descriptions; the fourth is exempt
+for a stated reason (see `ACCEPTED_UNTIERED`). This test freezes the exempt set, so a fifth
+cannot appear by accident.
+
+The sibling `test_verified_tier_is_earned.py` guards the other direction, where a declared
+tier claims more than the description supports.
 """
 import json
 import pathlib
@@ -53,17 +55,33 @@ CAVEATS = (
 #: a loose one produces a long exemption list, and a long exemption list is how a guard stops
 #: meaning anything.
 #:
-#: Recommended tiers, recorded so the decision has a starting point:
-#:   imaging-intelligence-agent   research-use  (CT path is placeholder; MAISI never diagnostic)
-#:   tuberous-sclerosis-engine    research-use  (flagship; gene-therapy arm preclinical)
-#:   precision-biomarker-agent    research-use  (biological-age clocks are not clinical tests)
-#:   genomics-engine              no tier needed -- its caveat is about serving SHAPE
-#:                                ("not yet a request/response API"), not about evidence
+#: SETTLED 2026-11-04. Three of the four were given `maturity: research-use`, on the evidence
+#: of their own descriptions:
+#:   imaging-intelligence-agent   the CT path is "planned/placeholder, not yet live" and
+#:                                MAISI is "research/augmentation/QA only, never diagnostic"
+#:   tuberous-sclerosis-engine    the gene-therapy arm is preclinical by its own description
+#:   precision-biomarker-agent    "biological-age clocks are research-use, not clinical tests"
+#:
+#: The tier is ORTHOGONAL to serving: all three are still `status: live` and still answer.
+#: `research-use` does not say a capability is not running; it says what the evidence behind
+#: it supports, which is the distinction the matrix documents and the badge was flattening.
+#:
+#: A platform-wide tier policy is a larger question and is deliberately NOT settled here: the
+#: remaining 13 subjects each get theirs from their own check 6, on their own evidence, rather
+#: than by a sweep. Tiering three because they happened to say something in prose, and leaving
+#: the rest, would otherwise imply the others are better evidenced than they are.
+#:
+#: A first draft of this list had six names, built with "validate" among the phrases above.
+#: That matched any description telling a reader to validate something before clinical use,
+#: which is good practice rather than a caveat on the capability's own evidence, and the
+#: rot-guard below rejected the two it had swept in. The phrase list is deliberately narrow:
+#: a loose one produces a long exemption list, and a long exemption list is how a guard stops
+#: meaning anything.
 ACCEPTED_UNTIERED = {
+    # Its caveat is about serving SHAPE -- "not yet a request/response API" -- not about the
+    # evidence behind what it produces, so an evidence tier would answer a question nobody
+    # asked and would hide the `live` badge that is accurate for it.
     "genomics-engine",
-    "precision-biomarker-agent",
-    "imaging-intelligence-agent",
-    "tuberous-sclerosis-engine",
 }
 
 
