@@ -106,24 +106,24 @@ def _insert_records(
     try:
         from pymilvus import MilvusClient  # noqa: F811
     except ImportError:
-        logger.warning(
-            "pymilvus is not installed – skipping Milvus insert for %s "
-            "(%d records would have been inserted).",
+        logger.error(
+            "pymilvus is not installed, so NOTHING was written to %s (%d records lost). "
+            "Install the engine's requirements and re-run.",
             collection_name,
             len(records),
         )
-        return len(records)
+        return 0
 
     try:
         from sentence_transformers import SentenceTransformer
     except ImportError:
-        logger.warning(
-            "sentence_transformers is not installed – skipping Milvus "
-            "insert for %s (%d records would have been inserted).",
+        logger.error(
+            "sentence_transformers is not installed, so NOTHING was written to %s "
+            "(%d records lost). Install the engine's requirements and re-run.",
             collection_name,
             len(records),
         )
-        return len(records)
+        return 0
 
     # --- connect to Milvus ---
     try:
@@ -133,14 +133,13 @@ def _insert_records(
             uri=f"http://{settings.MILVUS_HOST}:{settings.MILVUS_PORT}",
         )
     except Exception as exc:
-        logger.warning(
-            "Could not connect to Milvus for %s: %s – "
-            "treating as dry run (%d records).",
+        logger.error(
+            "Could not connect to Milvus for %s: %s -- NOTHING was written (%d records lost).",
             collection_name,
             exc,
             len(records),
         )
-        return len(records)
+        return 0
 
     # --- generate embeddings ---
     try:
@@ -148,21 +147,44 @@ def _insert_records(
         texts = [str(r.get(text_field, "")) for r in records]
         embeddings = model.encode(texts, show_progress_bar=False).tolist()
     except Exception as exc:
-        logger.warning(
-            "Embedding generation failed for %s: %s – "
-            "treating as dry run (%d records).",
+        logger.error(
+            "Embedding generation failed for %s: %s -- NOTHING was written (%d records lost).",
             collection_name,
             exc,
             len(records),
         )
-        return len(records)
+        return 0
 
     # --- insert ---
     try:
+        # The vector column is named by the schema, not by this script. setup_collections.py
+        # builds every cardio_* collection with its embedding field called `embedding` and
+        # indexes that name, while this function used to hard-code `vector`: the insert was
+        # rejected for every collection that existed, and the old error path returned the
+        # record count, so the run reported "Seeded N" with nothing written. Ask the
+        # collection what its vector field is called.
+        vector_field = "embedding"
+        try:
+            desc = client.describe_collection(collection_name=collection_name)
+            for f in desc.get("fields", []):
+                if "VECTOR" in str(f.get("type", "")).upper():
+                    vector_field = f["name"]
+                    break
+        except Exception as exc:
+            # A collection that cannot be described cannot be written to either. Say so here
+            # rather than letting the insert fail with a less specific message.
+            logger.error(
+                "Cannot describe %s (%s) -- NOTHING was written (%d records lost). "
+                "Run setup_collections.py first; a seed target that is not a declared "
+                "collection will never exist.",
+                collection_name, exc, len(records),
+            )
+            return 0
+
         insert_data = []
         for record, vector in zip(records, embeddings):
             entry = dict(record)
-            entry["vector"] = vector
+            entry[vector_field] = vector
             insert_data.append(entry)
         client.insert(collection_name=collection_name, data=insert_data)
         logger.info(
@@ -172,14 +194,13 @@ def _insert_records(
         )
         return len(insert_data)
     except Exception as exc:
-        logger.warning(
-            "Milvus insert failed for %s: %s – "
-            "treating as dry run (%d records).",
+        logger.error(
+            "Milvus insert failed for %s: %s -- NOTHING was written (%d records lost).",
             collection_name,
             exc,
             len(records),
         )
-        return len(records)
+        return 0
 
 
 def _register(name: str):
