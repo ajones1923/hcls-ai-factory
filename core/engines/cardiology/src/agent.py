@@ -1025,6 +1025,12 @@ class CardioIntelligenceAgent:
                     sub_response = self.rag.search(sub_q, top_k=top_k)
                     if hasattr(response, "results") and sub_response:
                         response.results.extend(sub_response)
+                # Re-grade AFTER widening: the first verdict described the evidence that
+                # triggered the expansion, not the evidence the answer now rests on.
+                quality = self._evaluate_evidence_quality(response.results)
+            # Carry it. Until 2026-11-04 `quality` was dropped here. Found by
+            # scripts/sweep_claim_classes.py as one of seven subjects sharing this defect.
+            response.evidence_sufficiency = quality
 
         return response
 
@@ -1579,14 +1585,26 @@ class CardioIntelligenceAgent:
         timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         plan = self.search_plan(question)
 
+        # How well grounded the answer is belongs in the header of the artifact a clinician
+        # reads, not only on the API object.
+        _sufficiency = getattr(response, "evidence_sufficiency", "unknown")
+
         report_lines = [
             "# Cardiology Intelligence Report",
             f"**Query:** {question}",
             f"**Generated:** {timestamp}",
             f"**Workflows:** {', '.join(wf.value for wf in plan.relevant_workflows)}",
             f"**Strategy:** {plan.search_strategy}",
+            f"**Evidence sufficiency:** {_sufficiency}",
             "",
         ]
+        if _sufficiency == "insufficient":
+            report_lines += [
+                "> **Evidence was insufficient.** Retrieval returned too little to support "
+                "this answer, and widening the search did not change that. Treat everything "
+                "below as provisional and verify against primary sources.",
+                "",
+            ]
 
         # Detected entities
         if plan.conditions or plan.drugs or plan.genes:

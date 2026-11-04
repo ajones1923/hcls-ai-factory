@@ -72,6 +72,17 @@ _CLOCK_HASH = re.compile(r"hash\s*\(\s*str\s*\(\s*time\.time\s*\(\s*\)")
 _VERDICT_WORDS = ("insufficient", "unverified", "canned", "simulated", "degraded",
                   "not_grounded", "ungrounded", "no_evidence", "untestable")
 
+#: Hits read and found to be fine. Kept visible rather than filtered out: a scanner that
+#: silently drops what someone once dismissed stops being evidence of anything. Each entry
+#: names the reason, and the list may shrink whenever the code changes under it.
+REVIEWED_FALSE_POSITIVES = {
+    ("precision-intelligence", "B"):
+        "the verdict IS surfaced -- `_verify_answer` returns a dict attached as "
+        "result['verify'], and a blocking honesty violation appends a research-use "
+        "correction to the answer text. Flagged only because the literal word "
+        '"unverified" never appears under api/ or app/.',
+}
+
 #: Class D. Field names that read as measurements. A simulated value in one of these, in a
 #: file that also knows about mocking, is the imaging pattern.
 _NEUTRAL_FIELDS = ("confidence", "score", "probability", "accuracy", "similarity",
@@ -260,6 +271,12 @@ def main() -> int:
     print(f"\n  A  randomness or a clock producing a value ({sum(r[3] for r in rows)} hits)")
     print(f"  B  a verdict that never reaches the response surface ({sum(r[4] for r in rows)})")
     print(f"  D  a simulated value in a measurement-named field ({sum(r[5] for r in rows)})")
+
+    if REVIEWED_FALSE_POSITIVES:
+        print(f"\n  Read and dismissed ({len(REVIEWED_FALSE_POSITIVES)}), still counted "
+              f"above so the numbers stay honest:")
+        for (slug, cls), why in sorted(REVIEWED_FALSE_POSITIVES.items()):
+            print(f"       [{cls}] {slug}: {why}")
 
     c = class_c()
     print(f"\n  C  tier contradicts the entry's own description: {len(c)}")

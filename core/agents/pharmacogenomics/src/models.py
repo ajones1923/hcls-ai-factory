@@ -614,3 +614,15 @@ class PGxResponse(BaseModel):
     timestamp: str = Field(
         default_factory=lambda: datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     )
+    evidence_sufficiency: str = Field(
+        default="unknown",
+        description=(
+            "'sufficient', 'partial', 'insufficient' or 'unknown' \u2014 how well grounded this "
+            "answer is, from PGxAgent.evaluate_evidence. Computed since the agent was "
+            "written and, until 2026-11-04, used only to decide whether to widen the search "
+            "and then discarded, so a dosing answer built on almost nothing was "
+            "indistinguishable from one built on good evidence."
+        ),
+    )
+
+

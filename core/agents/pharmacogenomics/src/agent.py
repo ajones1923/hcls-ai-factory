@@ -221,6 +221,9 @@ class PGxIntelligenceAgent:
                 sub_query = AgentQuery(question=sub_q)
                 sub_evidence = self.rag.retrieve(sub_query)
                 evidence.hits.extend(sub_evidence.hits)
+            # Re-grade AFTER widening: the first verdict described the evidence that
+            # triggered the expansion, not the evidence the answer now rests on.
+            quality = self.evaluate_evidence(evidence)
 
         # Phase 5: Generate answer (reuse already-retrieved evidence)
         prompt = self.rag._build_prompt(question, evidence)
@@ -241,12 +244,23 @@ class PGxIntelligenceAgent:
 
         alerts = self._generate_alerts(plan, evidence)
 
+        if quality == "insufficient":
+            # In the answer, not only in a field: this agent returns drug dosing guidance.
+            answer = (
+                "**Evidence was insufficient.** Retrieval returned too little to support "
+                "this answer, and widening the search did not change that. Treat everything "
+                "below as provisional and verify against CPIC or the drug label.\n\n"
+            ) + answer
+
         return PGxResponse(
             question=question,
             answer=answer,
             evidence=evidence,
             knowledge_used=knowledge_used,
             alerts=alerts,
+            # Until 2026-11-04 `quality` was computed and dropped here. Found by
+            # scripts/sweep_claim_classes.py as one of seven subjects sharing the defect.
+            evidence_sufficiency=quality,
         )
 
     def search_plan(self, question: str) -> SearchPlan:

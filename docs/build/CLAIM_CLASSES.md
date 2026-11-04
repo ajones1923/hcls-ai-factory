@@ -25,14 +25,33 @@ more subjects, and the sweep found them in one run:
 
 | Subject | Where | Status |
 |---|---|---|
-| precision-oncology | `agent.py` | **fixed** 2026-11-04 (found by hand) |
-| rare-disease-diagnostic | `src/agent.py:1728` | open |
-| clinical-trial | `src/agent.py:1106` | open |
-| neurology | `src/agent.py:1489` | open |
-| pharmacogenomics | `src/agent.py:216` | open |
-| cardiology | `src/agent.py:1547,1565` | open |
-| precision-intelligence | `src/rag_engine.py:358` returns `"unverified"` | open |
-| clinical-imaging | `agent/src/agent.py:105` | open |
+| precision-oncology | `agent.py` | **fixed** — found by hand |
+| rare-disease-diagnostic | `src/agent.py` | **fixed** |
+| clinical-trial | `src/agent.py` | **fixed** |
+| neurology | `src/agent.py` | **fixed** |
+| cardiology | `src/agent.py` | **fixed** |
+| pharmacogenomics | `src/agent.py` | **fixed** — disclosure prepended to the answer, since it returns dosing guidance |
+| clinical-imaging | `agent/src/agent.py` | **fixed** — a different defect, see below |
+| precision-intelligence | `src/rag_engine.py` | **false positive**, see below |
+
+All closed on 2026-11-04. Class B went from 12 hits to 1, and the 1 is the false positive.
+
+### Two of the eight were not the defect the scanner guessed
+
+**clinical-imaging was worse.** `evaluate_evidence` did not drop its verdict — it had **no
+production caller at all.** Eight tests in `test_agent.py` asserted its classification
+boundaries, so the suite reported a working evidence check while nothing in the pipeline ever
+ran it. A tested guard with no caller is worse than no guard: no guard is visibly absent,
+this one was visibly present and green. Same shape as therapeutic-discovery's `assert_real`
+helpers, written for a real incident and then left uncalled. Now wired into `run()`, with a
+test that parses the AST to assert the call exists and is not another test.
+
+**precision-intelligence was fine.** `_verify_answer` returns a dict attached as
+`result["verify"]`, and a blocking honesty violation appends a research-use correction to the
+answer text. The scanner flagged it because the literal word `"unverified"` never appears
+under `api/` or `app/` — a vocabulary match, which is the stated limit of class B. It is
+recorded in `REVIEWED_FALSE_POSITIVES` and **still counted in the totals**, because a scanner
+that silently drops what someone once dismissed stops being evidence of anything.
 
 Three of them — rare-disease-diagnostic, clinical-trial and neurology — are **byte-identical
 copies** of the same block:
