@@ -39,7 +39,12 @@ but observable behaviour does** — for the better, and visibly.
       and the new reverse guard confirms every registry-allocated port is supervised.
 - [x] **Test-depth ratchet** — passes, no clinical subject regressed. (It had never run before
       this branch; see CHANGELOG.)
-- [x] **CI green on a clean runner** — all six jobs, x86_64, Python 3.11 and 3.12. PR #158.
+- [x] **CI green on a clean runner** — all six jobs, x86_64, Python 3.11 and 3.12, on PR #160
+      (`b8f44e5`). The runner counts **10,212 passed / 0 failed / 223 skipped — the same as a
+      developer box**, which is the only evidence that a pass reflects the code rather than
+      what happened to be installed. Getting there took fixing 37 failures that appeared only
+      on the runner: nine gate tests that required a live Milvus, and twenty-eight that needed
+      RDKit, which the remediation made a hard requirement by refusing to fake chemistry QC.
 - [x] **CHANGELOG.md** written with the v2.2.0 entry under `[Unreleased]`.
 - [x] **`CITATION.cff`** now carries `version` and `date-released` at all — it carried neither
       before, so the citation widget had no version to resolve.

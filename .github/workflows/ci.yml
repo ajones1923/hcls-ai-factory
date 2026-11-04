@@ -67,8 +67,13 @@ jobs:
     # PACKAGE, not an architecture difference: 4,972 passing with the old list, 8,767 with this
     # one. The single remaining failure is tests/test_proteinmpnn.py::test_design_real, which
     # needs CUDA -- and it is skipped here, because it is guarded by skipif on
-    # vendor_proteinmpnn/ which is not tracked in git. So this runner should see 8,767 passed,
-    # 0 failed, 6 skipped.
+    # vendor_proteinmpnn/ which is not tracked in git.
+    #
+    # Expected as of 2026-11-04 (b8f44e5, PR #160): 10,212 passed, 0 failed, 0 errors,
+    # 223 skipped -- identical to a developer box with Milvus and RDKit up, which is the
+    # point: the runner and the box agreeing is the only evidence that a pass means the
+    # code works rather than that the machine happened to have something installed. The
+    # previous note here said 8,767 and had been stale through two releases.
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5
