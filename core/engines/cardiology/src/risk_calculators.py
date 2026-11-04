@@ -1551,10 +1551,25 @@ def calculate_maggic(
     score += copd_pts
     detail_parts.append(f"COPD={copd_pts}")
 
-    # HF first diagnosed within 18 months = +2 (higher risk for new diagnosis)
+    # ⚠️ UNVERIFIED DIRECTION — see CLINICAL_REVIEW.md §12 item 4.
+    #
+    # This awards the 2 points to HF diagnosed WITHIN 18 months. The overnight audit retrieved
+    # Pocock 2013 Table 2 and reports the opposite: the rate ratio of 1.188 attaches to HF
+    # duration **>18 months**, i.e. long-standing disease carries the points. The variable name
+    # here (`hf_new_pts`) shows the author believed new HF was the risk factor, so this is a
+    # wrong belief rather than a typo, and the arithmetic is NOT changed on a second-hand
+    # reading of a table -- this engine's rule is that a clinical value moves only against a
+    # primary source in hand, and Pocock 2013 Table 2 is not in this repo.
+    #
+    # Until it is, every result carries the warning below, because the component is now
+    # REACHABLE: the API route was wired to pass `hf_duration_months` in the same audit, so
+    # whichever direction is right, one group of patients is scored 2 points wrong --
+    # long-standing HF under-scored, or newly diagnosed HF over-scored. 20% 1-year mortality is
+    # the transplant-referral threshold this score feeds.
     hf_new_pts = 2 if not hf_duration_gte_18 else 0
     score += hf_new_pts
-    detail_parts.append(f"new_HF={hf_new_pts}")
+    detail_parts.append(
+        f"new_HF={hf_new_pts} [DIRECTION UNVERIFIED, +/-2 pts — CLINICAL_REVIEW §12 item 4]")
 
     smoker_pts = 1 if current_smoker else 0
     score += smoker_pts
