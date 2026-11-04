@@ -37,7 +37,7 @@ from .models import (
     PediatricSafetyFlag,
     PediatricSafetyAssessment,
 )
-from .nim_clients import create_nim_clients, NIMServiceManager
+from .nim_clients import create_nim_clients, NIMServiceManager, assert_real
 from .checkpoint import CheckpointManager
 
 
@@ -539,24 +539,29 @@ class DrugDiscoveryPipeline:
         self._save_checkpoint(4)
 
     def stage_5_chemistry_qc(self):
-        """Stage 5: Filter molecules by drug-likeness."""
+        """Stage 5: Filter molecules by drug-likeness.
+
+        Without RDKit this stage used to do `mol.passed_qc = True; passed.append(mol)` for every
+        molecule: a drug-likeness filter that examined nothing reported every candidate as having
+        passed, left `mol.properties` as None, and stage 8 then substituted `qed_score = 0.5` for
+        all of them. The engine already has a "RDKit not installed" branch elsewhere, so this is
+        reachable (aarch64 in particular). A filter that cannot run now refuses rather than
+        passing its input.
+        """
         self._report_progress(5, "Running chemistry QC filters")
 
         try:
             from rdkit import Chem
             from rdkit.Chem import Descriptors, Lipinski, QED
-            HAS_RDKIT = True
-        except ImportError:
-            HAS_RDKIT = False
-            logger.warning("RDKit not available, skipping detailed QC")
+        except ImportError as e:
+            raise RuntimeError(
+                "Chemistry QC needs RDKit and it is not importable "
+                f"({e}). Refusing to mark molecules as having passed drug-likeness QC without "
+                "examining them; install the engine's requirements and retry."
+            ) from e
 
         passed = []
         for mol in self.molecules:
-            if not HAS_RDKIT:
-                mol.passed_qc = True
-                passed.append(mol)
-                continue
-
             rdmol = Chem.MolFromSmiles(mol.smiles)
             if rdmol is None:
                 continue
@@ -705,7 +710,10 @@ class DrugDiscoveryPipeline:
             dock_failures = 0  # Reset on success
             if poses:
                 best_pose = poses[0]
+                # `_provenance="mock"` is stamped by MockDiffDockClient. Carrying it into the
+                # record is what stops stage 9 presenting a simulated pose as a measurement.
                 self.docking_results.append(DockingResult(
+                    provenance=best_pose.get("_provenance", "real"),
                     molecule_id=mol.id,
                     structure_id=primary,
                     # Carry the method's own units through instead of forcing everything into
@@ -771,7 +779,11 @@ class DrugDiscoveryPipeline:
 
             # Calculate composite score
             gen_score = mol.generation_score
-            qed_score = mol.properties.qed if mol.properties else 0.5
+            # `0.5` used to be substituted whenever properties were missing -- a constant
+            # standing in for a drug-likeness score, at weight `qed_weight`. Without a QED the
+            # term is dropped and the remaining weights renormalized, so the composite reflects
+            # only what was measured.
+            qed_score = mol.properties.qed if mol.properties else None
 
             # Normalize the docking term ACCORDING TO ITS UNITS. Until 2026-11-03 every
             # result was normalized as if it were a kcal/mol affinity (`-score / 12`), which
@@ -780,6 +792,9 @@ class DrugDiscoveryPipeline:
             dock_score = dock_result.docking_score if dock_result else None
             if dock_result is None:
                 dock_normalized = 0.0  # No docking data = worst score
+            elif dock_result.provenance == "mock" or dock_result.score_type == "mock_simulated":
+                # A simulated number has no units and must not earn a ranking term.
+                dock_normalized = 0.0
             elif dock_result.score_type == "diffdock_confidence":
                 # `confidence` is already P(pose within 2 A RMSD) in [0, 1].
                 dock_normalized = max(0.0, min(1.0, dock_result.confidence))
@@ -789,11 +804,18 @@ class DrugDiscoveryPipeline:
             else:
                 dock_normalized = 0.0  # scored by no quantity we can rank on
 
-            composite = (
-                self.config.generation_weight * gen_score +
-                self.config.docking_weight * dock_normalized +
-                self.config.qed_weight * qed_score
-            )
+            if qed_score is None:
+                # Drop the QED term and renormalize, rather than scoring a constant.
+                w_gen, w_dock = self.config.generation_weight, self.config.docking_weight
+                total = w_gen + w_dock
+                composite = ((w_gen * gen_score + w_dock * dock_normalized) / total
+                             if total else 0.0)
+            else:
+                composite = (
+                    self.config.generation_weight * gen_score +
+                    self.config.docking_weight * dock_normalized +
+                    self.config.qed_weight * qed_score
+                )
 
             candidates.append(RankedCandidate(
                 rank=1,  # Temporary value, updated after sorting
@@ -807,6 +829,7 @@ class DrugDiscoveryPipeline:
                 generation_score=gen_score,
                 qed_score=qed_score,
                 composite_score=round(composite, 4),
+                docking_provenance=(dock_result.provenance if dock_result else "none"),
                 properties=mol.properties,
                 binding_residues=dock_result.contacts if dock_result else [],
             ))
@@ -875,13 +898,41 @@ class DrugDiscoveryPipeline:
         self._save_checkpoint(8)
 
     def stage_9_reporting(self):
-        """Stage 9: Generate final report."""
+        """Stage 9: Generate final report.
+
+        The report boundary is where mock data stopped being distinguishable from real. The mock
+        clients stamp `_provenance="mock"` on every molecule and pose, and the helpers built for
+        exactly this -- `is_mock_result` / `contains_mock` / `assert_real` -- had no caller
+        anywhere in the repo. With `NIM_ALLOW_MOCK_FALLBACK=true` (a documented degradation mode)
+        `MockDiffDockClient` produced `-8.0 + random.gauss(0, 2)` labelled
+        `score_type: "binding_energy"`, with randomly numbered ALA/GLY/ASP contacts -- the same
+        fabrication whose removal from modules/drug_discovery.nf is the documented fix -- and the
+        report showed it with the word "mock" appearing only inside a class name.
+        """
         self._report_progress(9, "Generating report")
+
+        # Mock-derived results may be written, but never silently: the artifact is renamed and
+        # stamped, or the stage refuses.
+        mock_poses = [d for d in self.docking_results if d.provenance == "mock"]
+        mock_notice = None
+        if mock_poses:
+            if os.environ.get("NIM_ALLOW_MOCK_FALLBACK", "false").lower() != "true":
+                # Nothing but an explicit opt-in gets simulated numbers into an artifact.
+                assert_real([{"_provenance": "mock"}], context="the pipeline report")
+            mock_notice = (
+                "MOCK — SIMULATED DATA, NOT A MEASUREMENT. "
+                f"{len(mock_poses)}/{len(self.docking_results)} docking results came from "
+                "MockDiffDockClient (random numbers, no docking was performed). Any binding "
+                "value, pose confidence, contact list and the docking term of every composite "
+                "score below is simulated. Not valid for any scientific or clinical use."
+            )
+            logger.warning(mock_notice)
 
         report = {
             "run_id": self.run_id,
             "target": self.target.dict() if self.target else None,
             "config": self.config.dict(),
+            "data_provenance": mock_notice or "real",
             "summary": {
                 "molecules_generated": len(self.molecules),
                 "molecules_docked": len(self.docking_results),
@@ -908,8 +959,9 @@ class DrugDiscoveryPipeline:
             "completed_at": datetime.now().isoformat(),
         }
 
-        # Save report
-        report_file = self.output_dir / f"report_{self.run_id}.json"
+        # Save report. A mock-derived artifact says so in its filename as well as its body.
+        prefix = "MOCK_report_" if mock_notice else "report_"
+        report_file = self.output_dir / f"{prefix}{self.run_id}.json"
         with open(report_file, 'w') as f:
             json.dump(report, f, indent=2, default=str)
 

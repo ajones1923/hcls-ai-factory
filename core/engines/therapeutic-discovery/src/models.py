@@ -148,6 +148,11 @@ class DockingResult(BaseModel):
     hydrogen_bonds: int = Field(0)
     method: str = Field("DiffDock", description="Docking method used")
     confidence: float = Field(0.0, ge=0, le=1, description="Calibrated P(pose within 2 A RMSD)")
+    provenance: str = Field(
+        "real",
+        description="'real' or 'mock'. The mock client stamps _provenance on its poses; this "
+                    "carries it into the record so a report cannot drop it.",
+    )
 
 
 class PediatricSafetyFlag(BaseModel):
@@ -194,6 +199,10 @@ class RankedCandidate(BaseModel):
     generation_score: float
     qed_score: Optional[float] = None
     composite_score: float = Field(..., description="Weighted composite score")
+
+    # Provenance of the docking term in `composite_score`, carried so a report cannot present a
+    # mock pose as a measurement by omission.
+    docking_provenance: str = Field("none", description="'real', 'mock' or 'none' (not docked)")
 
     # Properties
     properties: Optional[MoleculeProperties] = None
