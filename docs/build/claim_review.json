@@ -1,5 +1,25 @@
 {
  "_comment": "Recorded answers to claim-integrity checks 2, 4 and 6, which cannot be measured by a script. Read by scripts/gen_maturity.py. Only PASS, FAIL and n/a count as answers; anything else leaves the check unanswered, because a reviewer who could not reach a verdict has not answered it. One entry per subject per check. Do not add a subject here without having read its code.",
+ "clinical-imaging": {
+  "2": {
+   "result": "PASS",
+   "date": "2026-11-04",
+   "reviewer": "claim-integrity review",
+   "evidence": "The workflow layer is the platform's best: `findings_provenance` is tri-valued (`measured` / `canned` / `canned_after_synthetic_forward_pass`), and `_marking_mock_inference` stamps every canned payload at the base class so a new workflow cannot forget -- the 2026-11-03 fix for workflows returning canned findings with `is_mock=False`. A workflow that raises now reports severity UNKNOWN instead of inheriting the ROUTINE default. Real inference lives in `dicom_analyzer.py` (chest X-ray, DenseNet-121, `is_mock: False`); the agent's reference workflows are constructed `mock_mode=True` and so always report canned, which matches the registry saying the CT path is placeholder. Traced the VILA-M3 and MAISI mock clients to the API: `is_mock` and `model` (\"vila-m3-mock\") both propagate into the response. NOTED WEAKNESS, not a failure: the fabricated numbers sit in real-named fields (`confidence`, `generation_time_ms`) rather than being renamed, which is the pattern therapeutic-discovery adopted after a dropped `_provenance` flag caused exactly this failure once."
+  },
+  "4": {
+   "result": "PASS",
+   "date": "2026-11-04",
+   "reviewer": "claim-integrity review",
+   "evidence": "The CAD-RADS constants carry inline attribution -- `OBSTRUCTIVE_PCT = 70.0` to CAD-RADS 2.0, `LEFT_MAIN_PCT = 50.0`, `HRP_MIN_FEATURES = 2` -- and the unsettled edges are already open: §6c (HRP modifier, including that the primary Cury et al. 2022 table was not read for the change and the same-plaque qualifier is unimplemented), §6d (two scoring edges the published charts do not define) and §6f (ACR Lung-RADS v2022, no part-solid or non-solid table). The scheduler intervals are operational, not clinical. No uncited clinical constant found beyond what is recorded."
+  },
+  "6": {
+   "result": "FAIL",
+   "date": "2026-11-04",
+   "reviewer": "claim-integrity review",
+   "evidence": "`imaging-intelligence-agent` is `status: live` with NO maturity tier, while its own description says the CT path (VISTA-3D, VILA-M3) is \"planned/placeholder, not yet live\" and that MAISI is \"research/augmentation/QA only, never diagnostic\". The public matrix badges a capability on its tier where one exists and on serving status otherwise, so it renders a flat `live` and the caveats never reach the badge. Same shape as the TSC finding. NOT fixed: the tier is an S4 owner decision, recommended `research-use`. The pattern is now gated platform-wide by `tests/test_caveats_reach_the_badge.py`, which freezes the four capabilities in this position so a fifth cannot appear while they are decided."
+  }
+ },
  "therapeutic-discovery": {
   "2": {
    "result": "PASS",
