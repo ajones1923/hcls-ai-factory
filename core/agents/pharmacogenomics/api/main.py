@@ -66,7 +66,7 @@ if not os.environ.get("ANTHROPIC_API_KEY"):
                 os.environ["ANTHROPIC_API_KEY"] = _line.split("=", 1)[1].strip().strip('"')
                 break
 
-from config.settings import settings
+from config.settings import AGENT_VERSION, settings
 from src.vector_collections import PGxCollectionManager
 from src.knowledge import get_knowledge_stats
 from src.models import AgentQuery
@@ -166,7 +166,7 @@ app = FastAPI(
         "clinical evidence, population data, clinical trials, FDA labels, "
         "drug alternatives, patient profiles, implementation, and education."
     ),
-    version="1.0.0",
+    version=AGENT_VERSION,
     docs_url="/docs",
     openapi_url="/openapi.json",
     lifespan=lifespan,
