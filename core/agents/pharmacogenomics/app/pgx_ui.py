@@ -1337,19 +1337,30 @@ with tab_chemo:
             if calculator:
                 result = calculator.fluoropyrimidine_dose(dpyd_clean)
 
-                # Color-code by severity
-                if result["dose_reduction_percent"] >= 100:
-                    alert_class = "alert-critical"
-                elif result["dose_reduction_percent"] >= 50:
+                # Color-code by severity. dose_reduction_percent is None
+                # when the genotype could not be scored (CPIC Indeterminate),
+                # which is a warning, not a dose.
+                reduction = result["dose_reduction_percent"]
+                if reduction is None:
                     alert_class = "alert-warning"
+                    dose_line = "Dose Reduction: no recommendation<br>"
+                elif reduction >= 100:
+                    alert_class = "alert-critical"
+                    dose_line = "Dose Reduction: avoid fluoropyrimidines<br>"
+                elif reduction >= 50:
+                    alert_class = "alert-warning"
+                    dose_line = f"Dose Reduction: {reduction}%<br>"
                 else:
                     alert_class = "alert-info"
+                    dose_line = f"Dose Reduction: {reduction}%<br>"
 
+                score = result["activity_score"]
                 st.markdown(
                     f'<div class="{alert_class}">'
                     f'<strong>{result["phenotype"]}</strong><br>'
-                    f'Activity Score: {result["activity_score"]}<br>'
-                    f'Dose Reduction: {result["dose_reduction_percent"]}%<br><br>'
+                    f'Activity Score: '
+                    f'{score if score is not None else "not assignable"}<br>'
+                    f'{dose_line}<br>'
                     f'{result["recommendation"]}'
                     f'</div>',
                     unsafe_allow_html=True,
@@ -1375,7 +1386,12 @@ with tab_chemo:
         st.markdown("### TPMT + NUDT15 Genotype-Guided Dosing")
         st.markdown(
             "Both TPMT and NUDT15 must be considered for thiopurine dosing. "
-            "The more restrictive (lower activity) score determines the dose."
+            "CPIC's recommendation is a two-gene table over the (TPMT "
+            "phenotype, NUDT15 phenotype) pair: one intermediate locus is "
+            "30-80% of the standard starting dose, intermediate at BOTH is "
+            "20-50%, and a poor metabolizer at either locus calls for an "
+            "alternative nonthiopurine drug rather than a reduced "
+            "azathioprine dose."
         )
 
         tc1, tc2 = st.columns(2)
@@ -1402,28 +1418,56 @@ with tab_chemo:
             if calculator:
                 result = calculator.thiopurine_dose(tpmt_clean, nudt15_clean)
 
-                if result["dose_percent_of_standard"] <= 10:
+                # dose_percent_of_standard is None either when the genotype
+                # could not be scored or when CPIC recommends a different
+                # drug rather than a reduced dose. Neither is a number, and
+                # neither is reassuring.
+                dose_range = result.get("dose_percent_range_of_standard")
+                percent = result["dose_percent_of_standard"]
+                if percent is None:
                     alert_class = "alert-critical"
-                elif result["dose_percent_of_standard"] <= 50:
+                    dose_line = (
+                        "<strong>Dose:</strong> no percent-of-standard "
+                        "applies — see the recommendation below"
+                    )
+                elif percent <= 50:
                     alert_class = "alert-warning"
+                    dose_line = (
+                        f'<strong>Starting dose:</strong> {dose_range[0]}-'
+                        f'{dose_range[1]}% of standard (start at '
+                        f'{percent}%)'
+                    )
                 else:
                     alert_class = "alert-info"
+                    dose_line = (
+                        f'<strong>Starting dose:</strong> {percent}% of standard'
+                    )
+
+                def _as(key):
+                    value = result.get(key)
+                    return value if value is not None else "not assignable"
 
                 st.markdown(
                     f'<div class="{alert_class}">'
                     f'<strong>TPMT:</strong> {result["tpmt_phenotype"]} '
-                    f'(AS {result["tpmt_activity_score"]})<br>'
+                    f'(AS {_as("tpmt_activity_score")})<br>'
                     f'<strong>NUDT15:</strong> {result["nudt15_phenotype"]} '
-                    f'(AS {result["nudt15_activity_score"]})<br>'
-                    f'<strong>Dose:</strong> {result["dose_percent_of_standard"]}% of standard<br><br>'
+                    f'(AS {_as("nudt15_activity_score")})<br>'
+                    f'{dose_line}<br><br>'
                     f'{result["dose_recommendation"]}'
                     f'</div>',
                     unsafe_allow_html=True,
                 )
 
-                st.markdown("#### Affected Drugs")
-                for drug in result.get("affected_drugs", []):
-                    st.markdown(f"- {drug}")
+                by_drug = result.get("recommendations_by_drug") or {}
+                if by_drug:
+                    st.markdown("#### Recommendation by drug")
+                    for drug, text in by_drug.items():
+                        st.markdown(f"**{drug}** — {text}")
+                else:
+                    st.markdown("#### Affected Drugs")
+                    for drug in result.get("affected_drugs", []):
+                        st.markdown(f"- {drug}")
 
                 st.markdown("#### Monitoring")
                 st.markdown(result.get("monitoring", ""))
