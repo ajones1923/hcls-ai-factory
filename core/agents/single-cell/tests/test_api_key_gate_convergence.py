@@ -85,24 +85,44 @@ def test_both_gates_leave_the_same_paths_open():
         assert path in open_paths, path
 
 
+def _client() -> TestClient:
+    """A client that deliberately does NOT run the app's lifespan.
+
+    Entering TestClient as a context manager runs startup, and startup connects to
+    Milvus and loads an embedder. That made these gate tests require a running vector
+    DB: they passed on a box with Milvus up and failed on a clean CI runner with
+    MilvusException -- the "green here, red on a clean clone" class this audit exists to
+    remove. The API-key middleware is installed at import time and resolves its key per
+    request, so it is exercised in full without startup; nothing about the gate is left
+    untested.
+    """
+    return TestClient(main_mod.app)
+
+
 def test_gated_route_refuses_missing_and_wrong_key(monkeypatch):
     monkeypatch.setenv("HCLS_API_KEY", "shared-secret")
-    with TestClient(main_mod.app) as c:
-        assert c.get(GATED_PATH).status_code == 401
-        assert c.get(GATED_PATH, headers={"X-API-Key": "wrong"}).status_code == 401
-        ok = c.get(GATED_PATH, headers={"X-API-Key": "shared-secret"})
-        assert ok.status_code != 401
+    c = _client()
+    assert c.get(GATED_PATH).status_code == 401
+    assert c.get(GATED_PATH, headers={"X-API-Key": "wrong"}).status_code == 401
+    ok = c.get(GATED_PATH, headers={"X-API-Key": "shared-secret"})
+    assert ok.status_code != 401
 
 
 def test_probes_stay_open_when_the_gate_is_on(monkeypatch):
-    """A gate that fails closed with the service takes the whole fleet down."""
+    """A gate that fails closed with the service takes the whole fleet down.
+
+    The assertion is that the probe is not CREDENTIALED, which is the only thing this
+    gate decides. It used to assert 200, which is a statement about Milvus rather than
+    about the gate: /health answers 503 by design when the vector DB is unreachable, so
+    the old assertion tied a security regression test to an external service's health.
+    """
     monkeypatch.setenv("HCLS_API_KEY", "shared-secret")
-    with TestClient(main_mod.app) as c:
-        assert c.get("/health").status_code == 200
+    r = _client().get("/health")
+    assert r.status_code != 401
+    assert r.status_code in (200, 503), r.status_code
 
 
 def test_non_ascii_header_is_401_not_500(monkeypatch):
     monkeypatch.setenv("HCLS_API_KEY", "shared-secret")
-    with TestClient(main_mod.app) as c:
-        r = c.get(GATED_PATH, headers={"X-API-Key": "p\u00e4ssw\u00f6rd".encode("utf-8")})
+    r = _client().get(GATED_PATH, headers={"X-API-Key": "pässwörd".encode("utf-8")})
     assert r.status_code == 401

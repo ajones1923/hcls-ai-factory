@@ -86,13 +86,24 @@ jobs:
                                 duckdb statsmodels biopython peft pymilvus loguru anthropic \
                                 prometheus-client apscheduler python-multipart tqdm python-dotenv \
                                 flask flask-cors nibabel pydicom highdicom tenacity reportlab \
-                                python-docx lxml plotly scanpy anndata sentence-transformers
+                                python-docx lxml plotly scanpy anndata sentence-transformers \
+                                rdkit
           # The second line is what the original list was missing. Which subject each unblocks,
           # so a future trim knows the cost: flask/flask-cors -> genomic-foundation (35 errors),
           # nibabel/pydicom/tenacity -> clinical-imaging, highdicom -> clinical-imaging's 20
           # DICOM-SR tests specifically, reportlab/sentence-transformers -> cart + oncology,
           # scanpy/anndata -> single-cell. sentence-transformers pulls torch and dominates the
           # install time; drop it only by also skipping the suites that import it.
+          #
+          # rdkit -> therapeutic-discovery (26 failures) + hcls-orchestrator (2). It is already
+          # in core/engines/therapeutic-discovery/requirements.txt; this job installs a
+          # hand-maintained list instead, so it was absent here. It became REQUIRED rather than
+          # optional in the 2026-11-04 remediation: the chemistry QC path used to fall back to a
+          # default when RDKit was missing, and now raises ("Refusing to mark molecules as having
+          # passed drug-likeness QC without examining them"), while the mock NIM returns no
+          # molecules and QED is None rather than a made-up number. Those are the correct
+          # behaviours, so the dependency is no longer optional for the suite that asserts them.
+          # Do NOT make this one skip instead: the tests it unblocks are the honesty guards.
       - name: Run all 17 suites
         run: .venv/bin/python scripts/run_all_tests.py --json /tmp/subject_tests.json
 
