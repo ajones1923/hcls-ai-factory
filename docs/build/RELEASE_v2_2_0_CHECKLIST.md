@@ -32,7 +32,7 @@ but observable behaviour does** — for the better, and visibly.
 
 - [x] **Lint** — `ruff check --select E9,F82,F811,F706,F707 core lib scripts` clean.
 - [x] **Platform tests** — 673 pass, 9 skipped (`lib/hcls_common`), measured on #160.
-- [x] **Subject suites** — **10,212 pass / 0 fail / 0 err / 223 skip** across 18 suites, measured
+- [x] **Subject suites** — **10,225 pass / 0 fail / 0 err / 223 skip** across 18 suites, measured
       on the *merged* #160 rather than on any single branch. +1,298 over `main`; the
       orchestrator subject went 15 → 56.
 - [x] **Registry** — `validate_registry.py` OK: 42 capabilities, every engine/agent registered,
@@ -40,7 +40,7 @@ but observable behaviour does** — for the better, and visibly.
 - [x] **Test-depth ratchet** — passes, no clinical subject regressed. (It had never run before
       this branch; see CHANGELOG.)
 - [x] **CI green on a clean runner** — all six jobs, x86_64, Python 3.11 and 3.12, on PR #160
-      (`b8f44e5`). The runner counts **10,212 passed / 0 failed / 223 skipped — the same as a
+      (`b8f44e5`). The runner counts **10,225 passed / 0 failed / 223 skipped — the same as a
       developer box**, which is the only evidence that a pass reflects the code rather than
       what happened to be installed. Getting there took fixing 37 failures that appeared only
       on the runner: nine gate tests that required a live Milvus, and twenty-eight that needed

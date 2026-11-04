@@ -224,7 +224,7 @@ ratchet and registry guards green, while all of it was true.
 
 ### Changed
 
-- **Test count: 8,191 → 10,212** across the 18 suites, plus 673 platform tests. Green on a clean
+- **Test count: 8,191 → 10,225** across the 18 suites, plus 673 platform tests. Green on a clean
   x86_64 runner across Python 3.11 and 3.12.
 - **PhenoAge now declares its CRP unit convention** in every result as `crp_unit_convention`.
   Levine 2018, its published correction and Liu 2018 all print the equation with **no units for
