@@ -64,14 +64,25 @@ _TPMT_ACTIVITY: Dict[str, float] = {
     "*4": 0.0,
 }
 
+# CPIC's thiopurine guideline, Table 1, assigns a function to three NUDT15 alleles only:
+# *1 normal, *2 and *3 no function. *4 through *9 are "unclear function", and a diplotype
+# carrying one is Indeterminate rather than any metabolizer class -- so they are deliberately
+# absent here and listed in _NUDT15_UNCERTAIN instead.
+#
+# This table previously scored *4 and *5 as 0.0 (no function) and *6 as 1.0 (normal), none of
+# which the guideline says. *1/*6 therefore came out "NUDT15 Normal" and recommended a full
+# thiopurine dose on an allele CPIC cannot call.
+#
+# Relling MV, Schwab M, Whirl-Carrillo M, et al. "CPIC Guideline for Thiopurine Dosing Based on
+# TPMT and NUDT15 Genotypes: 2018 Update." Clin Pharmacol Ther 2019;105(5):1095-1105, Table 1.
+# doi:10.1002/cpt.1304, PMID 30447069.
 _NUDT15_ACTIVITY: Dict[str, float] = {
     "*1": 1.0,
     "*2": 0.0,
     "*3": 0.0,
-    "*4": 0.0,
-    "*5": 0.0,
-    "*6": 1.0,  # normal function
 }
+
+_NUDT15_UNCERTAIN: frozenset = frozenset({"*4", "*5", "*6", "*7", "*8", "*9"})
 
 _CYP3A5_ACTIVITY: Dict[str, float] = {
     "*1": 1.0,  # expresser
@@ -262,6 +273,40 @@ class DosingCalculator:
             - 0.2029 * amiodarone_val
             + 0.2107 * smoker_val
             + 1.2799 * enzyme_inducer_val
+        )
+
+        # ─────────────────────────────────────────────────────────────────────────────────
+        # THIS DOSE IS NOT RETURNED. The coefficient block above is mis-transcribed, and the
+        # error is race-specific, so it must not reach a prescriber.
+        #
+        # Every number above IS an IWPC coefficient (Klein et al., "Estimation of the Warfarin
+        # Dose with Clinical and Pharmacogenetic Data", N Engl J Med 2009;360:753-764), but the
+        # column is shifted: the published algorithm assigns
+        #     -0.2188  CYP2C9 genotype UNKNOWN      (here: multiplying cyp4f2_1_3)
+        #     -0.2760  Black or African American    (here: multiplying cyp4f2_3_3)
+        #     +1.1816  enzyme inducer status        (here: multiplying african_american)
+        # and IWPC has no CYP4F2 term and no smoking term at all, so `cyp4f2_*` and
+        # `smoker_val` are not in the model being cited. The amiodarone coefficient is also not
+        # the published one.
+        #
+        # The consequence is the reason this is a refusal rather than a TODO: a Black patient
+        # picks up +1.1816 on the square-root-of-weekly-dose scale where the algorithm applies
+        # -0.2760, which inflates the predicted dose by roughly 1.5-1.7x -- a race-specific
+        # overdose of a narrow-therapeutic-index anticoagulant, in the one direction that
+        # causes a bleed. No other patient group is affected the same way.
+        #
+        # The fix is a ten-minute re-transcription, and it is deliberately NOT done here,
+        # because this repo's rule is that a clinical value changes only against a primary
+        # source in hand. Supplementary Appendix 1 of Klein 2009 (and the warfarindosing.org
+        # workbook) carries the table; neither could be retrieved tonight. Restoring it also
+        # means adding the three "genotype unknown" terms the block never had.
+        # Recorded as CLINICAL_REVIEW.md §21 with the full mapping.
+        raise RuntimeError(
+            "IWPC warfarin dosing is disabled: the coefficient block in this function is "
+            "mis-transcribed from Klein 2009 and the error is race-specific (a Black patient "
+            "receives the enzyme-inducer coefficient, inflating the predicted dose ~1.5-1.7x). "
+            "No dose is returned until the published coefficients are restored from "
+            "Supplementary Appendix 1. See CLINICAL_REVIEW.md §21."
         )
 
         # Square the result to get weekly dose
@@ -552,13 +597,69 @@ class DosingCalculator:
             dose_recommendation, tpmt_phenotype, nudt15_phenotype,
             combined_recommendation, affected_drugs.
         """
-        # TPMT activity
+        # TPMT activity. Same hazard as NUDT15 below: this table names five alleles, CPIC's
+        # allele-functionality table names dozens, and `.get(allele, 1.0)` scored every one it
+        # had never seen as fully functional -- a no-function allele reported as a normal
+        # metabolizer, with a full thiopurine dose behind it.
         t_a1, t_a2 = self._parse_diplotype(tpmt_diplotype)
-        tpmt_score = _TPMT_ACTIVITY.get(t_a1, 1.0) + _TPMT_ACTIVITY.get(t_a2, 1.0)
+        t_unscoreable = [a for a in (t_a1, t_a2) if a not in _TPMT_ACTIVITY]
+        if t_unscoreable:
+            return {
+                "drug_class": "thiopurines",
+                "tpmt_diplotype": tpmt_diplotype,
+                "nudt15_diplotype": nudt15_diplotype,
+                "tpmt_phenotype": "TPMT Indeterminate",
+                "nudt15_phenotype": None,
+                "dose_recommendation": (
+                    f"No genotype-guided dose can be given: TPMT {', '.join(t_unscoreable)} is "
+                    "not in this agent's allele table, so its function is unknown. Check the "
+                    "CPIC TPMT allele-functionality table before dosing, and do not read this "
+                    "as a normal-metabolizer result."
+                ),
+                "dose_percent_of_standard": None,
+                "indeterminate_alleles": t_unscoreable,
+                "affected_drugs": [
+                    "azathioprine", "6-mercaptopurine (6-MP)", "6-thioguanine (6-TG)",
+                ],
+                "guideline": (
+                    "CPIC Thiopurine Dosing Based on TPMT and NUDT15 Genotypes, 2018 Update "
+                    "(Relling et al., Clin Pharmacol Ther 2019;105:1095-1105), Table 1"
+                ),
+            }
+        tpmt_score = _TPMT_ACTIVITY[t_a1] + _TPMT_ACTIVITY[t_a2]
 
-        # NUDT15 activity
+        # NUDT15 activity. An uncertain-function or unrecognised allele cannot be scored, and
+        # defaulting it to 1.0 would recommend a full dose on an allele CPIC declines to call --
+        # the direction of error that ends in myelosuppression. Return Indeterminate instead and
+        # say which allele caused it.
         n_a1, n_a2 = self._parse_diplotype(nudt15_diplotype)
-        nudt15_score = _NUDT15_ACTIVITY.get(n_a1, 1.0) + _NUDT15_ACTIVITY.get(n_a2, 1.0)
+        n_unscoreable = [a for a in (n_a1, n_a2)
+                         if a in _NUDT15_UNCERTAIN or a not in _NUDT15_ACTIVITY]
+        if n_unscoreable:
+            return {
+                "drug_class": "thiopurines",
+                "tpmt_diplotype": tpmt_diplotype,
+                "nudt15_diplotype": nudt15_diplotype,
+                "tpmt_phenotype": self._thiopurine_phenotype(tpmt_score, "TPMT"),
+                "nudt15_phenotype": "NUDT15 Indeterminate",
+                "dose_recommendation": (
+                    "No genotype-guided dose can be given: NUDT15 "
+                    f"{', '.join(n_unscoreable)} has uncertain function in CPIC's guideline, "
+                    "which assigns Indeterminate rather than a metabolizer class. Dose on "
+                    "clinical grounds with the standard CBC monitoring, and do not read this "
+                    "as a normal-metabolizer result."
+                ),
+                "dose_percent_of_standard": None,
+                "indeterminate_alleles": n_unscoreable,
+                "affected_drugs": [
+                    "azathioprine", "6-mercaptopurine (6-MP)", "6-thioguanine (6-TG)",
+                ],
+                "guideline": (
+                    "CPIC Thiopurine Dosing Based on TPMT and NUDT15 Genotypes, 2018 Update "
+                    "(Relling et al., Clin Pharmacol Ther 2019;105:1095-1105), Table 1"
+                ),
+            }
+        nudt15_score = _NUDT15_ACTIVITY[n_a1] + _NUDT15_ACTIVITY[n_a2]
 
         # Determine individual phenotypes
         tpmt_phenotype = self._thiopurine_phenotype(tpmt_score, "TPMT")

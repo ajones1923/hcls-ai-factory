@@ -110,6 +110,51 @@ where 0.25 vs 0.5 decides 2.25 against 2.5.
   `PhenotypeTranslator.ACTIVITY_SCORES` in `pgx_pipeline.py`, `_CYP2D6_ACTIVITY` in `dosing.py`
   — three copies of the same table, which is its own small problem.
 
+### 3c. NUDT15 — SETTLED 2026-11-03, a poor metabolizer was reported as intermediate
+
+Found by acting on §3a's observation that the allele tables exist in three copies: the two
+copies **disagreed**, and the one a clinician reads was the wrong one.
+
+`PhenotypeTranslator.ACTIVITY_SCORES` scored NUDT15 `*2` at **0.5**. CPIC Table 1 lists `*2` as
+a **no-function** allele. So `*2/*2` — two no-function alleles, a CPIC **poor metabolizer** —
+summed to 1.0 and reported **"NUDT15 Intermediate"**. `dosing.py` had `*2` at 0.0 and got the
+same patient right.
+
+**Why it matters more than most:** a NUDT15 poor metabolizer reported as intermediate is given
+30–70% of a standard thiopurine dose where CPIC says avoid azathioprine/6-MP or give 10% with
+intensive monitoring. The failure mode is life-threatening myelosuppression, and NUDT15 PM is
+not rare in East Asian and Hispanic populations.
+
+Three further errors surfaced from reading Table 1 rather than summarising it:
+
+| | Was | CPIC Table 1 |
+|---|---|---|
+| `*2` (translator) | 0.5, decreased | **no function** |
+| `*4`, `*5` (dosing) | 0.0, no function | **unclear function** |
+| `*6` (both) | 1.0, normal | **unclear function** |
+| any unrecognised allele | 1.0, normal | — |
+
+CPIC assigns **Indeterminate** to a diplotype carrying an unclear-function allele. An activity
+score cannot express that, so both the translator and the dose calculator now refuse to produce
+one, name the allele they could not call, and say "do not infer normal function from the absence
+of a call". The same change removed `.get(allele, 1.0)` — *default to normal if unknown allele* —
+which was the least safe default available for a gene whose unrecognised alleles are mostly
+loss-of-function. TPMT got the same treatment in the same calculator: it names five alleles
+where CPIC's table names dozens.
+
+> Relling MV, Schwab M, Whirl-Carrillo M, et al. "Clinical Pharmacogenetics Implementation
+> Consortium Guideline for Thiopurine Dosing Based on *TPMT* and *NUDT15* Genotypes: 2018
+> Update." *Clin Pharmacol Ther* 2019;105(5):1095–1105, Table 1. doi:10.1002/cpt.1304,
+> PMID 30447069. https://pmc.ncbi.nlm.nih.gov/articles/PMC6576267/
+
+**The duplication itself is still open.** Allele activity values live in three places
+(`pgx_pipeline.py`, `dosing.py`, `knowledge.py`) with nothing reconciling them, and it has now
+produced two clinical defects — this one and §3's CYP2D6 thresholds, where *both* copies carried
+the same two wrong boundaries. `tests/test_allele_tables_do_not_drift.py` fails the moment two
+copies disagree about an allele they both define, with an allowlist of the asymmetries that are
+real. That is a guard, not a fix; the fix is one table, imported, and it belongs in its own
+change rather than riding along with a clinical correction.
+
 ## 4. DPYD activity score 0.5 — phenotype and dose
 
 `core/agents/pharmacogenomics/src/dosing.py` labels DPYD AS 0.5 Intermediate with a 50%
@@ -375,3 +420,62 @@ published MAGGIC, and the score maps directly onto 1- and 3-year mortality estim
 in the published score the way age points are. This code stratifies age by EF but not SBP.
 
 - **Settle with:** Pocock 2013 Table 2/Table 4, or the calculator at heartfailurerisk.org.
+
+## 21. Warfarin IWPC — DISABLED 2026-11-04, the coefficient column is shifted and the error is race-specific
+
+**This is the most harmful defect the pre-release audit found, and the function no longer returns
+a dose.** `DosingCalculator.warfarin_dose` now raises; the Streamlit page shows the reason and
+tells the clinician to dose by protocol with INR monitoring.
+
+Every number in the block *is* an IWPC coefficient, attached to the wrong variable:
+
+| Coefficient | Published variable (Klein 2009) | What the code multiplied it by |
+|---|---|---|
+| −0.2188 | CYP2C9 genotype **unknown** | `cyp4f2_1_3` |
+| −0.2760 | **Black or African American** | `cyp4f2_3_3` |
+| +1.1816 | **enzyme inducer status** | `african_american` |
+| +1.2799 | *not an IWPC coefficient* | `enzyme_inducer` |
+| −0.2029 | *not the published amiodarone value* (−0.5503) | `amiodarone` |
+| +0.2107 | *not an IWPC coefficient* — IWPC has no smoking term | `smoker` |
+
+IWPC also has **no CYP4F2 term at all**, and the block is missing all three "genotype unknown"
+terms (VKORC1 unknown −0.4854, CYP2C9 unknown −0.2188, missing/mixed race −0.1032).
+
+**Why it had to be switched off rather than left with a note.** A Black patient picks up
+**+1.1816** on the square-root-of-weekly-dose scale where the algorithm applies **−0.2760**.
+That is ~1.5–1.7× the predicted dose, for one patient group only, in a narrow-therapeutic-index
+anticoagulant, in the direction that causes a bleed. Nothing downstream would look wrong: the
+number is plausible, the units are right, and the result is returned under the name
+"IWPC Pharmacogenetic Warfarin Dosing Algorithm".
+
+**Why it is not simply corrected here.** This repo changes a clinical value only against a
+primary source in hand. The mapping above is the structural argument — those numbers are
+IWPC's, in the wrong slots, which is enough to know the code is wrong without knowing the whole
+table. It is *not* enough to retype the table from memory. Supplementary Appendix 1 of Klein
+2009 and the warfarindosing.org workbook both carry it; neither could be retrieved that night.
+
+- **Settle with:** Klein TE et al., "Estimation of the Warfarin Dose with Clinical and
+  Pharmacogenetic Data", *N Engl J Med* 2009;360:753–764, **Supplementary Appendix 1 §1** (the
+  CPIC warfarin guideline supplement reproduces it verbatim).
+- **Then:** restore all coefficients and add the three unknown-genotype terms, replace
+  `tests/test_dosing.py::TestWarfarinDose` with **reference cases** (a described patient in, the
+  published dose out), and delete the invented CYP4F2 and smoking parameters from the signature
+  or implement them from a cited source.
+- **Also fix:** the agent's own research paper and its readiness report each state a *different*
+  wrong version of this algorithm, with the coefficient column shifted by one row — the same
+  transcription error, propagated into the documentation.
+
+### What the old tests were doing
+
+Eighteen tests covered this function and **every one asserted only a direction** — "this input
+moves the dose down". A coefficient attached to the wrong variable cannot fail a direction test.
+Three of them pinned the defect as the specification, by name:
+
+```python
+def test_african_american_increases_dose(self):
+    assert aa["predicted_weekly_dose"] > other["predicted_weekly_dose"]
+```
+
+plus `test_smoker_increases_dose` and `test_cyp4f2_effect`, which assert two terms the model
+does not contain. This is the EuroSCORE II blind spot (§1–2) exactly: range and direction
+assertions cannot see a wrong coefficient, which is the argument for reference cases.

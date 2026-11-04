@@ -123,25 +123,43 @@ def honesty_check(text: str) -> list[dict]:
     text = text or ""
     out: list[dict] = []
     for rx, sev, msg in _OVERCLAIM:
-        m = rx.search(text)
-        if m:
+        # EVERY occurrence, not just the first. `rx.search` stopped at the first match and
+        # decided the whole rule on it, so a scoped rule could be laundered: put one sentence
+        # that reads as a third-party statement ahead of your own overclaim, and the first match
+        # downgrades to "warn" while the genuinely self-referential sentence later in the same
+        # text is never examined. The answer then ships with a warning instead of being withheld.
+        #
+        # The worst outcome across occurrences wins, and the excerpt comes from the occurrence
+        # that produced it, so the reader is shown the sentence that actually blocked.
+        worst: dict | None = None
+        for m in rx.finditer(text):
             eff = sev
+            scoped_msg = msg
             if sev == "block" and rx.pattern in _SELF_SCOPED:
                 # Only a claim about THIS system blocks; the same words about a named
                 # third-party therapy are reportable fact.
                 if not _SELF_REF.search(_sentence_around(text, m.start())):
                     eff = "warn"
-                    msg = (msg + " (Scoped: reads as a statement about a third party, not about "
-                           "this platform — attribute it to the cited source.)")
+                    scoped_msg = (
+                        msg + " (Scoped: reads as a statement about a third party, not about "
+                        "this platform — attribute it to the cited source.)")
             elif sev == "block" and rx.pattern in _DIAGNOSTIC_SCOPED:
                 sent = _sentence_around(text, m.start())
                 if not (_SELF_REF.search(sent) or _PATIENT_REF.search(sent)):
                     eff = "warn"
-                    msg = (msg + " (Scoped: reads as a general statement about how diagnosis is "
-                           "established, not a claim about this patient or this platform.)")
+                    scoped_msg = (
+                        msg + " (Scoped: reads as a general statement about how diagnosis is "
+                        "established, not a claim about this patient or this platform.)")
             s = max(0, m.start() - 30)
-            out.append({"severity": eff, "message": msg,
-                        "excerpt": text[s:m.end() + 30].strip()})
+            found = {"severity": eff, "message": scoped_msg,
+                     "excerpt": text[s:m.end() + 30].strip()}
+            if eff == "block":
+                worst = found
+                break                      # cannot get worse; stop scanning this rule
+            if worst is None:
+                worst = found              # keep the first warn in case nothing blocks
+        if worst is not None:
+            out.append(worst)
     if _CLINICAL_TRIGGER.search(text) and not _DISCLAIMER_HINTS.search(text):
         out.append({"severity": "warn",
                     "message": "Clinical content without a research-use / decision-support / clinician-review disclaimer.",
@@ -159,13 +177,22 @@ _REFUTE_SYS = ("You are an adversarial fact-checker. For each claim, try to REFU
                "{\"verdicts\": [{\"claim_index\": int, \"verdict\": \"supported|refuted|unsupported\", \"why\": \"...\"}]}.")
 
 
+class ClaimCheckUnavailable(RuntimeError):
+    """The adversarial layer could not run. Not the same as "it ran and found nothing"."""
+
+
 def extract_claims(text: str, llm: Any, max_claims: int = 20) -> list[str]:
+    """Raises ClaimCheckUnavailable if the model call fails.
+
+    It used to return [] on any exception, which is indistinguishable from "this text makes no
+    checkable claims" -- and that read as a clean bill of health. See verify_claims.
+    """
     try:
         parsed = llm.generate_json(f"ANSWER:\n{text}", system_prompt=_EXTRACT_SYS, max_tokens=1024)
-        claims = [c for c in (parsed or {}).get("claims", []) if isinstance(c, str) and c.strip()]
-        return claims[:max_claims]
-    except Exception:
-        return []
+    except Exception as exc:                       # noqa: BLE001 - re-raised as our own type
+        raise ClaimCheckUnavailable(f"claim extraction failed: {exc}") from exc
+    claims = [c for c in (parsed or {}).get("claims", []) if isinstance(c, str) and c.strip()]
+    return claims[:max_claims]
 
 
 def _evidence_block(evidence: Optional[list]) -> str:
@@ -180,34 +207,92 @@ def _evidence_block(evidence: Optional[list]) -> str:
 
 def verify_claims(text: str, evidence: Optional[list], llm: Any) -> dict:
     """Extract claims and adversarially check each against evidence. Returns
-    {claims, verdicts, supported, refuted, unsupported, flagged}."""
-    claims = extract_claims(text, llm)
-    if not claims:
+    {claims, verdicts, supported, refuted, unsupported, flagged, available, error}.
+
+    `available` is the field that matters. Both model calls here used to swallow every exception
+    and return empty verdicts, which produced zero refuted and zero unsupported -- and
+    `verify_text` reads those zeros as "nothing wrong with this text". So during any LLM outage
+    the gate stamped `status: "verified"`, `llm_checked: True` on prose no adversary had ever
+    seen. That is the same fail-open the API auth gate was fixed for, in the layer whose entire
+    job is to not be fooled.
+    """
+    try:
+        claims = extract_claims(text, llm)
+    except ClaimCheckUnavailable as exc:
         return {"claims": [], "verdicts": [], "supported": 0, "refuted": 0,
-                "unsupported": 0, "flagged": []}
+                "unsupported": 0, "flagged": [], "available": False, "error": str(exc)}
+    if not claims:
+        # Genuinely nothing checkable -- the check ran, so this one IS available.
+        return {"claims": [], "verdicts": [], "supported": 0, "refuted": 0,
+                "unsupported": 0, "flagged": [], "available": True, "error": None}
     numbered = "\n".join(f"{i+1}. {c}" for i, c in enumerate(claims))
     prompt = (f"EVIDENCE:\n{_evidence_block(evidence)}\n\nCLAIMS:\n{numbered}")
     try:
         parsed = llm.generate_json(prompt, system_prompt=_REFUTE_SYS, max_tokens=2048) or {}
         verdicts = parsed.get("verdicts", [])
-    except Exception:
-        verdicts = []
+    except Exception as exc:                       # noqa: BLE001
+        return {"claims": claims, "verdicts": [], "supported": 0, "refuted": 0,
+                "unsupported": len(claims),
+                "flagged": [{"claim": c, "verdict": "unchecked",
+                             "why": "the adversarial check could not run"} for c in claims],
+                "available": False, "error": f"claim verification failed: {exc}"}
+    if not isinstance(verdicts, list):
+        # A model returning {"verdicts": "none"} used to crash the caller with a 500.
+        return {"claims": claims, "verdicts": [], "supported": 0, "refuted": 0,
+                "unsupported": len(claims),
+                "flagged": [{"claim": c, "verdict": "unchecked",
+                             "why": "malformed verdict payload"} for c in claims],
+                "available": False, "error": "verdict payload was not a list"}
     sup = ref = uns = 0
     flagged = []
+    adjudicated: set[int] = set()
     for v in verdicts:
+        # A model can return anything. A malformed entry must count as unchecked, not vanish:
+        # `int(v.get("claim_index"))` on a non-numeric string raised straight out of here and
+        # turned a bad model response into a 500 at the caller.
+        if not isinstance(v, dict):
+            uns += 1
+            flagged.append({"claim": "", "verdict": "unsupported",
+                            "why": "malformed verdict entry"})
+            continue
         verdict = (v.get("verdict") or "unsupported").lower()
-        idx = int(v.get("claim_index", 0)) - 1
-        claim = claims[idx] if 0 <= idx < len(claims) else ""
-        if verdict == "supported":
+        try:
+            idx = int(v.get("claim_index", 0)) - 1
+        except (TypeError, ValueError):
+            idx = -1
+        matched = 0 <= idx < len(claims)
+        claim = claims[idx] if matched else ""
+        if matched:
+            adjudicated.add(idx)
+        if verdict == "supported" and matched:
             sup += 1
+        elif verdict == "supported":
+            # Support that cannot be attached to a claim is not support. Crediting it let a
+            # model reply of {"claim_index": "two", "verdict": "supported"} verify the text.
+            uns += 1
+            flagged.append({"claim": "", "verdict": "unsupported",
+                            "why": "verdict could not be matched to a claim"})
         elif verdict == "refuted":
             ref += 1
             flagged.append({"claim": claim, "verdict": "refuted", "why": v.get("why", "")})
         else:
             uns += 1
             flagged.append({"claim": claim, "verdict": "unsupported", "why": v.get("why", "")})
+
+    # A claim the model never returned a verdict for is UNCHECKED, not clean. An empty or
+    # partial `verdicts` list beside a non-empty `claims` list used to produce all-zero counts,
+    # which verify_text read as a clean result and stamped "verified".
+    missing = [i for i in range(len(claims)) if i not in adjudicated]
+    for i in missing:
+        uns += 1
+        flagged.append({"claim": claims[i], "verdict": "unchecked",
+                        "why": "the adversarial pass returned no verdict for this claim"})
+
     return {"claims": claims, "verdicts": verdicts, "supported": sup,
-            "refuted": ref, "unsupported": uns, "flagged": flagged}
+            "refuted": ref, "unsupported": uns, "flagged": flagged,
+            "available": not missing or bool(adjudicated),
+            "error": (f"{len(missing)} of {len(claims)} claims received no verdict"
+                      if missing else None)}
 
 
 # ── Combined gate ────────────────────────────────────────────────────────────
@@ -220,12 +305,16 @@ def verify_text(text: str, evidence: Optional[list] = None, llm: Any = None,
     warns = sum(1 for v in violations if v["severity"] == "warn")
 
     claim_report = verify_claims(text, evidence, llm) if llm is not None else None
+    # Could the adversarial layer actually run? If a caller asked for it and it failed, this
+    # text is UNVERIFIED -- not verified. Previously the failure produced zero refuted and zero
+    # unsupported, and those zeros read as a clean result.
+    check_unavailable = claim_report is not None and not claim_report.get("available", True)
     refuted = claim_report["refuted"] if claim_report else 0
     unsupported = claim_report["unsupported"] if claim_report else 0
 
     if blocked or refuted > 0:
         status = "blocked"
-    elif warns > 0 or unsupported > unsupported_tolerance:
+    elif warns > 0 or unsupported > unsupported_tolerance or check_unavailable:
         status = "draft"
     else:
         status = "verified"
@@ -239,7 +328,11 @@ def verify_text(text: str, evidence: Optional[list] = None, llm: Any = None,
             "blocked": blocked, "warnings": warns,
             "supported": claim_report["supported"] if claim_report else 0,
             "refuted": refuted, "unsupported": unsupported,
-            "llm_checked": claim_report is not None,
+            # True only when the adversarial layer ran. A caller reading this field to decide
+            # whether an answer was fact-checked must not be told yes after an outage.
+            "llm_checked": claim_report is not None and claim_report.get("available", True),
+            "claim_check_unavailable": check_unavailable,
+            "claim_check_error": claim_report.get("error") if claim_report else None,
         },
     }
 
