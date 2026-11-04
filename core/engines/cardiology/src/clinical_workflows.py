@@ -17,6 +17,12 @@ from abc import ABC, abstractmethod
 from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
+from src.hf_thresholds import (
+    CRT_QRS_CLASS_I_MS,
+    CRT_QRS_CLASS_IIA_MS,
+    SGLT2I_CLASS_HFMREF_TEXT,
+    SGLT2I_CLASS_HFPEF_TEXT,
+)
 from src.models import (
     AnticoagulationRecommendation,
     CardiotoxicityRisk,
@@ -73,6 +79,42 @@ def _trigger_string(trigger_type: str, genes: List[str], reason: str) -> str:
 # ═══════════════════════════════════════════════════════════════════════════
 
 
+def _grade_from_supplied_criteria(criteria_table: dict, keys: tuple, values: dict) -> tuple:
+    """Pick the severity band that best matches the criteria actually supplied.
+
+    *values* maps each key in *keys* to a measurement or None.  Only non-None
+    criteria are scored.  Returns ``(severity_or_None, n_supplied, discordant)``:
+
+    * ``severity`` is the band matched by the most supplied criteria, resolving
+      ties toward the more severe band (the direction that does not withhold an
+      intervention).  It is None when nothing was supplied, or when nothing
+      matched any band.
+    * ``discordant`` is True when two or more criteria were supplied and no band
+      was matched by a majority of them -- the caller says so rather than
+      presenting a single grade as settled.
+
+    The bands must be ordered least- to most-severe in *criteria_table*.
+    """
+    supplied = {key: values.get(key) is not None for key in keys}
+    n_supplied = sum(supplied.values())
+    if not n_supplied:
+        return None, 0, False
+
+    severity = None
+    best_matches = 0
+    for sev, crit in criteria_table.items():
+        matches = sum(
+            1 for key in keys
+            if supplied[key] and crit[key][0] <= values[key] <= crit[key][1]
+        )
+        if matches and matches >= best_matches:
+            best_matches = matches
+            severity = sev
+
+    discordant = n_supplied >= 2 and best_matches * 2 <= n_supplied
+    return severity, n_supplied, discordant
+
+
 class BaseCardioWorkflow(ABC):
     """Abstract base for all cardiology clinical workflows."""
 
@@ -111,6 +153,57 @@ class BaseCardioWorkflow(ABC):
         """Initialise and return the validation warnings list on *inp*."""
         warnings: list = inp.setdefault("_validation_warnings", [])
         return warnings
+
+    # ── absent vs invalid inputs ──────────────────────────────────────
+    #
+    # Every workflow's `preprocess` used bare `setdefault` to fill absent
+    # inputs with plausible in-range values, and the validators that ran
+    # afterwards therefore saw a valid number and appended no warning.  An
+    # absent measurement became indistinguishable from a measured one, and the
+    # workflow then printed the placeholder as a finding: a CMR with no
+    # parametric mapping performed came back asserting "Native T1: 1000 ms --
+    # within normal range", "T2: 45 ms -- within normal range (no evidence of
+    # active oedema)" and "ECV: 27.0% -- within normal range"; an ADHF consult
+    # posted with no vitals came back with a furosemide dose order built on a
+    # fabricated BP; an empty CAD request came back "Calcium score 0: very low
+    # risk (zero plaque burden)".
+    #
+    # `_fill_absent` still installs a placeholder so downstream arithmetic does
+    # not KeyError, but it records the field as missing and raises an input
+    # warning naming it, and `_supplied` lets `execute` suppress any finding or
+    # recommendation that would otherwise report the placeholder as measured.
+
+    MISSING_INPUTS_KEY = "_missing_inputs"
+
+    @classmethod
+    def _fill_absent(cls, inp: dict, warnings: list, defaults: dict) -> set:
+        """Install placeholders for absent inputs, recording each one.
+
+        A key that is absent *or explicitly None* counts as not supplied.
+        Returns the set of missing field names, also stored on *inp*.
+        """
+        missing: set = inp.setdefault(cls.MISSING_INPUTS_KEY, set())
+        for field, placeholder in defaults.items():
+            if inp.get(field) is None:
+                missing.add(field)
+                warnings.append(
+                    f"{field} was not supplied - no value was measured, so no "
+                    f"{field} finding is reported"
+                )
+                inp[field] = placeholder
+        return missing
+
+    @classmethod
+    def _supplied(cls, inp: dict, *fields: str) -> bool:
+        """True only if every named field was actually supplied by the caller."""
+        missing = inp.get(cls.MISSING_INPUTS_KEY) or set()
+        return not any(field in missing for field in fields)
+
+    @classmethod
+    def _absent(cls, inp: dict, *fields: str) -> List[str]:
+        """The named fields that were not supplied, in the order given."""
+        missing = inp.get(cls.MISSING_INPUTS_KEY) or set()
+        return [field for field in fields if field in missing]
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -200,8 +293,9 @@ class CADAssessmentWorkflow(BaseCardioWorkflow):
     def preprocess(self, inputs: dict) -> dict:
         inp = dict(inputs)
         warnings = self._init_warnings(inp)
-        inp.setdefault("calcium_score", 0)
-        inp.setdefault("cad_rads", "0")
+        # Placeholders, recorded as missing: an absent calcium score is NOT a
+        # calcium score of zero, and an absent CAD-RADS grade is not CAD-RADS 0.
+        self._fill_absent(inp, warnings, {"calcium_score": 0, "cad_rads": "0"})
         inp.setdefault("plaque_features", [])
         inp.setdefault("symptoms", [])
         inp.setdefault("risk_factors", [])
@@ -237,7 +331,17 @@ class CADAssessmentWorkflow(BaseCardioWorkflow):
 
         # --- Calcium score risk stratification ---
         cac = int(inputs["calcium_score"])
-        if cac == 0:
+        if not self._supplied(inputs, "calcium_score"):
+            cac_sev = SeverityLevel.INFORMATIONAL
+            findings.append(
+                "Coronary artery calcium score: INDETERMINATE - not supplied. "
+                "Plaque burden is unknown; this is not a zero-calcium result."
+            )
+            recommendations.append(
+                "Obtain a coronary artery calcium score before using plaque burden "
+                "to stratify risk"
+            )
+        elif cac == 0:
             cac_sev = SeverityLevel.LOW
             findings.append(
                 f"Calcium score {cac}: very low risk (zero plaque burden)"
@@ -282,11 +386,18 @@ class CADAssessmentWorkflow(BaseCardioWorkflow):
 
         # --- CAD-RADS grading ---
         cr = inputs["cad_rads"]
+        cadrads_supplied = self._supplied(inputs, "cad_rads")
         cr_info = self._CADRADS_MGMT.get(cr, self._CADRADS_MGMT["0"])
-        findings.append(f"CAD-RADS {cr}: {cr_info['stenosis']}")
-        recommendations.append(
-            f"CAD-RADS {cr} management: {cr_info['management']}"
-        )
+        if cadrads_supplied:
+            findings.append(f"CAD-RADS {cr}: {cr_info['stenosis']}")
+            recommendations.append(
+                f"CAD-RADS {cr} management: {cr_info['management']}"
+            )
+        else:
+            findings.append(
+                "CAD-RADS grade: INDETERMINATE - not supplied. Stenosis severity "
+                "is unknown; no CAD-RADS management recommendation can be made."
+            )
 
         # --- High-risk plaque features ---
         plaque = [
@@ -310,14 +421,14 @@ class CADAssessmentWorkflow(BaseCardioWorkflow):
         # --- Overall severity ---
         severity = _max_severity(
             cac_sev,
-            cr_info["severity"],
+            cr_info["severity"] if cadrads_supplied else SeverityLevel.INFORMATIONAL,
             SeverityLevel.HIGH if plaque_findings else SeverityLevel.INFORMATIONAL,
         )
 
         # --- Cross-modal genomics trigger ---
         cr_numeric = {
             "0": 0, "1": 1, "2": 2, "3": 3, "4A": 4, "4B": 4, "5": 5,
-        }.get(cr, 0)
+        }.get(cr, 0) if cadrads_supplied else 0
         if cac >= 400 or cr_numeric >= 3:
             genes = ["LDLR", "PCSK9", "APOB"]
             triggers.append(
@@ -382,17 +493,23 @@ class HeartFailureWorkflow(BaseCardioWorkflow):
     def preprocess(self, inputs: dict) -> dict:
         inp = dict(inputs)
         warnings = self._init_warnings(inp)
-        inp.setdefault("lvef", 55.0)
-        inp.setdefault("nyha_class", "I")
+        # An absent LVEF is not a normal LVEF of 55%, and an absent NYHA class
+        # is not NYHA I.  Both used to be substituted silently, so an empty
+        # request came back "LVEF 55.0% — classified as hfpef / NYHA class
+        # nyha_i / ACC/AHA stage stage_a".
+        lvef_absent = "lvef" in self._fill_absent(
+            inp, warnings,
+            {
+                "lvef": 55.0, "nyha_class": "I", "qrs_duration": 100,
+                "qrs_morphology": "normal", "age": 65,
+            },
+        )
         inp.setdefault("bnp", 0.0)
         inp.setdefault("nt_probnp", 0.0)
         inp.setdefault("current_meds", [])
-        inp.setdefault("qrs_duration", 100)
-        inp.setdefault("qrs_morphology", "normal")
-        inp.setdefault("age", 65)
         inp.setdefault("race", "other")
         # Validate LVEF
-        if inp["lvef"] is not None:
+        if not lvef_absent:
             try:
                 lv = float(inp["lvef"])
                 if not (5 <= lv <= 90):
@@ -404,9 +521,6 @@ class HeartFailureWorkflow(BaseCardioWorkflow):
                     f"LVEF '{inp['lvef']}' is not numeric — defaulting to 55.0"
                 )
                 inp["lvef"] = 55.0
-        else:
-            warnings.append("Missing LVEF — results may be incomplete")
-            inp["lvef"] = 55.0
         # Validate NYHA class
         nyha_str = str(inp["nyha_class"]).strip().upper()
         if nyha_str not in self._VALID_NYHA:
@@ -415,6 +529,7 @@ class HeartFailureWorkflow(BaseCardioWorkflow):
                 f"(expected I-IV or 1-4) — defaulting to I"
             )
             inp["nyha_class"] = "I"
+            inp.setdefault(self.MISSING_INPUTS_KEY, set()).add("nyha_class")
         return inp
 
     # ── helpers ───────────────────────────────────────────────────────
@@ -478,9 +593,35 @@ class HeartFailureWorkflow(BaseCardioWorkflow):
         qrs_morph = str(inputs["qrs_morphology"]).lower()
         age = int(inputs["age"])
 
-        findings.append(f"LVEF {lvef}% — classified as {ef_cat.value}")
-        findings.append(f"NYHA class {nyha.value}")
-        findings.append(f"ACC/AHA stage {stage.value}")
+        lvef_supplied = self._supplied(inputs, "lvef")
+        nyha_supplied = self._supplied(inputs, "nyha_class")
+
+        if lvef_supplied:
+            findings.append(f"LVEF {lvef}% — classified as {ef_cat.value}")
+        else:
+            findings.append(
+                "LVEF: INDETERMINATE - not supplied. The heart-failure phenotype "
+                "(HFrEF / HFmrEF / HFpEF) cannot be assigned, and no "
+                "phenotype-specific GDMT or device recommendation is made."
+            )
+            recommendations.append(
+                "Obtain an ejection fraction before selecting heart-failure therapy"
+            )
+        if nyha_supplied:
+            findings.append(f"NYHA class {nyha.value}")
+        else:
+            findings.append(
+                "NYHA functional class: INDETERMINATE - not supplied. "
+                "This is not NYHA I."
+            )
+        if lvef_supplied and nyha_supplied:
+            findings.append(f"ACC/AHA stage {stage.value}")
+        else:
+            findings.append(
+                "ACC/AHA heart-failure stage: INDETERMINATE - it is derived from "
+                "the ejection fraction and functional class, which were not both "
+                "supplied."
+            )
 
         if bnp > 0:
             findings.append(
@@ -506,7 +647,9 @@ class HeartFailureWorkflow(BaseCardioWorkflow):
             "sglt2i": ["dapagliflozin", "empagliflozin", "sotagliflozin"],
         }
 
-        if ef_cat == EjectionFractionCategory.HFrEF:
+        if not lvef_supplied:
+            pass  # no phenotype: nothing below can be asserted
+        elif ef_cat == EjectionFractionCategory.HFrEF:
             findings.append("HFrEF — eligible for all four GDMT pillars")
             gaps: List[str] = []
             for pillar_name, drug_list in gdmt_pillars.items():
@@ -530,7 +673,7 @@ class HeartFailureWorkflow(BaseCardioWorkflow):
                 "HFmrEF — consider GDMT (SGLT2i has Class I evidence)"
             )
             recommendations.append(
-                "Initiate SGLT2 inhibitor (Class I, Level A)"
+                f"Initiate SGLT2 inhibitor ({SGLT2I_CLASS_HFMREF_TEXT}, Level B-R)"
             )
             recommendations.append(
                 "Consider ARNI, beta-blocker, and MRA (Class IIb)"
@@ -538,7 +681,7 @@ class HeartFailureWorkflow(BaseCardioWorkflow):
         else:
             findings.append("HFpEF — limited disease-modifying therapies")
             recommendations.append(
-                "Initiate SGLT2 inhibitor (Class IIa, Level B-R)"
+                f"Initiate SGLT2 inhibitor ({SGLT2I_CLASS_HFPEF_TEXT}, Level B-R)"
             )
             recommendations.append("Diuretics for volume management")
             recommendations.append(
@@ -546,37 +689,76 @@ class HeartFailureWorkflow(BaseCardioWorkflow):
             )
 
         # --- Device eligibility ----------------------------------------
-        if ef_cat == EjectionFractionCategory.HFrEF and lvef <= 35:
+        # A device decision needs a measured EF and a stated functional class;
+        # CRT additionally needs a measured QRS.  None of them is substituted.
+        icd_inputs_absent = self._absent(inputs, "lvef", "nyha_class")
+        crt_inputs_absent = self._absent(
+            inputs, "lvef", "nyha_class", "qrs_duration", "qrs_morphology",
+        )
+        if icd_inputs_absent:
+            findings.append(
+                "ICD assessment: INDETERMINATE - "
+                + ", ".join(icd_inputs_absent)
+                + " not supplied. No ICD eligibility is asserted."
+            )
+        if crt_inputs_absent and not icd_inputs_absent:
+            findings.append(
+                "CRT assessment: INDETERMINATE - "
+                + ", ".join(crt_inputs_absent)
+                + " not supplied. No CRT eligibility is asserted."
+            )
+        if (
+            not icd_inputs_absent
+            and ef_cat == EjectionFractionCategory.HFrEF
+            and lvef <= 35
+        ):
             # ICD
             if nyha in (HeartFailureClass.NYHA_II, HeartFailureClass.NYHA_III):
                 recommendations.append(
                     "ICD recommended for primary prevention (LVEF <=35%, "
                     "NYHA II-III, on optimal GDMT >= 3 months; Class I, Level A)"
                 )
+        if (
+            not crt_inputs_absent
+            and ef_cat == EjectionFractionCategory.HFrEF
+            and lvef <= 35
+        ):
             # CRT
-            if qrs_dur >= 150 and "lbbb" in qrs_morph:
+            # QRS thresholds come from src/hf_thresholds.py so that this
+            # workflow and GDMTOptimizer agree.  The Class 2a LBBB band used to
+            # start at 130 ms here and at 120 ms in the optimizer, so an LVEF
+            # 32% / QRS 125 ms / LBBB patient got a Class 2a CRT recommendation
+            # from /gdmt/optimize and nothing at all from this workflow.
+            if qrs_dur >= CRT_QRS_CLASS_I_MS and "lbbb" in qrs_morph:
                 recommendations.append(
-                    "CRT strongly recommended (LVEF <=35%, QRS >=150 ms "
-                    "with LBBB; Class I, Level A)"
+                    f"CRT strongly recommended (LVEF <=35%, QRS "
+                    f">={CRT_QRS_CLASS_I_MS} ms with LBBB; Class I, Level A)"
                 )
-            elif qrs_dur >= 130 and "lbbb" in qrs_morph:
+            elif qrs_dur >= CRT_QRS_CLASS_IIA_MS and "lbbb" in qrs_morph:
                 recommendations.append(
-                    "CRT recommended (LVEF <=35%, QRS 130-149 ms with LBBB; "
-                    "Class IIa, Level B)"
+                    f"CRT recommended (LVEF <=35%, QRS "
+                    f"{CRT_QRS_CLASS_IIA_MS}-{CRT_QRS_CLASS_I_MS - 1} ms with "
+                    f"LBBB; Class IIa, Level B)"
                 )
-            elif qrs_dur >= 150 and "lbbb" not in qrs_morph:
+            elif qrs_dur >= CRT_QRS_CLASS_I_MS and "lbbb" not in qrs_morph:
                 recommendations.append(
-                    "CRT may be considered (LVEF <=35%, QRS >=150 ms, "
-                    "non-LBBB; Class IIa, Level B)"
+                    f"CRT may be considered (LVEF <=35%, QRS "
+                    f">={CRT_QRS_CLASS_I_MS} ms, non-LBBB; Class IIa, Level B)"
                 )
-            elif qrs_dur >= 130 and "lbbb" not in qrs_morph:
+            elif qrs_dur >= CRT_QRS_CLASS_IIA_MS and "lbbb" not in qrs_morph:
                 recommendations.append(
-                    "CRT may be considered (LVEF <=35%, QRS 130-149 ms, "
-                    "non-LBBB; Class IIb, Level B)"
+                    f"CRT may be considered (LVEF <=35%, QRS "
+                    f"{CRT_QRS_CLASS_IIA_MS}-{CRT_QRS_CLASS_I_MS - 1} ms, "
+                    f"non-LBBB; Class IIb, Level B)"
                 )
 
         # --- Cross-modal genomics trigger ------------------------------
-        if age < 50 and ef_cat == EjectionFractionCategory.HFrEF:
+        if (
+            lvef_supplied
+            and self._supplied(inputs, "age")
+            and age < 50
+            and ef_cat == EjectionFractionCategory.HFrEF
+        ):
             triggers.append(
                 _trigger_string(
                     "cardiomyopathy_gene_panel",
@@ -592,7 +774,11 @@ class HeartFailureWorkflow(BaseCardioWorkflow):
             )
 
         # --- Severity --------------------------------------------------
-        if stage == HeartFailureStage.STAGE_D:
+        if not (lvef_supplied and nyha_supplied):
+            # Nothing was measured; INFORMATIONAL says "no information", where
+            # the stage-derived LOW/INFORMATIONAL used to say "reassuring".
+            severity = SeverityLevel.INFORMATIONAL
+        elif stage == HeartFailureStage.STAGE_D:
             severity = SeverityLevel.CRITICAL
         elif stage == HeartFailureStage.STAGE_C and nyha in (
             HeartFailureClass.NYHA_III,
@@ -683,8 +869,12 @@ class ValvularDiseaseWorkflow(BaseCardioWorkflow):
         inp.setdefault("pathology", "stenosis")
         inp.setdefault("measurements", {})
         inp.setdefault("symptoms", [])
-        inp.setdefault("lvef", 60.0)
         inp.setdefault("sts_score", None)
+        # An absent LVEF used to default to exactly 60.0, which is the boundary
+        # of the severe-MR surgical trigger (`lvef <= 60`), so an asymptomatic
+        # severe MR with no EF on record was told surgery was indicated "for LV
+        # dysfunction" on the strength of a number nobody measured.
+        self._fill_absent(inp, warnings, {"lvef": 60.0})
         # Validate valve
         valve_lower = str(inp["valve"]).lower().strip()
         if valve_lower not in self._VALID_VALVES:
@@ -716,50 +906,136 @@ class ValvularDiseaseWorkflow(BaseCardioWorkflow):
 
     # ── severity grading helpers ──────────────────────────────────────
     def _grade_aortic_stenosis(self, m: dict) -> tuple:
-        vmax = m.get("peak_velocity", 0.0)
-        mg = m.get("mean_gradient", 0.0)
-        ava = m.get("valve_area", 999.0)
+        """Grade aortic stenosis from whichever criteria were reported.
+
+        An unreported measurement used to be filled with `peak_velocity=0.0`,
+        `mean_gradient=0.0` and `valve_area=999.0` -- values that sit INSIDE the
+        MILD windows (`mean_grad (0,19)`, `ava (1.5,999)`).  Two absent
+        measurements therefore voted for MILD and outvoted one real severe
+        measurement, so a symptomatic patient with a peak velocity of 4.2 m/s
+        and no gradient or valve area reported was graded "mild", severity low,
+        with no AVR recommendation of any kind -- and the fabricated
+        "Mean gradient: 0.0 mmHg" and "Aortic valve area: 999.0 cm2" were
+        printed as findings.  Untreated symptomatic severe AS carries roughly
+        50% two-year mortality.
+
+        Now only the criteria actually supplied are scored, the grade requires a
+        majority of those, and the findings name what was unavailable.  Returns
+        ``(severity_or_None, findings)``; None means indeterminate.
+        """
+        vmax = m.get("peak_velocity")
+        mg = m.get("mean_gradient")
+        ava = m.get("valve_area")
         di = m.get("dimensionless_index", None)
 
         findings: List[str] = []
-        severity = ValveSeverity.MILD
 
-        for sev, crit in self._AS_CRITERIA.items():
-            vmax_match = crit["vmax"][0] <= vmax <= crit["vmax"][1]
-            mg_match = crit["mean_grad"][0] <= mg <= crit["mean_grad"][1]
-            ava_match = crit["ava"][0] <= ava <= crit["ava"][1]
-            if sum([vmax_match, mg_match, ava_match]) >= 2:
-                severity = sev
+        severity, n_supplied, discordant = _grade_from_supplied_criteria(
+            self._AS_CRITERIA,
+            ("vmax", "mean_grad", "ava"),
+            {"vmax": vmax, "mean_grad": mg, "ava": ava},
+        )
 
-        findings.append(f"Peak velocity: {vmax} m/s")
-        findings.append(f"Mean gradient: {mg} mmHg")
-        findings.append(f"Aortic valve area: {ava} cm2")
+        if vmax is not None:
+            findings.append(f"Peak velocity: {vmax} m/s")
+        if mg is not None:
+            findings.append(f"Mean gradient: {mg} mmHg")
+        if ava is not None:
+            findings.append(f"Aortic valve area: {ava} cm2")
+        unavailable = [
+            label for label, present in (
+                ("peak velocity", vmax is not None),
+                ("mean gradient", mg is not None),
+                ("aortic valve area", ava is not None),
+            ) if not present
+        ]
+        if unavailable:
+            findings.append(
+                "Not reported: " + ", ".join(unavailable)
+                + " - these criteria were not scored and are not assumed normal."
+            )
         if di is not None:
             findings.append(f"Dimensionless index: {di}")
             if di < 0.25:
                 findings.append("DI <0.25 supports severe AS")
-        findings.append(f"Aortic stenosis severity: {severity.value}")
+        if severity is None:
+            findings.append(
+                "Aortic stenosis severity: INDETERMINATE - no quantitative "
+                "criterion (peak velocity, mean gradient or valve area) was "
+                "reported."
+            )
+        else:
+            findings.append(f"Aortic stenosis severity: {severity.value}")
+            if n_supplied < 3:
+                findings.append(
+                    f"Severity graded on {n_supplied} of 3 criteria - confirm "
+                    f"with the remaining measurements."
+                )
+            if discordant:
+                findings.append(
+                    "Criteria are discordant - no severity band is supported by "
+                    "a majority of the reported measurements; the most severe "
+                    "matching band is reported. Expert review recommended."
+                )
         return severity, findings
 
     def _grade_mitral_regurgitation(self, m: dict) -> tuple:
-        rv = m.get("regurgitant_volume", 0.0)
-        ero = m.get("ero", 0.0)
-        vc = m.get("vena_contracta", 0.0)
+        """Grade mitral regurgitation from whichever criteria were reported.
+
+        Same defect as `_grade_aortic_stenosis`: the defaults 0.0/0.0/0.0 all sit
+        inside the MILD windows, so two unreported measurements outvoted one real
+        severe measurement and an ERO of 0.45 cm2 alone graded MILD.  Returns
+        ``(severity_or_None, findings)``; None means indeterminate.
+        """
+        rv = m.get("regurgitant_volume")
+        ero = m.get("ero")
+        vc = m.get("vena_contracta")
 
         findings: List[str] = []
-        severity = ValveSeverity.MILD
 
-        for sev, crit in self._MR_CRITERIA.items():
-            rv_match = crit["regurg_vol"][0] <= rv <= crit["regurg_vol"][1]
-            ero_match = crit["ero"][0] <= ero <= crit["ero"][1]
-            vc_match = crit["vena_contracta"][0] <= vc <= crit["vena_contracta"][1]
-            if sum([rv_match, ero_match, vc_match]) >= 2:
-                severity = sev
+        severity, n_supplied, discordant = _grade_from_supplied_criteria(
+            self._MR_CRITERIA,
+            ("regurg_vol", "ero", "vena_contracta"),
+            {"regurg_vol": rv, "ero": ero, "vena_contracta": vc},
+        )
 
-        findings.append(f"Regurgitant volume: {rv} mL")
-        findings.append(f"ERO: {ero} cm2")
-        findings.append(f"Vena contracta: {vc} cm")
-        findings.append(f"Mitral regurgitation severity: {severity.value}")
+        if rv is not None:
+            findings.append(f"Regurgitant volume: {rv} mL")
+        if ero is not None:
+            findings.append(f"ERO: {ero} cm2")
+        if vc is not None:
+            findings.append(f"Vena contracta: {vc} cm")
+        unavailable = [
+            label for label, present in (
+                ("regurgitant volume", rv is not None),
+                ("ERO", ero is not None),
+                ("vena contracta", vc is not None),
+            ) if not present
+        ]
+        if unavailable:
+            findings.append(
+                "Not reported: " + ", ".join(unavailable)
+                + " - these criteria were not scored and are not assumed normal."
+            )
+        if severity is None:
+            findings.append(
+                "Mitral regurgitation severity: INDETERMINATE - no quantitative "
+                "criterion (regurgitant volume, ERO or vena contracta) was "
+                "reported."
+            )
+        else:
+            findings.append(f"Mitral regurgitation severity: {severity.value}")
+            if n_supplied < 3:
+                findings.append(
+                    f"Severity graded on {n_supplied} of 3 criteria - confirm "
+                    f"with the remaining measurements."
+                )
+            if discordant:
+                findings.append(
+                    "Criteria are discordant - no severity band is supported by "
+                    "a majority of the reported measurements; the most severe "
+                    "matching band is reported. Expert review recommended."
+                )
         return severity, findings
 
     def _grade_generic_valve(
@@ -769,14 +1045,14 @@ class ValvularDiseaseWorkflow(BaseCardioWorkflow):
             f"{valve.title()} {pathology}: quantitative grading "
             "deferred to specialist review"
         ]
-        mg = m.get("mean_gradient", 0.0)
-        va = m.get("valve_area", 999.0)
-        rv = m.get("regurgitant_volume", 0.0)
-        if mg > 0:
+        mg = m.get("mean_gradient")
+        va = m.get("valve_area")
+        rv = m.get("regurgitant_volume")
+        if mg is not None:
             findings.append(f"Mean gradient: {mg} mmHg")
-        if va < 999:
+        if va is not None:
             findings.append(f"Valve area: {va} cm2")
-        if rv > 0:
+        if rv is not None:
             findings.append(f"Regurgitant volume: {rv} mL")
         return ValveSeverity.MODERATE, findings
 
@@ -790,6 +1066,7 @@ class ValvularDiseaseWorkflow(BaseCardioWorkflow):
         measurements = inputs["measurements"]
         symptoms = inputs.get("symptoms", [])
         lvef = float(inputs.get("lvef", 60.0))
+        lvef_supplied = self._supplied(inputs, "lvef")
         sts_score = inputs.get("sts_score")
 
         # --- Severity grading -----------------------------------------
@@ -808,12 +1085,18 @@ class ValvularDiseaseWorkflow(BaseCardioWorkflow):
         # --- Intervention criteria (aortic stenosis) -------------------
         if valve == "aortic" and pathology == "stenosis":
             symptomatic = len(symptoms) > 0
-            if severity == ValveSeverity.SEVERE and symptomatic:
+            if severity is None:
+                recommendations.append(
+                    "Obtain peak velocity, mean gradient and aortic valve area: "
+                    "aortic stenosis severity is indeterminate, so no AVR "
+                    "recommendation can be made either way"
+                )
+            elif severity == ValveSeverity.SEVERE and symptomatic:
                 recommendations.append(
                     "Symptomatic severe aortic stenosis — AVR indicated "
                     "(Class I, Level A)"
                 )
-            elif severity == ValveSeverity.SEVERE and lvef < 50:
+            elif severity == ValveSeverity.SEVERE and lvef_supplied and lvef < 50:
                 recommendations.append(
                     "Asymptomatic severe AS with LVEF <50% — AVR indicated "
                     "(Class I, Level B)"
@@ -830,7 +1113,9 @@ class ValvularDiseaseWorkflow(BaseCardioWorkflow):
                 )
 
             # TAVR vs SAVR decision support
-            if severity == ValveSeverity.SEVERE and (symptomatic or lvef < 50):
+            if severity == ValveSeverity.SEVERE and (
+                symptomatic or (lvef_supplied and lvef < 50)
+            ):
                 if sts_score is not None:
                     if sts_score < 3:
                         recommendations.append(
@@ -856,10 +1141,24 @@ class ValvularDiseaseWorkflow(BaseCardioWorkflow):
         # --- Intervention criteria (mitral regurgitation) --------------
         elif valve == "mitral" and pathology == "regurgitation":
             symptomatic = len(symptoms) > 0
-            if severity == ValveSeverity.SEVERE and symptomatic and lvef > 30:
+            if severity is None:
+                recommendations.append(
+                    "Obtain regurgitant volume, ERO and vena contracta: mitral "
+                    "regurgitation severity is indeterminate, so no surgical "
+                    "recommendation can be made either way"
+                )
+            elif severity == ValveSeverity.SEVERE and symptomatic and (
+                not lvef_supplied or lvef > 30
+            ):
                 recommendations.append(
                     "Symptomatic severe MR — mitral valve surgery indicated "
                     "(Class I)"
+                )
+            elif severity == ValveSeverity.SEVERE and not lvef_supplied:
+                recommendations.append(
+                    "Severe MR with no ejection fraction on record — measure LVEF "
+                    "before applying the LV-dysfunction surgical trigger "
+                    "(LVEF <=60%); an unmeasured EF is not a normal EF"
                 )
             elif severity == ValveSeverity.SEVERE and lvef <= 60:
                 recommendations.append(
@@ -884,7 +1183,14 @@ class ValvularDiseaseWorkflow(BaseCardioWorkflow):
             ValveSeverity.SEVERE: SeverityLevel.HIGH,
             ValveSeverity.CRITICAL: SeverityLevel.CRITICAL,
         }
-        clinical_severity = _sev_map.get(severity, SeverityLevel.MODERATE)
+        # `SeverityLevel` has no "unknown" level, so an indeterminate grade is
+        # reported as INFORMATIONAL -- no information -- rather than being
+        # mapped onto a disease severity nobody measured.  The indeterminacy is
+        # stated in the findings and carries its own recommendation.
+        clinical_severity = (
+            SeverityLevel.INFORMATIONAL if severity is None
+            else _sev_map.get(severity, SeverityLevel.MODERATE)
+        )
 
         return WorkflowResult(
             workflow_type=self.workflow_type,
@@ -935,14 +1241,17 @@ class ArrhythmiaWorkflow(BaseCardioWorkflow):
     def preprocess(self, inputs: dict) -> dict:
         inp = dict(inputs)
         warnings = self._init_warnings(inp)
-        inp.setdefault("rhythm", "sinus")
-        inp.setdefault("heart_rate", 72)
-        inp.setdefault("pr_interval", 160)
-        inp.setdefault("qrs_duration", 90)
-        inp.setdefault("qtc", 420)
+        # An absent ECG is not a normal ECG: these placeholders are recorded as
+        # missing so execute() does not report "Rhythm: sinus, HR 72 bpm" or
+        # "QTc 420 ms — normal" for a request that carried no ECG at all.
+        self._fill_absent(
+            inp, warnings,
+            {
+                "rhythm": "sinus", "heart_rate": 72, "pr_interval": 160,
+                "qrs_duration": 90, "qtc": 420, "age": 65, "sex": "male",
+            },
+        )
         inp.setdefault("findings", [])
-        inp.setdefault("age", 65)
-        inp.setdefault("sex", "male")
         inp.setdefault("comorbidities", {})
         # Validate heart_rate
         try:
@@ -984,6 +1293,7 @@ class ArrhythmiaWorkflow(BaseCardioWorkflow):
         if not inp["rhythm"] or not str(inp["rhythm"]).strip():
             warnings.append("Missing rhythm — defaulting to sinus")
             inp["rhythm"] = "sinus"
+            inp.setdefault(self.MISSING_INPUTS_KEY, set()).add("rhythm")
         return inp
 
     # ── CHA2DS2-VASc ─────────────────────────────────────────────────
@@ -1054,10 +1364,22 @@ class ArrhythmiaWorkflow(BaseCardioWorkflow):
         comorbidities = inputs["comorbidities"]
         ecg_findings = inputs["findings"]
 
-        findings.append(f"Rhythm: {rhythm}, HR {hr} bpm")
+        rhythm_supplied = self._supplied(inputs, "rhythm")
+        hr_supplied = self._supplied(inputs, "heart_rate")
+        qtc_supplied = self._supplied(inputs, "qtc")
+
+        if rhythm_supplied and hr_supplied:
+            findings.append(f"Rhythm: {rhythm}, HR {hr} bpm")
+        else:
+            absent = self._absent(inputs, "rhythm", "heart_rate")
+            findings.append(
+                "Rhythm / rate: INDETERMINATE - "
+                + ", ".join(absent)
+                + " not supplied. Sinus rhythm at a normal rate is not assumed."
+            )
 
         # --- Atrial fibrillation pathway -------------------------------
-        is_af = (
+        is_af = rhythm_supplied and (
             "atrial fibrillation" in rhythm
             or "afib" in rhythm
             or "af" == rhythm or rhythm.startswith("af ")
@@ -1098,7 +1420,12 @@ class ArrhythmiaWorkflow(BaseCardioWorkflow):
 
         # --- QTc assessment --------------------------------------------
         qtc_upper = 440 if sex == "male" else 460
-        if qtc <= qtc_upper:
+        if not qtc_supplied:
+            findings.append(
+                "QTc: INDETERMINATE - not supplied. A QTc was not measured, so "
+                "it is not reported as normal."
+            )
+        elif qtc <= qtc_upper:
             findings.append(
                 f"QTc {qtc} ms — normal (upper limit {qtc_upper} ms for {sex})"
             )
@@ -1119,7 +1446,7 @@ class ArrhythmiaWorkflow(BaseCardioWorkflow):
 
         # QTc genetic trigger
         family_hx_scd = comorbidities.get("family_hx_scd", False)
-        if qtc > 500 or family_hx_scd:
+        if (qtc_supplied and qtc > 500) or family_hx_scd:
             triggers.append(
                 _trigger_string(
                     "channelopathy_gene_panel",
@@ -1138,7 +1465,7 @@ class ArrhythmiaWorkflow(BaseCardioWorkflow):
             )
 
         # --- Bradycardia assessment ------------------------------------
-        if hr < 50:
+        if hr_supplied and hr < 50:
             findings.append(f"Bradycardia (HR {hr} bpm)")
             if pr > 200:
                 findings.append(
@@ -1354,17 +1681,23 @@ class CardiacMRIWorkflow(BaseCardioWorkflow):
     def preprocess(self, inputs: dict) -> dict:
         inp = dict(inputs)
         warnings = self._init_warnings(inp)
-        inp.setdefault("lvef", 55.0)
-        inp.setdefault("rvef", 55.0)
-        inp.setdefault("lv_edv", 150.0)
-        inp.setdefault("lv_esv", 60.0)
-        inp.setdefault("lge_pattern", "none")
-        inp.setdefault("lge_extent_percent", 0.0)
-        inp.setdefault("t1_native", 1000)
-        inp.setdefault("t2_value", 45)
-        inp.setdefault("ecv_percent", 27.0)
+        # Parametric mapping is not universally performed.  These placeholders
+        # are recorded as missing so that a study without T1/T2/ECV mapping does
+        # not come back asserting "Native T1: 1000 ms — within normal range",
+        # "T2: 45 ms — within normal range (no evidence of active oedema)" and
+        # "ECV: 27.0% — within normal range", which a reader could use to rule
+        # out amyloid or active myocarditis on numbers the scanner never
+        # produced.
+        missing = self._fill_absent(
+            inp, warnings,
+            {
+                "lvef": 55.0, "rvef": 55.0, "lv_edv": 150.0, "lv_esv": 60.0,
+                "lge_pattern": "none", "lge_extent_percent": 0.0,
+                "t1_native": 1000, "t2_value": 45, "ecv_percent": 27.0,
+            },
+        )
         # Validate LVEF
-        if inp["lvef"] is not None:
+        if "lvef" not in missing:
             try:
                 lv = float(inp["lvef"])
                 if not (5 <= lv <= 90):
@@ -1375,7 +1708,7 @@ class CardiacMRIWorkflow(BaseCardioWorkflow):
                 )
                 inp["lvef"] = 55.0
         # Validate RVEF
-        if inp["rvef"] is not None:
+        if "rvef" not in missing:
             try:
                 rv = float(inp["rvef"])
                 if not (5 <= rv <= 90):
@@ -1387,7 +1720,7 @@ class CardiacMRIWorkflow(BaseCardioWorkflow):
                 inp["rvef"] = 55.0
         # Validate LGE pattern
         lge_norm = str(inp["lge_pattern"]).lower().replace(" ", "_").replace("-", "_")
-        if lge_norm not in self._VALID_LGE_PATTERNS:
+        if "lge_pattern" not in missing and lge_norm not in self._VALID_LGE_PATTERNS:
             warnings.append(
                 f"LGE pattern '{inp['lge_pattern']}' is not a standard pattern — "
                 "may require manual review"
@@ -1425,31 +1758,55 @@ class CardiacMRIWorkflow(BaseCardioWorkflow):
         ecv = float(inputs["ecv_percent"])
 
         # --- Ventricular function --------------------------------------
-        findings.append(f"LV ejection fraction: {lvef}%")
-        findings.append(f"RV ejection fraction: {rvef}%")
-        findings.append(f"LV EDV: {lv_edv} mL, LV ESV: {lv_esv} mL")
+        lvef_supplied = self._supplied(inputs, "lvef")
+        rvef_supplied = self._supplied(inputs, "rvef")
+        volumes_supplied = self._supplied(inputs, "lv_edv", "lv_esv")
+        lge_supplied = self._supplied(inputs, "lge_pattern")
+        lge_extent_supplied = self._supplied(inputs, "lge_extent_percent")
+        t1_supplied = self._supplied(inputs, "t1_native")
+        t2_supplied = self._supplied(inputs, "t2_value")
+        ecv_supplied = self._supplied(inputs, "ecv_percent")
 
-        if lvef < 50:
+        if lvef_supplied:
+            findings.append(f"LV ejection fraction: {lvef}%")
+        else:
+            findings.append("LV ejection fraction: not reported")
+        if rvef_supplied:
+            findings.append(f"RV ejection fraction: {rvef}%")
+        else:
+            findings.append("RV ejection fraction: not reported")
+        if volumes_supplied:
+            findings.append(f"LV EDV: {lv_edv} mL, LV ESV: {lv_esv} mL")
+
+        if lvef_supplied and lvef < 50:
             findings.append("LV systolic dysfunction identified")
-        if rvef < 45:
+        if rvef_supplied and rvef < 45:
             findings.append("RV systolic dysfunction identified")
 
         # --- LGE interpretation ----------------------------------------
-        lge_info = self._LGE_INTERPRETATION.get(lge_pattern)
+        lge_info = self._LGE_INTERPRETATION.get(lge_pattern) if lge_supplied else None
+        if not lge_supplied:
+            findings.append(
+                "Late gadolinium enhancement: not reported - no LGE assessment "
+                "was supplied, which is not the same as no enhancement."
+            )
         if lge_info:
             findings.append(
                 f"LGE pattern: {lge_pattern.replace('_', ' ')}"
             )
-            findings.append(f"LGE extent: {lge_extent}% of LV mass")
+            if lge_extent_supplied:
+                findings.append(f"LGE extent: {lge_extent}% of LV mass")
+            else:
+                findings.append("LGE extent: not quantified")
             findings.append(f"LGE interpretation: {lge_info['description']}")
             findings.append(f"Most likely etiology: {lge_info['etiology']}")
 
-            if lge_extent > 25:
+            if lge_extent_supplied and lge_extent > 25:
                 recommendations.append(
                     f"Extensive LGE ({lge_extent}%) — associated with "
                     "increased arrhythmic risk and adverse prognosis"
                 )
-            if lge_extent > 15 and lvef <= 35:
+            if lge_extent_supplied and lge_extent > 15 and lvef_supplied and lvef <= 35:
                 recommendations.append(
                     "Consider ICD for primary prevention given significant "
                     "scar burden with reduced LVEF"
@@ -1490,16 +1847,22 @@ class CardiacMRIWorkflow(BaseCardioWorkflow):
                 recommendations.append(
                     f"Genetic testing recommended: {gene_str}"
                 )
-        elif lge_pattern == "none":
+        elif lge_pattern == "none" and lge_supplied:
             findings.append("No late gadolinium enhancement identified")
-        else:
+        elif lge_supplied:
             findings.append(
                 f"LGE pattern: {lge_pattern} (atypical — manual review "
                 "recommended)"
             )
 
         # --- T1 mapping ------------------------------------------------
-        if t1 > 1100:
+        if not t1_supplied:
+            findings.append(
+                "Native T1 mapping: NOT PERFORMED / not reported. No T1 value "
+                "was measured, so amyloid infiltration, fibrosis and iron "
+                "overload are not excluded."
+            )
+        elif t1 > 1100:
             findings.append(
                 f"Native T1: {t1} ms — elevated (normal ~950-1050 ms at "
                 "1.5T). Differential: myocardial fibrosis, amyloid "
@@ -1522,7 +1885,12 @@ class CardiacMRIWorkflow(BaseCardioWorkflow):
             findings.append(f"Native T1: {t1} ms — within normal range")
 
         # --- T2 mapping ------------------------------------------------
-        if t2 > 55:
+        if not t2_supplied:
+            findings.append(
+                "T2 mapping: NOT PERFORMED / not reported. No T2 value was "
+                "measured, so active myocardial oedema is not excluded."
+            )
+        elif t2 > 55:
             findings.append(
                 f"T2: {t2} ms — elevated (normal <55 ms at 1.5T). "
                 "Suggests myocardial oedema/active inflammation."
@@ -1538,8 +1906,15 @@ class CardiacMRIWorkflow(BaseCardioWorkflow):
                 "active oedema)"
             )
 
+
         # --- ECV -------------------------------------------------------
-        if ecv > 30:
+        if not ecv_supplied:
+            findings.append(
+                "Extracellular volume (ECV): NOT PERFORMED / not reported. No "
+                "ECV was measured, so diffuse fibrosis and infiltration are "
+                "not excluded."
+            )
+        elif ecv > 30:
             findings.append(
                 f"ECV: {ecv}% — elevated (normal 25-30%). Indicates "
                 "diffuse myocardial fibrosis or infiltrative process."
@@ -1558,11 +1933,20 @@ class CardiacMRIWorkflow(BaseCardioWorkflow):
             findings.append(f"ECV: {ecv}% — within normal range")
 
         # --- Severity --------------------------------------------------
-        if lvef < 35 or lge_extent > 25 or ecv > 40:
+        if (
+            (lvef_supplied and lvef < 35)
+            or (lge_extent_supplied and lge_extent > 25)
+            or (ecv_supplied and ecv > 40)
+        ):
             severity = SeverityLevel.HIGH
-        elif lvef < 50 or lge_extent > 10 or ecv > 30 or t2 > 55:
+        elif (
+            (lvef_supplied and lvef < 50)
+            or (lge_extent_supplied and lge_extent > 10)
+            or (ecv_supplied and ecv > 30)
+            or (t2_supplied and t2 > 55)
+        ):
             severity = SeverityLevel.MODERATE
-        elif lge_pattern != "none" and lge_info:
+        elif lge_supplied and lge_pattern != "none" and lge_info:
             severity = SeverityLevel.LOW
         else:
             severity = SeverityLevel.INFORMATIONAL
@@ -1614,19 +1998,28 @@ class StressTestWorkflow(BaseCardioWorkflow):
     def preprocess(self, inputs: dict) -> dict:
         inp = dict(inputs)
         warnings = self._init_warnings(inp)
-        inp.setdefault("test_type", "exercise")
-        inp.setdefault("exercise_time_min", 0.0)
-        inp.setdefault("max_st_deviation_mm", 0.0)
-        inp.setdefault("angina_index", 0)
-        inp.setdefault("peak_hr", 150)
-        inp.setdefault("percent_mphr", 85.0)
-        inp.setdefault("bp_response", "normal")
-        inp.setdefault("perfusion_defect", "none")
+        # An absent exercise time is not zero minutes of exercise: the old
+        # default made an empty request report "Exercise time: 0.0 min
+        # (estimated 2.9 METs)", "Poor exercise capacity (<5 METs)" and
+        # "Duke Treadmill Score: 0.0 — Moderate risk" for a test that was never
+        # performed.  `hr_recovery_1min` keeps None as its own sentinel, since
+        # the workflow already treats None as "not measured".
+        self._fill_absent(
+            inp, warnings,
+            {
+                "test_type": "exercise", "exercise_time_min": 0.0,
+                "max_st_deviation_mm": 0.0, "angina_index": 0,
+                "peak_hr": 150, "percent_mphr": 85.0,
+                "bp_response": "normal", "perfusion_defect": "none",
+                "age": 55,
+            },
+        )
         inp.setdefault("hr_recovery_1min", None)
-        inp.setdefault("age", 55)
         # Validate test_type
         tt = str(inp["test_type"]).lower().strip()
-        if tt not in self._VALID_TEST_TYPES:
+        if "test_type" not in (inp.get(self.MISSING_INPUTS_KEY) or set()) and (
+            tt not in self._VALID_TEST_TYPES
+        ):
             warnings.append(
                 f"Test type '{inp['test_type']}' is not valid "
                 f"(expected exercise or pharm) — defaulting to exercise"
@@ -1683,10 +2076,29 @@ class StressTestWorkflow(BaseCardioWorkflow):
         hr_rec = inputs.get("hr_recovery_1min")
 
         dts_sev = SeverityLevel.INFORMATIONAL
-        findings.append(f"Stress test type: {test_type}")
+        test_type_supplied = self._supplied(inputs, "test_type")
+        ex_time_supplied = self._supplied(inputs, "exercise_time_min")
+        st_dev_supplied = self._supplied(inputs, "max_st_deviation_mm")
+        angina_supplied = self._supplied(inputs, "angina_index")
+        hr_supplied = self._supplied(inputs, "peak_hr", "percent_mphr")
+        bp_supplied = self._supplied(inputs, "bp_response")
+        perfusion_supplied = self._supplied(inputs, "perfusion_defect")
+
+        if test_type_supplied:
+            findings.append(f"Stress test type: {test_type}")
+        else:
+            findings.append(
+                "Stress test type: not supplied - an exercise protocol is not "
+                "assumed."
+            )
 
         # --- Exercise parameters ---------------------------------------
-        if test_type == "exercise":
+        if test_type == "exercise" and not ex_time_supplied:
+            findings.append(
+                "Exercise time: INDETERMINATE - not supplied. Functional "
+                "capacity was not measured; it is not reported as zero."
+            )
+        elif test_type == "exercise":
             # Bruce protocol MET approximation (ACSM formula)
             mets = round(2.94 + ex_time * 1.06, 1) if ex_time <= 21 else round(23.0, 1)
             findings.append(
@@ -1704,7 +2116,17 @@ class StressTestWorkflow(BaseCardioWorkflow):
                 )
 
         # --- Duke Treadmill Score --------------------------------------
-        if test_type == "exercise":
+        dts_inputs_absent = self._absent(
+            inputs, "exercise_time_min", "max_st_deviation_mm", "angina_index",
+        )
+        if test_type == "exercise" and dts_inputs_absent:
+            findings.append(
+                "Duke Treadmill Score: INDETERMINATE - "
+                + ", ".join(dts_inputs_absent)
+                + " not supplied. The score is not computed from substituted "
+                "values."
+            )
+        elif test_type == "exercise":
             dts = ex_time - (5.0 * st_dev) - (4.0 * angina)
 
             if dts >= 5:
@@ -1734,8 +2156,14 @@ class StressTestWorkflow(BaseCardioWorkflow):
                 )
 
         # --- ST segment analysis ---------------------------------------
-        findings.append(f"Max ST deviation: {st_dev} mm")
-        if st_dev >= 2.0:
+        if not st_dev_supplied:
+            findings.append(
+                "Max ST deviation: not reported - the ST segments were not "
+                "assessed, which is not the same as no ST change."
+            )
+        else:
+            findings.append(f"Max ST deviation: {st_dev} mm")
+        if st_dev_supplied and st_dev >= 2.0:
             findings.append(
                 "Significant ST depression (>=2 mm) — high probability "
                 "of ischaemia"
@@ -1743,26 +2171,34 @@ class StressTestWorkflow(BaseCardioWorkflow):
             recommendations.append(
                 "Significant ischaemic ECG changes — refer for angiography"
             )
-        elif st_dev >= 1.0:
+        elif st_dev_supplied and st_dev >= 1.0:
             findings.append(
                 "ST depression >=1 mm — positive for ischaemia"
             )
-        else:
+        elif st_dev_supplied:
             findings.append("No significant ST changes")
 
         # --- Angina ----------------------------------------------------
-        if angina == 2:
+        if not angina_supplied:
+            findings.append("Angina during testing: not reported")
+        elif angina == 2:
             findings.append("Exercise-limiting angina (angina index 2)")
         elif angina == 1:
             findings.append(
                 "Non-limiting angina during exercise (angina index 1)"
             )
-        else:
+        elif angina_supplied:
             findings.append("No angina during testing")
 
         # --- Chronotropic response -------------------------------------
-        findings.append(f"Peak HR: {peak_hr} bpm ({pmphr}% MPHR)")
-        if pmphr < 85:
+        if hr_supplied:
+            findings.append(f"Peak HR: {peak_hr} bpm ({pmphr}% MPHR)")
+        else:
+            findings.append(
+                "Peak heart rate / % maximum predicted: not reported - "
+                "chronotropic response was not assessed."
+            )
+        if hr_supplied and pmphr < 85:
             findings.append(
                 "Chronotropic incompetence (<85% MPHR) — limits test "
                 "sensitivity"
@@ -1773,7 +2209,12 @@ class StressTestWorkflow(BaseCardioWorkflow):
             )
 
         # --- BP response -----------------------------------------------
-        if bp_resp in ("hypotensive", "drop", "decrease"):
+        if not bp_supplied:
+            findings.append(
+                "Blood pressure response to exercise: not reported - a normal "
+                "response is not assumed."
+            )
+        elif bp_resp in ("hypotensive", "drop", "decrease"):
             findings.append(
                 "Hypotensive BP response during exercise — concerning for "
                 "severe CAD or LV dysfunction"
@@ -1793,9 +2234,13 @@ class StressTestWorkflow(BaseCardioWorkflow):
         if hr_rec is not None:
             hr_rec = int(hr_rec)
             if hr_rec <= 12:
+                # The boundary is right (Cole et al. define abnormal as a drop
+                # of <=12 bpm); the parenthetical used to read "normal >=12
+                # bpm", which called 12 both normal and abnormal in the same
+                # sentence.
                 findings.append(
                     f"Abnormal heart rate recovery: {hr_rec} bpm drop in "
-                    "1st minute (normal >=12 bpm). Associated with increased "
+                    "1st minute (normal >12 bpm). Associated with increased "
                     "all-cause mortality."
                 )
                 recommendations.append(
@@ -1809,7 +2254,12 @@ class StressTestWorkflow(BaseCardioWorkflow):
                 )
 
         # --- Nuclear perfusion -----------------------------------------
-        if perfusion in ("normal", "none"):
+        if not perfusion_supplied:
+            findings.append(
+                "Nuclear perfusion: not reported - perfusion imaging was not "
+                "supplied, which is not the same as a normal scan."
+            )
+        elif perfusion in ("normal", "none"):
             findings.append(
                 "Nuclear perfusion: normal — no perfusion defects"
             )
@@ -1844,9 +2294,11 @@ class StressTestWorkflow(BaseCardioWorkflow):
 
         # --- Severity --------------------------------------------------
         severity = dts_sev
-        if "reversible" in perfusion:
+        if perfusion_supplied and "reversible" in perfusion:
             severity = _max_severity(severity, SeverityLevel.MODERATE)
-        if st_dev >= 2.0 or bp_resp in ("hypotensive", "drop"):
+        if (st_dev_supplied and st_dev >= 2.0) or (
+            bp_supplied and bp_resp in ("hypotensive", "drop")
+        ):
             severity = _max_severity(severity, SeverityLevel.HIGH)
 
         return WorkflowResult(
@@ -1899,13 +2351,19 @@ class PreventiveRiskWorkflow(BaseCardioWorkflow):
     def preprocess(self, inputs: dict) -> dict:
         inp = dict(inputs)
         warnings = self._init_warnings(inp)
-        inp.setdefault("age", 55)
-        inp.setdefault("sex", "male")
-        inp.setdefault("race", "white")
-        inp.setdefault("total_cholesterol", 200)
-        inp.setdefault("hdl", 50)
-        inp.setdefault("ldl", 130)
-        inp.setdefault("systolic_bp", 130)
+        # The Pooled Cohort Equations inputs are recorded when absent: the
+        # placeholders below describe a 55-year-old white man with a normal
+        # lipid panel, and feeding them to a validated calculator still
+        # produces a risk percentage for a patient about whom nothing was
+        # supplied.
+        missing = self._fill_absent(
+            inp, warnings,
+            {
+                "age": 55, "sex": "male", "race": "white",
+                "total_cholesterol": 200, "hdl": 50, "ldl": 130,
+                "systolic_bp": 130,
+            },
+        )
         inp.setdefault("bp_treatment", False)
         inp.setdefault("diabetes", False)
         inp.setdefault("smoker", False)
@@ -1917,7 +2375,7 @@ class PreventiveRiskWorkflow(BaseCardioWorkflow):
         # Validate age
         try:
             age = int(inp["age"])
-            if not (18 <= age <= 120):
+            if "age" not in missing and not (18 <= age <= 120):
                 warnings.append(
                     f"Age {age} outside plausible range (18-120)"
                 )
@@ -1956,65 +2414,68 @@ class PreventiveRiskWorkflow(BaseCardioWorkflow):
             inp["systolic_bp"] = 130
         return inp
 
-    # ── simplified ASCVD risk (Pooled Cohort Equations approx.) ──────
+    # ── ASCVD risk, from the validated Pooled Cohort Equations ───────
     @staticmethod
-    def _estimate_ascvd_risk(
+    def _ascvd_risk(
         age: int, sex: str, race: str, tc: float, hdl: float,
         sbp: float, bp_tx: bool, dm: bool, smoker: bool,
-    ) -> float:
-        """Simplified 10-year ASCVD risk estimation.
+    ) -> tuple:
+        """Compute 10-year ASCVD risk with this repo's validated PCE.
 
-        Point-based approximation of the Pooled Cohort Equations for
-        clinical decision support — not a replacement for the full
-        validated calculator (see risk_calculators.py for the full
-        implementation).
+        Returns ``(risk_percent, result, error)``.  ``risk_percent`` and
+        ``result`` are None when the risk is indeterminate, and ``error`` then
+        names why.
+
+        This replaces `_estimate_ascvd_risk`, a hand-written point model
+        ("calibrated to PCE outputs") whose own docstring admitted it was "not a
+        replacement for the full validated calculator" -- but whose output was
+        published as the real thing: the finding read "10-year ASCVD risk: X% —
+        Y risk category" and the `RiskScoreResult` carried
+        `score_type=RiskScoreType.ASCVD` with
+        `guideline_reference="2019 ACC/AHA Primary Prevention Guideline"`.
+
+        It was wrong by a wide margin and wrong in one direction.  Against this
+        repo's own validated PCE (`src/risk_calculators.calculate_ascvd`,
+        verified against Goff 2013): a 70-year-old diabetic woman on treated
+        SBP 155 came out 10.7% where the PCE gives 33.7%; a 60-year-old male
+        smoker 13.7% against 25.5%; a 75-year-old man 8.2% against 21.8%.  Four
+        of six reference cases flipped the statin band, every one of them toward
+        under-treatment -- the 70-year-old was recommended a moderate-intensity
+        statin where a >=20% risk warrants high-intensity.  Its race term was a
+        flat `base_risk *= 1.5`, which the Pooled Cohort Equations do not
+        contain in any cohort.
+
+        Source: Goff DC Jr, et al. 2013 ACC/AHA Guideline on the Assessment of
+        Cardiovascular Risk. J Am Coll Cardiol 2014;63(25 Pt B):2935-2959 --
+        implemented in src/risk_calculators.py and called here rather than
+        approximated.
         """
+        from src.models import RiskScoreInput
+        from src.risk_calculators import RiskCalculatorError, calculate_ascvd
+
         if age < 40 or age > 79:
-            return -1.0  # outside validated range
-
-        # Simplified point-based model calibrated to PCE outputs
-        points = 0.0
-
-        # Age contribution (exponential increase)
-        if sex.lower() == "male":
-            base_risk = 0.5 + (age - 40) * 0.25
-        else:
-            base_risk = 0.2 + (age - 40) * 0.15
-
-        # Race adjustment
-        if race.lower() in ("african_american", "black"):
-            base_risk *= 1.5
-
-        # Cholesterol ratio
-        tc_hdl_ratio = tc / max(hdl, 1)
-        if tc_hdl_ratio > 5:
-            points += (tc_hdl_ratio - 5) * 1.5
-        elif tc_hdl_ratio < 3.5:
-            points -= 1.0
-
-        # Blood pressure
-        if sbp >= 180:
-            points += 4.0
-        elif sbp >= 160:
-            points += 3.0
-        elif sbp >= 140:
-            points += 2.0
-        elif sbp >= 130:
-            points += 1.0
-        elif sbp < 120:
-            points -= 0.5
-
-        if bp_tx:
-            points += 1.0
-
-        # Risk factors
-        if dm:
-            points += 3.0
-        if smoker:
-            points += 3.0
-
-        risk = base_risk + points
-        return round(max(0.0, min(risk, 100.0)), 1)
+            return None, None, (
+                f"Age {age} is outside the validated range (40-79) for the "
+                f"Pooled Cohort Equations"
+            )
+        try:
+            result = calculate_ascvd(
+                RiskScoreInput(
+                    score_type=RiskScoreType.ASCVD,
+                    age=age,
+                    sex=sex,
+                    race=race,
+                    total_cholesterol=tc,
+                    hdl=hdl,
+                    systolic_bp=sbp,
+                    hypertension_treatment=bp_tx,
+                    diabetes=dm,
+                    smoker=smoker,
+                )
+            )
+        except (RiskCalculatorError, ValueError) as exc:
+            return None, None, str(exc)
+        return result.score_value, result, None
 
     # ── execute ───────────────────────────────────────────────────────
     def execute(self, inputs: dict) -> WorkflowResult:
@@ -2040,13 +2501,37 @@ class PreventiveRiskWorkflow(BaseCardioWorkflow):
         abi = inputs.get("abi")
 
         # --- ASCVD risk ------------------------------------------------
-        ascvd_risk = self._estimate_ascvd_risk(
-            age, sex, race, tc, hdl, sbp, bp_tx, dm, smoker
+        # The age range is checked first so that a supplied out-of-range age is
+        # reported as such rather than hidden behind the missing-input list.
+        pce_absent = self._absent(
+            inputs, "sex", "race", "total_cholesterol", "hdl", "systolic_bp",
         )
+        if self._supplied(inputs, "age") and not (40 <= age <= 79):
+            ascvd_risk, ascvd_result, ascvd_error = (
+                None, None,
+                f"Age {age} is outside the validated range (40-79) for the "
+                f"Pooled Cohort Equations",
+            )
+        elif not self._supplied(inputs, "age") or pce_absent:
+            absent = self._absent(
+                inputs, "age", "sex", "race", "total_cholesterol", "hdl",
+                "systolic_bp",
+            )
+            ascvd_risk, ascvd_result, ascvd_error = (
+                None, None,
+                "the Pooled Cohort Equations need " + ", ".join(absent)
+                + ", which were not supplied",
+            )
+        else:
+            ascvd_risk, ascvd_result, ascvd_error = self._ascvd_risk(
+                age, sex, race, tc, hdl, sbp, bp_tx, dm, smoker
+            )
 
-        if ascvd_risk < 0:
+        if ascvd_risk is None:
             findings.append(
-                f"Age {age} is outside the validated range (40-79) for PCE"
+                f"10-year ASCVD risk: INDETERMINATE - {ascvd_error}. "
+                f"No risk percentage is reported and no risk category is "
+                f"assigned; a low risk is not assumed."
             )
             risk_cat = "Not calculable"
         else:
@@ -2063,28 +2548,14 @@ class PreventiveRiskWorkflow(BaseCardioWorkflow):
                 f"10-year ASCVD risk: {ascvd_risk}% — {risk_cat} risk "
                 "category"
             )
-            risk_scores.append(
-                RiskScoreResult(
-                    score_type=RiskScoreType.ASCVD,
-                    score_value=ascvd_risk,
-                    risk_category=risk_cat,
-                    interpretation=(
-                        f"Estimated 10-year ASCVD risk: {ascvd_risk}% "
-                        f"({risk_cat})"
-                    ),
-                    recommendations=[],
-                    guideline_reference=(
-                        "2019 ACC/AHA Primary Prevention Guideline "
-                        "(Arnett et al., Circulation 2019)"
-                    ),
-                )
-            )
+            risk_scores.append(ascvd_result)
 
         # --- Risk-enhancing factors ------------------------------------
+        ldl_supplied = self._supplied(inputs, "ldl")
         enhancers: List[str] = []
         if fhx:
             enhancers.append("Family history of premature ASCVD")
-        if ldl >= 160:
+        if ldl_supplied and ldl >= 160:
             enhancers.append(
                 f"Persistently elevated LDL (LDL {ldl} mg/dL >= 160)"
             )
@@ -2127,7 +2598,13 @@ class PreventiveRiskWorkflow(BaseCardioWorkflow):
                 )
 
         # --- Statin decision framework ---------------------------------
-        if ldl >= 190:
+        if not ldl_supplied:
+            findings.append(
+                "LDL cholesterol: not supplied - a normal LDL is not assumed, "
+                "and the LDL >=190 mg/dL statin and familial-"
+                "hypercholesterolaemia thresholds are not evaluated."
+            )
+        if ldl_supplied and ldl >= 190:
             recommendations.append(
                 "LDL >=190 mg/dL — high-intensity statin indicated "
                 "(Class I, Level A). If not at goal, add ezetimibe "
@@ -2138,7 +2615,7 @@ class PreventiveRiskWorkflow(BaseCardioWorkflow):
                 "hypercholesterolemia"
             )
         elif dm and 40 <= age <= 75:
-            if ascvd_risk >= 20 or len(enhancers) >= 2:
+            if (ascvd_risk is not None and ascvd_risk >= 20) or len(enhancers) >= 2:
                 recommendations.append(
                     "Diabetes with multiple risk factors or high ASCVD "
                     "risk — high-intensity statin (Class I, Level A)"
@@ -2148,6 +2625,13 @@ class PreventiveRiskWorkflow(BaseCardioWorkflow):
                     "Diabetes, age 40-75 — moderate-intensity statin "
                     "(Class I, Level A)"
                 )
+        elif ascvd_risk is None:
+            recommendations.append(
+                f"Statin intensity cannot be selected from a 10-year ASCVD "
+                f"risk: {ascvd_error}. Base the decision on the "
+                f"risk-enhancing factors, lipid values and clinician judgement; "
+                f"do not read the indeterminate risk as low."
+            )
         elif ascvd_risk >= 20:
             recommendations.append(
                 "High ASCVD risk (>=20%) — high-intensity statin to reduce "
@@ -2172,7 +2656,7 @@ class PreventiveRiskWorkflow(BaseCardioWorkflow):
                     "modification; consider CAC scoring for further risk "
                     "stratification"
                 )
-        elif ascvd_risk >= 0:
+        else:
             recommendations.append(
                 "Low ASCVD risk (<5%) — emphasise lifestyle modification; "
                 "statin generally not recommended"
@@ -2180,13 +2664,13 @@ class PreventiveRiskWorkflow(BaseCardioWorkflow):
 
         # --- FH screening criteria -------------------------------------
         fh_suspected = False
-        if ldl >= 190:
+        if ldl_supplied and ldl >= 190:
             fh_suspected = True
             findings.append(
                 "LDL >=190 mg/dL — meets Dutch Lipid Clinic Network "
                 "screening threshold for FH"
             )
-        if fhx and ldl >= 160:
+        if fhx and ldl_supplied and ldl >= 160:
             fh_suspected = True
             findings.append(
                 "Family history of premature ASCVD + LDL >=160 — clinical "
@@ -2212,11 +2696,13 @@ class PreventiveRiskWorkflow(BaseCardioWorkflow):
             )
 
         # --- Severity --------------------------------------------------
-        if ascvd_risk >= 20 or ldl >= 190:
+        if (ascvd_risk is not None and ascvd_risk >= 20) or (
+            ldl_supplied and ldl >= 190
+        ):
             severity = SeverityLevel.HIGH
-        elif ascvd_risk >= 7.5 or (dm and enhancers):
+        elif (ascvd_risk is not None and ascvd_risk >= 7.5) or (dm and enhancers):
             severity = SeverityLevel.MODERATE
-        elif ascvd_risk >= 5.0 or enhancers:
+        elif (ascvd_risk is not None and ascvd_risk >= 5.0) or enhancers:
             severity = SeverityLevel.LOW
         else:
             severity = SeverityLevel.INFORMATIONAL
@@ -2351,12 +2837,20 @@ class CardioOncologyWorkflow(BaseCardioWorkflow):
     def preprocess(self, inputs: dict) -> dict:
         inp = dict(inputs)
         warnings = self._init_warnings(inp)
-        inp.setdefault("chemotherapy_agent", "anthracycline")
+        # The echo numbers are NOT substituted silently: a request naming only
+        # the chemotherapy agent used to come back "Baseline GLS: -20.0%,
+        # Current GLS: -19.0%", "Baseline LVEF: 60.0%, Current LVEF: 58.0%",
+        # "LVEF remains within acceptable range" and risk low, for a patient
+        # whose ventricle had never been imaged.
+        missing = self._fill_absent(
+            inp, warnings,
+            {
+                "chemotherapy_agent": "anthracycline",
+                "baseline_lvef": 60.0, "current_lvef": 58.0,
+                "baseline_gls": -20.0, "current_gls": -19.0,
+            },
+        )
         inp.setdefault("cumulative_dose", 0.0)
-        inp.setdefault("baseline_lvef", 60.0)
-        inp.setdefault("current_lvef", 58.0)
-        inp.setdefault("baseline_gls", -20.0)
-        inp.setdefault("current_gls", -19.0)
         inp.setdefault("troponin", 0.0)
         inp.setdefault("nt_probnp", 0.0)
         inp.setdefault("risk_factors", [])
@@ -2365,7 +2859,7 @@ class CardioOncologyWorkflow(BaseCardioWorkflow):
             str(inp["chemotherapy_agent"])
             .lower().replace(" ", "_").replace("-", "_")
         )
-        if agent_norm not in self._VALID_AGENTS:
+        if "chemotherapy_agent" not in missing and agent_norm not in self._VALID_AGENTS:
             # Check partial match (the execute method also does this)
             partial = any(k in agent_norm or agent_norm in k for k in self._VALID_AGENTS)
             if not partial:
@@ -2374,7 +2868,7 @@ class CardioOncologyWorkflow(BaseCardioWorkflow):
                     "will use anthracycline protocol as fallback"
                 )
         # Validate baseline LVEF
-        if inp["baseline_lvef"] is not None:
+        if "baseline_lvef" not in missing:
             try:
                 bl = float(inp["baseline_lvef"])
                 if not (5 <= bl <= 90):
@@ -2386,11 +2880,8 @@ class CardioOncologyWorkflow(BaseCardioWorkflow):
                     f"Baseline LVEF '{inp['baseline_lvef']}' is not numeric — defaulting to 60.0"
                 )
                 inp["baseline_lvef"] = 60.0
-        else:
-            warnings.append("Missing baseline LVEF — results may be incomplete")
-            inp["baseline_lvef"] = 60.0
         # Validate current LVEF
-        if inp["current_lvef"] is not None:
+        if "current_lvef" not in missing:
             try:
                 cl = float(inp["current_lvef"])
                 if not (5 <= cl <= 90):
@@ -2445,6 +2936,9 @@ class CardioOncologyWorkflow(BaseCardioWorkflow):
         findings.append(f"Mechanism: {protocol['mechanism']}")
         findings.append(f"Monitoring protocol: {protocol['monitoring']}")
 
+        gls_supplied = self._supplied(inputs, "baseline_gls", "current_gls")
+        lvef_supplied = self._supplied(inputs, "baseline_lvef", "current_lvef")
+
         # --- GLS assessment --------------------------------------------
         if bl_gls != 0:
             gls_change_pct = abs((cur_gls - bl_gls) / bl_gls) * 100
@@ -2453,11 +2947,21 @@ class CardioOncologyWorkflow(BaseCardioWorkflow):
             gls_change_pct = 0.0
             gls_worsened = False
 
-        findings.append(
-            f"Baseline GLS: {bl_gls}%, Current GLS: {cur_gls}%"
-        )
+        if gls_supplied:
+            findings.append(
+                f"Baseline GLS: {bl_gls}%, Current GLS: {cur_gls}%"
+            )
+        else:
+            findings.append(
+                "Global longitudinal strain: INDETERMINATE - "
+                + ", ".join(self._absent(inputs, "baseline_gls", "current_gls"))
+                + " not supplied. Subclinical cardiotoxicity is neither "
+                "detected nor excluded."
+            )
         subclinical_cardiotox = False
-        if gls_worsened and gls_change_pct > 15:
+        if not gls_supplied:
+            pass
+        elif gls_worsened and gls_change_pct > 15:
             findings.append(
                 f"GLS relative decline: {gls_change_pct:.1f}% (>15%) — "
                 "SUBCLINICAL CARDIOTOXICITY detected"
@@ -2477,13 +2981,29 @@ class CardioOncologyWorkflow(BaseCardioWorkflow):
         else:
             findings.append("GLS within acceptable range")
 
+
         # --- LVEF assessment -------------------------------------------
         lvef_decline = bl_lvef - cur_lvef
-        findings.append(
-            f"Baseline LVEF: {bl_lvef}%, Current LVEF: {cur_lvef}%"
-        )
+        if lvef_supplied:
+            findings.append(
+                f"Baseline LVEF: {bl_lvef}%, Current LVEF: {cur_lvef}%"
+            )
+        else:
+            findings.append(
+                "LVEF: INDETERMINATE - "
+                + ", ".join(self._absent(inputs, "baseline_lvef", "current_lvef"))
+                + " not supplied. Cancer therapy-related cardiac dysfunction "
+                "(CTRCD) is neither confirmed nor excluded; this is not a "
+                "preserved ejection fraction."
+            )
+            recommendations.append(
+                "Obtain baseline and current LVEF (and GLS) before continuing "
+                "cardiotoxic therapy"
+            )
         ctrcd = False
-        if lvef_decline > 10 and cur_lvef < 50:
+        if not lvef_supplied:
+            pass
+        elif lvef_decline > 10 and cur_lvef < 50:
             findings.append(
                 f"LVEF decline of {lvef_decline:.1f}% to below 50% — "
                 "CANCER THERAPY-RELATED CARDIAC DYSFUNCTION (CTRCD) "
@@ -2576,12 +3096,22 @@ class CardioOncologyWorkflow(BaseCardioWorkflow):
             tox_risk = CardiotoxicityRisk.VERY_HIGH
         elif subclinical_cardiotox or n_rfs >= 3:
             tox_risk = CardiotoxicityRisk.HIGH
-        elif n_rfs >= 1 or (gls_worsened and gls_change_pct > 8):
+        elif n_rfs >= 1 or (gls_supplied and gls_worsened and gls_change_pct > 8):
             tox_risk = CardiotoxicityRisk.MODERATE
+        elif not (gls_supplied or lvef_supplied):
+            # Neither strain nor ejection fraction was measured, so there is
+            # nothing to call low risk.  This used to return LOW.
+            tox_risk = None
         else:
             tox_risk = CardiotoxicityRisk.LOW
 
-        findings.append(f"Overall cardiotoxicity risk: {tox_risk.value}")
+        if tox_risk is None:
+            findings.append(
+                "Overall cardiotoxicity risk: INDETERMINATE - neither strain "
+                "nor ejection fraction was supplied."
+            )
+        else:
+            findings.append(f"Overall cardiotoxicity risk: {tox_risk.value}")
 
         # --- Cardioprotective recommendations --------------------------
         if tox_risk in (CardiotoxicityRisk.HIGH, CardiotoxicityRisk.VERY_HIGH):
@@ -2595,7 +3125,10 @@ class CardioOncologyWorkflow(BaseCardioWorkflow):
             CardiotoxicityRisk.HIGH: SeverityLevel.HIGH,
             CardiotoxicityRisk.VERY_HIGH: SeverityLevel.CRITICAL,
         }
-        severity = _tox_sev.get(tox_risk, SeverityLevel.MODERATE)
+        severity = (
+            SeverityLevel.INFORMATIONAL if tox_risk is None
+            else _tox_sev.get(tox_risk, SeverityLevel.MODERATE)
+        )
 
         return WorkflowResult(
             workflow_type=self.workflow_type,
@@ -2653,29 +3186,39 @@ class AcuteDecompensatedHFWorkflow(BaseCardioWorkflow):
     def preprocess(self, inputs: dict) -> dict:
         inp = dict(inputs)
         warnings = self._init_warnings(inp)
-        inp.setdefault("systolic_bp", 110.0)
-        inp.setdefault("heart_rate", 90)
-        inp.setdefault("creatinine", 1.0)
-        inp.setdefault("potassium", 4.0)
+        # An ADHF consult posted with an empty vitals field used to come back
+        # "Warm-Wet", "SBP 110.0 mmHg, HR 90 bpm, LVEF 35.0%" and an IV
+        # furosemide dose order built on a fabricated blood pressure,
+        # potassium and creatinine.  The placeholders stay so the arithmetic
+        # below cannot KeyError, but they are recorded as not measured.
+        missing = self._fill_absent(
+            inp, warnings,
+            {
+                "systolic_bp": 110.0, "heart_rate": 90, "creatinine": 1.0,
+                "potassium": 4.0, "lvef": 35.0,
+                "perfusion_status": "warm", "congestion_status": "wet",
+            },
+        )
         inp.setdefault("bnp_or_ntprobnp", 0.0)
-        inp.setdefault("lvef", 35.0)
         inp.setdefault("congestion_signs", [])
-        inp.setdefault("perfusion_status", "warm")
-        inp.setdefault("congestion_status", "wet")
         inp.setdefault("current_iv_diuretics", False)
         inp.setdefault("current_inotropes", False)
         # Normalise
         inp["perfusion_status"] = str(inp["perfusion_status"]).lower().strip()
         inp["congestion_status"] = str(inp["congestion_status"]).lower().strip()
         # Validate perfusion_status
-        if inp["perfusion_status"] not in self._VALID_PERFUSION:
+        if "perfusion_status" not in missing and (
+            inp["perfusion_status"] not in self._VALID_PERFUSION
+        ):
             warnings.append(
                 f"Perfusion status '{inp['perfusion_status']}' is not valid "
                 "(expected warm or cold) — defaulting to warm"
             )
             inp["perfusion_status"] = "warm"
         # Validate congestion_status
-        if inp["congestion_status"] not in self._VALID_CONGESTION:
+        if "congestion_status" not in missing and (
+            inp["congestion_status"] not in self._VALID_CONGESTION
+        ):
             warnings.append(
                 f"Congestion status '{inp['congestion_status']}' is not valid "
                 "(expected wet or dry) — defaulting to wet"
@@ -2684,7 +3227,7 @@ class AcuteDecompensatedHFWorkflow(BaseCardioWorkflow):
         # Validate systolic_bp
         try:
             sbp = float(inp["systolic_bp"])
-            if not (30 <= sbp <= 300):
+            if "systolic_bp" not in missing and not (30 <= sbp <= 300):
                 warnings.append(
                     f"Systolic BP {sbp} mmHg outside plausible range (30-300)"
                 )
@@ -2696,7 +3239,7 @@ class AcuteDecompensatedHFWorkflow(BaseCardioWorkflow):
         # Validate potassium
         try:
             k = float(inp["potassium"])
-            if not (1.0 <= k <= 9.0):
+            if "potassium" not in missing and not (1.0 <= k <= 9.0):
                 warnings.append(
                     f"Potassium {k} mEq/L outside plausible range (1.0-9.0)"
                 )
@@ -2706,7 +3249,7 @@ class AcuteDecompensatedHFWorkflow(BaseCardioWorkflow):
             )
             inp["potassium"] = 4.0
         # Validate LVEF
-        if inp["lvef"] is not None:
+        if "lvef" not in missing:
             try:
                 lv = float(inp["lvef"])
                 if not (5 <= lv <= 90):
@@ -2744,10 +3287,41 @@ class AcuteDecompensatedHFWorkflow(BaseCardioWorkflow):
             "warm-dry": "Warm-Dry (euvolemic — compensated, may not require acute intervention)",
             "cold-dry": "Cold-Dry (low-output without congestion — hypovolemic / over-diuresed)",
         }
-        findings.append(
-            f"Hemodynamic profile: {profile_labels.get(profile, profile)}"
+        profile_supplied = self._supplied(
+            inputs, "perfusion_status", "congestion_status",
         )
-        findings.append(f"SBP {sbp} mmHg, HR {hr} bpm, LVEF {lvef}%")
+        vitals_absent = self._absent(inputs, "systolic_bp", "heart_rate")
+        lvef_supplied = self._supplied(inputs, "lvef")
+        k_supplied = self._supplied(inputs, "potassium")
+        creat_supplied = self._supplied(inputs, "creatinine")
+
+        if profile_supplied:
+            findings.append(
+                f"Hemodynamic profile: {profile_labels.get(profile, profile)}"
+            )
+        else:
+            findings.append(
+                "Hemodynamic profile: INDETERMINATE - "
+                + ", ".join(
+                    self._absent(inputs, "perfusion_status", "congestion_status")
+                )
+                + " not supplied. Warm-Wet is not assumed."
+            )
+        vitals_bits = []
+        if "systolic_bp" not in vitals_absent:
+            vitals_bits.append(f"SBP {sbp} mmHg")
+        if "heart_rate" not in vitals_absent:
+            vitals_bits.append(f"HR {hr} bpm")
+        if lvef_supplied:
+            vitals_bits.append(f"LVEF {lvef}%")
+        if vitals_bits:
+            findings.append(", ".join(vitals_bits))
+        not_measured = vitals_absent + ([] if lvef_supplied else ["lvef"])
+        if not_measured:
+            findings.append(
+                "Not measured: " + ", ".join(not_measured)
+                + " - no value is substituted into the management plan."
+            )
 
         if congestion_signs:
             findings.append(
@@ -2760,7 +3334,13 @@ class AcuteDecompensatedHFWorkflow(BaseCardioWorkflow):
             )
 
         # --- Profile-specific management ---
-        if profile == "warm-wet":
+        if not profile_supplied:
+            recommendations.append(
+                "Document perfusion (warm/cold) and congestion (wet/dry) status "
+                "and the vitals before a diuretic, inotrope or fluid order can "
+                "be made: the hemodynamic profile determines all four pathways"
+            )
+        elif profile == "warm-wet":
             recommendations.append(
                 "IV loop diuretic escalation: furosemide 40-80 mg IV; "
                 "double dose if inadequate response at 2 hours"
@@ -2773,7 +3353,7 @@ class AcuteDecompensatedHFWorkflow(BaseCardioWorkflow):
                     "If diuretic-resistant: consider adding metolazone 2.5-5 mg PO "
                     "or chlorothiazide 500 mg IV (sequential nephron blockade)"
                 )
-            if sbp > 100:
+            if "systolic_bp" not in vitals_absent and sbp > 100:
                 recommendations.append(
                     "SGLT2i can be initiated in-hospital if SBP >100 "
                     "(EMPULSE trial: empagliflozin safe and beneficial in ADHF)"
@@ -2784,7 +3364,7 @@ class AcuteDecompensatedHFWorkflow(BaseCardioWorkflow):
                 "Consider inotrope initiation: dobutamine 2-5 mcg/kg/min "
                 "or milrinone 0.125-0.375 mcg/kg/min"
             )
-            if sbp < 90:
+            if "systolic_bp" not in vitals_absent and sbp < 90:
                 recommendations.append(
                     "SBP <90 mmHg — evaluate for mechanical circulatory support "
                     "(Impella/IABP); consider vasopressors"
@@ -2808,34 +3388,53 @@ class AcuteDecompensatedHFWorkflow(BaseCardioWorkflow):
             )
 
         # --- Electrolyte and renal monitoring ---
-        if potassium < 3.5:
+        if not k_supplied:
+            findings.append(
+                "Serum potassium: not measured - obtain before and during "
+                "diuresis; it is not assumed normal."
+            )
+        if not creat_supplied:
+            findings.append(
+                "Serum creatinine: not measured - obtain before and during "
+                "diuresis; it is not assumed normal."
+            )
+        if k_supplied and potassium < 3.5:
             findings.append(f"Hypokalaemia (K+ {potassium} mEq/L)")
             recommendations.append("Replete potassium to target >4.0 mEq/L")
-        elif potassium > 5.5:
+        elif k_supplied and potassium > 5.5:
             findings.append(f"Hyperkalaemia (K+ {potassium} mEq/L)")
             recommendations.append(
                 "Hold MRA/ACEi; consider potassium-lowering therapy"
             )
-        if creatinine > 2.0:
+        if creat_supplied and creatinine > 2.0:
             findings.append(f"Elevated creatinine {creatinine} mg/dL — monitor for cardiorenal syndrome")
 
         # --- SGLT2i in-hospital initiation ---
-        if sbp > 100 and profile != "cold-wet":
+        if (
+            "systolic_bp" not in vitals_absent
+            and profile_supplied
+            and sbp > 100
+            and profile != "cold-wet"
+        ):
             recommendations.append(
                 "Initiate SGLT2 inhibitor in-hospital per EMPULSE trial data "
                 "(clinical benefit with empagliflozin 10 mg daily in ADHF)"
             )
 
         # --- Severity ---
-        if sbp < 90 or on_inotropes or profile == "cold-wet":
+        if (
+            ("systolic_bp" not in vitals_absent and sbp < 90)
+            or on_inotropes
+            or (profile_supplied and profile == "cold-wet")
+        ):
             severity = SeverityLevel.CRITICAL
-        elif on_iv_diuretics or profile == "warm-wet":
+        elif on_iv_diuretics or (profile_supplied and profile == "warm-wet"):
             severity = SeverityLevel.HIGH
         else:
             severity = SeverityLevel.MODERATE
 
         # --- Cross-modal genomics trigger ---
-        if lvef < 40:
+        if lvef_supplied and lvef < 40:
             triggers.append(
                 _trigger_string(
                     "new_onset_hf_genomic_workup",
@@ -2897,26 +3496,37 @@ class PostMIWorkflow(BaseCardioWorkflow):
     def preprocess(self, inputs: dict) -> dict:
         inp = dict(inputs)
         warnings = self._init_warnings(inp)
-        inp.setdefault("mi_type", "NSTEMI")
-        inp.setdefault("time_from_onset_hours", 6.0)
-        inp.setdefault("reperfusion_strategy", "PCI")
-        inp.setdefault("lvef", 50.0)
-        inp.setdefault("culprit_vessel", "LAD")
+        # An empty request used to come back "NSTEMI — culprit vessel: LAD",
+        # "Time from symptom onset: 6.0 hours", "LVEF: 50.0%", and -- because
+        # the culprit defaulted to the LAD -- an "ACEi/ARB within 24 hours
+        # (anterior MI or LVEF <40%)" order for a patient with no angiogram.
+        missing = self._fill_absent(
+            inp, warnings,
+            {
+                "mi_type": "NSTEMI", "time_from_onset_hours": 6.0,
+                "reperfusion_strategy": "PCI", "lvef": 50.0,
+                "culprit_vessel": "LAD",
+            },
+        )
         inp.setdefault("troponin_peak", 0.0)
         inp.setdefault("complications", [])
         inp.setdefault("current_medications", [])
+        inp.setdefault("door_to_balloon_min", None)
+        inp.setdefault("door_to_needle_min", None)
         inp["mi_type"] = str(inp["mi_type"]).upper().strip()
         inp["reperfusion_strategy"] = str(inp["reperfusion_strategy"]).lower().strip()
         inp["culprit_vessel"] = str(inp["culprit_vessel"]).upper().strip()
         # Validate MI type
-        if inp["mi_type"] not in self._VALID_MI_TYPES:
+        if "mi_type" not in missing and inp["mi_type"] not in self._VALID_MI_TYPES:
             warnings.append(
                 f"MI type '{inp['mi_type']}' is not valid "
                 "(expected STEMI or NSTEMI) — defaulting to NSTEMI"
             )
             inp["mi_type"] = "NSTEMI"
         # Validate reperfusion strategy
-        if inp["reperfusion_strategy"] not in self._VALID_REPERFUSION:
+        if "reperfusion_strategy" not in missing and (
+            inp["reperfusion_strategy"] not in self._VALID_REPERFUSION
+        ):
             warnings.append(
                 f"Reperfusion strategy '{inp['reperfusion_strategy']}' is not valid "
                 "(expected PCI, thrombolysis, or none) — defaulting to PCI"
@@ -2936,7 +3546,7 @@ class PostMIWorkflow(BaseCardioWorkflow):
             )
             inp["time_from_onset_hours"] = 6.0
         # Validate LVEF
-        if inp["lvef"] is not None:
+        if "lvef" not in missing:
             try:
                 lv = float(inp["lvef"])
                 if not (5 <= lv <= 90):
@@ -2963,28 +3573,95 @@ class PostMIWorkflow(BaseCardioWorkflow):
         complications = [c.lower() for c in inputs["complications"]]
         current_meds = [m.lower() for m in inputs["current_medications"]]
 
-        findings.append(f"{mi_type} — culprit vessel: {culprit}")
-        findings.append(f"Time from symptom onset: {time_hrs} hours")
-        findings.append(f"LVEF: {lvef}%")
+        mi_type_supplied = self._supplied(inputs, "mi_type")
+        culprit_supplied = self._supplied(inputs, "culprit_vessel")
+        time_supplied = self._supplied(inputs, "time_from_onset_hours")
+        reperfusion_supplied = self._supplied(inputs, "reperfusion_strategy")
+        lvef_supplied = self._supplied(inputs, "lvef")
+        d2b_min = inputs.get("door_to_balloon_min")
+        d2n_min = inputs.get("door_to_needle_min")
+
+        if mi_type_supplied and culprit_supplied:
+            findings.append(f"{mi_type} — culprit vessel: {culprit}")
+        elif mi_type_supplied:
+            findings.append(f"{mi_type} — culprit vessel not reported")
+        else:
+            findings.append(
+                "Infarct type: not supplied - NSTEMI is not assumed"
+                + ("" if culprit_supplied else "; culprit vessel not reported")
+            )
+        if time_supplied:
+            findings.append(f"Time from symptom onset: {time_hrs} hours")
+        else:
+            findings.append("Time from symptom onset: not reported")
+        if lvef_supplied:
+            findings.append(f"LVEF: {lvef}%")
+        else:
+            findings.append(
+                "LVEF: not reported - this is not a preserved ejection fraction"
+            )
         if troponin_peak > 0:
             findings.append(f"Peak troponin: {troponin_peak} ng/mL")
 
         # --- Reperfusion assessment ---
-        if mi_type == "STEMI":
-            if reperfusion == "pci":
-                if time_hrs <= 1.5:
-                    findings.append("Door-to-balloon time within 90-minute target")
+        # `time_from_onset_hours` is time from SYMPTOM ONSET, documented as such
+        # in this workflow's own input list.  It used to be reported as
+        # door-to-balloon / door-to-needle time, which are different quality
+        # metrics measured from first hospital contact: a STEMI patient who
+        # presented 5 hours after symptom onset and had a 42-minute
+        # door-to-balloon time was reported as "Door-to-balloon time 5.0h —
+        # exceeds 90-minute target", and an empty request asserted a D2B
+        # failure outright.  The door-to-balloon and door-to-needle intervals
+        # now have their own optional inputs and are only reported when supplied.
+        if mi_type_supplied and mi_type == "STEMI":
+            if time_supplied:
+                findings.append(
+                    f"Symptom-onset-to-presentation interval: {time_hrs}h"
+                    + (
+                        " (within the 12-hour primary-PCI window)"
+                        if time_hrs <= 12 else
+                        " (beyond 12 hours from onset)"
+                    )
+                )
+            if reperfusion_supplied and reperfusion == "pci":
+                if d2b_min is None:
+                    findings.append(
+                        "Door-to-balloon time: not reported - it is a different "
+                        "interval from time since symptom onset and cannot be "
+                        "derived from it."
+                    )
+                elif float(d2b_min) <= 90:
+                    findings.append(
+                        f"Door-to-balloon time {float(d2b_min):.0f} min — within "
+                        f"90-minute target"
+                    )
                 else:
                     findings.append(
-                        f"Door-to-balloon time {time_hrs}h — exceeds 90-minute target"
+                        f"Door-to-balloon time {float(d2b_min):.0f} min — exceeds "
+                        f"90-minute target"
                     )
-            elif reperfusion == "thrombolysis":
-                if time_hrs <= 0.5:
-                    findings.append("Door-to-needle time within 30-minute target")
+            elif reperfusion_supplied and reperfusion == "thrombolysis":
+                if d2n_min is None:
+                    findings.append(
+                        "Door-to-needle time: not reported - it is a different "
+                        "interval from time since symptom onset and cannot be "
+                        "derived from it."
+                    )
+                elif float(d2n_min) <= 30:
+                    findings.append(
+                        f"Door-to-needle time {float(d2n_min):.0f} min — within "
+                        f"30-minute target"
+                    )
                 else:
                     findings.append(
-                        f"Door-to-needle time {time_hrs}h — exceeds 30-minute target"
+                        f"Door-to-needle time {float(d2n_min):.0f} min — exceeds "
+                        f"30-minute target"
                     )
+            elif not reperfusion_supplied:
+                findings.append(
+                    "Reperfusion strategy: not supplied - primary PCI is not "
+                    "assumed."
+                )
             else:
                 findings.append(
                     "No reperfusion strategy employed — evaluate for rescue PCI"
@@ -2992,8 +3669,11 @@ class PostMIWorkflow(BaseCardioWorkflow):
                 recommendations.append(
                     "Urgent consideration for rescue PCI if within window"
                 )
-        else:
-            findings.append(f"NSTEMI — reperfusion strategy: {reperfusion}")
+        elif mi_type_supplied:
+            findings.append(
+                f"NSTEMI — reperfusion strategy: "
+                + (reperfusion if reperfusion_supplied else "not supplied")
+            )
 
         # --- DAPT ---
         has_aspirin = any("aspirin" in m or "asa" in m for m in current_meds)
@@ -3015,17 +3695,26 @@ class PostMIWorkflow(BaseCardioWorkflow):
             recommendations.append("Initiate ticagrelor 90 mg BID (preferred ACS P2Y12)")
 
         # --- Beta-blocker ---
-        any(
+        # This `any(...)` used to be a bare expression with no assignment, so
+        # the "already on a beta-blocker" result was computed and thrown away
+        # and the initiation line was appended even for a patient already
+        # taking carvedilol.
+        has_beta_blocker = any(
             d in " ".join(current_meds)
             for d in ["metoprolol", "carvedilol", "bisoprolol", "atenolol"]
         )
-        if "cardiogenic_shock" not in complications:
+        if "cardiogenic_shock" in complications:
+            findings.append("Cardiogenic shock present — defer beta-blocker initiation")
+        elif has_beta_blocker:
+            findings.append(
+                "Already on a beta-blocker — continue and titrate rather than "
+                "initiate"
+            )
+        else:
             recommendations.append(
                 "Beta-blocker within 24 hours if no cardiogenic shock "
                 "(metoprolol succinate or carvedilol)"
             )
-        else:
-            findings.append("Cardiogenic shock present — defer beta-blocker initiation")
 
         # --- High-intensity statin ---
         recommendations.append(
@@ -3034,13 +3723,21 @@ class PostMIWorkflow(BaseCardioWorkflow):
         )
 
         # --- ACEi/ARB ---
-        if culprit == "LAD" or lvef < 40:
+        if (culprit_supplied and culprit == "LAD") or (
+            lvef_supplied and lvef < 40
+        ):
             recommendations.append(
                 "ACEi/ARB within 24 hours (anterior MI or LVEF <40%)"
             )
+        elif not (culprit_supplied or lvef_supplied):
+            recommendations.append(
+                "Record the culprit vessel and the ejection fraction: the "
+                "ACEi/ARB indication (anterior MI or LVEF <40%) cannot be "
+                "assessed without them"
+            )
 
         # --- MRA ---
-        if lvef <= 40 and (
+        if lvef_supplied and lvef <= 40 and (
             "heart_failure" in complications
             or "diabetes" in complications
             or any("diabet" in c for c in complications)
@@ -3057,7 +3754,12 @@ class PostMIWorkflow(BaseCardioWorkflow):
         )
 
         # --- ICD assessment ---
-        if lvef <= 35:
+        if not lvef_supplied:
+            recommendations.append(
+                "Measure LVEF before discharge and again at 40 days post-MI to "
+                "determine ICD eligibility"
+            )
+        elif lvef <= 35:
             recommendations.append(
                 "Reassess LVEF at 40 days post-MI; if LVEF remains <=35% "
                 "on optimal GDMT, ICD indicated for primary prevention "
@@ -3123,6 +3825,8 @@ class MyocarditisPericarditisWorkflow(BaseCardioWorkflow):
                                   pericardial_effusion (bool).
     ecg_findings : list         — ECG findings (e.g. 'diffuse_st_elevation',
                                   'pr_depression', 'st_changes').
+    symptoms : list             — Reported symptoms (e.g. 'pleuritic_chest_pain').
+    exam_findings : list        — Examination findings (e.g. 'pericardial_rub').
     biopsy_result : str|None    — Endomyocardial biopsy result if performed
                                   (e.g. 'viral', 'giant_cell', 'eosinophilic').
     suspected_etiology : str    — Suspected cause (e.g. 'viral', 'autoimmune',
@@ -3137,19 +3841,33 @@ class MyocarditisPericarditisWorkflow(BaseCardioWorkflow):
     def preprocess(self, inputs: dict) -> dict:
         inp = dict(inputs)
         warnings = self._init_warnings(inp)
-        inp.setdefault("presentation", "pericarditis")
-        inp.setdefault("symptom_onset_days", 7)
+        # An absent presentation is not pericarditis, an absent symptom-onset
+        # interval is not 7 days, and an absent LVEF is not 55%.
+        missing = self._fill_absent(
+            inp, warnings,
+            {
+                "presentation": "pericarditis", "symptom_onset_days": 7,
+                "lvef": 55.0,
+            },
+        )
         inp.setdefault("troponin", 0.0)
         inp.setdefault("crp", 0.0)
-        inp.setdefault("lvef", 55.0)
         inp.setdefault("cmr_findings", {})
         inp.setdefault("ecg_findings", [])
+        # Pericarditis criteria 1 and 2 are a symptom and an examination sign;
+        # they have their own inputs (see the pericarditis block in execute).
+        # `None` means "not assessed", which is distinct from an empty list
+        # meaning "assessed and absent".
+        inp.setdefault("symptoms", None)
+        inp.setdefault("exam_findings", None)
         inp.setdefault("biopsy_result", None)
         inp.setdefault("suspected_etiology", "viral")
         inp["presentation"] = str(inp["presentation"]).lower().strip()
         inp["suspected_etiology"] = str(inp["suspected_etiology"]).lower().strip()
         # Validate presentation type
-        if inp["presentation"] not in self._VALID_PRESENTATIONS:
+        if "presentation" not in missing and (
+            inp["presentation"] not in self._VALID_PRESENTATIONS
+        ):
             warnings.append(
                 f"Presentation type '{inp['presentation']}' is not valid "
                 "(expected myocarditis, pericarditis, or myopericarditis) "
@@ -3163,7 +3881,7 @@ class MyocarditisPericarditisWorkflow(BaseCardioWorkflow):
             )
             inp["cmr_findings"] = {}
         # Validate LVEF
-        if inp["lvef"] is not None:
+        if "lvef" not in missing:
             try:
                 lv = float(inp["lvef"])
                 if not (5 <= lv <= 90):
@@ -3176,7 +3894,7 @@ class MyocarditisPericarditisWorkflow(BaseCardioWorkflow):
         # Validate symptom_onset_days
         try:
             days = int(inp["symptom_onset_days"])
-            if days < 0:
+            if "symptom_onset_days" not in missing and days < 0:
                 warnings.append(
                     f"Symptom onset {days} days is negative — must be >= 0"
                 )
@@ -3201,12 +3919,32 @@ class MyocarditisPericarditisWorkflow(BaseCardioWorkflow):
         lvef = float(inputs["lvef"])
         cmr = inputs["cmr_findings"]
         ecg_findings = inputs["ecg_findings"]
+        symptoms = inputs.get("symptoms")
+        exam_findings = inputs.get("exam_findings")
         biopsy = inputs["biopsy_result"]
         etiology = inputs["suspected_etiology"]
 
-        findings.append(f"Presentation: {presentation}")
-        findings.append(f"Symptom onset: {onset_days} days ago")
-        findings.append(f"LVEF: {lvef}%")
+        presentation_supplied = self._supplied(inputs, "presentation")
+        onset_supplied = self._supplied(inputs, "symptom_onset_days")
+        lvef_supplied = self._supplied(inputs, "lvef")
+
+        if presentation_supplied:
+            findings.append(f"Presentation: {presentation}")
+        else:
+            findings.append(
+                "Presentation: not supplied - pericarditis is not assumed; the "
+                "criteria below are reported for the default pathway only."
+            )
+        if onset_supplied:
+            findings.append(f"Symptom onset: {onset_days} days ago")
+        else:
+            findings.append("Symptom onset: not reported")
+        if lvef_supplied:
+            findings.append(f"LVEF: {lvef}%")
+        else:
+            findings.append(
+                "LVEF: not reported - this is not a preserved ejection fraction"
+            )
 
         if troponin > 0:
             findings.append(
@@ -3252,16 +3990,41 @@ class MyocarditisPericarditisWorkflow(BaseCardioWorkflow):
 
         # --- Pericarditis diagnosis (2/4 criteria) ---
         if presentation in ("pericarditis", "myopericarditis"):
+            # Criteria 1 (pleuritic chest pain) and 2 (pericardial rub) used to
+            # be searched for in `ecg_findings`, which is documented as the ECG
+            # findings list, so neither could ever be met: a textbook patient
+            # with pleuritic pain, an audible rub, diffuse ST elevation with PR
+            # depression and a small effusion scored 2/4 -- exactly the
+            # diagnostic threshold -- with no note that two criteria had never
+            # been assessed.  Pain and rub now come from `symptoms` and
+            # `exam_findings`, and a criterion whose input was not supplied is
+            # reported as not assessed rather than as absent.
             pericarditis_criteria = 0
             pericarditis_details: List[str] = []
+            not_assessed: List[str] = []
 
             ecg_lower = [e.lower() for e in ecg_findings]
-            if any("pleuritic" in s or "chest_pain" in s for s in ecg_lower):
+            symptoms_lower = (
+                [str(x).lower() for x in symptoms] if symptoms is not None else None
+            )
+            exam_lower = (
+                [str(x).lower() for x in exam_findings]
+                if exam_findings is not None else None
+            )
+
+            if symptoms_lower is None:
+                not_assessed.append("pleuritic chest pain (no symptoms supplied)")
+            elif any("pleuritic" in x or "chest_pain" in x or "chest pain" in x
+                     for x in symptoms_lower):
                 pericarditis_criteria += 1
                 pericarditis_details.append("pleuritic chest pain")
-            if any("rub" in s for s in ecg_lower):
+
+            if exam_lower is None:
+                not_assessed.append("pericardial rub (no examination findings supplied)")
+            elif any("rub" in x for x in exam_lower):
                 pericarditis_criteria += 1
                 pericarditis_details.append("pericardial rub")
+
             if any("st_elevation" in s or "pr_depression" in s for s in ecg_lower):
                 pericarditis_criteria += 1
                 pericarditis_details.append("diffuse ST elevation / PR depression")
@@ -3269,9 +4032,16 @@ class MyocarditisPericarditisWorkflow(BaseCardioWorkflow):
                 pericarditis_criteria += 1
                 pericarditis_details.append("pericardial effusion")
 
+            assessed = 4 - len(not_assessed)
             findings.append(
                 f"Pericarditis diagnostic criteria: {pericarditis_criteria}/4 met"
                 + (f" ({', '.join(pericarditis_details)})" if pericarditis_details else "")
+                + (
+                    f"; {len(not_assessed)} criteria NOT ASSESSED: "
+                    f"{', '.join(not_assessed)} - the diagnosis cannot be "
+                    f"excluded on {assessed} assessable criteria"
+                    if not_assessed else ""
+                )
             )
 
         # --- Biopsy indications ---
@@ -3279,7 +4049,7 @@ class MyocarditisPericarditisWorkflow(BaseCardioWorkflow):
             findings.append(f"Endomyocardial biopsy result: {biopsy}")
         else:
             biopsy_reasons: List[str] = []
-            if lvef < 40:
+            if lvef_supplied and lvef < 40:
                 biopsy_reasons.append("new-onset HF with hemodynamic compromise")
             if etiology in ("giant_cell", "eosinophilic"):
                 biopsy_reasons.append(f"suspected {etiology} myocarditis")
@@ -3295,10 +4065,15 @@ class MyocarditisPericarditisWorkflow(BaseCardioWorkflow):
                 "Activity restriction: avoid exercise for 3-6 months "
                 "(ACC/AHA guidelines)"
             )
-            if lvef < 50:
+            if lvef_supplied and lvef < 50:
                 recommendations.append(
                     "Initiate HF therapy for reduced LVEF: ACEi/ARB, "
                     "beta-blocker, and consider SGLT2i"
+                )
+            elif not lvef_supplied:
+                recommendations.append(
+                    "Measure LVEF: heart-failure therapy for a reduced ejection "
+                    "fraction cannot be decided without it"
                 )
             # Immunosuppression only for specific etiologies
             if biopsy in ("giant_cell", "eosinophilic") or etiology in (
