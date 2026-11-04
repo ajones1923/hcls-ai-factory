@@ -591,7 +591,24 @@ with tab_scales:
             with rc2:
                 st.metric("Severity", result.get("severity_category", "N/A").replace("_", " ").title())
             with rc3:
-                st.metric("Items Scored", result.get("items_received", 0))
+                # `items_received` counts what the form posted, which is not the same as
+                # what the instrument needs. The calculators now report both, and an
+                # incomplete instrument has no valid total -- showing only the number
+                # submitted is what let a two-item ALSFRS-R read as "41/48, mild".
+                scored = result.get("items_scored")
+                expected = result.get("items_expected")
+                if scored is not None and expected:
+                    st.metric("Items Scored", f"{scored} / {expected}")
+                else:
+                    st.metric("Items Received", result.get("items_received", 0))
+
+            if not result.get("data_complete", True):
+                st.error(
+                    "INCOMPLETE INSTRUMENT -- the figure above is not the patient's score. "
+                    "Record the remaining items before interpreting it."
+                )
+            for warning in result.get("data_warnings", []):
+                st.warning(warning)
 
             st.write(f"**Interpretation:** {result.get('interpretation', 'N/A')}")
 
@@ -764,6 +781,36 @@ with tab_workflows:
             if result:
                 st.subheader("Results")
                 st.json(result)
+
+                # Eligibility verdicts that came back indeterminate rather than false.
+                # `tpa_eligible: false` alone cannot say whether the patient was excluded or
+                # whether nobody measured the blood pressure, and the caller needs to know
+                # which.
+                for label, key in (
+                    ("IV thrombolysis", "tpa_determination"),
+                    ("Thrombectomy", "thrombectomy_determination"),
+                ):
+                    verdict = result.get(key)
+                    if verdict == "indeterminate":
+                        st.error(
+                            f"{label}: INDETERMINATE -- not assessable on the data supplied. "
+                            "Missing: "
+                            + (", ".join(result.get("missing_inputs", [])) or "see reasoning")
+                        )
+
+                for warning in result.get("data_warnings", []):
+                    st.warning(warning)
+
+                # Model-generated prose. It used to be rendered in the evidence expander as
+                # "[llm] Score: 0.800", indistinguishable from a retrieved PubMed passage.
+                discussion = result.get("discussion")
+                if discussion:
+                    with st.expander("Model discussion (NOT retrieved evidence)"):
+                        st.caption(
+                            "Generated from the model's own knowledge. Nothing here was "
+                            "retrieved from this knowledge base and none of it is sourced."
+                        )
+                        st.write(discussion)
 
                 # Recommendations
                 recs = result.get("recommendations", [])
