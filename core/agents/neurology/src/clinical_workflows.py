@@ -18,6 +18,7 @@ from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
 from src.clinical_scales import (
+    ScaleDataError,
     ALSFRSCalculator,
     ASPECTSCalculator,
     EDSSCalculator,
@@ -192,7 +193,22 @@ class AcuteStrokeTriageWorkflow(BaseNeuroWorkflow):
             warnings.append("Onset time not specified; treating as unknown/wake-up stroke")
         if "nihss_scores" not in inp:
             inp["nihss_scores"] = {}
-            warnings.append("No NIHSS item scores provided; NIHSS will be 0")
+            warnings.append("No NIHSS item scores provided; NIHSS cannot be computed")
+        elif inp["nihss_scores"]:
+            # The warning above fired only when the dict was entirely absent, so a PARTIAL
+            # NIHSS passed through silently and the missing items scored 0 = no deficit (N20).
+            scored = [k for k in NIHSSCalculator.ITEMS if k in inp["nihss_scores"]]
+            aliased = [
+                k for k in inp["nihss_scores"]
+                if k in NIHSSCalculator.ALIASES
+            ]
+            if len(scored) + len(aliased) < len(NIHSSCalculator.ITEMS):
+                warnings.append(
+                    f"NIHSS examination incomplete: "
+                    f"{len(scored) + len(aliased)}/{len(NIHSSCalculator.ITEMS)} items "
+                    f"recorded. Unexamined items are NOT scored 0; the treatment thresholds "
+                    f"(>= 4 alteplase, >= 6 thrombectomy) are not applied to a partial exam."
+                )
         return inp
 
     def execute(self, inputs: dict) -> WorkflowResult:
@@ -208,16 +224,31 @@ class AcuteStrokeTriageWorkflow(BaseNeuroWorkflow):
         nihss = nihss_result.score
         findings.append(f"NIHSS total: {int(nihss)} ({nihss_result.severity_category})")
 
+        nihss_complete = nihss_result.complete
+
         # -- ASPECTS --
         ct_regions = inputs.get("ct_affected_regions", [])
+        aspects_result = None
+        aspects_scored = False
         if ct_regions:
-            aspects_result = ASPECTSCalculator.calculate(ct_regions)
-            scale_results.append(aspects_result)
+            try:
+                aspects_result = ASPECTSCalculator.calculate(ct_regions)
+            except ScaleDataError as exc:
+                # A region name the calculator does not recognise used to be dropped in
+                # silence, turning a 7/10 CT into 10/10 "Favorable for intervention" (N17).
+                findings.append(f"ASPECTS NOT SCORED: {exc}")
+            else:
+                aspects_scored = True
+                scale_results.append(aspects_result)
+                findings.append(
+                    f"ASPECTS: {int(aspects_result.score)}/10 "
+                    f"({aspects_result.severity_category})"
+                )
+        elif inputs.get("ct_performed"):
             findings.append(
-                f"ASPECTS: {int(aspects_result.score)}/10 ({aspects_result.severity_category})"
+                "ASPECTS not reported although a CT was performed -- an unscored CT is not a "
+                "favourable CT"
             )
-        else:
-            aspects_result = None
 
         # -- Stroke type classification --
         stroke_hint = inputs.get("stroke_type_hint")
@@ -236,16 +267,23 @@ class AcuteStrokeTriageWorkflow(BaseNeuroWorkflow):
         # whose time of onset nobody knew. Thrombolysis cannot be cleared against a window that
         # has not been established.
         onset_known = onset > 0.0
-        age = inputs.get("age", 0)
-        sbp = inputs.get("blood_pressure_systolic", 0)
-        glucose = inputs.get("blood_glucose", 0.0)
-        on_anticoag = inputs.get("on_anticoagulation", False)
+        age = inputs.get("age")
+        # N3: these defaulted to 0 / 0.0 / False, so an unmeasured blood pressure ran no check
+        # and emitted no warning, and an unmeasured glucose printed the fabricated value
+        # "glucose 0.0 mg/dL" as a finding. None now means "not measured", which blocks
+        # thrombolysis pending the result rather than clearing it.
+        sbp = inputs.get("blood_pressure_systolic")
+        dbp = inputs.get("blood_pressure_diastolic")
+        glucose = inputs.get("blood_glucose")
+        on_anticoag = inputs.get("on_anticoagulation")
         inr = inputs.get("inr")
         platelets = inputs.get("platelet_count")
         contraindications = set(inputs.get("contraindications", []))
         lvo = inputs.get("large_vessel_occlusion")
+        prestroke_mrs = inputs.get("prestroke_mrs", inputs.get("prior_mrs"))
         core_vol = inputs.get("core_volume_ml")
         mismatch = inputs.get("mismatch_ratio")
+        mismatch_vol = inputs.get("mismatch_volume_ml")
 
         # -- tPA eligibility (ischemic only) --
         if stroke_type_str in ("ischemic", "tia"):
@@ -271,47 +309,128 @@ class AcuteStrokeTriageWorkflow(BaseNeuroWorkflow):
                 )
 
             # Age exclusion for 3-4.5h window
-            if 3.0 < onset <= 4.5 and age > 80:
-                tpa_eligible = False
-                tpa_reasons.append("Age >80 in extended (3-4.5h) window")
+            if 3.0 < onset <= 4.5:
+                if age is None:
+                    tpa_eligible = False
+                    tpa_reasons.append(
+                        "INSUFFICIENT DATA: age not recorded, and the extended (3-4.5h) "
+                        "window excludes patients over 80"
+                    )
+                elif age > 80:
+                    tpa_eligible = False
+                    tpa_reasons.append("Age >80 in extended (3-4.5h) window")
 
-            # BP thresholds
-            if sbp > 185:
-                tpa_reasons.append(f"SBP {sbp} mmHg exceeds 185 mmHg threshold -- treat before tPA")
+            # NIHSS completeness. An incomplete exam understates the score, and the score
+            # gates alteplase at >= 4 (N20).
+            if not nihss_complete:
+                tpa_eligible = False
+                tpa_reasons.append(
+                    f"INSUFFICIENT DATA: NIHSS incomplete "
+                    f"({nihss_result.items_scored}/{nihss_result.items_expected} items) -- "
+                    f"the alteplase threshold cannot be applied to a partial examination"
+                )
+
+            # BP thresholds. AHA/ASA 2019 Early Management of Acute Ischemic Stroke requires
+            # BP below 185/110 mmHg before IV alteplase. Above that it is an exclusion, which
+            # is what this block failed to do: it appended a reason, left `tpa_eligible` True,
+            # and the report then carried both "Reduce BP to <185/110 before IV alteplase" and
+            # "tPA ELIGIBLE -- administer IV alteplase urgently" (N3).
+            if sbp is None:
+                tpa_eligible = False
+                tpa_reasons.append(
+                    "INSUFFICIENT DATA: blood pressure not measured -- tPA requires "
+                    "BP <185/110 mmHg"
+                )
+            elif sbp > 185:
+                tpa_eligible = False
+                tpa_reasons.append(
+                    f"SBP {sbp} mmHg exceeds the 185 mmHg threshold -- NOT eligible until BP "
+                    f"is lowered; re-triage after treatment"
+                )
                 recommendations.append(
-                    "Reduce BP to <185/110 mmHg before IV alteplase administration"
+                    "Reduce BP to <185/110 mmHg, then re-assess alteplase eligibility"
+                )
+            if dbp is not None and dbp > 110:
+                tpa_eligible = False
+                tpa_reasons.append(
+                    f"DBP {dbp} mmHg exceeds the 110 mmHg threshold -- NOT eligible until BP "
+                    f"is lowered"
                 )
 
             # Glucose
-            if glucose < 50:
+            if glucose is None:
+                tpa_eligible = False
+                tpa_reasons.append(
+                    "INSUFFICIENT DATA: blood glucose not measured -- hypoglycaemia and "
+                    "hyperglycaemia both mimic stroke and must be excluded before tPA"
+                )
+            elif glucose < 50:
                 tpa_eligible = False
                 tpa_reasons.append(f"Hypoglycaemia (glucose {glucose} mg/dL)")
             elif glucose > 400:
-                tpa_reasons.append(f"Hyperglycaemia (glucose {glucose} mg/dL) -- correct before tPA")
+                tpa_eligible = False
+                tpa_reasons.append(
+                    f"Hyperglycaemia (glucose {glucose} mg/dL) -- correct and reassess "
+                    f"before tPA"
+                )
 
-            # Anticoagulation
-            if on_anticoag:
-                if inr is not None and inr > 1.7:
+            # Anticoagulation. "On anticoagulation -- verify INR/DOAC levels" was emitted
+            # while eligibility stayed True, i.e. the patient was cleared for a thrombolytic
+            # on the strength of a verification that had not happened (N3).
+            if on_anticoag is None:
+                tpa_eligible = False
+                tpa_reasons.append(
+                    "INSUFFICIENT DATA: anticoagulation status not recorded"
+                )
+            elif on_anticoag:
+                if inr is None:
                     tpa_eligible = False
+                    tpa_reasons.append(
+                        "On anticoagulation with no INR/DOAC level available -- NOT eligible "
+                        "pending coagulation results"
+                    )
+                elif inr > 1.7:
+                    tpa_eligible = False
+                    # NOTE (uncited): INR > 1.7 is consistent with AHA/ASA 2019 as commonly
+                    # published; the primary table was not retrieved, so the value is
+                    # unchanged.
                     tpa_reasons.append(f"INR {inr} > 1.7 while on anticoagulation")
-                else:
-                    tpa_reasons.append("On anticoagulation -- verify INR/DOAC levels")
 
             # Platelets
-            if platelets is not None and platelets < 100:
+            if platelets is None:
+                tpa_eligible = False
+                tpa_reasons.append(
+                    "INSUFFICIENT DATA: platelet count not available -- tPA requires "
+                    "platelets >= 100K"
+                )
+            elif platelets < 100:
+                # NOTE (uncited): the < 100K threshold is unchanged for the same reason as
+                # the INR value above.
                 tpa_eligible = False
                 tpa_reasons.append(f"Platelet count {platelets}K < 100K")
 
-            # Absolute contraindications
+            # Absolute contraindications. The set intersection silently discarded any
+            # contraindication code not in the hard-coded list, so `recent_gi_bleed_21d`,
+            # `recent_major_surgery_14d` and `infective_endocarditis` vanished without comment
+            # and the patient was cleared (N3).
             matched_contra = contraindications & self._TPA_CONTRAINDICATIONS
             if matched_contra:
                 tpa_eligible = False
                 tpa_reasons.append(
-                    f"Absolute contraindications: {', '.join(matched_contra)}"
+                    f"Absolute contraindications: {', '.join(sorted(matched_contra))}"
+                )
+            unrecognised_contra = contraindications - self._TPA_CONTRAINDICATIONS
+            if unrecognised_contra:
+                tpa_eligible = False
+                tpa_reasons.append(
+                    f"UNRECOGNISED CONTRAINDICATION(S) reported and therefore NOT cleared: "
+                    f"{', '.join(sorted(unrecognised_contra))}. A contraindication this "
+                    f"workflow does not know is not an absent contraindication -- review "
+                    f"each by hand."
                 )
 
             # Minor stroke exclusion
-            if nihss == 0:
+            if nihss == 0 and nihss_complete:
                 tpa_eligible = False
                 tpa_reasons.append("NIHSS 0 -- no measurable deficit")
 
@@ -330,8 +449,67 @@ class AcuteStrokeTriageWorkflow(BaseNeuroWorkflow):
             )
 
             # -- Thrombectomy eligibility --
+            #
+            # N6: entry was `if lvo or nihss >= 6`, and the standard-window branch then
+            # re-checked only `nihss >= 6` -- a demonstrated occlusion was never required.
+            # `{onset_hours: 3.0, NIHSS 10, age: 60}` with no CTA and no CT regions yielded
+            # "THROMBECTOMY ELIGIBLE (standard window <6h, NIHSS >= 6)" and "Activate
+            # neurointerventional team". Every 2015 trial and the AHA/ASA 2019 Class I
+            # recommendation require a demonstrated ICA/M1 occlusion plus pre-stroke
+            # functional independence. ASPECTS was permissive when absent
+            # (`aspects_result is None or score >= 6`), so an unscored CT read as a
+            # favourable one.
             thrombectomy_eligible = False
-            if lvo or nihss >= 6:
+            thrombectomy_blockers: List[str] = []
+            if lvo is None:
+                thrombectomy_blockers.append(
+                    "no vessel imaging result -- thrombectomy requires a demonstrated ICA/M1 "
+                    "or basilar occlusion (obtain CTA/MRA)"
+                )
+            elif not lvo:
+                thrombectomy_blockers.append("no large vessel occlusion demonstrated")
+            if not nihss_complete:
+                thrombectomy_blockers.append(
+                    f"NIHSS incomplete ({nihss_result.items_scored}/"
+                    f"{nihss_result.items_expected} items) -- the NIHSS >= 6 threshold cannot "
+                    f"be applied to a partial examination"
+                )
+            if not aspects_scored:
+                thrombectomy_blockers.append(
+                    "ASPECTS not scored -- an unscored CT is not a favourable CT"
+                )
+            elif aspects_result.score < 6:
+                thrombectomy_blockers.append(
+                    f"ASPECTS {int(aspects_result.score)} < 6 -- large established infarct"
+                )
+            if prestroke_mrs is None:
+                thrombectomy_blockers.append(
+                    "pre-stroke mRS not recorded -- every thrombectomy trial enrolled on "
+                    "pre-stroke functional independence"
+                )
+            elif prestroke_mrs >= 3:
+                # Outside the enrollment range of every trial behind the recommendation:
+                # the 2015 trials enrolled pre-stroke mRS 0-1, DAWN and DEFUSE-3 enrolled 0-2.
+                thrombectomy_blockers.append(
+                    f"pre-stroke mRS {prestroke_mrs} -- outside the enrollment range of the "
+                    f"trials behind this recommendation (0-1 in the 2015 trials, 0-2 in "
+                    f"DAWN/DEFUSE-3)"
+                )
+            elif prestroke_mrs == 2:
+                findings.append(
+                    "Pre-stroke mRS 2: within the DAWN/DEFUSE-3 range but outside the 2015 "
+                    "trials' (0-1) -- confirm with the treating neurointerventionalist"
+                )
+
+            if thrombectomy_blockers:
+                findings.append(
+                    "THROMBECTOMY NOT CLEARED by this workflow: "
+                    + "; ".join(thrombectomy_blockers)
+                )
+                recommendations.append(
+                    "Resolve before thrombectomy: " + "; ".join(thrombectomy_blockers)
+                )
+            elif lvo or nihss >= 6:
                 # Standard window: 0-6 hours. `onset_known` matters here too: with onset 0.0
                 # standing for "unknown", `onset <= 6.0` was true for every unknown-onset
                 # patient, so they were cleared on the standard window and the extended-window
@@ -339,37 +517,77 @@ class AcuteStrokeTriageWorkflow(BaseNeuroWorkflow):
                 # through DAWN/DEFUSE-3 imaging criteria -- could never be reached for anyone
                 # with NIHSS >= 6.
                 if onset_known and onset <= 6.0 and nihss >= 6:
-                    if aspects_result is None or aspects_result.score >= 6:
-                        thrombectomy_eligible = True
-                        findings.append(
-                            "THROMBECTOMY ELIGIBLE (standard window <6h, NIHSS >= 6)"
-                        )
-                        recommendations.append(
-                            "Activate neurointerventional team for mechanical thrombectomy"
-                        )
-                        guidelines.extend([
-                            "MR CLEAN (2015): Endovascular treatment for acute ischemic stroke",
-                            "ESCAPE (2015): Endovascular treatment guidelines",
-                        ])
+                    # `lvo` is True and ASPECTS >= 6 by the blocker checks above.
+                    thrombectomy_eligible = True
+                    findings.append(
+                        "THROMBECTOMY ELIGIBLE (standard window <6h, NIHSS >= 6, "
+                        "LVO demonstrated, ASPECTS >= 6, pre-stroke mRS within trial range)"
+                    )
+                    recommendations.append(
+                        "Activate neurointerventional team for mechanical thrombectomy"
+                    )
+                    guidelines.extend([
+                        "MR CLEAN (2015): Endovascular treatment for acute ischemic stroke",
+                        "ESCAPE (2015): Endovascular treatment guidelines",
+                    ])
 
                 # Extended window: 6-24 hours (DAWN/DEFUSE-3)
                 elif (onset_known and 6.0 < onset <= 24.0) or not onset_known:
                     dawn_eligible = False
                     defuse3_eligible = False
 
-                    # DAWN criteria
-                    if core_vol is not None:
+                    # DAWN criteria. The three age/NIHSS/core strata are transcribed
+                    # correctly; `age` is now required rather than defaulting to 0, which
+                    # used to put every age-unknown patient into the `age < 80` strata.
+                    if core_vol is not None and age is not None:
                         if age >= 80 and nihss >= 10 and core_vol < 21:
                             dawn_eligible = True
                         elif age < 80 and nihss >= 10 and core_vol < 31:
                             dawn_eligible = True
                         elif age < 80 and nihss >= 20 and core_vol < 51:
                             dawn_eligible = True
+                    elif core_vol is not None and age is None:
+                        findings.append(
+                            "DAWN criteria not evaluated: age not recorded, and all three "
+                            "DAWN strata are age-dependent"
+                        )
 
-                    # DEFUSE-3 criteria
-                    if (core_vol is not None and mismatch is not None
-                            and core_vol < 70 and mismatch >= 1.8):
-                        defuse3_eligible = True
+                    # DEFUSE-3 criteria.
+                    #
+                    # N10: this branch was reached for onset up to 24 h and tested
+                    # `core_vol < 70 and mismatch >= 1.8` only, with no NIHSS re-check after
+                    # the entry gate. `{onset_hours: 20.0, NIHSS 3, LVO, core 40, mismatch
+                    # 2.0}` returned "THROMBECTOMY ELIGIBLE (extended window, DEFUSE-3
+                    # criteria met)" -- contradicting the guideline string printed two lines
+                    # below it, "DEFUSE-3 (2018): Thrombectomy 6-16h with perfusion mismatch".
+                    #
+                    # Primary source: DEFUSE-3 protocol / statistical analysis plan,
+                    # NCT02586415
+                    # (https://cdn.clinicaltrials.gov/large-docs/15/NCT02586415/SAP_000.pdf).
+                    # Enrollment window 6-16 h; target mismatch = core < 70 mL AND ratio
+                    # >= 1.8 AND mismatch volume >= 15 mL by RAPID; baseline NIHSS >= 6 and
+                    # still >= 6 at randomization; ICA or M1 occlusion; pre-stroke mRS 0-2.
+                    if onset_known and onset > 16.0:
+                        findings.append(
+                            "DEFUSE-3 not applicable: enrollment window is 6-16h "
+                            "(NCT02586415) and onset is "
+                            f"{onset:.1f}h -- DAWN (6-24h) is the extended-window criterion "
+                            "beyond 16h"
+                        )
+                    elif core_vol is not None and mismatch is not None and nihss >= 6:
+                        if mismatch_vol is None:
+                            findings.append(
+                                "DEFUSE-3 not evaluated: mismatch volume (mL) not reported, "
+                                "and the trial's target-mismatch profile requires mismatch "
+                                "volume >= 15 mL alongside core < 70 mL and ratio >= 1.8"
+                            )
+                        elif core_vol < 70 and mismatch >= 1.8 and mismatch_vol >= 15:
+                            defuse3_eligible = True
+                    elif core_vol is not None and mismatch is not None and nihss < 6:
+                        findings.append(
+                            f"DEFUSE-3 not met: baseline NIHSS {int(nihss)} is below the "
+                            f"trial's NIHSS >= 6 inclusion criterion"
+                        )
 
                     if dawn_eligible or defuse3_eligible:
                         thrombectomy_eligible = True
@@ -386,10 +604,15 @@ class AcuteStrokeTriageWorkflow(BaseNeuroWorkflow):
                             "Activate neurointerventional team -- extended window "
                             "thrombectomy per DAWN/DEFUSE-3"
                         )
-                        guidelines.extend([
-                            "DAWN (2018): Thrombectomy 6-24h with clinical-imaging mismatch",
-                            "DEFUSE-3 (2018): Thrombectomy 6-16h with perfusion mismatch",
-                        ])
+                        if dawn_eligible:
+                            guidelines.append(
+                                "DAWN (2018): Thrombectomy 6-24h with clinical-imaging mismatch"
+                            )
+                        if defuse3_eligible:
+                            guidelines.append(
+                                "DEFUSE-3 (2018, NCT02586415): Thrombectomy 6-16h with "
+                                "perfusion mismatch"
+                            )
                     else:
                         findings.append(
                             "Extended window thrombectomy: DAWN/DEFUSE-3 criteria NOT met "
@@ -526,12 +749,17 @@ class DementiaEvaluationWorkflow(BaseNeuroWorkflow):
         # -- MoCA scoring --
         moca_domains = inputs.get("moca_domain_scores")
         if moca_domains:
-            edu = inputs.get("education_years", 13)
+            # Education defaulted to 13 -- a made-up demographic, chosen so that the
+            # adjustment did not fire. None now means "not recorded", which the calculator
+            # reports rather than assuming.
+            edu = inputs.get("education_years")
             moca_result = MoCACalculator.calculate(moca_domains, edu)
             scale_results.append(moca_result)
             findings.append(
                 f"MoCA: {int(moca_result.score)}/30 ({moca_result.severity_category})"
             )
+            for warning in moca_result.warnings:
+                findings.append(f"MoCA data: {warning}")
 
         mmse = inputs.get("mmse_score")
         if mmse is not None:
@@ -599,26 +827,51 @@ class DementiaEvaluationWorkflow(BaseNeuroWorkflow):
         neurodegeneration = inputs.get("neurodegeneration_status")
 
         if amyloid or tau or neurodegeneration:
-            a = "+" if amyloid == "positive" else "-"
-            t = "+" if tau == "positive" else "-"
-            n = "+" if neurodegeneration == "positive" else "-"
-            atn_str = f"A{a}T{t}N{n}"
-            findings.append(f"ATN biomarker profile: {atn_str}")
+            # N11: `a/t/n = "+" if status == "positive" else "-"` printed an analyte that was
+            # never ordered as NEGATIVE, and the code then asserted "A+T- = Alzheimer's
+            # pathological change (amyloid-positive, pre-tangle stage)" -- a staging
+            # conclusion drawn from a tau test that was never run. `?` marks unmeasured, which
+            # is what the route twin already did.
+            def _atn(status) -> str:
+                if status in ("positive", "+", "abnormal"):
+                    return "+"
+                if status in ("negative", "-", "normal"):
+                    return "-"
+                return "?"
 
-            if amyloid == "positive":
-                if tau == "positive" and neurodegeneration == "positive":
+            a, t, n = _atn(amyloid), _atn(tau), _atn(neurodegeneration)
+            atn_str = f"A{a}T{t}N{n}"
+            unmeasured = [
+                label for label, mark in (("amyloid", a), ("tau", t), ("neurodegeneration", n))
+                if mark == "?"
+            ]
+            findings.append(
+                f"ATN biomarker profile: {atn_str}"
+                + (f" ('?' = not measured: {', '.join(unmeasured)})" if unmeasured else "")
+            )
+
+            if a == "+":
+                if t == "+" and n == "+":
                     findings.append(
                         "A+T+N+ = Alzheimer's disease with neurodegeneration "
                         "(full AD pathological cascade)"
                     )
-                elif tau == "positive":
+                elif t == "+":
                     findings.append(
                         "A+T+ = Alzheimer's disease (amyloid and tau pathology confirmed)"
                     )
-                else:
+                elif t == "-":
                     findings.append(
                         "A+T- = Alzheimer's pathological change "
                         "(amyloid-positive, pre-tangle stage)"
+                    )
+                else:
+                    # The A/T/N narrative is a staging statement about two analytes. With tau
+                    # unmeasured there is no stage to state.
+                    findings.append(
+                        "Amyloid-positive with tau NOT MEASURED -- the ATN stage cannot be "
+                        "assigned. Order CSF p-tau or tau PET to distinguish Alzheimer's "
+                        "pathological change (A+T-) from Alzheimer's disease (A+T+)."
                     )
                 if not primary_subtype:
                     primary_subtype = DementiaSubtype.ALZHEIMERS
@@ -628,17 +881,79 @@ class DementiaEvaluationWorkflow(BaseNeuroWorkflow):
             )
 
         # -- Anti-amyloid eligibility --
-        age = inputs.get("age", 0)
-        moca_score = moca_result.score if moca_domains else (mmse if mmse else None)
+        age = inputs.get("age")
+        # An incomplete MoCA is not a cognitive stage: its total is an upper bound only, so it
+        # must not be the number an anti-amyloid decision is cleared against.
+        if moca_domains and moca_result.complete:
+            moca_score = moca_result.score
+        elif mmse is not None:
+            moca_score = mmse
+        else:
+            moca_score = None
 
         if amyloid == "positive":
+            # N11: `eligible` started True and was only ever cleared by a cognitive score
+            # below 18. With no MoCA and no MMSE supplied, `moca_score is None` and the check
+            # was skipped entirely, so `{amyloid_status: "positive", age: 72}` produced
+            # "ANTI-AMYLOID THERAPY: Patient may be eligible for lecanemab (Leqembi) or
+            # donanemab (Kisunla)" from an amyloid result alone -- with "[INPUT WARNING] No
+            # cognitive test scores provided" sitting in the same findings list. Age >90 and
+            # APOE e4/e4 were demoted to caveats that did not affect eligibility.
+            #
+            # Anti-amyloid therapy now requires the inputs its own safety monitoring turns on:
+            # a cognitive stage, anticoagulation status, and prior ICH / microhaemorrhage
+            # count. Anything absent makes eligibility indeterminate, not met.
             eligible = True
             reasons: List[str] = []
-            if moca_score is not None and moca_score < 18:
+            missing: List[str] = []
+
+            if moca_score is None:
+                missing.append("a cognitive stage (MoCA or MMSE)")
+            # NOTE (uncited, unchanged): the MoCA < 18 floor has no citation in this repo. The
+            # Lecanemab Appropriate Use Recommendations and the trial inclusion criteria are
+            # specified on MMSE 22-30 and CDR-GS 0.5-1, not on MoCA; no primary source was
+            # retrieved, so the value is left as it stands.
+            elif moca_score < 18:
                 eligible = False
                 reasons.append("Cognitive score too low (moderate-to-severe dementia)")
-            if age > 90:
+
+            if age is None:
+                missing.append("age")
+            elif age > 90:
+                # NOTE (uncited): the >90 cut-off is unchanged; it remains a caveat.
                 reasons.append("Age >90 -- limited trial data")
+
+            anticoag = inputs.get("on_anticoagulation")
+            if anticoag is None:
+                missing.append("anticoagulation status")
+            elif anticoag:
+                eligible = False
+                reasons.append(
+                    "On anticoagulation -- substantially increased intracerebral haemorrhage "
+                    "risk with anti-amyloid therapy"
+                )
+
+            prior_ich = inputs.get("prior_ich")
+            microhem = inputs.get("microhemorrhage_count")
+            if prior_ich is None:
+                missing.append("prior intracerebral haemorrhage (yes/no)")
+            elif prior_ich:
+                eligible = False
+                reasons.append("Prior intracerebral haemorrhage")
+            if microhem is None:
+                missing.append("cerebral microhaemorrhage count on MRI")
+
+            if missing:
+                eligible = False
+                findings.append(
+                    "ANTI-AMYLOID THERAPY: eligibility INDETERMINATE -- not assessable "
+                    "without " + "; ".join(missing) + ". An unmeasured input is not a "
+                    "reassuring one."
+                )
+                recommendations.append(
+                    "Before considering lecanemab or donanemab, obtain: "
+                    + "; ".join(missing)
+                )
 
             apoe = inputs.get("apoe_genotype", "")
             if "e4/e4" in str(apoe).lower():
@@ -659,7 +974,7 @@ class DementiaEvaluationWorkflow(BaseNeuroWorkflow):
                 ])
                 if reasons:
                     findings.append(f"Eligibility caveats: {'; '.join(reasons)}")
-            else:
+            elif reasons:
                 findings.append(
                     f"Anti-amyloid therapy not recommended: {'; '.join(reasons)}"
                 )
@@ -817,8 +1132,14 @@ class EpilepsyFocusWorkflow(BaseNeuroWorkflow):
         seizure_type_val = inputs.get("seizure_type", "unknown_onset")
         findings.append(f"ILAE seizure classification: {seizure_type_val}")
 
-        age_onset = inputs.get("age_at_onset", 0)
-        findings.append(f"Age at seizure onset: {age_onset} years")
+        age_onset = inputs.get("age_at_onset")
+        if age_onset is None:
+            findings.append(
+                "Age at seizure onset: NOT RECORDED -- several syndrome patterns below are "
+                "age-gated and cannot be evaluated"
+            )
+        else:
+            findings.append(f"Age at seizure onset: {age_onset} years")
 
         # -- Syndrome identification --
         eeg = inputs.get("eeg_findings", {})
@@ -827,6 +1148,33 @@ class EpilepsyFocusWorkflow(BaseNeuroWorkflow):
         freq_hz = eeg.get("frequency_hz")
 
         syndrome: Optional[str] = None
+
+        # A syndrome the clinician has already diagnosed.
+        #
+        # N19(a): `syndrome = "dravet"` was reachable ONLY through a pathogenic SCN1A result,
+        # and the contraindication scan further down is gated on
+        # `syndrome in _CONTRAINDICATED_ASMS`. A clinically diagnosed Dravet patient taking
+        # carbamazepine, with no genetic testing in the payload, therefore got no
+        # "DANGER: ... CONTRAINDICATED" finding and no severity escalation. Sodium-channel
+        # blockers worsen Dravet seizures.
+        clinical_dx = str(inputs.get("clinical_syndrome_diagnosis", "") or "").lower()
+        for _name, _key in (
+            ("dravet", "dravet"),
+            ("juvenile myoclonic", "juvenile_myoclonic"),
+            ("childhood absence", "childhood_absence"),
+            ("lennox", "lennox_gastaut"),
+            ("west", "west"),
+            ("temporal lobe", "temporal_lobe"),
+        ):
+            if _name in clinical_dx:
+                syndrome = _key
+                findings.append(
+                    f"Clinically diagnosed syndrome supplied: {_key} -- syndrome-specific "
+                    f"drug contraindications apply regardless of genetic testing status"
+                )
+                if _key in ("dravet", "west", "lennox_gastaut"):
+                    severity = SeverityLevel.CRITICAL
+                break
 
         # Dravet syndrome check
         genetic = inputs.get("genetic_testing", {})
@@ -842,19 +1190,26 @@ class EpilepsyFocusWorkflow(BaseNeuroWorkflow):
                                 "Dravet syndrome -- sodium channel blockers CONTRAINDICATED")
             )
 
-        # JME pattern
+        # JME pattern.
+        # N19(b): the code matched `3 <= age_onset <= 25` while the finding it printed said
+        # "onset 8-25y", and the route twin used 12-18 -- three ranges, two of them in the
+        # same sentence. OPEN: the ILAE 2022 syndrome classification paper is the issuing
+        # body's own definition and was not retrieved, so the matched range is left as it is
+        # and the printed text is corrected to state the range actually applied.
         if (seizure_type_val in ("generalized_myoclonic", "generalized_tonic_clonic")
-                and gen_discharges and 3 <= age_onset <= 25):
+                and gen_discharges and age_onset is not None and 3 <= age_onset <= 25):
             if freq_hz and 3.5 <= freq_hz <= 6.0:
                 syndrome = "juvenile_myoclonic"
                 findings.append(
                     "Pattern consistent with Juvenile Myoclonic Epilepsy (JME): "
-                    "myoclonic seizures, generalized discharges, onset 8-25y"
+                    "myoclonic seizures, generalized discharges, onset age within the "
+                    "3-25y range this workflow screens on (confirm against the ILAE 2022 "
+                    "syndrome definition)"
                 )
 
         # Childhood absence
         if (seizure_type_val == "generalized_absence"
-                and gen_discharges and 4 <= age_onset <= 10):
+                and gen_discharges and age_onset is not None and 4 <= age_onset <= 10):
             if freq_hz and 2.5 <= freq_hz <= 3.5:
                 syndrome = "childhood_absence"
                 findings.append(
@@ -871,7 +1226,8 @@ class EpilepsyFocusWorkflow(BaseNeuroWorkflow):
                 findings.append("Temporal lobe epilepsy pattern identified")
 
         # West syndrome
-        if age_onset < 2 and seizure_type_val in ("generalized_tonic", "unknown_onset"):
+        if (age_onset is not None and age_onset < 2
+                and seizure_type_val in ("generalized_tonic", "unknown_onset")):
             hyps = "hypsarrhythmia" in str(eeg).lower()
             if hyps:
                 syndrome = "west"
@@ -880,7 +1236,7 @@ class EpilepsyFocusWorkflow(BaseNeuroWorkflow):
 
         # Lennox-Gastaut
         if (seizure_type_val in ("generalized_tonic", "generalized_atonic")
-                and age_onset < 8 and gen_discharges):
+                and age_onset is not None and age_onset < 8 and gen_discharges):
             if freq_hz and freq_hz < 2.5:
                 syndrome = "lennox_gastaut"
                 findings.append("Lennox-Gastaut syndrome pattern: slow spike-wave <2.5 Hz")
@@ -1099,9 +1455,15 @@ class BrainTumorGradingWorkflow(BaseNeuroWorkflow):
         histology = inputs.get("histology", "unknown").lower()
         marker_strs = inputs.get("molecular_markers", [])
         location = inputs.get("location", "not specified")
-        size = inputs.get("size_cm", 0.0)
-        age = inputs.get("age", 0)
-        kps = inputs.get("kps", 100)
+        # N12: `size = inputs.get("size_cm", 0.0)` and `kps = inputs.get("kps", 100)` were
+        # both PRINTED AS FINDINGS, so a GBM case with neither supplied reported
+        # "Location: not specified, Size: 0.0 cm" and "KPS: 100". The fabricated 100 also kept
+        # the `kps < 60` palliative-care recommendation from ever firing, and for meningioma
+        # `if size < 3.0 and not enhancing` gave an unmeasured tumour "Observation with serial
+        # MRI ... for small, asymptomatic meningioma".
+        size = inputs.get("size_cm")
+        age = inputs.get("age")
+        kps = inputs.get("kps")
         enhancing = inputs.get("enhancing", False)
         recurrence = inputs.get("recurrence", False)
         prior_tx = inputs.get("prior_treatments", [])
@@ -1123,8 +1485,15 @@ class BrainTumorGradingWorkflow(BaseNeuroWorkflow):
             # Grade adjustment for astrocytoma based on markers
             if histology == "astrocytoma":
                 if TumorMolecularMarker.IDH_MUTANT in markers:
-                    # Check for higher grade features
-                    if enhancing or size > 5.0:
+                    # Check for higher grade features.
+                    # OPEN (flagged, unchanged): neither the `enhancing or size > 5.0` upgrade
+                    # here nor the `atrx_loss` upgrade in the route twin appears in WHO CNS5,
+                    # which uses histology plus homozygous CDKN2A/B deletion for grade 4. The
+                    # WHO Classification of Tumours of the CNS, 5th edition was not
+                    # accessible, so the rule is left as it is rather than replaced from
+                    # memory. `size` being None no longer makes the comparison crash or
+                    # silently read as 0.
+                    if enhancing or (size is not None and size > 5.0):
                         grade = TumorGrade.GRADE_3
                         who_name = "Astrocytoma, IDH-mutant, WHO Grade 3"
                     else:
@@ -1145,10 +1514,39 @@ class BrainTumorGradingWorkflow(BaseNeuroWorkflow):
             grade = TumorGrade.GRADE_2  # default
             findings.append(f"Histology: {histology} (not in WHO 2021 lookup)")
 
-        findings.append(f"Location: {location}, Size: {size:.1f} cm")
-        findings.append(f"KPS: {kps}")
+        findings.append(
+            f"Location: {location}, Size: "
+            + (f"{size:.1f} cm" if size is not None else "NOT MEASURED")
+        )
+        if kps is None:
+            findings.append(
+                "KPS: NOT RECORDED -- performance status drives treatment intensity and the "
+                "palliative-care decision; record it"
+            )
+            recommendations.append(
+                "Record Karnofsky Performance Status: treatment intensity cannot be "
+                "recommended without it"
+            )
+        else:
+            findings.append(f"KPS: {kps}")
+        if size is None:
+            recommendations.append(
+                "Record the maximum tumour diameter: surveillance-versus-resection decisions "
+                "depend on it"
+            )
 
         # -- Molecular marker reporting --
+        # MGMT status is a temozolomide-response marker, so this applies to the diffuse
+        # gliomas, not to every histology.
+        if histology in ("glioblastoma", "astrocytoma", "oligodendroglioma", "dmg") and not (
+            {TumorMolecularMarker.MGMT_METHYLATED,
+             TumorMolecularMarker.MGMT_UNMETHYLATED} & markers
+        ):
+            findings.append(
+                "MGMT promoter methylation: NOT TESTED -- absence of a result is not an "
+                "unmethylated result, and temozolomide benefit cannot be predicted without it"
+            )
+            recommendations.append("Order MGMT promoter methylation testing")
         for marker in markers:
             if marker == TumorMolecularMarker.MGMT_METHYLATED:
                 findings.append(
@@ -1184,7 +1582,8 @@ class BrainTumorGradingWorkflow(BaseNeuroWorkflow):
                     "temozolomide x6 cycles",
                     "Consider tumor-treating fields (TTFields/Optune) during adjuvant phase",
                 ])
-                if TumorMolecularMarker.MGMT_UNMETHYLATED in markers and age > 65:
+                if (TumorMolecularMarker.MGMT_UNMETHYLATED in markers
+                        and age is not None and age > 65):
                     recommendations.append(
                         "Consider hypofractionated RT (40 Gy/15 fx) +/- temozolomide "
                         "given age >65 and MGMT unmethylated status"
@@ -1205,7 +1604,13 @@ class BrainTumorGradingWorkflow(BaseNeuroWorkflow):
 
         elif histology == "meningioma":
             if grade == TumorGrade.GRADE_1:
-                if size < 3.0 and not enhancing:
+                if size is None:
+                    recommendations.append(
+                        "Meningioma management cannot be recommended: the tumour was not "
+                        "measured. Observation applies to small, asymptomatic lesions, and an "
+                        "unmeasured lesion is not a small one."
+                    )
+                elif size < 3.0 and not enhancing:
                     recommendations.append(
                         "Observation with serial MRI (6 months, then annually) "
                         "for small, asymptomatic meningioma"
@@ -1231,7 +1636,11 @@ class BrainTumorGradingWorkflow(BaseNeuroWorkflow):
             "Seizure prophylaxis with levetiracetam if presenting with seizures",
         ])
 
-        if kps < 60:
+        # NOTE: this workflow uses KPS < 60 while api/routes/neuro_clinical.py uses KPS < 70
+        # for the same decision. Neither cut-point is cited in this repo and no primary source
+        # was retrieved, so both values are left as they are and the divergence is recorded
+        # rather than silently resolved in one direction.
+        if kps is not None and kps < 60:
             recommendations.append(
                 "KPS <60: consider palliative/supportive care focus; "
                 "limited benefit from aggressive treatment"
@@ -1322,11 +1731,16 @@ class MSMonitoringWorkflow(BaseNeuroWorkflow):
         phenotype = inputs.get("phenotype", "rrms")
         findings.append(f"MS phenotype: {phenotype.upper()}")
 
-        edss_current = inputs.get("edss_current", 0.0)
+        # N7(a): these all defaulted to 0 / 0.0 and `neda3` started True, so
+        # `MSMonitoringWorkflow().run({})` returned "EDSS: 0.0", "NEDA-3 STATUS: ACHIEVED --
+        # no disease activity detected" and severity LOW: a patient with no MRI, no relapse
+        # history and no recorded EDSS was certified disease-free. NEDA-3 means no EVIDENCE of
+        # disease activity, which requires evidence.
+        edss_current = inputs.get("edss_current")
         edss_prior = inputs.get("edss_prior")
-        new_t2 = inputs.get("new_t2_lesions", 0)
-        gad_enh = inputs.get("gad_enhancing", 0)
-        relapses_1yr = inputs.get("relapses_last_year", 0)
+        new_t2 = inputs.get("new_t2_lesions")
+        gad_enh = inputs.get("gad_enhancing")
+        relapses_1yr = inputs.get("relapses_last_year")
         relapses_2yr = inputs.get("relapses_last_2yr", 0)
         current_dmt = inputs.get("current_dmt")
         dmt_cat = inputs.get("dmt_category")
@@ -1336,50 +1750,84 @@ class MSMonitoringWorkflow(BaseNeuroWorkflow):
 
         # -- EDSS calculation --
         fs_scores = inputs.get("edss_fs_scores")
-        if fs_scores:
-            edss_result = EDSSCalculator.calculate(fs_scores, edss_current)
+        if fs_scores or edss_current is not None:
+            edss_result = EDSSCalculator.calculate(fs_scores or {}, edss_current)
             scale_results.append(edss_result)
-        findings.append(f"EDSS: {edss_current}")
+        if edss_current is None:
+            findings.append("EDSS: NOT RECORDED")
+        else:
+            findings.append(f"EDSS: {edss_current}")
 
         # -- NEDA-3 assessment --
         # NEDA-3: No Evidence of Disease Activity
         # 1. No relapses
         # 2. No new/enlarging T2 or Gd+ lesions
         # 3. No EDSS progression
-        neda3 = True
+        #
+        # Each limb is now three-valued: True (clear), False (activity), None (not assessed).
+        # NEDA-3 is achieved only when all three are True, and is "not assessable" -- not
+        # achieved -- when any is None.
         neda_failures: List[str] = []
+        neda_unassessed: List[str] = []
 
-        if relapses_1yr > 0:
-            neda3 = False
+        if relapses_1yr is None:
+            neda_unassessed.append("relapse count for the past year")
+            relapse_limb = None
+        elif relapses_1yr > 0:
+            relapse_limb = False
             neda_failures.append(f"{relapses_1yr} relapse(s) in past year")
+        else:
+            relapse_limb = True
 
-        if new_t2 > 0 or gad_enh > 0:
-            neda3 = False
+        if new_t2 is None and gad_enh is None:
+            neda_unassessed.append("MRI lesion activity (new T2 / Gd-enhancing)")
+            mri_limb = None
+        elif (new_t2 or 0) > 0 or (gad_enh or 0) > 0:
+            mri_limb = False
             neda_failures.append(
-                f"{new_t2} new T2 lesion(s), {gad_enh} Gd-enhancing lesion(s)"
+                f"{new_t2 or 0} new T2 lesion(s), {gad_enh or 0} Gd-enhancing lesion(s)"
             )
+        else:
+            mri_limb = True
 
         edss_progression = False
-        if edss_prior is not None:
+        if edss_prior is None or edss_current is None:
+            neda_unassessed.append("EDSS progression (requires a prior and a current EDSS)")
+            progression_limb = None
+        else:
             delta = edss_current - edss_prior
             if edss_prior <= 5.5 and delta >= 1.0:
                 edss_progression = True
             elif edss_prior >= 6.0 and delta >= 0.5:
                 edss_progression = True
+            progression_limb = not edss_progression
             if edss_progression:
-                neda3 = False
                 neda_failures.append(
                     f"EDSS progression: {edss_prior} -> {edss_current} (+{delta:.1f})"
                 )
 
-        if neda3:
-            findings.append("NEDA-3 STATUS: ACHIEVED -- no disease activity detected")
-            severity = SeverityLevel.LOW
-        else:
+        limbs = (relapse_limb, mri_limb, progression_limb)
+        if any(limb is False for limb in limbs):
+            neda3 = False
             findings.append(
                 f"NEDA-3 STATUS: NOT MET -- {'; '.join(neda_failures)}"
             )
             severity = SeverityLevel.HIGH
+        elif all(limb is True for limb in limbs):
+            neda3 = True
+            findings.append("NEDA-3 STATUS: ACHIEVED -- no disease activity detected")
+            severity = SeverityLevel.LOW
+        else:
+            neda3 = None
+            findings.append(
+                "NEDA-3 STATUS: NOT ASSESSABLE -- missing "
+                + "; ".join(neda_unassessed)
+                + ". Absent data is not absence of disease activity."
+            )
+            recommendations.append(
+                "Record, before reporting disease-activity status: "
+                + "; ".join(neda_unassessed)
+            )
 
         # -- Brain volume --
         if bv_change is not None:
@@ -1404,7 +1852,9 @@ class MSMonitoringWorkflow(BaseNeuroWorkflow):
             escalate = False
             escalation_reasons: List[str] = []
 
-            if not neda3:
+            # `neda3` is now three-valued; `not None` would have made "not assessed" read as
+            # "activity present".
+            if neda3 is False:
                 escalate = True
                 escalation_reasons.append("Disease activity despite current DMT")
 
@@ -1412,11 +1862,11 @@ class MSMonitoringWorkflow(BaseNeuroWorkflow):
                 escalate = True
                 escalation_reasons.append(f"{relapses_2yr} relapses in 2 years")
 
-            if new_t2 >= 2:
+            if new_t2 is not None and new_t2 >= 2:
                 escalate = True
                 escalation_reasons.append(f"{new_t2} new T2 lesions")
 
-            if gad_enh >= 1:
+            if gad_enh is not None and gad_enh >= 1:
                 escalate = True
                 escalation_reasons.append(f"{gad_enh} enhancing lesion(s)")
 
@@ -1573,10 +2023,21 @@ class ParkinsonsAssessmentWorkflow(BaseNeuroWorkflow):
         severity = SeverityLevel.MODERATE
         cross_triggers: List[str] = []
 
-        age = inputs.get("age", 0)
-        age_onset = inputs.get("age_at_onset", 0)
-        duration = inputs.get("symptom_duration_years", 0)
-        findings.append(f"Age: {age}, onset age: {age_onset}, duration: {duration:.1f} years")
+        # These were printed as findings with their invented defaults: a request with none of
+        # them reported "Age: 0, onset age: 0, duration: 0.0 years" and then used duration 0
+        # as grounds for "Disease duration <5 years".
+        age = inputs.get("age")
+        age_onset = inputs.get("age_at_onset")
+        duration = inputs.get(
+            "symptom_duration_years", inputs.get("disease_duration_years")
+        )
+        findings.append(
+            "Age: {}, onset age: {}, duration: {}".format(
+                age if age is not None else "not recorded",
+                age_onset if age_onset is not None else "not recorded",
+                f"{duration:.1f} years" if duration is not None else "not recorded",
+            )
+        )
 
         # -- UPDRS Part III --
         updrs_scores = inputs.get("updrs_scores")
@@ -1687,12 +2148,19 @@ class ParkinsonsAssessmentWorkflow(BaseNeuroWorkflow):
         # -- DBS candidacy (CAPSIT-PD) --
         motor_fluct = inputs.get("motor_fluctuations", False)
         dyskinesias = inputs.get("dyskinesias", False)
-        cog_status = inputs.get("cognitive_status", "normal")
+        # N13(a): this defaulted to "normal", so a patient whose cognition was never assessed
+        # yielded "DBS CANDIDATE: ... no cognitive contraindication" -- an assertion about a
+        # domain nobody had examined. A MoCA, when supplied, was computed and printed but
+        # never read by the DBS decision.
+        cog_status = inputs.get("cognitive_status")
 
         # MoCA for cognitive screening
         moca_domains = inputs.get("moca_domain_scores")
+        moca_result = None
         if moca_domains:
-            moca_result = MoCACalculator.calculate(moca_domains)
+            moca_result = MoCACalculator.calculate(
+                moca_domains, inputs.get("education_years")
+            )
             scale_results.append(moca_result)
             findings.append(f"MoCA: {int(moca_result.score)}/30 ({moca_result.severity_category})")
 
@@ -1705,15 +2173,38 @@ class ParkinsonsAssessmentWorkflow(BaseNeuroWorkflow):
         if cog_status == "dementia":
             dbs_candidate = False
             dbs_reasons.append("Cognitive impairment (dementia) is a contraindication")
+        elif cog_status is None:
+            if moca_result is not None and moca_result.complete:
+                # Use the MoCA that was already computed rather than asserting a status.
+                if moca_result.score < 26:
+                    dbs_candidate = False
+                    dbs_reasons.append(
+                        f"MoCA {int(moca_result.score)}/30 is below the cognitive threshold "
+                        f"this agent applies to DBS candidacy (MoCA >= 26) -- formal "
+                        f"neuropsychological assessment required"
+                    )
+            else:
+                dbs_candidate = False
+                dbs_reasons.append(
+                    "Cognitive status NOT ASSESSED -- DBS candidacy cannot be cleared on an "
+                    "unexamined cognitive domain; obtain neuropsychological testing"
+                )
         if levo_resp == "poor":
             dbs_candidate = False
             dbs_reasons.append("Poor levodopa response")
         if red_flags:
             dbs_candidate = False
             dbs_reasons.append("Atypical features present")
-        if duration < 5:
+        if duration is None:
+            dbs_reasons.append(
+                "Disease duration not recorded -- the diagnosis should be well-established "
+                "before DBS"
+            )
+        elif duration < 5:
+            # NOTE: this workflow uses < 5 years while api/routes/neuro_clinical.py uses
+            # >= 4. Neither is cited; both left unchanged, divergence recorded.
             dbs_reasons.append("Disease duration <5 years -- diagnosis should be well-established")
-        if age > 75:
+        if age is not None and age > 75:
             dbs_reasons.append("Age >75 -- relative contraindication; consider carefully")
 
         if dbs_candidate and updrs_scores:
@@ -1721,10 +2212,15 @@ class ParkinsonsAssessmentWorkflow(BaseNeuroWorkflow):
                 max(0, min(updrs_scores.get(i, 0), 4))
                 for i in UPDRSCalculator.ITEMS
             )
+            # OPEN (uncited, unchanged): the >= 59 gate is cited nowhere and is not a
+            # CAPSIT-PD criterion; and if `updrs_scores` is absent this whole block prints
+            # nothing at all, which is why the "not currently indicated" branch below now
+            # also fires when the DBS assessment could not be completed.
             if updrs_total >= 59:
                 findings.append(
-                    "DBS CANDIDATE: Motor fluctuations/dyskinesias present, "
-                    "levodopa-responsive, no cognitive contraindication"
+                    "DBS CANDIDATE: motor fluctuations/dyskinesias present, "
+                    "levodopa-responsive, and no cognitive contraindication on the "
+                    "assessment supplied"
                 )
                 recommendations.append(
                     "Refer for DBS evaluation (CAPSIT-PD protocol): "
@@ -1889,9 +2385,36 @@ class HeadacheClassificationWorkflow(BaseNeuroWorkflow):
         if migraine_features >= 2 and migraine_assoc >= 1 and 4 <= duration <= 72:
             if frequency >= 15 and duration >= 4:
                 headache_dx = HeadacheType.CHRONIC_MIGRAINE
+                # N16: the finding asserted ">= 15 headache days/month, >= 8 with migraine
+                # features, >= 3 months" while only the >= 15 was ever tested -- two criteria
+                # were stated as verified and never checked. They are reported as outstanding
+                # unless the caller supplies them.
+                migraine_days = hf.get("migraine_days_per_month")
+                months = hf.get("duration_months")
+                verified = [f"{frequency} headache days/month (>= 15)"]
+                outstanding = []
+                if migraine_days is None:
+                    outstanding.append(">= 8 days/month with migraine features (not supplied)")
+                elif migraine_days >= 8:
+                    verified.append(f"{migraine_days} migraine days/month (>= 8)")
+                else:
+                    outstanding.append(
+                        f"only {migraine_days} migraine days/month (ICHD-3 requires >= 8)"
+                    )
+                if months is None:
+                    outstanding.append("duration > 3 months (not supplied)")
+                elif months > 3:
+                    verified.append(f"{months} months (> 3)")
+                else:
+                    outstanding.append(
+                        f"only {months} months (ICHD-3 requires > 3)"
+                    )
                 findings.append(
-                    "ICHD-3: Chronic migraine (>= 15 headache days/month, "
-                    ">= 8 with migraine features, >= 3 months)"
+                    "ICHD-3 chronic migraine -- verified: " + "; ".join(verified)
+                    + (
+                        ". NOT VERIFIED: " + "; ".join(outstanding)
+                        if outstanding else ". All ICHD-3 1.3 criteria verified."
+                    )
                 )
             elif aura:
                 headache_dx = HeadacheType.MIGRAINE_WITH_AURA
@@ -1914,7 +2437,11 @@ class HeadacheClassificationWorkflow(BaseNeuroWorkflow):
 
         # Cluster / TAC
         elif unilateral and autonomic and intensity == "severe":
-            if duration <= 3 and len(autonomic) >= 1:
+            # N16: `duration <= 3` had no lower bound, so the `duration = 0` default -- i.e.
+            # a duration nobody recorded -- satisfied a criterion whose own printed text says
+            # "duration 15-180 min". ICHD-3 3.1 specifies attacks of 15-180 minutes, which is
+            # 0.25-3 hours in this field's units.
+            if 0.25 <= duration <= 3 and len(autonomic) >= 1:
                 headache_dx = HeadacheType.CLUSTER
                 findings.append(
                     "ICHD-3: Cluster headache (severe unilateral with "
@@ -1942,7 +2469,17 @@ class HeadacheClassificationWorkflow(BaseNeuroWorkflow):
             )
 
         # -- HIT-6 --
+        # HIT6Calculator now refuses a short or unrecognised response set rather than padding
+        # it with "never" (N9), so the refusal is reported as a finding instead of producing a
+        # best-case score.
         hit6_resp = inputs.get("hit6_responses")
+        hit6_result = None
+        if hit6_resp:
+            try:
+                HIT6Calculator.calculate(hit6_resp)
+            except ScaleDataError as exc:
+                findings.append(f"HIT-6 NOT SCORED: {exc}")
+                hit6_resp = None
         if hit6_resp:
             hit6_result = HIT6Calculator.calculate(hit6_resp)
             scale_results.append(hit6_result)
@@ -1998,7 +2535,7 @@ class HeadacheClassificationWorkflow(BaseNeuroWorkflow):
         preventive_indicated = (
             frequency >= 4
             or (midas is not None and midas > 10)
-            or (hit6_resp and hit6_result.score >= 56)
+            or (hit6_result is not None and hit6_result.score >= 56)
             or headache_dx == HeadacheType.CHRONIC_MIGRAINE
         )
 
@@ -2105,14 +2642,30 @@ class NeuromuscularEvaluationWorkflow(BaseNeuroWorkflow):
         emg = inputs.get("emg_ncs", {})
         weakness = inputs.get("weakness_pattern", "generalized")
         distribution = inputs.get("distribution", "symmetric")
-        progression = inputs.get("progression", "chronic")
+        # N14: this defaulted to "chronic", and "chronic" is printed as a finding and routes
+        # the demyelinating differential away from Guillain-Barre -- which carries the only
+        # urgent actions in this file: "URGENT: Monitor respiratory function (FVC q4h) --
+        # intubate if FVC < 20 mL/kg", IVIg/plasmapheresis, and severity CRITICAL. A
+        # demyelinating EMG with `progression` absent reported "Progression: chronic" (a value
+        # nobody supplied), a CIDP/MMN/anti-MAG/CMT1 differential, severity MODERATE, and an
+        # antibody panel plus a CMT gene panel -- with no airway monitoring for a
+        # demyelinating polyneuropathy of unknown tempo. GBS respiratory failure is the
+        # non-recoverable error in this domain.
+        progression = inputs.get("progression")
         sensory = inputs.get("sensory_involvement", False)
         ck = inputs.get("ck_level")
-        age = inputs.get("age", 0)
+        age = inputs.get("age")
         fam_hx = inputs.get("family_history_neuromuscular", False)
 
         findings.append(f"Weakness pattern: {weakness}, distribution: {distribution}")
-        findings.append(f"Progression: {progression}")
+        if progression is None:
+            findings.append(
+                "Progression: NOT RECORDED -- the tempo separates an acute (GBS) from a "
+                "chronic (CIDP) presentation and determines whether respiratory monitoring "
+                "is required"
+            )
+        else:
+            findings.append(f"Progression: {progression}")
         if sensory:
             findings.append("Sensory involvement present")
         if ck is not None:
@@ -2207,6 +2760,24 @@ class NeuromuscularEvaluationWorkflow(BaseNeuroWorkflow):
                     "URGENT: Monitor respiratory function (FVC q4h) -- "
                     "intubate if FVC < 20 mL/kg or declining rapidly",
                     "Start IVIg (0.4 g/kg/day x 5 days) or plasmapheresis (5 exchanges)",
+                ])
+            elif progression is None:
+                # Tempo not established. GBS cannot be excluded, so it stays on the
+                # differential and keeps its airway monitoring.
+                differentials = [
+                    "Guillain-Barre syndrome (AIDP) -- CANNOT BE EXCLUDED: tempo not recorded",
+                    "CIDP (chronic inflammatory demyelinating polyneuropathy)",
+                    "MMN (multifocal motor neuropathy with conduction block)",
+                    "Anti-MAG neuropathy",
+                    "Charcot-Marie-Tooth (hereditary demyelinating, CMT1)",
+                ]
+                severity = SeverityLevel.CRITICAL
+                recommendations.extend([
+                    "Establish the tempo of progression (symptom onset date, nadir, whether "
+                    "still worsening) -- it decides between GBS and CIDP",
+                    "URGENT until GBS is excluded: monitor respiratory function (FVC q4h, "
+                    "negative inspiratory force, single-breath count) -- intubate if "
+                    "FVC < 20 mL/kg or declining rapidly; monitor for autonomic instability",
                 ])
             else:
                 differentials = [
@@ -2333,8 +2904,11 @@ class NeuromuscularEvaluationWorkflow(BaseNeuroWorkflow):
             )
 
         # -- Genetic testing recommendations --
+        # A CMT gene panel is a chronic-neuropathy work-up. It used to be recommended for an
+        # unknown-tempo patient because `progression` defaulted to "chronic", and `age < 40`
+        # was true for the `age` default of 0.
         if fam_hx or (pattern == NMJPattern.DEMYELINATING and progression == "chronic"
-                       and age < 40):
+                       and age is not None and age < 40):
             recommendations.append(
                 "Consider genetic testing: CMT gene panel (PMP22, MPZ, GJB1, MFN2) "
                 "for hereditary neuropathy"
