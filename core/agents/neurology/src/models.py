@@ -733,6 +733,16 @@ class NeuroResponse(BaseModel):
         ge=0.0,
         description="Total processing time in milliseconds",
     )
+    evidence_sufficiency: str = Field(
+        default="unknown",
+        description=(
+            "'sufficient', 'partial', 'insufficient' or 'unknown' \u2014 how well grounded this "
+            "answer is, from the agent's evaluate_evidence(). Computed since the agent was "
+            "written and, until 2026-11-04, used only to decide whether to widen the search "
+            "and then discarded, so an answer built on almost nothing was indistinguishable "
+            "from one built on good evidence."
+        ),
+    )
 
 
 # ===================================================================
@@ -741,6 +751,7 @@ class NeuroResponse(BaseModel):
 
 
 @dataclass
+
 class SearchPlan:
     """Plan for multi-collection search with per-collection parameters.
 

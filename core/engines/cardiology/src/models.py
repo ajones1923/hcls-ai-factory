@@ -722,3 +722,15 @@ class CardioResponse(BaseModel):
         default=0.0, ge=0.0, le=1.0,
         description="Agent confidence in the response (0.0 - 1.0)",
     )
+    evidence_sufficiency: str = Field(
+        default="unknown",
+        description=(
+            "'sufficient', 'partial', 'insufficient' or 'unknown' \u2014 how well grounded this "
+            "answer is, from the agent's evidence grading. Computed since the agent was "
+            "written and, until 2026-11-04, used only to decide whether to widen the search "
+            "and then discarded, so an answer built on almost nothing was indistinguishable "
+            "from one built on good evidence."
+        ),
+    )
+
+

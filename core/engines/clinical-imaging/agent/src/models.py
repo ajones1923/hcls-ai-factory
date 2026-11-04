@@ -752,6 +752,15 @@ class AgentResponse(BaseModel):
     nim_services_used: List[str] = Field(default_factory=list)
     knowledge_used: List[str] = Field(default_factory=list)
     cross_modal: Optional[CrossModalResult] = None
+    evidence_sufficiency: str = Field(
+        default="unknown",
+        description=(
+            "'sufficient', 'partial', 'insufficient' or 'unknown', from "
+            "ImagingAgent.evaluate_evidence. Until 2026-11-04 that method had NO production "
+            "caller -- eight tests asserted its classification and nothing ever ran it, so "
+            "the suite showed a working evidence check that did not exist in the pipeline."
+        ),
+    )
     timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"))
 
 

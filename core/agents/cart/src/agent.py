@@ -100,6 +100,9 @@ class CARTIntelligenceAgent:
                 sub_query = AgentQuery(question=sub_q, include_genomic=False)
                 sub_evidence = self.rag.retrieve(sub_query)
                 evidence.hits.extend(sub_evidence.hits)
+            # Re-grade AFTER widening: the first verdict described the evidence that
+            # triggered the expansion, not the evidence the answer now rests on.
+            quality = self.evaluate_evidence(evidence)
 
         # Phase 5: Generate answer (reuse already-retrieved evidence)
         prompt = self.rag._build_prompt(question, evidence)
@@ -117,11 +120,21 @@ class CARTIntelligenceAgent:
                 if line.strip().startswith("## "):
                     knowledge_used.append(line.strip().lstrip("# "))
 
+        if quality == "insufficient":
+            answer = (
+                "**Evidence was insufficient.** Retrieval returned too little to support "
+                "this answer, and widening the search did not change that. Treat everything "
+                "below as provisional and verify against primary sources.\n\n"
+            ) + answer
+
         return AgentResponse(
             question=question,
             answer=answer,
             evidence=evidence,
             knowledge_used=knowledge_used,
+            # Until 2026-11-04 the API path dropped this; only the Streamlit UI showed it,
+            # and showed the pre-expansion value.
+            evidence_sufficiency=quality,
         )
 
     def search_plan(self, question: str) -> SearchPlan:

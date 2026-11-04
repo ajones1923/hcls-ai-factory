@@ -201,10 +201,21 @@ class ImagingIntelligenceAgent:
         # Generate answer
         answer = self.rag.query(query.question)
 
+        # evaluate_evidence() existed, was tested eight ways, and was called by nothing.
+        # A tested guard with no caller is worse than no guard: the suite reports it green.
+        sufficiency = self.evaluate_evidence(evidence)
+        if sufficiency == "insufficient":
+            answer = (
+                "**Evidence was insufficient.** Retrieval returned too little to support "
+                "this answer. Treat everything below as provisional and verify against "
+                "primary sources.\n\n"
+            ) + answer
+
         return AgentResponse(
             question=query.question,
             answer=answer,
             evidence=evidence,
+            evidence_sufficiency=sufficiency,
             workflow_results=workflow_results,
             nim_services_used=nim_services_used,
             knowledge_used=[k for k in ["pathology", "modality", "anatomy"] if k in (evidence.knowledge_context or "").lower()],
