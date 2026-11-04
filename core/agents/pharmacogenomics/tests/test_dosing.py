@@ -23,103 +23,63 @@ class TestDosingCalculator:
     # ═══════════════════════════════════════════════════════════════════
 
     class TestWarfarinDose:
+        """IWPC warfarin dosing is DISABLED, and these tests hold it disabled.
+
+        The coefficient block in `warfarin_dose` is mis-transcribed from Klein 2009: the column
+        is shifted, so a Black patient is multiplied by +1.1816 (the enzyme-inducer coefficient)
+        where the published algorithm applies -0.2760. On the square-root-of-weekly-dose scale
+        that inflates the predicted dose by roughly 1.5-1.7x -- a race-specific overdose of a
+        narrow-therapeutic-index anticoagulant, in the direction that causes a bleed.
+
+        **The old test suite asserted that defect as the specification.** It contained:
+
+            def test_african_american_increases_dose(self):
+                ...
+                assert aa["predicted_weekly_dose"] > other["predicted_weekly_dose"]
+
+        along with `test_smoker_increases_dose` and `test_cyp4f2_effect`, which pin two terms
+        the IWPC model does not contain at all. Eighteen tests covered this function and every
+        one of them asserted only a DIRECTION -- "this input moves the dose down" -- so a
+        coefficient attached to the wrong variable could not fail any of them. That is the same
+        blind spot that let four EuroSCORE II coefficients survive 2,046 passing tests.
+
+        Those assertions are not deleted and not weakened; they are replaced, because they were
+        wrong about the world. The dose is not computed at all until the coefficients are
+        restored from Supplementary Appendix 1 of Klein 2009, which could not be retrieved on
+        the night this was found. See CLINICAL_REVIEW.md §21 for the full published mapping and
+        the three "genotype unknown" terms the block never had.
+
+        When the coefficients are restored, this class must be replaced by REFERENCE CASES --
+        a described patient in, the published predicted dose out -- not by direction tests.
+        """
+
         @pytest.fixture(autouse=True)
         def setup(self):
             self.calc = DosingCalculator()
 
-        def test_standard_genotype(self):
-            result = self.calc.warfarin_dose("*1/*1", "*1/*1")
-            assert result["predicted_weekly_dose"] > 0
-            assert result["predicted_daily_dose"] > 0
-            assert result["algorithm_name"] == "IWPC Pharmacogenetic Warfarin Dosing Algorithm"
+        def test_no_dose_is_returned(self):
+            with pytest.raises(RuntimeError, match="mis-transcribed"):
+                self.calc.warfarin_dose("*1/*1", "*1/*1")
 
-        def test_cyp2c9_1_2_reduces_dose(self):
-            standard = self.calc.warfarin_dose("*1/*1", "*1/*1")
-            reduced = self.calc.warfarin_dose("*1/*2", "*1/*1")
-            assert reduced["predicted_weekly_dose"] < standard["predicted_weekly_dose"]
+        def test_the_refusal_names_the_race_specific_error(self):
+            """A reader of the traceback must learn why, not just that it failed."""
+            with pytest.raises(RuntimeError) as exc:
+                self.calc.warfarin_dose("*1/*1", "*1/*1")
+            msg = str(exc.value)
+            assert "race-specific" in msg
+            assert "CLINICAL_REVIEW" in msg
 
-        def test_cyp2c9_3_3_lowest(self):
-            standard = self.calc.warfarin_dose("*1/*1", "*1/*1")
-            lowest = self.calc.warfarin_dose("*3/*3", "*1/*1")
-            assert lowest["predicted_weekly_dose"] < standard["predicted_weekly_dose"]
+        def test_it_refuses_for_every_patient_not_only_the_affected_group(self):
+            """Disabling only the Black-patient path would leave a function nobody can trust."""
+            for race in ("other", "asian", "european", "african_american"):
+                with pytest.raises(RuntimeError):
+                    self.calc.warfarin_dose("*1/*1", "*1/*1", race=race)
 
-        def test_vkorc1_aa_reduces_dose(self):
-            standard = self.calc.warfarin_dose("*1/*1", "*1/*1")
-            reduced = self.calc.warfarin_dose("*1/*1", "-1639G>A/-1639G>A")
-            assert reduced["predicted_weekly_dose"] < standard["predicted_weekly_dose"]
-
-        def test_vkorc1_ag_reduces_dose(self):
-            standard = self.calc.warfarin_dose("*1/*1", "*1/*1")
-            reduced = self.calc.warfarin_dose("*1/*1", "*1/-1639G>A")
-            assert reduced["predicted_weekly_dose"] < standard["predicted_weekly_dose"]
-
-        def test_amiodarone_reduces_dose(self):
-            no_amio = self.calc.warfarin_dose("*1/*1", "*1/*1", amiodarone=False)
-            with_amio = self.calc.warfarin_dose("*1/*1", "*1/*1", amiodarone=True)
-            assert with_amio["predicted_weekly_dose"] < no_amio["predicted_weekly_dose"]
-
-        def test_smoker_increases_dose(self):
-            non_smoker = self.calc.warfarin_dose("*1/*1", "*1/*1", smoker=False)
-            smoker = self.calc.warfarin_dose("*1/*1", "*1/*1", smoker=True)
-            assert smoker["predicted_weekly_dose"] > non_smoker["predicted_weekly_dose"]
-
-        def test_african_american_increases_dose(self):
-            other = self.calc.warfarin_dose("*1/*1", "*1/*1", race="other")
-            aa = self.calc.warfarin_dose("*1/*1", "*1/*1", race="african_american")
-            assert aa["predicted_weekly_dose"] > other["predicted_weekly_dose"]
-
-        def test_asian_reduces_dose(self):
-            other = self.calc.warfarin_dose("*1/*1", "*1/*1", race="other")
-            asian = self.calc.warfarin_dose("*1/*1", "*1/*1", race="asian")
-            assert asian["predicted_weekly_dose"] < other["predicted_weekly_dose"]
-
-        def test_age_effect(self):
-            young = self.calc.warfarin_dose("*1/*1", "*1/*1", age=30)
-            old = self.calc.warfarin_dose("*1/*1", "*1/*1", age=80)
-            assert young["predicted_weekly_dose"] > old["predicted_weekly_dose"]
-
-        def test_weight_effect(self):
-            light = self.calc.warfarin_dose("*1/*1", "*1/*1", weight=50)
-            heavy = self.calc.warfarin_dose("*1/*1", "*1/*1", weight=100)
-            assert heavy["predicted_weekly_dose"] > light["predicted_weekly_dose"]
-
-        def test_confidence_interval(self):
-            result = self.calc.warfarin_dose("*1/*1", "*1/*1")
-            ci = result["confidence_interval"]
-            assert ci[0] < result["predicted_weekly_dose"]
-            assert ci[1] > result["predicted_weekly_dose"]
-
-        def test_dose_category_standard(self):
-            result = self.calc.warfarin_dose("*1/*1", "*1/*1")
-            assert result["dose_category"] in [
-                "Low Dose (sensitive)", "Standard Dose", "High Dose (resistant)"
-            ]
-
-        def test_dose_category_low(self):
-            result = self.calc.warfarin_dose("*3/*3", "-1639G>A/-1639G>A")
-            assert result["dose_category"] == "Low Dose (sensitive)"
-
-        def test_variables_used(self):
-            result = self.calc.warfarin_dose("*1/*2", "*1/*1", age=55,
-                                            weight=80, height=175)
-            v = result["variables_used"]
-            assert v["cyp2c9_diplotype"] == "*1/*2"
-            assert v["age"] == 55
-
-        def test_clinical_notes_for_pm(self):
-            result = self.calc.warfarin_dose("*3/*3", "*1/*1")
-            notes = result["clinical_notes"]
-            assert any("poor metabolizer" in n.lower() for n in notes)
-
-        def test_cyp4f2_effect(self):
-            standard = self.calc.warfarin_dose("*1/*1", "*1/*1", cyp4f2_genotype="*1/*1")
-            variant = self.calc.warfarin_dose("*1/*1", "*1/*1", cyp4f2_genotype="*3/*3")
-            assert variant["predicted_weekly_dose"] < standard["predicted_weekly_dose"]
-
-        def test_floor_at_half_mg(self):
-            result = self.calc.warfarin_dose("*3/*3", "-1639G>A/-1639G>A",
-                                            age=90, weight=40, height=150)
-            assert result["predicted_weekly_dose"] >= 0.5
+        def test_it_refuses_regardless_of_genotype(self):
+            for cyp2c9, vkorc1 in (("*1/*1", "*1/*1"), ("*3/*3", "-1639G>A/-1639G>A"),
+                                   ("*1/*2", "*1/-1639G>A")):
+                with pytest.raises(RuntimeError):
+                    self.calc.warfarin_dose(cyp2c9, vkorc1)
 
     # ═══════════════════════════════════════════════════════════════════
     # 2. TACROLIMUS (CYP3A5)

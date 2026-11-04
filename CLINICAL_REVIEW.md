@@ -420,3 +420,62 @@ published MAGGIC, and the score maps directly onto 1- and 3-year mortality estim
 in the published score the way age points are. This code stratifies age by EF but not SBP.
 
 - **Settle with:** Pocock 2013 Table 2/Table 4, or the calculator at heartfailurerisk.org.
+
+## 21. Warfarin IWPC — DISABLED 2026-11-04, the coefficient column is shifted and the error is race-specific
+
+**This is the most harmful defect the pre-release audit found, and the function no longer returns
+a dose.** `DosingCalculator.warfarin_dose` now raises; the Streamlit page shows the reason and
+tells the clinician to dose by protocol with INR monitoring.
+
+Every number in the block *is* an IWPC coefficient, attached to the wrong variable:
+
+| Coefficient | Published variable (Klein 2009) | What the code multiplied it by |
+|---|---|---|
+| −0.2188 | CYP2C9 genotype **unknown** | `cyp4f2_1_3` |
+| −0.2760 | **Black or African American** | `cyp4f2_3_3` |
+| +1.1816 | **enzyme inducer status** | `african_american` |
+| +1.2799 | *not an IWPC coefficient* | `enzyme_inducer` |
+| −0.2029 | *not the published amiodarone value* (−0.5503) | `amiodarone` |
+| +0.2107 | *not an IWPC coefficient* — IWPC has no smoking term | `smoker` |
+
+IWPC also has **no CYP4F2 term at all**, and the block is missing all three "genotype unknown"
+terms (VKORC1 unknown −0.4854, CYP2C9 unknown −0.2188, missing/mixed race −0.1032).
+
+**Why it had to be switched off rather than left with a note.** A Black patient picks up
+**+1.1816** on the square-root-of-weekly-dose scale where the algorithm applies **−0.2760**.
+That is ~1.5–1.7× the predicted dose, for one patient group only, in a narrow-therapeutic-index
+anticoagulant, in the direction that causes a bleed. Nothing downstream would look wrong: the
+number is plausible, the units are right, and the result is returned under the name
+"IWPC Pharmacogenetic Warfarin Dosing Algorithm".
+
+**Why it is not simply corrected here.** This repo changes a clinical value only against a
+primary source in hand. The mapping above is the structural argument — those numbers are
+IWPC's, in the wrong slots, which is enough to know the code is wrong without knowing the whole
+table. It is *not* enough to retype the table from memory. Supplementary Appendix 1 of Klein
+2009 and the warfarindosing.org workbook both carry it; neither could be retrieved that night.
+
+- **Settle with:** Klein TE et al., "Estimation of the Warfarin Dose with Clinical and
+  Pharmacogenetic Data", *N Engl J Med* 2009;360:753–764, **Supplementary Appendix 1 §1** (the
+  CPIC warfarin guideline supplement reproduces it verbatim).
+- **Then:** restore all coefficients and add the three unknown-genotype terms, replace
+  `tests/test_dosing.py::TestWarfarinDose` with **reference cases** (a described patient in, the
+  published dose out), and delete the invented CYP4F2 and smoking parameters from the signature
+  or implement them from a cited source.
+- **Also fix:** the agent's own research paper and its readiness report each state a *different*
+  wrong version of this algorithm, with the coefficient column shifted by one row — the same
+  transcription error, propagated into the documentation.
+
+### What the old tests were doing
+
+Eighteen tests covered this function and **every one asserted only a direction** — "this input
+moves the dose down". A coefficient attached to the wrong variable cannot fail a direction test.
+Three of them pinned the defect as the specification, by name:
+
+```python
+def test_african_american_increases_dose(self):
+    assert aa["predicted_weekly_dose"] > other["predicted_weekly_dose"]
+```
+
+plus `test_smoker_increases_dose` and `test_cyp4f2_effect`, which assert two terms the model
+does not contain. This is the EuroSCORE II blind spot (§1–2) exactly: range and direction
+assertions cannot see a wrong coefficient, which is the argument for reference cases.

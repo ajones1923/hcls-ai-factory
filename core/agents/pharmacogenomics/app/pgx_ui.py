@@ -1177,18 +1177,31 @@ with tab_warfarin:
             }
             race_input = race_map.get(wd_race, "other")
 
-            result = calculator.warfarin_dose(
-                cyp2c9_diplotype=cyp2c9_dip,
-                vkorc1_genotype=vkorc1_input,
-                cyp4f2_genotype=cyp4f2_geno,
-                age=wd_age,
-                weight=wd_weight,
-                height=wd_height,
-                race=race_input,
-                amiodarone=wd_amiodarone,
-                smoker=wd_smoker,
-                enzyme_inducer=wd_enzyme_inducer,
-            )
+            # IWPC dosing is disabled until its coefficients are re-transcribed from Klein
+            # 2009 -- the block is column-shifted and the error is race-specific. Show the
+            # clinician why rather than a traceback, and never fall back to a dose.
+            try:
+                result = calculator.warfarin_dose(
+                    cyp2c9_diplotype=cyp2c9_dip,
+                    vkorc1_genotype=vkorc1_input,
+                    cyp4f2_genotype=cyp4f2_geno,
+                    age=wd_age,
+                    weight=wd_weight,
+                    height=wd_height,
+                    race=race_input,
+                    amiodarone=wd_amiodarone,
+                    smoker=wd_smoker,
+                    enzyme_inducer=wd_enzyme_inducer,
+                )
+            except RuntimeError as exc:
+                st.error(
+                    "**Warfarin dose prediction is unavailable.**\n\n"
+                    f"{exc}\n\n"
+                    "Dose warfarin by the usual clinical protocol with INR monitoring. "
+                    "The CYP2C9 and VKORC1 *phenotype* information on this page is unaffected "
+                    "and still applies."
+                )
+                st.stop()
 
             # Display results
             st.markdown("### Predicted Warfarin Dose")

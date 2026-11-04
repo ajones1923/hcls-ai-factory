@@ -275,6 +275,40 @@ class DosingCalculator:
             + 1.2799 * enzyme_inducer_val
         )
 
+        # ─────────────────────────────────────────────────────────────────────────────────
+        # THIS DOSE IS NOT RETURNED. The coefficient block above is mis-transcribed, and the
+        # error is race-specific, so it must not reach a prescriber.
+        #
+        # Every number above IS an IWPC coefficient (Klein et al., "Estimation of the Warfarin
+        # Dose with Clinical and Pharmacogenetic Data", N Engl J Med 2009;360:753-764), but the
+        # column is shifted: the published algorithm assigns
+        #     -0.2188  CYP2C9 genotype UNKNOWN      (here: multiplying cyp4f2_1_3)
+        #     -0.2760  Black or African American    (here: multiplying cyp4f2_3_3)
+        #     +1.1816  enzyme inducer status        (here: multiplying african_american)
+        # and IWPC has no CYP4F2 term and no smoking term at all, so `cyp4f2_*` and
+        # `smoker_val` are not in the model being cited. The amiodarone coefficient is also not
+        # the published one.
+        #
+        # The consequence is the reason this is a refusal rather than a TODO: a Black patient
+        # picks up +1.1816 on the square-root-of-weekly-dose scale where the algorithm applies
+        # -0.2760, which inflates the predicted dose by roughly 1.5-1.7x -- a race-specific
+        # overdose of a narrow-therapeutic-index anticoagulant, in the one direction that
+        # causes a bleed. No other patient group is affected the same way.
+        #
+        # The fix is a ten-minute re-transcription, and it is deliberately NOT done here,
+        # because this repo's rule is that a clinical value changes only against a primary
+        # source in hand. Supplementary Appendix 1 of Klein 2009 (and the warfarindosing.org
+        # workbook) carries the table; neither could be retrieved tonight. Restoring it also
+        # means adding the three "genotype unknown" terms the block never had.
+        # Recorded as CLINICAL_REVIEW.md §21 with the full mapping.
+        raise RuntimeError(
+            "IWPC warfarin dosing is disabled: the coefficient block in this function is "
+            "mis-transcribed from Klein 2009 and the error is race-specific (a Black patient "
+            "receives the enzyme-inducer coefficient, inflating the predicted dose ~1.5-1.7x). "
+            "No dose is returned until the published coefficients are restored from "
+            "Supplementary Appendix 1. See CLINICAL_REVIEW.md §21."
+        )
+
         # Square the result to get weekly dose
         weekly_dose = max(sqrt_dose ** 2, 0.5)  # floor at 0.5 mg/week
         daily_dose = weekly_dose / 7.0
