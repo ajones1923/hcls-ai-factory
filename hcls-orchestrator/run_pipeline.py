@@ -100,11 +100,43 @@ def _qed(mol):
     return round(QED.qed(rdmol), 3)
 
 
+def _structure_search_roots():
+    """Every directory that may hold a cached PDB file, in search order.
+
+    The search used to be `hcls-orchestrator/data/structures` and `<repo>/data/structures` --
+    neither of which is where this repo caches PDB files. The component that actually downloads
+    and caches them, the engine's `StructureViewer`, writes to
+    `core/engines/therapeutic-discovery/data/structures/pdb_cache/`, and the project's own cache
+    lives outside the repo entirely (hcls-ai-factory-core-data/structures/pdb_cache/) with no
+    env var or config entry pointing here. The consequence was that `_run_docking` returned
+    `performed: False` on every run, permanently -- honest, but a stage that could never run,
+    and a report that looked complete because the skip was the only possible outcome.
+    `PDB_CACHE_DIR` now reaches an external cache without editing code.
+    """
+    roots = []
+    env = os.environ.get("PDB_CACHE_DIR")
+    if env:
+        roots.append(Path(env))
+    engine_cache = _ENGINE_DIR / "data" / "structures"
+    roots += [
+        DATA_DIR / "structures" / "pdb_cache",
+        DATA_DIR / "structures",
+        SCRIPT_DIR.parent / "data" / "structures" / "pdb_cache",
+        SCRIPT_DIR.parent / "data" / "structures",
+        engine_cache / "pdb_cache",
+        engine_cache,
+    ]
+    return roots
+
+
 def _find_structure_file(pdb_id: str):
     """Locate a cached PDB file for `pdb_id`, or None. Docking needs the coordinates; without
     them there is nothing to dock against and the stage must report that, not invent scores."""
-    for root in (DATA_DIR / "structures", SCRIPT_DIR.parent / "data" / "structures"):
-        for name in (f"{pdb_id}.pdb", f"{pdb_id.lower()}.pdb", f"pdb{pdb_id.lower()}.ent"):
+    pdb_id = pdb_id.upper().replace("PDB:", "").strip()
+    names = (f"{pdb_id}.pdb", f"{pdb_id.lower()}.pdb", f"pdb{pdb_id.lower()}.ent",
+             f"{pdb_id.lower()}.cif")
+    for root in _structure_search_roots():
+        for name in names:
             p = root / name
             if p.is_file():
                 return p
@@ -123,8 +155,10 @@ def _run_docking(molecules, target):
     structure_file = next((f for f in (_find_structure_file(p) for p in pdb_ids) if f), None)
     if not structure_file:
         status['reason'] = (
-            f"no cached structure file for {', '.join(pdb_ids) or 'the target'} under "
-            f"{DATA_DIR / 'structures'}"
+            f"no cached structure file for {', '.join(pdb_ids) or 'the target'}. Searched: "
+            + ", ".join(str(r) for r in _structure_search_roots())
+            + ". Set PDB_CACHE_DIR to an existing PDB cache, or view the structure in the "
+              "Drug Discovery UI once to populate the engine's pdb_cache."
         )
         status['message'] = f"SKIPPED - {status['reason']}"
         return [], status
@@ -222,8 +256,25 @@ def run_demo_pipeline(num_molecules: int = 20, output_dir: Path = None):
     print(f"  Output:        {output_dir}")
     print(f"  Molecules:     {num_molecules}")
 
-    # Load demo target
+    # Load demo target.
+    #
+    # This was an unconditional open(). The file exists on the development box but
+    # `hcls-orchestrator/data/` was gitignored (the root `!data/demo/**` re-include contains a
+    # slash, so it is anchored at the repo root and never covered this subdirectory), so it was
+    # absent from every clone and release tarball -- which is exactly the artifact a release
+    # ships. `--mode demo` is the only implemented mode, so in the artifact `run_pipeline.py`
+    # had no working path at all, and the portal's Launch button rendered "Pipeline FAILED
+    # (exit code 1)" with a bare traceback. The file is tracked now; this message is the
+    # fallback if it is ever missing again.
     target_file = DATA_DIR / "demo" / "vcp_target.json"
+    if not target_file.is_file():
+        raise FileNotFoundError(
+            f"The demo target {target_file} is missing, so the demo pipeline cannot run. It is "
+            "tracked in git at hcls-orchestrator/data/demo/vcp_target.json -- if you are in a "
+            "clone or an extracted tarball, the file was excluded from the artifact. Restore it "
+            "(git checkout hcls-orchestrator/data/demo/vcp_target.json) or pass your own target "
+            "JSON. This stage will not substitute a built-in target."
+        )
     with open(target_file) as f:
         target = json.load(f)
 

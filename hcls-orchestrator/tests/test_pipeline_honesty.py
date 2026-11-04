@@ -12,6 +12,7 @@ Run with:
     PYTHONPATH=<repo>/lib python -m pytest hcls-orchestrator/tests -q
 """
 import importlib.util
+import json
 from pathlib import Path
 
 import pytest
@@ -267,6 +268,70 @@ class TestQcDoesNotPassWhatItDidNotExamine:
     def test_unexamined_molecules_are_counted_separately(self):
         code = (ORCH / "run_pipeline.py").read_text()
         assert "were NOT " in code and "examined" in code
+
+
+class TestTheDemoRunsFromACleanClone:
+    """`--mode demo` is the only implemented mode, and its data was not in the release.
+
+    `hcls-orchestrator/data/demo/vcp_target.json` exists on the development box but
+    `hcls-orchestrator/data/` was gitignored -- the root `!data/demo/**` re-include contains a
+    slash, so it is anchored at the repo root and never covered the subdirectory. In a clone or
+    tarball `run_demo_pipeline()` raised FileNotFoundError at line 174 before Stage 0 printed,
+    and the portal's Launch button showed "Pipeline FAILED (exit code 1)". Nothing called
+    `run_demo_pipeline`, so no test saw it.
+    """
+
+    def test_the_demo_target_is_tracked_in_git(self):
+        import subprocess
+
+        out = subprocess.run(
+            ["git", "ls-files", "--error-unmatch",
+             "hcls-orchestrator/data/demo/vcp_target.json"],
+            cwd=ORCH.parent, capture_output=True, text=True,
+        )
+        assert out.returncode == 0, (
+            "hcls-orchestrator/data/demo/vcp_target.json is not tracked, so --mode demo cannot "
+            f"run from a clone: {out.stderr.strip()}"
+        )
+
+    def test_the_demo_target_is_present_and_loadable(self):
+        target = json.loads((ORCH / "data" / "demo" / "vcp_target.json").read_text())
+        assert target["gene"] == "VCP"
+        assert target["pdb_ids"]
+
+    def test_a_missing_demo_target_fails_with_an_explanation(self, rp, tmp_path, monkeypatch):
+        monkeypatch.setattr(rp, "DATA_DIR", tmp_path)       # no demo/ inside
+        with pytest.raises(FileNotFoundError) as e:
+            rp.run_demo_pipeline(num_molecules=1, output_dir=tmp_path / "out")
+        assert "tracked in git" in str(e.value)
+
+
+class TestTheStructureCacheIsActuallyReachable:
+    """Docking was permanently skipped: neither searched directory is where PDBs are cached.
+
+    `StructureViewer` -- the component that downloads and caches structures -- writes to
+    `core/engines/therapeutic-discovery/data/structures/pdb_cache/`, and the project cache lives
+    outside the repo. A stage that can never run looks exactly like a stage that was skipped for
+    a good reason.
+    """
+
+    def test_the_engine_pdb_cache_is_searched(self, rp):
+        roots = [str(r) for r in rp._structure_search_roots()]
+        assert any(r.endswith("therapeutic-discovery/data/structures/pdb_cache") for r in roots)
+
+    def test_pdb_cache_dir_env_is_searched_first(self, rp, tmp_path, monkeypatch):
+        monkeypatch.setenv("PDB_CACHE_DIR", str(tmp_path))
+        assert str(rp._structure_search_roots()[0]) == str(tmp_path)
+
+    def test_a_cached_file_is_found_through_the_env_override(self, rp, tmp_path, monkeypatch):
+        (tmp_path / "5ftk.pdb").write_text("ATOM      1  CA  ALA A   1  0.0 0.0 0.0\n")
+        monkeypatch.setenv("PDB_CACHE_DIR", str(tmp_path))
+        assert rp._find_structure_file("5FTK") == tmp_path / "5ftk.pdb"
+
+    def test_the_skip_reason_names_everywhere_it_looked(self, rp):
+        _, status = rp._run_docking([], {"gene": "VCP", "pdb_ids": ["ZZZZ"]})
+        assert "Searched:" in status["reason"]
+        assert "PDB_CACHE_DIR" in status["reason"]
 
 
 class TestNextflowModulesDoNotFabricate:
