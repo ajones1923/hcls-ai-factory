@@ -55,6 +55,12 @@ sys.path.insert(0, str(ROOT / "lib"))
 
 from subject_facts import BASE, ROSTER, build  # noqa: E402
 
+#: Where a human records the answer to checks 2, 4 and 6. Without this the review has
+#: nowhere to land: the generator would keep printing NOT ANSWERED however many subjects
+#: had actually been read, and the work would live only in commit messages.
+#: Shape: {"<slug>": {"<check>": {"result","date","reviewer","evidence"}}}
+REVIEW = ROOT / "docs" / "build" / "claim_review.json"
+
 ENDPOINTS = ROOT / "docs" / "build" / "endpoint_snapshot.json"
 ENDPOINT_BASELINE = ROOT / "docs" / "build" / "endpoint_baseline.json"
 CORPUS = ROOT / "docs" / "build" / "corpus_snapshot.json"
@@ -64,6 +70,25 @@ PASS, FAIL, UNANSWERED, NA = "PASS", "FAIL", "NOT ANSWERED", "n/a"
 
 DISCLAIMER = ("> **Decision support for a qualified clinician — never autonomous diagnosis "
               "or prescribing.**")
+
+def recorded(slug: str, check: int) -> tuple[str, str, str] | None:
+    """A human's recorded answer to a manual check, or None.
+
+    Only PASS, FAIL and n/a are accepted. Anything else -- a note, a "mostly", a blank --
+    leaves the check unanswered, because a reviewer who could not reach a verdict has not
+    answered it and the page must not imply otherwise.
+    """
+    entry = _load(REVIEW).get(slug, {}).get(str(check))
+    if not isinstance(entry, dict):
+        return None
+    result = str(entry.get("result", "")).upper()
+    result = {"PASS": PASS, "FAIL": FAIL, "N/A": NA}.get(result)
+    if not result:
+        return None
+    who = entry.get("reviewer", "")
+    evidence = entry.get("evidence", "").strip()
+    return result, entry.get("date", ""), f"{evidence} *(reviewed: {who})*" if who else evidence
+
 
 #: Checks 2, 4 and 6 need a person. What each needs, so an unanswered row is actionable
 #: rather than merely blank.
@@ -230,13 +255,20 @@ def render(facts: dict, tests: pathlib.Path | None) -> str:
     def when(s: str) -> str:
         return s[:10] if s else "—"
 
+    def manual(n: int) -> tuple[int, str, str, str, str]:
+        got = recorded(slug, n)
+        if got is None:
+            return (n, MANUAL[n][0], UNANSWERED, "—", MANUAL[n][1])
+        result, date, evidence = got
+        return (n, MANUAL[n][0], result, when(date), evidence or MANUAL[n][1])
+
     rows = [
         (1, "Every `live` capability answers on its advertised port", c1, when(c1_when), c1_note),
-        (2, MANUAL[2][0], UNANSWERED, "—", MANUAL[2][1]),
+        manual(2),
         (3, "Retrieval has evidence behind it, or says it does not", c3, when(c3_when), c3_note),
-        (4, MANUAL[4][0], UNANSWERED, "—", MANUAL[4][1]),
+        manual(4),
         (5, "Test depth is proportionate to clinical output", c5, when(c5_when), c5_note),
-        (6, MANUAL[6][0], UNANSWERED, "—", MANUAL[6][1]),
+        manual(6),
         (7, "Every documented command exists and runs", c7, when(c7_when), c7_note),
     ]
     answered = sum(1 for r in rows if r[2] != UNANSWERED)

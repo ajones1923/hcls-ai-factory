@@ -51,6 +51,8 @@ COVERAGE: dict[str, list[str]] = {
     "core/agents/clinical-trial": ["clinical-trial-intelligence-agent"],
     "core/agents/rare-disease-diagnostic": ["rare-disease-diagnostic-agent"],
     "core/agents/single-cell": ["single-cell-intelligence-agent"],
+    # disease programs
+    "core/disease-programs/tuberous-sclerosis": ["tuberous-sclerosis-engine"],
 }
 
 
@@ -143,7 +145,13 @@ def main() -> int:
         base = REPO / "core" / kind
         return sorted(f"core/{kind}/{p.name}" for p in base.iterdir() if p.is_dir() and not p.name.startswith("."))
 
-    for comp in dirs("engines") + dirs("agents"):
+    # disease-programs was missing from this list until 2026-11-04, so the flagship TSC
+    # program -- which registers `tuberous-sclerosis-engine`, live on :8560 -- was never
+    # checked for coverage, had no COVERAGE entry, and was therefore invisible to everything
+    # built on it: subject_facts.py mapped it zero capabilities, and the 85 generated
+    # documentation assets reported the disease program as registering nothing. The gate
+    # could not see the directory it was meant to be gating.
+    for comp in dirs("engines") + dirs("agents") + dirs("disease-programs"):
         expected = COVERAGE.get(comp)
         if expected is None:
             errors.append(f"{comp} has no registry coverage declared — add it to COVERAGE in scripts/validate_registry.py and register a capability")

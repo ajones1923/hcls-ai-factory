@@ -17,11 +17,18 @@ def test_trajectory_population_informed_and_preserves_crossing(tmp_path):
     pid = featured_map(tmp_path)["B"]
     out = TrajectoryModeler().run(AgentContext(patient_id=pid, cohort=load_patient(pid, tmp_path)))
     les = out.data["lesions"][0]
-    assert les["population_prior"]["population_informed"] is True
+    # This asserted `population_informed is True` and `"mixed-effects" in model` until the
+    # 2026-11-04 claim-integrity review. Both were the defect, not the contract: the prior is
+    # fitted to 24 simulated patients, so nothing was population-informed and naming a
+    # mixed-effects population fit implied the TSC Alliance NHD. The assertions are corrected
+    # rather than dropped -- what they were really guarding is the SHAPE of the payload and
+    # Patient B's crossing, both of which still hold.
+    assert les["population_prior"]["population_informed"] is False
+    assert les["population_prior"]["prior_is_synthetic"] is True
     assert "prior_slope" in les["population_prior"]
-    # population prior borrows strength but doesn't break Patient B's documented 12-18mo crossing
+    # the prior still borrows strength: Patient B's documented 12-18mo crossing is unchanged
     assert les["crosses_in_12_18mo_window"] is True
-    assert "mixed-effects" in les["model"]
+    assert "synthetic-prior shrinkage" in les["model"]
 
 
 def test_bamsurgeon_gate_fails_clearly_without_tools():

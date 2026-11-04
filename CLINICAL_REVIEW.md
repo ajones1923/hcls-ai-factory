@@ -329,6 +329,34 @@ is guessable from a guideline PDF:
   (doi:10.1016/j.pediatrneurol.2021.07.011 — title confirmed via Crossref), and the 2012
   management recommendations it builds on.
 
+## 5b. Tuberous sclerosis — five more uncited constants, found by the claim-integrity review
+
+Opened 2026-11-04 by the per-subject review of `tuberous-sclerosis` (check 4). §5 above covers
+the SEGA 1.8 cm and AML 4.0 cm thresholds and the surveillance cadence. These five are in the
+same tree, carry the same clinical weight, and were not recorded anywhere.
+
+| Value | Where | Question |
+|---|---|---|
+| SEGA growth slope **0.026 cm/month** (~3 mm/yr) | `trajectory_modeler/population.py` | The constant the whole trajectory prior rests on. Its name said `_PUBLISHED_FALLBACK` and no publication was named. Renamed `_ASSUMED_FALLBACK` pending a source |
+| eGFR threshold **60.0** mL/min/1.73m² | `config/trajectory_config.yaml` | Matches KDIGO CKD stage G3a, but nothing in the file says so. Confirm and cite |
+| Seizure frequency threshold **15.0 / month** | `config/trajectory_config.yaml` | No basis found. This fires a crossing alert; what guideline, if any, puts the line here? |
+| Surveillance cadence multipliers **0.5 / 0.75 / 1.0**, floor **3 months** | `config/trajectory_config.yaml` | Shortens a real surveillance interval by up to half on a model-predicted crossing. Is a halved interval defensible, and is a 3-month floor the right clamp? |
+| Mosaic VAF ceiling **0.30** | `variant_curator/runner.py` | Mosaicism call boundary. `src/eval/harness.py` separately uses `STANDARD_VAF_LIMIT = 0.10`; confirm the two are answering different questions |
+
+**None of these were changed.** A clinical value moves only with a primary source cited in a
+code comment, and there is none for any of them yet.
+
+- **Settle with:** Northrup et al. 2021 (as §5) for surveillance and thresholds; KDIGO 2024
+  CKD guideline for the eGFR boundary; for the SEGA growth rate, the TSC Alliance Natural
+  History Database publications, or the EXIST-1/EXIST-2 placebo arms, which are the obvious
+  published sources for untreated SEGA growth.
+
+**Related, and not a clinical question:** the trajectory prior reported itself as an "NHD
+mixed-effects" fit with `population_informed: true`, while being fitted to 24 simulated
+patients generated from the 0.026 constant above. That was a false claim rather than a wrong
+value, so it was fixed immediately rather than recorded here — see
+`tests/unit/test_trajectory_prior_is_honest.py`. The constant itself stays open, above.
+
 ## 6. Tuberous sclerosis — ACMG criteria application
 
 `src/variant_curator/annotation.py`: PVS1 is downgraded for low VAF, and PS1 is used for "same

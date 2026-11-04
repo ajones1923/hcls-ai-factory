@@ -1,0 +1,23 @@
+{
+ "_comment": "Recorded answers to claim-integrity checks 2, 4 and 6, which cannot be measured by a script. Read by scripts/gen_maturity.py. Only PASS, FAIL and n/a count as answers; anything else leaves the check unanswered, because a reviewer who could not reach a verdict has not answered it. One entry per subject per check. Do not add a subject here without having read its code.",
+ "tuberous-sclerosis": {
+  "2": {
+   "result": "FAIL",
+   "date": "2026-11-04",
+   "reviewer": "claim-integrity review",
+   "evidence": "The Trajectory Modeler reported `method: \"population-prior shrinkage (NHD mixed-effects)\"` and `population_informed: true`, naming the TSC Alliance Natural History Database. The prior is fitted to `_synthetic_nhd()` -- 24 simulated patients whose slopes are drawn from a hardcoded 0.026 cm/month -- so the fit recovers 0.0249, the constant it was generated from, and does not converge cleanly. FIXED: the payload now says SYNTHETIC, `population_informed: false`, `prior_is_synthetic: true`; shrinkage arithmetic unchanged. Pinned by `tests/unit/test_trajectory_prior_is_honest.py` (3 of 6 fail against the prior commit). Recorded FAIL because the check records what the review found."
+  },
+  "4": {
+   "result": "FAIL",
+   "date": "2026-11-04",
+   "reviewer": "claim-integrity review",
+   "evidence": "Five clinical constants carry no primary source and were in no review record: SEGA growth 0.026 cm/month, eGFR 60.0, seizure frequency 15.0/month, surveillance cadence multipliers 0.5/0.75/1.0 with a 3-month floor, and mosaic VAF ceiling 0.30. Now open as `CLINICAL_REVIEW.md` §5b. None were changed -- a clinical value moves only with a cited primary source. The 1.8 cm and 4.0 cm thresholds were already open as §5, which is check 4 working as intended."
+  },
+  "6": {
+   "result": "FAIL",
+   "date": "2026-11-04",
+   "reviewer": "claim-integrity review",
+   "evidence": "`tuberous-sclerosis-engine` declares `status: live` and NO `maturity` tier, so the public maturity matrix badges the flagship disease program on serving status alone. Its own description carries the caveats in prose (\"gene-therapy correction of TSC1/TSC2 is preclinical\"), which is the exact defect fixed for `therapeutic-discovery-engine` on 2026-11-04 by adding `maturity: preclinical`. Recommended: `maturity: research-use`. NOT applied -- the tier changes the badge on the public site for the flagship program and more than one tier is defensible, so it is an S4 owner decision."
+  }
+ }
+}

@@ -81,8 +81,17 @@ def _bayesian_slope(t, y, ols_slope, use_prior, weak_prior) -> tuple[float, dict
     otherwise a conjugate-normal update against a weakly-informative prior."""
     if use_prior:
         shrunk, info = shrink_slope(t, y, float(ols_slope))
-        return shrunk, {"method": "population-prior shrinkage (NHD mixed-effects)",
-                        "population_informed": info.get("population_informed", True),
+        # This used to report `method: "population-prior shrinkage (NHD mixed-effects)"` and
+        # `population_informed: true`. Both were false. The prior is fitted to
+        # `population._synthetic_nhd()` -- 24 SIMULATED patients whose slopes are drawn from
+        # a hardcoded 0.026 cm/month -- so the mixed-effects fit recovers the constant it was
+        # generated from (measured: 0.0249) and no population informed anything. Naming the
+        # TSC Alliance Natural History Database, a real registry, made an invented number
+        # read as a derived one. The shrinkage itself is unchanged; only the claim is.
+        return shrunk, {"method": "shrinkage toward a SYNTHETIC NHD-style prior "
+                                  "(not the TSC Alliance NHD)",
+                        "population_informed": False,
+                        "prior_is_synthetic": True,
                         "prior_slope": info.get("prior_slope"),
                         "individual_slope": info.get("individual_slope", round(float(ols_slope), 4)),
                         "posterior_slope": info.get("shrunk_slope", round(shrunk, 4))}
@@ -148,7 +157,10 @@ def _model_quantity(name: str, qcfg: dict, series, months, location, cfg: dict) 
         "direction": direction, "is_lesion": bool(qcfg.get("is_lesion", False)),
         "location": location, "observed_cm": list(series),
         "observed_months": [float(m) for m in months[: len(series)]],
-        "model": ("mixed-effects population-prior shrinkage + Gaussian-process intervals"
+        # "mixed-effects population-prior shrinkage" here carried the same false implication
+        # as the method string above: the mixed-effects fit is over 24 simulated patients,
+        # not a population. See tests/unit/test_trajectory_prior_is_honest.py.
+        "model": ("synthetic-prior shrinkage + Gaussian-process intervals"
                   if qcfg.get("population_prior") else "Bayesian (weak-prior) trend + GP intervals"),
         "slope_cm_per_month": round(slope, 4), "population_prior": bayes, "bayesian": bayes,
         "forecast": forecast, "threshold_cm": threshold, "months_to_threshold": t_cross,

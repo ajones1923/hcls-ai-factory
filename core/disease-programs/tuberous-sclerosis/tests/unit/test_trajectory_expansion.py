@@ -41,8 +41,17 @@ def test_surveillance_cadence_tightens_for_likely_crossing():
 
 
 def test_bayesian_slope_population_prior_for_sega_weak_for_others():
+    """SEGA takes the shrinkage path, eGFR the weak-prior path -- still the real contract.
+
+    This used to tell them apart by `population_informed`, which was True for SEGA and is now
+    False for both: the 2026-11-04 review established that the SEGA prior is fitted to 24
+    simulated patients, so no population informs either. The distinction the test exists for
+    survives in `prior_is_synthetic`, which only the shrinkage path sets.
+    """
     qb = _quants("B")
-    assert qb["SEGA"]["bayesian"]["population_informed"] is True
+    assert qb["SEGA"]["bayesian"]["prior_is_synthetic"] is True
+    assert qb["SEGA"]["bayesian"]["population_informed"] is False
+    assert "prior_is_synthetic" not in _quants("C")["eGFR"]["bayesian"]
     assert _quants("C")["eGFR"]["bayesian"]["population_informed"] is False
 
 
