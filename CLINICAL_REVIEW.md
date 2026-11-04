@@ -406,6 +406,36 @@ the workflow a prior exam to compare against, not to change the thresholds.
 - **Settle with:** Tessler FN et al., J Am Coll Radiol 2017;14(5):587-595 (TI-RADS); the ACR
   Lung-RADS v2022 assessment categories.
 
+## 6e. Risk scores verified against their publications (no action needed)
+
+Recorded so the next reader knows what has been checked rather than re-deriving it. Reference
+cases live in `core/engines/cardiology/tests/test_score_reference_cases.py`,
+`core/engines/clinical-imaging/agent/tests/test_radiology_reference_cases.py` and
+`core/disease-programs/tuberous-sclerosis/tests/unit/test_acmg_table5_reference.py`.
+
+| Instrument | Source | Result |
+|---|---|---|
+| CHA2DS2-VASc | Lip, Chest 2010 | point table and both age bands correct; one defect found and fixed (every comorbidity defaulted to absent, so the score came from age and sex alone) |
+| HAS-BLED | Pisters, Chest 2010 | point table correct, including renal/liver and drugs/alcohol scoring separately and E being age >65; same defaulting defect found and fixed |
+| HEART | Six 2008 / Backus 2013 | bands correct; one defect found and fixed (missing troponin scored as normal) |
+| ACR TI-RADS | Tessler 2017 | all five feature tables, level mapping and FNA size thresholds correct |
+| ACR Lung-RADS v2022 | ACR | solid-nodule size bands correct (baseline; see §6d). **Part-solid and non-solid tables are NOT implemented and must not be guessed — see §6f** |
+| ACMG/AMP combining rules | Richards 2015, Table 5 | every row correct, including conflicting-evidence → VUS |
+| ASCVD Pooled Cohort Equations | Goff 2013, Appendix 7 + guideline vignette | all four cohorts' coefficients correct; vignette reproduced within 0.09 pp |
+| EuroSCORE II | Nashef 2012, Table 6 | **4 coefficients wrong, corrected** (see §1–2); 3 fourth-decimal values still open |
+
+**ASCVD note for anyone comparing against the ACC/AHA calculator:** the guideline's vignette
+(55-year-old, TC 213, HDL 50, SBP 120 untreated, non-smoker, non-diabetic) gives 5.3% for white
+men and this platform displays **5.4%**. The individual coefficient sum is 60.6995; the
+guideline prints 60.69, which is that truncated, and truncating through to the end reproduces
+5.3%. The full-precision path is the more defensible one, so this is a presentational
+difference of one tenth of a point, not drift. The other three cohorts display exactly the
+published 6.1% / 2.1% / 3.0%.
+
+Still unverified: **MAGGIC** and **PhenoAge** (§8). Both are regression/point models needing
+their published tables and a worked example — a case invented from the repo's own coefficients
+would only pin current behaviour.
+
 ## 6f. ACR Lung-RADS v2022 — OPEN: no part-solid or non-solid table is implemented
 
 `core/engines/clinical-imaging/agent/src/workflows/ct_chest_lung_nodule.py`
@@ -448,36 +478,6 @@ would be the same failure as the defect, one step further from the source.
   case per density to
   `core/engines/clinical-imaging/agent/tests/test_radiology_reference_cases.py`. Until then
   the refusal is the correct behaviour, not a placeholder.
-
-## 6e. Risk scores verified against their publications (no action needed)
-
-Recorded so the next reader knows what has been checked rather than re-deriving it. Reference
-cases live in `core/engines/cardiology/tests/test_score_reference_cases.py`,
-`core/engines/clinical-imaging/agent/tests/test_radiology_reference_cases.py` and
-`core/disease-programs/tuberous-sclerosis/tests/unit/test_acmg_table5_reference.py`.
-
-| Instrument | Source | Result |
-|---|---|---|
-| CHA2DS2-VASc | Lip, Chest 2010 | point table and both age bands correct; one defect found and fixed (every comorbidity defaulted to absent, so the score came from age and sex alone) |
-| HAS-BLED | Pisters, Chest 2010 | point table correct, including renal/liver and drugs/alcohol scoring separately and E being age >65; same defaulting defect found and fixed |
-| HEART | Six 2008 / Backus 2013 | bands correct; one defect found and fixed (missing troponin scored as normal) |
-| ACR TI-RADS | Tessler 2017 | all five feature tables, level mapping and FNA size thresholds correct |
-| ACR Lung-RADS v2022 | ACR | solid-nodule size bands correct (baseline; see §6d). **Part-solid and non-solid tables are NOT implemented and must not be guessed — see §6f** |
-| ACMG/AMP combining rules | Richards 2015, Table 5 | every row correct, including conflicting-evidence → VUS |
-| ASCVD Pooled Cohort Equations | Goff 2013, Appendix 7 + guideline vignette | all four cohorts' coefficients correct; vignette reproduced within 0.09 pp |
-| EuroSCORE II | Nashef 2012, Table 6 | **4 coefficients wrong, corrected** (see §1–2); 3 fourth-decimal values still open |
-
-**ASCVD note for anyone comparing against the ACC/AHA calculator:** the guideline's vignette
-(55-year-old, TC 213, HDL 50, SBP 120 untreated, non-smoker, non-diabetic) gives 5.3% for white
-men and this platform displays **5.4%**. The individual coefficient sum is 60.6995; the
-guideline prints 60.69, which is that truncated, and truncating through to the end reproduces
-5.3%. The full-precision path is the more defensible one, so this is a presentational
-difference of one tenth of a point, not drift. The other three cohorts display exactly the
-published 6.1% / 2.1% / 3.0%.
-
-Still unverified: **MAGGIC** and **PhenoAge** (§8). Both are regression/point models needing
-their published tables and a worked example — a case invented from the repo's own coefficients
-would only pin current behaviour.
 
 ## 7. CAR-T knowledge base — approval dates and REMS
 
