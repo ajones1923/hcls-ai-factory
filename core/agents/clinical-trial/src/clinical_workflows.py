@@ -146,30 +146,118 @@ class ProtocolDesignWorkflow(BaseTrialWorkflow):
 
     workflow_type = TrialWorkflowType.PROTOCOL_DESIGN
 
-    # Historical success rates by indication category and phase
+    # Phase transition success rates, verbatim from the primary source.
+    #
+    # SOURCE (retrieved 2026-11-03): BIO / Informa Pharma Intelligence / QLS
+    # Advisors, "Clinical Development Success Rates and Contributing Factors
+    # 2011-2020", Figure 2 ("Phase transition success rates by disease area"),
+    # page 8. PDF fetched from
+    # https://www.cphi-online.com/46/resourcefile/11/36/30/2021%20Clinical%20Development%20Success%20Rates%202011-2020%20v17.pdf
+    # and the figure read directly out of the extracted text.
+    #
+    # Keyed by the FOUR TRANSITIONS BIO ACTUALLY MEASURES, not by a "phase
+    # success" abstraction. The previous table carried a `phase_iv` row of
+    # 0.82-0.90 which has no counterpart in Figure 2 at all: BIO's fourth
+    # column is NDA/BLA -> Approval (90.6% for all indications), so the code
+    # had taken a submission-to-approval rate and relabelled it a Phase IV
+    # probability of success -- a wrong-field read.
+    #
+    # Every value in the old table was also wrong. Cardiology Phase II was
+    # 0.38 against a measured 0.210 -- overstated by 81% relative -- and
+    # neurology Phase III was 0.30 against 0.531, wrong by nearly as much in
+    # the other direction. A second, dead copy in src/decision_support.py gave
+    # a third set of numbers again.
+    #
+    # Figure 2 numbers, 'POS' column, as published:
+    #   disease area        I->II   II->III  III->NDA  NDA->appr
+    #   Hematology          69.6%   48.1%    76.8%     93.1%
+    #   Metabolic           61.8%   45.0%    63.6%     87.5%
+    #   Infectious disease  57.8%   38.4%    64.0%     92.9%
+    #   Ophthalmology       71.6%   35.5%    51.2%     91.1%
+    #   Autoimmune          55.2%   31.4%    65.3%     94.1%
+    #   Allergy             56.4%   28.3%    64.7%    100.0%
+    #   Gastroenterology    46.7%   34.2%    57.1%     90.9%
+    #   All indications     52.0%   28.9%    57.8%     90.6%
+    #   Respiratory         55.9%   21.9%    64.5%     95.6%
+    #   Psychiatry          52.7%   26.8%    56.3%     91.2%
+    #   Endocrine           43.3%   26.6%    66.2%     86.3%
+    #   Neurology           47.7%   26.8%    53.1%     86.7%
+    #   Oncology            48.8%   24.6%    47.7%     92.0%
+    #   Cardiovascular      50.0%   21.0%    55.2%     82.5%
+    #   Urology             40.9%   15.0%    69.2%     84.6%
     _HISTORICAL_SUCCESS: Dict[str, Dict[str, float]] = {
-        "oncology": {
-            "phase_i": 0.63, "phase_ii": 0.29, "phase_iii": 0.36, "phase_iv": 0.85,
+        "hematology": {
+            "phase_i": 0.696, "phase_ii": 0.481, "phase_iii": 0.768,
+            "nda_to_approval": 0.931,
         },
-        "cardiology": {
-            "phase_i": 0.72, "phase_ii": 0.38, "phase_iii": 0.52, "phase_iv": 0.88,
-        },
-        "neurology": {
-            "phase_i": 0.68, "phase_ii": 0.25, "phase_iii": 0.30, "phase_iv": 0.82,
-        },
-        "immunology": {
-            "phase_i": 0.70, "phase_ii": 0.35, "phase_iii": 0.48, "phase_iv": 0.86,
-        },
-        "rare_disease": {
-            "phase_i": 0.74, "phase_ii": 0.42, "phase_iii": 0.55, "phase_iv": 0.90,
+        "metabolic": {
+            "phase_i": 0.618, "phase_ii": 0.450, "phase_iii": 0.636,
+            "nda_to_approval": 0.875,
         },
         "infectious_disease": {
-            "phase_i": 0.71, "phase_ii": 0.40, "phase_iii": 0.58, "phase_iv": 0.87,
+            "phase_i": 0.578, "phase_ii": 0.384, "phase_iii": 0.640,
+            "nda_to_approval": 0.929,
         },
-        "default": {
-            "phase_i": 0.67, "phase_ii": 0.33, "phase_iii": 0.45, "phase_iv": 0.85,
+        "ophthalmology": {
+            "phase_i": 0.716, "phase_ii": 0.355, "phase_iii": 0.512,
+            "nda_to_approval": 0.911,
+        },
+        "immunology": {  # BIO grouping: Autoimmune
+            "phase_i": 0.552, "phase_ii": 0.314, "phase_iii": 0.653,
+            "nda_to_approval": 0.941,
+        },
+        "allergy": {
+            "phase_i": 0.564, "phase_ii": 0.283, "phase_iii": 0.647,
+            "nda_to_approval": 1.000,
+        },
+        "gastroenterology": {
+            "phase_i": 0.467, "phase_ii": 0.342, "phase_iii": 0.571,
+            "nda_to_approval": 0.909,
+        },
+        "respiratory": {
+            "phase_i": 0.559, "phase_ii": 0.219, "phase_iii": 0.645,
+            "nda_to_approval": 0.956,
+        },
+        "psychiatry": {
+            "phase_i": 0.527, "phase_ii": 0.268, "phase_iii": 0.563,
+            "nda_to_approval": 0.912,
+        },
+        "endocrine": {
+            "phase_i": 0.433, "phase_ii": 0.266, "phase_iii": 0.662,
+            "nda_to_approval": 0.863,
+        },
+        "neurology": {
+            "phase_i": 0.477, "phase_ii": 0.268, "phase_iii": 0.531,
+            "nda_to_approval": 0.867,
+        },
+        "oncology": {
+            "phase_i": 0.488, "phase_ii": 0.246, "phase_iii": 0.477,
+            "nda_to_approval": 0.920,
+        },
+        "cardiology": {  # BIO grouping: Cardiovascular
+            "phase_i": 0.500, "phase_ii": 0.210, "phase_iii": 0.552,
+            "nda_to_approval": 0.825,
+        },
+        "urology": {
+            "phase_i": 0.409, "phase_ii": 0.150, "phase_iii": 0.692,
+            "nda_to_approval": 0.846,
+        },
+        "default": {  # BIO row: "All indications"
+            "phase_i": 0.520, "phase_ii": 0.289, "phase_iii": 0.578,
+            "nda_to_approval": 0.906,
         },
     }
+    _HISTORICAL_SUCCESS_CITATION = (
+        "BIO / Informa Pharma Intelligence / QLS Advisors, 'Clinical "
+        "Development Success Rates and Contributing Factors 2011-2020', "
+        "Figure 2 (phase transition success rates by disease area), p.8"
+    )
+    #: Disease areas Figure 2 does NOT break out, so no rate can be cited for
+    #: them. `rare_disease` was in the old table at 0.74/0.42/0.55/0.90 --
+    #: the most optimistic row in the whole table, and sourced to nothing.
+    #: BIO's rare-disease analysis is a separate section, not Figure 2, and was
+    #: not retrieved. See CLINICAL_REVIEW.md.
+    _HISTORICAL_SUCCESS_UNSOURCED = frozenset({"rare_disease"})
 
     # Recommended primary endpoints by indication
     _ENDPOINT_BENCHMARKS: Dict[str, Dict[str, str]] = {
@@ -253,32 +341,63 @@ class ProtocolDesignWorkflow(BaseTrialWorkflow):
                 break
 
         # --- Success probability ---
-        base_success = self._HISTORICAL_SUCCESS.get(
+        # `.get(phase, 0.40)` routed an unparsed phase to a REAL clinical value
+        # (0.40 happened to be near the old Phase II number), so "Phase 1",
+        # "PHASE1", "Early Phase 1" and ["PHASE1","PHASE2"] all silently
+        # landed on a rate that was not theirs. There is no default any more.
+        rates = self._HISTORICAL_SUCCESS.get(
             category, self._HISTORICAL_SUCCESS["default"]
-        ).get(phase, 0.40)
-
-        # Adjust for design factors
-        design_factor = self._DESIGN_COMPLEXITY.get(design_type, 0.5)
-        # More complex designs have slightly lower success but better outcomes
-        adjusted_success = base_success * (1.0 - 0.1 * design_factor)
-
-        # Adjust for biomarker-driven enrichment
-        if any(kw in moa.lower() for kw in ["targeted", "biomarker", "precision"]):
-            adjusted_success *= 1.15
+        )
+        base_success = rates.get(phase)
+        if base_success is None:
             findings.append(
-                "Biomarker-driven enrichment strategy detected — "
-                f"success probability elevated by 15% (base: {base_success:.0%})"
+                f"No phase transition success rate is available for phase "
+                f"'{phase}'. BIO Figure 2 measures exactly four transitions: "
+                f"{', '.join(sorted(rates))}. No probability of success is "
+                f"reported."
+            )
+            recommendations.append(
+                "Map the phase onto one of the four BIO transitions "
+                "(phase_i, phase_ii, phase_iii, nda_to_approval) to obtain a "
+                "probability of success"
+            )
+        if any(area in indication for area in self._HISTORICAL_SUCCESS_UNSOURCED):
+            findings.append(
+                "NOTE: BIO Figure 2 does not break out this disease area, so "
+                "the all-indications rate is being used. A disease-area rate "
+                "for it would have to come from a source this agent has not "
+                "retrieved."
             )
 
-        adjusted_success = _clamp(adjusted_success, 0.05, 0.95)
+        # Needed by the complexity score below whether or not a published
+        # success rate applied.
+        design_factor = self._DESIGN_COMPLEXITY.get(design_type, 0.5)
 
-        findings.append(
-            f"Historical success rate for {category}/{phase}: {base_success:.0%}"
-        )
-        findings.append(
-            f"Adjusted success probability: {adjusted_success:.0%} "
-            f"(design: {design_type}, arms: {num_arms})"
-        )
+        adjusted_success = None
+        if base_success is not None:
+            # More complex designs have slightly lower success but better outcomes
+            adjusted_success = base_success * (1.0 - 0.1 * design_factor)
+
+            # Adjust for biomarker-driven enrichment
+            if any(kw in moa.lower() for kw in ["targeted", "biomarker", "precision"]):
+                adjusted_success *= 1.15
+                findings.append(
+                    "Biomarker-driven enrichment strategy detected — "
+                    f"success probability elevated by 15% (base: {base_success:.0%})"
+                )
+
+            adjusted_success = _clamp(adjusted_success, 0.05, 0.95)
+
+            findings.append(
+                f"Published phase transition success rate, {category}/{phase}: "
+                f"{base_success:.1%} — {self._HISTORICAL_SUCCESS_CITATION}"
+            )
+            findings.append(
+                f"Adjusted success probability: {adjusted_success:.0%} "
+                f"(design: {design_type}, arms: {num_arms}). The design and "
+                f"biomarker adjustments are heuristics applied by this agent, "
+                f"not published rates."
+            )
 
         # --- Endpoint benchmarks ---
         endpoints = self._ENDPOINT_BENCHMARKS.get(
@@ -312,7 +431,7 @@ class ProtocolDesignWorkflow(BaseTrialWorkflow):
             f"Design a {design_type} {phase.replace('_', ' ')} trial with "
             f"{num_arms} arms ({comparator} comparator)"
         )
-        if adjusted_success < 0.35:
+        if adjusted_success is not None and adjusted_success < 0.35:
             recommendations.append(
                 "Consider adaptive design with interim futility analysis "
                 "to mitigate low expected success rate"
@@ -333,15 +452,18 @@ class ProtocolDesignWorkflow(BaseTrialWorkflow):
         )
 
         # --- References ---
-        references.extend([
-            "ICH E6(R3) Good Clinical Practice (2023)",
-            "ICH E8(R1) General Considerations for Clinical Studies (2021)",
-            "ICH E9(R1) Estimands and Sensitivity Analysis",
-            f"FDA Guidance: {category.title()} Trial Design (current)",
-        ])
+        # Cite only what the code uses. The previous list -- ICH E6(R3),
+        # E8(R1), E9(R1) and an f-string "FDA Guidance: {category} Trial
+        # Design (current)" naming a document that does not exist -- was
+        # attached to every result and nothing in the computation derives from
+        # any of it.
+        if base_success is not None:
+            references.append(self._HISTORICAL_SUCCESS_CITATION)
 
         severity = SeverityLevel.INFORMATIONAL
-        if adjusted_success < 0.30:
+        if adjusted_success is None:
+            pass
+        elif adjusted_success < 0.30:
             severity = SeverityLevel.HIGH
         elif adjusted_success < 0.45:
             severity = SeverityLevel.MODERATE
@@ -352,7 +474,14 @@ class ProtocolDesignWorkflow(BaseTrialWorkflow):
             recommendations=recommendations,
             guideline_references=references,
             severity=severity,
-            confidence=_clamp(0.5 + adjusted_success * 0.3),
+            # None, not a number, when no published rate applied: the whole
+            # point of this workflow's output is the probability of success,
+            # and reporting a confidence for an estimate that was not made
+            # dresses up a refusal as a result.
+            confidence=(
+                None if adjusted_success is None
+                else _clamp(0.5 + adjusted_success * 0.3)
+            ),
         )
 
 
@@ -2383,12 +2512,42 @@ class DiversityAssessmentWorkflow(BaseTrialWorkflow):
 
     workflow_type = TrialWorkflowType.DIVERSITY_ASSESSMENT
 
-    # US Census 2020 approximate proportions for reference
+    # 2020 Census race and ethnicity figures, on the "alone" basis for race
+    # plus Hispanic or Latino as a separate ethnicity axis.
+    #
+    # Source (retrieved 2026-11-03): U.S. Census Bureau, "Improved Race and
+    # Ethnicity Measures Reveal U.S. Population Is Much More Multiracial",
+    # 12 August 2021 --
+    # https://www.census.gov/library/stories/2021/08/improved-race-ethnicity-measures-reveal-united-states-population-much-more-multiracial.html
+    #   White alone                                 204.3 M   61.6 %
+    #   Black or African American alone              41.1 M   12.4 %
+    #   Hispanic or Latino (any race; ethnicity)     62.1 M   18.7 %
+    #   Asian alone                                  19.9 M    6.0 %
+    #   American Indian / Alaska Native alone         3.7 M    1.1 %
+    #   Native Hawaiian / Other Pacific Islander      689,966   0.2 %
+    #   Two or More Races (multiracial)              33.8 M   10.2 %   (2010: 2.9 %)
+    #
+    # The previous table was labelled "US Census 2020 approximate proportions"
+    # and was not the 2020 Census. Multiracial was 0.025 against an actual
+    # 0.102 -- understated FOUR-FOLD, and it is the fastest-growing group in
+    # the US population (9 M in 2010 to 33.8 M in 2020). Black was 0.134 vs
+    # 0.124, AIAN 0.013 vs 0.011, NHPI 0.003 vs 0.002. The old table also
+    # mixed bases -- a non-Hispanic-White-alone figure (0.576) against
+    # alone-or-in-combination figures elsewhere -- and was forced to sum to
+    # exactly 1.000, which no consistent Census basis does. The sum-to-1.0
+    # constraint is therefore gone: these do not sum to 1, because Hispanic or
+    # Latino is an ethnicity that cuts across every race category.
     _US_CENSUS: Dict[str, float] = {
-        "white": 0.576, "black": 0.134, "hispanic": 0.189,
-        "asian": 0.060, "native_american": 0.013,
-        "pacific_islander": 0.003, "multiracial": 0.025,
+        "white": 0.616, "black": 0.124, "hispanic": 0.187,
+        "asian": 0.060, "native_american": 0.011,
+        "pacific_islander": 0.002, "multiracial": 0.102,
     }
+    _US_CENSUS_CITATION = (
+        "U.S. Census Bureau, 2020 Census, 'Improved Race and Ethnicity "
+        "Measures Reveal U.S. Population Is Much More Multiracial' "
+        "(12 Aug 2021). Race on the 'alone' basis; Hispanic or Latino is a "
+        "separate ethnicity axis, so these proportions do not sum to 1."
+    )
 
     # Known CYP450 polymorphism frequencies by ancestry
     _CYP_ANCESTRY: Dict[str, Dict[str, float]] = {
@@ -2473,14 +2632,46 @@ class DiversityAssessmentWorkflow(BaseTrialWorkflow):
             for group, count in demographics.items()
         }
 
-        # Compare against disease epidemiology if available, else census
-        reference_pct = epi.get("race_prevalence", self._US_CENSUS)
-        pri = self._calculate_pri(enrolled_pct, reference_pct)
-        findings.append(
-            f"Population Representativeness Index (PRI): {pri:.2f}"
-        )
+        # Compare against disease epidemiology when supplied. Falling back to
+        # the general US population for a NAMED indication substitutes the
+        # wrong reference: for sickle cell disease, Tay-Sachs or lupus the
+        # affected population looks nothing like the US population, and the
+        # PRI computed against it is meaningless. The fallback is now used
+        # only when no indication was named, and it is labelled either way.
+        reference_pct = epi.get("race_prevalence")
+        indication = inputs.get("indication") or inputs.get("therapeutic_area")
+        if reference_pct:
+            reference_label = "indication-specific epidemiology (supplied)"
+        elif indication:
+            findings.append(
+                f"No race/ethnicity epidemiology supplied for '{indication}'. "
+                "The Population Representativeness Index is NOT computed: the "
+                "general US population is not a valid reference for a named "
+                "indication. Supply `indication_epidemiology.race_prevalence` "
+                "to compute it."
+            )
+            recommendations.append(
+                f"Provide race/ethnicity prevalence for '{indication}' so "
+                f"representativeness can be assessed against the affected "
+                f"population rather than the general population"
+            )
+            reference_pct = None
+            reference_label = None
+        else:
+            reference_pct = self._US_CENSUS
+            reference_label = f"general US population — {self._US_CENSUS_CITATION}"
 
-        if pri < 0.5:
+        pri = None
+        if reference_pct:
+            pri = self._calculate_pri(enrolled_pct, reference_pct)
+            findings.append(
+                f"Population Representativeness Index (PRI): {pri:.2f} "
+                f"(reference: {reference_label})"
+            )
+
+        if pri is None:
+            pass
+        elif pri < 0.5:
             findings.append(
                 "UNDERREPRESENTATION DETECTED: PRI < 0.50 indicates "
                 "significant demographic disparity"
@@ -2491,6 +2682,9 @@ class DiversityAssessmentWorkflow(BaseTrialWorkflow):
             )
         else:
             findings.append("Good demographic representation: PRI >= 0.70")
+
+        if reference_pct is None:
+            reference_pct = {}
 
         # Per-group analysis
         findings.append("\nDemographic representation vs reference:")
@@ -2553,7 +2747,7 @@ class DiversityAssessmentWorkflow(BaseTrialWorkflow):
         recommendations.append(
             "FDA Diversity Action Plan components:"
         )
-        if pri < 0.7:
+        if pri is not None and pri < 0.7:
             underrepresented = [
                 g for g in reference_pct
                 if enrolled_pct.get(g, 0) < reference_pct[g] * 0.5
@@ -2578,7 +2772,9 @@ class DiversityAssessmentWorkflow(BaseTrialWorkflow):
             )
 
         severity = SeverityLevel.INFORMATIONAL
-        if pri < 0.5:
+        if pri is None:
+            pass
+        elif pri < 0.5:
             severity = SeverityLevel.HIGH
         elif pri < 0.7:
             severity = SeverityLevel.MODERATE
@@ -2587,14 +2783,22 @@ class DiversityAssessmentWorkflow(BaseTrialWorkflow):
             workflow_type=self.workflow_type,
             findings=findings,
             recommendations=recommendations,
-            guideline_references=[
-                "FDA Guidance: Diversity Plans to Improve Enrollment (2024)",
-                "FDA Guidance: Enhancing the Diversity of Clinical Trial Populations (2020)",
-                "NIH Policy on Inclusion of Women and Minorities",
-                "ICH E5(R1) Ethnic Factors in Acceptability of Foreign Clinical Data",
-            ],
+            # Only the Census release the code actually reads is cited.
+            # "FDA Guidance: Diversity Plans to Improve Enrollment (2024)" is
+            # not the title of an FDA guidance -- the 2024 draft is "Diversity
+            # Action Plans to Improve Enrollment of Participants From
+            # Underrepresented Populations in Clinical Studies" -- and nothing
+            # in this workflow derives from it, from the NIH policy, or from
+            # ICH E5(R1). The agent's output was cited as conforming to FDA
+            # diversity guidance while scoring against a baseline that
+            # under-represented the fastest-growing US group four-fold.
+            guideline_references=(
+                [self._US_CENSUS_CITATION] if pri is not None else []
+            ),
             severity=severity,
-            confidence=_clamp(0.5 + pri * 0.3),
+            confidence=(
+                None if pri is None else _clamp(0.5 + pri * 0.3)
+            ),
         )
 
 
