@@ -97,20 +97,30 @@ class TestApiKeyAuth:
             )
             assert response.status_code == 401
 
-    def test_endpoints_allow_without_key_set(self, client, tmp_path):
-        """Test endpoints work when PORTAL_API_KEY is not set (dev mode)."""
-        env = os.environ.copy()
-        env.pop('PORTAL_API_KEY', None)
-        with patch.dict(os.environ, env, clear=True):
+    def test_endpoints_refused_without_key_set(self, anon_client, tmp_path, monkeypatch):
+        """An unset PORTAL_API_KEY must refuse, not wave the caller through.
+
+        This test previously asserted the opposite — a "dev mode" in which an unset key
+        opened the API. This portal has never actually behaved that way (it generates an
+        ephemeral key), so the test was asserting a posture the code did not have; the
+        assertion is inverted rather than removed.
+        """
+        import server
+        monkeypatch.delenv('PORTAL_API_KEY', raising=False)
+        monkeypatch.setenv('PORTAL_API_KEY_FILE', str(tmp_path / 'portal.key'))
+        monkeypatch.setattr(server._get_api_key, '_generated_key', None, raising=False)
+        try:
             with patch('server.CONFIG_FILE', tmp_path / '.env'):
                 (tmp_path / '.env').write_text("# Config\n")
                 with patch('server.pipeline_state', {'status': 'idle', 'logs': [], 'progress': 0}):
-                    response = client.post(
+                    response = anon_client.post(
                         '/api/config',
                         data=json.dumps({'LLM_MODEL': 'llama3.1:8b'}),
                         content_type='application/json'
                     )
-                    assert response.status_code == 200
+                    assert response.status_code == 401
+        finally:
+            server._get_api_key._generated_key = None
 
 
 class TestConfigWhitelist:
@@ -334,3 +344,119 @@ class TestVcfPreviewLimit:
                         # Verify the limit was clamped
                         call_limit = mock_preview.call_args[0][1] if len(mock_preview.call_args[0]) > 1 else mock_preview.call_args[1].get('limit', 100)
                         assert call_limit <= 10000
+
+
+# ─────────────────────────────────────────────────────────────────────────────────────────
+# Security regression tests (2026-11-03 pre-release audit, finding S10)
+#
+# The ephemeral portal key was written to the log in full, and that key gates /api/config,
+# whose GET returned every key parsed out of this engine's .env — the file that holds
+# HF_TOKEN and ANTHROPIC_API_KEY. Anyone who could read the log therefore held the
+# operator's model credentials.
+# ─────────────────────────────────────────────────────────────────────────────────────────
+
+
+class TestEphemeralKeyNotLogged:
+    """S10 regression: a credential written to a log stream."""
+
+    def test_key_is_not_written_to_the_log(self, tmp_path, monkeypatch):
+        """Read the log through loguru itself, which is where the key used to be written."""
+        import server
+        monkeypatch.delenv('PORTAL_API_KEY', raising=False)
+        monkeypatch.setenv('PORTAL_API_KEY_FILE', str(tmp_path / 'portal.key'))
+        monkeypatch.setattr(server._get_api_key, '_generated_key', None, raising=False)
+        records = []
+        sink = server.logger.add(lambda m: records.append(str(m)), level='DEBUG')
+        try:
+            key = server._get_api_key()
+        finally:
+            server.logger.remove(sink)
+            server._get_api_key._generated_key = None
+        logged = '\n'.join(records)
+        assert key
+        assert logged.strip(), 'expected the portal to log where the key went'
+        assert key not in logged
+        # A fingerprint is logged instead, so the operator can tell which key is live.
+        assert 'fingerprint' in logged.lower()
+        assert str(tmp_path / 'portal.key') in logged
+
+    def test_key_file_is_private_and_holds_the_key(self, tmp_path, monkeypatch):
+        import server
+        key_file = tmp_path / 'portal.key'
+        monkeypatch.delenv('PORTAL_API_KEY', raising=False)
+        monkeypatch.setenv('PORTAL_API_KEY_FILE', str(key_file))
+        monkeypatch.setattr(server._get_api_key, '_generated_key', None, raising=False)
+        try:
+            key = server._get_api_key()
+            assert key_file.exists()
+            assert oct(key_file.stat().st_mode & 0o777) == '0o600'
+            assert key_file.read_text().strip() == key
+        finally:
+            server._get_api_key._generated_key = None
+
+    def test_fingerprint_is_not_reversible(self):
+        import server
+        assert server._key_fingerprint('super-secret-value') != 'super-secret-value'
+        assert 'secret-value' not in server._key_fingerprint('super-secret-value')
+
+
+class TestConfigGetDoesNotServeTheEnv:
+    """S10 regression: GET /api/config returned the engine's .env wholesale."""
+
+    def test_undeclared_keys_are_not_returned(self, client, tmp_path):
+        with patch('server.CONFIG_FILE', tmp_path / '.env'):
+            (tmp_path / '.env').write_text(
+                "LLM_MODEL=llama3.1:8b\n"
+                "ANTHROPIC_API_KEY=SYNTHETIC-not-a-real-credential\n"
+                "MINIO_ROOT_PASSWORD=also-secret\n"
+            )
+            response = client.get('/api/config')
+            assert response.status_code == 200
+            body = response.get_data(as_text=True)
+            data = json.loads(body)
+            assert data.get('LLM_MODEL') == 'llama3.1:8b'
+            assert 'ANTHROPIC_API_KEY' not in data
+            assert 'MINIO_ROOT_PASSWORD' not in data
+            assert 'SYNTHETIC-not-a-real-credential' not in body
+            assert 'also-secret' not in body
+
+    def test_declared_secret_is_redacted_not_returned(self, client, tmp_path):
+        """HF_TOKEN is writable through this route, so it is declared — but not readable."""
+        import server
+        with patch('server.CONFIG_FILE', tmp_path / '.env'):
+            (tmp_path / '.env').write_text("HF_TOKEN=SYNTHETIC-not-a-real-token\nLLM_MODEL=x\n")
+            response = client.get('/api/config')
+            body = response.get_data(as_text=True)
+            assert 'SYNTHETIC-not-a-real-token' not in body
+            assert json.loads(body)['HF_TOKEN'] == server.REDACTED
+
+    def test_round_tripping_the_redaction_does_not_clobber_the_secret(self, client, tmp_path):
+        import server
+        with patch('server.CONFIG_FILE', tmp_path / '.env'):
+            (tmp_path / '.env').write_text("HF_TOKEN=SYNTHETIC-not-a-real-token\n")
+            response = client.post(
+                '/api/config',
+                data=json.dumps({'HF_TOKEN': server.REDACTED}),
+                content_type='application/json',
+            )
+            assert response.status_code == 200
+            assert 'SYNTHETIC-not-a-real-token' in (tmp_path / '.env').read_text()
+            assert server.REDACTED not in (tmp_path / '.env').read_text()
+
+    def test_config_get_still_requires_the_key(self, anon_client, tmp_path):
+        with patch('server.CONFIG_FILE', tmp_path / '.env'):
+            (tmp_path / '.env').write_text("LLM_MODEL=x\n")
+            assert anon_client.get('/api/config').status_code == 401
+
+
+class TestPortalKeyComparison:
+    """The portal key check must be constant-time and must not raise."""
+
+    def test_comparison_is_constant_time(self):
+        import inspect
+        import server
+        assert 'compare_digest' in inspect.getsource(server.require_api_key)
+
+    def test_non_ascii_header_is_401_not_500(self, anon_client):
+        response = anon_client.get('/api/config', headers={'X-API-Key': 'pässwörd'})
+        assert response.status_code == 401

@@ -7,8 +7,35 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 import sys
 
+from flask.testing import FlaskClient
+
 # Add the app directory to the path
 sys.path.insert(0, str(Path(__file__).parent.parent / 'app'))
+
+
+# The portal now always enforces an API key (it used to be a pass-through when
+# PORTAL_API_KEY was unset). Tests therefore run with a known key configured, and the
+# default `client` sends it; `anon_client` deliberately does not, for the tests that
+# assert an unauthenticated caller is refused.
+PORTAL_TEST_KEY = 'portal-test-key'
+
+
+class _KeyedClient(FlaskClient):
+    """Test client that sends X-API-Key unless the caller set one explicitly."""
+
+    def open(self, *args, **kwargs):
+        headers = kwargs.get('headers') or {}
+        if isinstance(headers, dict) and not any(k.lower() == 'x-api-key' for k in headers):
+            headers = {**headers, 'X-API-Key': PORTAL_TEST_KEY}
+            kwargs['headers'] = headers
+        return super().open(*args, **kwargs)
+
+
+@pytest.fixture(autouse=True)
+def portal_api_key(monkeypatch):
+    """Configure a known portal key for every test."""
+    monkeypatch.setenv('PORTAL_API_KEY', PORTAL_TEST_KEY)
+    return PORTAL_TEST_KEY
 
 
 @pytest.fixture
@@ -21,7 +48,18 @@ def app():
 
 @pytest.fixture
 def client(app):
-    """Create test client."""
+    """Create test client that authenticates."""
+    app.test_client_class = _KeyedClient
+    try:
+        return app.test_client()
+    finally:
+        app.test_client_class = None
+
+
+@pytest.fixture
+def anon_client(app):
+    """Create test client that sends no credential."""
+    app.test_client_class = None
     return app.test_client()
 
 

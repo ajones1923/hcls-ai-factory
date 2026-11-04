@@ -50,6 +50,24 @@ def resolve_key(service: str = "", explicit: str | None = None) -> str | None:
     return os.environ.get("HCLS_API_KEY") or None
 
 
+def keys_match(supplied: str, expected: str) -> bool:
+    """Constant-time key comparison that cannot raise on the input it is given.
+
+    `hmac.compare_digest` accepts two `str` only when both are ASCII, and raises TypeError
+    otherwise. Starlette latin-1-decodes header values, so one non-ASCII byte in X-API-Key
+    used to turn a 401 into an unhandled 500 — and an operator who chose a passphrase with
+    an accent in it took every gated route on the service down, while /health stayed 200 and
+    auth_status() still reported "fail-closed". Comparing encoded bytes removes both, and
+    keeps the comparison constant-time, which is why compare_digest is here at all.
+    """
+    if not supplied or not expected:
+        return False
+    return hmac.compare_digest(
+        supplied.encode("utf-8", "surrogateescape"),
+        expected.encode("utf-8", "surrogateescape"),
+    )
+
+
 def install_api_key_auth(app, *, service: str = "", api_key: str | None = None,
                          open_paths: Iterable[str] = DEFAULT_OPEN_PATHS):
     """Attach the gate. No-op when no key is configured, so existing deployments do not break.
@@ -70,8 +88,9 @@ def install_api_key_auth(app, *, service: str = "", api_key: str | None = None,
         if request.method == "OPTIONS" or request.url.path in allowed:
             return await call_next(request)
         supplied = request.headers.get("X-API-Key") or ""
-        # constant-time: a plain == leaks key length and prefix through timing
-        if not hmac.compare_digest(supplied, key):
+        # constant-time, on bytes: a plain == leaks key length and prefix through timing,
+        # and compare_digest on str raises on a non-ASCII header or key (see keys_match).
+        if not keys_match(supplied, key):
             return JSONResponse(
                 {"detail": "missing or invalid X-API-Key",
                  "service": service or "hcls-ai-factory"},

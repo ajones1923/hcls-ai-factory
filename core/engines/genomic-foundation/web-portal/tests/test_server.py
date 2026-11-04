@@ -362,19 +362,26 @@ class TestApiKeyAuth:
                     )
                     assert response.status_code == 200
 
-    def test_run_allows_without_key_set(self, client, mock_subprocess):
-        """Test that /api/run works when PORTAL_API_KEY is not set (dev mode)."""
-        with patch.dict('os.environ', {}, clear=False):
-            # Ensure PORTAL_API_KEY is not set
-            import os
-            env = os.environ.copy()
-            env.pop('PORTAL_API_KEY', None)
-            with patch.dict('os.environ', env, clear=True):
-                with patch('server.pipeline_state', {'status': 'idle', 'logs': [], 'progress': 0}):
-                    with patch('server.threading.Thread') as mock_thread:
-                        mock_thread.return_value = Mock()
-                        response = client.post('/api/run/check')
-                        assert response.status_code == 200
+    def test_run_refused_without_key_set(self, anon_client, mock_subprocess, tmp_path, monkeypatch):
+        """S3 regression: an unset PORTAL_API_KEY must refuse, not wave the caller through.
+
+        This test previously asserted the opposite — that /api/run succeeded with no key
+        configured — which is the fail-open defect itself. The decorator now generates an
+        ephemeral key instead of becoming a pass-through.
+        """
+        import server
+        monkeypatch.delenv('PORTAL_API_KEY', raising=False)
+        monkeypatch.setenv('PORTAL_API_KEY_FILE', str(tmp_path / 'portal.key'))
+        monkeypatch.setattr(server._portal_api_key, '_ephemeral', None, raising=False)
+        try:
+            with patch('server.pipeline_state', {'status': 'idle', 'logs': [], 'progress': 0}):
+                with patch('server.threading.Thread') as mock_thread:
+                    mock_thread.return_value = Mock()
+                    response = anon_client.post('/api/run/check')
+                    assert response.status_code == 401
+                    assert 'Unauthorized' in json.loads(response.data).get('error', '')
+        finally:
+            server._portal_api_key._ephemeral = None
 
     def test_stop_requires_api_key(self, client):
         """Test that /api/stop requires API key."""
@@ -431,3 +438,315 @@ class TestPathTraversal:
                 assert '/' not in result.get('filename', '')
             else:
                 assert response.status_code == 400
+
+
+# ─────────────────────────────────────────────────────────────────────────────────────────
+# Security regression tests (2026-11-03 pre-release audit, findings S1, S2, S3, S6, S9, S15)
+#
+# Each test below pins down a defect that was confirmed in this file and is now fixed. They
+# assert the *refusal*: that an unauthenticated or malformed call does not succeed.
+# ─────────────────────────────────────────────────────────────────────────────────────────
+
+
+class TestUnauthenticatedConfigRefused:
+    """S1/S2 regression: /api/config carried no credential on either method."""
+
+    def test_config_get_requires_key(self, anon_client):
+        """GET /api/config returned the whole pipeline env file to anyone."""
+        response = anon_client.get('/api/config')
+        assert response.status_code == 401
+
+    def test_config_post_requires_key(self, anon_client, tmp_path):
+        """POST /api/config wrote to a shell-sourced file with no credential."""
+        with patch('server.CONFIG_FILE', tmp_path / 'pipeline.env'):
+            (tmp_path / 'pipeline.env').write_text("# Config\nPATIENT_ID=HG002\n")
+            response = anon_client.post(
+                '/api/config',
+                data=json.dumps({'PATIENT_ID': 'HG003'}),
+                content_type='application/json',
+            )
+            assert response.status_code == 401
+            # And nothing was written.
+            assert 'HG003' not in (tmp_path / 'pipeline.env').read_text()
+
+    def test_config_get_omits_undeclared_keys(self, client, tmp_path):
+        """S2 regression: a credential an operator kept in pipeline.env was served."""
+        with patch('server.CONFIG_FILE', tmp_path / 'pipeline.env'):
+            (tmp_path / 'pipeline.env').write_text(
+                "PATIENT_ID=HG002\nNGC_API_KEY=SYNTHETIC-not-a-real-credential\n"
+                "REGISTRY_TOKEN=also-secret\n"
+            )
+            response = client.get('/api/config')
+            assert response.status_code == 200
+            body = response.get_data(as_text=True)
+            data = json.loads(body)
+            assert data.get('PATIENT_ID') == 'HG002'
+            assert 'NGC_API_KEY' not in data
+            assert 'REGISTRY_TOKEN' not in data
+            assert 'SYNTHETIC-not-a-real-credential' not in body
+            assert 'also-secret' not in body
+
+
+class TestConfigValueValidation:
+    """S1 regression: values reaching a file that bash executes."""
+
+    def _post(self, client, tmp_path, payload):
+        with patch('server.CONFIG_FILE', tmp_path / 'pipeline.env'):
+            (tmp_path / 'pipeline.env').write_text("# Config\nPATIENT_ID=HG002\n")
+            response = client.post(
+                '/api/config',
+                data=json.dumps(payload),
+                content_type='application/json',
+            )
+            return response, (tmp_path / 'pipeline.env').read_text()
+
+    def test_newline_in_value_rejected(self, client, tmp_path):
+        """The old filter blocked five metacharacters but not the line break."""
+        response, written = self._post(
+            client, tmp_path,
+            {'OUT': '/tmp/out\nsome-extra-line\nmore'},
+        )
+        assert response.status_code == 400
+        assert 'some-extra-line' not in written
+
+    def test_carriage_return_in_value_rejected(self, client, tmp_path):
+        response, written = self._post(client, tmp_path, {'PATIENT_ID': 'HG002\rHG003'})
+        assert response.status_code == 400
+        assert 'HG003' not in written
+
+    def test_shell_metacharacters_rejected(self, client, tmp_path):
+        for value in ('$(id)', '`id`', 'a|b', 'a;b', 'a&b', 'a>b', "a'b", 'a"b', 'a b'):
+            response, written = self._post(client, tmp_path, {'PATIENT_ID': value})
+            assert response.status_code == 400, f'accepted {value!r}'
+            assert value not in written
+
+    def test_unlisted_image_rejected(self, client, tmp_path):
+        """PB_IMG is the image argument to `docker run` with host mounts and GPU access."""
+        response, written = self._post(
+            client, tmp_path, {'PB_IMG': 'docker.io/attacker/payload:latest'})
+        assert response.status_code == 400
+        assert 'attacker' not in written
+
+    def test_allowlisted_image_accepted(self, client, tmp_path):
+        response, written = self._post(
+            client, tmp_path, {'PB_IMG': 'nvcr.io/nvidia/clara/clara-parabricks:4.6.0-1'})
+        assert response.status_code == 200
+        assert 'clara-parabricks:4.6.0-1' in written
+
+    def test_image_allowlist_is_configurable(self, client, tmp_path, monkeypatch):
+        monkeypatch.setenv('PORTAL_ALLOWED_IMAGES', 'registry.example.org/own/parabricks:1.2')
+        response, written = self._post(
+            client, tmp_path, {'PB_IMG': 'registry.example.org/own/parabricks:1.2'})
+        assert response.status_code == 200
+        assert 'registry.example.org/own/parabricks:1.2' in written
+
+    def test_path_outside_root_rejected(self, client, tmp_path, monkeypatch):
+        monkeypatch.setenv('PORTAL_CONFIG_PATH_ROOT', str(tmp_path / 'engine'))
+        (tmp_path / 'engine').mkdir()
+        response, written = self._post(client, tmp_path, {'OUT': '/etc'})
+        assert response.status_code == 400
+        assert '/etc' not in written
+
+    def test_path_inside_root_accepted(self, client, tmp_path, monkeypatch):
+        root = tmp_path / 'engine'
+        root.mkdir()
+        monkeypatch.setenv('PORTAL_CONFIG_PATH_ROOT', str(root))
+        response, written = self._post(client, tmp_path, {'OUT': str(root / 'data' / 'output')})
+        assert response.status_code == 200
+
+    def test_written_value_survives_being_sourced(self, client, tmp_path):
+        """What the pipeline scripts actually do: `source` the file and read the value."""
+        import subprocess as sp
+        response, _ = self._post(client, tmp_path, {'PATIENT_ID': 'HG003'})
+        assert response.status_code == 200
+        out = sp.run(['bash', '-c',
+                      f'set -a; source {tmp_path / "pipeline.env"}; printf "%s" "$PATIENT_ID"'],
+                     capture_output=True, text=True)
+        assert out.returncode == 0, out.stderr
+        assert out.stdout == 'HG003'
+
+    def test_save_config_quotes_values(self, tmp_path, monkeypatch):
+        """Second line of defence, exercised directly.
+
+        The route rejects dangerous values before save_config sees them, so this bypasses
+        the route's validation to prove the writer itself emits shell-inert text.
+        """
+        import subprocess as sp
+        import server
+        monkeypatch.setattr(server, 'validate_config_entry', lambda key, value: None)
+        with patch('server.CONFIG_FILE', tmp_path / 'pipeline.env'):
+            (tmp_path / 'pipeline.env').write_text("# Config\n")
+            server.save_config({'PATIENT_ID': '$(id) ; echo pwned'})
+            written = (tmp_path / 'pipeline.env').read_text()
+            assert "'$(id) ; echo pwned'" in written
+            out = sp.run(['bash', '-c',
+                          f'set -a; source {tmp_path / "pipeline.env"}; printf "%s" "$PATIENT_ID"'],
+                         capture_output=True, text=True)
+            assert out.returncode == 0, out.stderr
+            # Verbatim, not executed.
+            assert out.stdout == '$(id) ; echo pwned'
+
+    def test_written_file_is_shell_safe(self, client, tmp_path):
+        """`bash -n` on the written file: the pipeline scripts `source` it."""
+        import subprocess as sp
+        response, _ = self._post(client, tmp_path, {'PATIENT_ID': 'HG003', 'NUM_GPUS': '2'})
+        assert response.status_code == 200
+        check = sp.run(['bash', '-n', str(tmp_path / 'pipeline.env')],
+                       capture_output=True, text=True)
+        assert check.returncode == 0, check.stderr
+
+    def test_save_config_refuses_unvalidated_values(self, tmp_path):
+        """Defence in depth: save_config itself will not write an unvalidated value."""
+        import server
+        with patch('server.CONFIG_FILE', tmp_path / 'pipeline.env'):
+            (tmp_path / 'pipeline.env').write_text("# Config\n")
+            with pytest.raises(ValueError):
+                server.save_config({'OUT': '/tmp/x\ninjected-line'})
+            assert 'injected-line' not in (tmp_path / 'pipeline.env').read_text()
+
+
+class TestUnauthenticatedReadsRefused:
+    """S9 regression: read routes were weaker than their sibling write routes."""
+
+    def test_logs_require_key(self, anon_client, tmp_path):
+        with patch('server.LOG_DIR', tmp_path):
+            response = anon_client.get('/api/logs/chr20_fq2bam')
+            assert response.status_code == 401
+
+    def test_file_listing_requires_key(self, anon_client, tmp_path):
+        with patch('server.DATA_DIR', tmp_path):
+            (tmp_path / 'output').mkdir(exist_ok=True)
+            response = anon_client.get('/api/files/output')
+            assert response.status_code == 401
+
+    def test_download_requires_key(self, anon_client, tmp_path):
+        with patch('server.DATA_DIR', tmp_path):
+            (tmp_path / 'output').mkdir(exist_ok=True)
+            (tmp_path / 'output' / 'patient.vcf').write_text('##fileformat=VCFv4.2\n')
+            response = anon_client.get('/api/files/download/output/patient.vcf')
+            assert response.status_code == 401
+
+    def test_download_accepts_query_key_for_browser_navigation(self, client, tmp_path,
+                                                                 portal_api_key):
+        """A download started by navigation cannot set a header, so ?api_key= is accepted."""
+        with patch('server.DATA_DIR', tmp_path):
+            (tmp_path / 'output').mkdir(exist_ok=True)
+            (tmp_path / 'output' / 'patient.vcf').write_text('##fileformat=VCFv4.2\n')
+            response = client.get(
+                f'/api/files/download/output/patient.vcf?api_key={portal_api_key}',
+                headers={'X-API-Key': ''})
+            assert response.status_code == 200
+
+    def test_stream_requires_key(self, anon_client):
+        with patch('server.pipeline_state', {
+            'status': 'idle', 'current_step': None, 'start_time': None,
+            'end_time': None, 'error_message': None, 'logs': []
+        }):
+            response = anon_client.get('/api/stream')
+            assert response.status_code == 401
+
+    def test_query_key_not_accepted_on_mutating_routes(self, anon_client, portal_api_key):
+        """The query-string fallback is opt-in per route, not a global second door."""
+        with patch('server.pipeline_state', {'status': 'idle', 'logs': [], 'progress': 0}):
+            response = anon_client.post(f'/api/run/check?api_key={portal_api_key}')
+            assert response.status_code == 401
+
+
+class TestApiKeyComparison:
+    """The portal's key check must be constant-time and must not raise on odd input."""
+
+    def test_non_ascii_header_is_401_not_500(self, anon_client):
+        """compare_digest on str raises TypeError on non-ASCII; bytes do not."""
+        response = anon_client.get('/api/config', headers={'X-API-Key': 'pässwörd'})
+        assert response.status_code == 401
+
+    def test_non_ascii_configured_key_still_works(self, anon_client, monkeypatch):
+        monkeypatch.setenv('PORTAL_API_KEY', 'pässwörd-ünicode')
+        bad = anon_client.get('/api/config', headers={'X-API-Key': 'wrong'})
+        assert bad.status_code == 401
+        good = anon_client.get('/api/config', headers={'X-API-Key': 'pässwörd-ünicode'})
+        assert good.status_code == 200
+
+    def test_empty_header_refused(self, anon_client):
+        response = anon_client.get('/api/config', headers={'X-API-Key': ''})
+        assert response.status_code == 401
+
+    def test_comparison_is_constant_time(self):
+        """Guard against a regression back to `!=`."""
+        import inspect
+        import server
+        source = inspect.getsource(server._api_key_matches)
+        assert 'compare_digest' in source
+
+
+class TestEphemeralKeyHandling:
+    """S3/S10 regression: the generated key must be usable without being logged."""
+
+    def test_ephemeral_key_file_is_private_and_key_not_logged(self, tmp_path, monkeypatch):
+        import server
+        key_file = tmp_path / 'portal.key'
+        monkeypatch.delenv('PORTAL_API_KEY', raising=False)
+        monkeypatch.setenv('PORTAL_API_KEY_FILE', str(key_file))
+        monkeypatch.setattr(server._portal_api_key, '_ephemeral', None, raising=False)
+        records = []
+        sink = server.logger.add(lambda m: records.append(str(m)), level='DEBUG')
+        try:
+            key = server._portal_api_key()
+        finally:
+            server.logger.remove(sink)
+            server._portal_api_key._ephemeral = None
+        logged = '\n'.join(records)
+        assert key
+        assert key_file.exists()
+        assert oct(key_file.stat().st_mode & 0o777) == '0o600'
+        assert key_file.read_text().strip() == key
+        # The log must name the key FILE, never the key.
+        assert logged.strip(), 'expected the portal to log where the key went'
+        assert key not in logged
+        assert str(key_file) in logged
+
+
+class TestCorsDefault:
+    """S6 regression: the portal's CORS default was '*'."""
+
+    def test_default_origins_have_no_wildcard(self):
+        import server
+        assert '*' not in server.DEFAULT_CORS_ORIGINS
+        assert 'localhost' in server.DEFAULT_CORS_ORIGINS
+
+    def test_credentials_not_enabled(self, client):
+        """A wildcard origin with credentials is the dangerous combination."""
+        response = client.get('/api/config',
+                              headers={'Origin': 'http://localhost:5000'})
+        assert response.headers.get('Access-Control-Allow-Credentials') is None
+
+    def test_foreign_origin_not_echoed(self, client):
+        response = client.get('/api/config',
+                              headers={'Origin': 'https://evil.example'})
+        assert response.headers.get('Access-Control-Allow-Origin') != 'https://evil.example'
+
+
+class TestUploadSizeCap:
+    """S15 regression: upload reads were unbounded."""
+
+    def test_oversize_declared_upload_refused(self, client, tmp_path, monkeypatch):
+        import io
+        monkeypatch.setenv('PORTAL_MAX_UPLOAD_BYTES', '64')
+        with patch('server.DATA_DIR', tmp_path):
+            (tmp_path / 'input').mkdir(exist_ok=True)
+            data = {'file': (io.BytesIO(b'x' * 4096), 'big.fastq')}
+            response = client.post('/api/files/upload/input', data=data,
+                                   content_type='multipart/form-data')
+            assert response.status_code == 413
+            assert not (tmp_path / 'input' / 'big.fastq').exists()
+
+    def test_within_limit_upload_accepted(self, client, tmp_path, monkeypatch):
+        import io
+        monkeypatch.setenv('PORTAL_MAX_UPLOAD_BYTES', str(1024 * 1024))
+        with patch('server.DATA_DIR', tmp_path):
+            (tmp_path / 'input').mkdir(exist_ok=True)
+            data = {'file': (io.BytesIO(b'@read1\nACGT\n+\nIIII\n'), 'small.fastq')}
+            response = client.post('/api/files/upload/input', data=data,
+                                   content_type='multipart/form-data')
+            assert response.status_code == 200
+            assert (tmp_path / 'input' / 'small.fastq').exists()
