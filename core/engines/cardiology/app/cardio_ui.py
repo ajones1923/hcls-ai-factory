@@ -627,11 +627,21 @@ with tab_risk:
             es_ph = st.selectbox("Pulmonary hypertension", ["none", "moderate", "severe"], key="es_ph")
             es_urg = st.selectbox("Urgency", ["elective", "urgent", "emergency", "salvage"], key="es_urg")
             es_aorta = st.checkbox("Surgery on thoracic aorta", key="es_aorta")
+            # Weight of intervention carries up to 0.9725 of the EuroSCORE II
+            # linear predictor and was never collected here, so every score this
+            # form produced was computed as an isolated CABG.
+            es_weight = st.selectbox(
+                "Weight of intervention",
+                ["isolated_cabg", "single_non_cabg", "two_procedures", "three_or_more"],
+                key="es_weight",
+            )
+            es_dialysis = st.checkbox("On dialysis", key="es_dialysis")
 
         if st.button("Calculate EuroSCORE II", key="btn_es", type="primary"):
             with st.spinner("Calculating..."):
                 result = api_post("/v1/cardio/risk/euroscore", {
                     "age": es_age, "sex": es_sex, "creatinine_clearance": es_crcl,
+                    "on_dialysis": es_dialysis,
                     "extracardiac_arteriopathy": es_extra, "poor_mobility": es_mob,
                     "previous_cardiac_surgery": es_prev, "chronic_lung_disease": es_lung,
                     "active_endocarditis": es_endo, "critical_preop_state": es_crit,
@@ -639,6 +649,7 @@ with tab_risk:
                     "ccs_class_4_angina": es_ccs4, "lvef": es_lvef,
                     "recent_mi": es_mi, "pulmonary_hypertension": es_ph,
                     "urgency": es_urg, "thoracic_aorta": es_aorta,
+                    "procedure_weight": es_weight,
                 })
             if result:
                 st.markdown(risk_badge(result.get("risk_category", "")), unsafe_allow_html=True)
