@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import logging
 import math
+import re
 from typing import Dict, List, Optional, Tuple
 
 from src.models import (
@@ -27,6 +28,165 @@ logger = logging.getLogger(__name__)
 def _clamp(value: float, lo: float = 0.0, hi: float = 1.0) -> float:
     """Clamp a numeric value to [lo, hi]."""
     return max(lo, min(hi, value))
+
+
+def _normalise_disease(name: str) -> str:
+    """Normalise a disease name for *equality* comparison.
+
+    Case, punctuation and whitespace are folded; nothing else. This exists so
+    disease lookups can require a whole-name match instead of the bidirectional
+    substring test that returned mavacamten for "cardiomyopathy" and the
+    Duchenne natural history for "muscular dystrophy".
+    """
+    return re.sub(r"[^a-z0-9]+", " ", (name or "").lower()).strip()
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# ACMG/AMP TABLE 5 COMBINING RULES
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# Richards S, Aziz N, Bale S, et al. "Standards and guidelines for the
+# interpretation of sequence variants: a joint consensus recommendation of the
+# American College of Medical Genetics and Genomics and the Association for
+# Molecular Pathology." Genet Med 2015;17(5):405-424. PMC4544753.
+# Table 5, "Rules for combining criteria to classify sequence variants",
+# retrieved 2026-11-03 from https://pmc.ncbi.nlm.nih.gov/articles/PMC4544753/
+# and transcribed verbatim into the predicates below.
+#
+# These rule sets replace a point-scoring approximation (PVS1=8, PS=4/3,
+# PM=2, PP=1, with Pathogenic at >=10) that disagreed with Table 5 in both
+# directions -- it called PVS1 alone Likely pathogenic and PS3+PM2 a VUS.
+# Table 5 is combinatorial over strength BUCKETS, not additive over weights,
+# so the weights are gone rather than retuned.
+
+#: Strength bucket for each ACMG/AMP criterion code (Richards 2015 Tables 3/4).
+_ACMG_BUCKETS: Dict[str, str] = {
+    # Pathogenic: Very Strong / Strong / Moderate / Supporting
+    "PVS1": "PVS",
+    "PS1": "PS", "PS2": "PS", "PS3": "PS", "PS4": "PS",
+    "PM1": "PM", "PM2": "PM", "PM3": "PM", "PM4": "PM", "PM5": "PM",
+    "PM6": "PM",
+    "PP1": "PP", "PP2": "PP", "PP3": "PP", "PP4": "PP", "PP5": "PP",
+    # Benign: Stand-alone / Strong / Supporting
+    "BA1": "BA",
+    "BS1": "BS", "BS2": "BS", "BS3": "BS", "BS4": "BS",
+    "BP1": "BP", "BP2": "BP", "BP3": "BP", "BP4": "BP", "BP5": "BP",
+    "BP6": "BP", "BP7": "BP",
+}
+
+
+def _bucket_counts(criteria: List[str]) -> Dict[str, int]:
+    """Count criterion codes by Richards 2015 strength bucket."""
+    counts = {b: 0 for b in ("PVS", "PS", "PM", "PP", "BA", "BS", "BP")}
+    for code in criteria:
+        bucket = _ACMG_BUCKETS.get(code)
+        if bucket is not None:
+            counts[bucket] += 1
+    return counts
+
+
+def _pathogenic_rule(pvs: int, ps: int, pm: int, pp: int) -> Optional[str]:
+    """Return the Table 5 *Pathogenic* rule that fires, or None."""
+    if pvs >= 1 and (ps >= 1 or pm >= 2 or (pm >= 1 and pp >= 1) or pp >= 2):
+        return "1 Very Strong (PVS1) AND (>=1 Strong OR >=2 Moderate OR 1 Moderate+1 Supporting OR >=2 Supporting)"
+    if ps >= 2:
+        return ">=2 Strong (PS1-PS4)"
+    if ps >= 1 and (pm >= 3 or (pm >= 2 and pp >= 2) or (pm >= 1 and pp >= 4)):
+        return "1 Strong AND (>=3 Moderate OR 2 Moderate+>=2 Supporting OR 1 Moderate+>=4 Supporting)"
+    return None
+
+
+def _likely_pathogenic_rule(pvs: int, ps: int, pm: int, pp: int) -> Optional[str]:
+    """Return the Table 5 *Likely pathogenic* rule that fires, or None."""
+    if pvs >= 1 and pm >= 1:
+        return "1 Very Strong (PVS1) AND 1 Moderate"
+    if ps >= 1 and 1 <= pm <= 2:
+        return "1 Strong AND 1-2 Moderate"
+    if ps >= 1 and pp >= 2:
+        return "1 Strong AND >=2 Supporting"
+    if pm >= 3:
+        return ">=3 Moderate"
+    if pm >= 2 and pp >= 2:
+        return "2 Moderate AND >=2 Supporting"
+    if pm >= 1 and pp >= 4:
+        return "1 Moderate AND >=4 Supporting"
+    return None
+
+
+def _benign_rule(ba: int, bs: int) -> Optional[str]:
+    """Return the Table 5 *Benign* rule that fires, or None."""
+    if ba >= 1:
+        return "1 Stand-Alone (BA1)"
+    if bs >= 2:
+        return ">=2 Strong (BS1-BS4)"
+    return None
+
+
+def _likely_benign_rule(bs: int, bp: int) -> Optional[str]:
+    """Return the Table 5 *Likely benign* rule that fires, or None."""
+    if bs >= 1 and bp >= 1:
+        return "1 Strong (BS1-BS4) AND 1 Supporting (BP1-BP7)"
+    if bp >= 2:
+        return ">=2 Supporting (BP1-BP7)"
+    return None
+
+
+def combine_acmg_criteria(
+    criteria: List[str],
+) -> Tuple[ACMGClassification, str]:
+    """Combine met ACMG/AMP criteria into a classification per Richards Table 5.
+
+    Parameters
+    ----------
+    criteria : list[str]
+        Criterion codes that were met, e.g. ``["PVS1", "PM2"]``.
+
+    Returns
+    -------
+    tuple[ACMGClassification, str]
+        ``(classification, rule_that_fired)``. The rule string makes the call
+        auditable against Table 5.
+
+    Notes
+    -----
+    Richards 2015 Table 5 footnote: *"Variants should be classified as
+    Uncertain Significance if other criteria are unmet or the criteria for
+    benign and pathogenic are contradictory"*. Both halves of that sentence
+    are implemented here -- a variant satisfying a pathogenic rule set AND a
+    benign rule set returns VUS rather than whichever side was tested first.
+    """
+    c = _bucket_counts(criteria)
+    pvs, ps, pm, pp = c["PVS"], c["PS"], c["PM"], c["PP"]
+    ba, bs, bp = c["BA"], c["BS"], c["BP"]
+
+    path_rule = _pathogenic_rule(pvs, ps, pm, pp)
+    lp_rule = _likely_pathogenic_rule(pvs, ps, pm, pp)
+    ben_rule = _benign_rule(ba, bs)
+    lb_rule = _likely_benign_rule(bs, bp)
+
+    path_side = path_rule or lp_rule
+    benign_side = ben_rule or lb_rule
+
+    # Table 5 footnote: contradictory benign and pathogenic criteria -> VUS.
+    if path_side and benign_side:
+        return (
+            ACMGClassification.VUS,
+            f"contradictory evidence (pathogenic rule '{path_side}' and "
+            f"benign rule '{benign_side}' both satisfied) -> Uncertain significance",
+        )
+    if path_rule:
+        return ACMGClassification.PATHOGENIC, path_rule
+    if lp_rule:
+        return ACMGClassification.LIKELY_PATHOGENIC, lp_rule
+    if ben_rule:
+        return ACMGClassification.BENIGN, ben_rule
+    if lb_rule:
+        return ACMGClassification.LIKELY_BENIGN, lb_rule
+    # Table 5 footnote: other criteria unmet -> Uncertain significance.
+    return (
+        ACMGClassification.VUS,
+        "no Table 5 rule set satisfied -> Uncertain significance",
+    )
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -157,22 +317,34 @@ class HPOToGeneMatcher:
         ],
     }
 
-    def _compute_ic(self, hpo_id: str) -> float:
+    def _compute_ic(self, hpo_id: str) -> Optional[float]:
         """Compute information content for an HPO term.
 
         IC = -log2(p(t)), where p(t) is the frequency of the term
         across annotated diseases.
+
+        Returns ``None`` for a term with no frequency on file. An unannotated
+        term has *undefined* IC, not maximal IC: the previous ``0.001`` default
+        scored any unknown string -- including ``"banana"`` and six terms from
+        this class's own gene map -- at IC 9.97, nearly 4x the IC of Seizures
+        (2.74), so the matcher's highest-weighted evidence was systematically
+        its least-known evidence.
         """
-        freq = self._TERM_FREQUENCIES.get(hpo_id, 0.001)  # default rare
+        freq = self._TERM_FREQUENCIES.get(hpo_id)
+        if freq is None:
+            return None
         return -math.log2(freq)
 
     def _max_ic_match(self, term: str, target_terms: List[str]) -> float:
         """Find maximum IC score for matching *term* against *target_terms*.
 
-        Returns max IC if term is found in targets, else 0.
+        Returns the term's IC if it is found in the targets AND its frequency
+        is on file, else 0.0 (an unscoreable term contributes nothing).
         """
         if term in target_terms:
-            return self._compute_ic(term)
+            ic = self._compute_ic(term)
+            if ic is not None:
+                return ic
         return 0.0
 
     def _bma_similarity(
@@ -240,13 +412,22 @@ class HPOToGeneMatcher:
             combined = _clamp(combined / 10.0)  # Normalise to 0-1 range
 
             if bma > 0:
-                ic_details = {t: round(self._compute_ic(t), 2) for t in matched_terms}
+                ic_details: Dict[str, Optional[float]] = {}
+                unscored: List[str] = []
+                for t in matched_terms:
+                    ic = self._compute_ic(t)
+                    if ic is None:
+                        ic_details[t] = None
+                        unscored.append(t)
+                    else:
+                        ic_details[t] = round(ic, 2)
                 results.append({
                     "gene": gene,
                     "bma_score": round(bma, 4),
                     "combined_score": round(combined, 4),
                     "matched_terms": matched_terms,
                     "ic_details": ic_details,
+                    "unscored_terms": unscored,
                     "n_gene_phenotypes": len(gene_terms),
                     "n_matched": len(matched_terms),
                 })
@@ -290,20 +471,74 @@ class ACMGVariantClassifier:
     - BP6: Reputable source reports variant as benign (+benign)
     - BP7: Synonymous with no splice impact (+benign)
 
-    Scoring thresholds:
-    - Pathogenic: >= 10 (must include PVS1 or 2xPS)
-    - Likely Pathogenic: >= 6
-    - VUS: 1-5
-    - Likely Benign: benign_score >= 4
-    - Benign: BA1 alone or benign_score >= 6
+    Criteria are combined by :func:`combine_acmg_criteria`, which implements
+    Richards 2015 Table 5 verbatim. There are no criterion weights: a point
+    system cannot reproduce Table 5 and the previous one did not.
     """
 
-    # LOF-intolerant genes (pLI > 0.9 in gnomAD)
-    _LOF_INTOLERANT_GENES = {
-        "SCN1A", "MECP2", "KCNQ1", "KCNH2", "SCN5A", "MYH7", "MYBPC3",
-        "FBN1", "COL1A1", "COL1A2", "HTT", "NSD1", "NIPBL", "KMT2D",
-        "CHD7", "PTPN11", "RAF1", "BRAF", "FGFR3", "TCOF1",
+    #: Null variant types that may support PVS1 (Richards 2015 Table 3: "nonsense,
+    #: frameshift, canonical +/-1 or 2 splice sites, initiation codon, single or
+    #: multi-exon deletion"). Disjoint from _INFRAME_TYPES by construction.
+    _NULL_TYPES = frozenset({
+        "frameshift", "nonsense", "splice_site", "canonical_splice_site",
+        "start_loss", "initiation_codon", "whole_exon_deletion",
+        "multi_exon_deletion", "single_exon_deletion",
+    })
+
+    #: In-frame length changes that may support PM4/BP3 (Richards 2015 Table 3
+    #: PM4: "Protein length changes due to in-frame deletions/insertions in a
+    #: non-repeat region or stop-loss variants").
+    _INFRAME_TYPES = frozenset({
+        "inframe_deletion", "inframe_insertion", "inframe_indel", "stop_loss",
+    })
+
+    #: Variant-type labels that do not state whether the frame is preserved.
+    #: PVS1 and PM4 are mutually exclusive by definition (a null variant is not
+    #: an in-frame length change), so neither is applied to an ambiguous label
+    #: and the ambiguity is reported.
+    _FRAME_AMBIGUOUS_TYPES = frozenset({
+        "deletion", "insertion", "indel", "duplication", "del", "ins",
+    })
+
+    #: ClinGen SVI "Updated Recommendation for the Benign Stand-Alone ACMG/AMP
+    #: Criterion" -- Ghosh R, Harrison SM, Rehm HL, Plon SE, Biesecker LG,
+    #: Hum Mutat 2018;39(11):1525-1530, PMC6188666, Table 1: variants to which
+    #: BA1 must NOT be applied. Retrieved 2026-11-03 from
+    #: https://pmc.ncbi.nlm.nih.gov/articles/PMC6188666/
+    #: Keyed by (gene, HGVS c.) with the protein change recorded for the report.
+    _BA1_EXCEPTIONS: Dict[Tuple[str, str], str] = {
+        ("ACAD9", "C.-44_-41DUPTAAG"): "ACAD9 c.-44_-41dupTAAG",
+        ("GJB2", "C.109G>A"): "GJB2 c.109G>A p.(Val37Ile)",
+        ("HFE", "C.187C>G"): "HFE c.187C>G p.(His63Asp)",
+        ("HFE", "C.845G>A"): "HFE c.845G>A p.(Cys282Tyr)",
+        ("MEFV", "C.1105C>T"): "MEFV c.1105C>T p.(Pro369Ser)",
+        ("MEFV", "C.1223G>A"): "MEFV c.1223G>A p.(Arg408Gln)",
+        ("PIBF1", "C.1214G>A"): "PIBF1 c.1214G>A p.(Arg405Gln)",
+        ("ACADS", "C.511C>T"): "ACADS c.511C>T p.(Arg171Trp)",
+        ("BTD", "C.1330G>C"): "BTD c.1330G>C p.(Asp444His)",
     }
+
+    #: Protein-level aliases for the same nine variants, so a caller supplying
+    #: p. notation instead of c. notation still hits the exception list.
+    _BA1_EXCEPTIONS_PROTEIN: Dict[Tuple[str, str], str] = {
+        ("GJB2", "P.VAL37ILE"): "GJB2 c.109G>A p.(Val37Ile)",
+        ("GJB2", "P.V37I"): "GJB2 c.109G>A p.(Val37Ile)",
+        ("HFE", "P.HIS63ASP"): "HFE c.187C>G p.(His63Asp)",
+        ("HFE", "P.H63D"): "HFE c.187C>G p.(His63Asp)",
+        ("HFE", "P.CYS282TYR"): "HFE c.845G>A p.(Cys282Tyr)",
+        ("HFE", "P.C282Y"): "HFE c.845G>A p.(Cys282Tyr)",
+        ("MEFV", "P.PRO369SER"): "MEFV c.1105C>T p.(Pro369Ser)",
+        ("MEFV", "P.ARG408GLN"): "MEFV c.1223G>A p.(Arg408Gln)",
+        ("PIBF1", "P.ARG405GLN"): "PIBF1 c.1214G>A p.(Arg405Gln)",
+        ("ACADS", "P.ARG171TRP"): "ACADS c.511C>T p.(Arg171Trp)",
+        ("BTD", "P.ASP444HIS"): "BTD c.1330G>C p.(Asp444His)",
+        ("BTD", "P.D444H"): "BTD c.1330G>C p.(Asp444His)",
+    }
+
+    #: ClinGen SVI BA1 specification: allele frequency >0.05 "in any general
+    #: continental population dataset of at least 2,000 observed alleles"
+    #: (Ghosh et al. 2018, PMC6188666).
+    _BA1_MIN_OBSERVED_ALLELES = 2000
 
     # Mutational hot spots (gene -> list of domain ranges)
     _HOT_SPOTS: Dict[str, List[Tuple[int, int]]] = {
@@ -312,6 +547,34 @@ class ACMGVariantClassifier:
         "KRAS": [(10, 15), (58, 63)],
         "TP53": [(125, 300)],   # DNA-binding domain
     }
+
+    @classmethod
+    def _ba1_exception(cls, variant_data: dict, gene: str) -> Optional[str]:
+        """Return the ClinGen SVI BA1 exception label if this variant is one.
+
+        Ghosh et al. 2018 (PMC6188666) Table 1 lists nine variants to which BA1
+        must not be applied -- common, low-penetrance variants the frequency
+        criterion was not designed for, including *HFE* c.845G>A p.(Cys282Tyr),
+        the haemochromatosis variant that reaches ~6% in non-Finnish Europeans.
+        """
+        gene_u = (gene or "").upper()
+        if not gene_u:
+            return None
+        for key in ("hgvs_c", "cdna_change", "variant_id", "hgvs"):
+            value = variant_data.get(key)
+            if value:
+                hit = cls._BA1_EXCEPTIONS.get((gene_u, str(value).upper()))
+                if hit:
+                    return hit
+        for key in ("hgvs_p", "protein_change", "amino_acid_change"):
+            value = variant_data.get(key)
+            if value:
+                hit = cls._BA1_EXCEPTIONS_PROTEIN.get(
+                    (gene_u, str(value).upper())
+                )
+                if hit:
+                    return hit
+        return None
 
     def classify(
         self, variant_data: dict
@@ -327,6 +590,24 @@ class ACMGVariantClassifier:
             phenotype_specific, protein_position, in_repeat_region,
             synonymous, splice_impact.
 
+            Evidence that ACMG requires explicitly and that cannot be inferred:
+
+            ``lof_is_mechanism`` : bool
+                Whether loss of function is a known disease mechanism for this
+                gene. Required for PVS1 (Richards 2015 Table 3). Absent -> PVS1
+                is not applied.
+            ``same_amino_acid_as_known_pathogenic`` : bool
+                Required for PS1. Presence in ClinVar is PP5, not PS1.
+            ``allele_count_observed`` : int
+                Observed alleles in the dataset reporting
+                ``population_frequency``. Required for BA1 (ClinGen SVI
+                minimum 2,000). Absent -> BA1 is not applied.
+            ``hgvs_c`` / ``hgvs_p`` : str
+                Used to check the ClinGen SVI BA1 exception list.
+
+            ``population_frequency`` absent (``None``) means "not looked up",
+            which grants neither PM2 nor BA1/BS1. It is not the same as 0.0.
+
         Returns
         -------
         tuple[ACMGClassification, list[str], str]
@@ -334,7 +615,12 @@ class ACMGVariantClassifier:
         """
         gene = variant_data.get("gene", "")
         vtype = variant_data.get("variant_type", "")
-        freq = float(variant_data.get("population_frequency", 0.0))
+        # A missing allele frequency is NOT 0.0. "The field was not supplied"
+        # and "gnomAD was queried and the variant is absent" are different
+        # facts; collapsing them granted PM2 -- the criterion whose purpose is
+        # to prove the variant was looked for -- for not looking.
+        raw_freq = variant_data.get("population_frequency", None)
+        freq: Optional[float] = None if raw_freq is None else float(raw_freq)
         is_de_novo = variant_data.get("is_de_novo", False)
         de_novo_confirmed = variant_data.get("de_novo_confirmed", False)
         functional = variant_data.get("functional_studies", "")
@@ -350,61 +636,116 @@ class ACMGVariantClassifier:
 
         pathogenic_criteria: List[str] = []
         benign_criteria: List[str] = []
-        path_score = 0
-        benign_score = 0
+        #: Criteria that were NOT applied, and why. These are reported so a
+        #: reviewer can see which evidence was unavailable rather than inferring
+        #: it was absent.
+        not_applied: List[str] = []
 
-        # ── BA1: Standalone benign ────────────────────────────────────
-        if freq > 0.05:
-            benign_criteria.append("BA1")
-            classification = ACMGClassification.BENIGN
-            summary = f"BA1: Population frequency {freq:.4f} > 5% — classified as Benign."
-            return classification, benign_criteria, summary
+        # ── BA1: Stand-alone benign, per the ClinGen SVI specification ────
+        # Ghosh et al. 2018 (PMC6188666): "Allele frequency is >0.05 in any
+        # general continental population dataset of at least 2,000 observed
+        # alleles and found in a gene without a gene- or variant-specific BA1
+        # modification." All three conditions are now required, and BA1 no
+        # longer short-circuits the pathogenic evidence -- Table 5's
+        # contradiction footnote resolves the conflict instead.
+        ba1_exception = self._ba1_exception(variant_data, gene)
+        observed_alleles = variant_data.get("allele_count_observed", None)
+        if freq is None:
+            not_applied.append(
+                "BA1/BS1/PM2 not applied: population frequency not available"
+            )
+        elif freq > 0.05:
+            if ba1_exception is not None:
+                not_applied.append(
+                    f"BA1 not applied: {ba1_exception} is on the ClinGen SVI "
+                    "BA1 exception list (Ghosh et al. 2018, Table 1)"
+                )
+            elif observed_alleles is None:
+                not_applied.append(
+                    "BA1 not applied: the number of observed alleles in the "
+                    "reporting dataset was not supplied, so the ClinGen SVI "
+                    ">=2,000-allele requirement cannot be checked"
+                )
+            elif int(observed_alleles) < self._BA1_MIN_OBSERVED_ALLELES:
+                not_applied.append(
+                    f"BA1 not applied: only {int(observed_alleles)} observed "
+                    f"alleles, below the ClinGen SVI minimum of "
+                    f"{self._BA1_MIN_OBSERVED_ALLELES}"
+                )
+            else:
+                benign_criteria.append("BA1")
 
         # ── Pathogenic criteria ───────────────────────────────────────
 
-        # PVS1: Null variant in LOF-intolerant gene
-        lof_types = {"frameshift", "nonsense", "splice_site", "deletion", "insertion"}
-        if vtype in lof_types and gene.upper() in self._LOF_INTOLERANT_GENES:
-            pathogenic_criteria.append("PVS1")
-            path_score += 8
+        # PVS1: Richards 2015 Table 3 -- "Null variant ... **in a gene where
+        # loss of function (LOF) is a known mechanism of disease**". The gene
+        # clause is the whole criterion, and it is a per-gene disease-mechanism
+        # assertion, not a gene-level constraint metric: the previous pLI list
+        # granted PVS1 to truncating FGFR3 (achondroplasia is gain-of-function),
+        # HTT (CAG expansion), and BRAF/RAF1/PTPN11 (activating RASopathies).
+        # No curated mechanism table was retrievable for this fix, so the
+        # criterion now requires the caller to assert the mechanism and
+        # otherwise refuses to apply PVS1. See CLINICAL_REVIEW.md.
+        lof_is_mechanism = variant_data.get("lof_is_mechanism", None)
+        if vtype in self._NULL_TYPES:
+            if lof_is_mechanism is True:
+                pathogenic_criteria.append("PVS1")
+            elif lof_is_mechanism is False:
+                not_applied.append(
+                    f"PVS1 not applied: loss of function is not a known "
+                    f"disease mechanism for {gene or 'this gene'}"
+                )
+            else:
+                not_applied.append(
+                    f"PVS1 not applied: whether loss of function is a known "
+                    f"disease mechanism for {gene or 'this gene'} was not "
+                    "asserted (Richards 2015 Table 3 requires it)"
+                )
+        elif vtype in self._FRAME_AMBIGUOUS_TYPES:
+            not_applied.append(
+                f"PVS1/PM4 not applied: variant type '{vtype}' does not state "
+                "whether the reading frame is preserved; PVS1 (null) and PM4 "
+                "(in-frame length change) are mutually exclusive and neither "
+                "can be assigned"
+            )
 
-        # PS1: Same amino acid change as established pathogenic
-        if in_clinvar and clinvar_class in ("pathogenic", "likely_pathogenic"):
+        # PS1: Richards 2015 Table 3 -- "Same amino acid change as a previously
+        # established pathogenic variant regardless of nucleotide change". That
+        # requires an amino-acid-level comparison, which only the caller can
+        # supply. Presence in ClinVar is PP5 (Supporting), handled below; it was
+        # previously granted PS1 (Strong), a 4x inflation of its weight.
+        if variant_data.get("same_amino_acid_as_known_pathogenic", False):
             pathogenic_criteria.append("PS1")
-            path_score += 4
 
         # PS2: De novo (confirmed)
         if is_de_novo and de_novo_confirmed:
             pathogenic_criteria.append("PS2")
-            path_score += 4
 
         # PS3: Functional studies
         if functional in ("damaging", "loss_of_function", "deleterious"):
             pathogenic_criteria.append("PS3")
-            path_score += 3
 
         # PM1: Mutational hot spot
         if protein_pos is not None and gene.upper() in self._HOT_SPOTS:
             for start, end in self._HOT_SPOTS[gene.upper()]:
                 if start <= protein_pos <= end:
                     pathogenic_criteria.append("PM1")
-                    path_score += 2
                     break
 
-        # PM2: Absent from controls
-        if freq < 0.0001:
+        # PM2: Absent from controls. Only assignable when a frequency was
+        # actually reported (see the `freq is None` branch above).
+        if freq is not None and freq < 0.0001:
             pathogenic_criteria.append("PM2")
-            path_score += 2
 
         # PM3: Trans with pathogenic (recessive)
         if variant_data.get("in_trans_with_pathogenic", False):
             pathogenic_criteria.append("PM3")
-            path_score += 2
 
-        # PM4: In-frame protein length change (not in repeat)
-        if vtype in ("indel", "insertion", "deletion") and not in_repeat:
+        # PM4: Richards 2015 Table 3 -- "Protein length changes due to
+        # **in-frame** deletions/insertions in a non-repeat region or stop-loss
+        # variants". In-frame only, so disjoint from the PVS1 null types above.
+        if vtype in self._INFRAME_TYPES and not in_repeat:
             pathogenic_criteria.append("PM4")
-            path_score += 2
 
         # PM5: Novel missense at same residue as established pathogenic
         if (
@@ -413,98 +754,74 @@ class ACMGVariantClassifier:
             and "PS1" not in pathogenic_criteria
         ):
             pathogenic_criteria.append("PM5")
-            path_score += 2
 
         # PM6: Assumed de novo
         if is_de_novo and not de_novo_confirmed:
             pathogenic_criteria.append("PM6")
-            path_score += 1
 
         # PP1: Cosegregation
         if coseg:
             pathogenic_criteria.append("PP1")
-            path_score += 1
 
         # PP3: Computational prediction
         if comp_pred in ("deleterious", "damaging", "pathogenic", "probably_damaging"):
             pathogenic_criteria.append("PP3")
-            path_score += 1
 
         # PP4: Phenotype specific
         if pheno_specific:
             pathogenic_criteria.append("PP4")
-            path_score += 1
 
-        # PP5: Reputable source
-        if in_clinvar and clinvar_class == "pathogenic":
-            if "PP5" not in pathogenic_criteria and "PS1" not in pathogenic_criteria:
+        # PP5: Richards 2015 Table 3 -- "Reputable source recently reports
+        # variant as pathogenic but the evidence is not available to the
+        # laboratory to perform an independent evaluation." This is exactly what
+        # a ClinVar assertion is, at Supporting strength.
+        if in_clinvar and clinvar_class in ("pathogenic", "likely_pathogenic"):
+            if "PS1" not in pathogenic_criteria:
                 pathogenic_criteria.append("PP5")
-                path_score += 1
 
         # ── Benign criteria ───────────────────────────────────────────
 
         # BS1: Higher frequency than expected
-        if freq > 0.01:
+        if freq is not None and freq > 0.01:
             benign_criteria.append("BS1")
-            benign_score += 3
 
         # BS2: Observed in healthy adults
         if variant_data.get("seen_in_healthy", False):
             benign_criteria.append("BS2")
-            benign_score += 3
 
         # BP1: Missense in gene where only truncating causes disease
         if variant_data.get("missense_non_truncating_gene", False):
             benign_criteria.append("BP1")
-            benign_score += 1
 
-        # BP3: In-frame in repeat region
-        if vtype in ("indel", "insertion", "deletion") and in_repeat:
+        # BP3: Richards 2015 Table 3 -- "In-frame deletions/insertions in a
+        # repetitive region without a known function". In-frame only, as PM4.
+        if vtype in self._INFRAME_TYPES and in_repeat:
             benign_criteria.append("BP3")
-            benign_score += 1
 
         # BP4: Computational no impact
         if comp_pred in ("benign", "tolerated", "neutral"):
             benign_criteria.append("BP4")
-            benign_score += 1
 
         # BP6: Reputable source benign
         if in_clinvar and clinvar_class in ("benign", "likely_benign"):
             benign_criteria.append("BP6")
-            benign_score += 2
 
         # BP7: Synonymous no splice
         if synonymous and not splice_impact:
             benign_criteria.append("BP7")
-            benign_score += 1
 
-        # ── Classification decision ───────────────────────────────────
+        # ── Classification decision: Richards 2015 Table 5 ────────────
         all_criteria = pathogenic_criteria + benign_criteria
-
-        if benign_score >= 6:
-            classification = ACMGClassification.BENIGN
-        elif benign_score >= 4 and path_score == 0:
-            classification = ACMGClassification.LIKELY_BENIGN
-        elif path_score >= 10:
-            classification = ACMGClassification.PATHOGENIC
-        elif path_score >= 6:
-            classification = ACMGClassification.LIKELY_PATHOGENIC
-        elif path_score > 0 and benign_score > 0:
-            classification = ACMGClassification.VUS
-        elif path_score > 0:
-            classification = ACMGClassification.VUS
-        elif benign_score > 0:
-            classification = ACMGClassification.LIKELY_BENIGN
-        else:
-            classification = ACMGClassification.VUS
+        classification, rule = combine_acmg_criteria(all_criteria)
 
         summary = (
-            f"Pathogenic criteria: {', '.join(pathogenic_criteria) if pathogenic_criteria else 'none'} "
-            f"(score={path_score}). "
-            f"Benign criteria: {', '.join(benign_criteria) if benign_criteria else 'none'} "
-            f"(score={benign_score}). "
-            f"Classification: {classification.value}."
+            f"Pathogenic criteria: {', '.join(pathogenic_criteria) if pathogenic_criteria else 'none'}. "
+            f"Benign criteria: {', '.join(benign_criteria) if benign_criteria else 'none'}. "
+            f"Classification: {classification.value} "
+            f"(Richards 2015 Table 5: {rule})."
         )
+        if not_applied:
+            summary += " Not applied: " + "; ".join(not_applied) + "."
 
         logger.debug("ACMG classification for %s/%s: %s", gene, vtype, classification.value)
 
@@ -596,7 +913,7 @@ class OrphanDrugMatcher:
         list[TherapyMatch]
             Matched therapies ranked by match quality.
         """
-        disease_lower = disease_id.lower()
+        disease_norm = _normalise_disease(disease_id)
         genotype_lower = (genotype or "").lower()
         matches: List[TherapyMatch] = []
 
@@ -604,8 +921,17 @@ class OrphanDrugMatcher:
             match_type = None
             eligibility_note = ""
 
-            # Exact disease match
-            if drug["disease"].lower() in disease_lower or disease_lower in drug["disease"].lower():
+            # Exact (normalised) disease-name match. A bidirectional substring
+            # test dispensed the wrong drug: a query for "cardiomyopathy" is a
+            # substring of "Obstructive Hypertrophic Cardiomyopathy" and
+            # returned mavacamten -- a cardiac myosin inhibitor -- for a
+            # dilated cardiomyopathy, where reducing contractility worsens
+            # heart failure. Likewise "Long QT Syndrome" returned mexiletine,
+            # catalogued only for LQT3, and "PAH" (pulmonary arterial
+            # hypertension) returned sapropterin for phenylketonuria.
+            if _normalise_disease(drug["disease"]) == disease_norm or disease_norm in {
+                _normalise_disease(a) for a in drug.get("aliases", ())
+            }:
                 match_type = "exact_disease"
                 if drug.get("genotype_specific"):
                     if genotype_lower and any(
@@ -617,7 +943,9 @@ class OrphanDrugMatcher:
                         eligibility_note = f"Genotype-specific: {drug['genotype_specific']} — verify eligibility"
 
             # Pathway match (same gene, different disease)
-            elif drug.get("gene") and drug["gene"].upper() in disease_lower.upper():
+            elif drug.get("gene") and re.search(
+                r"\b" + re.escape(drug["gene"].upper()) + r"\b", disease_id.upper()
+            ):
                 match_type = "pathway_match"
                 eligibility_note = f"Pathway match via gene {drug['gene']} — off-label use may be considered"
 
@@ -839,6 +1167,17 @@ class FamilySegregationAnalyzer:
                 affected, inheritance, sex
             )
 
+            if expected_carrier is None:
+                # No expected genotype can be derived (inheritance mode not
+                # recognised, or sex not recorded for an X-linked pedigree), so
+                # this member contributes no informative meiosis. Jarvik &
+                # Browning 2016 (PMC4908147) counts informative meioses only.
+                details.append(
+                    f"{member_id}: no expected genotype for inheritance "
+                    f"'{inheritance}' — excluded (not an informative meiosis)"
+                )
+                continue
+
             if self._genotype_matches(genotype, expected_carrier, inheritance):
                 concordant += 1
                 details.append(f"{member_id}: concordant (affected={affected}, genotype={genotype})")
@@ -893,29 +1232,59 @@ class FamilySegregationAnalyzer:
     @staticmethod
     def _expected_genotype(
         affected: bool, inheritance: str, sex: str
-    ) -> str:
-        """Determine expected genotype for a family member."""
-        inh = inheritance.lower()
-        if "dominant" in inh:
-            return "het" if affected else "wt"
-        elif "recessive" in inh:
-            return "hom" if affected else "het_or_wt"
-        elif "x_linked" in inh:
+    ) -> Optional[str]:
+        """Determine expected genotype for a family member.
+
+        Returns ``None`` when the inheritance mode is not recognised, so the
+        member contributes no informative meiosis.
+
+        X-linked modes are tested FIRST. ``"x_linked_dominant"`` contains the
+        substring ``"dominant"`` and ``"x_linked_recessive"`` contains
+        ``"recessive"``, so testing the autosomal modes first made the
+        hemizygosity branch unreachable for both: an affected hemizygous son in
+        an X-linked dominant pedigree was scored DISCORDANT against an
+        autosomal ``het`` expectation, and the family was reported as evidence
+        *against* pathogenicity (the BS4 direction).
+        """
+        inh = (inheritance or "").lower()
+        if "x_linked" in inh or "x-linked" in inh or inh in ("xld", "xlr", "xl"):
             if sex == "male":
                 return "hemi" if affected else "wt"
-            else:
-                return "het" if affected else "wt"
-        return "unknown"
+            if sex == "female":
+                # An affected female in an X-linked pedigree is heterozygous
+                # (XLD) or homozygous (XLR); an unaffected female may be a
+                # carrier, so she is not informative for either direction.
+                if affected:
+                    return "het_or_hom"
+                return "het_or_wt"
+            # Sex not recorded: hemizygosity cannot be evaluated.
+            return None
+        if "dominant" in inh:
+            return "het" if affected else "wt"
+        if "recessive" in inh:
+            return "hom" if affected else "het_or_wt"
+        return None
 
     @staticmethod
     def _genotype_matches(
-        observed: str, expected: str, inheritance: str
+        observed: str, expected: Optional[str], inheritance: str
     ) -> bool:
-        """Check if observed genotype matches expected."""
-        if expected == "unknown":
-            return True  # Cannot assess
+        """Check if observed genotype matches expected.
+
+        ``expected is None`` is handled by the caller, which excludes the member
+        rather than counting it. Previously an unrecognised inheritance mode
+        returned the literal string ``"unknown"`` and this method returned
+        ``True`` for it, so "cannot assess" was counted as a concordant meiosis
+        worth +0.3 LOD -- ten relatives in a mitochondrial pedigree produced
+        LOD 3.0 and "PS" strong segregation evidence with no genotype ever
+        compared to an expectation.
+        """
+        if expected is None:
+            return False
         if expected == "het_or_wt":
             return observed in ("het", "wt")
+        if expected == "het_or_hom":
+            return observed in ("het", "hom")
         return observed == expected
 
 
@@ -1010,13 +1379,18 @@ class NaturalHistoryPredictor:
         dict
             {disease, milestones, genotype_modifier, future_milestones}
         """
-        disease_lower = disease.lower()
+        disease_norm = _normalise_disease(disease)
 
-        # Find matching disease
+        # Find matching disease by exact (normalised) name. The previous
+        # bidirectional substring test counselled families to the wrong
+        # trajectory: "muscular dystrophy" returned the DUCHENNE milestone
+        # table (ambulation lost at a median of 120 months) for a child with
+        # Becker muscular dystrophy, who typically walks into adulthood; and
+        # "atrophy" returned SMA type 1.
         history = None
         matched_name = None
         for name, data in self._NATURAL_HISTORY.items():
-            if name in disease_lower or disease_lower in name:
+            if _normalise_disease(name) == disease_norm:
                 history = data
                 matched_name = name
                 break

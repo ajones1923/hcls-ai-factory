@@ -35,6 +35,7 @@ from src.models import (
     VariantType,
     WorkflowResult,
 )
+from src.decision_support import ACMGVariantClassifier
 
 logger = logging.getLogger(__name__)
 
@@ -394,74 +395,69 @@ class WESWGSInterpretationWorkflow(BaseRareDiseaseWorkflow):
 
         findings.append(f"Received {len(variants)} variants for interpretation")
 
-        # Step 1: Frequency filter
+        # Step 1: Frequency filter. A variant with NO reported frequency cannot
+        # be filtered out -- "not looked up" is not "common" -- so it passes
+        # and is counted separately rather than being treated as freq 0.0.
         passing: List[Dict] = []
+        unfiltered_no_freq = 0
         for v in variants:
-            freq = float(v.get("population_frequency", 0.0))
+            raw_freq = v.get("population_frequency", None)
             zyg = v.get("zygosity", "heterozygous")
             threshold = self._FREQ_THRESHOLD_RECESSIVE if zyg in ("homozygous", "compound_het") else self._FREQ_THRESHOLD_DOMINANT
-            if freq <= threshold:
+            if raw_freq is None:
+                unfiltered_no_freq += 1
+                passing.append(v)
+            elif float(raw_freq) <= threshold:
                 passing.append(v)
 
         findings.append(f"After frequency filter: {len(passing)}/{len(variants)} variants pass")
+        if unfiltered_no_freq:
+            findings.append(
+                f"{unfiltered_no_freq} variant(s) had no population frequency "
+                "supplied and were not frequency-filtered; PM2 and BA1/BS1 are "
+                "not evaluable for them"
+            )
 
-        # Step 2: ACMG classification (simplified)
+        # Step 2: ACMG classification.
+        #
+        # This workflow used to carry its OWN point-scoring classifier, which
+        # granted PVS1 on variant type alone with no gene consulted (so
+        # {"variant_type": "nonsense"} returned Pathogenic), granted PS1 --
+        # Strong -- for mere presence in ClinVar, granted PM2 from a missing
+        # frequency field, and reported a variant with NO criteria met as
+        # Likely benign before sorting it off the bottom of the report. It also
+        # disagreed with Richards 2015 Table 5 in both directions.
+        #
+        # There is now one ACMG classifier in this agent. It implements Table 5
+        # combinatorially (see src/decision_support.combine_acmg_criteria) and
+        # refuses to assign criteria from absent evidence.
+        classifier = ACMGVariantClassifier()
         for v in passing:
-            criteria: List[str] = []
-            score = 0
-
-            # PVS1: null variant in gene where LOF is known mechanism
-            vtype = v.get("variant_type", "")
-            if vtype in ("frameshift", "nonsense", "splice_site", "deletion"):
-                criteria.append("PVS1")
-                score += 8
-
-            # PM2: absent from controls (very low frequency)
-            freq = float(v.get("population_frequency", 0.0))
-            if freq < 0.0001:
-                criteria.append("PM2")
-                score += 2
-
-            # PP3: computational prediction supports deleterious
-            if v.get("computational_prediction") in ("deleterious", "damaging", "pathogenic"):
-                criteria.append("PP3")
-                score += 1
-
-            # PS1: same amino acid change as established pathogenic
-            if v.get("in_clinvar") and v.get("clinvar_classification") in ("pathogenic", "likely_pathogenic"):
-                criteria.append("PS1")
-                score += 4
-
-            # PP4: phenotype specificity
             gene = v.get("gene", "")
+            vtype = v.get("variant_type", "")
+
+            # PP4 (phenotype specificity) is the one criterion this workflow can
+            # contribute that the shared classifier cannot: it needs the
+            # patient's HPO terms. Note the known over-reach of this test --
+            # Richards Table 3 requires a phenotype "highly specific for a
+            # disease with a single genetic etiology" and this is one shared HPO
+            # term against a 21-disease table. See CLINICAL_REVIEW.md.
             gene_matches_phenotype = False
             for disease in _HPO_DISEASE_DB:
-                if gene in disease.get("genes", []):
+                if gene and gene in disease.get("genes", []):
                     disease_hpo = set(disease["hpo"])
                     if hpo_terms & disease_hpo:
                         gene_matches_phenotype = True
                         break
-            if gene_matches_phenotype:
-                criteria.append("PP4")
-                score += 1
 
-            # BA1: population frequency too high -> benign
-            if freq > 0.05:
-                classification = ACMGClassification.BENIGN
-            elif score >= 10:
-                classification = ACMGClassification.PATHOGENIC
-            elif score >= 6:
-                classification = ACMGClassification.LIKELY_PATHOGENIC
-            elif score <= 0:
-                classification = ACMGClassification.LIKELY_BENIGN
-            else:
-                classification = ACMGClassification.VUS
-
-            evidence_summary = (
-                f"ACMG criteria met: {', '.join(criteria) if criteria else 'none'}. "
-                f"Score: {score}. Frequency: {freq:.6f}."
+            variant_data = dict(v)
+            variant_data["phenotype_specific"] = gene_matches_phenotype
+            classification, criteria, evidence_summary = classifier.classify(
+                variant_data
             )
 
+            raw_freq = v.get("population_frequency", None)
+            freq_value = None if raw_freq is None else float(raw_freq)
             classified_variants.append(VariantClassification(
                 variant_id=v.get("variant_id", "unknown"),
                 gene=gene,
@@ -470,7 +466,9 @@ class WESWGSInterpretationWorkflow(BaseRareDiseaseWorkflow):
                 variant_type=VariantType(vtype) if vtype in [e.value for e in VariantType] else None,
                 classification=classification,
                 acmg_criteria=criteria,
-                population_frequency=freq if freq <= 1.0 else None,
+                population_frequency=(
+                    freq_value if freq_value is not None and freq_value <= 1.0 else None
+                ),
                 evidence_summary=evidence_summary,
                 zygosity=v.get("zygosity"),
             ))
@@ -501,8 +499,21 @@ class WESWGSInterpretationWorkflow(BaseRareDiseaseWorkflow):
         confidence = _clamp(0.3 + 0.1 * pathogenic_count)
         severity = SeverityLevel.HIGH if pathogenic_count > 0 else SeverityLevel.MODERATE
 
-        references.append("Richards et al. (2015) Standards and guidelines for interpretation of sequence variants. Genet Med")
-        references.append("ClinGen Sequence Variant Interpretation (SVI) Working Group recommendations")
+        # Cite only what the code implements, and name the table. The previous
+        # generic "ClinGen SVI Working Group recommendations" line named no
+        # recommendation and was attached to a classifier that followed neither
+        # Table 5 nor any SVI recommendation.
+        references.append(
+            "Richards S, et al. Standards and guidelines for the interpretation "
+            "of sequence variants. Genet Med 2015;17:405-424 (PMC4544753) — "
+            "Table 3 criterion definitions and Table 5 combining rules, as "
+            "implemented in src/decision_support.combine_acmg_criteria"
+        )
+        references.append(
+            "Ghosh R, et al. Updated recommendation for the benign stand-alone "
+            "ACMG/AMP criterion. Hum Mutat 2018;39:1525-1530 (PMC6188666) — "
+            "BA1 allele-count threshold and Table 1 exception list"
+        )
 
         diagnostic = DiagnosticResult(
             variants=classified_variants,
@@ -1340,21 +1351,39 @@ class ConnectiveTissueWorkflow(BaseRareDiseaseWorkflow):
 
         # Ghent criteria for Marfan
         if ghent:
-            findings.append("Evaluating revised Ghent criteria for Marfan syndrome")
-            aortic_z = ghent.get("aortic_root_z", 0)
+            findings.append(
+                "Evaluating the four no-family-history criteria of the revised "
+                "Ghent nosology for Marfan syndrome"
+            )
+            # An unmeasured aortic root is NOT Z=0. The previous
+            # `ghent.get("aortic_root_z", 0)` default made the findings string
+            # assert "aortic Z=0" -- a normal aortic root -- for a patient whose
+            # aorta had never been measured.
+            aortic_z = ghent.get("aortic_root_z", None)
             ectopia_lentis = ghent.get("ectopia_lentis", False)
             systemic_score = ghent.get("systemic_score", 0)
             fbn1_mutation = ghent.get("fbn1_mutation", False)
-            ghent.get("family_history", False)
+            # This value was previously computed and thrown away -- line 1359
+            # was a bare expression statement -- so every family-history
+            # criterion of the nosology was silently unimplemented.
+            family_history = ghent.get("family_history", False)
 
+            aortic_dilated = aortic_z is not None and aortic_z >= 2
             marfan_met = False
 
+            if aortic_z is None:
+                findings.append(
+                    "Aortic root Z-score not provided — the three Ghent "
+                    "criteria that require aortic dilatation cannot be "
+                    "evaluated. This is NOT a normal aortic root."
+                )
+
             # Criterion A: Aortic root Z >= 2 + ectopia lentis
-            if aortic_z >= 2 and ectopia_lentis:
+            if aortic_dilated and ectopia_lentis:
                 findings.append("Ghent criteria MET: Aortic root dilation (Z >= 2) + ectopia lentis")
                 marfan_met = True
             # Criterion B: Aortic root Z >= 2 + FBN1 mutation
-            elif aortic_z >= 2 and fbn1_mutation:
+            elif aortic_dilated and fbn1_mutation:
                 findings.append("Ghent criteria MET: Aortic root dilation (Z >= 2) + FBN1 mutation")
                 marfan_met = True
             # Criterion C: Ectopia lentis + FBN1 known to cause aortic disease
@@ -1362,15 +1391,47 @@ class ConnectiveTissueWorkflow(BaseRareDiseaseWorkflow):
                 findings.append("Ghent criteria MET: Ectopia lentis + pathogenic FBN1 variant")
                 marfan_met = True
             # Criterion D: Systemic score >= 7 + aortic root Z >= 2
-            elif systemic_score >= 7 and aortic_z >= 2:
+            elif systemic_score >= 7 and aortic_dilated:
                 findings.append("Ghent criteria MET: Systemic score >= 7 + aortic root dilation")
                 marfan_met = True
             else:
+                z_text = "not measured" if aortic_z is None else f"Z={aortic_z}"
                 findings.append(
-                    f"Ghent criteria NOT fully met (aortic Z={aortic_z}, "
-                    f"ectopia_lentis={ectopia_lentis}, systemic={systemic_score}, "
-                    f"FBN1={fbn1_mutation})"
+                    f"No no-family-history Ghent criterion met (aortic root "
+                    f"{z_text}, ectopia_lentis={ectopia_lentis}, "
+                    f"systemic={systemic_score}, FBN1={fbn1_mutation})"
                 )
+
+            # The family-history arm of the nosology is NOT implemented. The
+            # criteria exist (ectopia lentis + FH; systemic score >=7 + FH;
+            # aortic dilatation + FH with an age-stratified Z threshold), but
+            # the primary source -- Loeys BL, Dietz HC, Braverman AC, et al.,
+            # "The revised Ghent nosology for the Marfan syndrome", J Med Genet
+            # 2010;47(7):476-485 (PMID 20591885) -- is paywalled and could not
+            # be retrieved, and a diagnostic criterion is not transcribed from a
+            # secondary summary. So the workflow SAYS it did not evaluate them
+            # instead of reporting "criteria not met". See CLINICAL_REVIEW.md.
+            if family_history:
+                findings.append(
+                    "Family history of Marfan syndrome reported. The "
+                    "family-history criteria of the revised Ghent nosology are "
+                    "NOT evaluated by this workflow — a patient with a "
+                    "first-degree relative with Marfan syndrome may meet the "
+                    "diagnosis on family history plus ectopia lentis, or plus a "
+                    "systemic score >= 7, or plus aortic dilatation at an "
+                    "age-stratified Z threshold. Apply them manually."
+                )
+                recommendations.append(
+                    "Family history positive: evaluate the family-history arm "
+                    "of the revised Ghent nosology (Loeys et al. 2010) by hand "
+                    "before excluding Marfan syndrome, and consider aortic "
+                    "surveillance and activity restriction in the interim"
+                )
+                triggers.append(_trigger_string(
+                    "CARDIOLOGY",
+                    "Family history of Marfan syndrome — family-history Ghent "
+                    "criteria not machine-evaluated; clinician review required",
+                ))
 
             if marfan_met:
                 recommendations.append("Diagnosis of Marfan syndrome supported by Ghent criteria")
@@ -1382,16 +1443,42 @@ class ConnectiveTissueWorkflow(BaseRareDiseaseWorkflow):
                 triggers.append(_trigger_string("CARDIOLOGY", "Marfan syndrome — aortic root monitoring"))
             else:
                 recommendations.append("Consider FBN1 gene sequencing to support/refute Marfan diagnosis")
+                if aortic_z is None:
+                    recommendations.append(
+                        "Measure the aortic root (sinuses of Valsalva) and "
+                        "compute the Z-score — the Ghent criteria cannot be "
+                        "evaluated without it"
+                    )
 
         # EDS evaluation
         if eds_subtype or eds_features:
             subtype = (eds_subtype or "hypermobility").lower()
-            panel_info = self._EDS_PANELS.get(subtype, self._EDS_PANELS.get("hypermobility"))
+            # No silent fallback to the mildest subtype. `_EDS_PANELS.get(
+            # subtype, hypermobility)` ordered the hypermobility panel (TNXB
+            # only) for a patient recorded as "classical EDS", whose genes
+            # COL5A1/COL5A2 are in this very table -- the recognised-subtype
+            # key is "classical", and any unrecognised string took the default.
+            panel_info = self._EDS_PANELS.get(subtype)
 
             findings.append(f"EDS subtype evaluation: {subtype}")
             if panel_info:
                 findings.append(f"Diagnostic criteria: {panel_info['criteria']}")
                 recommendations.append(f"Gene panel for EDS-{subtype}: {', '.join(panel_info['genes'])}")
+            else:
+                known = ", ".join(sorted(self._EDS_PANELS))
+                findings.append(
+                    f"EDS subtype '{subtype}' is not a recognised key "
+                    f"(recognised: {known}) — no subtype-specific panel was "
+                    "selected and no default was substituted"
+                )
+                all_genes = sorted({
+                    g for info in self._EDS_PANELS.values() for g in info["genes"]
+                })
+                recommendations.append(
+                    "EDS subtype not recognised: order a comprehensive EDS "
+                    f"panel covering the full differential ({', '.join(all_genes)}) "
+                    "rather than a single-subtype panel"
+                )
 
             # Vascular EDS is urgent
             if subtype == "vascular" or vascular:
@@ -1407,9 +1494,16 @@ class ConnectiveTissueWorkflow(BaseRareDiseaseWorkflow):
         confidence = _clamp(0.3 + 0.1 * len(findings))
         severity_level = SeverityLevel.CRITICAL if "vascular" in str(findings).lower() else SeverityLevel.MODERATE
 
-        references.append("Loeys et al. (2010) Revised Ghent nosology for Marfan syndrome. J Med Genet")
+        references.append(
+            "Loeys et al. (2010) Revised Ghent nosology for Marfan syndrome. "
+            "J Med Genet 47:476-485 — the four no-family-history criteria only; "
+            "the family-history criteria are NOT implemented"
+        )
         references.append("Malfait et al. (2017) International EDS classification. Am J Med Genet C")
-        references.append("ACMG Practice Resource: Marfan syndrome and related disorders (2021)")
+        # Removed: "ACMG Practice Resource: Marfan syndrome and related
+        # disorders (2021)" — cited with no author, journal or DOI, could not be
+        # identified in the ACMG practice-resource index, and nothing in this
+        # workflow derives from it.
 
         return WorkflowResult(
             workflow_type=self.workflow_type,

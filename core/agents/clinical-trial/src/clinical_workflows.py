@@ -17,9 +17,10 @@ from __future__ import annotations
 
 import logging
 import math
+import re
 from abc import ABC, abstractmethod
 from datetime import datetime, timezone
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from src.models import (
     CriterionType,
@@ -145,30 +146,118 @@ class ProtocolDesignWorkflow(BaseTrialWorkflow):
 
     workflow_type = TrialWorkflowType.PROTOCOL_DESIGN
 
-    # Historical success rates by indication category and phase
+    # Phase transition success rates, verbatim from the primary source.
+    #
+    # SOURCE (retrieved 2026-11-03): BIO / Informa Pharma Intelligence / QLS
+    # Advisors, "Clinical Development Success Rates and Contributing Factors
+    # 2011-2020", Figure 2 ("Phase transition success rates by disease area"),
+    # page 8. PDF fetched from
+    # https://www.cphi-online.com/46/resourcefile/11/36/30/2021%20Clinical%20Development%20Success%20Rates%202011-2020%20v17.pdf
+    # and the figure read directly out of the extracted text.
+    #
+    # Keyed by the FOUR TRANSITIONS BIO ACTUALLY MEASURES, not by a "phase
+    # success" abstraction. The previous table carried a `phase_iv` row of
+    # 0.82-0.90 which has no counterpart in Figure 2 at all: BIO's fourth
+    # column is NDA/BLA -> Approval (90.6% for all indications), so the code
+    # had taken a submission-to-approval rate and relabelled it a Phase IV
+    # probability of success -- a wrong-field read.
+    #
+    # Every value in the old table was also wrong. Cardiology Phase II was
+    # 0.38 against a measured 0.210 -- overstated by 81% relative -- and
+    # neurology Phase III was 0.30 against 0.531, wrong by nearly as much in
+    # the other direction. A second, dead copy in src/decision_support.py gave
+    # a third set of numbers again.
+    #
+    # Figure 2 numbers, 'POS' column, as published:
+    #   disease area        I->II   II->III  III->NDA  NDA->appr
+    #   Hematology          69.6%   48.1%    76.8%     93.1%
+    #   Metabolic           61.8%   45.0%    63.6%     87.5%
+    #   Infectious disease  57.8%   38.4%    64.0%     92.9%
+    #   Ophthalmology       71.6%   35.5%    51.2%     91.1%
+    #   Autoimmune          55.2%   31.4%    65.3%     94.1%
+    #   Allergy             56.4%   28.3%    64.7%    100.0%
+    #   Gastroenterology    46.7%   34.2%    57.1%     90.9%
+    #   All indications     52.0%   28.9%    57.8%     90.6%
+    #   Respiratory         55.9%   21.9%    64.5%     95.6%
+    #   Psychiatry          52.7%   26.8%    56.3%     91.2%
+    #   Endocrine           43.3%   26.6%    66.2%     86.3%
+    #   Neurology           47.7%   26.8%    53.1%     86.7%
+    #   Oncology            48.8%   24.6%    47.7%     92.0%
+    #   Cardiovascular      50.0%   21.0%    55.2%     82.5%
+    #   Urology             40.9%   15.0%    69.2%     84.6%
     _HISTORICAL_SUCCESS: Dict[str, Dict[str, float]] = {
-        "oncology": {
-            "phase_i": 0.63, "phase_ii": 0.29, "phase_iii": 0.36, "phase_iv": 0.85,
+        "hematology": {
+            "phase_i": 0.696, "phase_ii": 0.481, "phase_iii": 0.768,
+            "nda_to_approval": 0.931,
         },
-        "cardiology": {
-            "phase_i": 0.72, "phase_ii": 0.38, "phase_iii": 0.52, "phase_iv": 0.88,
-        },
-        "neurology": {
-            "phase_i": 0.68, "phase_ii": 0.25, "phase_iii": 0.30, "phase_iv": 0.82,
-        },
-        "immunology": {
-            "phase_i": 0.70, "phase_ii": 0.35, "phase_iii": 0.48, "phase_iv": 0.86,
-        },
-        "rare_disease": {
-            "phase_i": 0.74, "phase_ii": 0.42, "phase_iii": 0.55, "phase_iv": 0.90,
+        "metabolic": {
+            "phase_i": 0.618, "phase_ii": 0.450, "phase_iii": 0.636,
+            "nda_to_approval": 0.875,
         },
         "infectious_disease": {
-            "phase_i": 0.71, "phase_ii": 0.40, "phase_iii": 0.58, "phase_iv": 0.87,
+            "phase_i": 0.578, "phase_ii": 0.384, "phase_iii": 0.640,
+            "nda_to_approval": 0.929,
         },
-        "default": {
-            "phase_i": 0.67, "phase_ii": 0.33, "phase_iii": 0.45, "phase_iv": 0.85,
+        "ophthalmology": {
+            "phase_i": 0.716, "phase_ii": 0.355, "phase_iii": 0.512,
+            "nda_to_approval": 0.911,
+        },
+        "immunology": {  # BIO grouping: Autoimmune
+            "phase_i": 0.552, "phase_ii": 0.314, "phase_iii": 0.653,
+            "nda_to_approval": 0.941,
+        },
+        "allergy": {
+            "phase_i": 0.564, "phase_ii": 0.283, "phase_iii": 0.647,
+            "nda_to_approval": 1.000,
+        },
+        "gastroenterology": {
+            "phase_i": 0.467, "phase_ii": 0.342, "phase_iii": 0.571,
+            "nda_to_approval": 0.909,
+        },
+        "respiratory": {
+            "phase_i": 0.559, "phase_ii": 0.219, "phase_iii": 0.645,
+            "nda_to_approval": 0.956,
+        },
+        "psychiatry": {
+            "phase_i": 0.527, "phase_ii": 0.268, "phase_iii": 0.563,
+            "nda_to_approval": 0.912,
+        },
+        "endocrine": {
+            "phase_i": 0.433, "phase_ii": 0.266, "phase_iii": 0.662,
+            "nda_to_approval": 0.863,
+        },
+        "neurology": {
+            "phase_i": 0.477, "phase_ii": 0.268, "phase_iii": 0.531,
+            "nda_to_approval": 0.867,
+        },
+        "oncology": {
+            "phase_i": 0.488, "phase_ii": 0.246, "phase_iii": 0.477,
+            "nda_to_approval": 0.920,
+        },
+        "cardiology": {  # BIO grouping: Cardiovascular
+            "phase_i": 0.500, "phase_ii": 0.210, "phase_iii": 0.552,
+            "nda_to_approval": 0.825,
+        },
+        "urology": {
+            "phase_i": 0.409, "phase_ii": 0.150, "phase_iii": 0.692,
+            "nda_to_approval": 0.846,
+        },
+        "default": {  # BIO row: "All indications"
+            "phase_i": 0.520, "phase_ii": 0.289, "phase_iii": 0.578,
+            "nda_to_approval": 0.906,
         },
     }
+    _HISTORICAL_SUCCESS_CITATION = (
+        "BIO / Informa Pharma Intelligence / QLS Advisors, 'Clinical "
+        "Development Success Rates and Contributing Factors 2011-2020', "
+        "Figure 2 (phase transition success rates by disease area), p.8"
+    )
+    #: Disease areas Figure 2 does NOT break out, so no rate can be cited for
+    #: them. `rare_disease` was in the old table at 0.74/0.42/0.55/0.90 --
+    #: the most optimistic row in the whole table, and sourced to nothing.
+    #: BIO's rare-disease analysis is a separate section, not Figure 2, and was
+    #: not retrieved. See CLINICAL_REVIEW.md.
+    _HISTORICAL_SUCCESS_UNSOURCED = frozenset({"rare_disease"})
 
     # Recommended primary endpoints by indication
     _ENDPOINT_BENCHMARKS: Dict[str, Dict[str, str]] = {
@@ -252,32 +341,63 @@ class ProtocolDesignWorkflow(BaseTrialWorkflow):
                 break
 
         # --- Success probability ---
-        base_success = self._HISTORICAL_SUCCESS.get(
+        # `.get(phase, 0.40)` routed an unparsed phase to a REAL clinical value
+        # (0.40 happened to be near the old Phase II number), so "Phase 1",
+        # "PHASE1", "Early Phase 1" and ["PHASE1","PHASE2"] all silently
+        # landed on a rate that was not theirs. There is no default any more.
+        rates = self._HISTORICAL_SUCCESS.get(
             category, self._HISTORICAL_SUCCESS["default"]
-        ).get(phase, 0.40)
-
-        # Adjust for design factors
-        design_factor = self._DESIGN_COMPLEXITY.get(design_type, 0.5)
-        # More complex designs have slightly lower success but better outcomes
-        adjusted_success = base_success * (1.0 - 0.1 * design_factor)
-
-        # Adjust for biomarker-driven enrichment
-        if any(kw in moa.lower() for kw in ["targeted", "biomarker", "precision"]):
-            adjusted_success *= 1.15
+        )
+        base_success = rates.get(phase)
+        if base_success is None:
             findings.append(
-                "Biomarker-driven enrichment strategy detected — "
-                f"success probability elevated by 15% (base: {base_success:.0%})"
+                f"No phase transition success rate is available for phase "
+                f"'{phase}'. BIO Figure 2 measures exactly four transitions: "
+                f"{', '.join(sorted(rates))}. No probability of success is "
+                f"reported."
+            )
+            recommendations.append(
+                "Map the phase onto one of the four BIO transitions "
+                "(phase_i, phase_ii, phase_iii, nda_to_approval) to obtain a "
+                "probability of success"
+            )
+        if any(area in indication for area in self._HISTORICAL_SUCCESS_UNSOURCED):
+            findings.append(
+                "NOTE: BIO Figure 2 does not break out this disease area, so "
+                "the all-indications rate is being used. A disease-area rate "
+                "for it would have to come from a source this agent has not "
+                "retrieved."
             )
 
-        adjusted_success = _clamp(adjusted_success, 0.05, 0.95)
+        # Needed by the complexity score below whether or not a published
+        # success rate applied.
+        design_factor = self._DESIGN_COMPLEXITY.get(design_type, 0.5)
 
-        findings.append(
-            f"Historical success rate for {category}/{phase}: {base_success:.0%}"
-        )
-        findings.append(
-            f"Adjusted success probability: {adjusted_success:.0%} "
-            f"(design: {design_type}, arms: {num_arms})"
-        )
+        adjusted_success = None
+        if base_success is not None:
+            # More complex designs have slightly lower success but better outcomes
+            adjusted_success = base_success * (1.0 - 0.1 * design_factor)
+
+            # Adjust for biomarker-driven enrichment
+            if any(kw in moa.lower() for kw in ["targeted", "biomarker", "precision"]):
+                adjusted_success *= 1.15
+                findings.append(
+                    "Biomarker-driven enrichment strategy detected — "
+                    f"success probability elevated by 15% (base: {base_success:.0%})"
+                )
+
+            adjusted_success = _clamp(adjusted_success, 0.05, 0.95)
+
+            findings.append(
+                f"Published phase transition success rate, {category}/{phase}: "
+                f"{base_success:.1%} — {self._HISTORICAL_SUCCESS_CITATION}"
+            )
+            findings.append(
+                f"Adjusted success probability: {adjusted_success:.0%} "
+                f"(design: {design_type}, arms: {num_arms}). The design and "
+                f"biomarker adjustments are heuristics applied by this agent, "
+                f"not published rates."
+            )
 
         # --- Endpoint benchmarks ---
         endpoints = self._ENDPOINT_BENCHMARKS.get(
@@ -311,7 +431,7 @@ class ProtocolDesignWorkflow(BaseTrialWorkflow):
             f"Design a {design_type} {phase.replace('_', ' ')} trial with "
             f"{num_arms} arms ({comparator} comparator)"
         )
-        if adjusted_success < 0.35:
+        if adjusted_success is not None and adjusted_success < 0.35:
             recommendations.append(
                 "Consider adaptive design with interim futility analysis "
                 "to mitigate low expected success rate"
@@ -332,15 +452,18 @@ class ProtocolDesignWorkflow(BaseTrialWorkflow):
         )
 
         # --- References ---
-        references.extend([
-            "ICH E6(R3) Good Clinical Practice (2023)",
-            "ICH E8(R1) General Considerations for Clinical Studies (2021)",
-            "ICH E9(R1) Estimands and Sensitivity Analysis",
-            f"FDA Guidance: {category.title()} Trial Design (current)",
-        ])
+        # Cite only what the code uses. The previous list -- ICH E6(R3),
+        # E8(R1), E9(R1) and an f-string "FDA Guidance: {category} Trial
+        # Design (current)" naming a document that does not exist -- was
+        # attached to every result and nothing in the computation derives from
+        # any of it.
+        if base_success is not None:
+            references.append(self._HISTORICAL_SUCCESS_CITATION)
 
         severity = SeverityLevel.INFORMATIONAL
-        if adjusted_success < 0.30:
+        if adjusted_success is None:
+            pass
+        elif adjusted_success < 0.30:
             severity = SeverityLevel.HIGH
         elif adjusted_success < 0.45:
             severity = SeverityLevel.MODERATE
@@ -351,7 +474,14 @@ class ProtocolDesignWorkflow(BaseTrialWorkflow):
             recommendations=recommendations,
             guideline_references=references,
             severity=severity,
-            confidence=_clamp(0.5 + adjusted_success * 0.3),
+            # None, not a number, when no published rate applied: the whole
+            # point of this workflow's output is the probability of success,
+            # and reporting a confidence for an estimate that was not made
+            # dresses up a refusal as a result.
+            confidence=(
+                None if adjusted_success is None
+                else _clamp(0.5 + adjusted_success * 0.3)
+            ),
         )
 
 
@@ -420,116 +550,521 @@ class PatientMatchingWorkflow(BaseTrialWorkflow):
 
         return inp
 
+    #: Words that negate or restrict the biomarker state a criterion requires.
+    #: An EGFR-mutant patient does not satisfy "EGFR wild-type tumors only".
+    _BIOMARKER_NEGATIONS = (
+        "wild-type", "wild type", "wildtype", "wt ", "negative",
+        "absence of", "absent", "must not", "without", "excluding",
+        "non-mutated", "unmutated", "no evidence of", "lack of",
+    )
+
+    #: Severity/activity qualifiers that change what an exclusion criterion
+    #: actually excludes. "controlled hypothyroidism" is not "severe
+    #: uncontrolled autoimmune thyroid disease".
+    _SEVERITY_QUALIFIERS = (
+        "severe", "uncontrolled", "active", "clinically significant",
+        "symptomatic", "unstable", "decompensated", "refractory",
+    )
+
+    @staticmethod
+    def _tokens(text: str) -> set:
+        """Lower-cased whole words of *text*, for word-boundary matching."""
+        return set(re.findall(r"[a-z0-9]+", (text or "").lower()))
+
+    @staticmethod
+    def _has_word(text: str, word: str) -> bool:
+        """True if *word* appears in *text* as a whole word.
+
+        A bare substring test made the criterion's own negation fire it:
+        "controlled" is a substring of "uncontrolled".
+        """
+        return re.search(
+            r"\b" + re.escape(word.lower()) + r"\b", (text or "").lower()
+        ) is not None
+
+    def _evaluate_age(self, criterion: str, age: int) -> Optional[tuple]:
+        """Evaluate an age criterion. Returns (met, confidence, evidence) or None.
+
+        None means the criterion was not recognised as an age criterion, or was
+        recognised but could not be parsed into bounds -- which is UNKNOWN, not
+        met.
+        """
+        crit_lower = criterion.lower()
+        # "age" must be a whole word: as a bare substring it matches "stage"
+        # and "manage", which is how a disease-stage criterion ("Stage IIIB or
+        # IV non-small cell lung cancer") and an adherence criterion ("Able to
+        # manage oral medication at home") were both reported as narrow age
+        # ranges.
+        if not (
+            any(
+                self._has_word(crit_lower, w)
+                for w in ("age", "aged", "ages", "years", "year", "yrs")
+            )
+            or any(self._has_word(crit_lower, band) for band in self._AGE_PATTERNS)
+            or "y.o." in crit_lower
+            or "≥" in criterion
+        ):
+            return None
+
+        # An explicit numeric range or bound ALWAYS wins over a named age band.
+        # _AGE_PATTERNS used to be checked first and `break` out of the numeric
+        # path, so "Adults aged 18 to 75 years" was scored as adult = 18-120
+        # and the upper bound was discarded.
+        # The unit token is optional: "Age 18-75 years" only ever tagged "75
+        # years", leaving a single bound with no comparator keyword, which fell
+        # through to the `met = True` default -- so a 92-year-old passed.
+        nums = [
+            int(n) for n in re.findall(
+                r"(\d{1,3})\s*(?:years?|yrs?|y\.o\.)?", crit_lower
+            ) if n
+        ]
+        nums = [n for n in nums if 0 <= n <= 120]
+
+        if len(nums) >= 2:
+            lo, hi = min(nums[0], nums[1]), max(nums[0], nums[1])
+            return (
+                lo <= age <= hi, 0.9,
+                f"Patient age {age}, criterion range {lo}-{hi}",
+            )
+        if len(nums) == 1:
+            bound = nums[0]
+            lower_kw = ("≥", ">=", ">", "at least", "older", "over", "above",
+                        "greater than", "exceeding", "minimum", "or more")
+            upper_kw = ("≤", "<=", "<", "no more", "younger", "under", "below",
+                        "less than", "up to", "maximum", "or less")
+            if any(kw in crit_lower for kw in lower_kw):
+                return (
+                    age >= bound, 0.9,
+                    f"Patient age {age} vs minimum {bound}",
+                )
+            if any(kw in crit_lower for kw in upper_kw):
+                return (
+                    age <= bound, 0.9,
+                    f"Patient age {age} vs maximum {bound}",
+                )
+            # A bare number with no comparator cannot be turned into a bound.
+            return (
+                None, 0.2,
+                f"Age criterion cites {bound} with no comparator — "
+                f"direction of the bound is unknown",
+            )
+
+        # No numbers: fall back to a named age band if one is present.
+        for pattern, (lo, hi) in self._AGE_PATTERNS.items():
+            if self._has_word(crit_lower, pattern):
+                return (
+                    lo <= age <= hi, 0.6,
+                    f"Patient age {age}, criterion requires {pattern} "
+                    f"({lo}-{hi}; band inferred, not stated)",
+                )
+        return (
+            None, 0.2,
+            "Criterion mentions age but states no parseable bound",
+        )
+
     def _evaluate_criterion(
         self, criterion: str, patient: dict, is_exclusion: bool
     ) -> MatchScore:
-        """Evaluate a single eligibility criterion against the patient profile."""
+        """Evaluate a single eligibility criterion against the patient profile.
+
+        This is the only place in the agent where a patient is compared to an
+        eligibility criterion, and every defect F3-F10 lived in it. It used to
+        start at ``met = True`` with each rule block conditional on the patient
+        field being present, so:
+
+        * a criterion no rule understood counted as MET;
+        * an empty patient profile scored 5/5 inclusion and was indistinguishable
+          from a correctly-matched patient (both 0.60, confidence 0.58);
+        * for exclusions, where ``met = True`` means TRIGGERED, the same default
+          inverted the polarity and every trial reported ``exclusion clear:
+          0/N``, capping every score at 0.60 and making the "top match" and
+          LOW-severity branches dead code;
+        * the rule blocks assigned to one shared ``met`` in sequence with no
+          conjunction, so a later block that fired erased an earlier False --
+          an age-9 patient with an EGFR biomarker "met" an adults-only
+          criterion at *higher* confidence than the correct age determination
+          would have carried, and the evidence string no longer mentioned age.
+
+        Each dimension is now evaluated into its own tri-state result and the
+        results are combined with AND over the dimensions that actually fired.
+        Evidence strings are concatenated, not replaced, so the audit trail
+        shows every dimension that contributed.
+        """
         crit_lower = criterion.lower()
-        met = True
-        confidence = 0.5  # Default uncertain
-        evidence = ""
+        #: (verdict, confidence, evidence) per dimension that fired.
+        dims: List[tuple] = []
 
-        # --- Age checks ---
+        # The age, sex, diagnosis and biomarker rules all carry REQUIREMENT
+        # semantics -- "does the patient satisfy what this criterion asks
+        # for" -- which is only a valid reading for an INCLUSION criterion. On
+        # an exclusion criterion the same rule inverts: an EGFR-mutant patient
+        # matched the exclusion "Prior treatment with an EGFR tyrosine kinase
+        # inhibitor" because the criterion merely names EGFR, which would
+        # exclude a patient who had never been treated with a TKI. Only the
+        # comorbidity and medication rules have unambiguous exclusion polarity,
+        # so they are the only ones applied below to an exclusion criterion;
+        # everything else leaves it explicitly not evaluated.
+        requirement_semantics = not is_exclusion
+
+        # --- Age ---
         age = patient.get("age")
-        if age is not None:
-            if "age" in crit_lower or "years" in crit_lower or "≥" in criterion:
-                # Try to extract age bounds
-                for pattern, (lo, hi) in self._AGE_PATTERNS.items():
-                    if pattern in crit_lower:
-                        met = lo <= age <= hi
-                        confidence = 0.9
-                        evidence = f"Patient age {age}, criterion requires {pattern} ({lo}-{hi})"
-                        break
-                else:
-                    # Check for numeric bounds
-                    import re
-                    nums = re.findall(r"(\d+)\s*(?:years|yrs|y\.o\.)", crit_lower)
-                    if len(nums) >= 2:
-                        lo, hi = int(nums[0]), int(nums[1])
-                        met = lo <= age <= hi
-                        confidence = 0.9
-                        evidence = f"Patient age {age}, criterion range {lo}-{hi}"
-                    elif nums:
-                        bound = int(nums[0])
-                        if any(kw in crit_lower for kw in ["≥", ">=", "at least", "older"]):
-                            met = age >= bound
-                            confidence = 0.9
-                            evidence = f"Patient age {age} vs minimum {bound}"
-                        elif any(kw in crit_lower for kw in ["≤", "<=", "no more", "younger"]):
-                            met = age <= bound
-                            confidence = 0.9
-                            evidence = f"Patient age {age} vs maximum {bound}"
+        if age is not None and requirement_semantics:
+            age_result = self._evaluate_age(criterion, age)
+            if age_result is not None:
+                dims.append(age_result)
 
-        # --- Sex checks ---
+        # --- Sex ---
         sex = patient.get("sex")
-        if sex and ("male" in crit_lower or "female" in crit_lower):
-            if "female" in crit_lower and "only" in crit_lower:
-                met = sex.lower() == "female"
-                confidence = 0.95
-                evidence = f"Patient sex: {sex}, criterion requires female"
-            elif "male" in crit_lower and "only" in crit_lower:
-                met = sex.lower() == "male"
-                confidence = 0.95
-                evidence = f"Patient sex: {sex}, criterion requires male"
-
-        # --- Diagnosis check ---
-        diagnosis = (patient.get("diagnosis") or "").lower()
-        if diagnosis and any(
-            kw in crit_lower
-            for kw in ["diagnosis", "confirmed", "histologically", "documented"]
+        if sex and requirement_semantics and (
+            "male" in crit_lower or "female" in crit_lower
         ):
-            if diagnosis and any(
-                word in crit_lower for word in diagnosis.split()
-                if len(word) > 3
-            ):
+            # "female" contains "male", so test female first and with a word
+            # boundary.
+            wants_female = self._has_word(crit_lower, "female") or self._has_word(
+                crit_lower, "females"
+            )
+            wants_male = (
+                self._has_word(crit_lower, "male") or self._has_word(crit_lower, "males")
+            ) and not wants_female
+            restrictive = any(
+                kw in crit_lower for kw in ("only", "must be", "exclusively")
+            )
+            if wants_female and restrictive:
+                dims.append((
+                    sex.lower() == "female", 0.95,
+                    f"Patient sex: {sex}, criterion requires female",
+                ))
+            elif wants_male and restrictive:
+                dims.append((
+                    sex.lower() == "male", 0.95,
+                    f"Patient sex: {sex}, criterion requires male",
+                ))
+
+        # --- Diagnosis ---
+        # Matching was `any(word in crit_lower for word in diagnosis.split() if
+        # len(word) > 3)`: any single shared word over 3 characters. The word
+        # "cancer" alone carried it, so non-small cell lung cancer "met" a
+        # histology criterion reading "small cell lung cancer", and breast
+        # cancer "met" a metastatic colorectal cancer criterion -- both at 0.70
+        # confidence with evidence asserting the diagnosis "matches criterion
+        # keywords". SCLC and NSCLC have disjoint standard-of-care and disjoint
+        # trial populations.
+        #
+        # Whole-token containment is required: every content word of the
+        # patient's diagnosis must appear in the criterion. That makes NSCLC
+        # vs SCLC a non-match without needing an ontology. A partial overlap is
+        # UNKNOWN, not False, because the criterion may name a synonym.
+        diagnosis = (patient.get("diagnosis") or "").lower()
+        if diagnosis and requirement_semantics and any(
+            kw in crit_lower
+            for kw in ("diagnosis", "confirmed", "histologically", "documented",
+                       "histology", "diagnosed")
+        ):
+            stop = {"the", "of", "and", "with", "a", "an", "or"}
+            dx_tokens = self._tokens(diagnosis) - stop
+            crit_tokens = self._tokens(crit_lower)
+            if dx_tokens and dx_tokens <= crit_tokens:
+                dims.append((
+                    True, 0.7,
+                    f"Patient diagnosis '{diagnosis}' appears in full in the criterion",
+                ))
+            elif dx_tokens & crit_tokens:
+                # Partial overlap. This is the NSCLC-vs-SCLC case: shared
+                # words, different disease. Refuse to decide.
+                shared = ", ".join(sorted(dx_tokens & crit_tokens))
+                missing = ", ".join(sorted(dx_tokens - crit_tokens))
+                dims.append((
+                    None, 0.3,
+                    f"Patient diagnosis '{diagnosis}' only partly matches the "
+                    f"criterion (shared: {shared}; not found: {missing}) — "
+                    f"requires coded-concept comparison, not word overlap",
+                ))
+            else:
+                dims.append((
+                    False, 0.5,
+                    f"Patient diagnosis '{diagnosis}' does not match the criterion",
+                ))
+
+        # --- Biomarkers ---
+        # `if bm in crit_lower: met = True` treated mere MENTION of the
+        # biomarker name as satisfaction, so an EGFR-mutant patient "met"
+        # "EGFR wild-type tumors only" and "Patients must NOT harbor an EGFR
+        # activating mutation", both at 0.85 confidence. Enrolled, that patient
+        # is given a regimen contraindicated by their driver mutation while
+        # being withheld from the osimertinib they should receive.
+        biomarkers = [b.lower() for b in patient.get("biomarkers", []) if b]
+        for bm in (biomarkers if requirement_semantics else []):
+            if not self._has_word(crit_lower, bm):
+                continue
+            negated = any(neg in crit_lower for neg in self._BIOMARKER_NEGATIONS)
+            if negated:
+                # The criterion names the biomarker but requires the opposite
+                # state. The patient carries it, so this is not satisfied.
+                dims.append((
+                    False, 0.8,
+                    f"Criterion names biomarker '{bm}' in a negated or "
+                    f"wild-type-required form; patient carries '{bm}'",
+                ))
+            else:
+                dims.append((
+                    True, 0.85,
+                    f"Biomarker '{bm}' required by the criterion and present "
+                    f"in the patient profile",
+                ))
+            break
+
+        # --- Exclusion: comorbidities and medications ---
+        #
+        # The block now runs whenever the patient record SUPPLIES these lists,
+        # even when they are empty, so that a patient with nothing to trip can
+        # actually CLEAR an exclusion. Previously the block was gated on the
+        # lists being non-empty and the shared `met` default was True, so
+        # `exc_clear` was 0 for every patient -- including correctly matched
+        # ones -- which capped every score at 0.60 and made the "top match" and
+        # LOW-severity branches dead code.
+        if is_exclusion and (
+            "comorbidities" in patient or "medications" in patient
+        ):
+            comorbidities = [c.lower() for c in (patient.get("comorbidities") or []) if c]
+            medications = [m.lower() for m in (patient.get("medications") or []) if m]
+            crit_quals = [q for q in self._SEVERITY_QUALIFIERS if q in crit_lower]
+            resolved = False
+
+            for comor in comorbidities:
+                # EVERY content word of the comorbidity must appear in the
+                # criterion as a whole word. The old test was
+                #   comor in crit_lower or any(word in crit_lower
+                #                              for word in comor.split()
+                #                              if len(word) > 4)
+                # -- any single shared word over four characters. That fired
+                # "controlled hypothyroidism" against "Severe UNcontrolled
+                # autoimmune thyroid disease" (the criterion's own negation
+                # matched, since "controlled" is a substring of
+                # "uncontrolled"), and "seasonal allergic rhinitis" against
+                # "History of allergic reaction to platinum agents" on the
+                # single word "allergic".
+                words = [w for w in self._tokens(comor) if len(w) > 3]
+                if not words or not all(
+                    self._has_word(crit_lower, w) for w in words
+                ):
+                    continue
+
+                if crit_quals and not any(q in comor for q in crit_quals):
+                    # The criterion restricts itself to severe / uncontrolled /
+                    # active disease and the patient record does not say which.
+                    # That is UNKNOWN, not clear: the patient may well have
+                    # active disease and the record simply not state it.
+                    # Reporting it clear would be the unsafe direction.
+                    dims.append((
+                        None, 0.4,
+                        f"Comorbidity '{comor}' matches the criterion, but the "
+                        f"criterion is restricted to "
+                        f"{'/'.join(crit_quals)} disease and the patient "
+                        f"record does not state the severity — clinician "
+                        f"review required",
+                    ))
+                    resolved = True
+                    break
+
+                dims.append((
+                    True, 0.75,
+                    f"Comorbidity '{comor}' matches exclusion criterion",
+                ))
+                resolved = True
+                break
+
+            if not resolved:
+                for med in medications:
+                    if self._has_word(crit_lower, med):
+                        dims.append((
+                            True, 0.8,
+                            f"Medication '{med}' matches exclusion criterion",
+                        ))
+                        resolved = True
+                        break
+
+            if not resolved:
+                dims.append((
+                    False, 0.5,
+                    "No reported comorbidity or concomitant medication matches "
+                    "this exclusion criterion. Note: prior therapies, "
+                    "laboratory values, imaging and performance status were "
+                    "NOT checked against it",
+                ))
+
+        # --- Combine with AND over the dimensions that fired ---
+        crit_type = CriterionType.EXCLUSION if is_exclusion else CriterionType.INCLUSION
+
+        if not dims:
+            # No rule understood this criterion, or every field it needs was
+            # absent. UNKNOWN, not met.
+            return MatchScore(
+                criterion_text=criterion,
+                criterion_type=crit_type,
+                met=None,
+                confidence=0.0,
+                evidence=(
+                    "Not evaluated: no rule in this matcher parses this "
+                    "criterion, or the patient fields it requires were not "
+                    "supplied"
+                ),
+            )
+
+        verdicts = [d[0] for d in dims]
+        evidence = "; ".join(d[2] for d in dims if d[2])
+
+        if is_exclusion:
+            # For an exclusion, True means TRIGGERED. Any dimension that
+            # triggers, triggers the criterion (OR), and an unknown dimension
+            # leaves it unknown unless something else already triggered.
+            if any(v is True for v in verdicts):
                 met = True
-                confidence = 0.7
-                evidence = f"Patient diagnosis '{diagnosis}' matches criterion keywords"
+            elif any(v is None for v in verdicts):
+                met = None
             else:
                 met = False
-                confidence = 0.5
-                evidence = f"Patient diagnosis '{diagnosis}' may not match criterion"
+        else:
+            # For an inclusion, every dimension that fired must be satisfied.
+            if any(v is False for v in verdicts):
+                met = False
+            elif any(v is None for v in verdicts):
+                met = None
+            else:
+                met = True
 
-        # --- Biomarker checks ---
-        biomarkers = [b.lower() for b in patient.get("biomarkers", [])]
-        if biomarkers:
-            for bm in biomarkers:
-                if bm in crit_lower:
-                    met = True
-                    confidence = 0.85
-                    evidence = f"Biomarker '{bm}' found in criterion"
-                    break
+        # Confidence follows the dimension that decided the verdict, not the
+        # last rule to run.
+        deciding = [d for d in dims if d[0] is met]
+        confidence = (
+            max(d[1] for d in deciding) if deciding
+            else min(d[1] for d in dims)
+        )
 
-        # --- Comorbidity exclusion checks ---
-        comorbidities = [c.lower() for c in patient.get("comorbidities", [])]
-        if is_exclusion and comorbidities:
-            for comor in comorbidities:
-                if comor in crit_lower or any(
-                    word in crit_lower for word in comor.split() if len(word) > 4
-                ):
-                    met = True  # exclusion criterion triggered
-                    confidence = 0.75
-                    evidence = f"Comorbidity '{comor}' matches exclusion criterion"
-                    break
-
-        # --- Medication exclusion checks ---
-        medications = [m.lower() for m in patient.get("medications", [])]
-        if is_exclusion and medications:
-            for med in medications:
-                if med in crit_lower:
-                    met = True  # exclusion criterion triggered
-                    confidence = 0.8
-                    evidence = f"Medication '{med}' matches exclusion criterion"
-                    break
-
-        crit_type = CriterionType.EXCLUSION if is_exclusion else CriterionType.INCLUSION
         return MatchScore(
             criterion_text=criterion,
             criterion_type=crit_type,
             met=met,
-            confidence=confidence,
+            confidence=round(confidence, 3),
             evidence=evidence,
         )
+
+    def score_trials(self, patient: dict, trials: List[dict]) -> List[dict]:
+        """Score each trial for *patient*, returning the structured match dicts.
+
+        Public because the numbers, not the prose, are the result. ``execute``
+        renders these into ``WorkflowResult.findings``; callers that need the
+        counts -- and tests that must assert on them rather than on a formatted
+        string -- use this directly.
+
+        Each dict carries the tri-state counts separately:
+        ``inclusion_met`` / ``inclusion_failed`` / ``inclusion_unknown`` and
+        ``exclusion_clear`` / ``exclusion_triggered`` / ``exclusion_unknown``.
+        ``overall_score`` is ``None`` when too few criteria were evaluable to
+        score, and ``excluded`` is True when an exclusion criterion fired.
+        """
+        matches: List[dict] = []
+        for trial in trials:
+            trial_id = trial.get("trial_id", "UNKNOWN")
+            title = trial.get("title", "Untitled")
+            phase = trial.get("phase", "phase_ii")
+            status = trial.get("status", "recruiting")
+            inclusion = trial.get("inclusion_criteria", [])
+            exclusion = trial.get("exclusion_criteria", [])
+
+            # Evaluate inclusion criteria. Only `met is True` counts; `None`
+            # (unknown) is tracked separately and never scored as satisfied.
+            inc_scores = [
+                self._evaluate_criterion(c, patient, is_exclusion=False)
+                for c in inclusion
+            ]
+            inc_met = sum(1 for s in inc_scores if s.met is True)
+            inc_failed = sum(1 for s in inc_scores if s.met is False)
+            inc_unknown = sum(1 for s in inc_scores if s.met is None)
+
+            # Evaluate exclusion criteria. For an exclusion, `met is True`
+            # means TRIGGERED, so "clear" is `met is False` -- NOT `not met`,
+            # which counted every unknown criterion as triggered and reported
+            # `exclusion clear: 0/N` for every patient including correctly
+            # matched ones.
+            exc_scores = [
+                self._evaluate_criterion(c, patient, is_exclusion=True)
+                for c in exclusion
+            ]
+            exc_clear = sum(1 for s in exc_scores if s.met is False)
+            exc_triggered = [s for s in exc_scores if s.met is True]
+            exc_unknown = sum(1 for s in exc_scores if s.met is None)
+
+            total_criteria = len(inclusion) + len(exclusion)
+            total_unknown = inc_unknown + exc_unknown
+
+            # A triggered exclusion is a HARD GATE, not a 0.4-weighted
+            # deduction. Blending the two ratios meant a patient who cleared 9
+            # of 10 exclusions but tripped "Active brain metastases" scored
+            # 0.6*1.0 + 0.4*0.9 = 0.96 and ranked first.
+            gated_reason = None
+            if exc_triggered:
+                gated_reason = "; ".join(
+                    s.criterion_text for s in exc_triggered[:3]
+                )
+
+            # Refuse to emit a score when most of the criteria were not
+            # evaluated. An unparsed trial used to score a full 0.60 inclusion
+            # match.
+            unknown_ratio = (
+                total_unknown / total_criteria if total_criteria else 1.0
+            )
+            scoreable = total_criteria > 0 and unknown_ratio <= 0.5
+
+            if not scoreable:
+                overall = None
+            else:
+                inc_ratio = inc_met / max(len(inclusion), 1)
+                exc_ratio = exc_clear / max(len(exclusion), 1)
+                overall = round(0.6 * inc_ratio + 0.4 * exc_ratio, 3)
+
+            # Confidence is averaged over the criteria that were actually
+            # decided. Averaging in the 0.0 of an unevaluated criterion would
+            # read as a low-confidence assessment rather than as no assessment.
+            decided = [s for s in inc_scores + exc_scores if s.met is not None]
+            avg_confidence = (
+                round(sum(s.confidence for s in decided) / len(decided), 3)
+                if decided else None
+            )
+
+            matches.append({
+                "trial_id": trial_id,
+                "title": title,
+                "phase": phase,
+                "status": status,
+                "inclusion_met": inc_met,
+                "inclusion_failed": inc_failed,
+                "inclusion_unknown": inc_unknown,
+                "inclusion_total": len(inclusion),
+                "exclusion_clear": exc_clear,
+                "exclusion_triggered": len(exc_triggered),
+                "exclusion_unknown": exc_unknown,
+                "exclusion_total": len(exclusion),
+                "criteria_evaluated": total_criteria - total_unknown,
+                "criteria_total": total_criteria,
+                "overall_score": overall,
+                "confidence": avg_confidence,
+                "excluded": bool(exc_triggered),
+                "exclusion_reason": gated_reason,
+                "score_withheld_reason": (
+                    None if scoreable else
+                    f"{total_unknown} of {total_criteria} criteria could not be "
+                    f"evaluated; no match score is reported"
+                ),
+            })
+
+        # Rank: excluded trials last, unscoreable trials after scored ones,
+        # then by score descending.
+        matches.sort(key=lambda m: (
+            m["excluded"],
+            m["overall_score"] is None,
+            -(m["overall_score"] or 0.0),
+        ))
+        return matches
 
     def execute(self, inputs: dict) -> WorkflowResult:
         findings: List[str] = []
@@ -543,80 +1078,73 @@ class PatientMatchingWorkflow(BaseTrialWorkflow):
                 findings=["No trials provided for matching"],
                 recommendations=["Provide trial eligibility criteria for matching"],
                 severity=SeverityLevel.INFORMATIONAL,
-                confidence=0.0,
+                confidence=None,
             )
 
-        matches: List[dict] = []
-        for trial in trials:
-            trial_id = trial.get("trial_id", "UNKNOWN")
-            title = trial.get("title", "Untitled")
-            phase = trial.get("phase", "phase_ii")
-            status = trial.get("status", "recruiting")
-            inclusion = trial.get("inclusion_criteria", [])
-            exclusion = trial.get("exclusion_criteria", [])
-
-            # Evaluate inclusion criteria
-            inc_scores = [
-                self._evaluate_criterion(c, patient, is_exclusion=False)
-                for c in inclusion
-            ]
-            inc_met = sum(1 for s in inc_scores if s.met)
-
-            # Evaluate exclusion criteria
-            exc_scores = [
-                self._evaluate_criterion(c, patient, is_exclusion=True)
-                for c in exclusion
-            ]
-            # For exclusion: "clear" means NOT triggered
-            exc_clear = sum(1 for s in exc_scores if not s.met)
-
-            # Overall score
-            inc_ratio = inc_met / max(len(inclusion), 1)
-            exc_ratio = exc_clear / max(len(exclusion), 1)
-            overall = 0.6 * inc_ratio + 0.4 * exc_ratio
-
-            avg_confidence = 0.5
-            all_scores = inc_scores + exc_scores
-            if all_scores:
-                avg_confidence = sum(s.confidence for s in all_scores) / len(all_scores)
-
-            matches.append({
-                "trial_id": trial_id,
-                "title": title,
-                "phase": phase,
-                "status": status,
-                "inclusion_met": inc_met,
-                "inclusion_total": len(inclusion),
-                "exclusion_clear": exc_clear,
-                "exclusion_total": len(exclusion),
-                "overall_score": round(overall, 3),
-                "confidence": round(avg_confidence, 3),
-            })
-
-        # Sort by overall score descending
-        matches.sort(key=lambda m: m["overall_score"], reverse=True)
+        matches = self.score_trials(patient, trials)
 
         findings.append(f"Evaluated {len(trials)} trials for patient matching")
         for i, m in enumerate(matches[:5], 1):
+            if m["excluded"]:
+                findings.append(
+                    f"  #{i}: {m['trial_id']} — EXCLUDED: "
+                    f"{m['exclusion_triggered']} exclusion criterion(a) "
+                    f"triggered ({m['exclusion_reason']})"
+                )
+                continue
+            score_text = (
+                "no score" if m["overall_score"] is None
+                else f"score {m['overall_score']:.2f}"
+            )
             findings.append(
-                f"  #{i}: {m['trial_id']} — score {m['overall_score']:.2f} "
-                f"(inclusion: {m['inclusion_met']}/{m['inclusion_total']}, "
-                f"exclusion clear: {m['exclusion_clear']}/{m['exclusion_total']})"
+                f"  #{i}: {m['trial_id']} — {score_text} "
+                f"(inclusion met {m['inclusion_met']}/{m['inclusion_total']}, "
+                f"not met {m['inclusion_failed']}, "
+                f"not evaluated {m['inclusion_unknown']}; "
+                f"exclusion clear {m['exclusion_clear']}/{m['exclusion_total']}, "
+                f"not evaluated {m['exclusion_unknown']})"
             )
+            if m["score_withheld_reason"]:
+                findings.append(f"       {m['score_withheld_reason']}")
 
-        if matches and matches[0]["overall_score"] >= 0.7:
+        findings.append(
+            "Criteria marked 'not evaluated' were not assessed by this matcher "
+            "and are not eligibility determinations. Research use only; a "
+            "qualified investigator must confirm eligibility against the "
+            "protocol."
+        )
+
+        eligible = [
+            m for m in matches
+            if not m["excluded"] and m["overall_score"] is not None
+        ]
+        if eligible and eligible[0]["overall_score"] >= 0.7:
             recommendations.append(
-                f"Top match: {matches[0]['trial_id']} — "
-                f"consider immediate pre-screening"
+                f"Top match: {eligible[0]['trial_id']} — "
+                f"consider pre-screening (criteria evaluated: "
+                f"{eligible[0]['criteria_evaluated']}/"
+                f"{eligible[0]['criteria_total']})"
             )
-        elif matches:
+        elif eligible:
             recommendations.append(
                 "No high-confidence matches found — consider broadening search "
                 "criteria or reviewing waiver options"
             )
+        elif matches:
+            recommendations.append(
+                "No trial could be scored: every candidate was either excluded "
+                "by a triggered exclusion criterion or had too few criteria "
+                "evaluable to score"
+            )
+        if any(m["excluded"] for m in matches):
+            recommendations.append(
+                f"{sum(1 for m in matches if m['excluded'])} trial(s) removed "
+                f"by a triggered exclusion criterion — see findings for the "
+                f"criterion text"
+            )
 
         # Determine overall severity
-        top_score = matches[0]["overall_score"] if matches else 0
+        top_score = eligible[0]["overall_score"] if eligible else 0
         severity = SeverityLevel.INFORMATIONAL
         if top_score >= 0.8:
             severity = SeverityLevel.LOW
@@ -627,12 +1155,25 @@ class PatientMatchingWorkflow(BaseTrialWorkflow):
             workflow_type=self.workflow_type,
             findings=findings,
             recommendations=recommendations,
-            guideline_references=[
-                "FDA Guidance: Enrichment Strategies for Clinical Trials (2019)",
-                "ICH E6(R3) GCP — Eligibility Assessment",
-            ],
+            # No guideline method is implemented by this matcher, so none is
+            # cited. The previous fixed list ("FDA Guidance: Enrichment
+            # Strategies for Clinical Trials (2019)", "ICH E6(R3) GCP —
+            # Eligibility Assessment") was attached to every result regardless
+            # of what was computed, and nothing in the code derives from
+            # either document. A method attribution a reader cannot check is
+            # worse than no attribution: it is what stops them checking.
+            guideline_references=[],
             severity=severity,
-            confidence=_clamp(top_score * 0.8 + 0.1),
+            # Confidence is the mean confidence of the criteria that were
+            # actually decided, or None when nothing was. `top_score * 0.8 +
+            # 0.1` reported 0.10 for a trial whose criteria failed to ingest
+            # entirely -- a measured number for an assessment that did not
+            # happen.
+            confidence=(
+                eligible[0]["confidence"]
+                if eligible and eligible[0]["confidence"] is not None
+                else None
+            ),
         )
 
 
@@ -1971,12 +2512,42 @@ class DiversityAssessmentWorkflow(BaseTrialWorkflow):
 
     workflow_type = TrialWorkflowType.DIVERSITY_ASSESSMENT
 
-    # US Census 2020 approximate proportions for reference
+    # 2020 Census race and ethnicity figures, on the "alone" basis for race
+    # plus Hispanic or Latino as a separate ethnicity axis.
+    #
+    # Source (retrieved 2026-11-03): U.S. Census Bureau, "Improved Race and
+    # Ethnicity Measures Reveal U.S. Population Is Much More Multiracial",
+    # 12 August 2021 --
+    # https://www.census.gov/library/stories/2021/08/improved-race-ethnicity-measures-reveal-united-states-population-much-more-multiracial.html
+    #   White alone                                 204.3 M   61.6 %
+    #   Black or African American alone              41.1 M   12.4 %
+    #   Hispanic or Latino (any race; ethnicity)     62.1 M   18.7 %
+    #   Asian alone                                  19.9 M    6.0 %
+    #   American Indian / Alaska Native alone         3.7 M    1.1 %
+    #   Native Hawaiian / Other Pacific Islander      689,966   0.2 %
+    #   Two or More Races (multiracial)              33.8 M   10.2 %   (2010: 2.9 %)
+    #
+    # The previous table was labelled "US Census 2020 approximate proportions"
+    # and was not the 2020 Census. Multiracial was 0.025 against an actual
+    # 0.102 -- understated FOUR-FOLD, and it is the fastest-growing group in
+    # the US population (9 M in 2010 to 33.8 M in 2020). Black was 0.134 vs
+    # 0.124, AIAN 0.013 vs 0.011, NHPI 0.003 vs 0.002. The old table also
+    # mixed bases -- a non-Hispanic-White-alone figure (0.576) against
+    # alone-or-in-combination figures elsewhere -- and was forced to sum to
+    # exactly 1.000, which no consistent Census basis does. The sum-to-1.0
+    # constraint is therefore gone: these do not sum to 1, because Hispanic or
+    # Latino is an ethnicity that cuts across every race category.
     _US_CENSUS: Dict[str, float] = {
-        "white": 0.576, "black": 0.134, "hispanic": 0.189,
-        "asian": 0.060, "native_american": 0.013,
-        "pacific_islander": 0.003, "multiracial": 0.025,
+        "white": 0.616, "black": 0.124, "hispanic": 0.187,
+        "asian": 0.060, "native_american": 0.011,
+        "pacific_islander": 0.002, "multiracial": 0.102,
     }
+    _US_CENSUS_CITATION = (
+        "U.S. Census Bureau, 2020 Census, 'Improved Race and Ethnicity "
+        "Measures Reveal U.S. Population Is Much More Multiracial' "
+        "(12 Aug 2021). Race on the 'alone' basis; Hispanic or Latino is a "
+        "separate ethnicity axis, so these proportions do not sum to 1."
+    )
 
     # Known CYP450 polymorphism frequencies by ancestry
     _CYP_ANCESTRY: Dict[str, Dict[str, float]] = {
@@ -2061,14 +2632,46 @@ class DiversityAssessmentWorkflow(BaseTrialWorkflow):
             for group, count in demographics.items()
         }
 
-        # Compare against disease epidemiology if available, else census
-        reference_pct = epi.get("race_prevalence", self._US_CENSUS)
-        pri = self._calculate_pri(enrolled_pct, reference_pct)
-        findings.append(
-            f"Population Representativeness Index (PRI): {pri:.2f}"
-        )
+        # Compare against disease epidemiology when supplied. Falling back to
+        # the general US population for a NAMED indication substitutes the
+        # wrong reference: for sickle cell disease, Tay-Sachs or lupus the
+        # affected population looks nothing like the US population, and the
+        # PRI computed against it is meaningless. The fallback is now used
+        # only when no indication was named, and it is labelled either way.
+        reference_pct = epi.get("race_prevalence")
+        indication = inputs.get("indication") or inputs.get("therapeutic_area")
+        if reference_pct:
+            reference_label = "indication-specific epidemiology (supplied)"
+        elif indication:
+            findings.append(
+                f"No race/ethnicity epidemiology supplied for '{indication}'. "
+                "The Population Representativeness Index is NOT computed: the "
+                "general US population is not a valid reference for a named "
+                "indication. Supply `indication_epidemiology.race_prevalence` "
+                "to compute it."
+            )
+            recommendations.append(
+                f"Provide race/ethnicity prevalence for '{indication}' so "
+                f"representativeness can be assessed against the affected "
+                f"population rather than the general population"
+            )
+            reference_pct = None
+            reference_label = None
+        else:
+            reference_pct = self._US_CENSUS
+            reference_label = f"general US population — {self._US_CENSUS_CITATION}"
 
-        if pri < 0.5:
+        pri = None
+        if reference_pct:
+            pri = self._calculate_pri(enrolled_pct, reference_pct)
+            findings.append(
+                f"Population Representativeness Index (PRI): {pri:.2f} "
+                f"(reference: {reference_label})"
+            )
+
+        if pri is None:
+            pass
+        elif pri < 0.5:
             findings.append(
                 "UNDERREPRESENTATION DETECTED: PRI < 0.50 indicates "
                 "significant demographic disparity"
@@ -2079,6 +2682,9 @@ class DiversityAssessmentWorkflow(BaseTrialWorkflow):
             )
         else:
             findings.append("Good demographic representation: PRI >= 0.70")
+
+        if reference_pct is None:
+            reference_pct = {}
 
         # Per-group analysis
         findings.append("\nDemographic representation vs reference:")
@@ -2141,7 +2747,7 @@ class DiversityAssessmentWorkflow(BaseTrialWorkflow):
         recommendations.append(
             "FDA Diversity Action Plan components:"
         )
-        if pri < 0.7:
+        if pri is not None and pri < 0.7:
             underrepresented = [
                 g for g in reference_pct
                 if enrolled_pct.get(g, 0) < reference_pct[g] * 0.5
@@ -2166,7 +2772,9 @@ class DiversityAssessmentWorkflow(BaseTrialWorkflow):
             )
 
         severity = SeverityLevel.INFORMATIONAL
-        if pri < 0.5:
+        if pri is None:
+            pass
+        elif pri < 0.5:
             severity = SeverityLevel.HIGH
         elif pri < 0.7:
             severity = SeverityLevel.MODERATE
@@ -2175,14 +2783,22 @@ class DiversityAssessmentWorkflow(BaseTrialWorkflow):
             workflow_type=self.workflow_type,
             findings=findings,
             recommendations=recommendations,
-            guideline_references=[
-                "FDA Guidance: Diversity Plans to Improve Enrollment (2024)",
-                "FDA Guidance: Enhancing the Diversity of Clinical Trial Populations (2020)",
-                "NIH Policy on Inclusion of Women and Minorities",
-                "ICH E5(R1) Ethnic Factors in Acceptability of Foreign Clinical Data",
-            ],
+            # Only the Census release the code actually reads is cited.
+            # "FDA Guidance: Diversity Plans to Improve Enrollment (2024)" is
+            # not the title of an FDA guidance -- the 2024 draft is "Diversity
+            # Action Plans to Improve Enrollment of Participants From
+            # Underrepresented Populations in Clinical Studies" -- and nothing
+            # in this workflow derives from it, from the NIH policy, or from
+            # ICH E5(R1). The agent's output was cited as conforming to FDA
+            # diversity guidance while scoring against a baseline that
+            # under-represented the fastest-growing US group four-fold.
+            guideline_references=(
+                [self._US_CENSUS_CITATION] if pri is not None else []
+            ),
             severity=severity,
-            confidence=_clamp(0.5 + pri * 0.3),
+            confidence=(
+                None if pri is None else _clamp(0.5 + pri * 0.3)
+            ),
         )
 
 

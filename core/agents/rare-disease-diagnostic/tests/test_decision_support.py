@@ -1,6 +1,22 @@
-"""Tests for decision support: ACMG classification, HPO matching, LOD scores.
+"""Data-quality tests for the ingest tables that feed decision support.
 
-Tests the ingest parsers' data quality for downstream decision support tasks.
+CORRECTED DOCSTRING. This file was titled "Tests for decision support: ACMG
+classification, HPO matching, LOD scores" and its classes are named
+``TestACMGSupport``, ``TestHPOMatcherSupport`` and ``TestLODScoreSupport`` --
+but it never imports ``src.decision_support``. It asserts properties of the
+static dicts in the three ingest-parser modules, which is a useful thing to do
+and is what it does. The misleading title concealed the fact that
+``ACMGVariantClassifier.classify`` -- the agent's only general-purpose variant
+classifier -- had no test of any kind, and eight wrong-classification defects
+shipped past a green suite as a result.
+
+Behavioural tests for the real decision-support engines are in
+``tests/test_acmg_classification.py``.
+
+Note in particular that ``test_ic_scores_differentiate_specificity`` below
+validates the ``ic_score`` column of ``HPO_TERMS``, which the classifier never
+reads: ``HPOToGeneMatcher`` computes information content from its own private
+``_TERM_FREQUENCIES`` dict.
 
 Author: Adam Jones
 Date: March 2026
