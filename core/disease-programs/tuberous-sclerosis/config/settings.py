@@ -61,6 +61,21 @@ class Settings(BaseSettings):
     # posture. MUST be set before any non-LAN exposure or real PHI (see SEC-17/P3-5).
     API_KEY: str | None = None
 
+    # Browser origins allowed to call this API cross-origin. Comma-separated.
+    # This used to be a hardcoded "*" in api/main.py, which — on an API that is open by
+    # default — let any page a clinician happened to visit read every cohort, agent and
+    # briefing route from their own machine. The default is now the local surfaces this
+    # program actually ships (portal, Streamlit UIs, landing page). Set TSC_CORS_ORIGINS
+    # for a real deployment. A wildcard here must never be combined with credentials.
+    CORS_ORIGINS: str = ("http://localhost:8080,http://127.0.0.1:8080,"
+                         "http://localhost:8561,http://127.0.0.1:8561,"
+                         "http://localhost:8562,http://127.0.0.1:8562,"
+                         "http://localhost:8563,http://127.0.0.1:8563")
+
+    def cors_origins(self) -> list[str]:
+        """Parsed CORS allowlist."""
+        return [o.strip() for o in (self.CORS_ORIGINS or "").split(",") if o.strip()]
+
     # ── Provenance / posture ────────────────────────────────────────────
     WATERMARK: str = "SYNTHETIC — TSC Intelligence Engine demonstration data"
     AGENT_VERSION: str = "0.1.0"
