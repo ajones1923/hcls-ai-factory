@@ -1,5 +1,25 @@
 {
  "_comment": "Recorded answers to claim-integrity checks 2, 4 and 6, which cannot be measured by a script. Read by scripts/gen_maturity.py. Only PASS, FAIL and n/a count as answers; anything else leaves the check unanswered, because a reviewer who could not reach a verdict has not answered it. One entry per subject per check. Do not add a subject here without having read its code.",
+ "therapeutic-discovery": {
+  "2": {
+   "result": "PASS",
+   "date": "2026-11-04",
+   "reviewer": "claim-integrity review",
+   "evidence": "The mock path is the strongest in the platform. `MockDiffDockClient` emits `score_type: \"mock_simulated\"` (which no ranking normalizer accepts), field names `simulated_score`/`simulated_confidence`, and stamps `_provenance: \"mock\"` plus a `_warning` on every pose; the invented contacts, RMSD and hydrogen-bond counts are gone. `assert_real()` IS wired in production at `pipeline.py:927` -- the report stage refuses unless `NIM_ALLOW_MOCK_FALLBACK=true`, and when opted in the artifact carries a MOCK notice naming how many poses were simulated. QED comes from RDKit; when it is unavailable the composite drops the term and renormalizes rather than substituting 0.5, which a prior pass fixed. Verified by reading, not assumed: an earlier pass of this review wrongly concluded the honesty helpers had no production caller -- a truncated grep -- and the code was right."
+  },
+  "4": {
+   "result": "FAIL",
+   "date": "2026-11-04",
+   "reviewer": "claim-integrity review",
+   "evidence": "The drug-likeness cut-offs carry no citation and one deviates from the canonical source without saying so: `max_mw = 550` against Lipinski's Rule of Five MW <= 500, plus `max_logp = 5.0` and `max_lipinski_violations = 1`. They decide which generated molecules pass QC and reach the report. Now open as `CLINICAL_REVIEW.md` §9b; not changed, because moving a filter threshold changes the output set. The computation itself is sound -- all descriptors come from RDKit, and the pipeline refuses to mark QC passed when RDKit is missing."
+  },
+  "6": {
+   "result": "PASS",
+   "date": "2026-11-04",
+   "reviewer": "claim-integrity review",
+   "evidence": "The 2026-11-04 decision holds against the code. `therapeutic-discovery-engine` is `live` + `maturity: preclinical` with tags `rdkit`/`brics`/`stage3`, and RDKit chemistry and BRICS generation are real. MolMIM, DiffDock and GenMol are separately registered `planned` with no tier, and their mock clients cannot reach an artifact without an explicit env opt-in. `chemprop-admet` and `molecule-generator` are `live` + `verified`, both answering (:8572, :8574) and both stating their evidence in the entry."
+  }
+ },
  "genomic-foundation": {
   "2": {
    "result": "PASS",

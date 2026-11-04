@@ -572,6 +572,35 @@ Any remaining per-entry resolution/method/ligand claims in
 `core/engines/precision-intelligence/src/knowledge.py` should be checked the same way, one
 entry at a time, against https://data.rcsb.org/rest/v1/core/entry/<ID>.
 
+## 9b. Therapeutic discovery — the drug-likeness filter deviates from Lipinski, unexplained
+
+Opened 2026-11-04 by the per-subject review of `therapeutic-discovery` (check 4). These decide
+which generated molecules pass QC and reach the report, so they shape the output set.
+
+| Value | Where | Question |
+|---|---|---|
+| `max_mw = 550` | `src/models.py` | Lipinski's Rule of Five is **MW ≤ 500**. 550 is a common lead-like relaxation, but nothing in the repo says that is the intent or cites the source for the looser bound |
+| `max_logp = 5.0` | `src/models.py` | Matches Ro5. Uncited, but canonical — confirm and cite alongside the above |
+| `max_lipinski_violations = 1` | `src/models.py` | Allowing one violation is conventional practice; no source given |
+
+**Not a defect in the computation.** MW, logP, HBD, HBA, TPSA and QED all come from RDKit
+descriptors on the parsed molecule, and since the v2.2.0 remediation the pipeline refuses to
+mark anything as having passed drug-likeness QC when RDKit is unavailable rather than
+substituting a default. What is missing is the basis for the three cut-offs themselves.
+
+**Not changed.** Moving a filter threshold changes which molecules reach the report.
+
+- **Settle with:** Lipinski et al., *Experimental and computational approaches to estimate
+  solubility and permeability in drug discovery and development settings*, Adv Drug Deliv Rev
+  1997 (the Ro5 original), and whichever lead-likeness reference the 550 bound was taken from
+  — Teague et al. 1999 or Congreve et al. 2003 are the usual ones.
+
+**Checked and fine, recorded so it is not re-reviewed:** the composite ranking weights
+(0.4 docking / 0.3 generation / 0.3 QED) are a ranking policy rather than a scientific
+constant, and the binding-energy normalisation `-score / 12.0` carries its rationale inline.
+When QED is unavailable the composite drops the term and renormalises instead of scoring a
+constant, which is the correct behaviour and is what a prior pass fixed.
+
 ## 10. TSC corpus — prevalence figures in the TAND entries
 
 `core/disease-programs/tuberous-sclerosis/src/rag/corpus.py`
