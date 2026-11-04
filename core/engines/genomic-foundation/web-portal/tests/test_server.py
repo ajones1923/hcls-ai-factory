@@ -682,23 +682,28 @@ class TestApiKeyComparison:
 class TestEphemeralKeyHandling:
     """S3/S10 regression: the generated key must be usable without being logged."""
 
-    def test_ephemeral_key_file_is_private_and_key_not_logged(self, tmp_path, monkeypatch, capsys):
+    def test_ephemeral_key_file_is_private_and_key_not_logged(self, tmp_path, monkeypatch):
         import server
         key_file = tmp_path / 'portal.key'
         monkeypatch.delenv('PORTAL_API_KEY', raising=False)
         monkeypatch.setenv('PORTAL_API_KEY_FILE', str(key_file))
         monkeypatch.setattr(server._portal_api_key, '_ephemeral', None, raising=False)
+        records = []
+        sink = server.logger.add(lambda m: records.append(str(m)), level='DEBUG')
         try:
             key = server._portal_api_key()
-            assert key
-            assert key_file.exists()
-            assert oct(key_file.stat().st_mode & 0o777) == '0o600'
-            assert key_file.read_text().strip() == key
-            captured = capsys.readouterr()
-            assert key not in captured.err
-            assert key not in captured.out
         finally:
+            server.logger.remove(sink)
             server._portal_api_key._ephemeral = None
+        logged = '\n'.join(records)
+        assert key
+        assert key_file.exists()
+        assert oct(key_file.stat().st_mode & 0o777) == '0o600'
+        assert key_file.read_text().strip() == key
+        # The log must name the key FILE, never the key.
+        assert logged.strip(), 'expected the portal to log where the key went'
+        assert key not in logged
+        assert str(key_file) in logged
 
 
 class TestCorsDefault:

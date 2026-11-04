@@ -5,9 +5,12 @@ Flask backend server for managing the RAG chat workflow
 """
 
 import os
+import hashlib
+import hmac
 import json
 import secrets
 import subprocess
+import tempfile
 import threading
 import time
 import urllib.request
@@ -82,6 +85,41 @@ class RateLimiter:
 api_limiter = RateLimiter(max_requests=60, window_seconds=60)
 
 
+def _key_fingerprint(key):
+    """A short, non-reversible label for a key, safe to log."""
+    digest = hashlib.sha256(key.encode('utf-8', 'surrogateescape')).hexdigest()
+    return f"{key[:4]}…(sha256:{digest[:12]})"
+
+
+def _publish_ephemeral_key(key):
+    """Write an ephemeral key where the operator can read it, mode 0600.
+
+    Returns the path written, or None. The key is NOT logged: this key gates /api/config,
+    whose GET reads this engine's .env, and the log is a lower-trust artifact than a
+    credential store — any local user or process that can read the log used to obtain it.
+    """
+    configured = os.environ.get('PORTAL_API_KEY_FILE')
+    candidates = [Path(configured)] if configured else []
+    runtime_dir = os.environ.get('XDG_RUNTIME_DIR')
+    if runtime_dir:
+        candidates.append(Path(runtime_dir) / 'hcls-precision-intelligence-portal.key')
+    candidates.append(Path(tempfile.gettempdir()) / 'hcls-precision-intelligence-portal.key')
+
+    for path in candidates:
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            fd = os.open(str(path), os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+            try:
+                os.write(fd, (key + '\n').encode('utf-8'))
+            finally:
+                os.close(fd)
+            os.chmod(str(path), 0o600)
+            return path
+        except OSError:
+            continue
+    return None
+
+
 def _get_api_key():
     """Get the API key, generating one if PORTAL_API_KEY is not set."""
     if not hasattr(_get_api_key, '_generated_key'):
@@ -91,23 +129,33 @@ def _get_api_key():
         return key
     if _get_api_key._generated_key is None:
         _get_api_key._generated_key = secrets.token_urlsafe(32)
-        logger.warning("=" * 60)
-        logger.warning("PORTAL_API_KEY not set — generated ephemeral key.")
-        logger.warning(f"API Key: {_get_api_key._generated_key}")
-        logger.warning("Set X-API-Key header to this value for API access.")
+        key_path = _publish_ephemeral_key(_get_api_key._generated_key)
+        logger.warning("=" * 72)
+        logger.warning("PORTAL_API_KEY not set — generated ephemeral key. Auth is ENFORCED.")
+        logger.warning(f"Key fingerprint: {_key_fingerprint(_get_api_key._generated_key)}")
+        if key_path:
+            logger.warning(f"Key written to {key_path} (mode 0600). Send it as X-API-Key.")
+        else:
+            logger.warning("Could not write the key to disk, so it cannot be retrieved: "
+                           "set PORTAL_API_KEY and restart to use the API.")
         logger.warning("To persist, set PORTAL_API_KEY in your environment.")
-        logger.warning("=" * 60)
+        logger.warning("=" * 72)
     return _get_api_key._generated_key
 
 
 def require_api_key(f):
     """Require X-API-Key header for dangerous endpoints.
-    Auth is always enforced. If PORTAL_API_KEY is not set, an ephemeral
-    key is generated on startup and logged."""
+    Auth is always enforced. If PORTAL_API_KEY is not set, an ephemeral key is generated on
+    startup and written to a mode-0600 file whose path is logged — the key itself is not."""
     @wraps(f)
     def decorated(*args, **kwargs):
         api_key = _get_api_key()
-        if request.headers.get('X-API-Key') != api_key:
+        supplied = request.headers.get('X-API-Key') or ''
+        # Constant-time, on bytes: a plain != leaks length and prefix through timing, and
+        # compare_digest on str raises on a non-ASCII header (a 500 instead of a 401).
+        if not api_key or not supplied or not hmac.compare_digest(
+                supplied.encode('utf-8', 'surrogateescape'),
+                api_key.encode('utf-8', 'surrogateescape')):
             return jsonify({'error': 'Unauthorized — set X-API-Key header'}), 401
         return f(*args, **kwargs)
     return decorated
@@ -143,6 +191,26 @@ llm_metrics = {
 }
 
 running_processes = {}
+
+
+# ─── Configuration contract ─────────────────────────────────────────────────────────────
+# CONFIG_FILE is this engine's .env, which also holds model credentials (HF_TOKEN, and
+# ANTHROPIC_API_KEY per lib/hcls_common/api_gate.py). The HTTP surface therefore declares
+# what it will serve and what it will write, rather than handing back whatever is in the
+# file. A secret may be WRITTEN (an operator setting a token through the UI) but is never
+# READ BACK.
+CONFIG_WRITABLE_KEYS = (
+    'LLM_PROVIDER', 'LLM_MODEL', 'OLLAMA_HOST', 'VLLM_MODEL',
+    'MILVUS_HOST', 'MILVUS_PORT', 'VCF_INPUT_PATH',
+    'RAG_TOP_K', 'RAG_SCORE_THRESHOLD',
+    'LLM_MAX_TOKENS', 'LLM_TEMPERATURE', 'HF_TOKEN',
+)
+
+CONFIG_SECRET_KEYS = frozenset({'HF_TOKEN'})
+
+CONFIG_READABLE_KEYS = CONFIG_WRITABLE_KEYS
+
+REDACTED = '__set_but_not_shown__'
 
 
 def load_config():
@@ -476,22 +544,28 @@ def vcf_preview():
 @app.route('/api/config', methods=['GET', 'POST'])
 @require_api_key
 def config():
-    """Get or update configuration"""
+    """Get or update configuration.
+
+    GET used to return every key parsed out of this engine's .env — which is where the
+    repo's own layout puts HF_TOKEN and ANTHROPIC_API_KEY. It now returns the declared
+    keys only, with secret-shaped values replaced by a redaction marker, so holding the
+    portal key does not amount to holding the operator's model credentials.
+    """
     if request.method == 'GET':
-        return jsonify(load_config())
+        config_data = load_config()
+        visible = {}
+        for key in CONFIG_READABLE_KEYS:
+            if key not in config_data:
+                continue
+            visible[key] = (REDACTED if key in CONFIG_SECRET_KEYS and config_data[key]
+                            else config_data[key])
+        return jsonify(visible)
     else:
         config_data = request.json
         if not config_data or not isinstance(config_data, dict):
             return jsonify({'error': 'Request body must be a JSON object'}), 400
 
-        # Whitelist of allowed config keys
-        allowed_keys = {
-            'LLM_PROVIDER', 'LLM_MODEL', 'OLLAMA_HOST', 'VLLM_MODEL',
-            'MILVUS_HOST', 'MILVUS_PORT', 'VCF_INPUT_PATH',
-            'RAG_TOP_K', 'RAG_SCORE_THRESHOLD',
-            'LLM_MAX_TOKENS', 'LLM_TEMPERATURE', 'HF_TOKEN',
-        }
-        invalid_keys = set(config_data.keys()) - allowed_keys
+        invalid_keys = set(config_data.keys()) - set(CONFIG_WRITABLE_KEYS)
         if invalid_keys:
             return jsonify({'error': f'Invalid config keys: {", ".join(sorted(invalid_keys))}'}), 400
 
@@ -510,6 +584,10 @@ def config():
                         return jsonify({'error': f'Value out of range for {key}: {value}'}), 400
                 except (ValueError, TypeError):
                     return jsonify({'error': f'Invalid value for {key}: {value}'}), 400
+
+        # A client that round-trips the GET response must not overwrite a real secret with
+        # the redaction marker; that key is simply left as it is.
+        config_data = {k: v for k, v in config_data.items() if v != REDACTED}
 
         save_config(config_data)
         return jsonify({'success': True})
