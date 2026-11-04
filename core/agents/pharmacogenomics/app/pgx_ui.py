@@ -1488,6 +1488,10 @@ with tab_hla:
                         alert_class = "alert-warning"
                     elif r.status.value == "SAFE":
                         alert_class = "alert-info"
+                    elif r.status.value == "UNKNOWN":
+                        # pgx audit §2: "the locus was not typed" is a
+                        # warning, not an informational aside.
+                        alert_class = "alert-warning"
                     else:
                         alert_class = "alert-info"
 
@@ -1548,7 +1552,22 @@ with tab_hla:
                 results = screener.screen_all_drugs(hla_typing)
 
                 if results:
-                    st.markdown(f"### Panel Results: {len(results)} risk(s) identified")
+                    n_risk = sum(
+                        1 for r in results
+                        if r.status.value in ("CONTRAINDICATED", "HIGH_RISK")
+                    )
+                    n_untyped = sum(
+                        1 for r in results if r.status.value == "UNKNOWN"
+                    )
+                    header = f"### Panel Results: {n_risk} risk(s) identified"
+                    if n_untyped:
+                        # pgx audit §2: do not count an untyped locus as a
+                        # screened drug, and do not hide it either.
+                        header += (
+                            f", {n_untyped} drug(s) NOT screened "
+                            f"(locus not typed)"
+                        )
+                    st.markdown(header)
                     for r in results:
                         alert_class = "alert-critical" if r.status.value == "CONTRAINDICATED" else "alert-warning"
                         st.markdown(
@@ -1562,7 +1581,9 @@ with tab_hla:
                 else:
                     st.success(
                         "No HLA-drug contraindications or high-risk associations "
-                        "identified for the provided HLA typing."
+                        "identified, and every locus in the knowledge base was "
+                        "typed. A negative HLA result does not eliminate the "
+                        "risk of a hypersensitivity reaction."
                     )
             else:
                 st.warning("HLA screener not available.")

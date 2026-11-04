@@ -456,8 +456,11 @@ class HLAScreener:
         Returns
         -------
         list of HLAScreenResult
-            One result per matching HLA-drug association.  Empty list if
-            no risk alleles detected (drug is safe to prescribe).
+            One result per matching HLA-drug association.  A single
+            ``SAFE`` result only when every locus the drug depends on was
+            actually typed and carries no risk allele; a single
+            ``UNKNOWN`` result when one or more of those loci were not
+            typed at all.
         """
         drug_lower = drug.lower().strip()
         assocs = self._associations.get(drug_lower, [])
@@ -497,19 +500,52 @@ class HLAScreener:
                     population_risk=assoc.get("population_risk", ""),
                 ))
 
-        # If no risk alleles found, drug is safe
-        if not results:
-            results.append(HLAScreenResult(
+        if results:
+            return results
+
+        # No risk allele matched.  That is only a negative result if the
+        # relevant loci were actually typed.  An absent locus must never be
+        # reported as "safe": CPIC's HLA-B/abacavir guideline (Martin MA
+        # et al., Clin Pharmacol Ther 2014;95:499-500) and the FDA abacavir
+        # boxed warning both condition the recommendation on a *result*,
+        # and CPIC's own recommendation table keys abacavir on
+        # "*57:01 negative" / "*57:01 positive" only — there is no row that
+        # an untyped patient satisfies (api.cpicpgx.org/v1/recommendation,
+        # drugid RxNorm:190521, retrieved 2026-11-03).  Previously this
+        # branch returned HLAStatus.SAFE with "{drug} is safe to prescribe
+        # based on HLA screening" for screen_drug('abacavir', {}).
+        untyped = self._untyped_loci(assocs, hla_typing)
+        if untyped:
+            loci_text = ", ".join(untyped)
+            return [HLAScreenResult(
                 drug=drug,
-                hla_allele="None detected",
-                status=HLAStatus.SAFE,
-                reaction_type="No risk alleles detected",
-                severity=ReactionSeverity.MILD,
+                hla_allele="Not typed",
+                status=HLAStatus.UNKNOWN,
+                reaction_type="HLA typing absent — risk cannot be excluded",
+                severity=ReactionSeverity.SEVERE,
                 recommendation=(
-                    f"{drug} is safe to prescribe based on HLA screening. "
-                    f"No carrier status for known risk alleles."
+                    f"{loci_text} was not typed for this patient. This is NOT a "
+                    f"negative result and {drug} must not be read as cleared by "
+                    f"HLA screening. Obtain HLA typing at {loci_text} before "
+                    f"prescribing, or prescribe per the drug label's untested-"
+                    f"patient guidance."
                 ),
-            ))
+                evidence_level="No result — screening not performed",
+            )]
+
+        results.append(HLAScreenResult(
+            drug=drug,
+            hla_allele="None detected",
+            status=HLAStatus.SAFE,
+            reaction_type="No risk alleles detected",
+            severity=ReactionSeverity.MILD,
+            recommendation=(
+                f"{drug}: no carrier status for the known risk alleles at "
+                f"{', '.join(self._required_loci(assocs))}. A negative HLA "
+                f"result does not eliminate the risk of a hypersensitivity "
+                f"reaction; prescribe per standard guidelines and monitor."
+            ),
+        ))
 
         return results
 
@@ -530,7 +566,11 @@ class HLAScreener:
         Returns
         -------
         list of HLAScreenResult
-            All CONTRAINDICATED and HIGH_RISK results, sorted by severity.
+            All CONTRAINDICATED and HIGH_RISK results, plus an UNKNOWN
+            result for every drug whose loci were not typed, sorted by
+            severity.  An empty list therefore means "every locus in the
+            knowledge base was typed and nothing was found", not merely
+            "nothing was found".
         """
         severity_order = {
             ReactionSeverity.FATAL: 0,
@@ -543,18 +583,26 @@ class HLAScreener:
 
         for drug in self._associations:
             results = self.screen_drug(drug, hla_typing)
-            # Only include actionable results (not SAFE / UNKNOWN)
+            # Actionable results, where "we did not look" is actionable:
+            # an untyped locus previously vanished from the panel report
+            # entirely, so screen_all_drugs({}) rendered as a clean panel.
             for r in results:
-                if r.status in (HLAStatus.CONTRAINDICATED, HLAStatus.HIGH_RISK):
+                if r.status in (
+                    HLAStatus.CONTRAINDICATED,
+                    HLAStatus.HIGH_RISK,
+                    HLAStatus.UNKNOWN,
+                ):
                     all_results.append(r)
 
         all_results.sort(key=lambda r: severity_order.get(r.severity, 99))
 
         logger.info(
-            "HLA panel screen: %d drugs checked, %d contraindicated, %d high-risk",
+            "HLA panel screen: %d drugs checked, %d contraindicated, "
+            "%d high-risk, %d not screenable (locus not typed)",
             len(self._associations),
             sum(1 for r in all_results if r.status == HLAStatus.CONTRAINDICATED),
             sum(1 for r in all_results if r.status == HLAStatus.HIGH_RISK),
+            sum(1 for r in all_results if r.status == HLAStatus.UNKNOWN),
         )
         return all_results
 
@@ -585,6 +633,12 @@ class HLAScreener:
         dict
             Locus → list of alleles.
             Example: {"HLA-A": ["*02:01", "*31:01"], "HLA-B": ["*57:01", "*44:02"]}
+
+            An ordinary WGS/WES VCF carries no HLA annotation, so this is
+            very often ``{}`` — an **absence of typing**, not a negative
+            panel.  ``screen_drug`` and ``screen_all_drugs`` treat a locus
+            missing from this dict as untyped and refuse to clear the drug;
+            any other consumer must do the same.
         """
         vcf_path = Path(vcf_path)
         if not vcf_path.exists():
@@ -665,6 +719,33 @@ class HLAScreener:
         return hla_typing
 
     # ── Private helpers ─────────────────────────────────────────────────
+
+    @staticmethod
+    def _required_loci(assocs: List[Dict[str, Any]]) -> List[str]:
+        """The HLA loci a drug's screening result depends on.
+
+        Derived from the risk-allele strings themselves ("HLA-B*57:01" →
+        "HLA-B"), so the set cannot drift from the knowledge base.
+        """
+        loci: List[str] = []
+        for assoc in assocs:
+            allele = str(assoc.get("hla_allele", ""))
+            locus = allele.split("*", 1)[0].strip()
+            if locus and locus not in loci:
+                loci.append(locus)
+        return loci
+
+    @classmethod
+    def _untyped_loci(
+        cls,
+        assocs: List[Dict[str, Any]],
+        hla_typing: Dict[str, List[str]],
+    ) -> List[str]:
+        """Which of a drug's required loci are absent from the typing."""
+        return [
+            locus for locus in cls._required_loci(assocs)
+            if not hla_typing.get(locus)
+        ]
 
     @staticmethod
     def _flatten_hla_typing(hla_typing: Dict[str, List[str]]) -> Set[str]:

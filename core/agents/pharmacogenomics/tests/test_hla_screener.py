@@ -158,7 +158,23 @@ class TestHLAScreener:
                        severity_order.get(results[i + 1].severity, 99)
 
     def test_screen_all_drugs_no_risk_alleles(self):
-        hla = {"HLA-B": ["*07:02"], "HLA-A": ["*02:01"]}
+        """A clean panel now requires every locus in the KB to be typed.
+
+        CORRECTED (pgx audit §2): this case previously passed typing at
+        HLA-A and HLA-B only and asserted an empty panel, which pinned the
+        defect — HLA-DRB1 and HLA-DQB1 were never typed, so the DRB1/DQB1
+        drugs (lamotrigine, clozapine) were silently reported as clean.
+        The intent of the test is unchanged ("no risk alleles ⇒ no
+        actionable results"); it now supplies the typing that intent
+        assumes.  An untyped locus is covered by
+        TestUntypedHLAIsNotNegative below.
+        """
+        hla = {
+            "HLA-A": ["*02:01"],
+            "HLA-B": ["*07:02"],
+            "HLA-DRB1": ["*15:01"],
+            "HLA-DQB1": ["*06:02"],
+        }
         results = self.screener.screen_all_drugs(hla)
         assert len(results) == 0  # No actionable results
 
@@ -232,6 +248,90 @@ class TestHLAScreener:
 # ═══════════════════════════════════════════════════════════════════════
 # NEW HLA-DRUG ASSOCIATIONS TESTS
 # ═══════════════════════════════════════════════════════════════════════
+
+
+class TestUntypedHLAIsNotNegative:
+    """Regression for pgx audit §2 — untyped must never read as negative.
+
+    Primary source: CPIC's own recommendation table keys abacavir on
+    HLA-B "*57:01 negative" / "*57:01 positive" and nothing else
+    (api.cpicpgx.org/v1/recommendation, drugid RxNorm:190521, retrieved
+    2026-11-03); the FDA abacavir boxed warning likewise requires a
+    result before prescribing.  An absent test satisfies neither row.
+
+    Before the fix, screen_drug('abacavir', {}) returned HLAStatus.SAFE
+    with the text "abacavir is safe to prescribe based on HLA screening",
+    and screen_all_drugs({}) returned [] — a clean panel — for a patient
+    who had never been HLA typed.  get_hla_from_vcf returns {} for every
+    ordinary WGS/WES VCF, so this was the default path.
+    """
+
+    @pytest.fixture(autouse=True)
+    def setup(self):
+        self.screener = HLAScreener()
+
+    @pytest.mark.parametrize("drug", ["abacavir", "carbamazepine", "allopurinol"])
+    def test_no_typing_is_unknown_not_safe(self, drug):
+        results = self.screener.screen_drug(drug, {})
+        assert len(results) == 1
+        assert results[0].status == HLAStatus.UNKNOWN
+        assert results[0].status != HLAStatus.SAFE
+        assert "not a negative result" in results[0].recommendation.lower()
+        assert "safe to prescribe" not in results[0].recommendation.lower()
+
+    def test_untyped_result_names_the_locus(self):
+        results = self.screener.screen_drug("abacavir", {})
+        assert "HLA-B" in results[0].recommendation
+
+    def test_empty_allele_list_is_also_untyped(self):
+        """A locus key present with an empty list is still not a result."""
+        results = self.screener.screen_drug("abacavir", {"HLA-B": []})
+        assert results[0].status == HLAStatus.UNKNOWN
+
+    def test_wrong_locus_typed_does_not_clear_the_drug(self):
+        """HLA-A typing says nothing about HLA-B*57:01."""
+        results = self.screener.screen_drug("abacavir", {"HLA-A": ["*02:01"]})
+        assert results[0].status == HLAStatus.UNKNOWN
+
+    def test_partial_typing_clears_only_the_typed_locus(self):
+        """Carbamazepine needs HLA-B *and* HLA-A; HLA-B alone is not enough."""
+        results = self.screener.screen_drug(
+            "carbamazepine", {"HLA-B": ["*07:02"]})
+        assert results[0].status == HLAStatus.UNKNOWN
+        assert "HLA-A" in results[0].recommendation
+
+    def test_typed_and_negative_is_still_safe(self):
+        """The fix must not turn a real negative into an UNKNOWN."""
+        results = self.screener.screen_drug(
+            "abacavir", {"HLA-B": ["*44:02", "*07:02"]})
+        assert results[0].status == HLAStatus.SAFE
+
+    def test_untyped_panel_is_not_a_clean_panel(self):
+        results = self.screener.screen_all_drugs({})
+        assert len(results) > 0
+        assert all(r.status == HLAStatus.UNKNOWN for r in results)
+        assert "abacavir" in {r.drug for r in results}
+
+    def test_untyped_panel_flags_every_drug_in_the_kb(self):
+        results = self.screener.screen_all_drugs({})
+        assert {r.drug for r in results} == set(HLA_DRUG_ASSOCIATIONS)
+
+    def test_carrier_still_wins_over_untyped(self):
+        """A positive result at one locus is reported, not masked."""
+        results = self.screener.screen_drug("carbamazepine", {"HLA-B": ["*15:02"]})
+        assert any(r.status == HLAStatus.CONTRAINDICATED for r in results)
+        assert all(r.status != HLAStatus.SAFE for r in results)
+
+    def test_required_loci_derived_from_kb(self):
+        assert HLAScreener._required_loci(
+            HLA_DRUG_ASSOCIATIONS["carbamazepine"]) == ["HLA-B", "HLA-A"]
+        assert HLAScreener._required_loci(
+            HLA_DRUG_ASSOCIATIONS["clozapine"]) == ["HLA-DQB1"]
+
+    def test_negative_result_carries_its_own_caveat(self):
+        """A typed negative is not a guarantee; CPIC says so on every row."""
+        results = self.screener.screen_drug("abacavir", {"HLA-B": ["*44:02"]})
+        assert "does not eliminate the risk" in results[0].recommendation
 
 
 class TestExpandedHLAAssociations:
