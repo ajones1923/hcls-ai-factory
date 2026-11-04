@@ -60,6 +60,8 @@ class StructureInfo(BaseModel):
     ligand_smiles: Optional[str] = Field(None)
     structure_file: Optional[str] = Field(None, description="Path to structure file")
     prepared: bool = Field(False, description="Whether structure has been prepared")
+    preparation: Optional[str] = Field(
+        None, description="What stage 3 actually did, so `prepared` cannot be read as a claim")
 
     @validator("resolution", pre=True)
     def parse_resolution(cls, v):

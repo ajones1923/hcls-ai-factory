@@ -153,6 +153,42 @@ class MolMIMClient:
         return results
 
 
+def resolve_protein_pdb(protein_pdb: str) -> str:
+    """Return PDB coordinate text for `protein_pdb`, or raise. A PDB ID is not a structure.
+
+    `pipeline.stage_7_docking` used to pass `self.structures.primary_structure` -- a four-
+    character accession such as "5FTK" -- straight into `dock(protein_pdb=...)`. The local client
+    only substituted file content when `Path(protein_pdb).exists()`, so the literal string
+    "5FTK" was POSTed as the `protein` field; the cloud client uploaded those four bytes to NVCF
+    as `contentType="chemical/x-pdb"` and asked DiffDock to dock into them. Either the API errors
+    or it returns poses for an empty receptor, and stage 8 then weights those at 0.4. Accepting
+    an accession here is what made that silent, so it is rejected explicitly.
+    """
+    if not isinstance(protein_pdb, str) or not protein_pdb.strip():
+        raise ValueError("protein_pdb is empty: nothing to dock against")
+
+    text = protein_pdb
+    if len(text) < 4096:
+        try:
+            path = Path(text)
+        except (OSError, ValueError):
+            path = None
+        if path is not None and path.exists():
+            text = path.read_text()
+
+    # Coordinate text, not an identifier. PDB entries carry ATOM/HETATM records; mmCIF starts
+    # with a `data_` block.
+    if ("ATOM  " in text or "HETATM" in text or text.lstrip().startswith("data_")):
+        return text
+
+    raise ValueError(
+        f"protein_pdb does not contain structure coordinates (got {len(text)} characters, "
+        f"starting {text[:16]!r}). A PDB accession such as '5FTK' is an identifier, not a "
+        "structure: resolve it to coordinates first (StructureViewer.get_pdb, or "
+        "DrugDiscoveryPipeline._resolve_structure_file) and pass the file path or its contents."
+    )
+
+
 class DiffDockClient:
     """
     Client for DiffDock molecular docking service.
@@ -208,10 +244,9 @@ class DiffDockClient:
         if not self.health_checked:
             self.check_health()
 
-        # Read PDB if path provided
-        if Path(protein_pdb).exists():
-            with open(protein_pdb, 'r') as f:
-                protein_pdb = f.read()
+        # Read the file if a path was given, and refuse anything that is not coordinates.
+        # `Path(protein_pdb).exists()` alone let a 4-character accession through as the receptor.
+        protein_pdb = resolve_protein_pdb(protein_pdb)
 
         payload = {
             "protein": protein_pdb,
@@ -487,10 +522,9 @@ class CloudDiffDockClient(DiffDockClient):
         except ImportError:
             pass
 
-        # Read PDB file if path provided (check length first to avoid OS error)
-        if len(protein_pdb) < 4096 and Path(protein_pdb).exists():
-            with open(protein_pdb, 'r') as f:
-                protein_pdb = f.read()
+        # Read the file if a path was given, and refuse anything that is not coordinates --
+        # this client used to upload a 4-byte accession to NVCF as chemical/x-pdb.
+        protein_pdb = resolve_protein_pdb(protein_pdb)
 
         # Upload protein PDB as NVCF asset
         protein_asset_id = self._upload_asset(

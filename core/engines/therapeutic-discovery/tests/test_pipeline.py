@@ -98,9 +98,14 @@ class TestDrugDiscoveryPipeline:
         assert 4 in pipeline.run.stages_completed
 
     def test_full_pipeline_with_mocks(self, sample_config, mock_nim_manager, sample_target, temp_output_dir):
-        """Test running full pipeline with mock services."""
+        """Test running full pipeline with mock services.
+
+        `structure_cache` used to be pointed at an empty temp directory, and the run still
+        reported `status: completed` with all 10 stages done -- because stage 7 docked against
+        the string "5FTK" rather than coordinates. It now refuses without coordinates, so the
+        test keeps the cache from the `structure_cache` fixture.
+        """
         sample_config.output_dir = str(temp_output_dir)
-        sample_config.structure_cache = str(temp_output_dir / "structures")
         sample_config.num_molecules = 5
 
         pipeline = DrugDiscoveryPipeline(
@@ -249,8 +254,12 @@ class TestPipelineStages:
 class TestVCPDemo:
     """Tests for VCP demo pipeline."""
 
-    def test_run_vcp_demo(self, temp_output_dir):
-        """Test VCP demo runs successfully."""
+    def test_run_vcp_demo(self, temp_output_dir, structure_cache):
+        """Test VCP demo runs successfully.
+
+        The demo used to run to `completed` with no structure on disk, docking into a PDB
+        accession string; coordinates are now supplied explicitly.
+        """
         from src.pipeline import run_vcp_demo_pipeline
 
         with patch('src.pipeline.create_nim_clients') as mock_create:
@@ -266,7 +275,8 @@ class TestVCPDemo:
             mock_manager.get_available_services.return_value = ["molmim", "diffdock"]
             mock_create.return_value = mock_manager
 
-            result = run_vcp_demo_pipeline(output_dir=str(temp_output_dir))
+            result = run_vcp_demo_pipeline(output_dir=str(temp_output_dir),
+                                           structure_cache=str(structure_cache))
 
             assert result.target_gene == "VCP"
             assert result.status == "completed"
