@@ -491,9 +491,24 @@ class PhenotypeTranslator:
             "*1": 1.0, "*2": 0.0, "*3A": 0.0, "*3B": 0.0, "*3C": 0.0,
             "*4": 0.0,
         },
+        # NUDT15 per CPIC's thiopurine guideline, Table 1. Only three alleles have a function
+        # assignment there: *1 normal, *2 and *3 NO function. *4 through *9 are "unclear
+        # function" and must not be given a number -- see UNCERTAIN_FUNCTION_ALLELES below.
+        #
+        # This table previously read *2: 0.5, *4: 0.5, *5: 0.5, *6: 1.0. Scoring *2 as a
+        # decreased-function allele made *2/*2 -- two NO-function alleles, a CPIC poor
+        # metabolizer -- come out as AS 1.0 and report "NUDT15 Intermediate". A NUDT15 poor
+        # metabolizer who reads as intermediate is told 30-70% of a standard thiopurine dose
+        # where CPIC says avoid the drug or give 10%, and the toxicity that follows is
+        # life-threatening myelosuppression. The dose calculator in dosing.py had *2 right at
+        # 0.0 all along; these two copies of the same table disagreed.
+        #
+        # Source: Relling MV, Schwab M, Whirl-Carrillo M, et al. "Clinical Pharmacogenetics
+        # Implementation Consortium (CPIC) Guideline for Thiopurine Dosing Based on TPMT and
+        # NUDT15 Genotypes: 2018 Update." Clin Pharmacol Ther 2019;105(5):1095-1105, Table 1.
+        # doi:10.1002/cpt.1304, PMID 30447069, PMC6576267.
         "NUDT15": {
-            "*1": 1.0, "*2": 0.5, "*3": 0.0, "*4": 0.5, "*5": 0.5,
-            "*6": 1.0,
+            "*1": 1.0, "*2": 0.0, "*3": 0.0,
         },
         "UGT1A1": {
             "*1": 1.0, "*6": 0.5, "*28": 0.5, "*36": 1.5, "*37": 0.0,
@@ -503,6 +518,18 @@ class PhenotypeTranslator:
             "*1": 1.0, "*3": 0.0, "*6": 0.0,
         },
         # VKORC1, SLCO1B1, CYP4F2 use genotype-based categories, not activity scores
+    }
+
+    # ── Alleles CPIC assigns "uncertain" or "unclear" function ──────────
+    # These cannot be given an activity value, and CPIC's own phenotype for a diplotype
+    # carrying one is **Indeterminate** -- not Normal, and not a guess in between. Scoring them
+    # produces a confident-looking phenotype out of an allele the guideline says it cannot call.
+    #
+    # NUDT15 *4-*9: "these variants (*4 to *9) are designated as unclear function but may be
+    # clarified as more data emerge" (Relling 2019, which lists *1/*4, *1/*5, *4/*5 and *5/*6
+    # as Indeterminate and *2/*5, *3/*6 as "possible intermediate metabolizer").
+    UNCERTAIN_FUNCTION_ALLELES: Dict[str, frozenset] = {
+        "NUDT15": frozenset({"*4", "*5", "*6", "*7", "*8", "*9"}),
     }
 
     # ── Phenotype thresholds: activity score range → phenotype ──────────
@@ -687,8 +714,36 @@ class PhenotypeTranslator:
         allele1, allele2 = self._parse_diplotype(diplotype)
         scores = self.ACTIVITY_SCORES.get(gene, {})
 
-        score1 = scores.get(allele1, 1.0)  # default to normal if unknown allele
-        score2 = scores.get(allele2, 1.0)
+        # An allele the guideline calls uncertain, or one this table has never heard of, cannot
+        # be scored. Both used to fall through to 1.0 -- "default to normal if unknown allele"
+        # -- which is the least safe default available: an unrecognised no-function allele
+        # reported as a normal metabolizer, and a standard dose recommended on the strength of
+        # it. CPIC's own answer for an uncertain allele is Indeterminate, so that is what this
+        # returns, with the allele named so a reader knows which one it could not call.
+        uncertain = self.UNCERTAIN_FUNCTION_ALLELES.get(gene, frozenset())
+        unscoreable = [
+            (a, "uncertain function" if a in uncertain else "not in the allele table")
+            for a in (allele1, allele2)
+            if a in uncertain or a not in scores
+        ]
+        if unscoreable:
+            reasons = "; ".join(f"{a} ({why})" for a, why in unscoreable)
+            return {
+                "gene": gene,
+                "diplotype": diplotype,
+                "phenotype": "Indeterminate",
+                "activity_score": None,
+                "allele_scores": {},
+                "clinical_meaning": (
+                    f"No phenotype can be assigned: {reasons}. CPIC assigns Indeterminate "
+                    f"rather than a phenotype here. Do not infer normal function from the "
+                    f"absence of a call."
+                ),
+                "unscoreable_alleles": [a for a, _ in unscoreable],
+            }
+
+        score1 = scores[allele1]
+        score2 = scores[allele2]
         total = score1 + score2
 
         phenotype = self._score_to_phenotype(gene, total)

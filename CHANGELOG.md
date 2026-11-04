@@ -40,6 +40,19 @@ PR-to-main.
   stated NM as 1.25–2.25, and a test pinned the wrong value "per CPIC 2023".
   (Caudle et al., *Clin Transl Sci* 2020;13(1):116–124, Table 3, PMID 31647186 — "reclassify AS
   of 1 from NM to IM".)
+- **NUDT15 `*2` was scored as a decreased-function allele where CPIC calls it no-function**, so
+  `*2/*2` — a CPIC **poor metabolizer** — reported "NUDT15 Intermediate". That patient is given
+  30–70% of a standard thiopurine dose where CPIC says avoid the drug or give 10%; the failure
+  mode is life-threatening myelosuppression. `dosing.py` held the correct value all along — two
+  copies of one clinical table, and the one the pipeline reports from was wrong. Also corrected:
+  `*4`, `*5` and `*6` carried invented function assignments where CPIC says "unclear function",
+  and both the translator and the dose calculator now return **Indeterminate** and name the
+  allele rather than scoring it. (Relling et al., *Clin Pharmacol Ther* 2019;105(5):1095–1105,
+  Table 1, PMID 30447069.)
+- **An unrecognised allele was scored as fully functional** — `.get(allele, 1.0)`, commented
+  "default to normal if unknown allele" — in the phenotype translator and in the thiopurine dose
+  calculator for both TPMT and NUDT15. For genes whose unrecognised alleles are mostly
+  loss-of-function, that is the least safe default available. Both now return Indeterminate.
 - **HEART score treated a missing troponin as a normal one**, scoring 0 and moving patients
   toward the low-risk discharge band. It now raises.
 - **PhenoAge alkaline phosphatase coefficient** 0.0019 → **0.00188**, the published value
@@ -104,6 +117,11 @@ PR-to-main.
   (Six 2008 / Backus 2013), ASCVD PCE (Goff 2013), EuroSCORE II (Nashef 2012), ACR TI-RADS 2017,
   Lung-RADS v2022, CAD-RADS 2.0 (Cury 2022), ACMG/AMP 2015 Table 5 (Richards), PhenoAge
   (Levine 2018).
+- **`test_allele_tables_do_not_drift.py`**: allele activity values live in three copies in the
+  pharmacogenomics agent with nothing reconciling them, and that has now produced two clinical
+  defects. This fails the moment two copies disagree about an allele they both define. The
+  duplication itself is recorded in `CLINICAL_REVIEW.md` §3c as still open — the fix is one
+  table, imported, and belongs in its own change.
 - **`scripts/validate_registry.py` reverse drift guard**: a registry-allocated port that nothing
   supervises now fails validation.
 - **This CHANGELOG.**

@@ -110,6 +110,51 @@ where 0.25 vs 0.5 decides 2.25 against 2.5.
   `PhenotypeTranslator.ACTIVITY_SCORES` in `pgx_pipeline.py`, `_CYP2D6_ACTIVITY` in `dosing.py`
   — three copies of the same table, which is its own small problem.
 
+### 3c. NUDT15 — SETTLED 2026-11-03, a poor metabolizer was reported as intermediate
+
+Found by acting on §3a's observation that the allele tables exist in three copies: the two
+copies **disagreed**, and the one a clinician reads was the wrong one.
+
+`PhenotypeTranslator.ACTIVITY_SCORES` scored NUDT15 `*2` at **0.5**. CPIC Table 1 lists `*2` as
+a **no-function** allele. So `*2/*2` — two no-function alleles, a CPIC **poor metabolizer** —
+summed to 1.0 and reported **"NUDT15 Intermediate"**. `dosing.py` had `*2` at 0.0 and got the
+same patient right.
+
+**Why it matters more than most:** a NUDT15 poor metabolizer reported as intermediate is given
+30–70% of a standard thiopurine dose where CPIC says avoid azathioprine/6-MP or give 10% with
+intensive monitoring. The failure mode is life-threatening myelosuppression, and NUDT15 PM is
+not rare in East Asian and Hispanic populations.
+
+Three further errors surfaced from reading Table 1 rather than summarising it:
+
+| | Was | CPIC Table 1 |
+|---|---|---|
+| `*2` (translator) | 0.5, decreased | **no function** |
+| `*4`, `*5` (dosing) | 0.0, no function | **unclear function** |
+| `*6` (both) | 1.0, normal | **unclear function** |
+| any unrecognised allele | 1.0, normal | — |
+
+CPIC assigns **Indeterminate** to a diplotype carrying an unclear-function allele. An activity
+score cannot express that, so both the translator and the dose calculator now refuse to produce
+one, name the allele they could not call, and say "do not infer normal function from the absence
+of a call". The same change removed `.get(allele, 1.0)` — *default to normal if unknown allele* —
+which was the least safe default available for a gene whose unrecognised alleles are mostly
+loss-of-function. TPMT got the same treatment in the same calculator: it names five alleles
+where CPIC's table names dozens.
+
+> Relling MV, Schwab M, Whirl-Carrillo M, et al. "Clinical Pharmacogenetics Implementation
+> Consortium Guideline for Thiopurine Dosing Based on *TPMT* and *NUDT15* Genotypes: 2018
+> Update." *Clin Pharmacol Ther* 2019;105(5):1095–1105, Table 1. doi:10.1002/cpt.1304,
+> PMID 30447069. https://pmc.ncbi.nlm.nih.gov/articles/PMC6576267/
+
+**The duplication itself is still open.** Allele activity values live in three places
+(`pgx_pipeline.py`, `dosing.py`, `knowledge.py`) with nothing reconciling them, and it has now
+produced two clinical defects — this one and §3's CYP2D6 thresholds, where *both* copies carried
+the same two wrong boundaries. `tests/test_allele_tables_do_not_drift.py` fails the moment two
+copies disagree about an allele they both define, with an allowlist of the asymmetries that are
+real. That is a guard, not a fix; the fix is one table, imported, and it belongs in its own
+change rather than riding along with a clinical correction.
+
 ## 4. DPYD activity score 0.5 — phenotype and dose
 
 `core/agents/pharmacogenomics/src/dosing.py` labels DPYD AS 0.5 Intermediate with a 50%

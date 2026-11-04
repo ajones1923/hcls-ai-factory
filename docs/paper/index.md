@@ -35,7 +35,7 @@ neurology, rare disease, trial matching and single-cell interpretation.
 
 Every capability is declared in a machine-readable registry that is the input to continuous
 integration, not a description of it. Documentation, including the public capability-maturity
-matrix, is generated from that registry. We report **8,711 passing tests across all 18 subjects**,
+matrix, is generated from that registry. We report **8,767 passing tests across all 18 subjects**,
 44 pharmacogenomic gene–drug pairs verified against consortium guidance, and a single-cell workflow
 reproducible from a clean clone on commodity CPU.
 
@@ -234,7 +234,7 @@ registry does not allocate.
 ### 6.1 Test health
 
 ```
-18 subjects · 8,711 passed · 0 failed · 0 errors · 211 skipped
+18 subjects · 8,767 passed · 0 failed · 0 errors · 211 skipped
 ```
 
 That figure is measured on a clean checkout, without local reference data: the 211 skips are

@@ -48,7 +48,7 @@ jobs:
       - run: pytest -q
 
   subjects:
-    # The 18 engine/agent/disease-program/orchestrator suites — 8,711 tests on a clean
+    # The 18 engine/agent/disease-program/orchestrator suites — 8,767 tests on a clean
     # checkout (local datasets, which are gitignored, add more and are not available here). Until 2026-08-16 CI gated only the
     # 382 platform-library tests, so a change could break every subject and still merge green.
     #
@@ -64,10 +64,10 @@ jobs:
     # BLOCKING since 2026-09-15. It was advisory because "the first run failed" on this x86
     # runner; the cause was measured rather than guessed, by building a venv with exactly the
     # dependency list below and running all 17 suites against it. Every failure was a MISSING
-    # PACKAGE, not an architecture difference: 4,972 passing with the old list, 8,711 with this
+    # PACKAGE, not an architecture difference: 4,972 passing with the old list, 8,767 with this
     # one. The single remaining failure is tests/test_proteinmpnn.py::test_design_real, which
     # needs CUDA -- and it is skipped here, because it is guarded by skipif on
-    # vendor_proteinmpnn/ which is not tracked in git. So this runner should see 8,711 passed,
+    # vendor_proteinmpnn/ which is not tracked in git. So this runner should see 8,767 passed,
     # 0 failed, 6 skipped.
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
