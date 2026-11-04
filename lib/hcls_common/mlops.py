@@ -82,7 +82,9 @@ class MLOpsStore:
         self.conn.execute("INSERT INTO run_params VALUES (?,?,?)", (run_id, key, json.dumps(value)))
         self.conn.commit()
 
-    def end_run(self, run_id: str, status: str = "completed") -> None:
+    def end_run(self, run_id: str, status: str = "complete") -> None:
+        # Was "completed", which is NOT in RUN_STATES, so every run closed by the default
+        # was invisible to search_runs(status="complete").
         self.conn.execute("UPDATE runs SET status=?, ended_at=? WHERE run_id=?",
                           (status, time.time(), run_id))
         self.conn.commit()

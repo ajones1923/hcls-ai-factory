@@ -12,7 +12,10 @@ After each pipeline run, generates a JSON manifest documenting:
 - Hardware specifications
 - Timestamps and run identifiers
 
-Essential for clinical validation (FDA 21 CFR Part 11) and
+Part 11-MINDED, NOT PART 11 COMPLIANT: there are no electronic signatures, no
+per-user identity (services share one API key), and the run store is not an
+append-only audit trail. Useful for reproducing a run, not for a regulated
+submission. Also relevant to
 scientific reproducibility.
 """
 

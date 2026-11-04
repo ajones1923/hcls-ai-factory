@@ -24,7 +24,11 @@ from hcls_common.api_client import auth_headers
 # Configuration
 # =====================================================================
 
-API_BASE = os.environ.get("RD_API_BASE", "http://localhost:8134")
+# The default used to be :8134, which is this agent's docker-compose host port, not its API. Every call
+# from this UI got a refused connection; once the UI port is supervised it would get
+# Streamlit HTML back instead, which is worse. The API is :8545 (health-monitor.sh,
+# and the registry's api_endpoint).
+API_BASE = os.environ.get("RD_API_BASE", "http://localhost:8545")
 
 NVIDIA_THEME = {
     "bg_primary": "#1a1a2e",

@@ -12,6 +12,13 @@ agents was passing its clinical eval at the time, because the eval graded the AN
 asked whether retrieval contributed. `scripts/run_clinical_eval.py` now reports an UNGROUNDED
 verdict for that; this script shows the corpus side of the same question.
 
+**This script can only report collections that exist.** It iterates what Milvus holds, so a
+subject whose collections were never created is not thin here — it is absent, and prints no row
+at all. cardiology was exactly that on 2026-11-03: twelve workflows, fourteen declared
+collections, none created, and nothing in this report to show it.
+`scripts/check_corpus_weights.py` reads each subject's declared weight map and so catches both
+the absent and the empty, weighted by how much retrieval was riding on them.
+
 Usage:
     .venv/bin/python scripts/check_corpus.py              # report
     .venv/bin/python scripts/check_corpus.py --enforce    # non-zero if any agent is below floor

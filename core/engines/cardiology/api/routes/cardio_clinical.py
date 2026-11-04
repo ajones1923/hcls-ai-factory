@@ -823,8 +823,16 @@ _WORKFLOW_ID_MAP = {
 
 
 def _workflow_stub(workflow_id: str, workflow_name: str, data: dict, req: Request):
-    """Shared workflow handler -- delegates to WorkflowEngine or returns structured stub."""
+    """Shared workflow handler -- delegates to WorkflowEngine, or says why it could not.
+
+    This used to return `"status": "completed"` with empty recommendations and evidence on
+    BOTH fallback paths: an unknown workflow id, and a WorkflowEngine exception that was
+    logged at warning level and then discarded. All eight /workflow/* routes share this
+    handler, so a failed cardiac assessment reported success with nothing in it. The status
+    now distinguishes the two cases and carries the reason.
+    """
     workflow_type = _WORKFLOW_ID_MAP.get(workflow_id)
+    engine_error = None
     if workflow_type:
         try:
             engine_wf = WorkflowEngine()
@@ -832,16 +840,32 @@ def _workflow_stub(workflow_id: str, workflow_name: str, data: dict, req: Reques
             return result.model_dump()
         except Exception as exc:
             logger.warning(f"Workflow {workflow_id} engine error: {exc}")
+            engine_error = f"{type(exc).__name__}: {exc}"
 
     with req.app.state.metrics_lock:
         req.app.state.metrics["workflow_requests_total"] += 1
 
+    if engine_error is not None:
+        status, assessment = "failed", (
+            f"{workflow_name} could not be run: the workflow engine raised an error. "
+            f"No assessment was produced."
+        )
+    elif workflow_type is None:
+        status, assessment = "unknown_workflow", (
+            f"'{workflow_id}' is not a known workflow id. No assessment was produced."
+        )
+    else:
+        status, assessment = "unavailable", (
+            f"{workflow_name} analysis requires RAG engine initialization for full results."
+        )
+
     return {
         "workflow": workflow_id,
         "name": workflow_name,
-        "status": "completed",
+        "status": status,
+        "error": engine_error,
         "input_summary": {k: v for k, v in data.items() if k != "raw_data"},
-        "assessment": f"{workflow_name} analysis requires RAG engine initialization for full results.",
+        "assessment": assessment,
         "recommendations": [],
         "evidence": [],
         "guidelines_referenced": [],
@@ -933,15 +957,20 @@ async def list_guidelines(condition: Optional[str] = None):
 async def evaluate_cross_modal(findings: dict, req: Request):
     """Integrate findings across imaging modalities for comprehensive assessment."""
     engine = req.app.state.engine
+    cross_modal_error = None
     if engine:
         try:
             return engine.cross_modal_evaluate(findings)
-        except Exception:
-            pass
+        except Exception as exc:
+            # `except Exception: pass` here meant a failed integration fell through to the
+            # summary below and reported "evaluated" — nothing had been evaluated.
+            logger.warning(f"Cross-modal evaluation failed: {exc}")
+            cross_modal_error = f"{type(exc).__name__}: {exc}"
 
     modalities_present = [k for k in findings if k in ("echo", "ct", "mri", "nuclear", "cath")]
     return {
-        "status": "evaluated",
+        "status": "failed" if cross_modal_error else "listed_only",
+        "error": cross_modal_error,
         "modalities_integrated": modalities_present,
         "concordance": "requires_engine",
         "note": "Full cross-modal integration requires RAG engine initialization",

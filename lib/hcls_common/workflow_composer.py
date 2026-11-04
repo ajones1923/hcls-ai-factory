@@ -279,7 +279,11 @@ class WorkflowComposer:
                                    if i.is_ref else i.value)
             res = self.tools.invoke_capability(n.capability, payload)
             trace.append({"node": nid, "result_status": res.get("status", "ok")})
-            if res.get("status") in ("error", "down", "unavailable", "no_endpoint"):
+            # "invalid_input" belongs here: the input gate REJECTED the call, so nothing ran.
+            # Leaving it out meant the node's rejection dict was stored as its output and the
+            # pipeline reported success with a step that never executed.
+            if res.get("status") in ("error", "down", "unavailable", "no_endpoint",
+                                     "invalid_input"):
                 return {"status": "failed", "failed_node": nid, "trace": trace,
                         "root_cause": self.root_cause(n, res)}
             outputs[nid] = res.get("result", res)
@@ -315,11 +319,14 @@ class WorkflowComposer:
 
     def root_cause(self, node: Node, result: dict[str, Any]) -> dict[str, Any]:
         st = result.get("status")
-        verdict = "system" if st in ("down", "unavailable", "no_endpoint") else "data"
+        # "error" used to fall into "data", labelling a 500 from the service a bad-input
+        # problem. Only a rejection by the input gate is genuinely the caller's data.
+        verdict = "data" if st == "invalid_input" else "system"
         fixes = {"down": "the capability's service is not running — start it",
                  "unavailable": "the capability is planned/mock, not live — pick a live one",
                  "no_endpoint": "this is a library capability with no callable endpoint",
-                 "error": "the service rejected the inputs — check shapes/values"}
+                 "error": "the service returned an error — check its logs, then the inputs",
+                 "invalid_input": "the input gate rejected the payload — check shapes/values"}
         return {"node": node.id, "capability": node.capability, "status": st,
                 "verdict": verdict, "suggested_fix": fixes.get(st, "inspect the service logs"),
                 "detail": result.get("reason")}

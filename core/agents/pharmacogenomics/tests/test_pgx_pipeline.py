@@ -254,10 +254,18 @@ class TestPhenotypeTranslator:
         assert result["phenotype"] == "Poor Metabolizer"
         assert result["activity_score"] == 0.0
 
-    def test_cyp2d6_as1_normal_metabolizer(self):
-        """CYP2D6 *1/*4 (AS=1.0) is Normal Metabolizer per CPIC 2023."""
+    def test_cyp2d6_as1_intermediate_metabolizer(self):
+        """CYP2D6 *1/*4 (AS=1.0) is INTERMEDIATE, not Normal.
+
+        This test previously asserted Normal Metabolizer "per CPIC 2023". The CPIC/DPWG
+        consensus says the opposite in as many words -- "reclassify AS of 1 from NM to IM" --
+        and `knowledge.py` in this same agent already stated NM as 1.25-2.25. The repo
+        contradicted itself and this assertion was the half that was wrong.
+
+        Caudle KE et al., Clin Transl Sci 2020;13(1):116-124, Table 3. PMID 31647186.
+        """
         result = self.translator.translate("CYP2D6", "*1/*4")
-        assert result["phenotype"] == "Normal Metabolizer"
+        assert result["phenotype"] == "Intermediate Metabolizer"
         assert result["activity_score"] == 1.0
 
     def test_cyp2d6_intermediate_metabolizer(self):
@@ -383,7 +391,8 @@ class TestPhenotypeTranslator:
         results = self.translator.translate_all(profile)
         assert "CYP2D6" in results
         assert "CYP2C19" in results
-        assert results["CYP2D6"]["phenotype"] == "Normal Metabolizer"
+        # *1/*4 is AS 1.0 -> Intermediate per the CPIC/DPWG consensus (Caudle 2020).
+        assert results["CYP2D6"]["phenotype"] == "Intermediate Metabolizer"
 
     # -- return structure --
 

@@ -125,12 +125,18 @@ def run(
 
         for c in pipeline.ranked_candidates:
             mw = f"{c.properties.molecular_weight:.0f}" if c.properties else "-"
+            # A pose-confidence method (DiffDock) yields no kcal/mol affinity; show the
+            # confidence, labeled, rather than printing a number in the wrong unit.
+            if c.score_type == "diffdock_confidence":
+                dock = "-" if c.confidence_score is None else f"conf {c.confidence_score:.2f}"
+            else:
+                dock = "-" if c.docking_score is None else f"{c.docking_score:.1f}"
             table.add_row(
                 str(c.rank),
                 c.molecule_id,
                 f"{c.composite_score:.3f}",
                 mw,
-                f"{c.docking_score:.1f}",
+                dock,
             )
 
         console.print(table)
@@ -313,11 +319,15 @@ def export_results(
     elif format == "csv":
         output_file = Path(output_dir) / f"candidates_{run_id}.csv"
         with open(output_file, 'w') as f:
-            f.write("rank,id,smiles,score,docking_score,mw,logp\n")
+            f.write("rank,id,smiles,score,score_type,docking_score,confidence_score,mw,logp\n")
             for c in candidates:
                 props = c.get('properties', {})
+                # Emit the units alongside the number so a consumer cannot mistake a pose
+                # confidence for a kcal/mol affinity; blank means the method predicts neither.
                 f.write(f"{c['rank']},{c['molecule_id']},{c['smiles']},"
-                        f"{c['composite_score']},{c['docking_score']},"
+                        f"{c['composite_score']},{c.get('score_type', '')},"
+                        f"{c.get('docking_score') if c.get('docking_score') is not None else ''},"
+                        f"{c.get('confidence_score') if c.get('confidence_score') is not None else ''},"
                         f"{props.get('molecular_weight', '')},{props.get('logP', '')}\n")
         console.print(f"[green]Exported to: {output_file}[/green]")
 
@@ -335,7 +345,11 @@ def export_results(
                     mol.SetProp("_Name", c['molecule_id'])
                     mol.SetProp("Rank", str(c['rank']))
                     mol.SetProp("CompositeScore", str(c['composite_score']))
-                    mol.SetProp("DockingScore", str(c['docking_score']))
+                    mol.SetProp("ScoreType", str(c.get('score_type', '')))
+                    if c.get('docking_score') is not None:
+                        mol.SetProp("DockingScoreKcalMol", str(c['docking_score']))
+                    if c.get('confidence_score') is not None:
+                        mol.SetProp("PoseConfidence", str(c['confidence_score']))
 
                     AllChem.EmbedMolecule(mol, randomSeed=42)
                     writer.write(mol)

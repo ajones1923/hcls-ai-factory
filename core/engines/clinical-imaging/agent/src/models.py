@@ -631,6 +631,14 @@ class WorkflowResult(BaseModel):
     inference_time_ms: float = 0.0
     nim_services_used: List[str] = Field(default_factory=list)
     is_mock: bool = False
+    # Where the FINDINGS came from, which `is_mock` alone could not say. Every workflow but
+    # cxr_rapid_findings returns canned findings from infer() even when mock_mode is False,
+    # and three of them (CT head, CT chest, MRI brain) first run a real forward pass over a
+    # SYNTHETIC volume — a real model, but not a read of this patient's image. One of:
+    #   "measured"  - findings derived from the supplied pixel data
+    #   "canned"    - fixed demo findings
+    #   "canned_after_synthetic_forward_pass" - fixed findings; a model ran on synthetic input
+    findings_provenance: str = "canned"
 
 
 # ═══════════════════════════════════════════════════════════════════════

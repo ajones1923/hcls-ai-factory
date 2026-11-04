@@ -123,6 +123,12 @@ def points_to_tirads(points: int) -> TIRADS:
     if points <= 0:
         return TIRADS.TR1
     elif points <= 2:
+        # NOTE (2026-11-03): the published chart names 0, 2, 3, 4-6 and 7+ and does not say
+        # what a total of exactly 1 is. One point is reachable (mixed cystic/solid composition
+        # with no other suspicious feature), and it is treated as TR2 here, which is the
+        # conventional reading -- TR2 is "not suspicious" and neither 1 nor 2 points warrants
+        # FNA or follow-up at any size, so the management is identical either way. Recorded in
+        # CLINICAL_REVIEW.md rather than left as a silent choice.
         return TIRADS.TR2
     elif points == 3:
         return TIRADS.TR3

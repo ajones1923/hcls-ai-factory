@@ -27,6 +27,7 @@ from pathlib import Path
 
 import streamlit as st
 from hcls_common.llm_text import first_text
+from hcls_common.api_gate import gate_text
 
 # Page config MUST be the first Streamlit command
 st.set_page_config(
@@ -135,7 +136,11 @@ def init_engine():
                         system=system_prompt,
                         messages=[{"role": "user", "content": prompt}],
                     )
-                    return first_text(msg)
+                    # This UI imports its engine and calls it IN-PROCESS, so the output-honesty
+                    # gate -- which is response middleware -- never ran on the surface a
+                    # clinician actually reads. gate_text applies the same decisions here.
+                    shown, _findings = gate_text(first_text(msg))
+                    return shown
 
                 def generate_stream(
                     self,

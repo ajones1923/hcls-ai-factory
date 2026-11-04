@@ -1763,6 +1763,13 @@ def main():
                                 full_response += chunk["content"]
                                 response_placeholder.markdown(full_response + "▌")
                             elif chunk["type"] == "done":
+                                # This UI calls the engine IN-PROCESS, so the output-honesty
+                                # gate -- response middleware on the FastAPI app -- never ran
+                                # here. The tokens are already on screen, so the gate runs on
+                                # the completed text and the placeholder is rewritten with its
+                                # verdict rather than leaving a withheld claim displayed.
+                                from hcls_common.api_gate import gate_text
+                                full_response, _findings = gate_text(full_response)
                                 response_placeholder.markdown(full_response)
 
                         end_time = time.time()

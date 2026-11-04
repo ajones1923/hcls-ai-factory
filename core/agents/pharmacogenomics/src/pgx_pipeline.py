@@ -511,11 +511,29 @@ class PhenotypeTranslator:
     # Values aligned with CPIC 2023/2024 consensus guidelines.
     PHENOTYPE_THRESHOLDS: Dict[str, List[Tuple[float, float, str]]] = {
         "CYP2D6": [
-            # CPIC 2023: PM=0, IM=0.25-0.75, NM≥1.0, UM>2.25
+            # CPIC/DPWG consensus: PM = 0, IM = 0 < AS < 1.25, NM = 1.25-2.25 inclusive,
+            # UM > 2.25. The consensus paper's own words: "reclassify AS of 1 from NM to IM."
+            #
+            # This table previously read "IM=0.25-0.75, NM>=1.0", which put AS 1.0 (*1/*4,
+            # *1/*5, *41/*41) in Normal Metabolizer and so recommended standard dosing for
+            # patients the consensus calls intermediate. It also classified AS 2.25 (e.g.
+            # *1x2/*41) as Ultrarapid, where 2.25 is the inclusive top of Normal.
+            #
+            # Buckets are [low, high) except the last, which is closed. Attainable activity
+            # scores are multiples of 0.25, so two bounds here are written as the next
+            # attainable value rather than the consensus bound: PM's 0.25 captures AS = 0
+            # alone, and NM's 2.5 expresses the consensus' INCLUSIVE 2.25 upper bound.
+            #
+            # Source: Caudle KE, Sangkuhl K, Whirl-Carrillo M, Swen JJ, Haidar CE, Klein TE,
+            # Gammal RS, Relling MV, Scott SA, Hertz DL, Guchelaar HJ, Gaedigk A.
+            # "Standardizing CYP2D6 Genotype to Phenotype Translation: Consensus
+            # Recommendations from the Clinical Pharmacogenetics Implementation Consortium and
+            # Dutch Pharmacogenetics Working Group." Clin Transl Sci 2020;13(1):116-124,
+            # Table 3. doi:10.1111/cts.12692, PMID 31647186.
             (0.0,  0.25,  "Poor Metabolizer"),
-            (0.25, 1.0,   "Intermediate Metabolizer"),
-            (1.0,  2.25,  "Normal Metabolizer"),
-            (2.25, 99.0,  "Ultrarapid Metabolizer"),
+            (0.25, 1.25,  "Intermediate Metabolizer"),
+            (1.25, 2.5,   "Normal Metabolizer"),
+            (2.5,  99.0,  "Ultrarapid Metabolizer"),
         ],
         "CYP2C19": [
             # CPIC: PM=0, IM=0.5-1.5, NM=2.0, RM=2.5, UM≥3.0
@@ -740,8 +758,10 @@ class PhenotypeTranslator:
         """Map a total activity score to a phenotype string.
 
         Uses half-open intervals [low, high) for all buckets except the
-        last, which is closed [low, high].  This prevents boundary overlap
-        (e.g. CYP2D6 AS=1.0 correctly mapping to Normal Metabolizer).
+        last, which is closed [low, high].  This prevents boundary overlap;
+        where a guideline's own bound is inclusive, PHENOTYPE_THRESHOLDS
+        encodes it as the next attainable score and says so (see CYP2D6,
+        whose AS 1.0 is Intermediate per CPIC/DPWG consensus).
         """
         thresholds = self.PHENOTYPE_THRESHOLDS.get(gene, [])
         for i, (low, high, phenotype) in enumerate(thresholds):

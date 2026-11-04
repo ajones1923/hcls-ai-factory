@@ -5,10 +5,14 @@
 **Patient DNA → therapeutic candidates, in hours, on a single box.**
 
 Eight Engines · Eight Intelligence Agents · One Platform — open-source (Apache-2.0),
-running end-to-end on one NVIDIA DGX Spark ($4,699). No cloud lock-in.
+running on one NVIDIA DGX Spark ($4,699). Molecule generation and docking call hosted
+NIM endpoints unless you stand them up yourself; the rest is local. No vendor lock-in.
+
+**For research use.** Decision support for a qualified clinician — not a medical device,
+not autonomous diagnosis or prescribing. See [`SECURITY.md`](SECURITY.md).
 
 [![CI](https://github.com/ajones1923/hcls-ai-factory/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ajones1923/hcls-ai-factory/actions/workflows/ci.yml)
-[![tests](https://img.shields.io/badge/tests-8%2C100%2B%20passing-brightgreen)](https://github.com/ajones1923/hcls-ai-factory/actions/workflows/ci.yml)
+[![tests](https://img.shields.io/badge/tests-8%2C643%20passing-brightgreen)](https://github.com/ajones1923/hcls-ai-factory/actions/workflows/ci.yml)
 [![license](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 [![python](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue)](https://github.com/ajones1923/hcls-ai-factory/actions/workflows/ci.yml)
 [![docs](https://img.shields.io/badge/docs-hcls--ai--factory.org-0b7285)](https://hcls-ai-factory.org)
@@ -27,8 +31,13 @@ running end-to-end on one NVIDIA DGX Spark ($4,699). No cloud lock-in.
 
 An end-to-end precision-medicine platform: real GPU genomics, a clinical RAG/intelligence
 layer, real protein and small-molecule modeling, real single-cell analysis, and an
-AI workflow composer that lets you describe an experiment in plain language and have it
-run — every step on real models, all on one machine.
+AI workflow composer that turns a plain-language goal into a validated, executable pipeline.
+
+What runs on real models and what does not is labelled rather than blurred: GPU variant
+calling, ADMET, ESMFold, ESM-2, ProteinMPNN and single-cell analysis are real compute;
+molecule generation and docking call hosted NIM endpoints; most clinical-imaging workflows
+return fixed demo findings and report `findings_provenance` saying so. Capabilities the
+registry marks `planned` are not served at all.
 
 ## The pipeline (3 core engines)
 
@@ -65,7 +74,7 @@ shared vector database.
 - **AI Workflow Composer** — natural-language goal → a *validated, executable, governed* pipeline
   (shape-based wiring, self-repair, pre-run validation, AI root-cause).
 - **Single-box MLOps** — experiment tracking + model registry + run lineage (SQLite, no warehouse).
-- **Governance** — a clinical-overclaim honesty gate, a 21 CFR Part 11 reproducibility manifest,
+- **Governance** — a clinical-overclaim honesty gate, a per-run reproducibility manifest,
   OpenTelemetry tracing. Mock outputs are always labeled; a `live` capability can never be mock-served.
 
 ## Service / port map
@@ -100,7 +109,7 @@ python -m venv .venv && .venv/bin/pip install --upgrade pip
     python-multipart tqdm python-dotenv flask flask-cors nibabel pydicom highdicom tenacity \
     reportlab python-docx lxml plotly scanpy anndata sentence-transformers
 
-.venv/bin/python scripts/run_all_tests.py       # 17 suites, 8,191 tests
+.venv/bin/python scripts/run_all_tests.py       # 18 suites, 8,711 tests
 .venv/bin/python scripts/validate_registry.py   # the capability manifest
 ```
 
@@ -168,13 +177,21 @@ core/
 └── disease-programs/            # verticals composing the engines + agents
     └── tuberous-sclerosis/      #  first clinical beachhead
 lib/hcls_common/                 # Shared platform: Capability Registry, MCP, Composer, MLOps, governance
-hcls-orchestrator/               # Nextflow + the cross-stage trigger fabric
+hcls-orchestrator/               # Python orchestrator (run_pipeline.py) + trigger fabric;
+                                 #   the Nextflow workflow is a reference, not runnable here
 monitoring · docs · scripts · demo · data   ·   docker-compose.dgx-spark.yml · Caddyfile
 ```
 
 > **Structure:** engines and agents live under `core/engines/` and `core/agents/`, disease
 > verticals under `core/disease-programs/`, and the shared platform layer in `lib/hcls_common/`.
 > See `docs/STRUCTURE.md` for the full layout.
+
+## Releases
+
+Versioned, semver-tagged, with human release notes on the
+[Releases page](https://github.com/ajones1923/hcls-ai-factory/releases). What changed in each is
+in [`CHANGELOG.md`](CHANGELOG.md), including the known limitations of the current release — the
+corpus is thin and the file says so.
 
 ## How to cite
 

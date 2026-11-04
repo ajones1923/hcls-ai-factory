@@ -14,7 +14,12 @@ def build():
 
     @app.get("/ungated")
     def ungated():
-        return {"answer": "no gate ran here"}
+        # 2026-11-03: this used to return {"answer": "no gate ran here"}. Once the output gate
+        # stopped ignoring strings of 200 characters or fewer, a gate DID run on that response
+        # and the header was telling the truth. The assertion below is about a response with
+        # nothing to scan, so the payload now has no answer key -- the claim being pinned is
+        # unchanged, only the fixture that produces an ungated response.
+        return {"collections": 3, "names": ["a", "b"]}
 
     @app.get("/gated")
     def gated():
@@ -34,6 +39,18 @@ def test_no_governed_header_when_no_gate_ran():
 def test_governed_header_lists_the_gate_that_ran():
     r = build().get("/gated")
     assert r.headers.get("X-HCLS-Governed") == "output-honesty"
+
+
+def test_an_answer_of_any_length_is_scanned_and_the_header_says_so():
+    """The counterpart to the test above: the automatic gate must report itself.
+
+    It did not. `install_output_honesty` read the gate set out of a contextvar that the
+    request-id middleware sets in a different context, so `_mark_gate` was a no-op there and
+    the one gate that always runs never appeared in the header. See test_api_gate_scope.py.
+    """
+    r = build().get("/gated")
+    assert "output-honesty" in r.headers["X-HCLS-Governed"]
+    assert r.headers["X-HCLS-Honesty"] == "scanned=1"
 
 
 def test_header_does_not_leak_between_requests():

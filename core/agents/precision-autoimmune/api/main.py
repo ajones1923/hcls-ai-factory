@@ -202,8 +202,21 @@ try:  # pragma: no cover - platform lib is optional at import time
     from hcls_common.api_gate import install_governance
     install_api_key_auth(app, service="precision-autoimmune")
     install_governance(app, service="precision-autoimmune", capability_id="precision-autoimmune-agent")
-except Exception:  # never take a running service down over the gate
-    pass
+except Exception as _gate_err:  # noqa: BLE001
+    # This was `except Exception: pass`, which FAILED OPEN: if hcls_common was missing or
+    # install raised, the service booted with no authentication and no governance, silently,
+    # while the comment above promised it fails closed. Decide by whether a key is
+    # configured: if one is, the operator expects the gate and an unauthenticated start is
+    # worse than no start; if none is, the gate was a no-op anyway, so say so and continue.
+    if os.environ.get("HCLS_API_KEY") or os.environ.get("HCLS_API_KEY_PRECISION_AUTOIMMUNE"):
+        raise RuntimeError(
+            "an HCLS API key is configured but the auth/governance gate could not be "
+            "installed; refusing to start precision-autoimmune unauthenticated"
+        ) from _gate_err
+    logger.warning(
+        "auth/governance gate NOT installed for precision-autoimmune (%s). No API key is configured, so "
+        "this service is open by design on a trusted network.", _gate_err
+    )
 
 
 # CORS
@@ -423,20 +436,42 @@ async def query_stream(req: QueryRequest):
         raise HTTPException(503, "RAG engine not initialized")
 
     async def event_generator():
-        try:
-            for chunk in rag.query_stream(
+        # The output-honesty gate is response middleware and skips text/event-stream, because
+        # it cannot buffer a stream without destroying the point of streaming. That left this
+        # route serving generated clinical prose with no overclaim register and no
+        # decision-support disclaimer. gate_token_stream judges the COMPLETED answer and emits
+        # a terminal `honesty` event; a client that renders tokens as they arrive must honour
+        # it, replacing what it displayed when `withheld` is true.
+        from hcls_common.api_gate import gate_token_stream
+
+        def _tokens():
+            yield from rag.query_stream(
                 question=req.question,
                 patient_context=req.patient_context,
                 patient_id=req.patient_id,
                 collections_filter=req.collections_filter,
-            ):
-                yield f"data: {json.dumps({'text': chunk})}\n\n"
+            )
+
+        try:
+            for kind, payload in gate_token_stream(_tokens()):
+                if kind == "token":
+                    yield f"data: {json.dumps({'text': payload})}\n\n"
+                else:
+                    # `text` carries the delta so a client that only concatenates tokens --
+                    # this route's existing contract -- still sees the verdict instead of
+                    # ignoring an event type it was not written for. `honesty` carries the
+                    # structured verdict for a client that can replace what it displayed.
+                    yield f"data: {json.dumps({'text': payload['delta'], 'honesty': payload})}\n\n"
             yield "data: [DONE]\n\n"
         except Exception as exc:
             logger.error(f"Streaming query failed: {exc}")
             yield f"data: {json.dumps({'error': 'Internal processing error'})}\n\n"
 
-    return StreamingResponse(event_generator(), media_type="text/event-stream")
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={"X-HCLS-Honesty": "in-stream; terminal 'honesty' event carries the verdict"},
+    )
 
 
 @app.post("/search")

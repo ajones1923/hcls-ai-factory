@@ -22,6 +22,12 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+# Assistant tool-surface (python -m hcls_common.mcp_server). README documents running the
+# server, but nothing declared the package, so a documented install could not start it.
+mcp = [
+    "mcp>=1.0",
+]
+
 # Local embedding via sentence-transformers (default for DGX Spark)
 embeddings = [
     "sentence-transformers>=2.2",

@@ -46,6 +46,7 @@ if not os.environ.get("ANTHROPIC_API_KEY"):
 
 from src.export import export_markdown, export_json, export_pdf, generate_filename
 from hcls_common.llm_text import first_text
+from hcls_common.api_gate import gate_text
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -117,7 +118,11 @@ def init_engine():
                         system=system_prompt,
                         messages=[{"role": "user", "content": prompt}],
                     )
-                    return first_text(msg)
+                    # This UI imports its engine and calls it IN-PROCESS, so the output-honesty
+                    # gate -- which is response middleware -- never ran on the surface a
+                    # clinician actually reads. gate_text applies the same decisions here.
+                    shown, _findings = gate_text(first_text(msg))
+                    return shown
 
                 def generate_stream(self, prompt, system_prompt="", max_tokens=2048, temperature=0.7):
                     with self.client.messages.stream(
@@ -795,6 +800,10 @@ with tab_chat:
                         ):
                             response_text += token
                             message_placeholder.markdown(response_text + "▌")
+                        # generate_stream bypasses the gated generate() above, and the tokens
+                        # are already on screen, so the gate runs on the completed text and the
+                        # placeholder is rewritten with its verdict.
+                        response_text, _findings = gate_text(response_text)
                         message_placeholder.markdown(response_text)
                     except Exception as e:
                         response_text = f"LLM generation error: {e}"

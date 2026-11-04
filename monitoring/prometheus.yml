@@ -1,9 +1,24 @@
 # Prometheus configuration for HCLS AI Factory
+#
+# SCOPE: this file governs the DOCKER COMPOSE deployment only. Targets are compose service
+# names resolved on the compose network, and the ports are CONTAINER ports from
+# docker-compose.dgx-spark.yml -- not the host ports in QUICKSTART.md. It does not describe the
+# native (non-compose) bring-up that start-factory.sh performs, which is what runs on the Spark.
+#
+# 2026-11-03: this scraped five of the eleven agents. The other six expose /metrics and were
+# simply absent, so six agents' request counters and latencies were invisible on a dashboard
+# that looked complete. The six use a container port equal to their host port rather than the
+# 8000 the first five use; both are read from the compose file above.
+#
+# node-exporter is left as 'localhost:9100' deliberately: inside the Prometheus container that
+# is the container itself, so this job only reports anything when a node-exporter is run in
+# that container's network namespace. It is a declared intent, not a working target.
 global:
   scrape_interval: 15s
   evaluation_interval: 15s
 
 scrape_configs:
+  # -- agents on container port 8000 -----------------------------------------
   - job_name: 'precision-biomarker-agent'
     static_configs:
       - targets: ['precision-biomarker-agent:8000']
@@ -29,10 +44,48 @@ scrape_configs:
       - targets: ['precision-autoimmune-agent:8000']
     metrics_path: /metrics
 
+  # -- agents whose container port equals their host port --------------------
+  - job_name: 'cardiology-intelligence-agent'
+    static_configs:
+      - targets: ['cardiology-intelligence-agent:8126']
+    metrics_path: /metrics
+
+  - job_name: 'clinical-trial-intelligence-agent'
+    static_configs:
+      - targets: ['clinical-trial-intelligence-agent:8538']
+    metrics_path: /metrics
+
+  - job_name: 'rare-disease-diagnostic-agent'
+    static_configs:
+      - targets: ['rare-disease-diagnostic-agent:8134']
+    metrics_path: /metrics
+
+  - job_name: 'neurology-intelligence-agent'
+    static_configs:
+      - targets: ['neurology-intelligence-agent:8528']
+    metrics_path: /metrics
+
+  - job_name: 'single-cell-intelligence-agent'
+    static_configs:
+      - targets: ['single-cell-intelligence-agent:8540']
+    metrics_path: /metrics
+
+  - job_name: 'pharmacogenomics-intelligence-agent'
+    static_configs:
+      - targets: ['pharmacogenomics-intelligence-agent:8107']
+    metrics_path: /metrics
+
+  # -- infrastructure --------------------------------------------------------
   - job_name: 'milvus'
     static_configs:
       - targets: ['milvus:9091']
     metrics_path: /metrics
+
+  # Not scraped, and said rather than left to be discovered: the engines
+  # (genomic-foundation :5000, precision-intelligence :5001, therapeutic-discovery :8501,
+  # singlecell-compute :8573, structural-biology-search :8571) and the tuberous-sclerosis
+  # program :8560 expose no /metrics endpoint, so adding targets for them would only produce
+  # permanently-down jobs.
 
   - job_name: 'node-exporter'
     static_configs:

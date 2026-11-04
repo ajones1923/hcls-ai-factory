@@ -112,11 +112,17 @@ class TestRiskCalculatorIntegration:
             score_type=RiskScoreType.HEART,
             age=35,
         )
+        # 2026-11-03: these were "troponin_result" and "risk_factor_count", neither of which
+        # calculate_heart_score reads -- it reads `troponin_ratio` and `num_risk_factors`. So
+        # this test was not supplying a normal troponin at all; it was passing because a
+        # missing troponin defaulted to a ratio of 0.0 and scored as normal. That default is
+        # now an error, which is what surfaced the mismatch. The keys are corrected so the
+        # test exercises what its name claims.
         result = engine.calculate(inp, extra={
             "history_suspicion": 0,
             "ecg_finding": 0,
-            "troponin_result": 0,
-            "risk_factor_count": 0,
+            "troponin_ratio": 0.5,       # measured, below the ULN
+            "num_risk_factors": 0,
         })
         assert result.score_value <= 3
 

@@ -168,7 +168,11 @@ declare -a SERVICES=(
     "rag-api|5001|RAG/Chat API|/health|python|${SCRIPT_DIR}/core/engines/precision-intelligence|./venv/bin/python3 portal/app/server.py"
     "rag-chat|8501|RAG Chat UI|/healthz|streamlit|${SCRIPT_DIR}/core/engines/precision-intelligence|./venv/bin/streamlit run app/chat_ui.py --server.port 8501 --server.address 127.0.0.1 --server.headless true"
     "drug-discovery|8505|Drug Discovery|/healthz|streamlit|${SCRIPT_DIR}/core/engines/therapeutic-discovery|./venv/bin/streamlit run app/discovery_ui.py --server.port 8505 --server.address 127.0.0.1 --server.headless true"
-    "drug-portal|8510|Discovery Portal|/healthz|streamlit|${SCRIPT_DIR}/hcls-orchestrator|source ${SCRIPT_DIR}/core/engines/therapeutic-discovery/venv/bin/activate && streamlit run portal/app.py --server.port 8510 --server.address 127.0.0.1 --server.headless true"
+    # Call the venv's streamlit directly. `source activate && streamlit` depended on PATH, and
+    # that venv's activate still exports VIRTUAL_ENV=.../drug-discovery-pipeline/venv (its
+    # pre-move path), so PATH never gained the venv bin and every start died with
+    # "streamlit: command not found" — a restart loop the monitor could not break.
+    "drug-portal|8510|Discovery Portal|/healthz|streamlit|${SCRIPT_DIR}/hcls-orchestrator|${SCRIPT_DIR}/core/engines/therapeutic-discovery/venv/bin/streamlit run portal/app.py --server.port 8510 --server.address 127.0.0.1 --server.headless true"
     "landing|8080|Landing Page|/health|python|${SCRIPT_DIR}/landing-page|./venv/bin/python server.py"
     "milvus|19530|Milvus|TCP|docker|${SCRIPT_DIR}/core/engines/precision-intelligence|docker compose up -d milvus"
     "grafana|3000|Grafana|/api/health|docker|${SCRIPT_DIR}/core/engines/therapeutic-discovery/monitoring|docker compose up -d grafana"
@@ -189,6 +193,23 @@ declare -a SERVICES=(
     "neurology|8536|Neurology Intelligence|/health|python|${SCRIPT_DIR}/core/agents/neurology|./venv/bin/python -m uvicorn api.main:app --host 0.0.0.0 --port 8536"
     "neurology-ui|8535|Neurology UI|/healthz|streamlit|${SCRIPT_DIR}/core/agents/neurology|./venv/bin/streamlit run app/neuro_ui.py --server.port 8535 --server.address 127.0.0.1 --server.headless true"
     "single-cell|8541|Single-Cell Intelligence|/health|python|${SCRIPT_DIR}/core/agents/single-cell|./venv/bin/python -m uvicorn api.main:app --host 0.0.0.0 --port 8541"
+    # ── Agent UIs ──
+    # AUDIT FIX (2026-11-03): all eleven agents ship an app/*_ui.py, the capability registry
+    # advertises each one's UI port as the capability `endpoint`, and only TWO of them were
+    # supervised. Probed on the live box: 8126, 8521, 8523, 8526, 8531, 8538, 8540, 8544 and
+    # 8507 were all CLOSED, so nine capabilities marked `live` advertised an endpoint that
+    # nothing served -- the same class of defect as the model services noted below, which were
+    # registered `live` while nothing ran them. Each of the nine was started by hand on a
+    # scratch port before being added here and answered /healthz with 200.
+    "oncology-ui|8526|Precision Oncology UI|/healthz|streamlit|${SCRIPT_DIR}/core/engines/precision-oncology/agent|./venv/bin/streamlit run app/oncology_ui.py --server.port 8526 --server.address 127.0.0.1 --server.headless true"
+    "cart-ui|8521|CAR-T Intelligence UI|/healthz|streamlit|${SCRIPT_DIR}/core/agents/cart|./venv/bin/streamlit run app/cart_ui.py --server.port 8521 --server.address 127.0.0.1 --server.headless true"
+    "imaging-ui|8523|Imaging Intelligence UI|/healthz|streamlit|${SCRIPT_DIR}/core/engines/clinical-imaging/agent|./venv/bin/streamlit run app/imaging_ui.py --server.port 8523 --server.address 127.0.0.1 --server.headless true"
+    "autoimmune-ui|8531|Precision Autoimmune UI|/healthz|streamlit|${SCRIPT_DIR}/core/agents/precision-autoimmune|./venv/bin/streamlit run app/autoimmune_ui.py --server.port 8531 --server.address 127.0.0.1 --server.headless true"
+    "pharmacogenomics-ui|8507|Pharmacogenomics UI|/healthz|streamlit|${SCRIPT_DIR}/core/agents/pharmacogenomics|./venv/bin/streamlit run app/pgx_ui.py --server.port 8507 --server.address 127.0.0.1 --server.headless true"
+    "cardiology-ui|8126|Cardiology Intelligence UI|/healthz|streamlit|${SCRIPT_DIR}/core/engines/cardiology|./venv/bin/streamlit run app/cardio_ui.py --server.port 8126 --server.address 127.0.0.1 --server.headless true"
+    "clinical-trial-ui|8538|Clinical Trial Intelligence UI|/healthz|streamlit|${SCRIPT_DIR}/core/agents/clinical-trial|./venv/bin/streamlit run app/trial_ui.py --server.port 8538 --server.address 127.0.0.1 --server.headless true"
+    "rare-disease-ui|8544|Rare Disease Diagnostic UI|/healthz|streamlit|${SCRIPT_DIR}/core/agents/rare-disease-diagnostic|./venv/bin/streamlit run app/diagnostic_ui.py --server.port 8544 --server.address 127.0.0.1 --server.headless true"
+    "single-cell-ui|8540|Single-Cell Intelligence UI|/healthz|streamlit|${SCRIPT_DIR}/core/agents/single-cell|./venv/bin/streamlit run app/sc_ui.py --server.port 8540 --server.address 127.0.0.1 --server.headless true"
     # ── Model / compute services and the disease program ──
     # These were registered `live` while nothing ran them: they expose a create_app() factory
     # rather than a module-level `app`, so they need uvicorn --factory, and nothing supervised

@@ -65,4 +65,5 @@ outward-facing (push, release, external calls). Details: `build-housekeeping-sta
 
 `core/{engines,agents,disease-programs}` (the 8 engines + 8 agents + verticals) · `lib/hcls_common`
 (the One Platform: capability registry, MCP tool-surface, workflow composer, MLOps, governance
-gates) · `hcls-orchestrator` (Nextflow) · `skills/` (this framework). See `docs/STRUCTURE.md`.
+gates) · `hcls-orchestrator` (`run_pipeline.py`; the Nextflow workflow is an unrunnable reference)
+· `skills/` (this framework). See `docs/STRUCTURE.md`.

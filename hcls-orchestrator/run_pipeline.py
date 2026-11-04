@@ -15,8 +15,12 @@ from datetime import datetime
 import subprocess
 import shutil
 
-# Add paths
-sys.path.insert(0, str(Path(__file__).parent.parent / "core/engines/therapeutic-discovery" / "src"))
+# Add paths. Both the engine root AND its src/ go on the path: molecule_generator imports
+# cleanly as a top-level module, but nim_clients uses package-relative imports
+# (`from .models import ...`) and must be reached as `src.nim_clients`.
+_ENGINE_DIR = Path(__file__).parent.parent / "core/engines/therapeutic-discovery"
+sys.path.insert(0, str(_ENGINE_DIR / "src"))
+sys.path.insert(0, str(_ENGINE_DIR))
 
 SCRIPT_DIR = Path(__file__).parent
 DATA_DIR = SCRIPT_DIR / "data"
@@ -56,6 +60,72 @@ def _mol_to_dict(m):
         'score': getattr(m, 'score', 0.0),
         'properties': getattr(m, 'properties', {}) or {},
     }
+
+
+def _find_structure_file(pdb_id: str):
+    """Locate a cached PDB file for `pdb_id`, or None. Docking needs the coordinates; without
+    them there is nothing to dock against and the stage must report that, not invent scores."""
+    for root in (DATA_DIR / "structures", SCRIPT_DIR.parent / "data" / "structures"):
+        for name in (f"{pdb_id}.pdb", f"{pdb_id.lower()}.pdb", f"pdb{pdb_id.lower()}.ent"):
+            p = root / name
+            if p.is_file():
+                return p
+    return None
+
+
+def _run_docking(molecules, target):
+    """Stage 7: dock with the real DiffDock client, or report that docking did not happen.
+
+    Returns (docking_results, status). `status['performed']` is False whenever no docking
+    actually ran; in that case `docking_results` is EMPTY -- never filled with placeholders.
+    """
+    status = {'performed': False, 'method': None, 'reason': None, 'message': ''}
+
+    pdb_ids = target.get('pdb_ids') or []
+    structure_file = next((f for f in (_find_structure_file(p) for p in pdb_ids) if f), None)
+    if not structure_file:
+        status['reason'] = (
+            f"no cached structure file for {', '.join(pdb_ids) or 'the target'} under "
+            f"{DATA_DIR / 'structures'}"
+        )
+        status['message'] = f"SKIPPED - {status['reason']}"
+        return [], status
+
+    try:
+        from src.nim_clients import create_nim_clients
+        nim = create_nim_clients()          # raises unless a real NIM/cloud backend is set up
+    except Exception as e:
+        status['reason'] = f"DiffDock unavailable ({type(e).__name__}: {e})"
+        status['message'] = f"SKIPPED - {status['reason']}"
+        return [], status
+
+    pdb_content = structure_file.read_text()
+    results = []
+    for mol in molecules:
+        mol_id = mol.get('id', mol.get('smiles', '')[:8])
+        try:
+            poses = nim.diffdock.dock(protein_pdb=pdb_content, ligand_smiles=mol.get('smiles', ''))
+        except Exception as e:
+            print(f"  docking failed for {mol_id}: {e}")
+            continue
+        if not poses:
+            continue
+        best = poses[0]
+        results.append({
+            'molecule_id': mol_id,
+            'structure': structure_file.stem.upper(),
+            'score_type': best.get('score_type', 'binding_energy'),
+            'docking_score': best.get('docking_score'),
+            'confidence_score': best.get('confidence_score'),
+            'confidence': best.get('confidence'),
+            'provenance': best.get('_provenance', 'real'),
+        })
+
+    status['performed'] = bool(results)
+    status['method'] = type(nim.diffdock).__name__
+    status['message'] = (f"Docked with {status['method']} against {structure_file.stem.upper()}"
+                         if results else "SKIPPED - every docking call failed")
+    return results, status
 
 
 def _init_event_coordination():
@@ -122,43 +192,49 @@ def run_demo_pipeline(num_molecules: int = 20, output_dir: Path = None):
 
     structures = []
     for pdb_id in target['pdb_ids']:
+        local = _find_structure_file(pdb_id)
         structures.append({
             'pdb_id': pdb_id,
-            'method': 'Cryo-EM' if pdb_id != '5FTK' else 'X-ray',
-            'prepared': True
+            # All four VCP entries used here are cryo-EM per their RCSB records (checked
+            # 2026-11-03); 5FTK was singled out as X-ray and is not.
+            'method': 'Cryo-EM',
+            # `prepared: True` used to be hard-coded for every entry although this stage does
+            # no preparation at all. Report what is actually on disk instead.
+            'local_file': str(local) if local else None,
+            'prepared': False,
+            'preparation': 'not performed by this orchestrator',
         })
 
     # Stage 3: Structure prep
-    print_stage(3, "Structure Preparation", f"Prepared {len(structures)} structures")
+    n_local = len([s for s in structures if s['local_file']])
+    print_stage(3, "Structure Preparation",
+                f"{n_local}/{len(structures)} structures cached locally; "
+                f"no preparation step is implemented")
 
     # Stage 4: Molecule generation
     print_stage(4, "Molecule Generation", f"Generating {num_molecules} molecules...")
 
+    # The former fallback invented molecules by string-replacing the seed SMILES and drew
+    # molecular_weight / logP / qed from random.uniform() -- numbers that belonged to no
+    # molecule, printed as "(mock)" but written into report.json indistinguishably from real
+    # output. If the generator cannot be imported, that is a setup fault; say so and stop.
     try:
-        from molecule_generator import MoleculeGenerator, generate_vcp_molecules
-        molecules = generate_vcp_molecules(num_molecules)
-        print(f"  Generated {len(molecules)} molecules")
-    except (ImportError, AttributeError, Exception) as e:
-        # Fallback mock generation
-        molecules = []
-        seed = target['reference_compound']['smiles']
-        import hashlib
-        import random
+        from molecule_generator import generate_vcp_molecules
+    except ImportError as e:
+        raise RuntimeError(
+            "Cannot import the molecule generator from "
+            "core/engines/therapeutic-discovery/src -- the demo pipeline cannot run. "
+            f"({e}). Install the engine's requirements (RDKit in particular) and retry; "
+            "this stage will not fabricate molecules."
+        ) from e
 
-        for i in range(num_molecules):
-            mol_id = hashlib.md5(f"demo-{i}-{seed}".encode()).hexdigest()[:8]
-            molecules.append({
-                'id': f'demo-mol-{mol_id}',
-                'smiles': seed if i == 0 else seed.replace('CC(C)', 'CCC' if i % 2 else 'CC'),
-                'target_gene': target['gene'],
-                'score': round(random.uniform(0.7, 1.0), 3),
-                'properties': {
-                    'molecular_weight': round(random.uniform(420, 520), 1),
-                    'logP': round(random.uniform(3.0, 5.0), 2),
-                    'qed': round(random.uniform(0.35, 0.55), 3)
-                }
-            })
-        print(f"  Generated {len(molecules)} molecules (mock)")
+    molecules = generate_vcp_molecules(num_molecules)
+    if not molecules:
+        raise RuntimeError(
+            f"The molecule generator returned 0 molecules for {target['gene']}. "
+            "Refusing to continue with invented structures."
+        )
+    print(f"  Generated {len(molecules)} molecules")
 
     # Coerce generator output to dicts (real generator returns GeneratedMolecule objects)
     molecules = [_mol_to_dict(m) for m in molecules]
@@ -172,17 +248,13 @@ def run_demo_pipeline(num_molecules: int = 20, output_dir: Path = None):
     print_stage(6, "Conformer Generation", f"Generating 3D conformers for {len(passed)} molecules")
 
     # Stage 7: Docking
-    print_stage(7, "Molecular Docking", "Running DiffDock...")
-    import random
-    docking_results = []
-    for mol in passed:
-        mol_id = mol.get('id', mol.get('smiles', '')[:8])
-        docking_results.append({
-            'molecule_id': mol_id,
-            'structure': '5FTK',
-            'docking_score': round(random.uniform(-12, -6), 2),
-            'confidence': round(random.uniform(0.6, 0.95), 2)
-        })
+    #
+    # This stage used to print "Running DiffDock..." and then fill docking_score from
+    # random.uniform(-12, -6) and confidence from random.uniform(0.6, 0.95) -- fabricated
+    # binding numbers for a named tool that was never called, written into report.json and
+    # report.html with no marker. Docking is now either real or absent.
+    docking_results, docking_status = _run_docking(passed, target)
+    print_stage(7, "Molecular Docking", docking_status['message'])
     print(f"  Docked {len(docking_results)} molecules")
 
     # Stage 8: Ranking
@@ -190,24 +262,41 @@ def run_demo_pipeline(num_molecules: int = 20, output_dir: Path = None):
 
     candidates = []
     dock_lookup = {d['molecule_id']: d for d in docking_results}
+    # Without docking the composite cannot carry a docking term. Rather than substitute a
+    # default score (the old code used -5 kcal/mol for every undocked molecule, which simply
+    # added a constant), renormalize over the terms we actually have.
+    if docking_results:
+        w_gen, w_dock, w_qed = 0.3, 0.4, 0.3
+    else:
+        w_gen, w_dock, w_qed = 0.5, 0.0, 0.5
 
     for mol in passed:
         mol_id = mol.get('id', mol.get('smiles', '')[:8])
         dock = dock_lookup.get(mol_id, {})
 
         gen_score = mol.get('score', 0.5)
-        dock_score = dock.get('docking_score', -5)
         qed = mol.get('properties', {}).get('qed', 0.4)
 
-        dock_norm = max(0, min(1, (10 + dock_score) / 20))
-        composite = 0.3 * gen_score + 0.4 * dock_norm + 0.3 * qed
+        dock_norm = 0.0
+        dock_score = dock.get('docking_score')
+        if dock.get('score_type') == 'diffdock_confidence':
+            dock_norm = max(0.0, min(1.0, dock.get('confidence', 0.0)))
+        elif dock_score is not None:
+            # kcal/mol: -12 (excellent) -> 1.0, 0 (no binding) -> 0.0
+            dock_norm = max(0.0, min(1.0, -dock_score / 12.0))
+
+        composite = w_gen * gen_score + w_dock * dock_norm + w_qed * qed
 
         candidates.append({
             'molecule_id': mol_id,
             'smiles': mol.get('smiles', ''),
+            'score_type': dock.get('score_type'),
             'docking_score': dock_score,
+            'pose_confidence': dock.get('confidence'),
+            'docking_performed': bool(dock),
             'qed_score': qed,
-            'composite_score': round(composite, 4)
+            'composite_score': round(composite, 4),
+            'composite_weights': {'generation': w_gen, 'docking': w_dock, 'qed': w_qed},
         })
 
     candidates.sort(key=lambda x: x['composite_score'], reverse=True)
@@ -233,6 +322,7 @@ def run_demo_pipeline(num_molecules: int = 20, output_dir: Path = None):
             'passed_qc': len(passed),
             'top_candidates': min(10, len(candidates))
         },
+        'docking': docking_status,          # performed / method / reason -- never implied
         'top_candidates': candidates[:10],
         'structures': structures,
         'completed_at': datetime.now().isoformat()
@@ -249,10 +339,18 @@ def run_demo_pipeline(num_molecules: int = 20, output_dir: Path = None):
     if ET:  # report done -> emit REPORT_GENERATED (terminal event)
         emit_event(ET.REPORT_GENERATED, PS.REPORTING, {"report": str(report_file)})
 
+    # "SUCCESS" used to print unconditionally. A run that skipped docking completed, but it
+    # did not do what the nine stage headers imply, so say which.
+    skipped = [] if docking_status['performed'] else ['docking']
     print(f"\n{'═' * 60}")
     print(f"  PIPELINE COMPLETE")
     print(f"{'═' * 60}")
-    print(f"  Status:        SUCCESS")
+    if skipped:
+        print(f"  Status:        COMPLETED WITH STAGES SKIPPED ({', '.join(skipped)})")
+        print(f"  Skipped:       {docking_status['reason']}")
+        print(f"  Ranking:       generation + QED only — NO binding prediction included")
+    else:
+        print(f"  Status:        SUCCESS")
     print(f"  Target:        {target['gene']}")
     print(f"  Molecules:     {len(candidates)}")
     print(f"  Top Score:     {candidates[0]['composite_score']:.4f}")
@@ -325,22 +423,46 @@ def generate_html_report(report: dict, output_file: Path):
             <tr><td>PDB Structures</td><td>{', '.join(target.get('pdb_ids', []))}</td></tr>
         </table>
 
-        <h2>Top Drug Candidates</h2>
+        <h2>Top Drug Candidates</h2>'''
+
+    # State plainly whether docking ran. The report used to show a "Docking Score" column
+    # filled from random numbers with nothing distinguishing it from a real run.
+    dock = report.get('docking', {})
+    if dock.get('performed'):
+        html += f'''
+        <p style="padding:10px;border-left:4px solid #76b900;background:#f3f8e8;">
+            Docking: <strong>{dock.get('method', 'unknown method')}</strong>.
+        </p>'''
+    else:
+        html += f'''
+        <p style="padding:10px;border-left:4px solid #b00020;background:#fdecee;">
+            <strong>Docking was not performed</strong> ({dock.get('reason', 'reason not recorded')}).
+            Candidates below are ranked on generation score and QED only; no binding
+            prediction of any kind is included.
+        </p>'''
+
+    html += '''
         <table>
             <tr>
                 <th>Rank</th>
                 <th>Molecule ID</th>
-                <th>Docking Score</th>
+                <th>Docking</th>
                 <th>QED</th>
                 <th>Composite Score</th>
             </tr>'''
 
     for c in candidates[:10]:
+        if c.get('score_type') == 'diffdock_confidence':
+            dock_cell = f"pose conf. {c.get('pose_confidence'):.3f}" if c.get('pose_confidence') is not None else 'n/a'
+        elif c.get('docking_score') is not None:
+            dock_cell = f"{c['docking_score']} kcal/mol"
+        else:
+            dock_cell = 'not docked'
         html += f'''
             <tr>
                 <td><span class="badge">{c.get('rank', 'N/A')}</span></td>
                 <td>{c.get('molecule_id', 'N/A')}</td>
-                <td>{c.get('docking_score', 'N/A')}</td>
+                <td>{dock_cell}</td>
                 <td>{c.get('qed_score', 'N/A'):.3f}</td>
                 <td><strong>{c.get('composite_score', 'N/A'):.4f}</strong></td>
             </tr>'''
@@ -349,7 +471,7 @@ def generate_html_report(report: dict, output_file: Path):
         </table>
 
         <p style="margin-top: 40px; color: #666; font-size: 12px;">
-            Generated by HLS Pipeline v1.0.0 | Powered by NVIDIA BioNeMo
+            Generated by HLS Pipeline v1.0.0. Research use only - not for clinical decision-making.
         </p>
     </div>
 </body>

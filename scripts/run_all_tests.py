@@ -34,8 +34,15 @@ ROSTER = [
     ("agent", "precision-autoimmune"), ("agent", "neurology"), ("agent", "clinical-trial"),
     ("agent", "rare-disease-diagnostic"), ("agent", "single-cell"),
     ("program", "tuberous-sclerosis"),
+    # The orchestrator had tests but no roster entry, so nothing ran them in the gate.
+    ("orchestrator", "hcls-orchestrator"),
 ]
-BASE = {"engine": "core/engines", "agent": "core/agents", "program": "core/disease-programs"}
+BASE = {
+    "engine": "core/engines",
+    "agent": "core/agents",
+    "program": "core/disease-programs",
+    "orchestrator": ".",
+}
 IGNORE = {"structural-biology": ["vendor_rfdiffusion"]}
 def run(kind: str, name: str) -> dict:
     d = ROOT / BASE[kind] / name

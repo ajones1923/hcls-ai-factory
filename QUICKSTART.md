@@ -30,13 +30,18 @@ All services will be healthy within 2-5 minutes depending on build cache.
 
 ## Where to Find Things
 
+These are the **compose host ports** from `docker-compose.dgx-spark.yml`. They are not the same
+as the ports in `lib/hcls_common/capabilities.json`, which describe the native bring-up that
+`start-factory.sh` performs (there the registry advertises each agent's UI and `api_endpoint`
+carries its API). Two deployments, two port maps; check the one you are running.
+
 | Service                        | URL                          |
 |--------------------------------|------------------------------|
 | Landing Page / Portal          | http://localhost:8080         |
 | Precision Biomarker Agent      | http://localhost:8502 (UI) / http://localhost:8102 (API) |
 | Precision Oncology Agent       | http://localhost:8503 (UI) / http://localhost:8103 (API) |
 | CAR-T Intelligence Agent       | http://localhost:8504 (UI) / http://localhost:8104 (API) |
-| Imaging Intelligence Agent     | http://localhost:8505 (UI) / http://localhost:8105 (API) |
+| Imaging Intelligence Agent     | http://localhost:8523 (UI) / http://localhost:8524 (API) |
 | Autoimmune Agent               | http://localhost:8506 (UI) / http://localhost:8106 (API) |
 | Cardiology Agent               | http://localhost:8536 (UI) / http://localhost:8126 (API) |
 | Pharmacogenomics Agent         | http://localhost:8507 (UI) / http://localhost:8107 (API) |
@@ -44,6 +49,12 @@ All services will be healthy within 2-5 minutes depending on build cache.
 | Rare Disease Diagnostic Agent  | http://localhost:8544 (UI) / http://localhost:8134 (API) |
 | Neurology Agent                | http://localhost:8529 (UI) / http://localhost:8528 (API) |
 | Single Cell Agent              | http://localhost:8130 (UI) / http://localhost:8540 (API) |
+| Genomic Foundation Engine      | http://localhost:5000         |
+| Precision Intelligence Engine  | http://localhost:5001         |
+| Therapeutic Discovery Engine   | http://localhost:8505         |
+| Single-Cell Compute Engine     | http://localhost:8573         |
+| Structural Biology Search      | http://localhost:8571         |
+| TSC Disease Program            | http://localhost:8560         |
 | Milvus (vector DB)             | localhost:19530               |
 | Prometheus                     | http://localhost:9099         |
 | Grafana                        | http://localhost:3000         |

@@ -51,6 +51,13 @@ def classify_solid_nodule_lung_rads(diameter_mm: float) -> LungRADS:
         - Category 3 (Probably Benign): Solid nodule 6-8mm
         - Category 4A (Suspicious): Solid nodule 8-15mm
         - Category 4B (Very Suspicious): Solid nodule >= 15mm
+
+    LIMITATION (documented 2026-11-03): these are the BASELINE-SCREEN thresholds, and size is
+    the only input. Lung-RADS v2022 also keys on the exam context, which this function cannot
+    see: at follow-up a NEW solid nodule of 4-6mm is category 3 rather than 2, a new 6-8mm
+    nodule is 4A rather than 3, and a growing nodule moves up a category. So on a follow-up
+    LDCT this function can under-call by one category. The workflow has no prior exam to
+    compare against; supplying one is the fix, not changing these thresholds.
     """
     if diameter_mm < LUNG_RADS_THRESHOLDS["cat_2_max"]:
         return LungRADS.CAT_2
@@ -411,10 +418,12 @@ class CTChestLungNoduleWorkflow(BaseImagingWorkflow):
 
             logger.info(f"Model forward pass succeeded: {model_info}")
 
-            # Return mock clinical results enriched with real model metadata
+            # The forward pass above ran on a SYNTHETIC volume, not on the supplied image, so
+            # the clinical findings below are still the canned ones. Say exactly that: a real
+            # model ran, and it did not read this patient's pixels.
             mock = self._mock_inference()
             mock["model_info"] = model_info
-            mock["real_model_used"] = True
+            mock[self.SYNTHETIC_PASS_KEY] = True
             return mock
 
         except Exception as e:
@@ -585,8 +594,9 @@ class CTChestLungNoduleWorkflow(BaseImagingWorkflow):
         model_info = inference_result.get("model_info", {})
         if model_info:
             aggregate_measurements["weights_loaded"] = 1.0 if model_info.get("weights_loaded") else 0.0
-        if inference_result.get("real_model_used"):
-            aggregate_measurements["real_model_used"] = 1.0
+        if inference_result.get(self.SYNTHETIC_PASS_KEY):
+            # A model ran, on synthetic input. Named so it cannot be read as "measured here".
+            aggregate_measurements["synthetic_input_forward_pass"] = 1.0
 
         return WorkflowResult(
             workflow_name=self.WORKFLOW_NAME,

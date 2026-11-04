@@ -41,6 +41,7 @@ from .agent import (
     TrialResponse,
 )
 from hcls_common.conversation_store import ConversationStore
+from hcls_common.corpus_coverage import coverage as retrieval_coverage
 from hcls_common.vector_search import search_collection
 
 logger = logging.getLogger(__name__)
@@ -336,6 +337,12 @@ class TrialRAGEngine:
         # Step 5: Score confidence
         confidence = self._score_confidence(results)
 
+        # Step 5b: How much of what this workflow declared it would search actually answered.
+        # Ten of the fourteen collections were empty when this was written, carrying 73% of the
+        # PATIENT_MATCHING weight; none of that showed anywhere in the response. Computed from
+        # the weight map and the results already in hand, so retrieval is untouched.
+        cov = retrieval_coverage(weights, results)
+
         # Step 6: Synthesise LLM response (if LLM available)
         if self.llm:
             response = self._synthesize_response(
@@ -354,11 +361,20 @@ class TrialRAGEngine:
                 confidence=confidence,
             )
 
+        # Step 6b: Say so in the answer when the corpus, not the question, is the limit. The
+        # structured verdict is carried either way; the prose only appears once coverage is bad
+        # enough that a reader acting on this answer needs to know -- a single trivial
+        # collection going quiet is recorded, not announced.
+        if cov.is_degraded and response.answer:
+            response.answer = f"{response.answer}\n\n{cov.disclosure()}"
+
         # Step 7: Extract citations
         response.citations = self._extract_citations(results)
         response.confidence = confidence
         response.search_time_ms = (time.time() - start) * 1000
         response.collections_searched = len(collections)
+        response.collections_contributing = len(cov.contributing)
+        response.retrieval_coverage = cov.as_dict()
         response.patient_context_used = patient_context is not None
 
         # Step 8: Update conversation history

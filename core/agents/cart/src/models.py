@@ -8,7 +8,7 @@ Follows the same dataclass/Pydantic pattern as:
 
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -447,6 +447,14 @@ class CrossCollectionResult(BaseModel):
     hits: List[SearchHit] = Field(default_factory=list)
     knowledge_context: str = ""
     total_collections_searched: int = 0
+    # Counts the question asked, not the yield: a search of an empty collection succeeds and
+    # returns zero rows. `collections_contributing` is the number that moves with the corpus.
+    collections_contributing: int = 0
+    retrieval_coverage: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="hcls_common.corpus_coverage verdict: the share of declared retrieval "
+                    "weight that actually answered, and which collections were silent",
+    )
     search_time_ms: float = 0.0
 
     @property

@@ -1226,12 +1226,23 @@ class DosingCalculator:
         d6_score2 = _CYP2D6_ACTIVITY.get(d6_a2, 1.0)
         cyp2d6_as = d6_score1 + d6_score2
 
-        # CYP2D6 phenotype
-        if cyp2d6_as < 0.25:
+        # CYP2D6 phenotype — CPIC/DPWG consensus: PM = 0, IM = 0 < AS < 1.25,
+        # NM = 1.25-2.25 inclusive, UM > 2.25. The consensus reclassified AS 1.0 from NM to IM,
+        # and 2.25 is the inclusive TOP of NM, not the bottom of UM.
+        #
+        # This block previously cut IM at < 1.0 and NM at < 2.25, so a patient with AS 1.0
+        # (*1/*4) got standard tricyclic dosing where CPIC calls for a 25% reduction, and a
+        # patient with AS 2.25 got the ultrarapid recommendation to switch drug class.
+        #
+        # Source: Caudle KE et al. "Standardizing CYP2D6 Genotype to Phenotype Translation:
+        # Consensus Recommendations from the Clinical Pharmacogenetics Implementation
+        # Consortium and Dutch Pharmacogenetics Working Group." Clin Transl Sci
+        # 2020;13(1):116-124, Table 3. doi:10.1111/cts.12692, PMID 31647186.
+        if cyp2d6_as == 0.0:
             cyp2d6_phenotype = "Poor Metabolizer"
-        elif cyp2d6_as < 1.0:
+        elif cyp2d6_as < 1.25:
             cyp2d6_phenotype = "Intermediate Metabolizer"
-        elif cyp2d6_as < 2.25:
+        elif cyp2d6_as <= 2.25:
             cyp2d6_phenotype = "Normal Metabolizer"
         else:
             cyp2d6_phenotype = "Ultrarapid Metabolizer"

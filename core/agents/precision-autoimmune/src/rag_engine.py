@@ -489,6 +489,25 @@ class AutoimmuneRAGEngine:
             user_content += f"**Patient Context:**\n{patient_context}\n\n"
         if result.knowledge_context:
             user_content += f"**Knowledge Base Context:**\n{result.knowledge_context}\n\n"
+        # With no hits, the evidence block is empty and there is no [Label:ID] to cite. Asking
+        # for citations anyway is how an ungrounded answer comes back looking sourced: the model
+        # supplies the format from its own weights. Same defect, same fix, as the cart,
+        # pharmacogenomics and precision-biomarker agents.
+        if not result.hits:
+            user_content += (
+                f"## NO RETRIEVED EVIDENCE\n\n"
+                f"The knowledge base returned 0 results across "
+                f"{result.total_collections_searched} collections for this question.\n\n"
+                "---\n"
+                "Say plainly, in your first sentence, that no source material was available "
+                "and that what follows is general background rather than an evidence-grounded "
+                "answer. Do NOT cite anything, and do not fabricate a [Label:ID], a PMID or an "
+                "NCT number — there are none. Do not give a dosing, therapy-selection or "
+                "diagnostic recommendation for this patient on no evidence; say what evidence "
+                "would be needed instead."
+            )
+            return self._messages_with_history(user_content)
+
         user_content += (
             f"**Retrieved Evidence ({len(result.hits)} items from "
             f"{result.total_collections_searched} collections, "
@@ -504,15 +523,17 @@ class AutoimmuneRAGEngine:
             "Flag any critical clinical alerts."
         )
 
-        # Include conversation history (limited context)
-        messages = []
+        return self._messages_with_history(user_content)
+
+    def _messages_with_history(self, user_content: str) -> List[Dict[str, str]]:
+        """Prepend the (length-limited) conversation history to one user turn."""
+        messages: List[Dict[str, str]] = []
         with self._conversation_lock:
             history = list(self._conversation_history)
         for entry in history:
             messages.append({"role": "user", "content": entry["question"][:200]})
             messages.append({"role": "assistant", "content": entry["answer"][:800]})
         messages.append({"role": "user", "content": user_content})
-
         return messages
 
     def _synthesize(

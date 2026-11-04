@@ -105,10 +105,12 @@ def render_protein_viewer(pdb_id: str = "5FTK", show_controls: bool = True):
         col1, col2, col3 = st.columns([2, 1, 1])
         with col1:
             pdb_options = {
-                "5FTK": "5FTK — VCP/p97 Apo (2.3Å)",
-                "8OOI": "8OOI — VCP/p97 + CB-5083 (3.1Å)",
-                "9DIL": "9DIL — VCP/p97 Cryo-EM (2.8Å)",
-                "7K56": "7K56 — VCP/p97 D2 Domain (2.1Å)",
+                # Verified against data.rcsb.org 2026-11-03. None of these entries contains
+                # CB-5083; 8OOI was labelled as a CB-5083 co-structure and is an ADP.Pi state.
+                "5FTK": "5FTK — p97 + ADP, cryo-EM (2.4Å)",
+                "8OOI": "8OOI — p97 ADP·Pi state, cryo-EM (2.61Å)",
+                "9DIL": "9DIL — p97 + VCPIP1 complex, cryo-EM (3.3Å)",
+                "7K56": "7K56 — p97 dodecamer, cryo-EM (3.9Å)",
             }
             selected = st.selectbox(
                 "Select Structure",
@@ -132,11 +134,16 @@ def render_protein_viewer(pdb_id: str = "5FTK", show_controls: bool = True):
     components.html(html, height=520, scrolling=False)
 
     # Structure details
+    # Every field here was wrong, including the method for two entries and a CB-5083 ligand
+    # that none of these structures carries. Values below are from the RCSB entry records
+    # (data.rcsb.org/rest/v1/core/entry/<ID>), checked 2026-11-03: method from exptl,
+    # resolution from resolution_combined, chains from deposited_polymer_entity_instance_count,
+    # ligands from nonpolymer_bound_components, year from the initial release date.
     structure_info = {
-        "5FTK": {"resolution": "2.3 Å", "method": "X-ray", "chains": 6, "ligand": "None (Apo)", "year": 2016},
-        "8OOI": {"resolution": "3.1 Å", "method": "Cryo-EM", "chains": 6, "ligand": "CB-5083", "year": 2023},
-        "9DIL": {"resolution": "2.8 Å", "method": "Cryo-EM", "chains": 6, "ligand": "Allosteric inhibitor", "year": 2024},
-        "7K56": {"resolution": "2.1 Å", "method": "X-ray", "chains": 2, "ligand": "ATP analog", "year": 2021},
+        "5FTK": {"resolution": "2.4 Å", "method": "Cryo-EM", "chains": 6, "ligand": "ADP", "year": 2016},
+        "8OOI": {"resolution": "2.61 Å", "method": "Cryo-EM", "chains": 6, "ligand": "ADP, ATP, Mg, K, PO4", "year": 2024},
+        "9DIL": {"resolution": "3.3 Å", "method": "Cryo-EM", "chains": 3, "ligand": "None (VCPIP1 complex)", "year": 2025},
+        "7K56": {"resolution": "3.9 Å", "method": "Cryo-EM", "chains": 12, "ligand": "None reported", "year": 2021},
     }
 
     info = structure_info.get(pdb_id, {})

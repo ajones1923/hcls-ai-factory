@@ -73,17 +73,43 @@ def plaque_burden_modifier(agatston: float) -> str:
     return band
 
 
-def cadrads_report(category: CADRADS, agatston: float, high_risk_plaque: bool) -> str:
+# The HRP modifier requires at least TWO high-risk features, not one. The four recognised
+# features are low-attenuation plaque (<30 HU), positive remodeling, spotty calcification and
+# the napkin-ring sign; HRP replaced the older term "vulnerable plaque" and kept its ≥2
+# definition. This code fired HRP on a single feature, which over-calls a modifier that drives
+# management.
+#
+# SOURCING, stated plainly: the primary document is cited by this engine's own test suite
+# (Cury et al., "CAD-RADS 2.0", J Cardiovasc Comput Tomogr 2022) but its modifier table was not
+# read for this change. Two independent secondary sources agree on the ≥2 rule:
+# radiologyassistant.nl/cardiovascular/cad-rads/coronary-artery-disease-reporting-and-data-system
+# and radiopaedia.org/articles/cad-rads. Both also qualify it as ≥2 features IN THE SAME PLAQUE,
+# which this workflow cannot evaluate: the feature list is case-level, with no plaque identity.
+# Listed in CLINICAL_REVIEW.md for confirmation against the primary table.
+HRP_MIN_FEATURES = 2
+
+
+def high_risk_plaque_applies(features) -> bool:
+    """Whether the HRP modifier applies to this feature list."""
+    return len(features or []) >= HRP_MIN_FEATURES
+
+
+def cadrads_report(category: CADRADS, agatston: float, high_risk_plaque: bool,
+                   extent_note: str = "") -> str:
     """Full CAD-RADS 2.0 string, with modifiers rather than the bare stenosis category.
 
     A bare "CAD-RADS 4A" is an incomplete report. The 2.0 standard pairs the stenosis category with
     a plaque-burden modifier (P1-P4) and appends HRP when high-risk plaque features are present --
     which is precisely the information that drives management here.
+
+    `extent_note` carries a qualifier that is not part of the standard string, used when a total
+    occlusion (category 5) co-exists with the left-main or three-vessel extent that defines 4B.
     """
     parts = [f"CAD-RADS {category.value}", plaque_burden_modifier(agatston)]
     if high_risk_plaque:
         parts.append("HRP")
-    return "/".join(parts)
+    report = "/".join(parts)
+    return f"{report} ({extent_note})" if extent_note else report
 
 
 # Statin intensity bands (2018 AHA/ACC/multisociety cholesterol guideline, Table 3): high-intensity
@@ -139,6 +165,15 @@ def classify_stenosis_cadrads(
     Returns:
         CADRADS category enum value.
     """
+    # TOTAL OCCLUSION FIRST. This block used to sit below the 4B test, so a 100 % occlusion in a
+    # patient who also had left-main disease or three-vessel obstructive disease could never
+    # reach category 5 -- it returned 4B, and `cadrads_to_severity` maps 4B to URGENT where 5 maps
+    # to CRITICAL. The more extensive disease silently downgraded the severity of the occlusion.
+    # Category 5 is the highest stenosis grade in CAD-RADS 2.0 and a co-existing 4B extent does
+    # not reduce it; the caller carries that extent into the report rather than losing it.
+    if max_stenosis_pct >= 100:
+        return CADRADS.CAD_5
+
     # CAD-RADS 4B: left main >= 50%, or 3-VESSEL OBSTRUCTIVE disease, which CAD-RADS 2.0 defines
     # at the >= 70% threshold -- not >= 50%. The earlier >= 50% rule over-triaged: three moderate
     # 50-69% lesions are CAD-RADS 3 (consider functional assessment), and grading them 4B would
@@ -146,9 +181,7 @@ def classify_stenosis_cadrads(
     if left_main_stenosis_pct >= 50 or num_vessels_obstructive >= 3:
         return CADRADS.CAD_4B
 
-    if max_stenosis_pct >= 100:
-        return CADRADS.CAD_5
-    elif max_stenosis_pct >= 70:
+    if max_stenosis_pct >= 70:
         return CADRADS.CAD_4A
     elif max_stenosis_pct >= 50:
         return CADRADS.CAD_3
@@ -374,6 +407,16 @@ class CTCoronaryAngiographyWorkflow(BaseImagingWorkflow):
                 "caveats": a.get("caveats", []),
                 # Agatston cannot come from a surface mesh; it stays representative.
                 "calcium_score_is_representative": True,
+                # Nor can ejection fraction: it needs a gated volumetric series, not a vessel
+                # surface. It was the one narrative number beside Agatston with no flag, so a
+                # reader had no way to tell 385 was representative but 55 % was something else.
+                "ejection_fraction_is_representative": True,
+                "representative_fields": [
+                    "calcium_score", "calcium_percentile", "ejection_fraction_estimate",
+                    "high_risk_plaque_features", "plaque_type", "vessel attribution",
+                ],
+                "measured_fields": ["max_diameter_stenosis_pct", "total_vessel_length_mm",
+                                    "mean_radius_mm"],
             },
         })
         return out
@@ -478,7 +521,15 @@ class CTCoronaryAngiographyWorkflow(BaseImagingWorkflow):
         )
         severity = cadrads_to_severity(cadrads)
         recommendation = cadrads_recommendation(cadrads)
-        report = cadrads_report(cadrads, float(calcium_score), bool(high_risk_features))
+        # A total occlusion is category 5, but left-main or three-vessel extent is the clinically
+        # consequential part of a 4B and must not disappear from the report because 5 outranks it.
+        extent_note = ""
+        if cadrads == CADRADS.CAD_5 and (left_main_stenosis >= 50 or num_vessels_obstructive >= 3):
+            extent_note = ("also meets CAD-RADS 4B extent: "
+                           + ("left main >=50%" if left_main_stenosis >= 50
+                              else "three-vessel obstructive disease"))
+        hrp = high_risk_plaque_applies(high_risk_features)
+        report = cadrads_report(cadrads, float(calcium_score), hrp, extent_note)
         worst_vessel = max(worst_by_vessel, key=worst_by_vessel.get) if worst_by_vessel else "—"
 
         # Build findings list
@@ -493,7 +544,10 @@ class CTCoronaryAngiographyWorkflow(BaseImagingWorkflow):
                 # vessel line right below it, and every rendered panel, said 77.9 %.
                 f"Maximum stenosis {max_stenosis:g}% in the {worst_vessel}; "
                 f"Agatston {calcium_score} ({plaque_burden_modifier(calcium_score)} plaque burden)"
-                + (", high-risk plaque present (HRP)." if high_risk_features else ".")
+                + (", high-risk plaque present (HRP)." if hrp
+                   else (f", {len(high_risk_features)} high-risk feature "
+                         f"({', '.join(high_risk_features)}) — below the HRP threshold of "
+                         f"{HRP_MIN_FEATURES}." if high_risk_features else "."))
             ),
             "severity": severity.value,
             "cadrads": cadrads.value,
@@ -524,12 +578,19 @@ class CTCoronaryAngiographyWorkflow(BaseImagingWorkflow):
         if high_risk_features:
             findings.append({
                 "category": FindingCategory.CALCIFICATION.value,
+                # The features are still reported below the threshold -- a clinician should see
+                # them -- but a single feature is not the HRP modifier and is not graded as one.
                 "description": (
-                    f"High-risk plaque features identified: "
-                    f"{', '.join(high_risk_features)}"
+                    (f"High-risk plaque (HRP): {len(high_risk_features)} features — "
+                     f"{', '.join(high_risk_features)}") if hrp else
+                    (f"{len(high_risk_features)} high-risk plaque feature reported "
+                     f"({', '.join(high_risk_features)}); HRP requires "
+                     f"{HRP_MIN_FEATURES} or more, so the modifier is not applied")
                 ),
-                "severity": FindingSeverity.SIGNIFICANT.value,
+                "severity": (FindingSeverity.SIGNIFICANT.value if hrp
+                             else FindingSeverity.ROUTINE.value),
                 "features": high_risk_features,
+                "hrp_modifier_applies": hrp,
             })
 
         # Therapy-intensity gap. Obstructive CAD (CAD-RADS >= 4) indicates HIGH-intensity statin;

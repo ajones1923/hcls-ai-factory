@@ -27,6 +27,7 @@ import time
 from pathlib import Path
 
 import streamlit as st
+from hcls_common.api_gate import gate_text
 
 # ── Page config (must be first Streamlit call) ────────────────────────────
 st.set_page_config(
@@ -369,14 +370,21 @@ with tabs[0]:
                         ):
                             full_response.append(chunk)
                             response_container.markdown("".join(full_response))
-                        answer = "".join(full_response)
+                        # This UI calls the RAG engine IN-PROCESS, so the output-honesty gate --
+                        # response middleware on the FastAPI app -- never ran on the surface a
+                        # clinician reads. The stream has already been shown token by token, so
+                        # the gate runs on the completed text and REWRITES the placeholder: a
+                        # block-severity claim must not be left on screen merely because it
+                        # arrived incrementally.
+                        answer, _findings = gate_text("".join(full_response))
+                        response_container.markdown(answer)
                     except Exception:
                         # Fallback to non-streaming
-                        answer = services["rag"].query(
+                        answer, _findings = gate_text(services["rag"].query(
                             question,
                             patient_id=patient_filter or None,
                             collections_filter=collection_filter or None,
-                        )
+                        ))
                         st.markdown(answer)
 
                     st.session_state["last_answer"] = answer

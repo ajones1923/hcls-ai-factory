@@ -108,8 +108,14 @@ class FactoryTools:
         for c in self.registry.find(status="live"):
             if not c.endpoint:
                 continue
-            host, port = _split_endpoint(c.endpoint)
-            report[c.id] = {"endpoint": c.endpoint, "up": self._port_open(host, port)}
+            # Probe what an invocation would actually hit, not just the UI beside it: a
+            # reachable Streamlit page says nothing about whether the API answers.
+            host, port = _split_endpoint(c.api_base)
+            entry = {"endpoint": c.endpoint, "up": self._port_open(host, port)}
+            if c.api_endpoint and c.api_endpoint != c.endpoint:
+                entry["api_endpoint"] = c.api_endpoint
+                entry["probed"] = c.api_endpoint
+            report[c.id] = entry
         up = sum(1 for v in report.values() if v["up"])
         return {"checked": len(report), "up": up, "down": len(report) - up, "services": report}
 
@@ -128,15 +134,19 @@ class FactoryTools:
         if not cap.endpoint:
             return {"status": "no_endpoint",
                     "reason": f"'{capability_id}' has no callable endpoint (library/in-process)"}
-        host, port = _split_endpoint(cap.endpoint)
+        # `endpoint` is the port a human opens -- for every agent that is the Streamlit UI, and
+        # POSTing JSON at Streamlit was never going to invoke anything. `api_base` is the HTTP
+        # API when the capability declares one. See Capability.api_endpoint.
+        api_base = cap.api_base
+        host, port = _split_endpoint(api_base)
         if not self._port_open(host, port):
-            return {"status": "down", "reason": f"endpoint {cap.endpoint} is not reachable"}
+            return {"status": "down", "reason": f"endpoint {api_base} is not reachable"}
         # A2 input-validation gate: reject bad enums / missing required, clamp numerics
         payload, issues = validate_inputs(cap, payload)
         if not inputs_ok(issues):
             return {"status": "invalid_input", "issues": issues}
         use_path = path or getattr(cap, "invoke_path", None) or "/"
-        url = f"http://{cap.endpoint.rstrip('/')}/{use_path.lstrip('/')}"
+        url = f"http://{api_base.rstrip('/')}/{use_path.lstrip('/')}"
         try:
             res = self._http_post(url, payload or {})
             warns = [i for i in issues if i.startswith("WARN")]
@@ -204,7 +214,7 @@ class FactoryTools:
                 "signals": [s.to_dict() for s in sigs]}
 
     def chain_lineage(self, artifacts: Any) -> dict[str, Any]:
-        """Composed-chain reproducibility manifest (21 CFR Part 11) from a governed workflow run's
+        """Composed-chain reproducibility manifest (Part 11-minded, not compliant) from a governed workflow run's
         artifacts: the lineage graph, where each hop actually ran, the chain-level honesty floor,
         and a deterministic replay hash."""
         from hcls_common.lineage import chain_lineage as _chain_lineage
@@ -216,7 +226,13 @@ class FactoryTools:
 # --------------------------------------------------------------------------- #
 def build_server(tools: FactoryTools | None = None):
     """Build a FastMCP server exposing the factory tools. Imports mcp lazily."""
-    from mcp.server.fastmcp import FastMCP
+    try:
+        from mcp.server.fastmcp import FastMCP
+    except ModuleNotFoundError as exc:  # the package is an extra, not a core dependency
+        raise ModuleNotFoundError(
+            "the MCP tool-surface needs the 'mcp' package, which is not a core dependency: "
+            "pip install 'hcls-common[mcp]' (or pip install mcp)"
+        ) from exc
 
     ft = tools or FactoryTools()
     mcp = FastMCP("hcls-ai-factory")
@@ -238,8 +254,15 @@ def build_server(tools: FactoryTools | None = None):
         return ft.check_factory_health()
 
     @mcp.tool()
-    def invoke_capability(capability_id: str, payload: dict | None = None, path: str = "/") -> dict:
-        """Invoke a live capability's endpoint. Refuses to invoke planned/mock capabilities."""
+    def invoke_capability(capability_id: str, payload: dict | None = None,
+                          path: str | None = None) -> dict:
+        """Invoke a live capability's endpoint. Refuses to invoke planned/mock capabilities.
+
+        `path` defaults to None, NOT "/": FactoryTools.invoke_capability resolves
+        `path or cap.invoke_path or "/"`, so a default of "/" is truthy and silently
+        overrode every capability's registered invoke_path, sending each call to the
+        service root. Pass a path only to override the registry on purpose.
+        """
         return ft.invoke_capability(capability_id, payload, path)
 
     @mcp.tool()
