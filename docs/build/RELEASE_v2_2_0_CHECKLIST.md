@@ -53,10 +53,11 @@ but observable behaviour does** — for the better, and visibly.
 
 1. **Merge PR #160 to `main`.** The tag must come off `main`, and CI's merge gate only truly
    runs there and on PRs into it.
-2. **Rename the CHANGELOG section** from `[Unreleased] — proposed v2.2.0` to
-   `## v2.2.0 — <date>`.
-3. **Bump `CITATION.cff`** to `version: 2.2.0` and the release date, in that same commit. The
-   file now says why, inline.
+2. ~~**Rename the CHANGELOG section**~~ — done. `## v2.2.0 — 2026-11-04`, with the overnight
+   audit's fixes written up in four groups of their own.
+3. ~~**Bump `CITATION.cff`**~~ — done: `version: 2.2.0`, `date-released: "2026-11-04"`.
+   **If the tag slips past 2026-11-04, change both the CHANGELOG heading and this date**, or the
+   citation will claim a release date that never happened.
 4. **Re-measure anything the notes claim.** See below — this is the part that matters.
 5. `git tag -a v2.2.0 -m "..."` → push → publish the GitHub Release.
 
@@ -86,7 +87,20 @@ If you do not want to run them, **omit the rows** rather than carry last release
 | **The 5 patient-level collections** (synthetic cohort vs nothing vs IRB) | **No.** "Nothing, and the agent says so" is a defensible shipped state — and as of this release the agents actually do say so. |
 | **Deploying to the box** | **No** — the tag describes the repo, not the running instance. But the live tree still runs 2026-09-17 code, so until it is deployed the released code is not the demonstrated code. |
 
-## Owner-only items, added 2026-11-04
+## Owner-only items — all three resolved 2026-11-04
+
+Decided rather than deferred, with the reasoning in each commit:
+
+| Item | Resolution |
+|---|---|
+| `therapeutic-discovery-engine` registered `status: live` | **Status kept.** The service is supervised on :8505, the 10-stage RDKit chemistry is real, and generation runs the real RDKit BRICS backend; MolMIM and DiffDock are separate capabilities already marked `planned`. Downgrading would have understated a capability that does real work. What was wrong was narrower: `tags` advertised `molmim` and `diffdock` beside `live`, and the caveat lived only in prose. Tags corrected, `maturity: preclinical` added. |
+| Fabricated GPU telemetry | **Removed.** Five of six fields were a theoretical maximum scaled by utilization and jittered with `hash(str(time.time()))`. Now NVML readings only, `None` (rendering `--`) for anything unmeasurable, and the one surviving estimate declares itself in its own payload. Six regression tests, all failing against `main`. |
+| HTTP routes bypassing the fixed deterministic workflows | **Split decision.** ACMG **wired**: `/v1/diagnostic/variants/interpret` claimed to classify and reported the model's prose label, so the corrected Table 5 classifier now governs it — the model proposes criteria, Table 5 decides the class. Trial eligibility **not wired, deliberately**: `/v1/trials/match` does not claim to screen, returns `criteria_evaluated: false`, and names the library class; adding a screening endpoint is a feature, not a correction. Recorded in the CHANGELOG's Known limitations so no release note can claim it. |
+
+## Superseded notes
+
+### Earlier framing of the same three items
+
 
 Three things no agent can close, because each is a statement about intent rather than a defect:
 
