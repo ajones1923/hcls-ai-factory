@@ -784,23 +784,56 @@ class NeuroRAGEngine:
         conversation_section = self._format_conversation_history()
         workflow_section = self._format_workflow_instructions(workflow)
 
-        prompt = (
-            f"## Retrieved Evidence\n\n{context}\n\n"
-            f"{patient_section}"
-            f"{conversation_section}"
-            f"{workflow_section}"
-            f"---\n\n"
-            f"## Question\n\n{question}\n\n"
-            f"Please provide a comprehensive, evidence-based neurology clinical "
-            f"decision support answer grounded in the retrieved evidence above. "
-            f"Follow the system prompt instructions for clinical citation format, "
-            f"severity badges, clinical scale scoring, and structured output sections.\n\n"
-            f"Cite sources using clickable markdown links where PMIDs are available: "
-            f"[PMID:12345678](https://pubmed.ncbi.nlm.nih.gov/12345678/). "
-            f"For clinical trials, use [NCT01234567](https://clinicaltrials.gov/study/NCT01234567). "
-            f"For collection-sourced evidence, use [Collection:record-id]. "
-            f"Prioritise [high relevance] citations and guideline references."
-        )
+        if not results:
+            # `_build_context` returns "No evidence found in the knowledge base." for an empty
+            # result set, and the instructions below then asked for an answer "grounded in the
+            # retrieved evidence above" and spelled out the citation formats to use -- PMID
+            # links, NCT numbers, [Collection:record-id]. Given a format and nothing to fill
+            # it with, the model fills it from its own weights, which is how an ungrounded
+            # answer comes back reading as sourced. Against the measured corpus a neurology
+            # query returns 0 rows routinely.
+            #
+            # Same defect, same fix, as the cart, pharmacogenomics, precision-biomarker,
+            # precision-autoimmune and single-cell agents. Neurology was the one of the six
+            # that was missed, because its grounding work went into
+            # api/routes/neuro_clinical.py and src/agent.py and left the RAG engine on the old
+            # prompt.
+            prompt = (
+                f"## NO RETRIEVED EVIDENCE\n\n"
+                f"The knowledge base returned 0 results for this question.\n\n"
+                f"{patient_section}"
+                f"{conversation_section}"
+                f"{workflow_section}"
+                f"---\n\n"
+                f"## Question\n\n{question}\n\n"
+                f"State plainly, in your first sentence, that no source material was available "
+                f"and that what follows is general background rather than an evidence-grounded "
+                f"clinical decision support answer. Do NOT cite anything: do not fabricate a "
+                f"PubMed id, a trial registration number, a guideline section or a collection "
+                f"record id, because there are none to cite. "
+                f"Do not issue a thrombolysis, thrombectomy, "
+                f"anti-amyloid or antiseizure-medication recommendation, and do not report a "
+                f"clinical scale score or an eligibility verdict, on no evidence; say what "
+                f"data would be needed instead."
+            )
+        else:
+            prompt = (
+                f"## Retrieved Evidence\n\n{context}\n\n"
+                f"{patient_section}"
+                f"{conversation_section}"
+                f"{workflow_section}"
+                f"---\n\n"
+                f"## Question\n\n{question}\n\n"
+                f"Please provide a comprehensive, evidence-based neurology clinical "
+                f"decision support answer grounded in the retrieved evidence above. "
+                f"Follow the system prompt instructions for clinical citation format, "
+                f"severity badges, clinical scale scoring, and structured output sections.\n\n"
+                f"Cite sources using clickable markdown links where PMIDs are available: "
+                f"[PMID:12345678](https://pubmed.ncbi.nlm.nih.gov/12345678/). "
+                f"For clinical trials, use [NCT01234567](https://clinicaltrials.gov/study/NCT01234567). "
+                f"For collection-sourced evidence, use [Collection:record-id]. "
+                f"Prioritise [high relevance] citations and guideline references."
+            )
 
         answer = self.llm.generate(
             prompt=prompt,

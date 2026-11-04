@@ -66,7 +66,18 @@ include { GENERATE_REPORT     } from './modules/reporting'
 //  Input validation
 // ============================================================
 
+// The modes this workflow implements. `params.mode` itself was never validated and the
+// if/else-if chain below had no `else`, so any other value -- `--mode genomics` (a typo for
+// genomics_only), or `--mode Demo` -- left ch_molecules and ch_targets empty, GENERATE_REPORT
+// never executed, and workflow.onComplete printed "Status: SUCCESS" with a duration and paths
+// to a report and timeline that were never written. A wrapper checking the exit code concluded
+// the pipeline had passed.
+def ALLOWED_MODES = ['full', 'target', 'drug', 'demo', 'genomics_only']
+
 def validateInputs() {
+    if (!ALLOWED_MODES.contains(params.mode)) {
+        error "Unknown --mode '${params.mode}'. Valid modes: ${ALLOWED_MODES.join(', ')}"
+    }
     if (params.mode == 'full' && !params.input) {
         error "Input FASTQ files required for full pipeline mode. Use --input"
     }
@@ -152,9 +163,11 @@ workflow {
         //  DEMO MODE: VCP/FTD demonstration pipeline
         // ════════════════════════════════════════════════════
 
-        // Use built-in VCP demo data
+        // Use built-in VCP demo data. `checkIfExists` was omitted here alone, so a missing
+        // demo target (it was gitignored, and so absent from every clone) yielded an empty
+        // channel, no executed process, and a SUCCESS banner with no work done.
         Channel
-            .fromPath("${projectDir}/data/demo/vcp_target.json")
+            .fromPath("${projectDir}/data/demo/vcp_target.json", checkIfExists: true)
             .set { ch_targets }
 
         DRUG_DISCOVERY(ch_targets)
@@ -186,11 +199,23 @@ workflow {
             }
     }
 
-    // Generate final report
+    // Generate final report.
+    //
+    // GENERATE_REPORT declared two separate input channels with no join key. Nextflow pairs
+    // separate input channels positionally in arrival order, which is not deterministic across
+    // concurrent tasks, so with more than one sample the ranked candidates of sample A could be
+    // paired with the target hypothesis of sample B -- and the report was labelled with the
+    // sample_id of the first channel only. One patient's report could carry another patient's
+    // target and PDB structures, with no error raised. Join on sample_id instead, so the pairing
+    // is keyed and an unmatched sample simply produces no report rather than a mixed one.
     if (params.mode != 'genomics_only') {
+        // `drug` and `demo` modes set ch_targets from a bare path channel (DRUG_DISCOVERY
+        // normalizes it internally), so key it here before joining.
+        ch_targets_keyed = ch_targets.map { it ->
+            it instanceof List ? it : [ it.baseName.replaceAll(/\..*/, ''), it ]
+        }
         GENERATE_REPORT(
-            ch_molecules,
-            ch_targets
+            ch_molecules.join(ch_targets_keyed, failOnMismatch: false, failOnDuplicate: true)
         )
     }
 }

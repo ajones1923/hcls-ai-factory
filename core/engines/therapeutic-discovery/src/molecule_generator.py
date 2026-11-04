@@ -204,6 +204,19 @@ class MoleculeGenerator:
         # Add pre-designed VCP inhibitor analogues. These are hand-written, NOT model output;
         # `score` is a fixed rank-order placeholder, not a prediction -- labeled as such so a
         # downstream surface cannot present it as a generative-model confidence.
+        #
+        # The library is VCP-specific and used to be appended for ANY target_gene, each molecule
+        # stamped with the requested gene: ask the :8505 UI for EGFR and you were handed
+        # VCP-Inh-A1..H1 labelled target_gene="EGFR". There is no analogue library for other
+        # targets, so there is nothing honest to return for them beyond the caller's own seed.
+        if target_gene.upper() != "VCP":
+            seed_props["library_available"] = False
+            seed_props["note"] = (
+                f"no analogue library exists for {target_gene}; only the supplied seed is "
+                "returned. The hand-written library in this module is VCP-specific."
+            )
+            return molecules
+
         vcp_analogues = self._get_vcp_inhibitor_analogues()
         for i, (smiles, name) in enumerate(vcp_analogues[:num_molecules-1]):
             mol = Chem.MolFromSmiles(smiles)

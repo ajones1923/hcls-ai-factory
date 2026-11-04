@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional
 
 from loguru import logger
 
-from src.models import FindingSeverity, WorkflowResult, WorkflowStatus
+from src.models import FindingCategory, FindingSeverity, WorkflowResult, WorkflowStatus
 
 
 class BaseImagingWorkflow(ABC):
@@ -122,9 +122,23 @@ class BaseImagingWorkflow(ABC):
             return result
         except Exception as e:
             logger.error(f"Workflow {self.WORKFLOW_NAME} failed: {e}")
+            # AUDIT FIX (2026-11-03): this took WorkflowResult's default severity, which is
+            # ROUTINE, so a crashed workflow reported the same severity as a study that was
+            # read and found to need nothing urgent. A workflow that raised has no severity;
+            # UNKNOWN says so, and the error is carried in classification and in a finding so
+            # the reason reaches a reader rather than only the log.
             return WorkflowResult(
                 workflow_name=self.WORKFLOW_NAME,
                 status=WorkflowStatus.FAILED,
+                findings=[{
+                    "category": FindingCategory.INDETERMINATE.value,
+                    "description": (
+                        f"Workflow {self.WORKFLOW_NAME} failed before producing findings: {e}"
+                    ),
+                    "severity": FindingSeverity.UNKNOWN.value,
+                }],
+                classification=f"not graded: workflow failed ({e})",
+                severity=FindingSeverity.UNKNOWN,
                 inference_time_ms=(time.time() - start) * 1000,
                 is_mock=self.mock_mode,
             )

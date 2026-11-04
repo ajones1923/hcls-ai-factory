@@ -1,6 +1,22 @@
-"""Tests for all diagnostic workflow types.
+"""Enum shape tests for DiagnosticWorkflowType.
 
-Covers all 13 DiagnosticWorkflowType members and their properties.
+CORRECTED DOCSTRING. This file was titled "Tests for all diagnostic workflow
+types" and claimed to cover "all 13 DiagnosticWorkflowType members" while
+``test_workflow_count`` asserts there are 21 -- the docstring and the assertion
+disagreed, and nobody noticed because the assertion only restates the enum's
+current size. The file imports only ``DiagnosticWorkflowType`` from
+``src.models`` and never instantiates a workflow, so none of it can fail for a
+defect in ``src/clinical_workflows.py`` (2,118 lines, which included a second
+ACMG classifier that returned Pathogenic from a single variant-type string).
+
+What it actually does: asserts that each enum member's value is its own
+snake_case literal and that the members round-trip through the constructor.
+Those assertions cannot fail for any ``str``-valued Enum, so they are a
+guard against renaming, not against behaviour.
+
+Behavioural tests for the workflows are in
+``tests/test_acmg_classification.py`` and
+``tests/test_variant_interpretation_workflow.py``.
 
 Author: Adam Jones
 Date: March 2026

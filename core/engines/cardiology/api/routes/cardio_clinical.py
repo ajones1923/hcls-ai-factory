@@ -17,6 +17,12 @@ from loguru import logger
 from pydantic import BaseModel, Field
 
 from src.clinical_workflows import WorkflowEngine
+from src.hf_thresholds import (
+    HFPEF_LVEF_CUTOFF,
+    HFREF_LVEF_CUTOFF,
+    SGLT2I_CLASS_HFMREF_TEXT,
+    SGLT2I_CLASS_HFPEF_TEXT,
+)
 from src.models import CardioWorkflowType
 
 router = APIRouter(prefix="/v1/cardio", tags=["cardiology"])
@@ -186,10 +192,23 @@ class MAGGICRequest(BaseModel):
 
 
 class EuroSCORERequest(BaseModel):
-    """EuroSCORE II cardiac surgical risk."""
+    """EuroSCORE II cardiac surgical risk.
+
+    The reference category of each EuroSCORE II patient factor is the HEALTHIEST
+    one: CrCl >85 mL/min, LVEF >=51%, NYHA I, isolated CABG.  `lvef` therefore
+    used to default to 60, `nyha_class` to 1 and `procedure_weight` to
+    "isolated_cabg", so a request that simply omitted the ejection fraction was
+    scored as a normal ventricle, one that omitted functional class as NYHA I,
+    and one that omitted the procedure (which the Streamlit form never sent) as
+    the lowest-weight operation.  They are now Optional with no default, and the
+    route refuses to return a score until they are supplied.
+    """
     age: int = Field(..., ge=18, le=100)
     sex: str = Field(..., pattern="^(male|female)$")
-    creatinine_clearance: float = Field(..., ge=0, le=200, description="mL/min")
+    creatinine_clearance: Optional[float] = Field(
+        None, ge=0, le=200, description="mL/min; omit only if on dialysis",
+    )
+    on_dialysis: bool = False
     extracardiac_arteriopathy: bool = False
     poor_mobility: bool = False
     previous_cardiac_surgery: bool = False
@@ -197,13 +216,19 @@ class EuroSCORERequest(BaseModel):
     active_endocarditis: bool = False
     critical_preop_state: bool = False
     diabetes_on_insulin: bool = False
-    nyha_class: int = Field(1, ge=1, le=4)
+    nyha_class: Optional[int] = Field(None, ge=1, le=4)
     ccs_class_4_angina: bool = False
-    lvef: float = Field(60, ge=5, le=80)
+    lvef: Optional[float] = Field(None, ge=5, le=80)
     recent_mi: bool = False
     pulmonary_hypertension: str = Field("none", pattern="^(none|moderate|severe)$")
     urgency: str = Field("elective", pattern="^(elective|urgent|emergency|salvage)$")
-    procedure_weight: str = Field("isolated_cabg", description="Procedure complexity")
+    procedure_weight: Optional[str] = Field(
+        None,
+        description=(
+            "Weight of intervention: isolated_cabg, single_non_cabg, "
+            "two_procedures, three_or_more"
+        ),
+    )
     thoracic_aorta: bool = False
 
 
@@ -232,7 +257,9 @@ class GDMTRequest(BaseModel):
 
 class GDMTRecommendation(BaseModel):
     medication_class: str
-    current_status: str
+    # Empty when the producing engine did not state a status.  It is not filled
+    # in with a guess.
+    current_status: str = ""
     recommendation: str
     target_dose: Optional[str] = None
     evidence_level: str = ""
@@ -247,6 +274,12 @@ class GDMTResponse(BaseModel):
     recommendations: List[GDMTRecommendation]
     four_pillars_status: dict
     summary: str
+    # The guideline engine either ran or it did not, and the caller is entitled to
+    # know which.  "optimizer" = GDMTOptimizer produced this plan; "degraded" =
+    # the optimizer raised and this is the route's simplified built-in logic;
+    # "builtin" = no optimizer was configured.
+    status: str = "optimizer"
+    error: Optional[str] = None
 
 
 # =====================================================================
@@ -562,7 +595,21 @@ async def calculate_maggic(request: MAGGICRequest, req: Request):
             beta_blocker_use=request.beta_blocker,
             acei_arb_use=request.acei_arb,
         )
-        result = engine.calculate(risk_input, extra={"copd": request.copd, "hf_duration_18m": request.hf_duration_18m})
+        # `calculate_maggic` reads extra["hf_duration_months"].  This route used
+        # to send "hf_duration_18m", a key no calculator reads, so the duration
+        # fell back to 0 on EVERY API call: the "HF diagnosed >18 months ago"
+        # checkbox the form collects had no effect on the score whatsoever, and
+        # the clinician saw a field they had filled in, a score that moved when
+        # they changed other fields, and no indication that this one input was
+        # discarded.  24 months is the smallest value that satisfies the
+        # published model's ">18 months" level.
+        result = engine.calculate(
+            risk_input,
+            extra={
+                "copd": request.copd,
+                "hf_duration_months": 24 if request.hf_duration_18m else 0,
+            },
+        )
         with req.app.state.metrics_lock:
             req.app.state.metrics["risk_calc_requests_total"] += 1
         return RiskResult(
@@ -590,29 +637,85 @@ async def calculate_euroscore(request: EuroSCORERequest, req: Request):
             engine = RiskCalculatorEngine()
         except Exception:
             raise HTTPException(status_code=503, detail="Risk calculator engine not initialized")
+    # An absent patient factor is not a normal patient factor: refuse rather
+    # than score the healthiest category.  Together with the key-name faults
+    # below, a 78-year-old woman reaching this endpoint with age and sex only
+    # was returned "predicted operative mortality 1.03% (Low-Moderate risk) ...
+    # Standard perioperative management appropriate", where her actual
+    # LVEF 25%, NYHA III, CrCl 40, critical preoperative state, two procedures
+    # and thoracic-aortic surgery give 42.35% (Very High) -- a 41-point gap
+    # presented with the same confidence and no missing-data marker.
+    unsupplied = []
+    if request.creatinine_clearance is None and not request.on_dialysis:
+        unsupplied.append("creatinine_clearance (or on_dialysis)")
+    if request.lvef is None:
+        unsupplied.append("lvef")
+    if request.nyha_class is None:
+        unsupplied.append("nyha_class")
+    if request.procedure_weight is None:
+        unsupplied.append("procedure_weight")
+    if unsupplied:
+        raise HTTPException(
+            status_code=422,
+            detail=(
+                "EuroSCORE II is indeterminate: "
+                + ", ".join(unsupplied)
+                + " not supplied. These are patient and procedural factors whose "
+                "reference category is the healthiest one, so omitting them "
+                "would understate operative mortality rather than leave it "
+                "unknown."
+            ),
+        )
+
     try:
-        from src.models import RiskScoreInput, RiskScoreType
+        from src.models import HeartFailureClass, RiskScoreInput, RiskScoreType
+        nyha_map = {1: HeartFailureClass.NYHA_I, 2: HeartFailureClass.NYHA_II,
+                    3: HeartFailureClass.NYHA_III, 4: HeartFailureClass.NYHA_IV}
+        # Creatinine clearance goes in `extra` under the key the calculator
+        # reads.  It used to be passed as `RiskScoreInput.creatinine`, a field
+        # bounded `ge=0.1, le=20.0` for mg/dL, so every patient with a CrCl
+        # above 20 mL/min -- including the Streamlit form's own default of 65 --
+        # raised a pydantic ValidationError that the bare `except Exception`
+        # below turned into HTTP 500 "Internal processing error".  The endpoint
+        # succeeded only in the dialysis range, for which it then scored the
+        # renal term as if kidney function were normal, because
+        # `calculate_euroscore_ii` reads extra["creatinine_clearance_ml_min"]
+        # and never looked at `inp.creatinine` at all.
         risk_input = RiskScoreInput(
             score_type=RiskScoreType.EUROSCORE_II,
             age=request.age,
             sex=request.sex,
             lvef=request.lvef,
-            creatinine=request.creatinine_clearance,  # maps to renal function
+            nyha_class=nyha_map.get(request.nyha_class),
             urgency=request.urgency,
             redo_surgery=request.previous_cardiac_surgery,
         )
+        # Key names here must match `calculate_euroscore_ii`'s `_extra` lookups.
+        # Four of them did not, which silently dropped the largest
+        # patient-factor coefficient in the model (critical preoperative state,
+        # 1.0863), thoracic-aortic surgery (0.6527), NYHA (up to 0.5598) and
+        # the renal term; `weight_of_procedure` (up to 0.9725) was never sent at
+        # all.  The same 78-year-old, entered completely through the form with
+        # CrCl 18, EF 25%, NYHA IV, severe pulmonary hypertension, critical
+        # preoperative state and thoracic-aortic surgery, came back 3.21%
+        # ("Moderate operative risk") against 30.93% ("Very high ...
+        # goals-of-care discussion with patient and family") under the key names
+        # the calculator reads -- a tenfold understatement of the number a
+        # surgeon quotes during consent.
         extra = {
+            "creatinine_clearance_ml_min": request.creatinine_clearance,
+            "on_dialysis": request.on_dialysis,
             "extracardiac_arteriopathy": request.extracardiac_arteriopathy,
             "poor_mobility": request.poor_mobility,
             "chronic_lung_disease": request.chronic_lung_disease,
             "active_endocarditis": request.active_endocarditis,
-            "critical_preop_state": request.critical_preop_state,
+            "critical_preoperative_state": request.critical_preop_state,
             "diabetes_on_insulin": request.diabetes_on_insulin,
-            "nyha_class": request.nyha_class,
             "ccs_class_4_angina": request.ccs_class_4_angina,
             "recent_mi": request.recent_mi,
             "pulmonary_hypertension": request.pulmonary_hypertension,
-            "thoracic_aorta": request.thoracic_aorta,
+            "surgery_on_thoracic_aorta": request.thoracic_aorta,
+            "weight_of_procedure": request.procedure_weight,
         }
         result = engine.calculate(risk_input, extra=extra)
         with req.app.state.metrics_lock:
@@ -654,34 +757,122 @@ GDMT_TARGETS = {
 }
 
 
+def _optimizer_recs_to_models(
+    lines: List[str], guideline_ref: str,
+) -> List["GDMTRecommendation"]:
+    """Wrap the optimizer's recommendation sentences in the response model.
+
+    `GDMTOptimizer.optimize` returns `recommendations` as a list of guideline
+    sentences, but `GDMTResponse.recommendations` is typed
+    `List[GDMTRecommendation]`.  Handing the strings straight to the response
+    model raised a pydantic ValidationError that the route's bare `except
+    Exception` swallowed, so the optimizer path NEVER reached a caller: every
+    `/gdmt/optimize` response came from the simplified built-in fallback, and
+    nothing said so.  The sentence is carried through verbatim in
+    `recommendation`; the label before the first colon (the optimizer writes
+    "INITIATE MRA: ...", "DEVICE THERAPY - CRT (Class I, LOE A): ...") becomes
+    `medication_class`.  Nothing else is inferred.
+    """
+    out: List[GDMTRecommendation] = []
+    for line in lines:
+        text = str(line)
+        label, sep, _ = text.partition(":")
+        out.append(GDMTRecommendation(
+            medication_class=label.strip() if sep and len(label) <= 80 else "GDMT",
+            current_status="",
+            recommendation=text,
+            guideline_ref=guideline_ref,
+        ))
+    return out
+
+
+def _pillar_dose_state(pillar: str, medications: List[dict]) -> tuple:
+    """Classify a pillar's recorded dose against its target.
+
+    Returns ``(state, detail)`` where state is ``"at_target"``,
+    ``"below_target"`` or ``"dose_not_recorded"``.  Accepts both dose spellings
+    in use across this engine: ``{"dose_mg": 25, "frequency": "BID"}`` (the
+    request schema) and ``{"dose": "25 mg BID"}`` (the optimizer).  A medication
+    whose dose is absent or unparseable yields ``"dose_not_recorded"`` -- never
+    ``"at_target"``.
+    """
+    from src.gdmt_optimizer import _dose_from_med, _parse_dose_mg
+
+    best_state = "dose_not_recorded"
+    detail = "no dose on record"
+    for med in medications:
+        med_name = str(med.get("name", "")).lower()
+        for drug_name, info in GDMT_TARGETS.items():
+            if drug_name not in med_name or info["class"] != pillar:
+                continue
+            dose_str = _dose_from_med(med)
+            current_mg = _parse_dose_mg(dose_str)
+            target_mg = _parse_dose_mg(info["target"])
+            if current_mg <= 0 or target_mg <= 0:
+                continue
+            ratio = current_mg / target_mg
+            if ratio >= 0.95:
+                return "at_target", f"{dose_str} of target {info['target']}"
+            best_state = "below_target"
+            detail = f"{dose_str} of target {info['target']}"
+    return best_state, detail
+
+
 @router.post("/gdmt/optimize", response_model=GDMTResponse)
 async def optimize_gdmt(request: GDMTRequest, req: Request):
     """Optimize Guideline-Directed Medical Therapy for heart failure."""
     optimizer = req.app.state.gdmt_optimizer
+    fallback_error: Optional[str] = None
     if optimizer:
         try:
             data = request.model_dump()
+            # `patient_data` is a NESTED field on GDMTRequest.  Passing the whole
+            # dump put every lab, vital and contraindication one level down, where
+            # the optimizer's `patient_data.get("potassium")` and friends all
+            # resolved to None -- and every safety guard in the optimizer is
+            # written `if value is not None and value > threshold`, so absent read
+            # as benign.  That produced an MRA order at K+ 6.1/eGFR 18, an ARNI
+            # order after ACEi angioedema, beta-blocker titration at HR 48, a
+            # Class I ICD assertion 5 days post-MI, and no CRT assessment at all
+            # for a QRS 168 ms LBBB patient.  Pass the nested dict, with lvef and
+            # nyha_class merged in as the optimizer's docstring expects.
+            patient_data = dict(data.get("patient_data") or {})
+            patient_data.setdefault("lvef", data["lvef"])
+            patient_data.setdefault("nyha_class", data["nyha_class"])
             result = optimizer.optimize(
                 lvef=data["lvef"],
                 nyha_class=data["nyha_class"],
                 current_medications=data.get("current_medications", []),
-                patient_data=data,
+                patient_data=patient_data,
             )
+            phenotype = result.ef_category
             return GDMTResponse(
-                hf_phenotype=result.ef_category,
+                hf_phenotype=(
+                    phenotype.value if hasattr(phenotype, "value") else str(phenotype)
+                ),
                 lvef=data["lvef"],
                 nyha_class=data["nyha_class"],
-                recommendations=result.recommendations,
-                four_pillars_status={},
+                recommendations=_optimizer_recs_to_models(
+                    result.recommendations, optimizer.get_guideline_reference(),
+                ),
+                four_pillars_status=optimizer.get_all_pillars_status(
+                    data.get("current_medications", []),
+                ),
                 summary="; ".join(result.next_steps) if result.next_steps else "",
+                status="optimizer",
+                error=None,
             )
         except Exception as exc:
             logger.warning(f"GDMT optimizer error, using built-in logic: {exc}")
+            fallback_error = str(exc)
 
-    # Determine HF phenotype
-    if request.lvef < 40:
+    # Determine HF phenotype.  LVEF <=40 is HFrEF, matching
+    # GDMTOptimizer._HFREF_EF_CUTOFF, HeartFailureWorkflow._classify_ef and
+    # risk_calculators; `< 40` here dropped a patient with an LVEF of exactly 40%
+    # from four Class I "INITIATE" recommendations to "Consider".
+    if request.lvef <= HFREF_LVEF_CUTOFF:
         phenotype = "HFrEF"
-    elif request.lvef <= 49:
+    elif request.lvef < HFPEF_LVEF_CUTOFF:
         phenotype = "HFmrEF"
     else:
         phenotype = "HFpEF"
@@ -721,21 +912,36 @@ async def optimize_gdmt(request: GDMTRequest, req: Request):
                 recommendations.append(rec)
                 pillar_status[pillar] = "NOT STARTED"
             else:
-                # Check for dose optimization
-                at_target = False
-                for med in request.current_medications:
-                    med_name = med.get("name", "").lower()
-                    for drug_name, info in GDMT_TARGETS.items():
-                        if drug_name in med_name and info["class"] == pillar:
-                            at_target = True  # Simplified; would check actual dose
-                            break
+                # Compare the recorded dose against the pillar target.  This used
+                # to be `at_target = True  # Simplified; would check actual dose`,
+                # so a patient on carvedilol 3.125 mg BID -- one eighth of the
+                # 25 mg BID mortality-reducing target -- was reported
+                # "Beta-blocker: AT TARGET" with no up-titration recommended,
+                # hiding the single commonest GDMT gap from the tile meant to
+                # catch it.  A dose that was never recorded is reported as such.
+                dose_state, dose_detail = _pillar_dose_state(
+                    pillar, request.current_medications
+                )
 
-                if at_target:
+                if dose_state == "at_target":
                     pillar_status[pillar] = "AT TARGET"
+                elif dose_state == "dose_not_recorded":
+                    recommendations.append(GDMTRecommendation(
+                        medication_class=pillar,
+                        current_status=f"On therapy; dose not recorded ({dose_detail})",
+                        recommendation=(
+                            f"RECORD {pillar} DOSE: cannot tell whether this pillar is at "
+                            f"target. Do not assume it is."
+                        ),
+                        evidence_level="Class I",
+                        guideline_ref="2022 AHA/ACC/HFSA HF Guideline",
+                        caution="An unrecorded dose is not a target dose",
+                    ))
+                    pillar_status[pillar] = "DOSE NOT RECORDED"
                 else:
                     recommendations.append(GDMTRecommendation(
                         medication_class=pillar,
-                        current_status="Below target dose",
+                        current_status=f"Below target dose ({dose_detail})",
                         recommendation=f"UP-TITRATE {pillar} to target",
                         evidence_level="Class I",
                         guideline_ref="2022 AHA/ACC/HFSA HF Guideline",
@@ -747,9 +953,11 @@ async def optimize_gdmt(request: GDMTRequest, req: Request):
                 recommendations.append(GDMTRecommendation(
                     medication_class=pillar,
                     current_status="Not on therapy",
-                    recommendation=f"INITIATE {pillar} (Class IIa for HFmrEF)",
+                    recommendation=(
+                        f"INITIATE {pillar} ({SGLT2I_CLASS_HFMREF_TEXT} for HFmrEF)"
+                    ),
                     target_dose="Dapagliflozin 10 mg or empagliflozin 10 mg daily",
-                    evidence_level="Class IIa",
+                    evidence_level=SGLT2I_CLASS_HFMREF_TEXT,
                     guideline_ref="2022 AHA/ACC/HFSA HF Guideline",
                 ))
                 pillar_status[pillar] = "NOT STARTED"
@@ -760,9 +968,11 @@ async def optimize_gdmt(request: GDMTRequest, req: Request):
                 recommendations.append(GDMTRecommendation(
                     medication_class=pillar,
                     current_status="Not on therapy",
-                    recommendation=f"INITIATE {pillar} (Class IIa for HFpEF)",
+                    recommendation=(
+                        f"INITIATE {pillar} ({SGLT2I_CLASS_HFPEF_TEXT} for HFpEF)"
+                    ),
                     target_dose="Dapagliflozin 10 mg or empagliflozin 10 mg daily",
-                    evidence_level="Class IIa",
+                    evidence_level=SGLT2I_CLASS_HFPEF_TEXT,
                     guideline_ref="2022 AHA/ACC/HFSA; EMPEROR-Preserved; DELIVER",
                 ))
                 pillar_status[pillar] = "NOT STARTED"
@@ -787,11 +997,24 @@ async def optimize_gdmt(request: GDMTRequest, req: Request):
                 guideline_ref="A-HeFT trial; 2022 AHA/ACC/HFSA",
             ))
 
-    n_started = sum(1 for v in pillar_status.values() if v in ("AT TARGET", "ON THERAPY", "SUBOPTIMAL"))
+    n_started = sum(
+        1 for v in pillar_status.values()
+        if v in ("AT TARGET", "ON THERAPY", "SUBOPTIMAL", "DOSE NOT RECORDED")
+    )
     summary = (
         f"{phenotype} (LVEF {request.lvef}%, NYHA {request.nyha_class}): "
         f"{n_started}/4 pillars active, {len(recommendations)} optimization opportunities identified."
     )
+    if fallback_error is not None:
+        # The guideline engine raised and this plan came from the route's
+        # simplified built-in logic.  It used to be returned as HTTP 200 with no
+        # status and no error field, so a caller could not tell that the
+        # guideline engine had been bypassed.
+        summary = (
+            f"DEGRADED - the GDMT guideline engine failed and this plan came from "
+            f"the route's simplified built-in logic, not the guideline optimizer. "
+            f"{summary}"
+        )
 
     with req.app.state.metrics_lock:
         req.app.state.metrics["gdmt_requests_total"] += 1
@@ -803,6 +1026,8 @@ async def optimize_gdmt(request: GDMTRequest, req: Request):
         recommendations=recommendations,
         four_pillars_status=pillar_status,
         summary=summary,
+        status="degraded" if fallback_error is not None else "builtin",
+        error=fallback_error,
     )
 
 

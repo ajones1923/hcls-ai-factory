@@ -23,6 +23,7 @@ Author: Adam Jones
 Date: March 2026
 """
 
+import json
 import logging
 import re
 import time
@@ -1252,15 +1253,22 @@ class TrialRAGEngine:
                 diagnosis, biomarkers, prior_therapies, performance_status.
 
         Returns:
-            Dict with keys: trial_id, eligible (bool), matched_criteria (list),
-            unmatched_criteria (list), uncertain_criteria (list), assessment (str).
+            Dict with keys: trial_id, eligible, matched_criteria,
+            unmatched_criteria, uncertain_criteria, assessment.
+
+            ``eligible`` is TRI-STATE: True (every criterion met), False (at
+            least one criterion not met), or None (at least one criterion
+            uncertain, or the assessment could not be parsed). It was
+            documented as ``bool`` and derived from whether the literal string
+            "NOT MET" appeared in the first 200 characters of the model's
+            prose. None is never a pass.
         """
         if not self.milvus:
             raise RuntimeError("Milvus client not configured.")
 
         assessment = {
             "trial_id": trial_id,
-            "eligible": False,
+            "eligible": None,
             "matched_criteria": [],
             "unmatched_criteria": [],
             "uncertain_criteria": [],
@@ -1293,13 +1301,29 @@ class TrialRAGEngine:
                 )
                 patient_text = self._format_patient_context(patient_profile)
 
+                # Ask for STRUCTURED verdicts. The eligibility boolean used to
+                # be derived from prose with
+                #     "NOT MET" not in answer.upper()[:200]
+                # which is wrong in three independent ways: a
+                # criterion-by-criterion answer puts its first failure well
+                # past character 200; any paraphrase ("does not meet", "is
+                # excluded", "fails criterion 3", "ineligible") never matches
+                # the literal token at all; and absence of a failure string was
+                # read as presence of eligibility.
                 prompt = (
                     f"## Trial Eligibility Criteria ({trial_id})\n\n"
                     f"{criteria_text}\n\n"
                     f"{patient_text}\n\n"
-                    f"Evaluate whether this patient meets the eligibility criteria. "
-                    f"For each criterion, indicate: MET, NOT MET, or UNCERTAIN. "
-                    f"Provide an overall eligibility assessment."
+                    "Evaluate whether this patient meets the eligibility "
+                    "criteria, one criterion at a time.\n\n"
+                    "Return ONLY a JSON object, with no prose before or after "
+                    "it, in exactly this form:\n"
+                    '{"criteria": [{"criterion": "<verbatim criterion text>", '
+                    '"verdict": "met" | "not_met" | "uncertain", '
+                    '"rationale": "<one sentence>"}], '
+                    '"summary": "<two sentences>"}\n\n'
+                    "Use \"uncertain\" whenever the patient data needed to "
+                    "decide a criterion is absent. Do not guess."
                 )
 
                 answer = self.llm.generate(
@@ -1308,8 +1332,7 @@ class TrialRAGEngine:
                     max_tokens=1024,
                     temperature=0.3,
                 )
-                assessment["assessment"] = answer
-                assessment["eligible"] = "NOT MET" not in answer.upper()[:200]
+                self._apply_structured_eligibility(assessment, answer)
             else:
                 assessment["assessment"] = (
                     "LLM not configured. Manual review of criteria required."
@@ -1320,8 +1343,75 @@ class TrialRAGEngine:
                 "Eligibility assessment failed for %s: %s", trial_id, exc,
             )
             assessment["assessment"] = f"Assessment error: {exc}"
+            assessment["eligible"] = None
 
         return assessment
+
+    @staticmethod
+    def _apply_structured_eligibility(assessment: dict, answer: str) -> None:
+        """Parse the model's JSON verdicts into *assessment*, in place.
+
+        Sets ``eligible`` to:
+
+        * ``True``  -- every criterion returned ``met``;
+        * ``False`` -- at least one criterion returned ``not_met``;
+        * ``None``  -- any criterion is ``uncertain``, or the response could not
+          be parsed into per-criterion verdicts.
+
+        ``None`` is the important case. A consumer that trusts a boolean and
+        not the prose previously enrolled a patient with active brain
+        metastases into a trial that excludes them, because the model's
+        correct criterion-by-criterion answer put its first "NOT MET" around
+        character 230 and the boolean was computed from the first 200.
+        """
+        assessment["assessment"] = answer
+
+        payload = None
+        if answer:
+            # Tolerate a fenced block or stray prose around the JSON.
+            match = re.search(r"\{.*\}", answer, re.DOTALL)
+            if match:
+                try:
+                    payload = json.loads(match.group(0))
+                except (ValueError, TypeError):
+                    payload = None
+
+        rows = None
+        if isinstance(payload, dict):
+            candidate = payload.get("criteria")
+            if isinstance(candidate, list) and candidate:
+                rows = candidate
+
+        if rows is None:
+            assessment["eligible"] = None
+            assessment["assessment"] = (
+                f"{answer}\n\n[Eligibility not determined: the assessment "
+                "could not be parsed into per-criterion verdicts. Eligibility "
+                "must be confirmed by a qualified investigator against the "
+                "protocol.]"
+            )
+            return
+
+        for row in rows:
+            if not isinstance(row, dict):
+                assessment["eligible"] = None
+                return
+            text = str(row.get("criterion", "")).strip()
+            verdict = str(row.get("verdict", "")).strip().lower()
+            entry = {"criterion": text, "rationale": row.get("rationale", "")}
+            if verdict == "met":
+                assessment["matched_criteria"].append(entry)
+            elif verdict == "not_met":
+                assessment["unmatched_criteria"].append(entry)
+            else:
+                assessment["uncertain_criteria"].append(entry)
+
+        if assessment["unmatched_criteria"]:
+            assessment["eligible"] = False
+        elif assessment["uncertain_criteria"]:
+            assessment["eligible"] = None
+        else:
+            assessment["eligible"] = True
 
     # ══════════════════════════════════════════════════════════════════
     # CONVERSATION MEMORY

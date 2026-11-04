@@ -41,12 +41,12 @@
 <rect x="44.0" y="330.0" width="324.5" height="66" rx="5" fill="#EBE9F5" stroke="#CFC9EA" stroke-width="1"/>
 <rect x="44.0" y="330.0" width="4" height="66" rx="2" fill="#4C3F98"/>
 <text x="60.0" y="360" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14.5" font-weight="600" fill="#171A1F">Neurology Intelligence</text>
-<text x="354.5" y="384" text-anchor="end" font-family="'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace" font-size="11.5" fill="#545C66">:8529</text>
+<text x="354.5" y="384" text-anchor="end" font-family="'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace" font-size="11.5" fill="#545C66">:8535</text>
 <rect x="386.5" y="330.0" width="324.5" height="66" rx="5" fill="#EBE9F5" stroke="#CFC9EA" stroke-width="1"/>
 <rect x="386.5" y="330.0" width="4" height="66" rx="2" fill="#4C3F98"/>
 <text x="402.5" y="356" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14.5" font-weight="600" fill="#171A1F">Clinical Trial</text>
 <text x="402.5" y="372" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14.5" font-weight="600" fill="#171A1F">Intelligence</text>
-<text x="697.0" y="384" text-anchor="end" font-family="'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace" font-size="11.5" fill="#545C66">:8128</text>
+<text x="697.0" y="384" text-anchor="end" font-family="'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace" font-size="11.5" fill="#545C66">:8538</text>
 <rect x="729.0" y="330.0" width="324.5" height="66" rx="5" fill="#EBE9F5" stroke="#CFC9EA" stroke-width="1"/>
 <rect x="729.0" y="330.0" width="4" height="66" rx="2" fill="#4C3F98"/>
 <text x="745.0" y="360" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14.5" font-weight="600" fill="#171A1F">Rare Disease Intelligence</text>
@@ -54,7 +54,7 @@
 <rect x="1071.5" y="330.0" width="324.5" height="66" rx="5" fill="#EBE9F5" stroke="#CFC9EA" stroke-width="1"/>
 <rect x="1071.5" y="330.0" width="4" height="66" rx="2" fill="#4C3F98"/>
 <text x="1087.5" y="360" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14.5" font-weight="600" fill="#171A1F">Single-Cell Intelligence</text>
-<text x="1382.0" y="384" text-anchor="end" font-family="'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace" font-size="11.5" fill="#545C66">:8130</text>
+<text x="1382.0" y="384" text-anchor="end" font-family="'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace" font-size="11.5" fill="#545C66">:8540</text>
 <text x="44" y="430" font-family="'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace" font-size="12.5" letter-spacing="2.5" fill="#0C6E63">ENGINES · THE COMPUTE LAYER</text>
 <rect x="44.0" y="446.0" width="324.5" height="66" rx="5" fill="#E4EFEC" stroke="#B8D6CF" stroke-width="1"/>
 <rect x="44.0" y="446.0" width="4" height="66" rx="2" fill="#0C6E63"/>
@@ -75,7 +75,7 @@
 <rect x="1071.5" y="446.0" width="4" height="66" rx="2" fill="#0C6E63"/>
 <text x="1087.5" y="468" font-family="'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace" font-size="12" font-weight="600" fill="#0C6E63">E4</text>
 <text x="1117.5" y="476" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14.5" font-weight="600" fill="#171A1F">Clinical Imaging</text>
-<text x="1382.0" y="500" text-anchor="end" font-family="'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace" font-size="11.5" fill="#545C66">:8525</text>
+<text x="1382.0" y="500" text-anchor="end" font-family="'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace" font-size="11.5" fill="#545C66">:8523</text>
 <rect x="44.0" y="528.0" width="324.5" height="66" rx="5" fill="#E4EFEC" stroke="#B8D6CF" stroke-width="1"/>
 <rect x="44.0" y="528.0" width="4" height="66" rx="2" fill="#0C6E63"/>
 <text x="60.0" y="550" font-family="'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace" font-size="12" font-weight="600" fill="#0C6E63">E5</text>
@@ -85,7 +85,7 @@
 <rect x="386.5" y="528.0" width="4" height="66" rx="2" fill="#0C6E63"/>
 <text x="402.5" y="550" font-family="'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace" font-size="12" font-weight="600" fill="#0C6E63">E6</text>
 <text x="432.5" y="558" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14.5" font-weight="600" fill="#171A1F">Cardiology</text>
-<text x="697.0" y="582" text-anchor="end" font-family="'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace" font-size="11.5" fill="#545C66">:8536</text>
+<text x="697.0" y="582" text-anchor="end" font-family="'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace" font-size="11.5" fill="#545C66">:8126</text>
 <rect x="729.0" y="528.0" width="324.5" height="66" rx="5" fill="#E4EFEC" stroke="#B8D6CF" stroke-width="1"/>
 <rect x="729.0" y="528.0" width="4" height="66" rx="2" fill="#0C6E63"/>
 <text x="745.0" y="550" font-family="'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace" font-size="12" font-weight="600" fill="#0C6E63">E7</text>

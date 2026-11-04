@@ -202,7 +202,18 @@ class MatchScore(BaseModel):
     """Score for a single eligibility criterion match."""
     criterion_text: str = Field(..., description="The eligibility criterion text")
     criterion_type: CriterionType = Field(..., description="Inclusion or exclusion")
-    met: bool = Field(..., description="Whether the criterion is met")
+    met: Optional[bool] = Field(
+        default=None,
+        description=(
+            "Tri-state verdict. True = the criterion is met (for an exclusion "
+            "criterion, that it is TRIGGERED). False = not met / not "
+            "triggered. None = UNKNOWN: no rule understood the criterion, or "
+            "the patient field it needs was not supplied. None is not met: "
+            "ClinicalTrials.gov publishes eligibility criteria as free-text "
+            "markup with no machine-readable per-criterion representation, so "
+            "an unparsed criterion is by construction unknown."
+        ),
+    )
     confidence: float = Field(
         ..., ge=0.0, le=1.0,
         description="Confidence in the match assessment",
@@ -447,9 +458,14 @@ class WorkflowResult(BaseModel):
         default_factory=list,
         description="Triggers for cross-agent consultation (e.g., genomics, safety)",
     )
-    confidence: float = Field(
-        default=0.0, ge=0.0, le=1.0,
-        description="Workflow confidence score (0.0 - 1.0)",
+    confidence: Optional[float] = Field(
+        default=None, ge=0.0, le=1.0,
+        description=(
+            "Workflow confidence score (0.0 - 1.0), or None when nothing was "
+            "evaluated. None is not 0.0: a reported number reads as a measured "
+            "low-confidence result, and the honest answer for an assessment "
+            "that did not happen is that confidence is not computable."
+        ),
     )
 
 

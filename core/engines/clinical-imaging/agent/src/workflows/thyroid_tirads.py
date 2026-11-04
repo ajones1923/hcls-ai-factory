@@ -25,6 +25,8 @@ Author: Adam Jones
 Date: April 2026
 """
 
+import re
+from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
 from loguru import logger
@@ -85,6 +87,108 @@ ECHOGENIC_FOCI_POINTS = {
 # =====================================================================
 
 
+# The five ACR feature tables, keyed by the nodule field each one scores. Collected so the
+# scorer iterates them instead of repeating a lookup per feature -- the repetition is what let
+# five identical `.get(..., 0)` defaults go unnoticed.
+FEATURE_POINT_TABLES: Dict[str, Dict[str, int]] = {
+    "composition": COMPOSITION_POINTS,
+    "echogenicity": ECHOGENICITY_POINTS,
+    "shape": SHAPE_POINTS,
+    "margin": MARGIN_POINTS,
+    "echogenic_foci": ECHOGENIC_FOCI_POINTS,
+}
+
+
+class TIRADSFeatureError(ValueError):
+    """Raised when a nodule's features cannot be scored against the ACR tables."""
+
+
+def normalize_feature_label(value: Any) -> str:
+    """Canonicalise a feature label's spelling so a lookup miss means a real mismatch.
+
+    Casefolds, trims, and maps hyphens, spaces and slashes to the underscore the tables use,
+    so ``"Taller-Than-Wide"``, ``"taller than wide"`` and ``"taller_than_wide"`` are one key.
+    This normalises SPELLING only -- it invents no synonyms. A label that still does not match
+    after this is an unrecognised finding and is reported as one.
+    """
+    text = str(value).strip().casefold()
+    text = re.sub(r"[\s\-/]+", "_", text)
+    return re.sub(r"_+", "_", text).strip("_")
+
+
+@dataclass
+class TIRADSFeatureScore:
+    """The result of scoring one nodule's five ACR features.
+
+    ``points`` is the total of the features that COULD be scored, so it is only a TI-RADS
+    total when both ``missing`` and ``unrecognised`` are empty. Check ``is_complete`` before
+    mapping it to a TR level.
+    """
+    points: int = 0
+    scored: Dict[str, int] = field(default_factory=dict)
+    missing: List[str] = field(default_factory=list)
+    unrecognised: Dict[str, str] = field(default_factory=dict)
+
+    @property
+    def is_complete(self) -> bool:
+        return not self.missing and not self.unrecognised
+
+    def describe_problems(self) -> str:
+        """One human-readable clause naming every feature that could not be scored."""
+        parts: List[str] = []
+        if self.missing:
+            parts.append("not reported: " + ", ".join(sorted(self.missing)))
+        if self.unrecognised:
+            parts.append(
+                "not in the ACR tables: "
+                + ", ".join(f"{k}={v!r}" for k, v in sorted(self.unrecognised.items()))
+            )
+        return "; ".join(parts)
+
+
+def score_tirads_features(nodule: Dict) -> TIRADSFeatureScore:
+    """Score a nodule's five ACR TI-RADS features, reporting what could not be scored.
+
+    AUDIT FIX (2026-11-03): this logic used to be five ``dict.get(feature, 0)`` calls. Zero is
+    the BENIGN value in all five ACR tables, so an absent key, a vendor synonym, a different
+    capitalisation, or a space where the table has an underscore all scored as the single most
+    reassuring finding available, silently. A 13-point TR5 nodule written as ``"Solid"``,
+    ``"very hypoechoic"``, ``"taller-than-wide"``, ``"Irregular"``, ``"punctate echogenic
+    foci"`` came back as 0 points, TR1, "Benign. No FNA indicated. No follow-up needed." --
+    and the report still carried a TI-RADS level, so it looked like the system had worked.
+    The engine's own report parser already extracts hyphenated free-text qualifiers, so
+    non-canonical spellings are this engine's normal input, not a hypothetical.
+
+    Spelling is normalised first (see ``normalize_feature_label``); anything still unmatched is
+    returned in ``unrecognised`` and contributes NO points, rather than contributing zero as
+    though the finding were benign.
+
+    Args:
+        nodule: Dict with keys composition, echogenicity, shape, margin, echogenic_foci.
+
+    Returns:
+        TIRADSFeatureScore. Only trust ``.points`` when ``.is_complete`` is True.
+    """
+    score = TIRADSFeatureScore()
+
+    for feature, table in FEATURE_POINT_TABLES.items():
+        raw = nodule.get(feature)
+        if raw is None or (isinstance(raw, str) and not raw.strip()):
+            score.missing.append(feature)
+            continue
+
+        key = normalize_feature_label(raw)
+        if key not in table:
+            score.unrecognised[feature] = str(raw)
+            continue
+
+        value = table[key]
+        score.scored[feature] = value
+        score.points += value
+
+    return score
+
+
 def calculate_tirads_points(nodule: Dict) -> int:
     """Calculate total ACR TI-RADS points from nodule features.
 
@@ -94,14 +198,21 @@ def calculate_tirads_points(nodule: Dict) -> int:
 
     Returns:
         Total TI-RADS points (0-14 theoretical max).
+
+    Raises:
+        TIRADSFeatureError: if any of the five features is absent or carries a label that is
+            not in its ACR table. See ``score_tirads_features`` for why this refuses rather
+            than scoring the unknown feature as benign. Callers that need to carry on and
+            report an indeterminate result should use ``score_tirads_features`` directly.
     """
-    points = 0
-    points += COMPOSITION_POINTS.get(nodule.get("composition", ""), 0)
-    points += ECHOGENICITY_POINTS.get(nodule.get("echogenicity", ""), 0)
-    points += SHAPE_POINTS.get(nodule.get("shape", ""), 0)
-    points += MARGIN_POINTS.get(nodule.get("margin", ""), 0)
-    points += ECHOGENIC_FOCI_POINTS.get(nodule.get("echogenic_foci", ""), 0)
-    return points
+    score = score_tirads_features(nodule)
+    if not score.is_complete:
+        raise TIRADSFeatureError(
+            f"Cannot score TI-RADS points -- {score.describe_problems()}. "
+            "An unscored feature is not a benign feature: zero points is the most reassuring "
+            "value in every ACR table, so it cannot be used as a default."
+        )
+    return score.points
 
 
 def points_to_tirads(points: int) -> TIRADS:
@@ -138,6 +249,24 @@ def points_to_tirads(points: int) -> TIRADS:
         return TIRADS.TR5
 
 
+# TR levels in published order, for picking the highest nodule in a gland.
+#
+# AUDIT FIX (2026-11-03): the workflow used to track the highest TR level by SEVERITY index,
+# and `tirads_to_severity` maps TR1 and TR2 both to NORMAL. A gland whose only nodule was
+# 2 points therefore reported "TI-RADS TR1" in the headline while the finding underneath said
+# TR2. Management is identical at TR1 and TR2, so this was a reporting-integrity defect rather
+# than a management error -- but TR1 means "benign" and TR2 means "not suspicious", which are
+# different statements about a real nodule, and a headline contradicting its own body is not
+# a report anyone should sign.
+TIRADS_ORDER: Dict[TIRADS, int] = {
+    TIRADS.TR1: 1,
+    TIRADS.TR2: 2,
+    TIRADS.TR3: 3,
+    TIRADS.TR4: 4,
+    TIRADS.TR5: 5,
+}
+
+
 def tirads_to_severity(tr_level: TIRADS) -> FindingSeverity:
     """Map TI-RADS level to clinical severity.
 
@@ -157,7 +286,17 @@ def tirads_to_severity(tr_level: TIRADS) -> FindingSeverity:
     return mapping.get(tr_level, FindingSeverity.ROUTINE)
 
 
-def tirads_fna_recommendation(tr_level: TIRADS, max_diameter_mm: float) -> str:
+_TR_LABELS: Dict[TIRADS, str] = {
+    TIRADS.TR3: "TR3 (Mildly suspicious)",
+    TIRADS.TR4: "TR4 (Moderately suspicious)",
+    TIRADS.TR5: "TR5 (Highly suspicious)",
+}
+
+
+def tirads_fna_recommendation(
+    tr_level: TIRADS,
+    max_diameter_mm: Optional[float],
+) -> str:
     """Determine FNA recommendation based on TR level and nodule size.
 
     ACR TI-RADS size thresholds for FNA:
@@ -167,9 +306,18 @@ def tirads_fna_recommendation(tr_level: TIRADS, max_diameter_mm: float) -> str:
         TR4: FNA if >= 15mm, follow-up if >= 10mm
         TR5: FNA if >= 10mm, follow-up if >= 5mm
 
+    AUDIT FIX (2026-11-03): ``max_diameter_mm`` was non-optional and the workflow supplied
+    ``0.0`` when no measurement had come through. Zero sits below every threshold above, so a
+    nodule correctly scored TR5 at 13 points was reported as "TR5 (Highly suspicious). No FNA
+    needed at current size (< 0.5cm). Optional follow-up ultrasound." The report asserted a
+    size it never had, and that assertion is the one that cancels the biopsy. Size is now
+    Optional and an absent size produces an explicit refusal naming the missing measurement.
+    TR1 and TR2 still answer, because at those levels the published management is the same at
+    every size and nothing turns on the number.
+
     Args:
         tr_level: ACR TI-RADS level.
-        max_diameter_mm: Maximum nodule diameter in mm.
+        max_diameter_mm: Maximum nodule diameter in mm, or None if it was not measured.
 
     Returns:
         Management recommendation string.
@@ -179,6 +327,14 @@ def tirads_fna_recommendation(tr_level: TIRADS, max_diameter_mm: float) -> str:
 
     if tr_level == TIRADS.TR2:
         return "TR2 (Not suspicious). No FNA indicated. No follow-up needed."
+
+    if max_diameter_mm is None:
+        label = _TR_LABELS.get(tr_level, str(tr_level.value))
+        return (
+            f"{label}. Maximum diameter not measured, and every FNA and follow-up threshold "
+            "at this level is size-dependent, so management CANNOT be determined. Measure the "
+            "nodule and re-run. This is not a recommendation against FNA."
+        )
 
     if tr_level == TIRADS.TR3:
         if max_diameter_mm >= 25.0:
@@ -319,10 +475,16 @@ class ThyroidTIRADSWorkflow(BaseImagingWorkflow):
         """Return realistic mock thyroid ultrasound findings.
 
         Simulates a thyroid ultrasound with two nodules:
-            - A 22mm solid hypoechoic nodule with punctate echogenic foci
-              and irregular margins in the right lobe (TR5, 10 points)
+            - A 22mm solid hypoechoic taller-than-wide nodule with punctate echogenic foci
+              and irregular margins in the right lobe (TR5, 12 points)
             - A 14mm mixed cystic-solid isoechoic nodule with smooth
-              margins in the left lobe (TR3, 2 points)
+              margins in the left lobe (TR2, 2 points)
+
+        AUDIT FIX (2026-11-03): this docstring said "TR5, 10 points" and "TR3, 2 points". The
+        code computes 12 and TR2 (2 points maps to TR2 by this module's own documented chart).
+        The figures are asserted in tests/test_radiology_reference_cases.py now, because this
+        narrative is what reviewers read instead of running the code -- in the companion lung
+        workflow the same drift is what hid a grading defect for a release.
         """
         return {
             "thyroid_volume_ml": 18.5,
@@ -406,7 +568,8 @@ class ThyroidTIRADSWorkflow(BaseImagingWorkflow):
 
         findings = []
         overall_severity = FindingSeverity.NORMAL
-        highest_tirads = TIRADS.TR1
+        highest_tirads: Optional[TIRADS] = None
+        ungraded: List[str] = []
 
         severity_order = [
             FindingSeverity.NORMAL,
@@ -420,21 +583,82 @@ class ThyroidTIRADSWorkflow(BaseImagingWorkflow):
             nodule_id = nodule.get("id", "unknown")
             location = nodule.get("location", "unspecified")
             laterality = nodule.get("laterality", "unspecified")
-            max_diameter_mm = nodule.get("max_diameter_mm", 0.0)
+            # AUDIT FIX (2026-11-03): this defaulted to 0.0, which is below every published
+            # FNA and follow-up threshold, so an unmeasured nodule was managed as the smallest
+            # possible one. None now means "not measured" and is carried as such.
+            raw_diameter = nodule.get("max_diameter_mm")
+            max_diameter_mm = None if raw_diameter is None else float(raw_diameter)
 
-            # Calculate TI-RADS points
-            points = calculate_tirads_points(nodule)
+            feature_score = score_tirads_features(nodule)
+
+            features = {
+                feature: nodule.get(feature) for feature in FEATURE_POINT_TABLES
+            }
+            measurements_block = {
+                "max_diameter_mm": max_diameter_mm,
+                "ap_diameter_mm": nodule.get("ap_diameter_mm"),
+                "transverse_diameter_mm": nodule.get("transverse_diameter_mm"),
+                "longitudinal_diameter_mm": nodule.get("longitudinal_diameter_mm"),
+            }
+
+            # --- A feature that could not be scored means no TR level at all -----------
+            if not feature_score.is_complete:
+                problems = feature_score.describe_problems()
+                ungraded.append(f"{nodule_id} ({problems})")
+                findings.append({
+                    "category": FindingCategory.INDETERMINATE.value,
+                    "description": (
+                        f"Thyroid nodule in {location}: TI-RADS NOT ASSESSED -- {problems}. "
+                        "An unscored ACR feature cannot be treated as a benign one, so no "
+                        "TR level and no management recommendation are issued."
+                    ),
+                    "severity": FindingSeverity.UNKNOWN.value,
+                    "nodule_id": nodule_id,
+                    "laterality": laterality,
+                    "location": location,
+                    "tirads": None,
+                    "tirads_points": None,
+                    "unscored_features": {
+                        "missing": sorted(feature_score.missing),
+                        "unrecognised": dict(sorted(feature_score.unrecognised.items())),
+                    },
+                    "partial_points_scored": feature_score.points,
+                    "recommendation": (
+                        "TI-RADS cannot be assigned until every ACR feature is reported with "
+                        "a label the published tables contain. Review the source study."
+                    ),
+                    "detection_confidence": nodule.get("detection_confidence", 0.0),
+                    "features": features,
+                    "measurements": measurements_block,
+                })
+                continue
+
+            points = feature_score.points
             tr_level = points_to_tirads(points)
             nodule_severity = tirads_to_severity(tr_level)
             recommendation = tirads_fna_recommendation(tr_level, max_diameter_mm)
 
+            if max_diameter_mm is None and tr_level in (
+                TIRADS.TR3, TIRADS.TR4, TIRADS.TR5
+            ):
+                ungraded.append(f"{nodule_id} (max_diameter_mm not measured)")
+
             # Track overall severity (highest wins)
             if severity_order.index(nodule_severity) > severity_order.index(overall_severity):
                 overall_severity = nodule_severity
+
+            # AUDIT FIX (2026-11-03): highest_tirads is tracked by TR ordinal, not by the
+            # severity index. TR1 and TR2 share one severity, so the old test could not see a
+            # TR2 and the headline said TR1.
+            if highest_tirads is None or TIRADS_ORDER[tr_level] > TIRADS_ORDER[highest_tirads]:
                 highest_tirads = tr_level
 
+            size_text = (
+                f"{max_diameter_mm:.1f}mm" if max_diameter_mm is not None
+                else "size not measured"
+            )
             description = (
-                f"Thyroid nodule in {location}, {max_diameter_mm:.1f}mm, "
+                f"Thyroid nodule in {location}, {size_text}, "
                 f"{nodule.get('composition', 'unspecified')} composition, "
                 f"{nodule.get('echogenicity', 'unspecified')} echogenicity, "
                 f"TI-RADS {tr_level.value} ({points} points)"
@@ -451,41 +675,60 @@ class ThyroidTIRADSWorkflow(BaseImagingWorkflow):
                 "tirads_points": points,
                 "recommendation": recommendation,
                 "detection_confidence": nodule.get("detection_confidence", 0.0),
-                "features": {
-                    "composition": nodule.get("composition", ""),
-                    "echogenicity": nodule.get("echogenicity", ""),
-                    "shape": nodule.get("shape", ""),
-                    "margin": nodule.get("margin", ""),
-                    "echogenic_foci": nodule.get("echogenic_foci", ""),
-                },
-                "measurements": {
-                    "max_diameter_mm": max_diameter_mm,
-                    "ap_diameter_mm": nodule.get("ap_diameter_mm", 0.0),
-                    "transverse_diameter_mm": nodule.get("transverse_diameter_mm", 0.0),
-                    "longitudinal_diameter_mm": nodule.get("longitudinal_diameter_mm", 0.0),
-                },
+                "features": features,
+                "measurements": measurements_block,
             })
 
-        # Aggregate measurements
-        measurements = {
+        # Aggregate measurements. Only genuinely computed values go in here: a nodule whose
+        # features could not be scored contributes no point total, because a 0.0 in this dict
+        # is indistinguishable from a benign nodule.
+        measurements: Dict[str, float] = {
             "nodule_count": float(len(nodules)),
             "thyroid_volume_ml": inference_result.get("thyroid_volume_ml", 0.0),
             "isthmus_thickness_mm": inference_result.get("isthmus_thickness_mm", 0.0),
         }
         for i, nodule in enumerate(nodules):
             prefix = f"nodule_{i + 1}"
-            measurements[f"{prefix}_diameter_mm"] = nodule.get("max_diameter_mm", 0.0)
-            points = calculate_tirads_points(nodule)
-            measurements[f"{prefix}_tirads_points"] = float(points)
+            diameter = nodule.get("max_diameter_mm")
+            if diameter is not None:
+                measurements[f"{prefix}_diameter_mm"] = float(diameter)
+            nodule_score = score_tirads_features(nodule)
+            if nodule_score.is_complete:
+                measurements[f"{prefix}_tirads_points"] = float(nodule_score.points)
 
-        # Cross-modal trigger for TR4+ (BRAF, RAS, RET/PTC)
-        cross_modal_trigger = highest_tirads in (TIRADS.TR4, TIRADS.TR5)
+        # Cross-modal trigger for TR4+ (BRAF, RAS, RET/PTC).
+        #
+        # AUDIT FIX (2026-11-03): this used to stamp findings[0] -- the FIRST nodule in the
+        # list, not the nodule whose TR level fired the trigger. A gland with a benign simple
+        # cyst listed first and a TR5 nodule second recorded the BRAF/RAS/RET-PTC work-up
+        # against the cyst, in the wrong lobe, while the TR5 nodule carried no molecular
+        # annotation. Anything joining genomics to a nodule ID -- or an FNA ordered from that
+        # record -- then pointed at the wrong lesion. The flag now goes on each finding whose
+        # OWN level is TR4 or TR5.
+        triggering_findings = [
+            f for f in findings
+            if f.get("tirads") in (TIRADS.TR4.value, TIRADS.TR5.value)
+        ]
+        for finding in triggering_findings:
+            finding["cross_modal_trigger"] = True
+            finding["genomic_queries"] = ["BRAF V600E", "RAS", "RET/PTC"]
 
-        if cross_modal_trigger:
-            findings[0]["cross_modal_trigger"] = True
-            findings[0]["genomic_queries"] = [
-                "BRAF V600E", "RAS", "RET/PTC",
-            ]
+        # A gland in which nothing could be graded, or any nodule could not be graded, is not
+        # a completed read. Say so in the status, the classification and the severity rather
+        # than reporting the nodules that did grade and letting the rest look benign.
+        if ungraded:
+            reason = "; ".join(ungraded)
+            return WorkflowResult(
+                workflow_name=self.WORKFLOW_NAME,
+                status=WorkflowStatus.FAILED,
+                findings=findings,
+                measurements=measurements,
+                classification=f"TI-RADS indeterminate -- {reason}",
+                severity=FindingSeverity.UNKNOWN,
+                nim_services_used=self.MODELS_USED,
+            )
+
+        assert highest_tirads is not None  # no ungraded nodules and nodules is non-empty
 
         return WorkflowResult(
             workflow_name=self.WORKFLOW_NAME,

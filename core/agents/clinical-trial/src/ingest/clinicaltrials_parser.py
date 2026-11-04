@@ -45,7 +45,7 @@ DEFAULT_CONDITIONS = [
 
 LANDMARK_TRIALS: List[Dict[str, Any]] = [
     {
-        "nct_id": "NCT02477436",
+        "nct_id": "NCT02142738",
         "title": "KEYNOTE-024: Pembrolizumab vs Platinum-Based Chemotherapy in PD-L1+ NSCLC",
         "phase": "Phase III",
         "status": "Completed",
@@ -56,7 +56,7 @@ LANDMARK_TRIALS: List[Dict[str, Any]] = [
         "significance": "Established pembrolizumab as first-line monotherapy for PD-L1-high NSCLC",
     },
     {
-        "nct_id": "NCT02813135",
+        "nct_id": "NCT02578680",
         "title": "KEYNOTE-189: Pembrolizumab + Chemotherapy in Metastatic NSCLC",
         "phase": "Phase III",
         "status": "Completed",
@@ -67,7 +67,7 @@ LANDMARK_TRIALS: List[Dict[str, Any]] = [
         "significance": "Established chemo-immunotherapy combination as standard of care",
     },
     {
-        "nct_id": "NCT01673867",
+        "nct_id": "NCT01844505",
         "title": "CheckMate 067: Nivolumab +/- Ipilimumab in Advanced Melanoma",
         "phase": "Phase III",
         "status": "Completed",
@@ -78,7 +78,7 @@ LANDMARK_TRIALS: List[Dict[str, Any]] = [
         "significance": "Demonstrated durable long-term survival with combination checkpoint inhibition",
     },
     {
-        "nct_id": "NCT01820754",
+        "nct_id": "NCT01035255",
         "title": "PARADIGM-HF: Sacubitril/Valsartan in Heart Failure",
         "phase": "Phase III",
         "status": "Completed",
@@ -111,7 +111,7 @@ LANDMARK_TRIALS: List[Dict[str, Any]] = [
         "significance": "Confirmed SGLT2i class effect in HFrEF",
     },
     {
-        "nct_id": "NCT02465268",
+        "nct_id": "NCT01764633",
         "title": "FOURIER: Evolocumab Cardiovascular Outcomes",
         "phase": "Phase III",
         "status": "Completed",
@@ -122,7 +122,7 @@ LANDMARK_TRIALS: List[Dict[str, Any]] = [
         "significance": "Demonstrated PCSK9 inhibition reduces cardiovascular events",
     },
     {
-        "nct_id": "NCT02412098",
+        "nct_id": "NCT02654132",
         "title": "ELOQUENT-3: Elotuzumab + Pomalidomide/Dexamethasone in Myeloma",
         "phase": "Phase II",
         "status": "Completed",
@@ -139,7 +139,7 @@ LANDMARK_TRIALS: List[Dict[str, Any]] = [
     # re-titled: asserting a title for a trial id nobody has verified is the same error again.
     # Surfaced by scripts/run_clinical_eval.py, which is what that eval is for.
     {
-        "nct_id": "NCT04368728",
+        "nct_id": "NCT04381936",
         "title": "RECOVERY: Dexamethasone in Hospitalized COVID-19",
         "phase": "Phase III",
         "status": "Completed",
@@ -161,7 +161,7 @@ LANDMARK_TRIALS: List[Dict[str, Any]] = [
         "significance": "First FDA-approved antiviral for COVID-19",
     },
     {
-        "nct_id": "NCT03548935",
+        "nct_id": "NCT02861534",
         "title": "VICTORIA: Vericiguat in Heart Failure",
         "phase": "Phase III",
         "status": "Completed",
@@ -172,7 +172,7 @@ LANDMARK_TRIALS: List[Dict[str, Any]] = [
         "significance": "Novel sGC stimulator for worsening HF",
     },
     {
-        "nct_id": "NCT02507959",
+        "nct_id": "NCT02246621",
         "title": "MONARCH 3: Abemaciclib + AI in HR+ Breast Cancer",
         "phase": "Phase III",
         "status": "Completed",
@@ -183,7 +183,7 @@ LANDMARK_TRIALS: List[Dict[str, Any]] = [
         "significance": "CDK4/6 inhibitor as first-line therapy in HR+/HER2- advanced breast cancer",
     },
     {
-        "nct_id": "NCT03521986",
+        "nct_id": "NCT03529110",
         "title": "DESTINY-Breast03: Trastuzumab Deruxtecan vs T-DM1 in HER2+ Breast Cancer",
         "phase": "Phase III",
         "status": "Completed",
@@ -194,7 +194,7 @@ LANDMARK_TRIALS: List[Dict[str, Any]] = [
         "significance": "Next-generation ADC showed superior efficacy over T-DM1",
     },
     {
-        "nct_id": "NCT03299946",
+        "nct_id": "NCT02366143",
         "title": "IMpower150: Atezolizumab + Bevacizumab + Chemo in NSCLC",
         "phase": "Phase III",
         "status": "Completed",
@@ -205,9 +205,9 @@ LANDMARK_TRIALS: List[Dict[str, Any]] = [
         "significance": "Four-drug regimen effective across PD-L1 expression levels",
     },
     {
-        "nct_id": "NCT02684006",
+        "nct_id": "NCT01206062",
         "title": "SPRINT: Intensive vs Standard Blood Pressure Control",
-        "phase": "Phase III",
+        "phase": "Not Applicable",
         "status": "Completed",
         "therapeutic_area": "cardiology",
         "conditions": ["Hypertension"],
@@ -216,7 +216,7 @@ LANDMARK_TRIALS: List[Dict[str, Any]] = [
         "significance": "Intensive BP control reduces cardiovascular events and mortality",
     },
     {
-        "nct_id": "NCT02853331",
+        "nct_id": "NCT01730534",
         "title": "DECLARE-TIMI 58: Dapagliflozin Cardiovascular Outcomes in T2D",
         "phase": "Phase III",
         "status": "Completed",
@@ -227,7 +227,7 @@ LANDMARK_TRIALS: List[Dict[str, Any]] = [
         "significance": "SGLT2i cardiovascular and renal benefits in type 2 diabetes",
     },
     {
-        "nct_id": "NCT02564263",
+        "nct_id": "NCT02278120",
         "title": "MONALEESA-7: Ribociclib in Premenopausal HR+/HER2- Breast Cancer",
         "phase": "Phase III",
         "status": "Completed",
@@ -238,7 +238,7 @@ LANDMARK_TRIALS: List[Dict[str, Any]] = [
         "significance": "First CDK4/6i to show OS benefit in premenopausal advanced breast cancer",
     },
     {
-        "nct_id": "NCT02362594",
+        "nct_id": "NCT02125461",
         "title": "PACIFIC: Durvalumab after Chemoradiotherapy in Stage III NSCLC",
         "phase": "Phase III",
         "status": "Completed",
@@ -249,7 +249,7 @@ LANDMARK_TRIALS: List[Dict[str, Any]] = [
         "significance": "Established consolidation immunotherapy after chemoradiation as SOC",
     },
     {
-        "nct_id": "NCT03170960",
+        "nct_id": "NCT02065791",
         "title": "CREDENCE: Canagliflozin and Renal Events in Diabetes",
         "phase": "Phase III",
         "status": "Completed",
@@ -260,18 +260,7 @@ LANDMARK_TRIALS: List[Dict[str, Any]] = [
         "significance": "First trial to show SGLT2i renal protection in diabetic nephropathy",
     },
     {
-        "nct_id": "NCT03723655",
-        "title": "ADAURA: Osimertinib in Early-Stage EGFR+ NSCLC",
-        "phase": "Phase III",
-        "status": "Completed",
-        "therapeutic_area": "oncology",
-        "conditions": ["EGFR-Mutant Non-Small Cell Lung Cancer"],
-        "interventions": ["Osimertinib"],
-        "sponsor": "AstraZeneca",
-        "significance": "Adjuvant EGFR TKI dramatically improved DFS in early-stage NSCLC",
-    },
-    {
-        "nct_id": "NCT03834506",
+        "nct_id": "NCT03298451",
         "title": "HIMALAYA: Tremelimumab + Durvalumab in Hepatocellular Carcinoma",
         "phase": "Phase III",
         "status": "Completed",
@@ -403,7 +392,7 @@ LANDMARK_TRIALS: List[Dict[str, Any]] = [
         "significance": "Axi-cel EFS 8.3 vs 2.0 months compared to SOC in second-line DLBCL",
     },
     {
-        "nct_id": "NCT03900078",
+        "nct_id": "NCT03900429",
         "title": "MAESTRO: Resmetirom in Non-Alcoholic Steatohepatitis (NASH)",
         "phase": "Phase III",
         "status": "Completed",
@@ -414,7 +403,7 @@ LANDMARK_TRIALS: List[Dict[str, Any]] = [
         "significance": "Resmetirom became the first FDA-approved drug specifically for NASH",
     },
     {
-        "nct_id": "NCT04194450",
+        "nct_id": "NCT03875729",
         "title": "PROTECT: Teplizumab for Delay of Type 1 Diabetes Onset",
         "phase": "Phase III",
         "status": "Completed",
@@ -436,9 +425,9 @@ LANDMARK_TRIALS: List[Dict[str, Any]] = [
         "significance": "Mavacamten reduced need for septal reduction therapy in symptomatic obstructive HCM",
     },
     {
-        "nct_id": "NCT04788511",
+        "nct_id": "NCT03904147",
         "title": "TRILUMINATE Pivotal: TriClip for Tricuspid Regurgitation",
-        "phase": "Phase III",
+        "phase": "Not Applicable",
         "status": "Completed",
         "therapeutic_area": "cardiology",
         "conditions": ["Tricuspid Regurgitation"],

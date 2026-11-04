@@ -75,6 +75,10 @@ _SCORING_SYSTEM_DISPLAY: Dict[str, str] = {
 }
 
 # Severity -> DICOM coded concept for observer context
+#
+# AUDIT FIX (2026-11-03): there is deliberately no entry for "unknown", and both lookups now
+# omit the Severity evaluation rather than falling back to ("R-00339", "SRT", "Normal"). An
+# ungraded study used to be written into the SR document as severity Normal.
 _SEVERITY_CODES: Dict[str, tuple] = {
     "critical": ("R-0040A", "SRT", "Critical"),
     "urgent": ("R-0040B", "SRT", "Urgent"),
@@ -494,10 +498,14 @@ class DICOMSRExporter:
 
         # Severity as QualitativeEvaluation
         severity = finding.get("severity", "")
-        if severity:
-            sev_tuple = _SEVERITY_CODES.get(
-                severity.lower(), ("R-00339", "SRT", "Normal")
-            )
+        sev_tuple = _SEVERITY_CODES.get(severity.lower()) if severity else None
+        if sev_tuple is None:
+            if severity:
+                logger.warning(
+                    f"No DICOM severity code for '{severity}'; omitting the Severity "
+                    "evaluation rather than coding it as Normal"
+                )
+        else:
             sev_eval = hd.sr.QualitativeEvaluation(
                 name=_make_coded_concept(
                     "246112005", "SCT", "Severity"
@@ -595,13 +603,18 @@ class DICOMSRExporter:
             severity: FindingSeverity enum value.
 
         Returns:
-            A highdicom QualitativeEvaluation, or None if creation fails.
+            A highdicom QualitativeEvaluation, or None if creation fails or the severity has
+            no DICOM code (an ungraded study is not coded as Normal -- see _SEVERITY_CODES).
         """
         try:
             sev_str = severity.value if hasattr(severity, "value") else str(severity)
-            sev_tuple = _SEVERITY_CODES.get(
-                sev_str.lower(), ("R-00339", "SRT", "Normal")
-            )
+            sev_tuple = _SEVERITY_CODES.get(sev_str.lower())
+            if sev_tuple is None:
+                logger.warning(
+                    f"No DICOM severity code for '{sev_str}'; omitting the overall Severity "
+                    "evaluation rather than coding it as Normal"
+                )
+                return None
 
             return hd.sr.QualitativeEvaluation(
                 name=_make_coded_concept(

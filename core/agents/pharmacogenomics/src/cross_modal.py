@@ -332,9 +332,18 @@ def integrate_cross_agent_results(
             f"reviewed by clinical pharmacology."
         )
     else:
+        # pgx audit §18b (related): this read "Cross-agent analysis
+        # completed successfully. N agent(s) consulted with no safety
+        # concerns." An agent that responds with an EMPTY list has not
+        # cleared the patient — it has returned nothing, and asserting a
+        # negative finding from an absent one is the same inference as
+        # reporting an untyped HLA locus as SAFE. The count of agents that
+        # answered is not the count of agents that found nothing.
         overall = (
-            f"Cross-agent analysis completed successfully. "
-            f"{len(agents_available)} agent(s) consulted with no safety concerns."
+            f"Cross-agent analysis completed. {len(agents_available)} "
+            f"agent(s) returned no findings. A silent response is NOT a "
+            f"negative result: it may mean the agent had no data for this "
+            f"patient. Do not read this as cross-agent clearance."
         )
 
     return {

@@ -615,13 +615,29 @@ class TestExpandedActivityScores:
         assert PhenotypeTranslator.ACTIVITY_SCORES["CYP2C19"]["*4"] == 0.0
 
     def test_ugt1a1_star37_decreased(self):
-        assert PhenotypeTranslator.ACTIVITY_SCORES["UGT1A1"]["*37"] == 0.0
+        """CORRECTED (pgx audit §14): the name was right, the value was not.
+
+        This asserted 0.0 — no function — under a name saying "decreased".
+        CPIC's UGT1A1 allele-functionality table calls *37 **Decreased
+        function** (api.cpicpgx.org/v1/allele?genesymbol=eq.UGT1A1,
+        retrieved 2026-11-03), and its diplotype table makes *1/*37 an
+        Intermediate Metabolizer, not the Poor Metabolizer 0.0 produced.
+        For irinotecan that over-called a dose reduction in a
+        curative-intent regimen.
+        """
+        assert PhenotypeTranslator.ACTIVITY_SCORES["UGT1A1"]["*37"] == 0.5
 
     def test_ugt1a1_star36_increased(self):
         assert PhenotypeTranslator.ACTIVITY_SCORES["UGT1A1"]["*36"] == 1.5
 
-    def test_nudt15_star2_intermediate(self):
-        assert PhenotypeTranslator.ACTIVITY_SCORES["NUDT15"]["*2"] == 0.5
+    def test_nudt15_star2_is_a_no_function_allele(self):
+        """CPIC Table 1 lists *1/*2 as "one normal PLUS one NO function allele".
+
+        This test previously asserted 0.5, which made *2/*2 -- a CPIC poor metabolizer -- score
+        1.0 and report Intermediate. See tests/test_nudt15_thiopurine_reference.py.
+        Relling et al., Clin Pharmacol Ther 2019;105(5):1095-1105, Table 1. PMID 30447069.
+        """
+        assert PhenotypeTranslator.ACTIVITY_SCORES["NUDT15"]["*2"] == 0.0
 
     def test_cyp2d6_star7_no_function(self):
         """CYP2D6*7 is a no-function allele."""

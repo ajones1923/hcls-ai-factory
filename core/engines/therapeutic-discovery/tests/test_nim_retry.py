@@ -1,4 +1,12 @@
-"""Tests for NIM client retry logic and SMILES validation."""
+"""Tests for NIM client retry logic and SMILES validation.
+
+The receptor argument was the string `'ATOM...'` -- a placeholder, not coordinates. As of
+2026-11-04 `DiffDockClient.dock` calls `resolve_protein_pdb()`, which refuses any receptor that
+is neither a readable path nor coordinate text, because passing a 4-character PDB accession
+("5FTK") used to be accepted silently and POSTed as the protein. These tests therefore pass a
+minimal but genuine PDB fragment; `test_rejects_a_pdb_accession_as_a_receptor` in
+test_docking_receptor.py covers the refusal itself.
+"""
 import pytest
 from pathlib import Path
 from unittest.mock import patch, Mock, MagicMock
@@ -8,6 +16,13 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.nim_clients import MolMIMClient, DiffDockClient, NIMServiceConfig
 import requests
+
+RECEPTOR_PDB = (
+    "HEADER    TEST STRUCTURE\n"
+    "ATOM      1  N   ALA A   1       0.000   0.000   0.000  1.00  0.00           N\n"
+    "ATOM      2  CA  ALA A   1       1.458   0.000   0.000  1.00  0.00           C\n"
+    "END\n"
+)
 
 
 @pytest.fixture
@@ -114,7 +129,7 @@ class TestDiffDockRetry:
             json=Mock(return_value={'poses': [{'docking_score': -8.5, 'confidence': 0.8}]}),
             raise_for_status=Mock(),
         )
-        result = diffdock_client.dock('ATOM...', 'CCO')
+        result = diffdock_client.dock(RECEPTOR_PDB, 'CCO')
         assert len(result) == 1
         assert result[0]['docking_score'] == -8.5
         assert mock_post.call_count == 1
@@ -131,7 +146,7 @@ class TestDiffDockRetry:
                 raise_for_status=Mock(),
             ),
         ]
-        result = diffdock_client.dock('ATOM...', 'CCO')
+        result = diffdock_client.dock(RECEPTOR_PDB, 'CCO')
         assert len(result) == 1
         assert mock_post.call_count == 2
 
@@ -141,7 +156,7 @@ class TestDiffDockRetry:
         """Test RuntimeError after exhausting all retries."""
         mock_post.side_effect = requests.ConnectionError("Connection refused")
         with pytest.raises(RuntimeError, match="DiffDock docking failed after 3 attempts"):
-            diffdock_client.dock('ATOM...', 'CCO')
+            diffdock_client.dock(RECEPTOR_PDB, 'CCO')
         assert mock_post.call_count == 3
 
 

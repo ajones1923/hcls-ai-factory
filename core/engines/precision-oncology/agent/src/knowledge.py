@@ -865,7 +865,7 @@ THERAPY_MAP: Dict[str, Dict] = {
         "category": "immunotherapy",
         "targets": ["PD-1"],
         "approved_indications": ["NSCLC (PD-L1≥50% 1L mono, PD-L1≥1% + chemo)", "melanoma",
-                                  "MSI-H/dMMR (tissue-agnostic)", "TMB-H (≥10 mut/Mb)",
+                                  "MSI-H/dMMR (tissue-agnostic)", "TMB-H (≥13 mut/Mb)",
                                   "head and neck", "cervical", "gastric", "TNBC", "RCC"],
         "mechanism": "Anti-PD-1 monoclonal antibody, blocks PD-1/PD-L1 interaction to restore T-cell activity",
         "key_trials": ["KEYNOTE-024", "KEYNOTE-189", "KEYNOTE-158", "KEYNOTE-177", "KEYNOTE-826"],
@@ -1417,11 +1417,18 @@ BIOMARKER_PANELS: Dict[str, Dict] = {
         "name": "Tumor Mutational Burden — High",
         "type": "predictive",
         "testing_method": "NGS panel (F1CDx, MSK-IMPACT) or WES",
-        "clinical_cutoff": "≥10 mutations/Mb",
+        # ≥13 mut/Mb is the definition in the pembrolizumab label itself (KEYTRUDA,
+        # DailyMed setid 9333c79b-d487-4538-a9f0-71b91a02b287, published 2026-11-02,
+        # section 1.16: "TMB-H [≥13 mutations/megabase (mut/Mb)] solid tumors").
+        # ≥10 mut/Mb was KEYNOTE-158's cohort cut-off and is not the labelled
+        # threshold; stating it alone made the engine claim FDA approval for patients
+        # between 10 and 13.
+        "clinical_cutoff": "≥13 mutations/Mb (FDA label); ≥10 mutations/Mb (KEYNOTE-158 cohort)",
         "predictive_for": ["pembrolizumab (tissue-agnostic)"],
         "cancer_types": ["tissue-agnostic"],
         "evidence_level": "A",
-        "description": "TMB-H (≥10 mut/Mb) is an FDA-approved tissue-agnostic biomarker for pembrolizumab. "
+        "description": "TMB-H is an FDA-approved tissue-agnostic biomarker for pembrolizumab, defined in the "
+                       "label as ≥13 mut/Mb (KEYTRUDA, DailyMed, published 2026-11-02, section 1.16). "
                        "Higher TMB generally correlates with neoantigen load and immunotherapy benefit.",
     },
     "MSI-H": {
@@ -1618,7 +1625,9 @@ BIOMARKER_PANELS: Dict[str, Dict] = {
         "name": "Tissue vs Blood TMB",
         "type": "predictive",
         "testing_method": "tissue NGS (F1CDx) or blood NGS (F1Liquid CDx, Guardant360)",
-        "clinical_cutoff": "≥10 mut/Mb (tissue); ≥16 mut/Mb (blood, varies by platform)",
+        # The labelled TMB-H definition is ≥13 mut/Mb (KEYTRUDA, DailyMed, 2026-11-02,
+        # section 1.16); ≥10 is the KEYNOTE-158 cohort cut-off.
+        "clinical_cutoff": "≥13 mut/Mb (tissue, FDA label; ≥10 in KEYNOTE-158); ≥16 mut/Mb (blood, varies by platform)",
         "predictive_for": ["pembrolizumab (tissue-agnostic)", "immunotherapy broadly"],
         "cancer_types": ["tissue-agnostic"],
         "evidence_level": "B",

@@ -74,7 +74,20 @@ def create_app() -> FastAPI:
                               "(Engine 7 is structural-biology; this program is a vertical, "
                               "not an engine.)",
                   lifespan=lifespan)
-    app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+    # CORS: an allowlist, not "*". This API is open by default (the gate below installs only
+    # when TSC_API_KEY is set), so a wildcard origin meant any page a clinician visited could
+    # read every cohort, agent, provenance and briefing route from their own machine, with
+    # their browser as the proxy. Credentials stay off — "*" plus credentials is the shape
+    # that steals cookies, and the two must never be combined if an operator widens this.
+    _origins = settings.cors_origins()
+    if "*" in _origins:
+        print("[TSC] WARNING: TSC_CORS_ORIGINS contains '*' — any website a clinician visits "
+              "can call this API from their browser. Set an explicit origin allowlist.",
+              file=sys.stderr)
+    app.add_middleware(CORSMiddleware, allow_origins=_origins,
+                       allow_credentials=False,
+                       allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+                       allow_headers=["Content-Type", "X-API-Key"])
 
     # P1-7 — optional API-key gate. Fail-closed only when TSC_API_KEY is configured;
     # unset (default) keeps the open trusted-LAN/synthetic-demo posture. Health, portal,
@@ -84,11 +97,29 @@ def create_app() -> FastAPI:
         from fastapi.responses import JSONResponse           # noqa: WPS433
         _OPEN_PATHS = ("/health", "/", "/docs", "/openapi.json", "/redoc")
 
+        # Constant-time, on encoded bytes. This check used to be a plain `!=`, which leaks
+        # the key's length and its matching prefix through response timing, and — had it
+        # been compare_digest on str — would have raised on a non-ASCII header. The shared
+        # helper is the one implementation; it is imported defensively because hcls_common
+        # is an optional dependency of this program (see the governance note below).
+        try:
+            from hcls_common.api_auth import keys_match     # noqa: WPS433
+        except Exception:                                    # noqa: BLE001
+            import hmac                                      # noqa: WPS433
+
+            def keys_match(supplied: str, expected: str) -> bool:
+                if not supplied or not expected:
+                    return False
+                return hmac.compare_digest(
+                    supplied.encode("utf-8", "surrogateescape"),
+                    expected.encode("utf-8", "surrogateescape"),
+                )
+
         @app.middleware("http")
         async def _require_api_key(request: Request, call_next):
             if request.url.path in _OPEN_PATHS or request.method == "OPTIONS":
                 return await call_next(request)
-            if request.headers.get("X-API-Key") != settings.API_KEY:
+            if not keys_match(request.headers.get("X-API-Key") or "", settings.API_KEY):
                 return JSONResponse({"detail": "missing or invalid X-API-Key"}, status_code=401)
             return await call_next(request)
 

@@ -73,7 +73,15 @@ CXR_CLASS_TO_CATEGORY = {
     "pneumothorax": FindingCategory.PNEUMOTHORAX,
     "consolidation": FindingCategory.CONSOLIDATION,
     "pleural_effusion": FindingCategory.EFFUSION,
-    "cardiomegaly": FindingCategory.NORMAL,
+    # AUDIT FIX (2026-11-03): this read FindingCategory.NORMAL. A cardiomegaly at 0.95 -- well
+    # above its 0.60 threshold -- was summarised in prose as "positive: cardiomegaly" while
+    # its structured category said "normal", so any downstream filter on `category != normal`
+    # (a worklist, an export, a cohort query for patients needing an echo) dropped it.
+    # Cardiomegaly is the finding that most often leads to the echocardiogram that finds the
+    # heart failure. FindingCategory already has ENLARGEMENT, so this was a mis-mapping, not
+    # a missing enum member. Its ROUTINE severity below is a defensible call for an incidental
+    # finding and is deliberately unchanged.
+    "cardiomegaly": FindingCategory.ENLARGEMENT,
     "fracture": FindingCategory.FRACTURE,
 }
 
@@ -568,17 +576,36 @@ class CXRRapidFindingsWorkflow(BaseImagingWorkflow):
         weights_loaded = inference_result.get("weights_loaded", False)
 
         if not class_probs:
+            # AUDIT FIX (2026-11-03): this returned status COMPLETED, severity ROUTINE and a
+            # single finding with category NORMAL. The description ("No classification output
+            # available") was honest; everything a machine reads was not. A triage queue that
+            # sorts on severity, a dashboard that counts non-normal findings, and any consumer
+            # that checks `status == COMPLETED` before trusting a result all read this as a
+            # chest film that had been read and found unremarkable. On a patient with acute
+            # dyspnoea whose classifier produced nothing -- no weights, a malformed tensor, an
+            # empty series -- a tension pneumothorax reported as a normal film, and nothing in
+            # the pipeline asked for the study to be re-read.
+            logger.error(
+                f"{self.WORKFLOW_NAME}: classifier returned no class probabilities; "
+                "reporting FAILED rather than a normal film"
+            )
             return WorkflowResult(
                 workflow_name=self.WORKFLOW_NAME,
-                status=WorkflowStatus.COMPLETED,
+                status=WorkflowStatus.FAILED,
                 findings=[{
-                    "category": FindingCategory.NORMAL.value,
-                    "description": "No classification output available",
-                    "severity": FindingSeverity.ROUTINE.value,
+                    "category": FindingCategory.INDETERMINATE.value,
+                    "description": (
+                        "NOT READ: the classifier returned no class probabilities, so none of "
+                        f"the {len(CXR_CLASS_NAMES)} target findings "
+                        f"({', '.join(CXR_CLASS_NAMES)}) was evaluated. This is not a normal "
+                        "film -- it is an unread one. Re-run or read manually."
+                    ),
+                    "severity": FindingSeverity.UNKNOWN.value,
+                    "missing_input": "class_probabilities",
                 }],
                 measurements={},
-                classification="incomplete",
-                severity=FindingSeverity.ROUTINE,
+                classification="not read: no classifier output",
+                severity=FindingSeverity.UNKNOWN,
                 nim_services_used=self.MODELS_USED,
             )
 
@@ -594,15 +621,46 @@ class CXRRapidFindingsWorkflow(BaseImagingWorkflow):
             FindingSeverity.CRITICAL,
         ]
 
-        # Evaluate each class against its threshold
+        # Evaluate each class against its threshold.
+        #
+        # AUDIT FIX (2026-11-03): a class name the three dictionaries do not contain used to
+        # take `.get` defaults -- threshold 0.50, severity ROUTINE and, worst, category
+        # NORMAL -- so a label this workflow does not know about was declared positive by a
+        # made-up threshold and then filed as a normal finding. An unrecognised label is now
+        # reported unevaluated, with its probability, and makes the whole result indeterminate.
+        unevaluated_classes: List[str] = []
+
         for class_name, probability in class_probs.items():
-            threshold = CXR_CLASS_THRESHOLDS.get(class_name, 0.50)
+            if class_name not in CXR_CLASS_THRESHOLDS or class_name not in CXR_CLASS_TO_CATEGORY:
+                unevaluated_classes.append(class_name)
+                logger.error(
+                    f"{self.WORKFLOW_NAME}: no threshold/category for class "
+                    f"'{class_name}' (p={probability}); reporting it unevaluated rather than "
+                    "thresholding it at 0.50 and filing it as normal"
+                )
+                findings.append({
+                    "category": FindingCategory.INDETERMINATE.value,
+                    "description": (
+                        f"NOT EVALUATED: the classifier reported '{class_name}' at "
+                        f"p={round(float(probability), 3)}, and this workflow has no "
+                        "threshold or finding category for that label. It is neither "
+                        "positive nor negative here."
+                    ),
+                    "severity": FindingSeverity.UNKNOWN.value,
+                    "class_name": class_name,
+                    "confidence": round(float(probability), 3),
+                    "threshold": None,
+                    "above_threshold": None,
+                })
+                continue
+
+            threshold = CXR_CLASS_THRESHOLDS[class_name]
             is_positive = probability >= threshold
 
             if is_positive:
                 positive_classes.append(class_name)
                 class_severity = CXR_CLASS_SEVERITY.get(class_name, FindingSeverity.ROUTINE)
-                class_category = CXR_CLASS_TO_CATEGORY.get(class_name, FindingCategory.NORMAL)
+                class_category = CXR_CLASS_TO_CATEGORY[class_name]
                 class_description = CXR_CLASS_DESCRIPTIONS.get(class_name, "Finding detected.")
 
                 findings.append({
@@ -618,8 +676,10 @@ class CXRRapidFindingsWorkflow(BaseImagingWorkflow):
                 if severity_order.index(class_severity) > severity_order.index(overall_severity):
                     overall_severity = class_severity
 
-        # If no positive findings, report as normal
-        if not findings:
+        # If no positive findings, report as normal.
+        # `unevaluated_classes` is checked too: a film where the only thing the classifier
+        # produced was a label this workflow cannot interpret has not been shown to be normal.
+        if not findings and not unevaluated_classes:
             findings.append({
                 "category": FindingCategory.NORMAL.value,
                 "description": (
@@ -646,6 +706,20 @@ class CXRRapidFindingsWorkflow(BaseImagingWorkflow):
         # Determine which models were used
         model_name = inference_result.get("model_name", "DenseNet-121")
         models_used = [model_name, "VILA-M3 (optional)"]
+
+        if unevaluated_classes:
+            return WorkflowResult(
+                workflow_name=self.WORKFLOW_NAME,
+                status=WorkflowStatus.FAILED,
+                findings=findings,
+                measurements=measurements,
+                classification=(
+                    f"{classification}; NOT EVALUATED: "
+                    f"{', '.join(sorted(unevaluated_classes))}"
+                ),
+                severity=FindingSeverity.UNKNOWN,
+                nim_services_used=models_used,
+            )
 
         return WorkflowResult(
             workflow_name=self.WORKFLOW_NAME,

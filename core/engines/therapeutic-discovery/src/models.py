@@ -60,6 +60,8 @@ class StructureInfo(BaseModel):
     ligand_smiles: Optional[str] = Field(None)
     structure_file: Optional[str] = Field(None, description="Path to structure file")
     prepared: bool = Field(False, description="Whether structure has been prepared")
+    preparation: Optional[str] = Field(
+        None, description="What stage 3 actually did, so `prepared` cannot be read as a claim")
 
     @validator("resolution", pre=True)
     def parse_resolution(cls, v):
@@ -146,6 +148,11 @@ class DockingResult(BaseModel):
     hydrogen_bonds: int = Field(0)
     method: str = Field("DiffDock", description="Docking method used")
     confidence: float = Field(0.0, ge=0, le=1, description="Calibrated P(pose within 2 A RMSD)")
+    provenance: str = Field(
+        "real",
+        description="'real' or 'mock'. The mock client stamps _provenance on its poses; this "
+                    "carries it into the record so a report cannot drop it.",
+    )
 
 
 class PediatricSafetyFlag(BaseModel):
@@ -158,10 +165,20 @@ class PediatricSafetyFlag(BaseModel):
 class PediatricSafetyAssessment(BaseModel):
     """
     Pediatric safety assessment result for a drug candidate.
+
+    `pediatric_safe` is three-valued. It was a bare bool, which forced the assessment to answer
+    "safe" whenever no critical flag had been raised -- including when the only critical rule
+    (cardiac liability) had no input to evaluate. `None` means "not assessed", and
+    `cardiac_liability_assessed` records whether a hERG prediction was available at all.
     """
-    pediatric_safe: bool = Field(..., description="True if no critical flags")
+    pediatric_safe: Optional[bool] = Field(
+        ..., description="True if no critical flags; None if the assessment could not be made")
     safety_flags: List[PediatricSafetyFlag] = Field(default_factory=list)
     recommendation: str = Field("", description="Summary recommendation")
+    cardiac_liability_assessed: bool = Field(
+        False, description="True only if a hERG prediction from a model was available")
+    unassessed_reasons: List[str] = Field(
+        default_factory=list, description="Why the verdict is None, when it is")
 
 
 class RankedCandidate(BaseModel):
@@ -182,6 +199,10 @@ class RankedCandidate(BaseModel):
     generation_score: float
     qed_score: Optional[float] = None
     composite_score: float = Field(..., description="Weighted composite score")
+
+    # Provenance of the docking term in `composite_score`, carried so a report cannot present a
+    # mock pose as a measurement by omission.
+    docking_provenance: str = Field("none", description="'real', 'mock' or 'none' (not docked)")
 
     # Properties
     properties: Optional[MoleculeProperties] = None

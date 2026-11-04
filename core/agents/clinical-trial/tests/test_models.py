@@ -451,11 +451,22 @@ class TestWorkflowResult:
         assert len(wr.findings) == 1
 
     def test_defaults(self):
+        """A WorkflowResult with nothing computed has NO confidence, not 0.0.
+
+        CORRECTED ASSERTION. This test previously asserted
+        ``wr.confidence == 0.0``, certifying a default that made "no assessment
+        was performed" indistinguishable from "an assessment was performed and
+        scored zero". A reported 0.0 reads as a measured result; downstream the
+        same pattern produced a patient-matching confidence of 0.10 for a trial
+        whose eligibility criteria had failed to ingest entirely. The default is
+        now ``None``, which is the honest value for a quantity that is not
+        computable.
+        """
         wr = WorkflowResult(workflow_type=TrialWorkflowType.GENERAL)
         assert wr.findings == []
         assert wr.recommendations == []
         assert wr.severity == SeverityLevel.INFORMATIONAL
-        assert wr.confidence == 0.0
+        assert wr.confidence is None
 
     def test_serialization(self):
         wr = WorkflowResult(

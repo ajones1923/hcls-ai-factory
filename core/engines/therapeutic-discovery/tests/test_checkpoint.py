@@ -152,7 +152,13 @@ class TestCheckpointManager:
         checkpoint = mgr.load("test123", 4)
         assert checkpoint is not None
 
+        # `restore_pipeline_state` now compares the checkpoint's saved config against the
+        # resuming pipeline's, because a resume under a different config silently mixed results
+        # (see ConfigMismatchError). A bare Mock has no real config to compare, so give the
+        # restore target the same one the checkpoint was saved with -- the mismatch itself is
+        # covered by test_resume_config_mismatch.py.
         restored = Mock()
+        restored.config = pipeline.config
         mgr.restore_pipeline_state(restored, checkpoint)
 
         assert restored.target.gene == "VCP"

@@ -599,21 +599,27 @@ with st.sidebar:
     # Knowledge graph stats
     st.markdown("---")
     st.markdown("### Knowledge Graph")
+    # pgx audit §20e: every one of these had a hardcoded fallback, so when
+    # the live value was unavailable the panel printed a plausible number
+    # instead of saying it did not know — "12 HLA Associations" while
+    # hla_screener.py actually carries 17 drugs. A displayed count must be
+    # a measurement, not a default.
     if knowledge_data and knowledge_data.get("stats"):
         ks = knowledge_data["stats"]
-        st.markdown(f"- **Pharmacogenes:** {ks.get('pharmacogenes', 25)}")
-        st.markdown(f"- **Phenotypes:** {ks.get('metabolizer_phenotypes', 5)}")
-        st.markdown(f"- **Drug Categories:** {ks.get('drug_categories', 12)}")
-        st.markdown(f"- **Drugs Tracked:** {ks.get('drugs_tracked', 100)}")
-        st.markdown(f"- **HLA Associations:** {ks.get('hla_drug_associations', 12)}")
-        st.markdown(f"- **Activity Score Tables:** {ks.get('activity_score_tables', 0)}")
-        st.markdown(f"- **Entity Aliases:** {ks.get('entity_aliases', 0)}")
+
+        def _count(key: str) -> str:
+            value = ks.get(key)
+            return str(value) if value is not None else "not available"
+
+        st.markdown(f"- **Pharmacogenes:** {_count('pharmacogenes')}")
+        st.markdown(f"- **Phenotypes:** {_count('metabolizer_phenotypes')}")
+        st.markdown(f"- **Drug Categories:** {_count('drug_categories')}")
+        st.markdown(f"- **Drugs Tracked:** {_count('drugs_tracked')}")
+        st.markdown(f"- **HLA Associations:** {_count('hla_drug_associations')}")
+        st.markdown(f"- **Activity Score Tables:** {_count('activity_score_tables')}")
+        st.markdown(f"- **Entity Aliases:** {_count('entity_aliases')}")
     else:
-        st.markdown("- **Pharmacogenes:** 25")
-        st.markdown("- **Phenotypes:** 5")
-        st.markdown("- **Drug Categories:** 12")
-        st.markdown("- **Drugs Tracked:** 100+")
-        st.markdown("- **HLA Associations:** 12")
+        st.markdown("- Knowledge-graph statistics are not available.")
 
     # System Health
     st.markdown("---")
@@ -843,17 +849,30 @@ with tab_dashboard:
 
     # Quick metrics row
     col1, col2, col3, col4, col5 = st.columns(5)
+    # pgx audit §20e: "Pharmacogenes 25" and "HLA Pairs 12" were literals,
+    # and "Collections 15" was a fallback for an unavailable measurement.
+    # Each is now counted from the knowledge base it describes —
+    # hla_screener.py carries 17 drugs, not 12.
+    from src.hla_screener import HLA_DRUG_ASSOCIATIONS as _SCREENED_HLA
+    from src.knowledge import ACTIVITY_SCORE_TABLES as _PHARMACOGENES
+
     with col1:
-        st.metric("Collections", len(collection_stats) if collection_stats else 15)
+        st.metric(
+            "Collections",
+            len(collection_stats) if collection_stats else "N/A",
+        )
     with col2:
         st.metric("Total Vectors", f"{total_vectors:,}" if total_vectors else "N/A")
     with col3:
-        st.metric("Pharmacogenes", 25)
+        st.metric("Pharmacogenes", len(_PHARMACOGENES))
     with col4:
         drug_count = len(get_all_drug_names())
         st.metric("Drugs Tracked", drug_count)
     with col5:
-        st.metric("HLA Pairs", 12)
+        st.metric(
+            "HLA Drug Associations",
+            sum(len(v) for v in _SCREENED_HLA.values()),
+        )
 
     st.markdown("---")
 
@@ -1177,18 +1196,31 @@ with tab_warfarin:
             }
             race_input = race_map.get(wd_race, "other")
 
-            result = calculator.warfarin_dose(
-                cyp2c9_diplotype=cyp2c9_dip,
-                vkorc1_genotype=vkorc1_input,
-                cyp4f2_genotype=cyp4f2_geno,
-                age=wd_age,
-                weight=wd_weight,
-                height=wd_height,
-                race=race_input,
-                amiodarone=wd_amiodarone,
-                smoker=wd_smoker,
-                enzyme_inducer=wd_enzyme_inducer,
-            )
+            # IWPC dosing is disabled until its coefficients are re-transcribed from Klein
+            # 2009 -- the block is column-shifted and the error is race-specific. Show the
+            # clinician why rather than a traceback, and never fall back to a dose.
+            try:
+                result = calculator.warfarin_dose(
+                    cyp2c9_diplotype=cyp2c9_dip,
+                    vkorc1_genotype=vkorc1_input,
+                    cyp4f2_genotype=cyp4f2_geno,
+                    age=wd_age,
+                    weight=wd_weight,
+                    height=wd_height,
+                    race=race_input,
+                    amiodarone=wd_amiodarone,
+                    smoker=wd_smoker,
+                    enzyme_inducer=wd_enzyme_inducer,
+                )
+            except RuntimeError as exc:
+                st.error(
+                    "**Warfarin dose prediction is unavailable.**\n\n"
+                    f"{exc}\n\n"
+                    "Dose warfarin by the usual clinical protocol with INR monitoring. "
+                    "The CYP2C9 and VKORC1 *phenotype* information on this page is unaffected "
+                    "and still applies."
+                )
+                st.stop()
 
             # Display results
             st.markdown("### Predicted Warfarin Dose")
@@ -1305,19 +1337,30 @@ with tab_chemo:
             if calculator:
                 result = calculator.fluoropyrimidine_dose(dpyd_clean)
 
-                # Color-code by severity
-                if result["dose_reduction_percent"] >= 100:
-                    alert_class = "alert-critical"
-                elif result["dose_reduction_percent"] >= 50:
+                # Color-code by severity. dose_reduction_percent is None
+                # when the genotype could not be scored (CPIC Indeterminate),
+                # which is a warning, not a dose.
+                reduction = result["dose_reduction_percent"]
+                if reduction is None:
                     alert_class = "alert-warning"
+                    dose_line = "Dose Reduction: no recommendation<br>"
+                elif reduction >= 100:
+                    alert_class = "alert-critical"
+                    dose_line = "Dose Reduction: avoid fluoropyrimidines<br>"
+                elif reduction >= 50:
+                    alert_class = "alert-warning"
+                    dose_line = f"Dose Reduction: {reduction}%<br>"
                 else:
                     alert_class = "alert-info"
+                    dose_line = f"Dose Reduction: {reduction}%<br>"
 
+                score = result["activity_score"]
                 st.markdown(
                     f'<div class="{alert_class}">'
                     f'<strong>{result["phenotype"]}</strong><br>'
-                    f'Activity Score: {result["activity_score"]}<br>'
-                    f'Dose Reduction: {result["dose_reduction_percent"]}%<br><br>'
+                    f'Activity Score: '
+                    f'{score if score is not None else "not assignable"}<br>'
+                    f'{dose_line}<br>'
                     f'{result["recommendation"]}'
                     f'</div>',
                     unsafe_allow_html=True,
@@ -1343,7 +1386,12 @@ with tab_chemo:
         st.markdown("### TPMT + NUDT15 Genotype-Guided Dosing")
         st.markdown(
             "Both TPMT and NUDT15 must be considered for thiopurine dosing. "
-            "The more restrictive (lower activity) score determines the dose."
+            "CPIC's recommendation is a two-gene table over the (TPMT "
+            "phenotype, NUDT15 phenotype) pair: one intermediate locus is "
+            "30-80% of the standard starting dose, intermediate at BOTH is "
+            "20-50%, and a poor metabolizer at either locus calls for an "
+            "alternative nonthiopurine drug rather than a reduced "
+            "azathioprine dose."
         )
 
         tc1, tc2 = st.columns(2)
@@ -1370,28 +1418,56 @@ with tab_chemo:
             if calculator:
                 result = calculator.thiopurine_dose(tpmt_clean, nudt15_clean)
 
-                if result["dose_percent_of_standard"] <= 10:
+                # dose_percent_of_standard is None either when the genotype
+                # could not be scored or when CPIC recommends a different
+                # drug rather than a reduced dose. Neither is a number, and
+                # neither is reassuring.
+                dose_range = result.get("dose_percent_range_of_standard")
+                percent = result["dose_percent_of_standard"]
+                if percent is None:
                     alert_class = "alert-critical"
-                elif result["dose_percent_of_standard"] <= 50:
+                    dose_line = (
+                        "<strong>Dose:</strong> no percent-of-standard "
+                        "applies — see the recommendation below"
+                    )
+                elif percent <= 50:
                     alert_class = "alert-warning"
+                    dose_line = (
+                        f'<strong>Starting dose:</strong> {dose_range[0]}-'
+                        f'{dose_range[1]}% of standard (start at '
+                        f'{percent}%)'
+                    )
                 else:
                     alert_class = "alert-info"
+                    dose_line = (
+                        f'<strong>Starting dose:</strong> {percent}% of standard'
+                    )
+
+                def _as(key):
+                    value = result.get(key)
+                    return value if value is not None else "not assignable"
 
                 st.markdown(
                     f'<div class="{alert_class}">'
                     f'<strong>TPMT:</strong> {result["tpmt_phenotype"]} '
-                    f'(AS {result["tpmt_activity_score"]})<br>'
+                    f'(AS {_as("tpmt_activity_score")})<br>'
                     f'<strong>NUDT15:</strong> {result["nudt15_phenotype"]} '
-                    f'(AS {result["nudt15_activity_score"]})<br>'
-                    f'<strong>Dose:</strong> {result["dose_percent_of_standard"]}% of standard<br><br>'
+                    f'(AS {_as("nudt15_activity_score")})<br>'
+                    f'{dose_line}<br><br>'
                     f'{result["dose_recommendation"]}'
                     f'</div>',
                     unsafe_allow_html=True,
                 )
 
-                st.markdown("#### Affected Drugs")
-                for drug in result.get("affected_drugs", []):
-                    st.markdown(f"- {drug}")
+                by_drug = result.get("recommendations_by_drug") or {}
+                if by_drug:
+                    st.markdown("#### Recommendation by drug")
+                    for drug, text in by_drug.items():
+                        st.markdown(f"**{drug}** — {text}")
+                else:
+                    st.markdown("#### Affected Drugs")
+                    for drug in result.get("affected_drugs", []):
+                        st.markdown(f"- {drug}")
 
                 st.markdown("#### Monitoring")
                 st.markdown(result.get("monitoring", ""))
@@ -1475,6 +1551,10 @@ with tab_hla:
                         alert_class = "alert-warning"
                     elif r.status.value == "SAFE":
                         alert_class = "alert-info"
+                    elif r.status.value == "UNKNOWN":
+                        # pgx audit §2: "the locus was not typed" is a
+                        # warning, not an informational aside.
+                        alert_class = "alert-warning"
                     else:
                         alert_class = "alert-info"
 
@@ -1535,7 +1615,22 @@ with tab_hla:
                 results = screener.screen_all_drugs(hla_typing)
 
                 if results:
-                    st.markdown(f"### Panel Results: {len(results)} risk(s) identified")
+                    n_risk = sum(
+                        1 for r in results
+                        if r.status.value in ("CONTRAINDICATED", "HIGH_RISK")
+                    )
+                    n_untyped = sum(
+                        1 for r in results if r.status.value == "UNKNOWN"
+                    )
+                    header = f"### Panel Results: {n_risk} risk(s) identified"
+                    if n_untyped:
+                        # pgx audit §2: do not count an untyped locus as a
+                        # screened drug, and do not hide it either.
+                        header += (
+                            f", {n_untyped} drug(s) NOT screened "
+                            f"(locus not typed)"
+                        )
+                    st.markdown(header)
                     for r in results:
                         alert_class = "alert-critical" if r.status.value == "CONTRAINDICATED" else "alert-warning"
                         st.markdown(
@@ -1549,7 +1644,9 @@ with tab_hla:
                 else:
                     st.success(
                         "No HLA-drug contraindications or high-risk associations "
-                        "identified for the provided HLA typing."
+                        "identified, and every locus in the knowledge base was "
+                        "typed. A negative HLA result does not eliminate the "
+                        "risk of a hypersensitivity reaction."
                     )
             else:
                 st.warning("HLA screener not available.")

@@ -1,5 +1,62 @@
 // Genomics Pipeline Portal - Main JavaScript
 
+// ── API key ─────────────────────────────────────────────────────────────────────────────
+// The portal enforces X-API-Key on every route that runs the pipeline, changes its
+// configuration, or reads its logs and output files. The key is PORTAL_API_KEY, or the
+// ephemeral key the server writes to a mode-0600 file at startup and names in its log.
+// It is kept in sessionStorage, so it is not persisted to disk by the browser and is gone
+// when the tab closes.
+const API_KEY_STORAGE = 'hcls-genomics-portal-key';
+
+function getApiKey() {
+    try {
+        return sessionStorage.getItem(API_KEY_STORAGE) || '';
+    } catch (e) {
+        return '';
+    }
+}
+
+function setApiKey(key) {
+    try {
+        sessionStorage.setItem(API_KEY_STORAGE, key);
+    } catch (e) {
+        console.warn('Could not store the API key for this session.');
+    }
+}
+
+function promptForApiKey() {
+    const key = window.prompt(
+        'This portal requires its API key (X-API-Key).\n\n' +
+        'Use PORTAL_API_KEY, or the ephemeral key the server wrote to the key file named ' +
+        'in its startup log.');
+    if (key) {
+        setApiKey(key.trim());
+        return key.trim();
+    }
+    return '';
+}
+
+// fetch() with the key attached, retried once after prompting on a 401.
+async function apiFetch(url, options = {}) {
+    const opts = Object.assign({}, options);
+    opts.headers = Object.assign({}, options.headers || {}, { 'X-API-Key': getApiKey() });
+    let response = await fetch(url, opts);
+    if (response.status === 401) {
+        const key = promptForApiKey();
+        if (!key) return response;
+        opts.headers['X-API-Key'] = key;
+        response = await fetch(url, opts);
+    }
+    return response;
+}
+
+// For the two paths a browser cannot put a header on: EventSource, and a download
+// triggered by navigation.
+function withApiKey(url) {
+    const sep = url.includes('?') ? '&' : '?';
+    return `${url}${sep}api_key=${encodeURIComponent(getApiKey())}`;
+}
+
 let eventSource = null;
 let currentConfig = {};
 let throughputChart = null;
@@ -33,7 +90,7 @@ function initializeApp() {
 
 async function loadSavedState() {
     try {
-        const response = await fetch('/api/metrics');
+        const response = await apiFetch('/api/metrics');
         const metrics = await response.json();
 
         // If there's a completed or error state with runtime, display it
@@ -122,7 +179,7 @@ function connectEventSource() {
         eventSource.close();
     }
 
-    eventSource = new EventSource('/api/stream');
+    eventSource = new EventSource(withApiKey('/api/stream'));
 
     eventSource.onmessage = function(event) {
         const data = JSON.parse(event.data);
@@ -144,7 +201,7 @@ function connectEventSource() {
 
 async function updateStatus() {
     try {
-        const response = await fetch('/api/status');
+        const response = await apiFetch('/api/status');
         const data = await response.json();
 
         // Update system status
@@ -614,7 +671,7 @@ async function runStep(step) {
     document.getElementById('summary-status').style.color = '#ffc107';
 
     try {
-        const response = await fetch(`/api/run/${step}`, { method: 'POST' });
+        const response = await apiFetch(`/api/run/${step}`, { method: 'POST' });
         const data = await response.json();
 
         if (data.error) {
@@ -643,7 +700,7 @@ async function stopProcess() {
     }
 
     try {
-        const response = await fetch('/api/stop', { method: 'POST' });
+        const response = await apiFetch('/api/stop', { method: 'POST' });
         const data = await response.json();
 
         if (data.success) {
@@ -664,7 +721,7 @@ async function stopAllProcesses() {
     }
 
     try {
-        const response = await fetch('/api/stop-all', { method: 'POST' });
+        const response = await apiFetch('/api/stop-all', { method: 'POST' });
         const data = await response.json();
 
         if (data.success) {
@@ -687,7 +744,7 @@ async function stopAllProcesses() {
 
 async function loadConfiguration() {
     try {
-        const response = await fetch('/api/config');
+        const response = await apiFetch('/api/config');
         const config = await response.json();
         currentConfig = config;
 
@@ -714,7 +771,7 @@ async function saveConfiguration() {
     }
 
     try {
-        const response = await fetch('/api/config', {
+        const response = await apiFetch('/api/config', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -741,7 +798,7 @@ async function loadLogFile(logType) {
     logContent.textContent = 'Loading...';
 
     try {
-        const response = await fetch(`/api/logs/${logType}`);
+        const response = await apiFetch(`/api/logs/${logType}`);
         const data = await response.json();
 
         if (data.error) {
@@ -778,7 +835,7 @@ async function resetPipelineState() {
     }
 
     try {
-        const response = await fetch('/api/reset', { method: 'POST' });
+        const response = await apiFetch('/api/reset', { method: 'POST' });
         const data = await response.json();
 
         if (data.success) {
@@ -810,7 +867,7 @@ async function loadFileList() {
     fileList.innerHTML = '<div class="text-center py-2"><div class="spinner-border spinner-border-sm"></div></div>';
 
     try {
-        const response = await fetch(`/api/files/${directory}`);
+        const response = await apiFetch(`/api/files/${directory}`);
         const data = await response.json();
 
         if (data.error) {
@@ -875,7 +932,7 @@ function getFileIcon(type) {
 function downloadFile(directory, filename) {
     // Create a temporary link and click it
     const link = document.createElement('a');
-    link.href = `/api/files/download/${directory}/${encodeURIComponent(filename)}`;
+    link.href = withApiKey(`/api/files/download/${directory}/${encodeURIComponent(filename)}`);
     link.download = filename;
     document.body.appendChild(link);
     link.click();
@@ -888,7 +945,7 @@ async function deleteFile(directory, filename) {
     }
 
     try {
-        const response = await fetch(`/api/files/delete/${directory}/${encodeURIComponent(filename)}`, {
+        const response = await apiFetch(`/api/files/delete/${directory}/${encodeURIComponent(filename)}`, {
             method: 'DELETE'
         });
         const data = await response.json();
@@ -970,6 +1027,7 @@ async function uploadFile() {
         });
 
         xhr.open('POST', `/api/files/upload/${directory}`);
+        xhr.setRequestHeader('X-API-Key', getApiKey());
         xhr.send(formData);
 
     } catch (error) {
@@ -1098,7 +1156,7 @@ function startThroughputSimulation() {
     // Update throughput every 2 seconds using real metrics
     setInterval(async () => {
         try {
-            const response = await fetch('/api/metrics');
+            const response = await apiFetch('/api/metrics');
             const metrics = await response.json();
 
             let throughput = metrics.throughput_gb_hr || 0;
@@ -1188,24 +1246,30 @@ function updateGPUMetricsPanel(gpuMetrics) {
         }
     };
 
-    if (!gpuMetrics || (gpuMetrics.iops === 0 && gpuMetrics.power_draw === 0)) {
-        // No active GPU work
-        setMetric('metric-iops', '--', false);
-        setMetric('metric-bandwidth', '--', false);
-        setMetric('metric-sm', '--', false);
-        setMetric('metric-tensor', '--', false);
-        setMetric('metric-pcie', '--', false);
-        setMetric('metric-power', '--', false);
+    // AUDIT FIX (2026-11-04): these tiles used to read invented fields (iops,
+    // memory_bandwidth, sm_efficiency, tensor_usage), each a theoretical maximum scaled by
+    // utilization and jittered per request. The API now returns only what NVML reports and
+    // null for anything this machine cannot measure, so a tile shows '--' instead of a
+    // number nobody read off the hardware. Note 0 is a REAL reading here (an idle GPU
+    // genuinely draws a low wattage and moves no PCIe traffic), so null is the only
+    // "unknown" -- the old code treated 0 as unknown and hid true zeros.
+    const render = (id, value, digits) => {
+        const known = value !== null && value !== undefined;
+        setMetric(id, known ? Number(value).toFixed(digits) : '--', known);
+    };
+
+    if (!gpuMetrics) {
+        ['metric-memctl', 'metric-pcie-tx', 'metric-pcie-rx',
+         'metric-clock', 'metric-temp', 'metric-power'].forEach(id => setMetric(id, '--', false));
         return;
     }
 
-    // Update metrics with values
-    setMetric('metric-iops', gpuMetrics.iops > 0 ? gpuMetrics.iops.toFixed(0) : '--', gpuMetrics.iops > 0);
-    setMetric('metric-bandwidth', gpuMetrics.memory_bandwidth > 0 ? gpuMetrics.memory_bandwidth.toFixed(0) : '--', gpuMetrics.memory_bandwidth > 0);
-    setMetric('metric-sm', gpuMetrics.sm_efficiency > 0 ? gpuMetrics.sm_efficiency.toFixed(0) : '--', gpuMetrics.sm_efficiency > 0);
-    setMetric('metric-tensor', gpuMetrics.tensor_usage > 0 ? gpuMetrics.tensor_usage.toFixed(0) : '--', gpuMetrics.tensor_usage > 0);
-    setMetric('metric-pcie', gpuMetrics.pcie_throughput > 0 ? gpuMetrics.pcie_throughput.toFixed(1) : '--', gpuMetrics.pcie_throughput > 0);
-    setMetric('metric-power', gpuMetrics.power_draw > 0 ? gpuMetrics.power_draw.toFixed(0) : '--', gpuMetrics.power_draw > 0);
+    render('metric-memctl',  gpuMetrics.memory_controller_pct, 0);
+    render('metric-pcie-tx', gpuMetrics.pcie_tx_gb_s,          2);
+    render('metric-pcie-rx', gpuMetrics.pcie_rx_gb_s,          2);
+    render('metric-clock',   gpuMetrics.sm_clock_mhz,          0);
+    render('metric-temp',    gpuMetrics.temperature_c,         0);
+    render('metric-power',   gpuMetrics.power_draw_w,          0);
 }
 
 function updatePipelineFlow(currentStep, status) {

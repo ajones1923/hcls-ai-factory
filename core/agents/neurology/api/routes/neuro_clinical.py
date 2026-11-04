@@ -17,9 +17,16 @@ from fastapi import APIRouter, HTTPException, Request
 from loguru import logger
 from pydantic import BaseModel, Field
 
+from src.clinical_scales import (
+    SUPPORTED_SCALES,
+    ScaleDataError,
+    UPDRSCalculator,
+    calculate_scale,
+)
 from src.models import (
     NeuroWorkflowType,
     ClinicalScaleType,
+    ScaleResult,
 )
 from src.knowledge import KNOWLEDGE_VERSION
 
@@ -190,6 +197,12 @@ class ScaleCalculateResponse(BaseModel):
     thresholds: dict = {}
     recommendations: List[str] = []
     items_received: int
+    # A total computed from a partial instrument is not the patient's score. These say so
+    # on the wire, so a caller is not left to infer completeness from `items_received`.
+    items_scored: Optional[int] = None
+    items_expected: Optional[int] = None
+    data_complete: bool = True
+    data_warnings: List[str] = []
 
 
 # -- Stroke Triage --
@@ -222,6 +235,17 @@ class StrokeTriageResponse(BaseModel):
     recommendations: List[str]
     guidelines_cited: List[str]
     evidence: List[dict] = []
+    # `tpa_eligible: bool` cannot distinguish "excluded" from "nobody measured the BP", and
+    # the endpoint used to answer `true` for both. These carry the third state explicitly:
+    # "eligible" | "not_eligible" | "indeterminate". `tpa_eligible` is true only for
+    # "eligible".
+    tpa_determination: str = "indeterminate"
+    thrombectomy_determination: str = "indeterminate"
+    missing_inputs: List[str] = []
+    nihss_complete: bool = True
+    # The model's own prose. It is NOT retrieved evidence and must not sit under a key the
+    # honesty gate skips, so it lands here, in a key the gate scans and annotates.
+    discussion: Optional[str] = None
 
 
 # -- Dementia Evaluation --
@@ -252,6 +276,10 @@ class DementiaEvaluateResponse(BaseModel):
     recommendations: List[str]
     guidelines_cited: List[str]
     evidence: List[dict] = []
+    moca_complete: bool = True
+    data_warnings: List[str] = []
+    # Model prose, moved out of `evidence` -- see the note in stroke_triage (G3).
+    discussion: Optional[str] = None
 
 
 # -- Epilepsy Classification --
@@ -264,6 +292,22 @@ class EpilepsyClassifyRequest(BaseModel):
     mri_findings: Optional[str] = Field(None, description="Brain MRI findings")
     seizure_frequency: Optional[str] = Field(None, description="Frequency (e.g., 2/month)")
     current_aeds: List[str] = Field(default_factory=list, description="Current anti-epileptic drugs")
+    failed_aeds: List[str] = Field(
+        default_factory=list,
+        description=(
+            "ASMs that failed an adequate trial. Drug-resistant epilepsy requires FAILURE of "
+            "two adequately chosen, tolerated and dosed trials (ILAE), not two concurrent "
+            "prescriptions."
+        ),
+    )
+    clinical_diagnosis: Optional[str] = Field(
+        None,
+        description=(
+            "Clinically established epilepsy syndrome, if one is already diagnosed "
+            "(e.g. 'Dravet syndrome'). Used for syndrome-specific drug contraindications "
+            "that must not wait on genetic testing."
+        ),
+    )
     family_history: Optional[str] = Field(None)
     genetic_results: Optional[str] = Field(None, description="Known genetic variants")
     clinical_notes: Optional[str] = Field(None)
@@ -277,9 +321,12 @@ class EpilepsyClassifyResponse(BaseModel):
     eeg_mri_concordance: Optional[str] = None
     surgical_candidacy: Optional[str] = None
     aed_recommendations: List[str]
+    contraindication_warnings: List[str] = []
     recommendations: List[str]
     guidelines_cited: List[str]
     evidence: List[dict] = []
+    # Model prose, moved out of `evidence` -- see the note in stroke_triage (G3).
+    discussion: Optional[str] = None
 
 
 # -- Tumor Grading --
@@ -315,6 +362,13 @@ class MSAssessRequest(BaseModel):
     """MS disease assessment request."""
     ms_course: Optional[str] = Field(None, description="rrms | spms | ppms | cis | ris")
     edss_score: Optional[float] = Field(None, ge=0.0, le=10.0, description="EDSS score")
+    edss_prior: Optional[float] = Field(
+        None, ge=0.0, le=10.0,
+        description=(
+            "EDSS at the previous assessment. EDSS progression is a CHANGE, so it cannot be "
+            "determined without it."
+        ),
+    )
     edss_items: Optional[dict] = Field(None, description="EDSS functional system scores")
     relapse_count_2yr: Optional[int] = Field(None, ge=0, description="Relapses in past 2 years")
     new_t2_lesions: Optional[int] = Field(None, ge=0, description="New T2 lesions on MRI")
@@ -426,6 +480,7 @@ class NeuromuscularEvaluateResponse(BaseModel):
     differential_diagnosis: List[dict]
     alsfrs_score: Optional[int] = None
     alsfrs_interpretation: Optional[str] = None
+    data_warnings: List[str] = []
     recommended_workup: List[str]
     treatment_options: List[str]
     recommendations: List[str]
@@ -453,376 +508,102 @@ class WorkflowResponse(BaseModel):
 # Clinical Scale Calculators
 # =====================================================================
 
-def _calculate_nihss(items: dict) -> dict:
-    """Calculate NIHSS total from item scores.
-
-    Items: 1a_loc, 1b_loc_questions, 1c_loc_commands, 2_gaze,
-    3_visual, 4_facial_palsy, 5a_motor_left_arm, 5b_motor_right_arm,
-    6a_motor_left_leg, 6b_motor_right_leg, 7_limb_ataxia,
-    8_sensory, 9_language, 10_dysarthria, 11_extinction
-    """
-    total = sum(int(v) for v in items.values() if str(v).isdigit())
-    if total == 0:
-        severity, category = "No stroke symptoms", "none"
-    elif total <= 4:
-        severity, category = "Minor stroke", "minor"
-    elif total <= 15:
-        severity, category = "Moderate stroke", "moderate"
-    elif total <= 20:
-        severity, category = "Moderate-to-severe stroke", "moderate_severe"
-    elif total <= 25:
-        severity, category = "Severe stroke", "severe"
-    else:
-        severity, category = "Very severe stroke", "very_severe"
-
-    recs = []
-    if total >= 6:
-        recs.append("Consider IV tPA if within 4.5h window and no contraindications (AHA/ASA Class I)")
-    if total >= 6 and total <= 25:
-        recs.append("Evaluate for mechanical thrombectomy if LVO suspected and within 24h (AHA/ASA Class I)")
-    if total >= 1:
-        recs.append("Admit to stroke unit for monitoring (AHA/ASA Class I)")
-
+def _scale_result_to_dict(result: ScaleResult) -> dict:
+    """Map a ScaleResult onto the dict shape these routes return."""
     return {
-        "total_score": total, "max_score": 42,
-        "interpretation": severity, "severity_category": category,
-        "thresholds": {"minor": 4, "moderate": 15, "severe": 25, "tpa_threshold": 6},
-        "recommendations": recs,
+        "total_score": result.score,
+        "max_score": result.max_score,
+        "interpretation": result.interpretation,
+        "severity_category": result.severity_category,
+        "thresholds": dict(result.thresholds),
+        "recommendations": list(result.recommendations),
+        "items_scored": result.items_scored,
+        "items_expected": result.items_expected,
+        "complete": result.complete,
+        "warnings": list(result.warnings),
     }
+
+
+def _calculate(scale: str, items: dict) -> dict:
+    """Score *scale* through the single shared implementation.
+
+    STRUCTURAL FIX. Each `_calculate_<scale>` below used to be a second, independent
+    implementation written inline in this file, and the Streamlit UI calls this file -- so the
+    route-local versions were what a clinician actually saw, and they disagreed with
+    `src/clinical_scales.py` on bandings, on defaults and on eligibility. That is why the
+    landed tPA fix did not take: it went into the other copy. Each of these is now a thin
+    adapter over `src.clinical_scales.calculate_scale`, so there is one answer per scale.
+
+    The defects that lived only in the route copies, now gone with them:
+
+    * MoCA summed *every* numeric value in `items`, and the UI puts `education_years`
+      (default 16) in that dict -- a true 12/30 exam reported 28/30 "Normal cognition" with
+      no recommendations at all (N1).
+    * NIHSS applied no per-item maximum, so one mistyped field (`4_facial: 30`) went straight
+      into the total, and unexamined items scored 0 (N20).
+    * EDSS invented a step from `max(fs_scores)`, assigning EDSS 6.0 to a blind but ambulatory
+      patient, and mislabelled its 6.0-6.5 band (N8).
+    * HIT-6 summed whatever numbers it was sent with no check that they were HIT-6 weights,
+      so six 1-5 Likert values read as "No significant impact" (N9).
+    * ALSFRS-R summed only present items while its bulbar check `sum(... get(k, 4) ...) < 9`
+      reported "Prominent bulbar involvement" when no bulbar item was submitted at all (N5).
+    * ASPECTS counted only values equal to the string "0", so `{"M1": true}` -- a region
+      marked affected -- scored 10/10, and a 12-key payload could go negative (N17).
+    """
+    return _scale_result_to_dict(calculate_scale(scale, items))
+
+
+def _calculate_nihss(items: dict) -> dict:
+    """NIHSS total from item scores (see NIHSSCalculator for the item names)."""
+    return _calculate("nihss", items)
 
 
 def _calculate_gcs(items: dict) -> dict:
-    """Calculate GCS from eye, verbal, motor components."""
-    eye = int(items.get("eye", items.get("e", 1)))
-    verbal = int(items.get("verbal", items.get("v", 1)))
-    motor = int(items.get("motor", items.get("m", 1)))
-    total = eye + verbal + motor
-
-    if total <= 8:
-        severity, category = "Severe brain injury -- intubation likely required", "severe"
-    elif total <= 12:
-        severity, category = "Moderate brain injury", "moderate"
-    else:
-        severity, category = "Mild brain injury", "mild"
-
-    recs = []
-    if total <= 8:
-        recs.append("Secure airway, consider intubation")
-        recs.append("Urgent neurosurgical consultation")
-        recs.append("CT head stat")
-    elif total <= 12:
-        recs.append("Close neurological monitoring")
-        recs.append("CT head to evaluate for intracranial pathology")
-
-    return {
-        "total_score": total, "max_score": 15,
-        "interpretation": severity, "severity_category": category,
-        "thresholds": {"severe": 8, "moderate": 12, "mild": 15},
-        "recommendations": recs,
-    }
+    """GCS from eye, verbal and motor components; all three are required."""
+    return _calculate("gcs", items)
 
 
 def _calculate_moca(items: dict) -> dict:
-    """Calculate MoCA total from domain item scores.
-
-    Domains: visuospatial, naming, attention, language, abstraction,
-    delayed_recall, orientation. Education correction applied.
-    """
-    total = sum(int(v) for v in items.values() if str(v).isdigit())
-    # Education correction: +1 point if education <= 12 years
-    education = items.get("education_years")
-    if education is not None and int(education) <= 12:
-        total = min(total + 1, 30)
-
-    if total >= 26:
-        severity, category = "Normal cognition", "normal"
-    elif total >= 18:
-        severity, category = "Mild cognitive impairment (MCI)", "mci"
-    elif total >= 10:
-        severity, category = "Moderate cognitive impairment", "moderate"
-    else:
-        severity, category = "Severe cognitive impairment", "severe"
-
-    recs = []
-    if total < 26:
-        recs.append("Comprehensive neuropsychological testing recommended")
-        recs.append("Consider neuroimaging (MRI brain with volumetrics)")
-        recs.append("Screen for reversible causes: B12, TSH, RPR, HIV")
-    if total < 18:
-        recs.append("Evaluate for cholinesterase inhibitor therapy")
-        recs.append("Assess functional independence and safety")
-
-    return {
-        "total_score": total, "max_score": 30,
-        "interpretation": severity, "severity_category": category,
-        "thresholds": {"normal": 26, "mci": 18, "moderate": 10},
-        "recommendations": recs,
-    }
+    """MoCA from the seven domain sub-scores, with the published education adjustment."""
+    return _calculate("moca", items)
 
 
 def _calculate_updrs(items: dict) -> dict:
-    """Calculate MDS-UPDRS Part III motor score from items."""
-    total = sum(int(v) for v in items.values() if str(v).isdigit())
-
-    if total <= 10:
-        severity, category = "Minimal motor impairment", "minimal"
-    elif total <= 32:
-        severity, category = "Mild motor impairment", "mild"
-    elif total <= 58:
-        severity, category = "Moderate motor impairment", "moderate"
-    else:
-        severity, category = "Severe motor impairment", "severe"
-
-    # Determine motor subtype from item patterns
-    sum(int(items.get(k, 0)) for k in ["3.15a", "3.15b", "3.16a", "3.16b", "3.17a", "3.17b", "3.17c", "3.17d", "3.17e", "3.18"] if k in items)
-    sum(int(items.get(k, 0)) for k in ["3.10", "3.11", "3.12", "3.13"] if k in items)
-
-    recs = []
-    if total > 32:
-        recs.append("Consider medication adjustment or addition")
-    if total > 58:
-        recs.append("Evaluate for deep brain stimulation candidacy")
-        recs.append("Refer to movement disorders specialist")
-
-    return {
-        "total_score": total, "max_score": 132,
-        "interpretation": severity, "severity_category": category,
-        "thresholds": {"minimal": 10, "mild": 32, "moderate": 58},
-        "recommendations": recs,
-    }
+    """MDS-UPDRS Part III motor score from item scores."""
+    return _calculate("updrs", items)
 
 
 def _calculate_edss(items: dict) -> dict:
-    """Calculate EDSS from functional system scores.
-
-    Items: pyramidal, cerebellar, brainstem, sensory, bowel_bladder,
-    visual, cerebral, ambulation
-    """
-    fs_scores = {k: int(v) for k, v in items.items() if k != "ambulation" and str(v).isdigit()}
-    max_fs = max(fs_scores.values()) if fs_scores else 0
-    ambulation = float(items.get("ambulation", 0))
-
-    # Simplified EDSS estimation
-    if ambulation > 0:
-        edss = ambulation
-    elif max_fs == 0:
-        edss = 0.0
-    elif max_fs == 1:
-        edss = 1.0 if sum(1 for v in fs_scores.values() if v >= 1) <= 1 else 1.5
-    elif max_fs == 2:
-        edss = 2.0 if sum(1 for v in fs_scores.values() if v >= 2) <= 1 else 2.5
-    elif max_fs == 3:
-        edss = 3.0 if sum(1 for v in fs_scores.values() if v >= 3) <= 1 else 3.5
-    elif max_fs == 4:
-        edss = 4.0
-    else:
-        edss = min(float(max_fs), 9.5)
-
-    if edss <= 1.5:
-        severity, category = "Minimal disability -- fully ambulatory", "minimal"
-    elif edss <= 3.5:
-        severity, category = "Moderate disability -- fully ambulatory", "moderate"
-    elif edss <= 5.5:
-        severity, category = "Significant disability -- ambulatory with limitations", "significant"
-    elif edss <= 7.5:
-        severity, category = "Severe disability -- restricted to wheelchair", "severe"
-    else:
-        severity, category = "Very severe disability -- bed-bound", "very_severe"
-
-    recs = []
-    if edss >= 3.0:
-        recs.append("Consider high-efficacy DMT if not already on one")
-    if edss >= 6.0:
-        recs.append("Evaluate for rehabilitation and assistive devices")
-        recs.append("Assess for symptom management (spasticity, fatigue, pain)")
-
-    return {
-        "total_score": edss, "max_score": 10.0,
-        "interpretation": severity, "severity_category": category,
-        "thresholds": {"minimal": 1.5, "moderate": 3.5, "significant": 5.5, "severe": 7.5},
-        "recommendations": recs,
-    }
+    """EDSS: interprets the examiner's step, cross-checked against the FS grades."""
+    return _calculate("edss", items)
 
 
 def _calculate_mrs(items: dict) -> dict:
-    """Calculate modified Rankin Scale score."""
-    score = int(items.get("score", items.get("mrs", 0)))
-    descriptions = {
-        0: ("No symptoms at all", "no_disability"),
-        1: ("No significant disability despite symptoms", "no_significant_disability"),
-        2: ("Slight disability -- unable to carry out all prior activities but independent", "slight"),
-        3: ("Moderate disability -- requires some help but walks without assistance", "moderate"),
-        4: ("Moderately severe disability -- unable to walk without assistance", "moderately_severe"),
-        5: ("Severe disability -- bedridden, incontinent, requires constant care", "severe"),
-        6: ("Dead", "dead"),
-    }
-    score = max(0, min(score, 6))
-    interpretation, category = descriptions[score]
-
-    recs = []
-    if score >= 3:
-        recs.append("Arrange rehabilitation services")
-        recs.append("Assess for secondary stroke prevention")
-    if score >= 4:
-        recs.append("Evaluate caregiver support needs")
-        recs.append("Consider skilled nursing facility if unable to manage at home")
-
-    return {
-        "total_score": score, "max_score": 6,
-        "interpretation": interpretation, "severity_category": category,
-        "thresholds": {"good_outcome": 2, "moderate": 3, "severe": 5},
-        "recommendations": recs,
-    }
+    """Modified Rankin Scale grade."""
+    return _calculate("mrs", items)
 
 
 def _calculate_hit6(items: dict) -> dict:
-    """Calculate HIT-6 (Headache Impact Test) score.
-
-    6 items, each scored 6=never, 8=rarely, 10=sometimes, 11=very_often, 13=always.
-    """
-    total = sum(int(v) for v in items.values() if str(v).isdigit())
-
-    if total <= 49:
-        severity, category = "No significant impact", "minimal"
-    elif total <= 55:
-        severity, category = "Some impact -- occasional headache interference", "some"
-    elif total <= 59:
-        severity, category = "Substantial impact -- frequent interference with daily activities", "substantial"
-    else:
-        severity, category = "Severe impact -- headaches significantly limit daily functioning", "severe"
-
-    recs = []
-    if total >= 56:
-        recs.append("Consider preventive therapy initiation")
-    if total >= 60:
-        recs.append("Evaluate for prophylactic medication (CGRP mAb, topiramate, or beta-blocker)")
-        recs.append("Screen for medication overuse headache")
-        recs.append("Consider headache specialist referral")
-
-    return {
-        "total_score": total, "max_score": 78,
-        "interpretation": severity, "severity_category": category,
-        "thresholds": {"minimal": 49, "some": 55, "substantial": 59},
-        "recommendations": recs,
-    }
+    """HIT-6 from exactly six item responses."""
+    return _calculate("hit6", items)
 
 
 def _calculate_alsfrs(items: dict) -> dict:
-    """Calculate ALSFRS-R (Revised ALS Functional Rating Scale).
-
-    12 items, each scored 0-4 (4=normal function).
-    """
-    total = sum(int(v) for v in items.values() if str(v).isdigit())
-
-    if total >= 40:
-        severity, category = "Mild functional impairment", "mild"
-    elif total >= 30:
-        severity, category = "Moderate functional impairment", "moderate"
-    elif total >= 20:
-        severity, category = "Significant functional impairment", "significant"
-    else:
-        severity, category = "Severe functional impairment", "severe"
-
-    recs = []
-    if total < 40:
-        recs.append("Multidisciplinary ALS clinic follow-up recommended")
-    if total < 30:
-        recs.append("Evaluate for non-invasive ventilation (FVC < 50%)")
-        recs.append("Discuss advanced care planning")
-    if total < 20:
-        recs.append("Assess for PEG tube placement if swallowing affected")
-        recs.append("Intensify respiratory monitoring")
-
-    # Bulbar sub-score
-    bulbar_items = sum(int(items.get(k, 4)) for k in ["speech", "salivation", "swallowing"] if k in items)
-    if bulbar_items < 9:
-        recs.append("Prominent bulbar involvement -- speech/swallow therapy referral")
-
-    return {
-        "total_score": total, "max_score": 48,
-        "interpretation": severity, "severity_category": category,
-        "thresholds": {"mild": 40, "moderate": 30, "significant": 20},
-        "recommendations": recs,
-    }
+    """ALSFRS-R from the twelve item scores."""
+    return _calculate("alsfrs", items)
 
 
 def _calculate_aspects(items: dict) -> dict:
-    """Calculate Alberta Stroke Program Early CT Score (ASPECTS).
-
-    10 regions scored 1=normal, 0=early ischemic change. Total starts at 10.
-    """
-    affected_regions = sum(1 for v in items.values() if str(v) == "0")
-    score = 10 - affected_regions
-
-    if score >= 8:
-        severity, category = "Small ischemic core -- favorable for intervention", "small_core"
-    elif score >= 6:
-        severity, category = "Moderate ischemic core", "moderate_core"
-    else:
-        severity, category = "Large ischemic core -- higher hemorrhage risk with thrombolysis", "large_core"
-
-    recs = []
-    if score >= 6:
-        recs.append("Favorable for thrombolysis and/or thrombectomy (AHA/ASA)")
-    else:
-        recs.append("Large established infarct -- weigh risks/benefits of reperfusion therapy carefully")
-        recs.append("Consider advanced imaging (CT perfusion) for salvageable tissue assessment")
-
-    return {
-        "total_score": score, "max_score": 10,
-        "interpretation": severity, "severity_category": category,
-        "thresholds": {"favorable": 8, "moderate": 6, "unfavorable": 5},
-        "recommendations": recs,
-    }
+    """ASPECTS from a per-region map (1 = normal, 0 = early ischemic change) or a list."""
+    return _calculate("aspects", items)
 
 
 def _calculate_hoehn_yahr(items: dict) -> dict:
-    """Calculate Hoehn-Yahr staging."""
-    stage = float(items.get("stage", items.get("score", 0)))
-    descriptions = {
-        0.0: ("No signs of disease", "no_disease"),
-        1.0: ("Unilateral involvement only", "stage_1"),
-        1.5: ("Unilateral and axial involvement", "stage_1_5"),
-        2.0: ("Bilateral involvement without balance impairment", "stage_2"),
-        2.5: ("Mild bilateral disease with recovery on pull test", "stage_2_5"),
-        3.0: ("Mild-to-moderate bilateral disease, postural instability, physically independent", "stage_3"),
-        4.0: ("Severe disability but still able to walk or stand unassisted", "stage_4"),
-        5.0: ("Wheelchair-bound or bedridden unless aided", "stage_5"),
-    }
-    stage = max(0.0, min(stage, 5.0))
-    nearest = min(descriptions.keys(), key=lambda k: abs(k - stage))
-    interpretation, category = descriptions[nearest]
-
-    recs = []
-    if stage >= 3.0:
-        recs.append("Consider DBS evaluation if medication response is waning")
-        recs.append("Physical therapy for fall prevention")
-    if stage >= 4.0:
-        recs.append("Evaluate home safety and caregiver support")
-        recs.append("Assess for palliative care integration")
-
-    return {
-        "total_score": stage, "max_score": 5.0,
-        "interpretation": interpretation, "severity_category": category,
-        "thresholds": {"mild": 2.0, "moderate": 3.0, "severe": 4.0},
-        "recommendations": recs,
-    }
+    """Hoehn & Yahr stage."""
+    return _calculate("hoehn_yahr", items)
 
 
-_SCALE_CALCULATORS = {
-    "nihss": _calculate_nihss,
-    "gcs": _calculate_gcs,
-    "moca": _calculate_moca,
-    "updrs": _calculate_updrs,
-    "updrs_part_iii": _calculate_updrs,
-    "edss": _calculate_edss,
-    "mrs": _calculate_mrs,
-    "hit6": _calculate_hit6,
-    "alsfrs": _calculate_alsfrs,
-    "alsfrs_r": _calculate_alsfrs,
-    "aspects": _calculate_aspects,
-    "hoehn_yahr": _calculate_hoehn_yahr,
-}
+_SCALE_CALCULATORS = {name: (lambda items, _n=name: _calculate(_n, items)) for name in SUPPORTED_SCALES}
 
 
 # =====================================================================
@@ -994,19 +775,22 @@ async def scale_calculate(request: ScaleCalculateRequest, req: Request):
     """
     _increment_metric(req, "scale_requests_total")
 
-    scale_key = request.scale_name.lower().replace("-", "_")
-    calculator = _SCALE_CALCULATORS.get(scale_key)
-    if calculator is None:
+    try:
+        result = _calculate(request.scale_name, request.items)
+    except KeyError:
         raise HTTPException(
             status_code=400,
             detail=(
                 f"Unknown scale '{request.scale_name}'. "
-                f"Supported scales: {sorted(set(_SCALE_CALCULATORS.keys()))}"
+                f"Supported scales: {SUPPORTED_SCALES}"
             ),
         )
-
-    try:
-        result = calculator(request.items)
+    except ScaleDataError as exc:
+        # The items cannot produce a score for this instrument. The message names what is
+        # missing or unusable; it is not swallowed into a generic "calculation error",
+        # because the caller needs to know which input to supply.
+        logger.info("Scale %s refused: %s", request.scale_name, exc)
+        raise HTTPException(status_code=422, detail=str(exc))
     except Exception as exc:
         logger.error(f"Scale calculation failed: {exc}")
         raise HTTPException(status_code=422, detail="Scale calculation error")
@@ -1020,66 +804,248 @@ async def scale_calculate(request: ScaleCalculateRequest, req: Request):
         thresholds=result.get("thresholds", {}),
         recommendations=result.get("recommendations", []),
         items_received=len(request.items),
+        items_scored=result.get("items_scored"),
+        items_expected=result.get("items_expected"),
+        data_complete=result.get("complete", True),
+        data_warnings=result.get("warnings", []),
     )
 
 
 @router.post("/stroke/triage", response_model=StrokeTriageResponse)
 async def stroke_triage(request: StrokeTriageRequest, req: Request):
-    """Acute stroke triage with NIHSS, thrombolysis/thrombectomy eligibility."""
+    """Acute stroke triage with NIHSS, thrombolysis/thrombectomy eligibility.
+
+    Four defects were fixed here. All four were reachable from the shipped UI.
+
+    **N2 -- exclusions that only appended a sentence.** `SBP > 185` and `glucose < 50 or
+    > 400` each appended a reasoning string and left `tpa_eligible` at `True`. A request with
+    `{nihss_total: 12, onset_time_hours: 2.0, blood_pressure_systolic: 228, blood_glucose: 38}`
+    returned `tpa_eligible: true` whose own `tpa_reasoning` read "SBP 228 -- must lower to
+    <185 before tPA". SBP > 185/110 and glucose < 50 mg/dL are exclusions in the AHA/ASA 2019
+    acute ischemic stroke guideline this endpoint already names in `guidelines_cited`; the
+    code now applies the threshold it was already printing.
+
+    **N2 -- the thrombolytic was ordered ahead of the CT.** `recommendations.insert(0, ...)`
+    put "Administer IV alteplase" above "Stat CT head to rule out hemorrhage", which is read
+    top-down by whoever is holding the phone. Alteplase into an undiagnosed hemorrhage is
+    lethal. The CT is now unconditionally first and the thrombolytic is appended, explicitly
+    conditioned on the CT having excluded hemorrhage.
+
+    **N2 -- unknown onset cleared tPA.** `if request.onset_time_hours is not None and ... >
+    4.5` fired nothing for `onset_time_hours: null`. The fix that landed in
+    `clinical_workflows.py` was never applied to this copy, which is the one the UI calls.
+
+    **N3/N20 -- unmeasured contraindications passed.** An absent BP, glucose or NIHSS is not a
+    normal BP, glucose or NIHSS. Each missing input that gates thrombolysis now yields an
+    `indeterminate` determination naming the input, rather than an eligible verdict.
+
+    **N6 -- `prior_mrs` was collected, validated `ge=0, le=5`, documented, and never read.**
+    `{nihss_total: 10, lvo_suspected: true, prior_mrs: 5}` -- a patient bedridden before the
+    stroke -- returned `thrombectomy_eligible: true`. `age` was likewise unused.
+    """
     _increment_metric(req, "workflow_requests_total")
 
-    # Calculate NIHSS
-    nihss_score = request.nihss_total or 0
-    nihss_severity = "unknown"
+    missing_inputs: List[str] = []
+
+    # -- NIHSS -----------------------------------------------------------------
+    nihss_complete = True
+    nihss_warnings: List[str] = []
     if request.nihss_items:
         result = _calculate_nihss(request.nihss_items)
         nihss_score = int(result["total_score"])
         nihss_severity = result["severity_category"]
+        nihss_complete = bool(result.get("complete", True))
+        nihss_warnings = list(result.get("warnings", []))
     elif request.nihss_total is not None:
+        nihss_score = request.nihss_total
         if nihss_score <= 4:
             nihss_severity = "minor"
         elif nihss_score <= 15:
             nihss_severity = "moderate"
+        elif nihss_score <= 20:
+            # The 16-20 "moderate-to-severe" band exists in _calculate_nihss and in
+            # knowledge.py and was missing only here, so the same NIHSS 18 came back
+            # "moderate_severe" when submitted as items and "severe" when submitted as a
+            # total (N18).
+            nihss_severity = "moderate_severe"
         elif nihss_score <= 25:
             nihss_severity = "severe"
         else:
             nihss_severity = "very_severe"
-
-    # tPA eligibility
-    tpa_eligible = True
-    tpa_reasoning = []
-    if request.onset_time_hours is not None and request.onset_time_hours > 4.5:
-        tpa_eligible = False
-        tpa_reasoning.append(f"Onset {request.onset_time_hours:.1f}h ago -- exceeds 4.5h tPA window")
-    elif request.onset_time_hours is not None:
-        tpa_reasoning.append(f"Within tPA window ({request.onset_time_hours:.1f}h since onset)")
-    if nihss_score < 4:
-        tpa_reasoning.append(f"NIHSS {nihss_score} -- mild deficit, weigh risk/benefit")
-    if request.anticoagulant_use:
-        tpa_eligible = False
-        tpa_reasoning.append("Anticoagulant use -- contraindication for tPA")
-    if request.blood_pressure_systolic and request.blood_pressure_systolic > 185:
-        tpa_reasoning.append(f"SBP {request.blood_pressure_systolic} -- must lower to <185 before tPA")
-    if request.blood_glucose and (request.blood_glucose < 50 or request.blood_glucose > 400):
-        tpa_reasoning.append(f"Blood glucose {request.blood_glucose} -- correct before tPA")
-
-    # Thrombectomy eligibility
-    thrombectomy_eligible = False
-    thrombectomy_reasoning = []
-    if nihss_score >= 6 and request.lvo_suspected:
-        thrombectomy_eligible = True
-        thrombectomy_reasoning.append("NIHSS >= 6 with suspected LVO -- thrombectomy candidate")
-    elif request.lvo_suspected:
-        thrombectomy_reasoning.append("LVO suspected but NIHSS may be low -- consider advanced imaging")
     else:
-        thrombectomy_reasoning.append("No suspected LVO or NIHSS < 6")
+        nihss_score = 0
+        nihss_severity = "not_assessed"
+        nihss_complete = False
+        missing_inputs.append("nihss_items or nihss_total")
 
-    if request.onset_time_hours is not None and request.onset_time_hours > 24:
-        thrombectomy_eligible = False
+    # -- tPA eligibility -------------------------------------------------------
+    # Starts indeterminate. It becomes "eligible" only when every gating input was supplied
+    # and none of them excludes thrombolysis.
+    tpa_reasoning: List[str] = []
+    tpa_excluded = False
+    tpa_blocked_on_missing_data = False
+
+    def _exclude(reason: str) -> None:
+        nonlocal tpa_excluded
+        tpa_excluded = True
+        tpa_reasoning.append(reason)
+
+    def _needs(field: str, reason: str) -> None:
+        nonlocal tpa_blocked_on_missing_data
+        tpa_blocked_on_missing_data = True
+        missing_inputs.append(field)
+        tpa_reasoning.append(f"INSUFFICIENT DATA: {reason}")
+
+    if request.onset_time_hours is None:
+        _needs(
+            "onset_time_hours",
+            "time of symptom onset not established. tPA requires a known onset within 4.5h, "
+            "or DWI-FLAIR mismatch on MRI for wake-up/unwitnessed stroke (WAKE-UP, NEJM 2018)",
+        )
+    elif request.onset_time_hours > 4.5:
+        _exclude(f"Onset {request.onset_time_hours:.1f}h ago -- exceeds 4.5h tPA window")
+    else:
+        tpa_reasoning.append(f"Within tPA window ({request.onset_time_hours:.1f}h since onset)")
+
+    if not nihss_complete and request.nihss_items:
+        _needs(
+            "nihss_items (incomplete)",
+            f"NIHSS examination incomplete -- the alteplase threshold (>= 4) cannot be "
+            f"applied to a partial exam",
+        )
+    elif nihss_score == 0 and nihss_severity != "not_assessed":
+        _exclude("NIHSS 0 -- no measurable deficit")
+    elif nihss_severity == "not_assessed":
+        _needs("nihss_items or nihss_total", "no NIHSS recorded")
+    elif nihss_score < 4:
+        tpa_reasoning.append(f"NIHSS {nihss_score} -- mild deficit, weigh risk/benefit")
+
+    if request.anticoagulant_use:
+        # INR / DOAC level is not collected by this endpoint, so anticoagulation cannot be
+        # cleared here at all.
+        _exclude(
+            "On anticoagulation and no INR/DOAC level available -- tPA contraindicated "
+            "pending coagulation results"
+        )
+    elif request.anticoagulant_use is None:
+        _needs("anticoagulant_use", "anticoagulant use not recorded")
+
+    if request.blood_pressure_systolic is None:
+        _needs("blood_pressure_systolic", "blood pressure not measured")
+    elif request.blood_pressure_systolic > 185:
+        # AHA/ASA 2019 Early Management of Acute Ischemic Stroke: BP must be lowered to
+        # < 185/110 mmHg before IV alteplase. Above that it is an exclusion, not a note.
+        _exclude(
+            f"SBP {request.blood_pressure_systolic} mmHg exceeds 185 mmHg -- NOT eligible "
+            f"until BP is lowered to <185/110; re-triage after treatment"
+        )
+
+    if request.blood_glucose is None:
+        _needs("blood_glucose", "blood glucose not measured")
+    elif request.blood_glucose < 50:
+        _exclude(
+            f"Blood glucose {request.blood_glucose} mg/dL < 50 -- hypoglycaemia can mimic "
+            f"stroke; correct and reassess before tPA"
+        )
+    elif request.blood_glucose > 400:
+        _exclude(
+            f"Blood glucose {request.blood_glucose} mg/dL > 400 -- correct before tPA"
+        )
+
+    if tpa_excluded:
+        tpa_determination = "not_eligible"
+    elif tpa_blocked_on_missing_data:
+        tpa_determination = "indeterminate"
+    else:
+        tpa_determination = "eligible"
+    tpa_eligible = tpa_determination == "eligible"
+
+    # -- Thrombectomy eligibility ---------------------------------------------
+    thrombectomy_reasoning: List[str] = []
+    thrombectomy_excluded = False
+    thrombectomy_indeterminate = False
+
+    if request.lvo_suspected is None:
+        thrombectomy_indeterminate = True
+        missing_inputs.append("lvo_suspected")
+        thrombectomy_reasoning.append(
+            "INSUFFICIENT DATA: no vessel imaging result. Thrombectomy requires a "
+            "demonstrated ICA/M1 (or basilar) occlusion -- obtain CTA head/neck"
+        )
+    elif not request.lvo_suspected:
+        thrombectomy_excluded = True
+        thrombectomy_reasoning.append("No large vessel occlusion -- not a thrombectomy candidate")
+    else:
+        thrombectomy_reasoning.append(
+            "LVO suspected on the submitted information -- confirm ICA/M1 occlusion on CTA/MRA "
+            "before activating the neurointerventional team"
+        )
+
+    if not nihss_complete:
+        thrombectomy_indeterminate = True
+        thrombectomy_reasoning.append(
+            "INSUFFICIENT DATA: the thrombectomy threshold (NIHSS >= 6) cannot be applied to "
+            "an incomplete or absent NIHSS"
+        )
+    elif nihss_score < 6:
+        thrombectomy_excluded = True
+        thrombectomy_reasoning.append(
+            f"NIHSS {nihss_score} < 6 -- below the threshold used by this endpoint; "
+            f"consider advanced imaging if clinical-imaging mismatch is suspected"
+        )
+
+    if request.onset_time_hours is None:
+        thrombectomy_indeterminate = True
+        thrombectomy_reasoning.append(
+            "INSUFFICIENT DATA: onset time unknown -- extended-window selection requires "
+            "perfusion imaging (DAWN/DEFUSE-3 criteria)"
+        )
+    elif request.onset_time_hours > 24:
+        thrombectomy_excluded = True
         thrombectomy_reasoning.append("Beyond 24h window for thrombectomy")
-    if request.ct_aspects_score is not None and request.ct_aspects_score < 6:
-        thrombectomy_eligible = False
-        thrombectomy_reasoning.append(f"ASPECTS {request.ct_aspects_score} < 6 -- large established infarct")
+
+    if request.ct_aspects_score is None:
+        thrombectomy_indeterminate = True
+        missing_inputs.append("ct_aspects_score")
+        thrombectomy_reasoning.append(
+            "INSUFFICIENT DATA: no ASPECTS recorded -- an unscored CT is not a favourable CT"
+        )
+    elif request.ct_aspects_score < 6:
+        thrombectomy_excluded = True
+        thrombectomy_reasoning.append(
+            f"ASPECTS {request.ct_aspects_score} < 6 -- large established infarct"
+        )
+
+    # Pre-stroke functional status. Declared, validated and never read until now (N6).
+    if request.prior_mrs is None:
+        thrombectomy_indeterminate = True
+        missing_inputs.append("prior_mrs")
+        thrombectomy_reasoning.append(
+            "INSUFFICIENT DATA: pre-stroke mRS not recorded -- every thrombectomy trial "
+            "enrolled on pre-stroke functional independence"
+        )
+    elif request.prior_mrs >= 3:
+        # Outside the enrollment range of every trial behind the recommendation: the 2015
+        # trials enrolled pre-stroke mRS 0-1, DAWN and DEFUSE-3 enrolled 0-2.
+        thrombectomy_excluded = True
+        thrombectomy_reasoning.append(
+            f"Pre-stroke mRS {request.prior_mrs} -- outside the enrollment range of the "
+            f"trials behind this recommendation (0-1 in the 2015 trials, 0-2 in "
+            f"DAWN/DEFUSE-3)"
+        )
+    elif request.prior_mrs == 2:
+        thrombectomy_reasoning.append(
+            "Pre-stroke mRS 2 -- within the DAWN/DEFUSE-3 range but outside the 2015 trials' "
+            "(0-1); confirm with the treating neurointerventionalist"
+        )
+
+    if thrombectomy_excluded:
+        thrombectomy_determination = "not_eligible"
+    elif thrombectomy_indeterminate:
+        thrombectomy_determination = "indeterminate"
+    else:
+        thrombectomy_determination = "eligible"
+    thrombectomy_eligible = thrombectomy_determination == "eligible"
 
     # ASPECTS interpretation
     aspects_interp = None
@@ -1099,19 +1065,45 @@ async def stroke_triage(request: StrokeTriageRequest, req: Request):
     else:
         urgency = "standard"
 
+    # The non-contrast CT is first in this list and stays first: nothing that could be given
+    # to a patient with an intracranial hemorrhage may be ordered above the study that rules
+    # one out.
     recommendations = [
-        "Stat CT head to rule out hemorrhage",
+        "Stat CT head to rule out hemorrhage -- BEFORE any thrombolytic",
         "CBC, BMP, coagulation studies, troponin",
         "12-lead ECG for atrial fibrillation screening",
         "Continuous telemetry monitoring",
     ]
+    if not nihss_complete and request.nihss_items:
+        recommendations.append(
+            "Complete the NIHSS examination: the recorded items give a lower bound only"
+        )
     if tpa_eligible and nihss_score >= 4:
-        recommendations.insert(0, "Administer IV alteplase 0.9 mg/kg (max 90 mg)")
+        recommendations.append(
+            "AFTER the CT excludes hemorrhage: administer IV alteplase 0.9 mg/kg (max 90 mg), "
+            "10% as bolus and the remainder over 60 minutes"
+        )
+    elif tpa_determination == "indeterminate":
+        recommendations.append(
+            "tPA eligibility INDETERMINATE -- obtain: " + ", ".join(sorted(set(missing_inputs)))
+        )
     if thrombectomy_eligible:
-        recommendations.insert(0, "Activate neurointerventional team for thrombectomy")
+        recommendations.append(
+            "AFTER the CT excludes hemorrhage and the occlusion is confirmed on vessel "
+            "imaging: activate the neurointerventional team for mechanical thrombectomy"
+        )
 
-    # LLM evidence enrichment
-    evidence = []
+    # Model-generated prose. It was previously appended to `evidence` as
+    # `{"source": "llm", "text": ..., "score": 0.8}` (G3): `evidence` is a key the honesty
+    # gate deliberately skips, because retrieved passages must not be rewritten -- so this
+    # text was never scanned, never got the decision-support disclaimer, and was handed to
+    # the claim verifier as the ground truth against which to check the answer that produced
+    # it. The UI rendered it as "Evidence (1 passages) -- [llm] Score: 0.800", which is
+    # indistinguishable from a retrieved PubMed passage. It is model knowledge, it was never
+    # retrieved and it was never scored, so it carries no relevance number and lives under a
+    # key the gate reads.
+    evidence: List[dict] = []
+    discussion = None
     llm = _get_llm(req)
     if llm and request.clinical_notes:
         try:
@@ -1121,10 +1113,14 @@ async def stroke_triage(request: StrokeTriageRequest, req: Request):
                 f"LVO suspected: {request.lvo_suspected}\n"
                 f"ASPECTS: {request.ct_aspects_score}\n"
                 f"Notes: {request.clinical_notes}\n\n"
-                f"Provide additional clinical considerations."
+                f"Provide additional clinical considerations. Nothing was retrieved from the "
+                f"knowledge base for this case, so do not cite studies, guidelines or figures "
+                f"as though they had been looked up."
             )
-            llm_result = llm.generate(prompt)
-            evidence.append({"source": "llm", "text": llm_result, "score": 0.8})
+            discussion = (
+                "Model knowledge, not retrieved from this knowledge base:\n\n"
+                + llm.generate(prompt)
+            )
         except Exception as exc:
             logger.warning(f"Stroke triage LLM failed: {exc}")
 
@@ -1132,7 +1128,7 @@ async def stroke_triage(request: StrokeTriageRequest, req: Request):
         nihss_score=nihss_score,
         nihss_severity=nihss_severity,
         tpa_eligible=tpa_eligible,
-        tpa_reasoning=tpa_reasoning,
+        tpa_reasoning=tpa_reasoning + nihss_warnings,
         thrombectomy_eligible=thrombectomy_eligible,
         thrombectomy_reasoning=thrombectomy_reasoning,
         aspects_interpretation=aspects_interp,
@@ -1144,6 +1140,11 @@ async def stroke_triage(request: StrokeTriageRequest, req: Request):
             "AHA/ASA 2019 Endovascular Treatment Guidelines",
         ],
         evidence=evidence,
+        tpa_determination=tpa_determination,
+        thrombectomy_determination=thrombectomy_determination,
+        missing_inputs=sorted(set(missing_inputs)),
+        nihss_complete=nihss_complete,
+        discussion=discussion,
     )
 
 
@@ -1152,13 +1153,23 @@ async def dementia_evaluate(request: DementiaEvaluateRequest, req: Request):
     """Comprehensive dementia evaluation with cognitive screening and differential."""
     _increment_metric(req, "workflow_requests_total")
 
-    # MoCA calculation
+    # MoCA calculation. `education_years` is a declared request field that this endpoint
+    # never passed to the calculator -- it relied on the client smuggling it inside
+    # `moca_items`, which is exactly how N1 inflated the total. It is now passed properly and
+    # cannot reach the sum.
     moca_score = request.moca_total
     moca_interp = None
+    moca_complete = True
+    data_warnings: List[str] = []
     if request.moca_items:
-        result = _calculate_moca(request.moca_items)
+        items = dict(request.moca_items)
+        if request.education_years is not None:
+            items["education_years"] = request.education_years
+        result = _calculate_moca(items)
         moca_score = int(result["total_score"])
         moca_interp = result["interpretation"]
+        moca_complete = bool(result.get("complete", True))
+        data_warnings.extend(result.get("warnings", []))
     elif moca_score is not None:
         if moca_score >= 26:
             moca_interp = "Normal cognition"
@@ -1232,19 +1243,43 @@ async def dementia_evaluate(request: DementiaEvaluateRequest, req: Request):
         workup.append("Young-onset dementia panel: autoimmune encephalitis antibodies, genetic testing")
 
     treatment = []
-    if moca_score is not None and moca_score < 26:
+    # A cholinesterase inhibitor used to be recommended for any MoCA < 26 -- i.e. for MCI --
+    # in a response citing the AAN 2018 MCI Practice Guideline, whose MCI recommendation is
+    # that clinicians *may choose not to* prescribe cholinesterase inhibitors (Level B) and
+    # must first discuss the absence of evidence (Level A). The guidance contradicted its own
+    # citation. Scored MCI now gets the guideline's actual position. (Petersen et al. 2018,
+    # PMID 29282327; PubMed labels that guideline RETIRED -- confirm its current status before
+    # quoting it elsewhere.)
+    if moca_score is not None and not moca_complete:
+        treatment.append(
+            "No pharmacotherapy recommendation: the MoCA was incomplete, so the patient has "
+            "no interpretable cognitive stage"
+        )
+    elif moca_score is not None and moca_score < 18:
         treatment.append("Cholinesterase inhibitor (donepezil 5-10mg, rivastigmine, or galantamine)")
-    if moca_score is not None and moca_score < 18:
         treatment.append("Consider memantine addition")
+    elif moca_score is not None and moca_score < 26:
+        treatment.append(
+            "MCI range: cholinesterase inhibitors are not approved for MCI. Per the AAN 2018 "
+            "MCI guideline, clinicians may choose not to prescribe them and should discuss "
+            "the absence of evidence of benefit with the patient first"
+        )
 
     recommendations = []
     if moca_score is not None and moca_score < 26:
         recommendations.append("Assess driving safety and functional independence")
         recommendations.append("Connect with dementia support resources and caregiver education")
+    if not moca_complete:
+        recommendations.insert(
+            0,
+            "Complete the MoCA before staging cognition or selecting therapy -- "
+            "unrecorded domains are not normal domains",
+        )
     recommendations.append("Follow-up cognitive assessment in 6-12 months")
 
-    # LLM enrichment
-    evidence = []
+    # Model prose -- see the G3 note in stroke_triage. Not evidence, no relevance score.
+    evidence: List[dict] = []
+    discussion = None
     llm = _get_llm(req)
     if llm and request.clinical_notes:
         try:
@@ -1254,10 +1289,14 @@ async def dementia_evaluate(request: DementiaEvaluateRequest, req: Request):
                 f"Symptoms: {', '.join(request.dominant_symptoms)}\n"
                 f"Motor: {request.motor_features}\n"
                 f"Notes: {request.clinical_notes}\n\n"
-                f"Provide differential diagnosis considerations."
+                f"Provide differential diagnosis considerations. Nothing was retrieved from "
+                f"the knowledge base for this case, so do not cite studies, guidelines or "
+                f"figures as though they had been looked up."
             )
-            llm_result = llm.generate(prompt)
-            evidence.append({"source": "llm", "text": llm_result, "score": 0.8})
+            discussion = (
+                "Model knowledge, not retrieved from this knowledge base:\n\n"
+                + llm.generate(prompt)
+            )
         except Exception as exc:
             logger.warning("Dementia evaluation LLM failed: %s", exc)
 
@@ -1276,6 +1315,9 @@ async def dementia_evaluate(request: DementiaEvaluateRequest, req: Request):
             "AAN 2001 Dementia Practice Parameter",
         ],
         evidence=evidence,
+        moca_complete=moca_complete,
+        data_warnings=data_warnings,
+        discussion=discussion,
     )
 
 
@@ -1333,6 +1375,25 @@ async def epilepsy_classify(request: EpilepsyClassifyRequest, req: Request):
             syndrome = "juvenile_myoclonic"
         elif request.age_at_onset < 2 and "prolonged" in desc and "febrile" in desc:
             syndrome = "dravet"
+    if request.clinical_diagnosis:
+        # N19(a): `syndrome = "dravet"` was reachable only through a pathogenic SCN1A result,
+        # so a clinically diagnosed Dravet patient on carbamazepine with no genetic testing in
+        # the payload got no contraindication warning at all. Sodium-channel blockers worsen
+        # Dravet seizures. A clinical diagnosis is now sufficient to name the syndrome.
+        dx = request.clinical_diagnosis.lower()
+        for name, key in (
+            ("dravet", "dravet"),
+            ("juvenile myoclonic", "juvenile_myoclonic"),
+            ("childhood absence", "childhood_absence"),
+            ("west", "west"),
+            ("temporal lobe", "temporal_lobe"),
+        ):
+            if name in dx:
+                syndrome = key
+                break
+    if request.genetic_results and "scn1a" in request.genetic_results.lower():
+        if any(w in request.genetic_results.lower() for w in ("pathogenic", "mutation", "variant")):
+            syndrome = syndrome or "dravet"
     if request.eeg_findings and "temporal" in request.eeg_findings.lower():
         syndrome = syndrome or "temporal_lobe"
 
@@ -1345,10 +1406,24 @@ async def epilepsy_classify(request: EpilepsyClassifyRequest, req: Request):
         elif "normal" in request.mri_findings.lower():
             concordance = "MRI-negative epilepsy -- EEG findings guide localization"
 
-    # Surgical candidacy
+    # Surgical candidacy.
+    # N19(c): this fired on `len(current_aeds) >= 2 and seizure_frequency`, so a seizure-free
+    # patient on two concurrent ASMs was told "Drug-resistant epilepsy criteria may be met"
+    # under a cited drug-resistant-epilepsy guideline. The ILAE definition requires FAILURE of
+    # two adequate trials, which is what `failed_aeds` records.
     surgical_candidacy = None
-    if len(request.current_aeds) >= 2 and request.seizure_frequency:
-        surgical_candidacy = "Drug-resistant epilepsy criteria may be met -- consider epilepsy surgery evaluation"
+    if len(request.failed_aeds) >= 2 and request.seizure_frequency:
+        surgical_candidacy = (
+            f"Drug-resistant epilepsy criteria may be met ({len(request.failed_aeds)} ASMs "
+            f"failed an adequate trial, ongoing seizures) -- consider epilepsy surgery "
+            f"evaluation"
+        )
+    elif len(request.current_aeds) >= 2 and request.seizure_frequency:
+        surgical_candidacy = (
+            "Drug-resistance not established: two or more ASMs are currently prescribed, but "
+            "the ILAE definition requires failure of two adequately chosen, tolerated and "
+            "dosed trials. Record them in `failed_aeds`."
+        )
 
     # AED recommendations
     aed_recs = []
@@ -1361,17 +1436,52 @@ async def epilepsy_classify(request: EpilepsyClassifyRequest, req: Request):
     if syndrome == "dravet":
         aed_recs = ["Stiripentol + valproate + clobazam", "Cannabidiol (Epidiolex)", "Fenfluramine"]
 
+    # Syndrome-specific drug contraindications. This endpoint previously only *replaced* the
+    # ASM list and never warned that a drug the patient was already taking was contraindicated
+    # (N19a).
+    _CONTRAINDICATED_ASMS = {
+        "dravet": (
+            ["carbamazepine", "oxcarbazepine", "phenytoin", "lamotrigine", "vigabatrin"],
+            "sodium-channel blockers and vigabatrin worsen seizures in Dravet syndrome",
+        ),
+        "juvenile_myoclonic": (
+            ["carbamazepine", "oxcarbazepine", "phenytoin", "gabapentin", "pregabalin",
+             "vigabatrin", "tiagabine"],
+            "these agents can aggravate myoclonic and absence seizures in JME",
+        ),
+        "childhood_absence": (
+            ["carbamazepine", "oxcarbazepine", "phenytoin", "gabapentin", "vigabatrin",
+             "tiagabine"],
+            "these agents can aggravate absence seizures",
+        ),
+    }
+    contraindication_warnings: List[str] = []
+    if syndrome in _CONTRAINDICATED_ASMS:
+        banned, why = _CONTRAINDICATED_ASMS[syndrome]
+        current = " ".join(request.current_aeds).lower()
+        hits = [drug for drug in banned if drug in current]
+        if hits:
+            contraindication_warnings.append(
+                f"DANGER: {', '.join(hits)} CONTRAINDICATED in {syndrome.replace('_', ' ')} "
+                f"-- {why}. Review urgently."
+            )
+        contraindication_warnings.append(
+            f"Avoid in {syndrome.replace('_', ' ')}: {', '.join(banned)} -- {why}"
+        )
+
     recommendations = [
         "Routine and/or prolonged EEG monitoring",
         "MRI brain with epilepsy protocol",
     ]
+    recommendations.extend(contraindication_warnings)
     if len(request.current_aeds) >= 2:
         recommendations.append("Refer to comprehensive epilepsy center")
     if surgical_candidacy:
         recommendations.append(surgical_candidacy)
 
-    # LLM enrichment
-    evidence = []
+    # Model prose -- see the G3 note in stroke_triage. Not evidence, no relevance score.
+    evidence: List[dict] = []
+    discussion = None
     llm = _get_llm(req)
     if llm and request.clinical_notes:
         try:
@@ -1382,10 +1492,14 @@ async def epilepsy_classify(request: EpilepsyClassifyRequest, req: Request):
                 f"EEG: {request.eeg_findings}\n"
                 f"MRI: {request.mri_findings}\n"
                 f"Notes: {request.clinical_notes}\n\n"
-                f"Provide classification and management considerations."
+                f"Provide classification and management considerations. Nothing was retrieved "
+                f"from the knowledge base for this case, so do not cite studies, guidelines or "
+                f"figures as though they had been looked up."
             )
-            llm_result = llm.generate(prompt)
-            evidence.append({"source": "llm", "text": llm_result, "score": 0.8})
+            discussion = (
+                "Model knowledge, not retrieved from this knowledge base:\n\n"
+                + llm.generate(prompt)
+            )
         except Exception as exc:
             logger.warning("Epilepsy classification LLM failed: %s", exc)
 
@@ -1397,6 +1511,7 @@ async def epilepsy_classify(request: EpilepsyClassifyRequest, req: Request):
         eeg_mri_concordance=concordance,
         surgical_candidacy=surgical_candidacy,
         aed_recommendations=aed_recs,
+        contraindication_warnings=contraindication_warnings,
         recommendations=recommendations,
         guidelines_cited=[
             "ILAE 2017 Seizure Classification",
@@ -1404,6 +1519,7 @@ async def epilepsy_classify(request: EpilepsyClassifyRequest, req: Request):
             "AAN/AES 2018 Drug-Resistant Epilepsy Guideline",
         ],
         evidence=evidence,
+        discussion=discussion,
     )
 
 
@@ -1451,10 +1567,19 @@ async def tumor_grade(request: TumorGradeRequest, req: Request):
             "Maximum safe surgical resection",
             "Concurrent temozolomide + radiation (Stupp protocol)",
         ])
+        # N12: `else: "MGMT unmethylated"` reported a tumor whose MGMT was never tested as
+        # unmethylated, and routed it down the branch that lowers temozolomide expectations.
+        # "Not tested" is now its own answer.
         if "mgmt_methylated" in markers:
             treatment.append("MGMT methylated -- favorable response to temozolomide expected")
-        else:
+        elif "mgmt_unmethylated" in markers:
             treatment.append("MGMT unmethylated -- consider clinical trial alternatives")
+        else:
+            treatment.append(
+                "MGMT promoter methylation NOT TESTED -- order it; temozolomide benefit "
+                "cannot be predicted without it, and absence of a result is not an "
+                "unmethylated result"
+            )
         treatment.append("Adjuvant temozolomide x6 cycles")
         treatment.append("Consider tumor treating fields (TTFields/Optune)")
     elif who_grade in ("grade_2", "grade_3"):
@@ -1488,7 +1613,16 @@ async def tumor_grade(request: TumorGradeRequest, req: Request):
         "Serial MRI surveillance per NCCN guidelines",
         "Neuropsychological assessment",
     ]
-    if request.kps is not None and request.kps < 70:
+    if request.kps is None:
+        recommendations.append(
+            "Karnofsky Performance Status not recorded -- record it; treatment intensity and "
+            "the palliative-care decision both turn on it"
+        )
+    elif request.kps < 70:
+        # NOTE: this endpoint uses KPS < 70 while clinical_workflows.py uses KPS < 60 for the
+        # same decision. Neither cut-point is cited in this repo and no primary source was
+        # retrieved, so both values are left as they are and the divergence is recorded here
+        # rather than silently resolved in one direction.
         recommendations.append("Supportive/palliative care focus given low KPS")
 
     return TumorGradeResponse(
@@ -1516,9 +1650,14 @@ async def ms_assess(request: MSAssessRequest, req: Request):
     # EDSS
     edss_score = request.edss_score
     edss_interp = None
+    missing_inputs: List[str] = []
     if request.edss_items:
-        result = _calculate_edss(request.edss_items)
-        edss_score = result["total_score"]
+        items = dict(request.edss_items)
+        if request.edss_score is not None:
+            items.setdefault("edss_step", request.edss_score)
+        result = _calculate_edss(items)
+        if result.get("complete", True):
+            edss_score = result["total_score"]
         edss_interp = result["interpretation"]
     elif edss_score is not None:
         if edss_score <= 1.5:
@@ -1540,23 +1679,74 @@ async def ms_assess(request: MSAssessRequest, req: Request):
     else:
         disease_activity = "stable"
 
-    # NEDA status
-    neda_3 = relapses == 0 and new_lesions == 0
-    edss_progression = False
-    if edss_score is not None and edss_score > 3.0:
-        neda_3 = False
-        edss_progression = True
+    # NEDA-3 status.
+    #
+    # N7(b): this read `if edss_score is not None and edss_score > 3.0: neda_3 = False;
+    # edss_progression = True`. Progression is a CHANGE, and this endpoint had no prior-EDSS
+    # field at all, so it was wrong in both directions: a patient stable at EDSS 4.0 for ten
+    # years with no relapses and no new lesions was reported as progressing, with
+    # `treatment_response: "suboptimal"` and a DMT-escalation suggestion; while a patient who
+    # genuinely went 1.0 -> 3.0 got `edss_progression: false` and `neda_3_achieved: true`.
+    # The absolute test is gone and the confirmed-progression rule already coded in
+    # clinical_workflows.py (>= 1.0 when baseline <= 5.5, >= 0.5 when baseline >= 6.0) is
+    # applied to the recorded prior EDSS.
+    #
+    # N7: NEDA-3 is also no longer asserted from silence. "No evidence of disease activity"
+    # requires evidence: with no relapse count, no MRI result and no prior EDSS, the status is
+    # not assessable, which is not the same as achieved.
+    if request.relapse_count_2yr is None:
+        missing_inputs.append("relapse_count_2yr")
+    if request.new_t2_lesions is None and request.gad_enhancing_lesions is None:
+        missing_inputs.append("new_t2_lesions / gad_enhancing_lesions")
+    if request.edss_prior is None:
+        missing_inputs.append("edss_prior")
+
+    edss_progression: Optional[bool] = None
+    if request.edss_prior is not None and edss_score is not None:
+        delta = edss_score - request.edss_prior
+        if request.edss_prior <= 5.5:
+            edss_progression = delta >= 1.0
+        else:
+            edss_progression = delta >= 0.5
+
+    neda_components = {
+        "no_relapses": None if request.relapse_count_2yr is None else relapses == 0,
+        "no_new_lesions": (
+            None
+            if (request.new_t2_lesions is None and request.gad_enhancing_lesions is None)
+            else new_lesions == 0
+        ),
+        "no_edss_progression": None if edss_progression is None else not edss_progression,
+    }
+    if any(v is False for v in neda_components.values()):
+        neda_3: Optional[bool] = False
+        neda_assessable = True
+    elif all(v is True for v in neda_components.values()):
+        neda_3 = True
+        neda_assessable = True
+    else:
+        neda_3 = None
+        neda_assessable = False
+
     neda_status = {
         "neda_3_achieved": neda_3,
-        "no_relapses": relapses == 0,
-        "no_new_lesions": new_lesions == 0,
-        "no_edss_progression": not edss_progression,
+        "neda_3_assessable": neda_assessable,
+        **neda_components,
     }
+    if not neda_assessable:
+        neda_status["note"] = (
+            "NEDA-3 NOT ASSESSABLE -- missing: " + ", ".join(missing_inputs)
+            + ". NEDA-3 means no evidence of disease activity, which requires evidence; "
+            "unreported relapses, unperformed MRI and an unknown prior EDSS are not absence "
+            "of activity."
+        )
 
     # DMT assessment
     dmt_assessment = {
         "current_dmt": request.current_dmt or "none",
-        "treatment_response": "adequate" if neda_3 else "suboptimal",
+        "treatment_response": (
+            "not_assessable" if neda_3 is None else ("adequate" if neda_3 else "suboptimal")
+        ),
     }
 
     escalation = None
@@ -1582,6 +1772,12 @@ async def ms_assess(request: MSAssessRequest, req: Request):
         recommendations.insert(0, "Discuss DMT optimization with patient")
     if request.ms_course == "spms":
         recommendations.append("Consider siponimod if active SPMS")
+    if missing_inputs:
+        recommendations.insert(
+            0,
+            "Disease-activity assessment is incomplete -- record: "
+            + ", ".join(missing_inputs),
+        )
 
     return MSAssessResponse(
         edss_score=edss_score,
@@ -1629,18 +1825,40 @@ async def parkinsons_assess(request: ParkinsonsAssessRequest, req: Request):
         hy_result = _calculate_hoehn_yahr({"stage": hy_stage})
         hy_desc = hy_result["interpretation"]
 
-    # Motor subtype
+    # Motor subtype.
+    #
+    # N13(b): the PIGD key set was matched by substring -- `"postural" in k.lower()` -- which
+    # also matched `3.15a_postural_tremor_r` and `3.15b_postural_tremor_l`. A pure-tremor
+    # patient therefore contributed tremor points to the PIGD sum: with
+    # `{3.15a_postural_tremor_r: 4, 3.17a_rest_tremor_rue: 4, 3.10_gait: 0,
+    # 3.12_postural_stability: 0}` the PIGD keys came out as
+    # `['3.15a_postural_tremor_r', '3.10_gait', '3.12_postural_stability']`. The item sets are
+    # now named explicitly on UPDRSCalculator and shared with the workflow.
+    #
+    # OPEN (uncited, unchanged): this compares raw sums of 10 tremor items against 5 PIGD
+    # items, while clinical_workflows.py compares means with 1.5 / 0.67 ratio cut-offs. The
+    # MDS-UPDRS-based cut-offs (>= 1.15 / <= 0.90) and the canonical PIGD item set come from
+    # Stebbins et al., Mov Disord 2013, which was not retrieved, so neither algorithm's
+    # numbers are changed here.
     motor_subtype = "indeterminate"
-    if updrs_score is not None:
-        if request.updrs_items:
-            tremor_keys = [k for k in request.updrs_items if "tremor" in k.lower() or "3.15" in k or "3.16" in k or "3.17" in k]
-            pigd_keys = [k for k in request.updrs_items if "gait" in k.lower() or "postural" in k.lower() or "3.10" in k or "3.11" in k or "3.12" in k]
-            tremor_sum = sum(int(request.updrs_items.get(k, 0)) for k in tremor_keys)
-            pigd_sum = sum(int(request.updrs_items.get(k, 0)) for k in pigd_keys)
-            if tremor_sum > pigd_sum:
-                motor_subtype = "tremor_dominant"
-            elif pigd_sum > tremor_sum:
-                motor_subtype = "postural_instability_gait_difficulty"
+    if updrs_score is not None and request.updrs_items:
+        from src.clinical_scales import _resolve_items  # one item-name resolver, not two
+
+        resolved, _ = _resolve_items(
+            request.updrs_items, UPDRSCalculator.ITEMS, UPDRSCalculator.ALIASES
+        )
+        tremor_sum = sum(resolved.get(k, 0) for k in UPDRSCalculator.TREMOR_ITEMS)
+        pigd_sum = sum(resolved.get(k, 0) for k in UPDRSCalculator.PIGD_ITEMS)
+        tremor_seen = any(k in resolved for k in UPDRSCalculator.TREMOR_ITEMS)
+        pigd_seen = any(k in resolved for k in UPDRSCalculator.PIGD_ITEMS)
+        if not (tremor_seen and pigd_seen):
+            # Subtyping compares two item groups; it cannot be done when one group was never
+            # scored, and the group that was not scored is not a group of zeros.
+            motor_subtype = "not_assessable (tremor and PIGD items both required)"
+        elif tremor_sum > pigd_sum:
+            motor_subtype = "tremor_dominant"
+        elif pigd_sum > tremor_sum:
+            motor_subtype = "postural_instability_gait_difficulty"
 
     # Medication assessment
     med_assessment = {
@@ -1747,11 +1965,16 @@ async def headache_classify(request: HeadacheClassifyRequest, req: Request):
         headache_type = "cluster"
         ichd3_criteria.append("Unilateral with autonomic features")
 
-    # HIT-6
+    # HIT-6. The calculator now refuses a short or unrecognised response set rather than
+    # padding it with "never" -- the best possible answer on every item (N9) -- so the refusal
+    # is surfaced as a 422 naming the problem rather than as a reassuring score.
     hit6_score = None
     hit6_interp = None
     if request.hit6_items:
-        result = _calculate_hit6(request.hit6_items)
+        try:
+            result = _calculate_hit6(request.hit6_items)
+        except ScaleDataError as exc:
+            raise HTTPException(status_code=422, detail=f"HIT-6: {exc}")
         hit6_score = int(result["total_score"])
         hit6_interp = result["interpretation"]
 
@@ -1763,13 +1986,62 @@ async def headache_classify(request: HeadacheClassifyRequest, req: Request):
     if request.red_flags:
         red_flag_assessment["action"] = "Urgent neuroimaging and further evaluation required"
 
-    # Medication overuse risk
+    # Medication-overuse headache risk.
+    #
+    # N15: the drug-class-specific threshold was collapsed to 15 days for everything, so a
+    # patient on sumatriptan 12 days/month for 6 months -- who MEETS ICHD-3 8.2.2 -- was
+    # reported as merely "approaching" the threshold, and the withdrawal-protocol
+    # recommendation (gated on "High" in moh_risk) never fired.
+    #
+    # ICHD-3, the issuing body's own criteria
+    # (https://ichd-3.org/8-headache-attributed-to-a-substance-or-its-withdrawal/
+    #  8-2-medication-overuse-headache-moh/, sections 8.2.2, 8.2.4, 8.2.6):
+    #   - simple analgesics / paracetamol / NSAIDs: >= 15 days/month for > 3 months
+    #   - triptans, ergotamine, opioids:            >= 10 days/month for > 3 months
+    #   - any combination of these classes:         >= 10 days/month in total
+    _MOH_10_DAY_CLASSES = {
+        "triptan": ["triptan", "sumatriptan", "rizatriptan", "zolmitriptan", "naratriptan",
+                    "almotriptan", "frovatriptan", "eletriptan"],
+        "ergotamine": ["ergot", "ergotamine", "dihydroergotamine", "dhe", "cafergot"],
+        "opioid": ["opioid", "codeine", "tramadol", "oxycodone", "hydrocodone", "morphine",
+                   "butalbital", "fioricet", "percocet", "vicodin"],
+        "combination analgesic": ["excedrin", "combination analgesic", "butalbital"],
+    }
     moh_risk = None
     if request.analgesic_days_per_month is not None:
-        if request.analgesic_days_per_month >= 15:
-            moh_risk = "High risk -- meets MOH criteria (>=15 days/month analgesic use)"
-        elif request.analgesic_days_per_month >= 10:
-            moh_risk = "Moderate risk -- approaching MOH threshold"
+        meds = " ".join(request.current_medications).lower()
+        classes_present = sorted(
+            label for label, names in _MOH_10_DAY_CLASSES.items()
+            if any(name in meds for name in names)
+        )
+        if classes_present:
+            threshold, basis = 10, f"{', '.join(classes_present)} (ICHD-3: >= 10 days/month)"
+        elif request.current_medications:
+            threshold, basis = 15, "simple analgesics/NSAIDs (ICHD-3: >= 15 days/month)"
+        else:
+            # The acute-medication class determines the threshold and was not supplied.
+            # The lower threshold is not assumed; the ambiguity is reported.
+            threshold, basis = None, None
+
+        days = request.analgesic_days_per_month
+        if threshold is None:
+            moh_risk = (
+                f"Not determinable -- {days} days/month of acute medication, but no "
+                f"medication list was supplied. The ICHD-3 threshold is 10 days/month for "
+                f"triptans, ergots, opioids and combination analgesics and 15 days/month for "
+                f"simple analgesics, so the class is required."
+            )
+        elif days >= threshold:
+            moh_risk = (
+                f"High risk -- meets the ICHD-3 MOH day threshold ({days} >= {threshold} "
+                f"days/month, {basis}). ICHD-3 also requires regular overuse for > 3 months; "
+                f"confirm duration."
+            )
+        elif days >= threshold - 5:
+            moh_risk = (
+                f"Moderate risk -- {days} days/month, approaching the {threshold}-day "
+                f"threshold for {basis}"
+            )
 
     # Acute treatment
     acute = []
@@ -1866,8 +2138,32 @@ async def neuromuscular_evaluate(request: NeuromuscularEvaluateRequest, req: Req
     if "achr" in " ".join(request.antibodies).lower() or "musk" in " ".join(request.antibodies).lower():
         differential.append({"diagnosis": "Myasthenia gravis", "likelihood": "high", "rationale": "Positive NMJ antibodies"})
     if localization == "peripheral_nerve" and pattern == "demyelinating":
-        differential.append({"diagnosis": "CIDP", "likelihood": "high", "rationale": "Demyelinating neuropathy pattern"})
-        differential.append({"diagnosis": "GBS (if acute)", "likelihood": "consider", "rationale": "Acute demyelinating polyradiculoneuropathy"})
+        # N14: the differential was labelled "GBS (if acute)", which matched none of the
+        # treatment branches below, so a GBS differential produced no treatment at all. The
+        # tempo decides which of the two it is, and when it was not recorded the acute
+        # possibility must stay on the list with its airway monitoring: GBS respiratory
+        # failure is the non-recoverable error in this domain.
+        tempo = (request.progression_rate or "").lower()
+        acute_tempo = any(w in tempo for w in ("acute", "rapid", "days", "hyperacute"))
+        chronic_tempo = any(w in tempo for w in ("chronic", "slow", "insidious", "months", "years"))
+        if acute_tempo or not tempo:
+            differential.append({
+                "diagnosis": "Guillain-Barre syndrome",
+                "likelihood": "high" if acute_tempo else "cannot be excluded",
+                "rationale": (
+                    "Acute demyelinating polyradiculoneuropathy"
+                    if acute_tempo else
+                    "Demyelinating pattern with no recorded progression rate -- the tempo "
+                    "that distinguishes GBS from CIDP was not supplied, so GBS cannot be "
+                    "excluded"
+                ),
+            })
+        if chronic_tempo or not acute_tempo:
+            differential.append({
+                "diagnosis": "CIDP",
+                "likelihood": "high" if chronic_tempo else "consider",
+                "rationale": "Demyelinating neuropathy pattern",
+            })
     if localization == "muscle" or (request.ck_level and request.ck_level > 1000):
         differential.append({"diagnosis": "Inflammatory myopathy", "likelihood": "moderate", "rationale": "Myopathic pattern with elevated CK"})
     if any(w in desc for w in ["fasciculation", "wasting", "upper motor", "lower motor"]):
@@ -1878,10 +2174,21 @@ async def neuromuscular_evaluate(request: NeuromuscularEvaluateRequest, req: Req
     # ALSFRS-R
     alsfrs_score = None
     alsfrs_interp = None
+    alsfrs_warnings: List[str] = []
     if request.alsfrs_items:
         result = _calculate_alsfrs(request.alsfrs_items)
         alsfrs_score = int(result["total_score"])
         alsfrs_interp = result["interpretation"]
+        alsfrs_warnings = list(result.get("warnings", []))
+        if not result.get("complete", True):
+            # The route twin reported "Prominent bulbar involvement" when NO bulbar item had
+            # been submitted, because `sum(int(items.get(k, 4)) ... if k in items)` summed to
+            # 0 over an empty selection (N5). An incomplete instrument is now said to be one.
+            alsfrs_warnings.insert(
+                0,
+                "ALSFRS-R incomplete: the total above is a lower bound, not the patient's "
+                "score, and the functional-impairment bands do not apply to it.",
+            )
 
     # Workup
     workup = [
@@ -1907,6 +2214,11 @@ async def neuromuscular_evaluate(request: NeuromuscularEvaluateRequest, req: Req
             treatment.extend(["Pyridostigmine 60mg TID", "Prednisone or steroid-sparing immunotherapy"])
         elif dx["diagnosis"] == "CIDP":
             treatment.extend(["IVIg 2g/kg loading then 1g/kg monthly", "Plasma exchange alternative"])
+        elif dx["diagnosis"] == "Guillain-Barre syndrome":
+            treatment.extend([
+                "IVIg 0.4 g/kg/day x 5 days, or plasmapheresis (5 exchanges) -- do not give both",
+                "Admit for serial respiratory monitoring; corticosteroids are NOT effective in GBS",
+            ])
         elif dx["diagnosis"] == "ALS":
             treatment.extend(["Riluzole 50mg BID", "Edaravone or tofersen (if SOD1+)", "Multidisciplinary ALS clinic"])
 
@@ -1915,8 +2227,29 @@ async def neuromuscular_evaluate(request: NeuromuscularEvaluateRequest, req: Req
         "Pulmonary function testing (FVC)",
         "Swallow evaluation if bulbar symptoms",
     ]
-    if request.progression_rate and "rapid" in request.progression_rate.lower():
-        recommendations.insert(0, "Urgent evaluation given rapid progression")
+    # N14: escalation used to require the literal string "rapid", so a patient described as
+    # "acute" got no urgent recommendation at all -- and a patient whose tempo was never
+    # recorded got none either.
+    gbs_on_differential = any(
+        dx["diagnosis"] == "Guillain-Barre syndrome" for dx in differential
+    )
+    tempo_text = (request.progression_rate or "").lower()
+    if any(w in tempo_text for w in ("rapid", "acute", "days", "hyperacute")):
+        recommendations.insert(0, "Urgent evaluation given rapid/acute progression")
+    elif not tempo_text:
+        recommendations.insert(
+            0,
+            "Progression rate NOT RECORDED -- record it. It is the feature that separates an "
+            "acute (GBS) from a chronic (CIDP) demyelinating neuropathy and it changes the "
+            "monitoring plan.",
+        )
+    if gbs_on_differential:
+        recommendations.insert(
+            0,
+            "URGENT: monitor respiratory function (FVC q4h, negative inspiratory force, "
+            "single-breath count) -- intubate if FVC < 20 mL/kg or declining rapidly. Also "
+            "monitor for autonomic instability.",
+        )
 
     return NeuromuscularEvaluateResponse(
         localization=localization,
@@ -1924,6 +2257,7 @@ async def neuromuscular_evaluate(request: NeuromuscularEvaluateRequest, req: Req
         differential_diagnosis=differential,
         alsfrs_score=alsfrs_score,
         alsfrs_interpretation=alsfrs_interp,
+        data_warnings=alsfrs_warnings,
         recommended_workup=workup,
         treatment_options=treatment,
         recommendations=recommendations,

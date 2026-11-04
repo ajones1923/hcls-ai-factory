@@ -23,6 +23,18 @@ if TYPE_CHECKING:
     from .pipeline import DrugDiscoveryPipeline
 
 
+def _timings(pipeline) -> dict:
+    """The pipeline's stage timings as a plain dict, or {} if it has none we can read."""
+    timings = getattr(pipeline, "stage_timings", None)
+    if isinstance(timings, dict):
+        return dict(timings)
+    return {}
+
+
+class ConfigMismatchError(RuntimeError):
+    """A resume would mix results computed under two different configurations."""
+
+
 class CheckpointManager:
     """Manages checkpoint save/load for pipeline runs."""
 
@@ -46,6 +58,11 @@ class CheckpointManager:
             "molecules": [m.model_dump() for m in pipeline.molecules],
             "docking_results": [d.model_dump() for d in pipeline.docking_results],
             "ranked_candidates": [r.model_dump() for r in pipeline.ranked_candidates],
+            # Timings were saved nowhere, so after a resume `run.stage_timings` held only the
+            # stages that re-ran while `run.status` was set to "completed" -- an "end-to-end in
+            # N minutes" figure read off that report understates the real cost by every skipped
+            # stage.
+            "stage_timings": _timings(pipeline),
         }
 
         path = self._checkpoint_path(pipeline.run_id, stage)
@@ -77,9 +94,63 @@ class CheckpointManager:
         return latest if latest >= 0 else None
 
     def restore_pipeline_state(
-        self, pipeline: "DrugDiscoveryPipeline", checkpoint: dict
+        self, pipeline: "DrugDiscoveryPipeline", checkpoint: dict,
+        allow_config_change: bool = False,
     ):
-        """Restore pipeline state from a checkpoint dict."""
+        """Restore pipeline state from a checkpoint dict.
+
+        `save()` stores `config`, and this method never read it back. So a resume with a
+        different `PipelineConfig` silently mixed: stages at or below `resume_stage` kept results
+        computed under the OLD config, every later stage used the NEW one, and
+        `stage_9_reporting` wrote the new config into the report. Run to completion with
+        `num_molecules=20, max_mw=550, docking_weight=0.4`, resume the same run_id with
+        `max_mw=400, docking_weight=0.1`, and nothing re-executes -- yet the report documents
+        parameters that did not produce its own numbers. Checkpoints are keyed on run_id and
+        stage only, with no hash of inputs or config, so a stage-8 result computed days earlier
+        is served as current.
+
+        The mismatch is now refused. `allow_config_change=True` accepts it deliberately and the
+        pipeline records the divergence so the report cannot present it as a single coherent run.
+        """
+        saved_config = checkpoint.get("config")
+        current_config = None
+        config = getattr(pipeline, "config", None)
+        if config is not None:
+            try:
+                current_config = config.model_dump()
+            except Exception:                       # not a PipelineConfig; nothing to compare
+                current_config = None
+        if not isinstance(saved_config, dict) or not isinstance(current_config, dict):
+            saved_config = current_config = None
+        if saved_config is not None and saved_config != current_config:
+            differing = sorted(
+                k for k in set(saved_config) | set(current_config)
+                if saved_config.get(k) != current_config.get(k)
+            )
+            if not allow_config_change:
+                raise ConfigMismatchError(
+                    f"Refusing to resume run {checkpoint.get('run_id')} from stage "
+                    f"{checkpoint.get('stage')}: the checkpoint was computed under a different "
+                    f"configuration. Differing keys: {', '.join(differing)}. The restored stages "
+                    "would keep results produced by the old settings while the report documented "
+                    "the new ones. Re-run from scratch, or pass allow_config_change=True to "
+                    "accept a mixed run (it will be labelled as one)."
+                )
+            pipeline.config_divergence = {
+                "resumed_under_different_config": True,
+                "differing_keys": differing,
+                "checkpoint_config": saved_config,
+            }
+            logger.warning(
+                f"Resuming under a CHANGED config; differing keys: {', '.join(differing)}. "
+                "Stages restored from the checkpoint were computed under the old settings."
+            )
+
+        pipeline.stage_timings = {
+            int(k): v for k, v in (checkpoint.get("stage_timings") or {}).items()
+        }
+        pipeline.restored_stages = sorted(pipeline.stage_timings)
+
         if checkpoint.get("target"):
             pipeline.target = TargetHypothesis.model_validate(checkpoint["target"])
 

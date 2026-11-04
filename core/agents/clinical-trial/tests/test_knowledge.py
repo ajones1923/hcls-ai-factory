@@ -34,8 +34,24 @@ class TestLandmarkTrials:
 
     @pytest.mark.parametrize("trial", LANDMARK_TRIALS)
     def test_has_phase(self, trial):
+        """Each trial records a phase the registry actually uses.
+
+        CORRECTED ASSERTION. This previously required the literal substring
+        "Phase" in the value, which encoded the assumption that every landmark
+        trial has a numbered phase. The ClinicalTrials.gov API v2 ``Phase``
+        enum (``GET /studies/enums``, retrieved 2026-11-03) is exactly
+        ``NA, EARLY_PHASE1, PHASE1, PHASE2, PHASE3, PHASE4`` -- ``NA``
+        ("Not Applicable") is a real value, and two of these records legitimately
+        carry it: SPRINT (NCT01206062) and TRILUMINATE Pivotal (NCT03904147)
+        both return ``phases: ["NA"]``. The old assertion would have forced a
+        wrong phase onto them.
+        """
         assert "phase" in trial
-        assert "Phase" in trial["phase"]
+        assert trial["phase"] in (
+            "Not Applicable", "Early Phase 1",
+            "Phase I", "Phase II", "Phase III", "Phase IV",
+            "Phase I/II", "Phase II/III",
+        ), trial["phase"]
 
     @pytest.mark.parametrize("trial", LANDMARK_TRIALS)
     def test_has_status(self, trial):

@@ -110,10 +110,10 @@
       "gpu": true,
       "cost_class": "high",
       "status": "live",
+      "maturity": "preclinical",
       "tags": [
-        "molmim",
-        "diffdock",
         "rdkit",
+        "brics",
         "stage3"
       ]
     },

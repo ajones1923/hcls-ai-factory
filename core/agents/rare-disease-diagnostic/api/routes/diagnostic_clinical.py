@@ -68,6 +68,18 @@ def _parse_acmg_classification(answer: str) -> Optional[str]:
     return mentioned.pop() if len(mentioned) == 1 else None
 
 
+#: ACMGClassification enum values -> the label vocabulary this API reports.
+#: `_parse_acmg_classification` above and Table 5 below must speak the same words, or a
+#: disagreement check between them compares spellings rather than verdicts.
+_ACMG_ENUM_TO_LABEL = {
+    "pathogenic": "Pathogenic",
+    "likely_pathogenic": "Likely Pathogenic",
+    "vus": "VUS",
+    "likely_benign": "Likely Benign",
+    "benign": "Benign",
+}
+
+
 def _extract_cited_criteria(answer: str) -> List["ACMGCriterion"]:
     """Return the ACMG codes the interpretation actually cites.
 
@@ -326,6 +338,11 @@ class VariantInterpretResponse(BaseModel):
     alphamissense_score: Optional[float] = None
     gene_disease_associations: List[Dict] = []
     recommendations: List[str] = []
+    # Which Table 5 rule set produced `classification`, and what decided it. A classification
+    # a caller cannot trace back to a rule is not auditable, which is the whole point of
+    # ACMG/AMP being a rule set rather than an opinion.
+    classification_rule: Optional[str] = None
+    classification_source: Optional[str] = None
     # Why a field is empty or a classification absent, so the caller is not left guessing.
     notes: List[str] = []
 
@@ -750,6 +767,8 @@ async def interpret_variant(request: VariantInterpretRequest, req: Request):
             pass
 
     classification = "Unclassified"
+    classification_rule: Optional[str] = None
+    classification_source: Optional[str] = None
     acmg_criteria: List[ACMGCriterion] = []
     recommendations: List[str] = []
     gene_disease: List[Dict] = []
@@ -804,6 +823,61 @@ async def interpret_variant(request: VariantInterpretRequest, req: Request):
                 classification = parsed
             acmg_criteria = _extract_cited_criteria(answer)
             recommendations = [answer]
+
+            # AUDIT FIX (2026-11-04): the deterministic Richards Table 5 classifier in
+            # src/decision_support.py was reached by NO HTTP caller. This route reported
+            # whatever label the model stated in prose, so the corrected combining rules --
+            # including the footnote that contradictory evidence yields VUS -- governed
+            # nothing a client could call.
+            #
+            # The division of labour now: the model proposes CRITERIA from the retrieved
+            # evidence, which is a reading task it is suited to, and Table 5 decides the
+            # CLASS from those criteria, which is a combinatorial rule with no judgement in
+            # it. Where the two disagree, Table 5 governs and the model's own claim is kept
+            # in the notes rather than dropped, because the disagreement is information.
+            met_codes = [c.code for c in acmg_criteria if c.met and c.code]
+            if met_codes:
+                try:
+                    from src.decision_support import combine_acmg_criteria
+
+                    verdict, rule = combine_acmg_criteria(met_codes)
+                    table5 = _ACMG_ENUM_TO_LABEL.get(
+                        getattr(verdict, "value", str(verdict)), str(verdict)
+                    )
+                    if parsed and parsed != table5:
+                        notes.append(
+                            f"The interpretation stated '{parsed}'. Richards 2015 Table 5, "
+                            f"applied to the criteria it cited "
+                            f"({', '.join(met_codes)}), gives '{table5}' -- {rule}. "
+                            f"Reporting the Table 5 result, because the combining rules are "
+                            f"the guideline and the stated label is a summary of them."
+                        )
+                    classification = table5
+                    classification_rule = rule
+                    classification_source = (
+                        "ACMG/AMP (Richards 2015) Table 5, applied to the cited criteria"
+                    )
+                except Exception as exc:
+                    logger.error(f"Table 5 combination failed: {exc}")
+                    notes.append(
+                        f"The deterministic ACMG combination could not be applied ({exc}), "
+                        f"so the classification below is the interpretation's own statement "
+                        f"and has not been checked against Table 5."
+                    )
+            elif parsed:
+                # A classification with no cited criteria is not an ACMG/AMP classification:
+                # the guideline defines the class AS the combination of criteria. Reporting
+                # the label anyway would present an unsupported call as a classified one, so
+                # it is demoted to Unclassified and the claim is preserved in the notes. The
+                # converse rule already holds a few lines down -- criteria are never derived
+                # from the classification.
+                notes.append(
+                    f"The interpretation stated '{parsed}' but cited no ACMG criteria that "
+                    f"could be read, so there is nothing to combine under Table 5 and the "
+                    f"call cannot be audited. Reported as Unclassified; the full text is "
+                    f"below."
+                )
+                classification = "Unclassified"
         except Exception as exc:
             logger.error(f"LLM variant interpretation failed: {exc}")
             notes.append(f"Variant interpretation failed: {exc}")
@@ -837,6 +911,8 @@ async def interpret_variant(request: VariantInterpretRequest, req: Request):
         alphamissense_score=None,
         gene_disease_associations=gene_disease,
         recommendations=recommendations,
+        classification_rule=classification_rule,
+        classification_source=classification_source,
         notes=notes,
     )
 

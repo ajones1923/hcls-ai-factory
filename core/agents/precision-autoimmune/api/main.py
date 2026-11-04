@@ -231,17 +231,68 @@ app.add_middleware(
 
 
 # ── API key authentication ──────────────────────────────────────────────
+# AUDIT FIX (2026-11-03, S7): this service used to carry TWO independent key gates — the
+# shared one installed above (HCLS_API_KEY / HCLS_API_KEY_<SERVICE>) and the local middleware
+# below, which read only the per-service API_KEY setting and compared with `!=`. An operator
+# could satisfy themselves that auth was on while half the surface was governed by the other
+# check, and /governance reported on only one of them. Two fixes, no loss of protection:
+# the key is resolved by the shared resolver with the legacy per-service setting as fallback,
+# so EITHER setting enables this check and both gates agree on the value; and the comparison
+# is the shared constant-time one, which no longer leaks length and prefix through timing and
+# cannot raise on a non-ASCII header.
+def _auth_open_paths(local) -> frozenset:
+    """Paths both gates leave open.
+
+    The other half of S7: the two gates on this service had DIFFERENT open paths, so which
+    endpoints were credentialed depended on which setting the operator had used. This unions
+    the local set with hcls_common's DEFAULT_OPEN_PATHS, the platform's documented posture
+    (probes, docs and the OpenAPI schema stay public so health checks, load balancers and the
+    landing page keep working when the gate is on).
+    """
+    try:
+        from hcls_common.api_auth import DEFAULT_OPEN_PATHS
+        shared = set(DEFAULT_OPEN_PATHS)
+    except Exception:
+        shared = {"/health", "/healthz", "/", "/docs", "/openapi.json", "/redoc",
+                  "/governance", "/metrics"}
+    return frozenset(set(local) | shared)
+
+
+def _resolved_api_key() -> str:
+    """The one key this service enforces: shared first, legacy per-service setting second."""
+    shared = None
+    try:
+        from hcls_common.api_auth import resolve_key
+        shared = resolve_key("precision-autoimmune")
+    except Exception:  # hcls_common is optional for some deployments
+        shared = None
+    return shared or (getattr(settings, "API_KEY", "") or "")
+
+
+def _api_keys_match(provided: str, expected: str) -> bool:
+    """Constant-time comparison on encoded bytes (see hcls_common.api_auth.keys_match)."""
+    try:
+        from hcls_common.api_auth import keys_match
+        return keys_match(provided or "", expected or "")
+    except Exception:
+        import hmac
+        if not provided or not expected:
+            return False
+        return hmac.compare_digest(provided.encode("utf-8", "surrogateescape"),
+                                   expected.encode("utf-8", "surrogateescape"))
+
+
 @app.middleware("http")
 async def authenticate(request: Request, call_next):
     """Optional API key authentication (skip if AUTO_API_KEY not set)."""
-    api_key = settings.API_KEY
+    api_key = _resolved_api_key()
     if not api_key:
         return await call_next(request)
     # Skip auth for health endpoints and root
-    if request.url.path in ("/", "/health", "/healthz", "/metrics"):
+    if request.url.path in _auth_open_paths(("/", "/health", "/healthz", "/metrics")):
         return await call_next(request)
     provided = request.headers.get("X-API-Key") or request.query_params.get("api_key")
-    if provided != api_key:
+    if not _api_keys_match(provided, api_key):
         return JSONResponse(status_code=401, content={"detail": "Invalid or missing API key"})
     return await call_next(request)
 
@@ -545,12 +596,33 @@ async def upload_document(
     if not file.filename.lower().endswith(".pdf"):
         raise HTTPException(400, "Only PDF files are supported")
 
-    # Save to temp location
+    # Stream to a temp file with a running byte count.
+    # AUDIT FIX (2026-11-03, S15): this used to be a single unbounded read of the entire
+    # body into memory, with no ceiling, on a route that is unauthenticated in the default
+    # posture, on a 128 GB unified-memory box where that memory is also the GPU's. The
+    # request-size middleware only sees a declared Content-Length, so a chunked upload
+    # bypassed it; the cap has to be enforced here, while reading.
+    max_bytes = settings.MAX_REQUEST_SIZE_MB * 1024 * 1024
     import tempfile
+    written = 0
     with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
-        content = await file.read()
-        tmp.write(content)
         tmp_path = Path(tmp.name)
+        while True:
+            chunk = await file.read(4 * 1024 * 1024)
+            if not chunk:
+                break
+            written += len(chunk)
+            if written > max_bytes:
+                tmp_path.unlink(missing_ok=True)
+                raise HTTPException(
+                    413,
+                    f"Upload exceeds the {settings.MAX_REQUEST_SIZE_MB} MB limit "
+                    f"(AUTO_MAX_REQUEST_SIZE_MB)",
+                )
+            tmp.write(chunk)
+    if written == 0:
+        tmp_path.unlink(missing_ok=True)
+        raise HTTPException(400, "Uploaded file is empty")
 
     try:
         records = doc_proc.process_pdf(tmp_path, patient_id)

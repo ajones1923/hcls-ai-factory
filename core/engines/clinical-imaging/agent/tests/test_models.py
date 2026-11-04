@@ -141,8 +141,18 @@ class TestFindingSeverity:
     def test_has_normal(self):
         assert FindingSeverity.NORMAL.value == "normal"
 
+    def test_has_unknown(self):
+        """UNKNOWN is the absence of a severity, not a level: a study that was not graded.
+
+        Added 2026-11-03 with the member. Workflows that degraded had to pick one of the five
+        clinical levels and picked the benign end (ROUTINE/NORMAL), so an ungraded study read
+        as a graded, unremarkable one in every automated view.
+        """
+        assert FindingSeverity.UNKNOWN.value == "unknown"
+
     def test_count(self):
-        assert len(FindingSeverity) == 5
+        """CORRECTED 2026-11-03: 5 -> 6 for the added UNKNOWN member (see above)."""
+        assert len(FindingSeverity) == 6
 
 
 class TestFindingCategory:
@@ -184,8 +194,18 @@ class TestFindingCategory:
     def test_has_thyroid_nodule(self):
         assert FindingCategory.THYROID_NODULE.value == "thyroid_nodule"
 
+    def test_has_indeterminate(self):
+        """A finding that could not be categorised used to be filed as NORMAL.
+
+        Added 2026-11-03 with the member. "Not categorised" and "categorised as normal" are
+        opposite statements, and every filter on `category != normal` dropped the first one
+        along with the second.
+        """
+        assert FindingCategory.INDETERMINATE.value == "indeterminate"
+
     def test_count(self):
-        assert len(FindingCategory) == 37
+        """CORRECTED 2026-11-03: 37 -> 38 for the added INDETERMINATE member (see above)."""
+        assert len(FindingCategory) == 38
 
 
 class TestOtherEnums:

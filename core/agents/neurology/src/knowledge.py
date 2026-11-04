@@ -1117,11 +1117,22 @@ CLINICAL_SCALES: Dict[str, Dict[str, Any]] = {
         "domain": "movement",
         "range": "0-132",
         "max_score": 132,
+        # N18: this table said 0-10 / 11-22 / 23-40 / 41-132 while BOTH calculators said
+        # 0-10 / 11-32 / 33-58 / 59-80 / 81+, so a UPDRS-III of 35 came back "Severe" from the
+        # RAG and `/scales` surfaces and "Moderate" from either calculator -- for the same
+        # patient, in the same agent. The calculators' table is adopted here because it is the
+        # one the clinical logic acts on (the DBS threshold is 59), so there is now one
+        # banding.
+        #
+        # OPEN (uncited, unchanged values): the 32/58 cut-points are traceable to
+        # Martinez-Martin et al., Parkinsonism Relat Disord 2015, which was not retrieved. The
+        # reconciliation is to the agent's own acting table, not to a source.
         "interpretation": {
             "0-10": "Minimal motor findings",
-            "11-22": "Mild motor impairment",
-            "23-40": "Moderate motor impairment",
-            "41-132": "Severe motor impairment",
+            "11-32": "Mild motor impairment",
+            "33-58": "Moderate motor impairment",
+            "59-80": "Severe motor impairment",
+            "81-132": "Very severe motor impairment",
         },
     },
     "edss": {
@@ -1170,12 +1181,25 @@ CLINICAL_SCALES: Dict[str, Dict[str, Any]] = {
         "domain": "neuromuscular",
         "range": "0-48",
         "max_score": 48,
+        # N18: this table said 39-48 / 25-38 / 13-24 / 0-12 while both calculators said
+        # >= 40 / >= 30 / >= 20 / < 20, so 39 was "Mild" on one surface and "Moderate" on the
+        # other, and 22 was "Severe" against "Significant". Reconciled to the calculators'
+        # table, which is the one the clinical logic acts on.
+        #
+        # OPEN (flagged): ALSFRS-R has no official severity banding that could be sourced, so
+        # BOTH tables appear to have been invented here. Neither set of numbers is asserted to
+        # be right; they are merely made consistent, and the labels say "band" rather than
+        # implying a published stage.
         "interpretation": {
-            "39-48": "Mild functional impairment",
-            "25-38": "Moderate functional impairment",
-            "13-24": "Severe functional impairment",
-            "0-12": "Very severe functional impairment",
+            "40-48": "Mild functional impairment",
+            "30-39": "Moderate functional impairment",
+            "20-29": "Significant functional impairment",
+            "0-19": "Severe functional impairment",
         },
+        "banding_source": (
+            "Local convention. ALSFRS-R has no published severity banding; these bands match "
+            "src/clinical_scales.py so that every surface of this agent gives one answer."
+        ),
     },
     "aspects": {
         "full_name": "Alberta Stroke Program Early CT Score",

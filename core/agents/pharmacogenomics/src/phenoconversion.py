@@ -305,7 +305,13 @@ class PhenoconversionDetector:
                     if not gene_data:
                         continue
 
-                    gen_pheno = gene_data.get("phenotype", "Normal Metabolizer")
+                    # A gene entry with no phenotype key is an absent call,
+                    # not a normal metabolizer: phenoconverting from an
+                    # assumed-normal baseline invents both the starting and
+                    # the effective phenotype. Skip it instead.
+                    gen_pheno = gene_data.get("phenotype")
+                    if not gen_pheno:
+                        continue
                     eff_pheno = self._apply_inhibition(gen_pheno, strength)
 
                     if eff_pheno != gen_pheno:
@@ -330,7 +336,13 @@ class PhenoconversionDetector:
                     if not gene_data:
                         continue
 
-                    gen_pheno = gene_data.get("phenotype", "Normal Metabolizer")
+                    # A gene entry with no phenotype key is an absent call,
+                    # not a normal metabolizer: phenoconverting from an
+                    # assumed-normal baseline invents both the starting and
+                    # the effective phenotype. Skip it instead.
+                    gen_pheno = gene_data.get("phenotype")
+                    if not gen_pheno:
+                        continue
                     eff_pheno = self._apply_induction(gen_pheno, strength)
 
                     if eff_pheno != gen_pheno:
@@ -444,7 +456,18 @@ class PhenoconversionDetector:
         result: Dict[str, Dict[str, Any]] = {}
 
         for gene, data in genetic_profile.items():
-            gen_pheno = data.get("phenotype", "Normal Metabolizer")
+            # Absent phenotype is not a normal metabolizer — see above. The
+            # gene stays in the result (so a caller cannot mistake its
+            # absence for "no genes affected") but nothing is asserted
+            # about it.
+            gen_pheno = data.get("phenotype")
+            if not gen_pheno:
+                entry = dict(data)
+                entry["phenotype"] = "Indeterminate"
+                entry["effective_phenotype"] = "Indeterminate"
+                entry["phenoconverted"] = False
+                result[gene] = entry
+                continue
             eff_pheno = self.get_effective_phenotype(gene, gen_pheno, medication_list)
             entry = dict(data)
             entry["effective_phenotype"] = eff_pheno

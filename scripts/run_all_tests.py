@@ -57,19 +57,41 @@ def run(kind: str, name: str) -> dict:
            "-p", "no:zarr", "-p", "no:fast_array_utils"]
     for ig in IGNORE.get(name, []):
         cmd += [f"--ignore={ig}"]
+    # The return code is the only reliable signal that pytest is UNHAPPY. This harness used to
+    # read nothing but the summary line, so three ways of going wrong all reported clean:
+    #   * collection found zero tests          -> no counts in the output, so 0/0/0/0 and exit 0
+    #   * a conftest raised on import          -> same, plus the subject silently vanished
+    #   * the suite hit the 1800s timeout      -> `out = "TIMEOUT"`, counts 0, and still exit 0
+    # pytest's codes: 0 all passed, 1 tests failed, 2 interrupted, 3 internal error,
+    # 4 usage error, 5 NO TESTS COLLECTED.
+    rc: int | None = None
     try:
         r = subprocess.run(cmd, cwd=d, capture_output=True, text=True, timeout=1800, env=env)
         out = r.stdout + r.stderr
+        rc = r.returncode
     except subprocess.TimeoutExpired:
         out = "TIMEOUT"
     g = lambda p: int(m.group(1)) if (m := re.search(p, out)) else 0
     res = dict(kind=kind, name=name,
                passed=g(r"(\d+) passed"), failed=g(r"(\d+) failed"),
                errors=g(r"(\d+) error"), skipped=g(r"(\d+) skipped"),
-               note="")
+               returncode=rc, note="")
+    # A non-zero exit with nothing counted is the dangerous case: it reads as a clean subject.
+    # Record it as an error so the totals cannot come out green.
+    if rc not in (0, 1, None) and not (res["failed"] or res["errors"]):
+        res["errors"] = 1
+        res["note"] = {5: "NO TESTS COLLECTED", 2: "INTERRUPTED", 3: "INTERNAL ERROR",
+                       4: "USAGE ERROR"}.get(rc, f"pytest exit {rc}")
+    elif rc == 0 and sum(res[k] for k in ("passed", "failed", "errors", "skipped")) == 0:
+        res["errors"] = 1
+        res["note"] = "exited 0 having run nothing"
     if out == "TIMEOUT":
+        # A timed-out suite proved nothing. It used to land in the table with four zeros and a
+        # note, and the run still exited 0.
+        res["errors"] = max(res["errors"], 1)
         res["note"] = "TIMED OUT"
-    elif sum(res[k] for k in ("passed", "failed", "errors", "skipped")) == 0:
+    elif sum(res[k] for k in ("passed", "failed", "skipped")) == 0 and not res["errors"]:
+        res["errors"] = 1
         res["note"] = "no tests collected"
     miss = sorted(set(re.findall(r"No module named '([A-Za-z0-9_]+)'", out)))
     if miss:

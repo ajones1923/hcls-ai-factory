@@ -206,13 +206,47 @@ class TestWorkflows:
         assert data["is_mock"] is True
 
     def test_run_all_workflows(self, client):
+        """Every workflow returns 200, and a status of `failed` has to be explained.
+
+        CORRECTED 2026-11-03. This asserted `status == "completed"` for every workflow, and
+        `ct_chest_lung_nodule` passed it by grading a part-solid nodule -- the second nodule in
+        its own canned payload -- with the solid-nodule table, which mis-calls part-solid and
+        ground-glass disease in both directions. The green "completed" was the defect, not the
+        evidence of correctness: a workflow that cannot grade what it was given must not report
+        a completed read, and this engine's WorkflowStatus has no PARTIAL member.
+
+        The gate is kept, and strengthened rather than relaxed: a workflow may only report
+        `failed` if it also returns a finding that is explicitly indeterminate and a
+        classification that names what could not be graded. A workflow that returns `failed`
+        with a reassuring body, or with no reason at all, still fails this test.
+        """
         from src.workflows import WORKFLOW_REGISTRY
 
         for name in WORKFLOW_REGISTRY:
             resp = client.post(f"/workflow/{name}/run", json={"mock_mode": True})
             assert resp.status_code == 200, f"Workflow {name} failed: {resp.text}"
             data = resp.json()
-            assert data["status"] == "completed", f"Workflow {name} status: {data['status']}"
+            assert data["status"] in ("completed", "failed"), (
+                f"Workflow {name} status: {data['status']}"
+            )
+            if data["status"] == "failed":
+                categories = [f.get("category") for f in data["findings"]]
+                severities = [f.get("severity") for f in data["findings"]]
+                assert "indeterminate" in categories, (
+                    f"Workflow {name} reported failed without an indeterminate finding: {data}"
+                )
+                assert "unknown" in severities, (
+                    f"Workflow {name} reported failed but graded every finding: {data}"
+                )
+                assert "normal" not in categories, (
+                    f"Workflow {name} reported failed with a NORMAL finding: {data}"
+                )
+                assert data["severity"] == "unknown", (
+                    f"Workflow {name} reported failed with severity {data['severity']}"
+                )
+                assert len(data["classification"]) > 0, (
+                    f"Workflow {name} reported failed with no reason: {data}"
+                )
 
     def test_workflow_not_found(self, client):
         resp = client.get("/workflow/nonexistent_workflow/info")

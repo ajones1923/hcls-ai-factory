@@ -245,6 +245,18 @@ class TestDicomWebhook:
         assert len(_ingestion_history) == 2
 
     def test_ct_chest_workflow(self, client):
+        """A CT chest event routes to the lung-nodule workflow and the webhook reports its
+        real status.
+
+        CORRECTED 2026-11-03. This asserted `workflow_status == "completed"`. The canned
+        payload the workflow runs on contains a part-solid nodule with a 9.3 mm solid
+        component, and the only way to report that study as completed was to grade it with the
+        solid-nodule table, which Lung-RADS v2022 does not use for part-solid disease. The
+        workflow now refuses to grade a density whose published table it does not hold, so the
+        honest status for this study is `failed`. What this test is for -- that the CT/chest
+        route reaches the right workflow and the webhook passes its status through rather than
+        inventing one -- is unchanged and still asserted.
+        """
         event = {
             "event_type": "study.complete",
             "study_uid": "1.2.3.4.5.6",
@@ -256,7 +268,7 @@ class TestDicomWebhook:
         assert resp.status_code == 200
         data = resp.json()
         assert data["workflow_triggered"] == "ct_chest_lung_nodule"
-        assert data["workflow_status"] == "completed"
+        assert data["workflow_status"] == "failed"
 
     def test_cxr_workflow(self, client):
         event = {

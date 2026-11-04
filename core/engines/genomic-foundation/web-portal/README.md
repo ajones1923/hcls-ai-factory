@@ -139,10 +139,38 @@ The portal provides a RESTful API:
 
 ## 🔒 Security Notes
 
-- Portal binds to `0.0.0.0:5000` (accessible from network)
+**Authentication is always enforced.** Every endpoint except `/health`, `/healthz`,
+`/api/ready`, `/api/status` and `/api/metrics` requires an `X-API-Key` header.
+
+- Set `PORTAL_API_KEY` to a strong value. If you do not, the portal generates an
+  **ephemeral key at startup**, writes it to a mode-0600 file (`PORTAL_API_KEY_FILE`, else
+  `$XDG_RUNTIME_DIR/hcls-genomics-portal.key`, else the same name under the temp dir) and
+  names that file in its log. The key itself is never written to the log. The portal does
+  **not** fall back to an open API when no key is configured — it used to, and that was a
+  remote-code-execution path through `/api/config`.
+- The web UI asks for the key on first use and keeps it in `sessionStorage` for the tab.
+- `/api/stream` and `/api/files/download/...` also accept `?api_key=` because `EventSource`
+  and a browser-navigation download cannot send a header. Query strings are likelier to end
+  up in proxy logs than headers; prefer the header for anything scripted.
+- **CORS now defaults to a loopback allowlist** (`http://localhost:5000,http://127.0.0.1:5000`),
+  not `*`. Set `CORS_ORIGINS` for a genuine cross-origin deployment. Do not set it to `*`.
+- `/api/config` writes `../config/pipeline.env`, which the pipeline scripts `source` — bash
+  executes it — and `PB_IMG` from it is the image `docker run` is given with host mounts and
+  GPU access. The route therefore accepts only allowlisted keys, rejects any value with a
+  line break or a shell metacharacter, requires `PB_IMG` to name an image in the portal's
+  allowed set (`PORTAL_ALLOWED_IMAGES` overrides it), requires `GP`/`IN`/`REF`/`OUT`/`LOG` to
+  resolve inside `PORTAL_CONFIG_PATH_ROOT` (default: the engine directory), and writes every
+  value shell-quoted.
+- `GET /api/config` returns only the declared pipeline keys. If you keep a registry
+  credential in `pipeline.env`, it is not served — but it is still a plaintext secret on
+  disk, so set its file mode accordingly.
+- Uploads are capped at `PORTAL_MAX_UPLOAD_BYTES` (default 100 GB) and the cap is enforced
+  while streaming, so a chunked upload cannot bypass it.
+- Portal binds to `0.0.0.0:5000` (accessible from network). Bind it to `127.0.0.1` or
+  firewall the port unless you intend network access.
 - For production, use a reverse proxy (nginx) with SSL
-- Requires access to Docker socket for container management
-- No authentication by default - add if needed
+- Requires access to Docker socket for container management — which is root-equivalent on
+  the host. Treat the portal's API key as a host credential.
 
 ## 🐛 Troubleshooting
 
@@ -246,6 +274,14 @@ WantedBy=multi-user.target
 export FLASK_ENV=production
 export FLASK_DEBUG=0
 export PORT=5000
+
+# Security (see "Security Notes" above)
+export PORTAL_API_KEY=<strong secret>              # required in practice; auth is always on
+export PORTAL_API_KEY_FILE=/run/portal/api.key     # where an ephemeral key is written
+export CORS_ORIGINS=http://localhost:5000          # allowlist; never '*'
+export PORTAL_ALLOWED_IMAGES=nvcr.io/nvidia/clara/clara-parabricks:4.6.0-1
+export PORTAL_CONFIG_PATH_ROOT=/path/to/genomic-foundation
+export PORTAL_MAX_UPLOAD_BYTES=107374182400        # 100 GB
 ```
 
 ## 🤝 Integration

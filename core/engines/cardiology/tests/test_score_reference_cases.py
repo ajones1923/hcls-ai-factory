@@ -36,8 +36,26 @@ from src.risk_calculators import (
 #   C 1 · H 1 · A2 (>=75) 2 · D 1 · S2 (stroke/TIA/TE) 2 · V 1 ·
 #   A (65-74) 1 · Sc (female) 1   — maximum 9
 # =====================================================================
+#   Each case below describes a patient and its described patient does not have the
+#   comorbidities it does not mention, so this helper states that explicitly.
+#
+#   CORRECTED 2026-11-03: it used to omit them and rely on the calculator reading an absent
+#   flag as absent disease. That default is the defect these cases now have to work around --
+#   `inp.congestive_heart_failure or False` made "not recorded" and "does not have it" the
+#   same input, and a 70-year-old man in AF with heart failure, hypertension and diabetes
+#   scored 1 instead of 5. The expected values are unchanged, because a described patient with
+#   no comorbidities is what every one of these cases always meant; what changed is that the
+#   test now says so rather than leaving the calculator to assume it.
+_CHA_COMPONENTS = (
+    "congestive_heart_failure", "hypertension_treatment", "diabetes",
+    "history_of_stroke", "vascular_disease",
+)
+
+
 def cha(**kw):
     kw.setdefault("score_type", RiskScoreType.CHA2DS2_VASC)
+    for component in _CHA_COMPONENTS:
+        kw.setdefault(component, False)
     extra = kw.pop("extra", None)
     return calculate_cha2ds2_vasc(RiskScoreInput(**kw), extra=extra)
 
@@ -93,9 +111,22 @@ class TestCha2ds2VascReferenceCases:
 #   E (>65) 1 · D drugs 1 · D alcohol 1   — maximum 9
 #   (renal and liver score separately; drugs and alcohol score separately)
 # =====================================================================
+#   CORRECTED 2026-11-03, for the same reason as the CHA2DS2-VASc helper above: a described
+#   patient without a bleeding history is now said to have none, instead of the calculator
+#   reading nine absent flags as nine absent conditions. Expected values unchanged.
+_HB_COMPONENTS = (
+    "renal_disease", "liver_disease", "history_of_stroke", "history_of_bleeding",
+    "labile_inr", "antiplatelet_nsaid", "alcohol_excess",
+)
+
+
 def hb(**kw):
     kw.setdefault("score_type", RiskScoreType.HAS_BLED)
+    for component in _HB_COMPONENTS:
+        kw.setdefault(component, False)
     extra = kw.pop("extra", None)
+    if extra is None or "hypertension_uncontrolled" not in extra:
+        kw.setdefault("hypertension_treatment", False)
     return calculate_has_bled(RiskScoreInput(**kw), extra=extra)
 
 

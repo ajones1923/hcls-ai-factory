@@ -48,7 +48,7 @@ jobs:
       - run: pytest -q
 
   subjects:
-    # The 18 engine/agent/disease-program/orchestrator suites — 8,711 tests on a clean
+    # The 18 engine/agent/disease-program/orchestrator suites — 8,767 tests on a clean
     # checkout (local datasets, which are gitignored, add more and are not available here). Until 2026-08-16 CI gated only the
     # 382 platform-library tests, so a change could break every subject and still merge green.
     #
@@ -64,11 +64,16 @@ jobs:
     # BLOCKING since 2026-09-15. It was advisory because "the first run failed" on this x86
     # runner; the cause was measured rather than guessed, by building a venv with exactly the
     # dependency list below and running all 17 suites against it. Every failure was a MISSING
-    # PACKAGE, not an architecture difference: 4,972 passing with the old list, 8,711 with this
+    # PACKAGE, not an architecture difference: 4,972 passing with the old list, 8,767 with this
     # one. The single remaining failure is tests/test_proteinmpnn.py::test_design_real, which
     # needs CUDA -- and it is skipped here, because it is guarded by skipif on
-    # vendor_proteinmpnn/ which is not tracked in git. So this runner should see 8,711 passed,
-    # 0 failed, 6 skipped.
+    # vendor_proteinmpnn/ which is not tracked in git.
+    #
+    # Expected as of 2026-11-04 (PR #160): 10,225 passed, 0 failed, 0 errors,
+    # 223 skipped -- identical to a developer box with Milvus and RDKit up, which is the
+    # point: the runner and the box agreeing is the only evidence that a pass means the
+    # code works rather than that the machine happened to have something installed. The
+    # previous note here said 8,767 and had been stale through two releases.
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5
@@ -86,13 +91,24 @@ jobs:
                                 duckdb statsmodels biopython peft pymilvus loguru anthropic \
                                 prometheus-client apscheduler python-multipart tqdm python-dotenv \
                                 flask flask-cors nibabel pydicom highdicom tenacity reportlab \
-                                python-docx lxml plotly scanpy anndata sentence-transformers
+                                python-docx lxml plotly scanpy anndata sentence-transformers \
+                                rdkit
           # The second line is what the original list was missing. Which subject each unblocks,
           # so a future trim knows the cost: flask/flask-cors -> genomic-foundation (35 errors),
           # nibabel/pydicom/tenacity -> clinical-imaging, highdicom -> clinical-imaging's 20
           # DICOM-SR tests specifically, reportlab/sentence-transformers -> cart + oncology,
           # scanpy/anndata -> single-cell. sentence-transformers pulls torch and dominates the
           # install time; drop it only by also skipping the suites that import it.
+          #
+          # rdkit -> therapeutic-discovery (26 failures) + hcls-orchestrator (2). It is already
+          # in core/engines/therapeutic-discovery/requirements.txt; this job installs a
+          # hand-maintained list instead, so it was absent here. It became REQUIRED rather than
+          # optional in the 2026-11-04 remediation: the chemistry QC path used to fall back to a
+          # default when RDKit was missing, and now raises ("Refusing to mark molecules as having
+          # passed drug-likeness QC without examining them"), while the mock NIM returns no
+          # molecules and QED is None rather than a made-up number. Those are the correct
+          # behaviours, so the dependency is no longer optional for the suite that asserts them.
+          # Do NOT make this one skip instead: the tests it unblocks are the honesty guards.
       - name: Run all 17 suites
         run: .venv/bin/python scripts/run_all_tests.py --json /tmp/subject_tests.json
 
