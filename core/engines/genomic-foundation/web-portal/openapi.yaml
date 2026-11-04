@@ -24,9 +24,16 @@ components:
       in: header
       name: X-API-Key
       description: |
-        Required for mutating endpoints when the PORTAL_API_KEY environment
-        variable is set. When PORTAL_API_KEY is unset, authentication is
-        disabled (local dev mode).
+        Required on every endpoint below that is marked `security:
+        ApiKeyAuth`. Authentication is ALWAYS enforced: if PORTAL_API_KEY is
+        unset the server generates an ephemeral key at startup, writes it to a
+        mode-0600 file and names that file in its log — it does not fall back
+        to an open API. /health, /healthz, /api/ready, /api/status and
+        /api/metrics stay open so probes and dashboards keep working.
+
+        /api/stream and /api/files/download additionally accept the key as an
+        `api_key` query parameter, because EventSource and a download started
+        by browser navigation cannot send a request header.
 
   schemas:
     Error:
@@ -525,7 +532,13 @@ paths:
     get:
       operationId: getConfig
       summary: Get pipeline configuration
-      description: Returns all key-value pairs from pipeline.env.
+      security:
+        - ApiKeyAuth: []
+      description: |
+        Returns the declared, non-sensitive pipeline keys only (GP, IN, REF,
+        OUT, LOG, PB_IMG, PATIENT_ID, REF_BUILD, GIAB_INDEX_URL,
+        PARABRICKS_SAMPLE_URL, NUM_GPUS, LOW_MEMORY). Any other key in
+        pipeline.env — a registry credential, for instance — is not returned.
       tags: [Configuration]
       responses:
         "200":
@@ -537,10 +550,16 @@ paths:
     post:
       operationId: updateConfig
       summary: Update pipeline configuration
+      security:
+        - ApiKeyAuth: []
       description: |
-        Merges supplied key-value pairs into pipeline.env. Only
-        whitelisted keys are accepted. Values containing shell
-        metacharacters ($, backtick, |, ;, &) are rejected.
+        Merges supplied key-value pairs into pipeline.env. Only allowlisted
+        keys are accepted, and each value must match that key's pattern, which
+        admits no line break and no shell metacharacter. The pipeline scripts
+        `source` this file, so values are additionally written shell-quoted.
+        PB_IMG must name an image in the portal's allowed set (override with
+        PORTAL_ALLOWED_IMAGES); GP, IN, REF, OUT and LOG must resolve inside
+        PORTAL_CONFIG_PATH_ROOT.
       tags: [Configuration]
       requestBody:
         required: true
@@ -642,6 +661,8 @@ paths:
     get:
       operationId: getLogs
       summary: Get log file content
+      security:
+        - ApiKeyAuth: []
       description: Returns the full content of a pipeline log file.
       tags: [Logs]
       parameters:
@@ -676,6 +697,8 @@ paths:
     get:
       operationId: streamEvents
       summary: Real-time pipeline event stream
+      security:
+        - ApiKeyAuth: []
       description: |
         Server-Sent Events (SSE) endpoint. Emits status updates every
         200 ms and new log lines as they appear. The stream closes
@@ -720,6 +743,8 @@ paths:
     get:
       operationId: listFiles
       summary: List files in a data directory
+      security:
+        - ApiKeyAuth: []
       description: |
         Lists non-hidden files in the specified data subdirectory.
         Subdirectories are excluded.
@@ -750,6 +775,8 @@ paths:
     get:
       operationId: downloadFile
       summary: Download a file
+      security:
+        - ApiKeyAuth: []
       description: |
         Downloads a file as an attachment. Filenames are sanitized and
         path traversal is prevented.
@@ -784,9 +811,12 @@ paths:
     post:
       operationId: uploadFile
       summary: Upload a file
+      security:
+        - ApiKeyAuth: []
       description: |
         Uploads a file to the specified data directory. Rate limited.
-        Maximum upload size is 100 GB.
+        Maximum upload size is PORTAL_MAX_UPLOAD_BYTES, default 100 GB;
+        an upload over the limit is refused with 413.
       tags: [Files]
       parameters:
         - $ref: "#/components/parameters/DirectoryParam"
@@ -826,6 +856,8 @@ paths:
   /api/files/delete/{directory}/{filename}:
     delete:
       operationId: deleteFile
+      security:
+        - ApiKeyAuth: []
       summary: Delete a file
       description: |
         Deletes a file from the specified data directory. Filenames are

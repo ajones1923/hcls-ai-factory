@@ -7,9 +7,14 @@ Flask backend server for managing the FASTQ → VCF workflow
 import os
 import sys
 import json
+import hmac
+import re
+import secrets
+import shlex
 import signal
 import atexit
 import subprocess
+import tempfile
 import threading
 import time
 from pathlib import Path
@@ -33,12 +38,24 @@ logger.add(sys.stderr, format="{time:YYYY-MM-DD HH:mm:ss} | {level:<7} | {messag
 app = Flask(__name__,
             template_folder='../templates',
             static_folder='../static')
-# CORS configuration - restrict in production
+# CORS configuration.
+# The default used to be '*', which let any web page the operator happened to visit call this
+# API from their browser. The portal's own UI is served same-origin and needs no CORS at all,
+# so the default is now a loopback allowlist; CORS_ORIGINS overrides it for a genuine
+# cross-origin deployment. Credentials are NOT enabled, and must not be while '*' is
+# permitted as an override — a wildcard origin with credentials is the cookie-theft shape.
+DEFAULT_CORS_ORIGINS = 'http://localhost:5000,http://127.0.0.1:5000'
+_cors_origins = [o.strip() for o in
+                 os.environ.get('CORS_ORIGINS', DEFAULT_CORS_ORIGINS).split(',') if o.strip()]
+if '*' in _cors_origins:
+    logger.warning("CORS_ORIGINS contains '*' — every website a user visits can call this API "
+                   "from their browser. Set an explicit origin allowlist.")
 CORS(app, resources={
     r"/api/*": {
-        "origins": os.environ.get('CORS_ORIGINS', '*').split(','),
+        "origins": _cors_origins,
         "methods": ["GET", "POST", "DELETE"],
-        "allow_headers": ["Content-Type", "X-API-Key"]
+        "allow_headers": ["Content-Type", "X-API-Key"],
+        "supports_credentials": False,
     }
 })
 
@@ -57,20 +74,122 @@ def rate_limit(f):
     return f
 
 
-def require_api_key(f):
-    """Require X-API-Key header for dangerous endpoints.
-    When PORTAL_API_KEY is not set, auth is disabled (local dev mode)."""
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        api_key = os.environ.get('PORTAL_API_KEY')
-        if api_key and request.headers.get('X-API-Key') != api_key:
-            return jsonify({'error': 'Unauthorized — set X-API-Key header'}), 401
-        return f(*args, **kwargs)
-    return decorated
+def _publish_ephemeral_key(key):
+    """Write an ephemeral key where the operator can read it, mode 0600.
+
+    Returns the path written, or None. The key itself is never logged: the log is a
+    lower-trust artifact than a credential store, and this one gates routes that read
+    the engine's configuration.
+    """
+    configured = os.environ.get('PORTAL_API_KEY_FILE')
+    candidates = [Path(configured)] if configured else []
+    runtime_dir = os.environ.get('XDG_RUNTIME_DIR')
+    if runtime_dir:
+        candidates.append(Path(runtime_dir) / 'hcls-genomics-portal.key')
+    candidates.append(Path(tempfile.gettempdir()) / 'hcls-genomics-portal.key')
+
+    for path in candidates:
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            # Create with 0600 from the outset — never world-readable, not even briefly.
+            fd = os.open(str(path), os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+            try:
+                os.write(fd, (key + '\n').encode('utf-8'))
+            finally:
+                os.close(fd)
+            os.chmod(str(path), 0o600)
+            return path
+        except OSError:
+            continue
+    return None
 
 
-# Configure max upload size (100GB for genomics files)
-app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024 * 1024  # 100GB
+def _portal_api_key():
+    """The key the portal enforces.
+
+    Fail closed: when PORTAL_API_KEY is unset an ephemeral key is generated at first use,
+    so no route is ever open merely because nothing was configured. The sibling portal
+    (core/engines/precision-intelligence) already behaved this way; this one did not.
+    """
+    configured = os.environ.get('PORTAL_API_KEY')
+    if configured:
+        return configured
+    if _portal_api_key._ephemeral is None:
+        _portal_api_key._ephemeral = secrets.token_urlsafe(32)
+        key_path = _publish_ephemeral_key(_portal_api_key._ephemeral)
+        logger.warning("=" * 72)
+        logger.warning("PORTAL_API_KEY not set — generated an ephemeral key. Auth is ENFORCED.")
+        if key_path:
+            logger.warning(f"Key written to {key_path} (mode 0600). Send it as X-API-Key.")
+        else:
+            logger.warning("Could not write the key to disk, so it cannot be retrieved: "
+                           "set PORTAL_API_KEY and restart to use the API.")
+        logger.warning("To persist across restarts, set PORTAL_API_KEY in the environment.")
+        logger.warning("=" * 72)
+    return _portal_api_key._ephemeral
+
+
+_portal_api_key._ephemeral = None
+
+
+def _api_key_matches(supplied):
+    """Constant-time comparison on encoded bytes.
+
+    Bytes, not str: compare_digest raises TypeError on a non-ASCII str, which would turn a
+    non-ASCII header — or a non-ASCII passphrase in PORTAL_API_KEY — into a 500 instead of a 401.
+    """
+    expected = _portal_api_key()
+    if not expected or not supplied:
+        return False
+    return hmac.compare_digest(
+        supplied.encode('utf-8', 'surrogateescape'),
+        expected.encode('utf-8', 'surrogateescape'),
+    )
+
+
+def require_api_key(func=None, *, allow_query_key=False):
+    """Require a matching X-API-Key. Always enforced — there is no key-unset bypass.
+
+    allow_query_key=True additionally accepts ?api_key= on routes the browser cannot send a
+    header on (EventSource, and a download triggered by navigation). Query strings are more
+    likely to be logged by an intermediary than a header, so it is opt-in per route.
+    """
+    def _decorate(f):
+        @wraps(f)
+        def decorated(*args, **kwargs):
+            supplied = request.headers.get('X-API-Key') or ''
+            if not supplied and allow_query_key:
+                supplied = request.args.get('api_key') or ''
+            if not _api_key_matches(supplied):
+                return jsonify({'error': 'Unauthorized — set X-API-Key header'}), 401
+            return f(*args, **kwargs)
+        return decorated
+
+    return _decorate(func) if func is not None else _decorate
+
+
+# Configure max upload size. Genomics FASTQ are genuinely huge, so the default stays at
+# 100GB — but it is now a configured number that the upload route also enforces while
+# streaming, because MAX_CONTENT_LENGTH only acts on a declared Content-Length and a
+# chunked upload declares none.
+DEFAULT_MAX_UPLOAD_BYTES = 100 * 1024 * 1024 * 1024  # 100GB
+
+
+def max_upload_bytes():
+    """Upload size ceiling, from PORTAL_MAX_UPLOAD_BYTES (bytes)."""
+    raw = os.environ.get('PORTAL_MAX_UPLOAD_BYTES', '').strip()
+    if raw:
+        try:
+            value = int(raw)
+            if value > 0:
+                return value
+        except ValueError:
+            logger.warning(f"PORTAL_MAX_UPLOAD_BYTES is not an integer ({raw!r}) — "
+                           f"using the {DEFAULT_MAX_UPLOAD_BYTES} byte default.")
+    return DEFAULT_MAX_UPLOAD_BYTES
+
+
+app.config['MAX_CONTENT_LENGTH'] = max_upload_bytes()
 
 # Configuration
 PROJECT_ROOT = Path(__file__).parent.parent.parent.absolute()
@@ -137,8 +256,127 @@ def load_pipeline_state():
         logger.error(f"Error loading pipeline state: {e}")
 
 
-def load_config():
-    """Load pipeline configuration"""
+# ─── Pipeline configuration contract ────────────────────────────────────────────────────
+# config/pipeline.env is `source`d by the pipeline scripts, i.e. bash EXECUTES it, and one of
+# its keys (PB_IMG) is the image argument to `docker run` with host mounts. Everything written
+# to it therefore has to survive being read as shell. Three rules hold that line:
+#   1. only keys in CONFIG_WRITABLE_KEYS may be written;
+#   2. each value must match that key's pattern — which admits no newline, no carriage return
+#      and no shell metacharacter — and PB_IMG must additionally name an allowed image;
+#   3. values are written single-quoted via shlex.quote, so even a value that slipped the
+#      pattern cannot be re-interpreted as shell syntax.
+
+CONFIG_WRITABLE_KEYS = (
+    'GP', 'IN', 'REF', 'OUT', 'LOG',
+    'PB_IMG', 'PATIENT_ID', 'REF_BUILD',
+    'GIAB_INDEX_URL', 'PARABRICKS_SAMPLE_URL',
+    'NUM_GPUS', 'LOW_MEMORY',
+)
+
+# What GET may return. pipeline.env is an operator-owned file: the engine README tells
+# self-hosters to put registry credentials in it, so the route returns only the keys the
+# portal declares and never the rest of the file.
+CONFIG_READABLE_KEYS = CONFIG_WRITABLE_KEYS
+
+# Keys naming a directory on the host. Confined to PORTAL_CONFIG_PATH_ROOT (default: the
+# engine directory) so a caller cannot repoint the pipeline at arbitrary host paths.
+CONFIG_PATH_KEYS = ('GP', 'IN', 'REF', 'OUT', 'LOG')
+
+# Per-key value patterns. None of them admit \n, \r or a shell metacharacter.
+_SAFE_PATH = re.compile(r'^/?[A-Za-z0-9._/-]{1,512}$')
+_CONFIG_VALUE_PATTERNS = {
+    'GP': _SAFE_PATH,
+    'IN': _SAFE_PATH,
+    'REF': _SAFE_PATH,
+    'OUT': _SAFE_PATH,
+    'LOG': _SAFE_PATH,
+    'PB_IMG': re.compile(r'^[a-z0-9][a-z0-9._-]*(\.[a-z0-9.-]+)?(:[0-9]+)?'
+                         r'(/[a-z0-9._-]+)+:[A-Za-z0-9._-]{1,128}$'),
+    'PATIENT_ID': re.compile(r'^[A-Za-z0-9][A-Za-z0-9_-]{0,49}$'),
+    'REF_BUILD': re.compile(r'^(GRCh38|GRCh37|hg38|hg19)$'),
+    'GIAB_INDEX_URL': re.compile(r'^https?://[A-Za-z0-9._-]+(:[0-9]+)?(/[A-Za-z0-9._~/-]*)?$'),
+    'PARABRICKS_SAMPLE_URL': re.compile(r'^https?://[A-Za-z0-9._-]+(:[0-9]+)?(/[A-Za-z0-9._~/-]*)?$'),
+    'NUM_GPUS': re.compile(r'^[1-9][0-9]?$'),
+    'LOW_MEMORY': re.compile(r'^[01]$'),
+}
+
+# PB_IMG selects the container that runs with GPU access and host volume mounts, so it is
+# pinned rather than merely pattern-checked. Self-hosters who run a different build set
+# PORTAL_ALLOWED_IMAGES (comma-separated) to the images they allow.
+_DEFAULT_ALLOWED_IMAGES = (
+    'nvcr.io/nvidia/clara/clara-parabricks:4.6.0-1',
+    'nvcr.io/nvidia/clara/clara-parabricks:4.5.0-1',
+    'nvcr.io/nvidia/clara/clara-parabricks:4.4.0-1',
+)
+
+
+def allowed_pipeline_images():
+    """Images PB_IMG may name. PORTAL_ALLOWED_IMAGES replaces the built-in pinned set."""
+    configured = os.environ.get('PORTAL_ALLOWED_IMAGES', '').strip()
+    if configured:
+        return tuple(i.strip() for i in configured.split(',') if i.strip())
+    return _DEFAULT_ALLOWED_IMAGES
+
+
+def config_path_root():
+    """Directory that the path-valued config keys must stay inside."""
+    return Path(os.environ.get('PORTAL_CONFIG_PATH_ROOT') or PROJECT_ROOT)
+
+
+def validate_config_entry(key, value):
+    """Validate one config key/value. Returns an error string, or None when acceptable."""
+    if key not in CONFIG_WRITABLE_KEYS:
+        return f'Invalid config key: {key}'
+    if not isinstance(value, (str, int, float)) or isinstance(value, bool):
+        return f'Value for {key} must be a string or number'
+
+    text = str(value)
+    # Checked explicitly and first: a newline is what turns one config line into extra lines
+    # in a file bash executes, and it is the one character the old filter let through.
+    if '\n' in text or '\r' in text or '\x00' in text:
+        return f'Value for {key} may not contain a line break'
+    if not text:
+        return f'Value for {key} may not be empty'
+
+    pattern = _CONFIG_VALUE_PATTERNS.get(key)
+    if pattern and not pattern.match(text):
+        return f'Invalid value for {key}'
+
+    if key == 'PB_IMG' and text not in allowed_pipeline_images():
+        return (f'Image not allowed for PB_IMG. Permitted: '
+                f'{", ".join(allowed_pipeline_images())} '
+                f'(set PORTAL_ALLOWED_IMAGES to permit others)')
+
+    if key in CONFIG_PATH_KEYS:
+        root = config_path_root()
+        try:
+            resolved = Path(text) if Path(text).is_absolute() else (root / text)
+            resolved = resolved.resolve()
+            if not (resolved == root.resolve() or resolved.is_relative_to(root.resolve())):
+                return f'Path for {key} must be inside {root}'
+        except (OSError, ValueError):
+            return f'Invalid path for {key}'
+
+    return None
+
+
+def _unquote_config_value(value):
+    """Reverse the shell quoting save_config writes, for display."""
+    value = value.strip()
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in ('"', "'"):
+        inner = value[1:-1]
+        if value[0] == "'":
+            return inner.replace("'\\''", "'")
+        return inner
+    return value
+
+
+def load_config(keys=None):
+    """Load pipeline configuration.
+
+    keys: when given, only these keys are returned. Callers that serve the result over HTTP
+    pass CONFIG_READABLE_KEYS so an operator's credentials in this file are never returned.
+    """
     config = {}
     if CONFIG_FILE.exists():
         with open(CONFIG_FILE, 'r') as f:
@@ -146,12 +384,26 @@ def load_config():
                 line = line.strip()
                 if line and not line.startswith('#') and '=' in line:
                     key, value = line.split('=', 1)
-                    config[key.strip()] = value.strip()
+                    key = key.strip()
+                    if keys is not None and key not in keys:
+                        continue
+                    config[key] = _unquote_config_value(value)
     return config
 
 
 def save_config(config):
-    """Save pipeline configuration"""
+    """Save pipeline configuration.
+
+    Values are written shell-quoted: the file is `source`d by the pipeline scripts, so an
+    unquoted value is shell source code. Callers must have validated the keys and values
+    first (validate_config_entry); the quoting is the second line of defence, not the first.
+    """
+    rejected = [(k, v) for k, v in config.items() if validate_config_entry(k, v) is not None]
+    if rejected:
+        raise ValueError(f'refusing to write unvalidated config keys: '
+                         f'{", ".join(sorted(k for k, _ in rejected))}')
+
+    config = dict(config)
     lines = []
     if CONFIG_FILE.exists():
         with open(CONFIG_FILE, 'r') as f:
@@ -162,14 +414,14 @@ def save_config(config):
                 elif '=' in stripped:
                     key = stripped.split('=', 1)[0].strip()
                     if key in config:
-                        lines.append(f"{key}={config[key]}\n")
+                        lines.append(f"{key}={shlex.quote(str(config[key]))}\n")
                         del config[key]
                     else:
                         lines.append(line)
 
     # Add any new config values
     for key, value in config.items():
-        lines.append(f"{key}={value}\n")
+        lines.append(f"{key}={shlex.quote(str(value))}\n")
 
     with open(CONFIG_FILE, 'w') as f:
         f.writelines(lines)
@@ -350,32 +602,30 @@ def get_status():
 
 
 @app.route('/api/config', methods=['GET', 'POST'])
+@require_api_key
 def config():
-    """Get or update configuration"""
+    """Get or update configuration.
+
+    Authenticated on both methods. GET returns only CONFIG_READABLE_KEYS — the rest of
+    pipeline.env (the engine README invites operators to keep registry credentials there)
+    is not served. POST validates every key and value before anything is written, because
+    the pipeline scripts `source` this file and PB_IMG from it selects the container image.
+    """
     if request.method == 'GET':
-        return jsonify(load_config())
+        return jsonify(load_config(keys=CONFIG_READABLE_KEYS))
     else:
         config_data = request.json
         if not config_data or not isinstance(config_data, dict):
             return jsonify({'error': 'Request body must be a JSON object'}), 400
 
-        # Whitelist of allowed config keys
-        allowed_keys = {
-            'GP', 'IN', 'REF', 'OUT', 'LOG',
-            'PB_IMG', 'PATIENT_ID', 'REF_BUILD',
-            'GIAB_INDEX_URL', 'PARABRICKS_SAMPLE_URL',
-            'NUM_GPUS', 'LOW_MEMORY',
-        }
-        invalid_keys = set(config_data.keys()) - allowed_keys
+        invalid_keys = set(config_data.keys()) - set(CONFIG_WRITABLE_KEYS)
         if invalid_keys:
             return jsonify({'error': f'Invalid config keys: {", ".join(sorted(invalid_keys))}'}), 400
 
-        # Reject shell metacharacters in values
-        import re
-        shell_pattern = re.compile(r'[$`|;&]')
         for key, value in config_data.items():
-            if shell_pattern.search(str(value)):
-                return jsonify({'error': f'Invalid characters in value for {key}'}), 400
+            error = validate_config_entry(key, value)
+            if error:
+                return jsonify({'error': error}), 400
 
         save_config(config_data)
         return jsonify({'success': True})
@@ -554,6 +804,7 @@ def stop_all():
 
 
 @app.route('/api/logs/<log_type>')
+@require_api_key
 def get_logs(log_type):
     """Get log file content"""
     log_files = {
@@ -580,6 +831,7 @@ def get_logs(log_type):
 
 
 @app.route('/api/stream')
+@require_api_key(allow_query_key=True)
 def stream():
     """Server-Sent Events stream for real-time updates"""
     def event_stream():
@@ -661,6 +913,7 @@ def reset_state():
 
 
 @app.route('/api/files/<directory>')
+@require_api_key
 def list_files(directory):
     """List files in a directory"""
     # Map directory names to actual paths
@@ -723,6 +976,7 @@ def get_file_type(filename):
 
 
 @app.route('/api/files/download/<directory>/<filename>')
+@require_api_key(allow_query_key=True)
 def download_file(directory, filename):
     """Download a file"""
     # Map directory names to actual paths
@@ -790,8 +1044,28 @@ def upload_file(directory):
 
     file_path = target_dir / filename
 
+    limit = max_upload_bytes()
+    declared = request.content_length
+    if declared is not None and declared > limit:
+        return jsonify({'error': f'Upload exceeds the {limit} byte limit '
+                                 f'(PORTAL_MAX_UPLOAD_BYTES)'}), 413
+
     try:
-        file.save(str(file_path))
+        # Stream to disk with a running total: a chunked upload declares no Content-Length,
+        # so MAX_CONTENT_LENGTH never sees it and the only real cap is this one.
+        written = 0
+        with open(file_path, 'wb') as out:
+            while True:
+                chunk = file.stream.read(8 * 1024 * 1024)
+                if not chunk:
+                    break
+                written += len(chunk)
+                if written > limit:
+                    out.close()
+                    file_path.unlink(missing_ok=True)
+                    return jsonify({'error': f'Upload exceeds the {limit} byte limit '
+                                             f'(PORTAL_MAX_UPLOAD_BYTES)'}), 413
+                out.write(chunk)
         return jsonify({
             'success': True,
             'filename': filename,
