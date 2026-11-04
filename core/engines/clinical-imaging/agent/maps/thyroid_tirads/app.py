@@ -182,32 +182,62 @@ class ThyroidTIRADSApp(BaseImagingMAP):
 
         measurements = workflow_result.measurements
         severity = workflow_result.severity.value
-        tirads_score = int(measurements.get("tirads_points", 0))
-        tirads_category = measurements.get("tirads_category", "TR1")
-        nodule_size_mm = measurements.get("nodule_size_mm", 0.0)
-        fna_recommended = measurements.get("fna_recommended", False)
+
+        # AUDIT FIX (2026-11-03): every value in this block was read from a key the workflow
+        # does not publish, and each `.get` default was the benign end of its scale --
+        # `tirads_points` -> 0, `tirados_category` -> "TR1", `nodule_size_mm` -> 0.0,
+        # per-finding `size_mm` -> 0.0, `composition` -> "unspecified". The workflow publishes
+        # `nodule_<n>_tirads_points` in measurements, and `tirads`, `tirads_points`,
+        # `features{...}` and `measurements{max_diameter_mm}` on each finding. So this SR
+        # reported EVERY thyroid study as "TI-RADS points: 0, TI-RADS category: TR1, maximum
+        # nodule size 0.0 mm, FNA recommended: No" -- a benign report of a gland it had the
+        # real numbers for. It now reads the keys the workflow writes, takes the headline from
+        # the result's own classification, and prints "not reported" where a value genuinely
+        # did not arrive instead of printing a reassuring number.
+        graded = [f for f in workflow_result.findings if f.get("tirads")]
+        tirads_category = workflow_result.classification or "not reported"
+        point_totals = [
+            f["tirads_points"] for f in graded if f.get("tirads_points") is not None
+        ]
+        tirads_score = max(point_totals) if point_totals else None
+        sizes = [
+            f.get("measurements", {}).get("max_diameter_mm")
+            for f in workflow_result.findings
+        ]
+        measured_sizes = [s for s in sizes if s is not None]
+        nodule_size_mm = max(measured_sizes) if measured_sizes else None
+        fna_recommended = any(
+            "FNA recommended" in (f.get("recommendation") or "")
+            for f in workflow_result.findings
+        )
+
+        def _num(value, unit=""):
+            """Render a number, or say it is absent -- never substitute zero."""
+            if value is None:
+                return "not reported"
+            return f"{value:.1f}{unit}" if isinstance(value, float) else f"{value}{unit}"
 
         # Per-nodule details
         nodule_lines = []
         for i, finding in enumerate(workflow_result.findings):
-            size = finding.get("size_mm", 0.0)
-            composition = finding.get("composition", "unspecified")
-            echogenicity = finding.get("echogenicity", "unspecified")
-            shape = finding.get("shape", "unspecified")
-            margin = finding.get("margin", "unspecified")
-            foci = finding.get("echogenic_foci", "none")
-            points = finding.get("tirads_points", 0)
+            features = finding.get("features") or {}
+            size = (finding.get("measurements") or {}).get("max_diameter_mm")
+            level = finding.get("tirads") or "NOT ASSESSED"
+            points = finding.get("tirads_points")
             nodule_lines.append(
-                f"  Nodule {i + 1}: {size:.1f} mm, {tirads_category}"
+                f"  Nodule {i + 1}: {_num(size, ' mm')}, {level}"
             )
             nodule_lines.append(
-                f"    Composition: {composition}, Echogenicity: {echogenicity}"
+                f"    Composition: {features.get('composition') or 'not reported'}, "
+                f"Echogenicity: {features.get('echogenicity') or 'not reported'}"
             )
             nodule_lines.append(
-                f"    Shape: {shape}, Margin: {margin}, Foci: {foci}"
+                f"    Shape: {features.get('shape') or 'not reported'}, "
+                f"Margin: {features.get('margin') or 'not reported'}, "
+                f"Foci: {features.get('echogenic_foci') or 'not reported'}"
             )
             nodule_lines.append(
-                f"    TI-RADS points: {points}"
+                f"    TI-RADS points: {_num(points)}"
             )
 
         recommendation = workflow_result.findings[0].get("recommendation", "") if workflow_result.findings else ""
@@ -218,8 +248,8 @@ class ThyroidTIRADSApp(BaseImagingMAP):
             f"Application: {self.APP_NAME} v{self.APP_VERSION}",
             f"",
             f"FINDINGS:",
-            f"  Maximum nodule size: {nodule_size_mm:.1f} mm",
-            f"  TI-RADS points: {tirads_score}",
+            f"  Maximum nodule size: {_num(nodule_size_mm, ' mm')}",
+            f"  TI-RADS points: {_num(tirads_score)}",
             f"  TI-RADS category: {tirads_category}",
             f"  FNA recommended: {'Yes' if fna_recommended else 'No'}",
             f"",
@@ -312,16 +342,35 @@ class ThyroidTIRADSApp(BaseImagingMAP):
             "routine": ("17621005", "Routine"),
             "normal": ("17621005", "Normal"),
         }
-        code_value, code_meaning = severity_map.get(severity, ("17621005", "Routine"))
-        severity_code.CodeValue = code_value
-        severity_code.CodingSchemeDesignator = "SCT"
-        severity_code.CodeMeaning = code_meaning
-        severity_content.ConceptCodeSequence = [severity_code]
+        # AUDIT FIX (2026-11-03): this was
+        #     severity_map.get(severity, ("17621005", "Routine"))
+        # so any severity not in the map above -- including "unknown", which a workflow now
+        # reports when it could not grade the study at all -- left this service inside a DICOM
+        # SR document coded as a ROUTINE finding. An ungraded study is not a routine one. No
+        # SNOMED concept is invented for "not graded": the content item becomes TEXT and says
+        # in words that no severity was determined, which nothing downstream can mistake for
+        # a grade.
+        coded_severity = severity_map.get(severity)
+        if coded_severity is None:
+            severity_content.ValueType = "TEXT"
+            severity_content.TextValue = (
+                f"severity not determined (reported as '{severity}')"
+            )
+        else:
+            code_value, code_meaning = coded_severity
+            severity_code.CodeValue = code_value
+            severity_code.CodingSchemeDesignator = "SCT"
+            severity_code.CodeMeaning = code_meaning
+            severity_content.ConceptCodeSequence = [severity_code]
 
-        # TI-RADS score NUM content
+        # TI-RADS score NUM content.
+        #
+        # AUDIT FIX (2026-11-03): this wrote `NumericValue = "0"` whenever no score was
+        # available, and before the fix above that was every study. A TI-RADS of 0 is TR1, so
+        # the SR asserted the most benign possible score as a measured number. When there is
+        # no score the item becomes TEXT and says so.
         tirads_content = pydicom.Dataset()
         tirads_content.RelationshipType = "CONTAINS"
-        tirads_content.ValueType = "NUM"
 
         tirads_concept = pydicom.Dataset()
         tirads_concept.CodeValue = "246459004"
@@ -329,15 +378,20 @@ class ThyroidTIRADSApp(BaseImagingMAP):
         tirads_concept.CodeMeaning = "TI-RADS score"
         tirads_content.ConceptNameCodeSequence = [tirads_concept]
 
-        tirads_measured = pydicom.Dataset()
-        tirads_measured.NumericValue = f"{tirads_score}"
+        if tirads_score is None:
+            tirads_content.ValueType = "TEXT"
+            tirads_content.TextValue = "TI-RADS score not determined"
+        else:
+            tirads_content.ValueType = "NUM"
+            tirads_measured = pydicom.Dataset()
+            tirads_measured.NumericValue = f"{tirads_score}"
 
-        tirads_unit = pydicom.Dataset()
-        tirads_unit.CodeValue = "1"
-        tirads_unit.CodingSchemeDesignator = "UCUM"
-        tirads_unit.CodeMeaning = "score"
-        tirads_measured.MeasurementUnitsCodeSequence = [tirads_unit]
-        tirads_content.MeasuredValueSequence = [tirads_measured]
+            tirads_unit = pydicom.Dataset()
+            tirads_unit.CodeValue = "1"
+            tirads_unit.CodingSchemeDesignator = "UCUM"
+            tirads_unit.CodeMeaning = "score"
+            tirads_measured.MeasurementUnitsCodeSequence = [tirads_unit]
+            tirads_content.MeasuredValueSequence = [tirads_measured]
 
         # Build content sequence
         sr_dataset.ContentSequence = [
