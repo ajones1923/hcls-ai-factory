@@ -1,17 +1,17 @@
 {
  "coverage": {
-  "cardiology/acute_decompensated_hf": 0.0227,
-  "cardiology/arrhythmia": 0.0241,
-  "cardiology/cad_assessment": 0.0236,
-  "cardiology/cardiac_mri": 0.0237,
-  "cardiology/cardio_oncology": 0.0243,
-  "cardiology/general": 0.0289,
-  "cardiology/heart_failure": 0.023,
-  "cardiology/myocarditis_pericarditis": 0.0225,
-  "cardiology/post_mi": 0.0228,
-  "cardiology/preventive_risk": 0.0232,
-  "cardiology/stress_test": 0.0236,
-  "cardiology/valvular_disease": 0.0217,
+  "cardiology/acute_decompensated_hf": 0.494,
+  "cardiology/arrhythmia": 0.574,
+  "cardiology/cad_assessment": 0.5314,
+  "cardiology/cardiac_mri": 0.5379,
+  "cardiology/cardio_oncology": 0.4814,
+  "cardiology/general": 0.4952,
+  "cardiology/heart_failure": 0.487,
+  "cardiology/myocarditis_pericarditis": 0.5571,
+  "cardiology/post_mi": 0.522,
+  "cardiology/preventive_risk": 0.4659,
+  "cardiology/stress_test": 0.5469,
+  "cardiology/valvular_disease": 0.4964,
   "cart/car_design": 0.375,
   "cart/clinical": 0.4839,
   "cart/target_id": 1.0,
@@ -71,5 +71,5 @@
   "single-cell/trajectory_inference": 0.5109,
   "single-cell/treatment_monitoring": 0.5157
  },
- "recorded_from": "2026-11-04T18:51:08+00:00"
+ "recorded_from": "2026-11-04T20:43:01+00:00"
 }

@@ -229,10 +229,36 @@ defects, found in that order:
    `ALL_COLLECTIONS`, which is the authority. 162 curated records have no home. **Not fixed —
    this is a decision**, see below.
 4. **The parsers return `IngestRecord` dataclasses, not dicts**, so `r.get(text_field)` raises
-   for all six collections that do exist. **Not fixed:** the right fix is to route the seeder
+   for all six collections that do exist. **Fixed:** the seeder no longer inserts. It routes
    through `hcls_common.ingest_persist.persist_records`, which exists precisely to project a
-   record onto whatever schema a collection declares, rather than to add another ad-hoc
-   flattener. That is a refactor, not a patch.
+   record onto whatever schema a collection declares. Re-deriving those rules in the seeder is
+   how the divergence happened the first time.
+
+   `persist_records` needed one fix of its own to accept these collections: **all twelve
+   `cardio_*` collections declare `auto_id=True`**, and it was supplying a content-derived
+   primary key, which Milvus rejects — the whole batch. It now reads `auto_id` from the schema,
+   omits the key, and `insert`s rather than `upsert`s, because there is no key to match on.
+   The consequence is honest and stated in the log: **an auto_id collection cannot have an
+   idempotent re-ingest.** A second run appends. The seeder therefore refuses to seed a
+   collection that already holds rows unless `--force`.
+
+5. **The `Failed: 0` counter counted only seed functions that raised**, so a run where
+   everything was rejected still printed zero. **Fixed:** outcomes are attributed per
+   collection as written / skipped / failed, the process exit code carries it (a skip is not
+   a failure; storing nothing you were given is), and `--dry-run` for imaging reported 15
+   where the real run writes 54, because it counted modalities rather than records.
+
+### Result, 2026-11-04 20:42Z
+
+**230 of the 392 records are in Milvus**, matching the dry-run intent for all six declared
+targets exactly: `cardio_imaging` 54, `cardio_guidelines` 63, `cardio_trials` 39,
+`cardio_devices` 29, `cardio_electrophysiology` 25, `cardio_hemodynamics` 20. Cardiology's
+twelve workflows moved from **2% coverage to 47–57%**, and the platform mean from 47% to 56%
+(4,764 → 4,994 rows). Every write is recorded in `docs/build/corpus_provenance.jsonl`; the six
+pre-ledger writes are backfilled there from measured `row_count`, and the entries say so.
+
+The remaining 162 are the four undeclared targets below, which now fail loudly instead of
+silently.
 
 ### The three-way divergence, which is the decision
 
@@ -252,3 +278,8 @@ That belongs to the platform owner, the same standing as an open `CLINICAL_REVIE
 **What this corrects about the 2% figure.** Cardiology's coverage was never "unseeded pending a
 script run". The script existed, ran, reported success, and wrote nothing — so the gap was
 invisible from the only tool an operator would have used to check it.
+
+**Also still open:** `setup_collections.py`'s docstring is the only place `cardio_ecg` and
+`cardio_pubmed` are named. It is left as-is deliberately until the decision above is made,
+because correcting it to match `ALL_COLLECTIONS` would also quietly erase the record that four
+seed targets were ever intended to exist.

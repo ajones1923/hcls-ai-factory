@@ -22,10 +22,15 @@ Projection rules, each from a real failure:
   * int64 and float are different: coercing both to float fails an int64 insert.
   * Only genuine ARRAY columns may receive a list. A list in a VARCHAR column aborts the batch.
   * BOOL is neither numeric nor text — defaulting it to "" fails the insert.
-  * The primary key differs per collection (VARCHAR in some, int64 in others) and is not
-    auto_id, so it must be supplied in the right type.
+  * The primary key differs per collection (VARCHAR in some, int64 in others). Where it is
+    not auto_id it must be supplied in the right type; where it IS auto_id, supplying it is
+    an error -- all twelve cardio_* collections declare `auto_id=True` and rejected every
+    row this module sent them until 2026-11-04.
   * A content-derived id makes re-ingest idempotent via upsert instead of duplicating the
-    corpus on every run.
+    corpus on every run. An auto_id collection cannot have that property: Milvus mints the
+    key, so there is nothing to upsert against and a second run duplicates the corpus. This
+    module says so in the log rather than pretending otherwise; the caller is responsible
+    for not re-seeding a collection that already holds its curated set.
 """
 from __future__ import annotations
 
@@ -106,10 +111,18 @@ def persist_records(records: Iterable[Any], default_collection: str, *,
     written = 0
     for coll, rows in groups.items():
         try:
-            fields = client.describe_collection(coll).get("fields", [])
+            described = client.describe_collection(coll)
         except Exception:
             logger.warning("  %s: no such collection — run setup_collections.py first", coll)
             continue
+        fields = described.get("fields", [])
+
+        # Who mints the primary key. Milvus rejects a supplied pk on an auto_id collection,
+        # and `upsert` needs a pk to match on, so an auto_id collection must be written with
+        # `insert` and no id column at all.
+        pk = next((f for f in fields if f.get("is_primary")), None)
+        auto_id = bool(described.get("auto_id") or (pk or {}).get("auto_id"))
+        pk_name = (pk or {}).get("name", "id")
 
         valid = {f["name"] for f in fields}
         numeric = {f["name"] for f in fields
@@ -133,9 +146,14 @@ def persist_records(records: Iterable[Any], default_collection: str, *,
         texts = [_record_text(r) for r in rows]
         vectors = model.encode(texts, show_progress_bar=False).tolist()
 
+        # Columns this module fills itself, and must therefore not default or coerce. On an
+        # auto_id collection the primary key joins them: Milvus supplies it.
+        managed = {pk_name, "embedding"}
+
         payload, dropped_once = [], False
         for rec, text, vec in zip(rows, texts, vectors):
-            row = {k: v for k, v in _record_meta(rec).items() if k in valid}
+            row = {k: v for k, v in _record_meta(rec).items()
+                   if k in valid and not (auto_id and k == pk_name)}
             if not dropped_once:
                 extra = set(_record_meta(rec)) - valid
                 if extra:
@@ -146,7 +164,7 @@ def persist_records(records: Iterable[Any], default_collection: str, *,
                 row[text_field] = text[:8192]
 
             for name in valid:                      # every declared column must be present
-                if name in ("id", "embedding"):
+                if name in managed:
                     continue
                 row.setdefault(name, False if name in bools
                                else (0 if name in numeric else ""))
@@ -157,7 +175,7 @@ def persist_records(records: Iterable[Any], default_collection: str, *,
                     row[name] = _truncate_utf8(v, limit)
 
             for name, value in list(row.items()):   # coerce to the declared type
-                if name in ("id", "embedding"):
+                if name in managed:
                     continue
                 if name in bools:
                     row[name] = (value if isinstance(value, bool)
@@ -175,14 +193,22 @@ def persist_records(records: Iterable[Any], default_collection: str, *,
                 elif isinstance(value, str):
                     row[name] = value[:4096]
 
-            if "id" in valid:
+            if pk_name in valid and not auto_id:
                 digest = hashlib.sha1(f"{coll}:{text}".encode()).hexdigest()
-                row["id"] = int(digest[:15], 16) if "id" in numeric else f"{coll}-{digest[:24]}"
+                row[pk_name] = (int(digest[:15], 16) if pk_name in numeric
+                                else f"{coll}-{digest[:24]}")
             row["embedding"] = vec
             payload.append(row)
 
         try:
-            client.upsert(collection_name=coll, data=payload)
+            if auto_id:
+                # No pk to match on, so this appends. Re-running duplicates the rows; the
+                # caller has to decide not to, and should be able to see why from the log.
+                logger.info("  %s: auto_id collection — inserting %d rows (NOT idempotent)",
+                            coll, len(payload))
+                client.insert(collection_name=coll, data=payload)
+            else:
+                client.upsert(collection_name=coll, data=payload)
             client.flush(coll)
             client.load_collection(collection_name=coll)   # else search says "not loaded"
             logger.info("  persisted %d rows into %s", len(payload), coll)
