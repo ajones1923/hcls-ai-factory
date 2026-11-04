@@ -7,9 +7,31 @@ PhenoAge reference: Levine et al., "An epigenetic biomarker of aging for
 lifespan and healthspan", Aging 2018; 10(4):573-591.
 
 The original PhenoAge coefficients (from dayoonkwon/BioAge R package) expect
-SI units: albumin g/L, creatinine μmol/L, glucose mmol/L, ln(CRP mg/L).
-This module accepts standard US clinical units (g/dL, mg/dL, mg/dL, mg/L)
-and converts internally before applying coefficients.
+SI units: albumin g/L, creatinine μmol/L, glucose mmol/L. This module accepts
+standard US clinical units (g/dL, mg/dL, mg/dL, mg/L) and converts internally
+before applying coefficients.
+
+⚠️ UNSETTLED: THE CRP UNIT CONVENTION (see CLINICAL_REVIEW.md §8)
+-----------------------------------------------------------------
+This module applies ln(CRP in mg/L). The alternative reading is ln(CRP in mg/dL),
+which is mg/L ÷ 10. The choice shifts EVERY PhenoAge result by a constant
+0.0954 × ln(10) = 0.2197 in the linear predictor -- measured here as **2.40 years**
+on the reported biological age, at any CRP level.
+
+Checked on 2026-11-03 and NOT settled:
+  * Levine et al. 2018 (PMID:29676998), its published correction, and Liu et al.
+    2018 all give the equation WITHOUT stating units for any biomarker.
+  * dayoonkwon/BioAge takes a pre-computed `lncrp` and states no unit either.
+  * Several independent public calculators explicitly divide mg/L by 10 first,
+    i.e. they read it as mg/dL. NHANES, the derivation cohort, reports CRP in mg/dL.
+  * Against that: the other three converted terms here are SI (g/L, μmol/L,
+    mmol/L), and mg/L is the SI unit for CRP, so a consistent-SI reading favours
+    the current behaviour.
+
+The current convention is therefore a CHOICE, not a verified fact, and it is
+reported in the result as `crp_unit_convention` rather than left implicit. It was
+not changed, because changing a clinical value on an unsettled source is the same
+error as leaving a wrong one -- just harder to spot later.
 
 Author: Adam Jones
 Date: March 2026
@@ -32,7 +54,10 @@ PHENOAGE_COEFFICIENTS = {
     "lymphocyte_pct": -0.0120,      # protective (negative), applied to %
     "mcv": 0.0268,                   # applied to fL
     "rdw": 0.3306,                   # applied to %
-    "alkaline_phosphatase": 0.0019,  # applied to U/L
+    # 0.00188 is the value printed in the published correction to Levine 2018; this had
+    # 0.0019, which is that rounded to two significant figures. Effect is in the fourth
+    # decimal of xb, but the published figure is free to use.
+    "alkaline_phosphatase": 0.00188,  # applied to U/L
     "wbc": 0.0554,                   # applied to 10^3/μL
 }
 PHENOAGE_INTERCEPT = -19.9067
@@ -52,8 +77,15 @@ UNIT_CONVERSIONS = {
     "albumin": 10.0,        # g/dL → g/L (multiply by 10)
     "creatinine": 88.4,     # mg/dL → μmol/L (multiply by 88.4)
     "glucose": 1 / 18.016,  # mg/dL → mmol/L (divide by 18.016)
-    # Other biomarkers: same units in US and SI (%, fL, U/L, 10^3/μL, ln(mg/L))
+    # Other biomarkers: same units in US and SI (%, fL, U/L, 10^3/μL).
+    # CRP is deliberately absent -- see the CRP unit note in the module docstring. Adding a
+    # 0.1 factor here is the one-line change that switches to the mg/dL reading, and it must
+    # not be made without settling the source question first.
 }
+
+# Which CRP convention the numbers above represent. Reported in every result so a reader can
+# tell what was assumed, and so the 2.40-year difference can never be mistaken for drift.
+CRP_UNIT_CONVENTION = "ln(CRP in mg/L); the mg/dL reading would lower every result by 2.40 years"
 
 # PhenoAge standard error from NHANES III validation cohort
 # Levine et al. 2018 PMID:29676998 (Table 1, SE = 4.9 years for full model)
@@ -283,6 +315,10 @@ class BiologicalAgeCalculator:
             # not a PhenoAge value. Read `missing_biomarkers` before using the number.
             "phenoage_valid": phenoage_valid,
             "biological_age_is_biased": not phenoage_valid,
+            # Which CRP unit reading produced this number. The primary sources do not state
+            # it, and the alternative reading shifts the result by 2.40 years, so the
+            # assumption travels with the answer instead of being implicit in the code.
+            "crp_unit_convention": CRP_UNIT_CONVENTION,
             "status": "complete" if phenoage_valid else "incomplete_panel",
             "warning": None if phenoage_valid else (
                 f"PhenoAge requires all {len(PHENOAGE_COEFFICIENTS)} biomarkers; "

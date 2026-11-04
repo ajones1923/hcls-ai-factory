@@ -227,16 +227,39 @@ Aucatzyl is absent from the product list.
   (https://www.fda.gov/BiologicsBloodVaccines/CellularGeneTherapyProducts/ApprovedProducts/ucm581222.htm)
   and the current prescribing information.
 
-## 8. Biomarker agent — PhenoAge inputs and advice text
+## 8. PhenoAge — the CRP unit convention is worth 2.40 years, and no source settles it
 
-- CRP is applied as ln(mg/L); the original PhenoAge formulation may use mg/dL. A unit error here
-  shifts every result.
-- `src/report_generator.py` advises avoiding synthetic folic acid on an MTHFR variant, which
-  runs against ACMG and CDC positions on MTHFR testing and supplementation.
-- "Function Health optimal" ranges appear as a reference range alongside clinical ones.
+`core/agents/precision-biomarker/src/biological_age.py`
 
-- **Settle with:** Levine et al. 2018 (PhenoAge) for units; ACMG's MTHFR statement for the
-  advice text.
+**This is the entry to rule on.** The module applies `ln(CRP in mg/L)`. The alternative reading
+is `ln(CRP in mg/dL)`, which is mg/L ÷ 10. Because the term is `0.0954 × ln(CRP)`, the choice
+shifts the linear predictor by a constant `0.0954 × ln(10) = 0.2197` — measured as **exactly
+2.40 years on the reported biological age, at every CRP level**. A healthy 50-year-old reads
+46.2 under the current convention and 43.8 under the other.
+
+Checked 2026-11-03 and **not settled**:
+
+- Levine et al. 2018 (PMID:29676998), its published **correction**, and Liu et al. 2018 all
+  print the equation with **no units for any biomarker**. I read all three.
+- `dayoonkwon/BioAge`, which this module cites as the source of its coefficients, takes a
+  pre-computed `lncrp` and states no unit either.
+- **For mg/dL:** several independent public calculators explicitly divide mg/L by 10 before the
+  log; NHANES, the derivation cohort, reports CRP in mg/dL.
+- **For mg/L (current):** the other three converted terms here are SI (g/L, μmol/L, mmol/L),
+  and mg/L is the SI unit for CRP, so a consistent-SI reading supports the current behaviour.
+
+It was **not changed**, because changing a clinical value on an unsettled source is the same
+error as leaving a wrong one, only harder to spot later. Instead the assumption is now stated in
+the module docstring, carried in every result as `crp_unit_convention`, and pinned by tests that
+fail if the 2.40-year figure drifts.
+
+- **Settle with:** the Levine 2018 supplementary material, or the NHANES III lab documentation
+  for the CRP variable the model was fit on. One line in `UNIT_CONVERSIONS` switches it.
+- **Fixed in passing:** the alkaline phosphatase coefficient was 0.0019; the published
+  correction prints **0.00188**. Changed (effect is in the fourth decimal of the predictor).
+- **Still open from the original entry:** `report_generator.py` advises avoiding synthetic folic
+  acid on an MTHFR variant, which runs against ACMG and CDC positions on MTHFR testing; and
+  "Function Health optimal" ranges appear beside clinical reference ranges.
 
 ## 9. Structure and chemistry facts
 
@@ -285,3 +308,42 @@ than a patient-facing one.
 
 - **Settle with:** the transcript sequence for the gene in question, then correct either the
   cDNA or the protein notation.
+
+## 12. MAGGIC — creatinine bands converted with the wrong factor, and an extra EF point
+
+`core/engines/cardiology/src/risk_calculators.py`
+
+Checked against the published integer score (Pocock SJ et al., Eur Heart J
+2013;34(19):1404-1413) via an independent calculator implementation; the primary Table was not
+retrieved, so **nothing here was changed**. Two findings, the first of which is plain arithmetic
+and does not depend on the band values at all.
+
+**1. Creatinine thresholds use ÷100 where the unit conversion is ÷88.4.** The published bands
+are in **μmol/L**: <90, 90–109, 110–129, 130–149, 150–169, 170–209, 210–249, ≥250 scoring
+0,1,2,3,4,5,6,8. This code works in mg/dL with thresholds 0.9, 1.1, 1.3, 1.5, 1.7, 1.9, 2.5 —
+i.e. the μmol/L numbers divided by **100**, not by the 88.4 μmol/L per mg/dL conversion. The
+6-point edge is also 190 where the published band starts at 210. Net effect, computed:
+
+| Creatinine | = μmol/L | repo pts | published pts |
+|---|---|---|---|
+| 0.9 mg/dL | 79.6 | 1 | **0** |
+| 1.0 | 88.4 | 1 | **0** |
+| 1.2 | 106.1 | 2 | **1** |
+| 1.5 | 132.6 | 4 | **3** |
+| 1.9 | 168.0 | 6 | **4** |
+| 2.8 | 247.5 | 8 | **6** |
+
+So renal function is over-scored by 1–2 points across most of the clinical range, including for
+a perfectly normal creatinine of 1.0 mg/dL.
+
+**2. An extra point for EF 40–44%.** Published EF points are <20→7, 20–24→6, 25–29→5, 30–34→3,
+35–39→2, **≥40→0**. This code adds a `<45 → 1` band, so every HFmrEF patient with EF 40–44%
+carries one point the published score does not give.
+
+Combined, a typical EF 42% patient with creatinine 1.0 mg/dL scores **2 points above** the
+published MAGGIC, and the score maps directly onto 1- and 3-year mortality estimates.
+
+**3. Not verified at all:** the systolic BP bands, and whether SBP points are stratified by EF
+in the published score the way age points are. This code stratifies age by EF but not SBP.
+
+- **Settle with:** Pocock 2013 Table 2/Table 4, or the calculator at heartfailurerisk.org.

@@ -35,7 +35,7 @@ neurology, rare disease, trial matching and single-cell interpretation.
 
 Every capability is declared in a machine-readable registry that is the input to continuous
 integration, not a description of it. Documentation, including the public capability-maturity
-matrix, is generated from that registry. We report **8,609 passing tests across all 18 subjects**,
+matrix, is generated from that registry. We report **8,643 passing tests across all 18 subjects**,
 44 pharmacogenomic gene–drug pairs verified against consortium guidance, and a single-cell workflow
 reproducible from a clean clone on commodity CPU.
 
@@ -234,7 +234,7 @@ registry does not allocate.
 ### 6.1 Test health
 
 ```
-18 subjects · 8,609 passed · 0 failed · 0 errors · 211 skipped
+18 subjects · 8,643 passed · 0 failed · 0 errors · 211 skipped
 ```
 
 That figure is measured on a clean checkout, without local reference data: the 211 skips are
@@ -255,7 +255,7 @@ and every coefficient of EuroSCORE II against Nashef 2012 Table 6. **That last c
 wrong coefficients**, including poor ventricular function being scored with the moderate
 coefficient, which understated predicted operative mortality for a high-risk case from 4.83% to
 2.93%; all 2,046 cardiology tests passed before and after, because monotonic ordering was
-preserved. Still unverified, and recorded as such in `CLINICAL_REVIEW.md`: MAGGIC and PhenoAge.
+preserved. PhenoAge's coefficients and transformation constants check out, but **no primary source states its CRP units** — and the two readings differ by a constant 2.40 years on every result, so the assumption is now declared in the output rather than left implicit (§8). MAGGIC is checked and **not** changed: its creatinine bands are published in μmol/L and converted here with a factor of 100 where the conversion is 88.4, over-scoring renal function by 1–2 points, and EF 40–44% carries a point the published score does not give (§12).
 
 ### 6.2 Verified clinical content
 
