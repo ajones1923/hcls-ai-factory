@@ -131,12 +131,27 @@ def check_readme_badge(rows: list[dict]) -> tuple[bool, str]:
     A badge is a claim, and a claim nobody checks is how "8,000 tests" survives the deletion of
     3,000 of them. The badge uses `N+` semantics deliberately: adding tests never breaks the
     build, and only dropping below the advertised floor does.
+
+    This guard spent its whole life not running. The pattern requires the count to be followed by
+    `%2B` (a URL-encoded `+`), the badge read `tests-8%2C643%20passing` with no `+` in it at all,
+    and the no-match branch returned PASS -- so every CI run printed
+    "PASS  README test-count badge - no test-count badge" and measured nothing. By the time the
+    audit caught it the four numbers it exists to reconcile had drifted apart: README 8,643,
+    CHANGELOG 8,687, CI 8,763, local 8,767.
+
+    So a README that HAS a test badge in an unrecognised format is now a failure, not a pass.
+    Silence is only acceptable when there is genuinely no claim to check.
     """
     readme = ROOT / "README.md"
     if not readme.exists():
         return True, "no README"
-    m = re.search(r"tests-([\d%2C,]+)%2B", readme.read_text())
+    text = readme.read_text()
+    m = re.search(r"tests-([\d%2C,]+)%2B", text)
     if not m:
+        if re.search(r"badge/tests-", text):
+            return False, ("a tests badge exists but does not parse as `tests-<N>%2B` -- the "
+                           "guard cannot check it, which is how it sat unread while the count "
+                           "drifted. Write it as e.g. `tests-8%2C767%2B%20passing`")
         return True, "no test-count badge"
     advertised = int(m.group(1).replace("%2C", "").replace(",", ""))
     actual = sum(r["tests"] for r in rows)
