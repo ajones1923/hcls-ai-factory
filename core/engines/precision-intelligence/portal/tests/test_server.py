@@ -407,7 +407,7 @@ class TestConfigGetDoesNotServeTheEnv:
         with patch('server.CONFIG_FILE', tmp_path / '.env'):
             (tmp_path / '.env').write_text(
                 "LLM_MODEL=llama3.1:8b\n"
-                "ANTHROPIC_API_KEY=sk-ant-do-not-disclose\n"
+                "ANTHROPIC_API_KEY=SYNTHETIC-not-a-real-credential\n"
                 "MINIO_ROOT_PASSWORD=also-secret\n"
             )
             response = client.get('/api/config')
@@ -417,30 +417,30 @@ class TestConfigGetDoesNotServeTheEnv:
             assert data.get('LLM_MODEL') == 'llama3.1:8b'
             assert 'ANTHROPIC_API_KEY' not in data
             assert 'MINIO_ROOT_PASSWORD' not in data
-            assert 'sk-ant-do-not-disclose' not in body
+            assert 'SYNTHETIC-not-a-real-credential' not in body
             assert 'also-secret' not in body
 
     def test_declared_secret_is_redacted_not_returned(self, client, tmp_path):
         """HF_TOKEN is writable through this route, so it is declared — but not readable."""
         import server
         with patch('server.CONFIG_FILE', tmp_path / '.env'):
-            (tmp_path / '.env').write_text("HF_TOKEN=hf_realtokenvalue\nLLM_MODEL=x\n")
+            (tmp_path / '.env').write_text("HF_TOKEN=SYNTHETIC-not-a-real-token\nLLM_MODEL=x\n")
             response = client.get('/api/config')
             body = response.get_data(as_text=True)
-            assert 'hf_realtokenvalue' not in body
+            assert 'SYNTHETIC-not-a-real-token' not in body
             assert json.loads(body)['HF_TOKEN'] == server.REDACTED
 
     def test_round_tripping_the_redaction_does_not_clobber_the_secret(self, client, tmp_path):
         import server
         with patch('server.CONFIG_FILE', tmp_path / '.env'):
-            (tmp_path / '.env').write_text("HF_TOKEN=hf_realtokenvalue\n")
+            (tmp_path / '.env').write_text("HF_TOKEN=SYNTHETIC-not-a-real-token\n")
             response = client.post(
                 '/api/config',
                 data=json.dumps({'HF_TOKEN': server.REDACTED}),
                 content_type='application/json',
             )
             assert response.status_code == 200
-            assert 'hf_realtokenvalue' in (tmp_path / '.env').read_text()
+            assert 'SYNTHETIC-not-a-real-token' in (tmp_path / '.env').read_text()
             assert server.REDACTED not in (tmp_path / '.env').read_text()
 
     def test_config_get_still_requires_the_key(self, anon_client, tmp_path):

@@ -473,7 +473,7 @@ class TestUnauthenticatedConfigRefused:
         """S2 regression: a credential an operator kept in pipeline.env was served."""
         with patch('server.CONFIG_FILE', tmp_path / 'pipeline.env'):
             (tmp_path / 'pipeline.env').write_text(
-                "PATIENT_ID=HG002\nNGC_API_KEY=nvapi-do-not-disclose\n"
+                "PATIENT_ID=HG002\nNGC_API_KEY=SYNTHETIC-not-a-real-credential\n"
                 "REGISTRY_TOKEN=also-secret\n"
             )
             response = client.get('/api/config')
@@ -483,7 +483,7 @@ class TestUnauthenticatedConfigRefused:
             assert data.get('PATIENT_ID') == 'HG002'
             assert 'NGC_API_KEY' not in data
             assert 'REGISTRY_TOKEN' not in data
-            assert 'nvapi-do-not-disclose' not in body
+            assert 'SYNTHETIC-not-a-real-credential' not in body
             assert 'also-secret' not in body
 
 
