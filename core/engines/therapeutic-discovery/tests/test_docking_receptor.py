@@ -23,7 +23,7 @@ import pytest
 ENGINE = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ENGINE))
 
-from src.models import PipelineConfig, StructureInfo  # noqa: E402
+from src.models import PipelineConfig  # noqa: E402
 from src.nim_clients import resolve_protein_pdb  # noqa: E402
 from src.pipeline import DrugDiscoveryPipeline  # noqa: E402
 
