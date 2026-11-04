@@ -699,6 +699,10 @@ with tab_chat:
                                     sub_evidence = engine.retrieve(sub_query)
                                     evidence.hits.extend(sub_evidence.hits)
                                 st.write(f"**Augmented to:** {evidence.hit_count} hits")
+                                # Re-grade: the value printed above described the evidence
+                                # that triggered the expansion, not what the answer uses.
+                                quality = agent.evaluate_evidence(evidence)
+                                st.write(f"**Evidence quality after expansion:** {quality}")
 
                             st.write(
                                 f"Found {evidence.hit_count} results across "

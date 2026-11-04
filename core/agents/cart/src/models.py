@@ -502,4 +502,13 @@ class AgentResponse(BaseModel):
     answer: str
     evidence: CrossCollectionResult
     knowledge_used: List[str] = Field(default_factory=list)
+    evidence_sufficiency: str = Field(
+        default="unknown",
+        description=(
+            "'sufficient', 'partial', 'insufficient' or 'unknown', from "
+            "CARTAgent.evaluate_evidence. The Streamlit UI displayed this before the "
+            "sub-question expansion ran, so it showed a grade for evidence the answer was "
+            "no longer based on; the API path discarded it entirely."
+        ),
+    )
     timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"))

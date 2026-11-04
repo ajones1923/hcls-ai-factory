@@ -168,13 +168,27 @@ def class_a(files) -> list[tuple[str, int, str]]:
 
 
 def class_b(subject_dir: pathlib.Path, files) -> list[tuple[str, int, str]]:
-    """A verdict vocabulary that exists in src/ and never reaches the response surface."""
+    """A verdict vocabulary that exists in src/ and never reaches the response surface.
+
+    The surface text has the DISCARDING PATTERN stripped out of it first. cart was a missed
+    detection until 2026-11-04 for exactly that reason: `app/cart_ui.py` contained a
+    copy-pasted `if quality == "insufficient" and plan.sub_questions:` -- the bug itself,
+    duplicated into the UI -- and the word appearing there was counted as the verdict having
+    been surfaced. A scanner that reads a second copy of the defect as the fix is worse than
+    no scanner, so the comparison text excludes lines that are themselves the pattern.
+    """
     surface = ""
     for p in _py_files(subject_dir):
         rel = p.relative_to(subject_dir)
         if any(d in rel.parts for d in _SURFACE_DIRS) or p.name in _SURFACE_FILES:
             try:
-                surface += p.read_text(errors="ignore")
+                for line in p.read_text(errors="ignore").splitlines():
+                    stripped = line.strip()
+                    # A comparison against the verdict is control flow, not a disclosure.
+                    if re.match(r"(el)?if\s+\w+\s*==\s*[\"'](%s)[\"']"
+                                % "|".join(_VERDICT_WORDS), stripped):
+                        continue
+                    surface += line + "\n"
             except OSError:
                 pass
     out = []

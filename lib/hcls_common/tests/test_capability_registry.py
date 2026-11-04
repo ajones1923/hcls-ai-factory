@@ -55,13 +55,19 @@ class TestMaturity:
         assert r.get("chai2-binder-design").maturity is MaturityTier.GATED  # partnership-gated
 
     def test_default_none_and_round_trips(self):
+        # This used cart-intelligence-agent as the untiered example until 2026-11-04, when the
+        # claim-integrity review gave cart `research-use` (its knowledge base carries approval
+        # dates the FDA record contradicts -- CLINICAL_REVIEW §7). genomics-engine is the
+        # durable choice instead: it is untiered ON PURPOSE, because its caveat is about
+        # serving shape ("not yet a request/response API") rather than evidence, and
+        # test_caveats_reach_the_badge.py pins that exemption with its reason.
         r = get_registry(reload=True)
-        assert r.get("cart-intelligence-agent").maturity is None      # most carry no tier
+        assert r.get("genomics-engine").maturity is None              # untiered by decision
         r2 = CapabilityRegistry()
         for entry in r.to_manifest()["capabilities"]:
             r2.register(Capability.from_dict(entry), overwrite=True)
         assert r2.get("variant-store").maturity is MaturityTier.VERIFIED  # set survives round-trip
-        assert r2.get("cart-intelligence-agent").maturity is None     # unset survives round-trip
+        assert r2.get("genomics-engine").maturity is None             # unset survives round-trip
 
     def test_verified_requires_live(self):
         # verified on a not-yet-live capability is dishonest -> rejected. (verified + mock is

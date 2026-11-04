@@ -99,5 +99,25 @@
    "reviewer": "claim-integrity review",
    "evidence": "`precision-oncology-agent` was `status: live` with no maturity tier, so the public matrix badged it a flat `live`. Its therapy ranking gates on `ACTIONABLE_TARGETS`, which `CLINICAL_REVIEW.md` \u00a722 records as never having been checked against a label or guideline, with a spot-check of the twelve highest-consequence entries finding several over-broad (EGFR listed for head and neck, colorectal and glioblastoma when all six drugs are NSCLC-only for an EGFR driver). A capability whose indication gate is declared unverified is not simply `live`. FIXED: now `maturity: research-use`; it remains `status: live` and still answers."
   }
+ },
+ "cart": {
+  "2": {
+   "result": "FAIL",
+   "date": "2026-11-04",
+   "reviewer": "claim-integrity review",
+   "evidence": "Two problems, and the scanner found neither. The API path (`CARTAgent.run`) graded the evidence and dropped the grade -- the same class B defect as seven other subjects. The Streamlit UI DID display it, but before the sub-question expansion ran, so a user saw a grade describing the evidence that triggered widening rather than the evidence the answer was built from; a stale disclosure reads as a current one. FIXED: `evidence_sufficiency` on `AgentResponse`, re-graded after expansion on both paths, disclosure prepended to the answer, and the UI now prints the post-expansion value. Found by hand AFTER the sweep reported cart clean -- `app/cart_ui.py` contained a copy-pasted `if quality == \"insufficient\"`, so the vocabulary check counted the bug's own duplicate as the disclosure. The detector now strips comparison lines and catches cart against the pre-fix code (B=0 -> B=2, verified)."
+  },
+  "4": {
+   "result": "PASS",
+   "date": "2026-11-04",
+   "reviewer": "claim-integrity review",
+   "evidence": "No computed clinical constants: CRS and ICANS appear as enum values and retrieval keywords, and `severity_grade` is free text -- this agent reasons over published evidence rather than grading toxicity, which matches its description (\"it does not generate binders\"). Every module-level constant is an HTTP rate-limit delay. The known data problems are already open as `CLINICAL_REVIEW.md` \u00a77: Yescarta ZUMA-7 dated 2021-03-05 against an FDA record showing no action that day, and REMS text that went stale when CAR-T REMS requirements were removed on 2025-06-26. Separately verified that the 80 tests skipped as \"local-only reference data\" are genuinely data-gated and all 115 pass when `data/` is present -- they are absent from CI, not broken."
+  },
+  "6": {
+   "result": "FAIL",
+   "date": "2026-11-04",
+   "reviewer": "claim-integrity review",
+   "evidence": "`cart-intelligence-agent` was `status: live` with no maturity tier, so the public matrix badged it a flat `live`. Its knowledge base carries approval dates contradicted by the FDA record and REMS text that has been stale since 2025-06-26 (`CLINICAL_REVIEW.md` \u00a77), and Aucatzyl is missing from the product list. Same reasoning as precision-oncology: a capability whose reference data is known-wrong in recorded ways is not simply `live`. FIXED: now `maturity: research-use`, still `status: live`."
+  }
  }
 }

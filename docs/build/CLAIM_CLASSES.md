@@ -34,7 +34,32 @@ more subjects, and the sweep found them in one run:
 | clinical-imaging | `agent/src/agent.py` | **fixed** — a different defect, see below |
 | precision-intelligence | `src/rag_engine.py` | **false positive**, see below |
 
-All closed on 2026-11-04. Class B went from 12 hits to 1, and the 1 is the false positive.
+| cart | `src/agent.py`, `app/cart_ui.py` | **fixed** — missed by the scanner, see below |
+
+All closed on 2026-11-04. Eight real instances, one false positive, one false negative.
+
+### The scanner also missed one, which is the more useful failure
+
+**cart had the defect and was reported clean.** Class B asks whether the verdict vocabulary
+reaches the response surface. In cart it does — in `app/cart_ui.py`:
+
+```python
+if quality == "insufficient" and plan.sub_questions:
+```
+
+which is the discarding pattern itself, copy-pasted into the UI. The word was present, so
+nothing was flagged. **A scanner that reads a second copy of the defect as evidence of the
+fix is worse than no scanner**, because it converts an unexamined subject into an apparently
+examined one.
+
+It was found by hand, reviewing cart in roster order after the sweep had cleared it. The
+detector now strips `if <var> == "<verdict>"` comparison lines out of the surface text before
+matching, and finds cart against the pre-fix code — verified by stashing the fix: B went 0 → 2.
+
+cart also turned out to have two problems rather than one. The API path dropped the grade
+like the others; the Streamlit UI *displayed* it, but **before** the sub-question expansion
+ran, so a user saw a grade describing the evidence that triggered widening rather than the
+evidence the answer was built from. A stale disclosure reads as a current one.
 
 ### Two of the eight were not the defect the scanner guessed
 
