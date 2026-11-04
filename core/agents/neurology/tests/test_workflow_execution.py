@@ -93,25 +93,50 @@ class TestWorkflowExportRoundtrip:
         assert report["subject"]["reference"] == "Patient/NEURO-001"
 
     def test_stroke_report_export(self):
-        scale = ScaleResult(
-            scale_type=ClinicalScaleType.NIHSS,
-            score=12,
-            max_score=42,
-            interpretation="Moderate stroke",
-            severity_category="moderate",
-        )
-        result = WorkflowResult(
-            workflow_type=NeuroWorkflowType.ACUTE_STROKE,
-            findings=["LVO in left MCA"],
-            recommendations=["Thrombectomy"],
-            severity=SeverityLevel.CRITICAL,
-            scale_results=[scale],
-        )
+        """CORRECTED (2026-11-03): this asserted only that the strings "Stroke Triage",
+        "NIHSS" and "Disclaimer" appeared, against a hand-built `WorkflowResult`. It would
+        have passed unchanged with N4's "IV tPA indicated" sitting in a hemorrhage report --
+        which is exactly what shipped, because `NIHSSCalculator` baked treatment advice into
+        the interpretation that this exporter prints verbatim, and the stroke workflow runs
+        NIHSS for hemorrhagic stroke too.
+
+        The report is now built from a real workflow run so the exporter is exercised against
+        what the agent actually produces, and the hemorrhage case is asserted on in
+        `test_scale_data_regressions.py::TestNIHSSCarriesNoTreatmentAdvice`.
+        """
+        from src.clinical_scales import NIHSSCalculator
+        from src.clinical_workflows import AcuteStrokeTriageWorkflow
+
+        scores = {item: 0 for item in NIHSSCalculator.ITEMS}
+        remaining = 12
+        for item, max_val in NIHSSCalculator.ITEMS.items():
+            take = min(max_val, remaining)
+            scores[item] = take
+            remaining -= take
+        result = AcuteStrokeTriageWorkflow().run({
+            "onset_hours": 2.0,
+            "nihss_scores": scores,
+            "large_vessel_occlusion": True,
+            "prestroke_mrs": 0,
+            "ct_affected_regions": ["M1"],
+            "blood_pressure_systolic": 150,
+            "blood_glucose": 110.0,
+            "on_anticoagulation": False,
+            "platelet_count": 250,
+            "age": 68,
+        })
         exporter = NeuroReportExporter()
         md = exporter.export_stroke_report(result, patient_id="STK-001")
         assert "Stroke Triage" in md
         assert "NIHSS" in md
         assert "Disclaimer" in md
+        assert "12.0/42.0" in md
+        # The scale's own text must not carry treatment advice; the workflow owns that.
+        scale_line = next(line for line in md.splitlines() if "**NIHSS:**" in line)
+        assert "tPA" not in scale_line
+        assert "thrombectomy" not in scale_line.lower()
+        # The workflow's own verdict is what carries it, and it is still there.
+        assert "alteplase" in md.lower()
 
     def test_scale_report_export(self):
         scale = ScaleResult(
