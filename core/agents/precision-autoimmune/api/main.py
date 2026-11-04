@@ -596,12 +596,33 @@ async def upload_document(
     if not file.filename.lower().endswith(".pdf"):
         raise HTTPException(400, "Only PDF files are supported")
 
-    # Save to temp location
+    # Stream to a temp file with a running byte count.
+    # AUDIT FIX (2026-11-03, S15): this used to be a single unbounded read of the entire
+    # body into memory, with no ceiling, on a route that is unauthenticated in the default
+    # posture, on a 128 GB unified-memory box where that memory is also the GPU's. The
+    # request-size middleware only sees a declared Content-Length, so a chunked upload
+    # bypassed it; the cap has to be enforced here, while reading.
+    max_bytes = settings.MAX_REQUEST_SIZE_MB * 1024 * 1024
     import tempfile
+    written = 0
     with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
-        content = await file.read()
-        tmp.write(content)
         tmp_path = Path(tmp.name)
+        while True:
+            chunk = await file.read(4 * 1024 * 1024)
+            if not chunk:
+                break
+            written += len(chunk)
+            if written > max_bytes:
+                tmp_path.unlink(missing_ok=True)
+                raise HTTPException(
+                    413,
+                    f"Upload exceeds the {settings.MAX_REQUEST_SIZE_MB} MB limit "
+                    f"(AUTO_MAX_REQUEST_SIZE_MB)",
+                )
+            tmp.write(chunk)
+    if written == 0:
+        tmp_path.unlink(missing_ok=True)
+        raise HTTPException(400, "Uploaded file is empty")
 
     try:
         records = doc_proc.process_pdf(tmp_path, patient_id)
