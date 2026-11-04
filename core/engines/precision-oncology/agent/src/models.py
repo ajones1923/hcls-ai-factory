@@ -536,3 +536,14 @@ class AgentResponse(BaseModel):
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     plan: Any = None
     report: Optional[str] = None
+    evidence_sufficiency: str = Field(
+        "unknown",
+        description=(
+            "'sufficient', 'partial', 'insufficient' or 'unknown'. The agent has always "
+            "computed this (OncoIntelligenceAgent.evaluate_evidence) and until 2026-11-04 "
+            "used it only to decide whether to retry a broader search, then discarded it: "
+            "after the retry budget it synthesized an answer regardless and the verdict "
+            "reached the log and nowhere else. A caller could not tell an answer drawn from "
+            "ample evidence from one drawn from almost none."
+        ),
+    )

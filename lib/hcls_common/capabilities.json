@@ -217,6 +217,7 @@
       "api_endpoint": "localhost:8527",
       "serving": "native",
       "status": "live",
+      "maturity": "research-use",
       "tags": [
         "engine",
         "oncology"
