@@ -1,6 +1,14 @@
-"""Tests for actual workflow runs using the ingest parsers.
+"""Ingest-parser execution tests.
 
-Tests end-to-end parser execution and validates output quality.
+CORRECTED DOCSTRING. This file was titled "Tests for actual workflow runs". No
+diagnostic workflow is run here -- it executes the four ingest parsers, which
+iterate hardcoded in-file lists, and asserts ``total_errors == 0`` and
+``duration_seconds > 0``. Neither assertion can fail. The title implied the
+clinical workflows in ``src/clinical_workflows.py`` were covered; they were
+not.
+
+Behavioural tests for the variant-interpretation workflow are in
+``tests/test_variant_interpretation_workflow.py``.
 
 Author: Adam Jones
 Date: March 2026
