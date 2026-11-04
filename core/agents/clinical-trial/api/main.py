@@ -404,16 +404,67 @@ app.include_router(events_router)
 _AUTH_SKIP_PATHS = {"/health", "/healthz", "/metrics"}
 
 
+# AUDIT FIX (2026-11-03, S7): this service used to carry TWO independent key gates — the
+# shared one installed above (HCLS_API_KEY / HCLS_API_KEY_<SERVICE>) and the local middleware
+# below, which read only the per-service API_KEY setting and compared with `!=`. An operator
+# could satisfy themselves that auth was on while half the surface was governed by the other
+# check, and /governance reported on only one of them. Two fixes, no loss of protection:
+# the key is resolved by the shared resolver with the legacy per-service setting as fallback,
+# so EITHER setting enables this check and both gates agree on the value; and the comparison
+# is the shared constant-time one, which no longer leaks length and prefix through timing and
+# cannot raise on a non-ASCII header.
+def _auth_open_paths(local) -> frozenset:
+    """Paths both gates leave open.
+
+    The other half of S7: the two gates on this service had DIFFERENT open paths, so which
+    endpoints were credentialed depended on which setting the operator had used. This unions
+    the local set with hcls_common's DEFAULT_OPEN_PATHS, the platform's documented posture
+    (probes, docs and the OpenAPI schema stay public so health checks, load balancers and the
+    landing page keep working when the gate is on).
+    """
+    try:
+        from hcls_common.api_auth import DEFAULT_OPEN_PATHS
+        shared = set(DEFAULT_OPEN_PATHS)
+    except Exception:
+        shared = {"/health", "/healthz", "/", "/docs", "/openapi.json", "/redoc",
+                  "/governance", "/metrics"}
+    return frozenset(set(local) | shared)
+
+
+def _resolved_api_key() -> str:
+    """The one key this service enforces: shared first, legacy per-service setting second."""
+    shared = None
+    try:
+        from hcls_common.api_auth import resolve_key
+        shared = resolve_key("clinical-trial")
+    except Exception:  # hcls_common is optional for some deployments
+        shared = None
+    return shared or (getattr(settings, "API_KEY", "") or "")
+
+
+def _api_keys_match(provided: str, expected: str) -> bool:
+    """Constant-time comparison on encoded bytes (see hcls_common.api_auth.keys_match)."""
+    try:
+        from hcls_common.api_auth import keys_match
+        return keys_match(provided or "", expected or "")
+    except Exception:
+        import hmac
+        if not provided or not expected:
+            return False
+        return hmac.compare_digest(provided.encode("utf-8", "surrogateescape"),
+                                   expected.encode("utf-8", "surrogateescape"))
+
+
 @app.middleware("http")
 async def check_api_key(request: Request, call_next):
     """Validate API key if API_KEY is configured in settings."""
-    api_key = settings.API_KEY
+    api_key = _resolved_api_key()
     if not api_key:
         return await call_next(request)
-    if request.url.path in _AUTH_SKIP_PATHS:
+    if request.url.path in _auth_open_paths(_AUTH_SKIP_PATHS):
         return await call_next(request)
     provided = request.headers.get("X-API-Key") or request.query_params.get("api_key")
-    if provided != api_key:
+    if not _api_keys_match(provided, api_key):
         return JSONResponse(
             status_code=401,
             content={"detail": "Invalid or missing API key"},
