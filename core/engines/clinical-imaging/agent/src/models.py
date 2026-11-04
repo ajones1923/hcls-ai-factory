@@ -53,12 +53,23 @@ class BodyRegion(str, Enum):
 
 
 class FindingSeverity(str, Enum):
-    """Clinical severity of an imaging finding."""
+    """Clinical severity of an imaging finding.
+
+    AUDIT FIX (2026-11-03): ``UNKNOWN`` was added because every other member asserts
+    something about the patient, and the enum had no way to say "this study was not graded".
+    Workflows that degraded -- a classifier that produced nothing, a nodule whose size never
+    arrived, a feature label the point table does not contain -- had to pick one of the five
+    clinical levels anyway, and they picked the benign end: ROUTINE or NORMAL. A triage queue
+    sorting on severity then read a study that was never graded as a study that was graded and
+    found unremarkable. UNKNOWN is not a severity level; it is the absence of one, and it sorts
+    nowhere, so a consumer has to handle it rather than file it under "nothing urgent".
+    """
     CRITICAL = "critical"
     URGENT = "urgent"
     SIGNIFICANT = "significant"
     ROUTINE = "routine"
     NORMAL = "normal"
+    UNKNOWN = "unknown"
 
 
 class FindingCategory(str, Enum):
@@ -100,6 +111,12 @@ class FindingCategory(str, Enum):
     TEAR = "tear"
     THROMBOSIS = "thrombosis"
     VASCULAR_MALFORMATION = "vascular_malformation"
+    # AUDIT FIX (2026-11-03): a finding that could not be categorised used to be filed as
+    # NORMAL, because NORMAL was the only member that did not name a specific abnormality.
+    # "Not categorised" and "categorised as normal" are opposite statements and any filter on
+    # `category != normal` -- a worklist, an export, a cohort query -- dropped the first with
+    # the second. INDETERMINATE says the study reached a reader and was not graded.
+    INDETERMINATE = "indeterminate"
 
 
 class SourceType(str, Enum):

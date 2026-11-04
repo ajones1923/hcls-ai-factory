@@ -304,6 +304,46 @@ def _require_str(value: Optional[str], field_name: str) -> str:
     return value
 
 
+def _require_all_components(
+    score_name: str,
+    components: Dict[str, Optional[bool]],
+    why: str,
+) -> Dict[str, bool]:
+    """Require every clinical component of a point score, naming all the absent ones.
+
+    AUDIT FIX (2026-11-03): the point scores used to read each component as
+    ``inp.<field> or False``, which makes "we do not know" and "the patient does not have it"
+    the same input. Every component of these scores adds points, so defaulting them to absent
+    is not a neutral choice -- it is the lowest score the patient could possibly have, issued
+    with the same confidence as a complete one, and ``RiskScoreResult`` has no field in which
+    to say which components were assumed.
+
+    This mirrors what ``calculate_heart_score`` already does for its missing troponin: refuse,
+    and name what is needed. An explicit ``False`` is accepted -- that is a clinician saying
+    the patient does not have it. ``None`` is not.
+
+    Args:
+        score_name: Name of the score, for the message.
+        components: Component label -> value as supplied (None means not supplied).
+        why: One clause explaining the clinical consequence of guessing.
+
+    Returns:
+        The same mapping with every value coerced to bool.
+
+    Raises:
+        RiskCalculatorError: if any value is None, listing all of them.
+    """
+    missing = sorted(name for name, value in components.items() if value is None)
+    if missing:
+        raise RiskCalculatorError(
+            f"{score_name} cannot be scored: {len(missing)} component(s) were not supplied "
+            f"({', '.join(missing)}). A risk factor that was not recorded is UNKNOWN, not "
+            f"absent, and each of these adds points. {why} Supply an explicit False for every "
+            "component the patient does not have."
+        )
+    return {name: bool(value) for name, value in components.items()}
+
+
 def _clamp(value: float, lo: float, hi: float) -> float:
     """Clamp a value to [lo, hi]."""
     return max(lo, min(hi, value))
@@ -876,15 +916,40 @@ def calculate_cha2ds2_vasc(
         2010;137(2):263-272.
     """
     # --- Validate required inputs ---
+    #
+    # AUDIT FIX (2026-11-03): the five comorbidity components were read as `inp.<field> or
+    # False`, so a record that reached the engine with age and sex populated and the
+    # comorbidity flags null produced a complete-looking score from age and sex alone. A
+    # 70-year-old man in AF with heart failure, hypertension and diabetes has a true score of
+    # 5 -- Class I anticoagulation, ~7% annual stroke risk by this module's own table -- and
+    # scored 1; at 64 he would have scored 0 and been told "No anticoagulation or antiplatelet
+    # therapy recommended (Class III: No benefit)". The components are now required.
     age = _require_int(inp.age, "age")
     sex = _require_str(inp.sex, "sex")
-    chf = inp.congestive_heart_failure or False
-    # Use explicit hypertension from extra if available; otherwise infer from
+
+    # Use explicit hypertension from extra if available; otherwise infer from the
     # hypertension_treatment flag on the model.
-    hypertension = _extra(extra, "hypertension", inp.hypertension_treatment or False)
-    diabetes = inp.diabetes or False
-    stroke_tia = inp.history_of_stroke or False
-    vascular = inp.vascular_disease or False
+    hypertension_supplied = _extra(extra, "hypertension", inp.hypertension_treatment)
+
+    components = _require_all_components(
+        "CHA2DS2-VASc",
+        {
+            "congestive_heart_failure": inp.congestive_heart_failure,
+            "hypertension (or hypertension_treatment)": hypertension_supplied,
+            "diabetes": inp.diabetes,
+            "history_of_stroke": inp.history_of_stroke,
+            "vascular_disease": inp.vascular_disease,
+        },
+        why=(
+            "Scored from age and sex alone this returns the lowest score the patient could "
+            "have, and the score drives a Class I versus Class III anticoagulation decision."
+        ),
+    )
+    chf = components["congestive_heart_failure"]
+    hypertension = components["hypertension (or hypertension_treatment)"]
+    diabetes = components["diabetes"]
+    stroke_tia = components["history_of_stroke"]
+    vascular = components["vascular_disease"]
 
     is_female = sex in ("female", "f")
     is_male = sex in ("male", "m")
@@ -1075,27 +1140,58 @@ def calculate_has_bled(
         Chest. 2010;138(5):1093-1100.
     """
     # --- Gather inputs ---
+    #
+    # AUDIT FIX (2026-11-03): all nine components were read as `inp.<field> or False`, so
+    # HAS-BLED was computable from age alone and returned "HAS-BLED 1: relatively low bleeding
+    # risk. Anticoagulation can generally be continued." without renal function, liver
+    # function, bleeding history, INR lability, or drug and alcohol history -- the clauses the
+    # score exists to weigh. Note the direction: defaulting understates stroke risk in
+    # CHA2DS2-VASc and understates bleeding risk here, so there is no conservative reading
+    # that makes a defaulted score safe in either calculator.
     age = _require_int(inp.age, "age")
 
-    # H: uncontrolled hypertension
+    # H: uncontrolled hypertension. Any one of the three inputs settles it; none of them
+    # being present does not mean the blood pressure is controlled.
     explicit_uncontrolled = _extra(extra, "hypertension_uncontrolled")
     if explicit_uncontrolled is not None:
-        has_uncontrolled_htn = bool(explicit_uncontrolled)
+        has_uncontrolled_htn: Optional[bool] = bool(explicit_uncontrolled)
     elif inp.systolic_bp is not None:
         has_uncontrolled_htn = inp.systolic_bp > 160
     elif inp.hypertension_treatment is not None:
         has_uncontrolled_htn = bool(inp.hypertension_treatment)
     else:
-        has_uncontrolled_htn = False
+        has_uncontrolled_htn = None
 
-    abnormal_renal = inp.renal_disease or False
-    abnormal_liver = inp.liver_disease or False
-    stroke = inp.history_of_stroke or False
-    bleeding = inp.history_of_bleeding or False
-    labile_inr = inp.labile_inr or False
+    components = _require_all_components(
+        "HAS-BLED",
+        {
+            "hypertension_uncontrolled (or systolic_bp, or hypertension_treatment)":
+                has_uncontrolled_htn,
+            "renal_disease": inp.renal_disease,
+            "liver_disease": inp.liver_disease,
+            "history_of_stroke": inp.history_of_stroke,
+            "history_of_bleeding": inp.history_of_bleeding,
+            "labile_inr": inp.labile_inr,
+            "antiplatelet_nsaid": inp.antiplatelet_nsaid,
+            "alcohol_excess": inp.alcohol_excess,
+        },
+        why=(
+            "Scored from age alone this reports 'relatively low bleeding risk, "
+            "anticoagulation can generally be continued' about a patient whose bleeding "
+            "history was never looked at."
+        ),
+    )
+    has_uncontrolled_htn = components[
+        "hypertension_uncontrolled (or systolic_bp, or hypertension_treatment)"
+    ]
+    abnormal_renal = components["renal_disease"]
+    abnormal_liver = components["liver_disease"]
+    stroke = components["history_of_stroke"]
+    bleeding = components["history_of_bleeding"]
+    labile_inr = components["labile_inr"]
     elderly = age > 65
-    drugs = inp.antiplatelet_nsaid or False
-    alcohol = inp.alcohol_excess or False
+    drugs = components["antiplatelet_nsaid"]
+    alcohol = components["alcohol_excess"]
 
     # --- Compute score ---
     score = 0
@@ -1455,10 +1551,25 @@ def calculate_maggic(
     score += copd_pts
     detail_parts.append(f"COPD={copd_pts}")
 
-    # HF first diagnosed within 18 months = +2 (higher risk for new diagnosis)
+    # ⚠️ UNVERIFIED DIRECTION — see CLINICAL_REVIEW.md §12 item 4.
+    #
+    # This awards the 2 points to HF diagnosed WITHIN 18 months. The overnight audit retrieved
+    # Pocock 2013 Table 2 and reports the opposite: the rate ratio of 1.188 attaches to HF
+    # duration **>18 months**, i.e. long-standing disease carries the points. The variable name
+    # here (`hf_new_pts`) shows the author believed new HF was the risk factor, so this is a
+    # wrong belief rather than a typo, and the arithmetic is NOT changed on a second-hand
+    # reading of a table -- this engine's rule is that a clinical value moves only against a
+    # primary source in hand, and Pocock 2013 Table 2 is not in this repo.
+    #
+    # Until it is, every result carries the warning below, because the component is now
+    # REACHABLE: the API route was wired to pass `hf_duration_months` in the same audit, so
+    # whichever direction is right, one group of patients is scored 2 points wrong --
+    # long-standing HF under-scored, or newly diagnosed HF over-scored. 20% 1-year mortality is
+    # the transplant-referral threshold this score feeds.
     hf_new_pts = 2 if not hf_duration_gte_18 else 0
     score += hf_new_pts
-    detail_parts.append(f"new_HF={hf_new_pts}")
+    detail_parts.append(
+        f"new_HF={hf_new_pts} [DIRECTION UNVERIFIED, +/-2 pts — CLINICAL_REVIEW §12 item 4]")
 
     smoker_pts = 1 if current_smoker else 0
     score += smoker_pts
@@ -2091,6 +2202,15 @@ class RiskCalculatorEngine:
 
     # Minimum required fields per calculator (for applicability check).
     # These are RiskScoreInput field names.
+    #
+    # AUDIT FIX (2026-11-03): CHA2DS2-VASc listed only ["age", "sex"] and HAS-BLED only
+    # ["age"], so `calculate_all_applicable({"age": 70, "sex": "male"})` declared both
+    # applicable and returned two complete-looking results -- CHA2DS2-VASc 1 "consider oral
+    # anticoagulation", HAS-BLED 1 "relatively low bleeding risk" -- from age and sex. These
+    # lists now name every component each score needs, so a patient record that does not carry
+    # them makes the calculator INAPPLICABLE and it is skipped rather than guessed at. The
+    # calculators themselves also refuse now; this gate is what stops the refusal from being
+    # swallowed by `calculate_all_applicable`'s except-and-continue.
     _REQUIRED_FIELDS: Dict[RiskScoreType, List[str]] = {
         RiskScoreType.ASCVD: [
             "age", "sex", "total_cholesterol", "hdl",
@@ -2100,10 +2220,13 @@ class RiskCalculatorEngine:
             "age",
         ],
         RiskScoreType.CHA2DS2_VASC: [
-            "age", "sex",
+            "age", "sex", "congestive_heart_failure", "hypertension_treatment",
+            "diabetes", "history_of_stroke", "vascular_disease",
         ],
         RiskScoreType.HAS_BLED: [
-            "age",
+            "age", "systolic_bp", "renal_disease", "liver_disease",
+            "history_of_stroke", "history_of_bleeding", "labile_inr",
+            "antiplatelet_nsaid", "alcohol_excess",
         ],
         RiskScoreType.MAGGIC: [
             "age", "sex", "lvef", "nyha_class",

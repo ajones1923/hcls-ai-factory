@@ -146,12 +146,19 @@ SNOMED_FINDING_CODES: Dict[str, str] = {
 }
 
 # Severity -> FHIR Observation Interpretation code
+#
+# AUDIT FIX (2026-11-03): "unknown" is mapped to the empty string on purpose, and
+# `_severity_to_interpretation` turns that into an interpretation with no coding at all. An
+# ungraded study has no interpretation; the previous behaviour was to fall through to "N"
+# (Normal), so a workflow that could not grade the study exported as a normal result. The
+# empty string is the "no claim" marker, not a code.
 SEVERITY_INTERPRETATION: Dict[str, str] = {
     "critical": "HH",
     "urgent": "H",
     "significant": "A",
     "routine": "N",
     "normal": "N",
+    "unknown": "",
 }
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -527,8 +534,22 @@ def _snomed_coding(category: str) -> Dict[str, Any]:
 
 
 def _severity_to_interpretation(severity: str) -> Dict[str, Any]:
-    """Map FindingSeverity string to FHIR v3-ObservationInterpretation coding."""
-    code = SEVERITY_INTERPRETATION.get(severity.lower(), "N")
+    """Map FindingSeverity string to FHIR v3-ObservationInterpretation coding.
+
+    AUDIT FIX (2026-11-03): an unrecognised or ungraded severity fell through to code "N"
+    (Normal) and display "Normal", so an export of a study that was never graded asserted a
+    normal interpretation to the receiving system. Those cases now produce a CodeableConcept
+    carrying only ``text`` -- which FHIR permits and which no interpretation filter will read
+    as normal -- naming the severity that could not be coded.
+    """
+    code = SEVERITY_INTERPRETATION.get(severity.lower())
+    if not code:
+        return {
+            "text": (
+                f"severity not determined (reported as '{severity}'); "
+                "no interpretation code asserted"
+            )
+        }
     display_map = {
         "HH": "Critical high",
         "H": "High",

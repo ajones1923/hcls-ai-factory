@@ -173,10 +173,18 @@ class TestRiskCalculatorEngine:
         assert result.score_type == RiskScoreType.ASCVD
 
     def test_calculate_dispatches_cha2ds2_vasc(self):
+        """CORRECTED 2026-11-03: a complete patient is passed, not age and sex alone.
+
+        This test is about dispatch, but it used to demonstrate the defect it was not testing:
+        age and sex were enough to get a scored result back, because the five comorbidity
+        components defaulted to absent. The comorbidities are now stated.
+        """
         engine = RiskCalculatorEngine()
         inp = RiskScoreInput(
             score_type=RiskScoreType.CHA2DS2_VASC,
             age=72, sex="male",
+            congestive_heart_failure=False, hypertension_treatment=True,
+            diabetes=False, history_of_stroke=False, vascular_disease=False,
         )
         result = engine.calculate(inp)
         assert result.score_type == RiskScoreType.CHA2DS2_VASC
@@ -499,9 +507,23 @@ class TestCHA2DS2VASc:
     """Tests for the CHA2DS2-VASc score calculator."""
 
     def _make_input(self, **kwargs):
+        """Build a CHA2DS2-VASc input whose unmentioned comorbidities are explicitly absent.
+
+        CORRECTED 2026-11-03: the defaults were age and sex only, and the calculator read the
+        five absent comorbidity flags as five absent comorbidities. That is the defect these
+        tests now have to be explicit about: a record arriving with age and sex populated and
+        the comorbidity flags null scored 1 where the patient's true score was 5. Supplying
+        False says "this patient does not have it", which is what each case below means.
+        Expected scores are unchanged.
+        """
         defaults = dict(
             score_type=RiskScoreType.CHA2DS2_VASC,
             age=65, sex="male",
+            congestive_heart_failure=False,
+            hypertension_treatment=False,
+            diabetes=False,
+            history_of_stroke=False,
+            vascular_disease=False,
         )
         defaults.update(kwargs)
         return RiskScoreInput(**defaults)
@@ -593,9 +615,26 @@ class TestHASBLED:
     """Tests for the HAS-BLED score calculator."""
 
     def _make_input(self, **kwargs):
+        """Build a HAS-BLED input whose unmentioned bleeding risk factors are explicitly absent.
+
+        CORRECTED 2026-11-03: the only default was age, and the calculator read all nine
+        absent flags as nine absent conditions -- so "HAS-BLED 1: relatively low bleeding risk,
+        anticoagulation can generally be continued" was computable without renal function,
+        liver function, bleeding history, INR lability, or drug and alcohol history. Each case
+        below describes a patient without those factors, so it now says so. Expected scores
+        are unchanged.
+        """
         defaults = dict(
             score_type=RiskScoreType.HAS_BLED,
             age=70,
+            hypertension_treatment=False,
+            renal_disease=False,
+            liver_disease=False,
+            history_of_stroke=False,
+            history_of_bleeding=False,
+            labile_inr=False,
+            antiplatelet_nsaid=False,
+            alcohol_excess=False,
         )
         defaults.update(kwargs)
         return RiskScoreInput(**defaults)
@@ -885,14 +924,24 @@ class TestAllCalculatorsReturnCorrectResult:
                 dict(score_type=RiskScoreType.HEART, age=55, troponin=0.02),
                 {"history_suspicion": 1, "ecg_finding": 1, "num_risk_factors": 2},
             ),
+            # CORRECTED 2026-11-03: these two rows passed age and sex only. That is the exact
+            # input the audit used to demonstrate that both scores were produced from age and
+            # sex with every comorbidity defaulted to absent, so this structural test was
+            # certifying the defect. Both now carry a complete patient.
             (
                 calculate_cha2ds2_vasc,
-                dict(score_type=RiskScoreType.CHA2DS2_VASC, age=70, sex="male"),
+                dict(score_type=RiskScoreType.CHA2DS2_VASC, age=70, sex="male",
+                     congestive_heart_failure=False, hypertension_treatment=False,
+                     diabetes=False, history_of_stroke=False, vascular_disease=False),
                 None,
             ),
             (
                 calculate_has_bled,
-                dict(score_type=RiskScoreType.HAS_BLED, age=70),
+                dict(score_type=RiskScoreType.HAS_BLED, age=70,
+                     hypertension_treatment=False, renal_disease=False,
+                     liver_disease=False, history_of_stroke=False,
+                     history_of_bleeding=False, labile_inr=False,
+                     antiplatelet_nsaid=False, alcohol_excess=False),
                 None,
             ),
             (

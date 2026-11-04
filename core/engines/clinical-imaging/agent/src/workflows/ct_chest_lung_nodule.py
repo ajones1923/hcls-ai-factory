@@ -12,8 +12,9 @@ Real inference pipeline (mock_mode=False):
 """
 
 import os
+import re
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import torch
@@ -67,6 +68,130 @@ def classify_solid_nodule_lung_rads(diameter_mm: float) -> LungRADS:
         return LungRADS.CAT_4A
     else:
         return LungRADS.CAT_4B
+
+
+class LungRADSGradingError(ValueError):
+    """Raised when a nodule cannot be graded with the tables this module implements."""
+
+
+# Nodule densities Lung-RADS v2022 grades, and which of them this module has a table for.
+#
+# AUDIT FIX (2026-11-03): `classify_solid_nodule_lung_rads` -- a function whose name,
+# docstring and published source all say SOLID -- was being handed every nodule, with only the
+# choice of WHICH diameter varying by density. Lung-RADS v2022 grades part-solid nodules on
+# criteria that differ from the solid table and non-solid (ground-glass) nodules on a different
+# scale again, so the solid table was wrong in both directions:
+#
+#   * a 25 mm part-solid nodule with a 9.3 mm solid component -- the classic invasive
+#     adenocarcinoma appearance, and the exact nodule this workflow ships as its demo -- came
+#     back 4A, "3-month LDCT or PET/CT", where the published part-solid criteria escalate a
+#     solid component of that size immediately;
+#   * a 20 mm pure ground-glass nodule, which is indolent and stays on annual screening, came
+#     back 4B / CRITICAL / "tissue sampling recommended" -- a biopsy of a lesion that did not
+#     need one.
+#
+# The replacement thresholds are NOT in this file, because the audit could not retrieve them
+# from the issuing body: the ACR's own Lung-RADS v2022 PDF redirects to a tenant page and
+# serves no document. Guessing them would be the same failure as the defect. So the density is
+# now explicit and required, and a density whose published table this module does not hold is
+# REFUSED rather than graded with the wrong one. The open question and the document that
+# settles it are recorded in CLINICAL_REVIEW.md §6d.
+SOLID = "solid"
+PART_SOLID = "part_solid"
+NON_SOLID = "non_solid"
+
+# Spelling variants seen in this engine's own inputs (the report parser extracts hyphenated
+# free-text qualifiers such as "part-solid" and "ground glass"). Normalisation only -- no
+# density is inferred from anything other than an explicit statement of it.
+_NODULE_TYPE_ALIASES: Dict[str, str] = {
+    "solid": SOLID,
+    "part_solid": PART_SOLID,
+    "partly_solid": PART_SOLID,
+    "subsolid": PART_SOLID,
+    "sub_solid": PART_SOLID,
+    "non_solid": NON_SOLID,
+    "nonsolid": NON_SOLID,
+    "ground_glass": NON_SOLID,
+    "ground_glass_nodule": NON_SOLID,
+    "ggn": NON_SOLID,
+    "pure_ground_glass": NON_SOLID,
+    "ground_glass_opacity": NON_SOLID,
+}
+
+# The densities this module can actually grade. Keep this honest: adding a key here without
+# adding its published table is how the original defect was written.
+_IMPLEMENTED_DENSITY_TABLES = (SOLID,)
+
+
+def normalize_nodule_type(raw: Any) -> str:
+    """Canonicalise a nodule-density label's spelling (case, hyphens, spaces)."""
+    text = re.sub(r"[\s\-/]+", "_", str(raw).strip().casefold())
+    return re.sub(r"_+", "_", text).strip("_")
+
+
+def resolve_nodule_type(raw: Any) -> str:
+    """Resolve a nodule-density label to one of SOLID / PART_SOLID / NON_SOLID.
+
+    Raises:
+        LungRADSGradingError: if the density was not stated, or the label is not one this
+            module recognises. Neither is defaulted to "solid": density changes the table.
+    """
+    if raw is None or (isinstance(raw, str) and not raw.strip()):
+        raise LungRADSGradingError(
+            "Nodule density was not reported. Lung-RADS v2022 uses a different table for "
+            "solid, part-solid and non-solid (ground-glass) nodules, so density cannot be "
+            "assumed -- least of all assumed to be solid, which this code used to do."
+        )
+
+    key = normalize_nodule_type(raw)
+    if key not in _NODULE_TYPE_ALIASES:
+        raise LungRADSGradingError(
+            f"Unrecognised nodule density {str(raw)!r}. Expected a solid, part-solid or "
+            "non-solid (ground-glass) nodule. An unrecognised density is not graded, because "
+            "the only way to grade it would be to pick a table at random."
+        )
+    return _NODULE_TYPE_ALIASES[key]
+
+
+def classify_nodule_lung_rads(
+    nodule_type: Any,
+    max_diameter_mm: Optional[float] = None,
+    solid_component_diameter_mm: Optional[float] = None,
+) -> Tuple[LungRADS, float]:
+    """Grade a nodule of any density, or refuse if the published table is not implemented.
+
+    Args:
+        nodule_type: The nodule's density, as reported. Required -- see ``resolve_nodule_type``.
+        max_diameter_mm: Maximum axial diameter in mm, or None if not measured.
+        solid_component_diameter_mm: Solid-component diameter for a part-solid nodule.
+
+    Returns:
+        (category, the diameter in mm that the category was read from).
+
+    Raises:
+        LungRADSGradingError: if the density is absent, unrecognised, or one whose v2022 table
+            this module does not hold; or if the diameter the table needs was not measured.
+    """
+    density = resolve_nodule_type(nodule_type)
+
+    if density not in _IMPLEMENTED_DENSITY_TABLES:
+        raise LungRADSGradingError(
+            f"This module has no Lung-RADS v2022 table for a {density.replace('_', '-')} "
+            "nodule, so it will not grade one. Applying the solid-nodule table to it mis-calls "
+            "in both directions (see the note above this function and CLINICAL_REVIEW.md "
+            "§6d). Settle the thresholds against Christensen J et al., 'ACR Lung-RADS v2022: "
+            "Assessment Categories and Management Recommendations', Chest 2024;165(3):738-753 "
+            "(also J Am Coll Radiol 2024;21(3):473-488), Table 1, then add the table here."
+        )
+
+    if max_diameter_mm is None:
+        raise LungRADSGradingError(
+            "Solid nodule has no measured diameter. Every Lung-RADS size band is a diameter "
+            "range, and an absent measurement used to be scored as 0.0 mm -- below every "
+            "threshold -- which reported the nodule as category 2, 'benign appearance'."
+        )
+
+    return classify_solid_nodule_lung_rads(float(max_diameter_mm)), float(max_diameter_mm)
 
 
 def lung_rads_to_severity(category: LungRADS) -> FindingSeverity:
@@ -437,7 +562,16 @@ class CTChestLungNoduleWorkflow(BaseImagingWorkflow):
 
         Simulates a screening CT finding with two nodules:
             - A 7.2mm solid nodule in the right upper lobe (Lung-RADS 3)
-            - A 12.8mm part-solid nodule in the left lower lobe (Lung-RADS 4A)
+            - A 12.8mm part-solid nodule in the left lower lobe with a 9.3mm solid
+              component -- NOT GRADED, because this module holds no Lung-RADS v2022
+              part-solid table (see classify_nodule_lung_rads and CLINICAL_REVIEW.md §6d)
+
+        AUDIT FIX (2026-11-03): this docstring called the second nodule "Lung-RADS 4A", which
+        is what the code returned by running a part-solid nodule through the solid-nodule
+        table. That narrative is what reviewers read instead of running the code, and it is
+        what masked the grading defect for a release. The demo payload is deliberately left as
+        a part-solid nodule rather than changed to a solid one: the engine's inability to grade
+        part-solid disease should be visible in the demo, not hidden by the demo.
         """
         return {
             "nodules_detected": 2,
@@ -511,21 +645,73 @@ class CTChestLungNoduleWorkflow(BaseImagingWorkflow):
 
         findings = []
         overall_severity = FindingSeverity.NORMAL
-        highest_lung_rads = LungRADS.CAT_1
+        highest_lung_rads: Optional[LungRADS] = None
+        ungraded: List[str] = []
 
         for nodule in nodules:
             nodule_id = nodule.get("id", "unknown")
-            nodule_type = nodule.get("type", "solid")
+            # AUDIT FIX (2026-11-03): `type` defaulted to "solid" and `max_diameter_mm` to
+            # 0.0. Both defaults answered a question the study had not answered: the first
+            # chose a grading table, the second put the nodule below every size band.
+            nodule_type = nodule.get("type")
             location = nodule.get("location", "unspecified")
-            max_diameter = nodule.get("max_diameter_mm", 0.0)
+            raw_diameter = nodule.get("max_diameter_mm")
+            max_diameter = None if raw_diameter is None else float(raw_diameter)
 
-            # For part-solid nodules, classify by solid component diameter
-            if nodule_type == "part-solid":
-                classify_diameter = nodule.get("solid_component_diameter_mm", max_diameter)
-            else:
-                classify_diameter = max_diameter
+            # Build per-nodule measurement dict
+            nodule_measurements: Dict[str, Any] = {
+                "max_diameter_mm": max_diameter,
+                "volume_mm3": nodule.get("volume_mm3"),
+                "detection_confidence": nodule.get("detection_confidence", 0.0),
+            }
+            if nodule.get("solid_component_diameter_mm") is not None:
+                nodule_measurements["solid_component_mm"] = nodule[
+                    "solid_component_diameter_mm"
+                ]
+            if nodule.get("ground_glass_diameter_mm") is not None:
+                nodule_measurements["ground_glass_mm"] = nodule["ground_glass_diameter_mm"]
 
-            lung_rads = classify_solid_nodule_lung_rads(classify_diameter)
+            morphology_notes = []
+            if nodule.get("spiculation"):
+                morphology_notes.append("spiculated")
+            if nodule.get("calcification"):
+                morphology_notes.append("calcified")
+            if nodule.get("morphology"):
+                morphology_notes.append(nodule["morphology"])
+            morphology = ", ".join(morphology_notes) if morphology_notes else "unremarkable"
+
+            type_text = str(nodule_type) if nodule_type else "density not reported"
+
+            try:
+                lung_rads, _graded_from_mm = classify_nodule_lung_rads(
+                    nodule_type,
+                    max_diameter_mm=max_diameter,
+                    solid_component_diameter_mm=nodule.get("solid_component_diameter_mm"),
+                )
+            except LungRADSGradingError as e:
+                ungraded.append(f"{nodule_id} ({type_text}): {e}")
+                findings.append({
+                    "category": FindingCategory.INDETERMINATE.value,
+                    "description": (
+                        f"{type_text} nodule in {location}: Lung-RADS NOT ASSIGNED -- {e}"
+                    ),
+                    "severity": FindingSeverity.UNKNOWN.value,
+                    "nodule_id": nodule_id,
+                    "nodule_type": nodule_type,
+                    "location": location,
+                    "lobe": nodule.get("lobe", ""),
+                    "lung_rads": None,
+                    "lung_rads_not_assigned_reason": str(e),
+                    "recommendation": (
+                        "No Lung-RADS category and no screening interval are issued for this "
+                        "nodule. Grade it against the published v2022 table for its density "
+                        "before acting on this study."
+                    ),
+                    "measurements": nodule_measurements,
+                    "morphology": morphology,
+                })
+                continue
+
             nodule_severity = lung_rads_to_severity(lung_rads)
             recommendation = lung_rads_recommendation(lung_rads)
 
@@ -539,35 +725,17 @@ class CTChestLungNoduleWorkflow(BaseImagingWorkflow):
             ]
             if severity_order.index(nodule_severity) > severity_order.index(overall_severity):
                 overall_severity = nodule_severity
+            if highest_lung_rads is None or (
+                severity_order.index(lung_rads_to_severity(lung_rads))
+                > severity_order.index(lung_rads_to_severity(highest_lung_rads))
+            ):
                 highest_lung_rads = lung_rads
-
-            # Build per-nodule measurement dict
-            nodule_measurements = {
-                "max_diameter_mm": max_diameter,
-                "volume_mm3": nodule.get("volume_mm3", 0.0),
-                "detection_confidence": nodule.get("detection_confidence", 0.0),
-            }
-            if nodule_type == "part-solid":
-                nodule_measurements["solid_component_mm"] = nodule.get(
-                    "solid_component_diameter_mm", 0.0
-                )
-                nodule_measurements["ground_glass_mm"] = nodule.get(
-                    "ground_glass_diameter_mm", 0.0
-                )
-
-            morphology_notes = []
-            if nodule.get("spiculation"):
-                morphology_notes.append("spiculated")
-            if nodule.get("calcification"):
-                morphology_notes.append("calcified")
-            if nodule.get("morphology"):
-                morphology_notes.append(nodule["morphology"])
 
             findings.append({
                 "category": FindingCategory.NODULE.value,
                 "description": (
-                    f"{nodule_type.replace('-', ' ').title()} nodule in {location}, "
-                    f"{max_diameter:.1f}mm max diameter, "
+                    f"{type_text.replace('-', ' ').replace('_', ' ').title()} nodule in "
+                    f"{location}, {max_diameter:.1f}mm max diameter, "
                     f"Lung-RADS {lung_rads.value}"
                 ),
                 "severity": nodule_severity.value,
@@ -578,17 +746,22 @@ class CTChestLungNoduleWorkflow(BaseImagingWorkflow):
                 "lung_rads": lung_rads.value,
                 "recommendation": recommendation,
                 "measurements": nodule_measurements,
-                "morphology": ", ".join(morphology_notes) if morphology_notes else "unremarkable",
+                "morphology": morphology,
             })
 
-        # Aggregate measurements
-        aggregate_measurements = {
+        # Aggregate measurements. Only values that were actually measured are published here:
+        # a 0.0 in this dict is read as a measurement of zero, not as an absent one.
+        aggregate_measurements: Dict[str, float] = {
             "nodule_count": float(nodules_detected),
         }
         for i, nodule in enumerate(nodules):
             prefix = f"nodule_{i + 1}"
-            aggregate_measurements[f"{prefix}_diameter_mm"] = nodule.get("max_diameter_mm", 0.0)
-            aggregate_measurements[f"{prefix}_volume_mm3"] = nodule.get("volume_mm3", 0.0)
+            if nodule.get("max_diameter_mm") is not None:
+                aggregate_measurements[f"{prefix}_diameter_mm"] = float(
+                    nodule["max_diameter_mm"]
+                )
+            if nodule.get("volume_mm3") is not None:
+                aggregate_measurements[f"{prefix}_volume_mm3"] = float(nodule["volume_mm3"])
 
         # Add model/bundle metadata
         model_info = inference_result.get("model_info", {})
@@ -598,12 +771,29 @@ class CTChestLungNoduleWorkflow(BaseImagingWorkflow):
             # A model ran, on synthetic input. Named so it cannot be read as "measured here".
             aggregate_measurements["synthetic_input_forward_pass"] = 1.0
 
+        # A study in which any detected nodule could not be graded is not a completed screen.
+        # Reporting the gradeable nodules and letting the rest fall out of the summary is how
+        # an ungraded part-solid nodule turned into a reassuring "Lung-RADS 3" study.
+        if ungraded:
+            return WorkflowResult(
+                workflow_name=self.WORKFLOW_NAME,
+                status=WorkflowStatus.FAILED,
+                findings=findings,
+                measurements=aggregate_measurements,
+                classification=(
+                    "Lung-RADS incomplete -- not all detected nodules could be graded: "
+                    + " | ".join(ungraded)
+                ),
+                severity=FindingSeverity.UNKNOWN,
+                nim_services_used=self.MODELS_USED,
+            )
+
         return WorkflowResult(
             workflow_name=self.WORKFLOW_NAME,
             status=WorkflowStatus.COMPLETED,
             findings=findings,
             measurements=aggregate_measurements,
-            classification=f"Lung-RADS {highest_lung_rads.value}",
+            classification=f"Lung-RADS {(highest_lung_rads or LungRADS.CAT_1).value}",
             severity=overall_severity,
             nim_services_used=self.MODELS_USED,
         )

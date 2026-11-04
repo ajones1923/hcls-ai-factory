@@ -293,11 +293,26 @@ class MRIBrainMSLesionApp(BaseImagingMAP):
             "routine": ("17621005", "Routine"),
             "normal": ("17621005", "Normal"),
         }
-        code_value, code_meaning = severity_map.get(severity, ("17621005", "Routine"))
-        severity_code.CodeValue = code_value
-        severity_code.CodingSchemeDesignator = "SCT"
-        severity_code.CodeMeaning = code_meaning
-        severity_content.ConceptCodeSequence = [severity_code]
+        # AUDIT FIX (2026-11-03): this was
+        #     severity_map.get(severity, ("17621005", "Routine"))
+        # so any severity not in the map above -- including "unknown", which a workflow now
+        # reports when it could not grade the study at all -- left this service inside a DICOM
+        # SR document coded as a ROUTINE finding. An ungraded study is not a routine one. No
+        # SNOMED concept is invented for "not graded": the content item becomes TEXT and says
+        # in words that no severity was determined, which nothing downstream can mistake for
+        # a grade.
+        coded_severity = severity_map.get(severity)
+        if coded_severity is None:
+            severity_content.ValueType = "TEXT"
+            severity_content.TextValue = (
+                f"severity not determined (reported as '{severity}')"
+            )
+        else:
+            code_value, code_meaning = coded_severity
+            severity_code.CodeValue = code_value
+            severity_code.CodingSchemeDesignator = "SCT"
+            severity_code.CodeMeaning = code_meaning
+            severity_content.ConceptCodeSequence = [severity_code]
 
         # Lesion volume NUM content
         volume_content = pydicom.Dataset()
