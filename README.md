@@ -12,7 +12,7 @@ NIM endpoints unless you stand them up yourself; the rest is local. No vendor lo
 not autonomous diagnosis or prescribing. See [`SECURITY.md`](SECURITY.md).
 
 [![CI](https://github.com/ajones1923/hcls-ai-factory/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ajones1923/hcls-ai-factory/actions/workflows/ci.yml)
-[![tests](https://img.shields.io/badge/tests-8%2C767%2B%20passing-brightgreen)](https://github.com/ajones1923/hcls-ai-factory/actions/workflows/ci.yml)
+[![tests](https://img.shields.io/badge/tests-10%2C212%2B%20passing-brightgreen)](https://github.com/ajones1923/hcls-ai-factory/actions/workflows/ci.yml)
 [![license](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 [![python](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue)](https://github.com/ajones1923/hcls-ai-factory/actions/workflows/ci.yml)
 [![docs](https://img.shields.io/badge/docs-hcls--ai--factory.org-0b7285)](https://hcls-ai-factory.org)
@@ -90,8 +90,11 @@ shared vector database.
 | | (agents 8126–8545) | | 8576 | Protein developability + design *(planned)* |
 
 > **UIs are loopback-only.** The Streamlit interfaces bind to `127.0.0.1`; LAN access goes
-> through Caddy with basic auth on 8721–8725. The agent APIs are unchanged and require
-> `X-API-Key`. See `.env.example`.
+> through Caddy with basic auth on 8721–8725. Agent API routes require `X-API-Key`, **except
+> for an open set** — `/`, `/health`, `/healthz`, `/docs`, `/openapi.json`, `/redoc`,
+> `/metrics` and `/governance` answer without a key, so treat the API surface, the
+> Prometheus metrics and the governance report as readable by anyone who can reach the port.
+> See `lib/hcls_common/api_auth.py` (`DEFAULT_OPEN_PATHS`) and `.env.example`.
 
 ## Quickstart
 
@@ -109,7 +112,7 @@ python -m venv .venv && .venv/bin/pip install --upgrade pip
     python-multipart tqdm python-dotenv flask flask-cors nibabel pydicom highdicom tenacity \
     reportlab python-docx lxml plotly scanpy anndata sentence-transformers
 
-.venv/bin/python scripts/run_all_tests.py       # 18 suites, 8,767 tests
+.venv/bin/python scripts/run_all_tests.py       # 18 suites, 10,212 tests
 .venv/bin/python scripts/validate_registry.py   # the capability manifest
 ```
 
