@@ -15,6 +15,11 @@ authors:
 repository-code: "https://github.com/ajones1923/hcls-ai-factory"
 url: "https://hcls-ai-factory.org"
 license: Apache-2.0
+# These two must be bumped in the SAME change that cuts the tag, or GitHub's "Cite this
+# repository" widget resolves to the wrong release. They were absent entirely until 2026-11-03,
+# so the widget carried no version at all; these values describe the current released tag.
+version: 2.1.0
+date-released: "2026-09-17"
 keywords:
   - precision medicine
   - genomics

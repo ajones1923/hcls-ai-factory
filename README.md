@@ -186,6 +186,13 @@ monitoring · docs · scripts · demo · data   ·   docker-compose.dgx-spark.ym
 > verticals under `core/disease-programs/`, and the shared platform layer in `lib/hcls_common/`.
 > See `docs/STRUCTURE.md` for the full layout.
 
+## Releases
+
+Versioned, semver-tagged, with human release notes on the
+[Releases page](https://github.com/ajones1923/hcls-ai-factory/releases). What changed in each is
+in [`CHANGELOG.md`](CHANGELOG.md), including the known limitations of the current release — the
+corpus is thin and the file says so.
+
 ## How to cite
 
 If you build on this, please cite it. Machine-readable metadata is in
