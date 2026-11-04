@@ -169,3 +169,27 @@ class TestTheSerializedForm:
     def test_as_dict_is_json_serializable(self):
         import json
         json.dumps(coverage(PATIENT_MATCHING, HELD_SOMETHING).as_dict())
+
+
+class TestRenderingFromTheSerializedForm:
+    """`disclosure_from_dict` exists because cart keeps the dict and renders a layer later."""
+
+    def test_it_produces_the_same_paragraph_as_the_verdict(self):
+        from hcls_common.corpus_coverage import disclosure_from_dict
+        v = coverage(PATIENT_MATCHING, HELD_SOMETHING)
+        assert disclosure_from_dict(v.as_dict()) == v.disclosure()
+
+    def test_a_complete_verdict_renders_nothing(self):
+        from hcls_common.corpus_coverage import disclosure_from_dict
+        v = coverage(PATIENT_MATCHING, {k: 1 for k in PATIENT_MATCHING})
+        assert disclosure_from_dict(v.as_dict()) == ""
+
+    def test_an_empty_dict_does_not_raise(self):
+        """A caller that never ran retrieval has no verdict, not a broken one."""
+        from hcls_common.corpus_coverage import disclosure_from_dict
+        assert disclosure_from_dict({}) == ""
+
+    def test_it_truncates_the_same_way(self):
+        from hcls_common.corpus_coverage import disclosure_from_dict
+        v = coverage(PATIENT_MATCHING, HELD_SOMETHING)
+        assert "and 6 more" in disclosure_from_dict(v.as_dict(), max_named=4)

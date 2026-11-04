@@ -33,6 +33,37 @@ DEGRADED_BELOW = 0.75
 _DISCLOSURE_HEADING = "**Partial corpus.**"
 
 
+def _render(n_silent: int, n_declared: int, cov: float, silent: Iterable[str],
+            max_named: int) -> str:
+    """The one wording, shared by the verdict and by `disclosure_from_dict`."""
+    if not n_silent:
+        return ""
+    names = list(silent)
+    named = ", ".join(f"`{c}`" for c in names[:max_named])
+    more = len(names) - max_named
+    if more > 0:
+        named += f", and {more} more"
+    return (
+        f"{_DISCLOSURE_HEADING} {n_silent} of {n_declared} evidence sources returned nothing, "
+        f"carrying {1 - cov:.0%} of the retrieval weight this workflow declares: {named}. The "
+        f"answer above rests on the remaining {cov:.0%}. An empty source and an irrelevant one "
+        f"are indistinguishable at query time, so this is a statement about the corpus, not "
+        f"about the question."
+    )
+
+
+def disclosure_from_dict(verdict: Mapping[str, Any], *, max_named: int = 4) -> str:
+    """The same paragraph from `as_dict()` output, for a caller that kept only the dict.
+
+    cart carries its verdict on a pydantic result object and renders the prose a layer later;
+    rebuilding a `CoverageVerdict` from the dict to do that would mean inventing the two name
+    tuples it no longer has. This reads the numbers it does have.
+    """
+    silent = verdict.get("silent_collections") or ()
+    return _render(len(silent), int(verdict.get("collections_declared") or 0),
+                   float(verdict.get("coverage") or 0.0), silent, max_named)
+
+
 @dataclass(frozen=True)
 class CoverageVerdict:
     """What a retrieval step covered, against what it declared it would cover."""
@@ -74,19 +105,8 @@ class CoverageVerdict:
         Returned rather than appended by this module: the caller knows whether it is writing
         prose, a JSON field or an SSE frame.
         """
-        if self.is_complete:
-            return ""
-        named = ", ".join(f"`{c}`" for c in self.silent[:max_named])
-        more = len(self.silent) - max_named
-        if more > 0:
-            named += f", and {more} more"
-        return (
-            f"{_DISCLOSURE_HEADING} {len(self.silent)} of {len(self.declared)} evidence sources "
-            f"returned nothing, carrying {1 - self.coverage:.0%} of the retrieval weight this "
-            f"workflow declares: {named}. The answer above rests on the remaining "
-            f"{self.coverage:.0%}. An empty source and an irrelevant one are indistinguishable "
-            f"at query time, so this is a statement about the corpus, not about the question."
-        )
+        return _render(len(self.silent), len(self.declared), self.coverage, self.silent,
+                       max_named)
 
     def as_dict(self) -> dict[str, Any]:
         """For a response body, a log line or a metric."""

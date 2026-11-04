@@ -15,6 +15,9 @@ import re
 import time
 from typing import Dict, Generator, List, Optional
 
+from hcls_common.corpus_coverage import coverage as retrieval_coverage
+from hcls_common.corpus_coverage import disclosure_from_dict
+
 from config.settings import settings
 
 from .models import (
@@ -251,11 +254,24 @@ class CARTRAGEngine:
 
         elapsed = (time.time() - start) * 1000
 
+        # How much of what this search declared it would cover actually answered. Weights are
+        # the stage-boosted map when stages narrowed the search, else the base weights every
+        # collection carries -- either way the denominator is what was searched, not what
+        # returned. A search of an empty collection succeeds with zero rows, so without this
+        # nothing downstream can tell a thin corpus from an irrelevant question.
+        weights = boosted_weights or {
+            coll: COLLECTION_CONFIG.get(coll, {}).get("weight", 0.05)
+            for coll in collections_to_search
+        }
+        cov = retrieval_coverage(weights, hits)
+
         return CrossCollectionResult(
             query=query.question,
             hits=hits,
             knowledge_context=knowledge_context,
             total_collections_searched=len(collections_to_search),
+            collections_contributing=len(cov.contributing),
+            retrieval_coverage=cov.as_dict(),
             search_time_ms=elapsed,
         )
 
@@ -264,12 +280,19 @@ class CARTRAGEngine:
         agent_query = AgentQuery(question=question, **kwargs)
         evidence = self.retrieve(agent_query)
         prompt = self._build_prompt(agent_query.question, evidence)
-        return self.llm.generate(
+        answer = self.llm.generate(
             prompt=prompt,
             system_prompt=CART_SYSTEM_PROMPT,
             max_tokens=2048,
             temperature=0.7,
         )
+        # Say so in the answer when the corpus, not the question, was the limit. The structured
+        # verdict rides on the evidence object either way; this is for the reader who sees only
+        # the prose.
+        cov = evidence.retrieval_coverage or {}
+        if cov.get("degraded") and answer:
+            answer = f"{answer}\n\n{disclosure_from_dict(cov)}"
+        return answer
 
     def query_stream(self, question: str,
                      **kwargs) -> Generator[Dict, None, None]:

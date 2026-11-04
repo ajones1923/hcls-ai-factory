@@ -180,3 +180,24 @@ pins its arithmetic to `_get_boosted_weights` so the reimplementation cannot dri
 Nothing in this file is a code defect. The code now *reports* the gap —
 `scripts/check_corpus_weights.py` for the operator, `retrieval_coverage` on the response for the
 reader, and `hcls_common.corpus_coverage` for anything else that needs to ask.
+
+**Which subjects report it.** Six of the seven that declare a weight map now carry
+`retrieval_coverage` and `collections_contributing` on their response, and append the disclosure
+to the answer itself once coverage is degraded:
+
+| Subject | Reports coverage | Note |
+|---|---|---|
+| clinical-trial | yes | |
+| cardiology | yes | the 2% case |
+| neurology | yes | |
+| rare-disease-diagnostic | yes | |
+| single-cell | yes | |
+| cart | yes | verdict rides on `CrossCollectionResult`, prose rendered in `query()` |
+| pharmacogenomics | not wired | selects collections from a list, no weights; measured at 100% coverage on all six workflows, so there is nothing to disclose |
+| precision-autoimmune, precision-biomarker, clinical-imaging | n/a | no weight table; flat collection set |
+
+The three with no weight table are the remaining gap in this mechanism. Two of them
+(precision-biomarker at 0 empty collections, clinical-imaging at 2 of 12) have little to
+disclose; precision-autoimmune has seven empty of thirteen, **three of which are the
+patient-level collections in §4 that no public source can fill** — so its coverage number would
+be a standing report of a decision not yet made rather than a data gap.

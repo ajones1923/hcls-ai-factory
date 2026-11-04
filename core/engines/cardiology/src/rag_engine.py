@@ -44,6 +44,7 @@ from .agent import (
     WORKFLOW_COLLECTION_BOOST,
 )
 from hcls_common.conversation_store import ConversationStore
+from hcls_common.corpus_coverage import coverage as retrieval_coverage
 from hcls_common.vector_search import search_collection
 from hcls_common.llm_text import first_text
 
@@ -115,7 +116,15 @@ class CardioResponse:
         confidence: Overall confidence score (0.0 - 1.0).
         citations: Formatted citation list.
         search_time_ms: Total search time in milliseconds.
-        collections_searched: Number of collections queried.
+        collections_searched: Number of collections queried. This counts the question asked,
+            not the yield. For this engine that distinction is the whole story: all twelve
+            `cardio_*` collections were ABSENT from Milvus when this was written — never
+            created, not merely empty — so `collections_searched` reported 13 while retrieval
+            could only ever reach the shared `genomic_evidence`, 2% of the declared weight.
+        collections_contributing: How many of those returned at least one row.
+        retrieval_coverage: `hcls_common.corpus_coverage` verdict as a dict — the share of this
+            workflow's declared retrieval weight that actually answered, and which sources were
+            silent. See docs/build/EMPTY_COLLECTIONS.md §0.
         patient_context_used: Whether patient context was injected.
         timestamp: ISO 8601 timestamp of response generation.
     """
@@ -127,6 +136,8 @@ class CardioResponse:
     citations: List[Dict[str, str]] = field(default_factory=list)
     search_time_ms: float = 0.0
     collections_searched: int = 0
+    collections_contributing: int = 0
+    retrieval_coverage: Optional[Dict[str, Any]] = None
     patient_context_used: bool = False
     timestamp: str = field(
         default_factory=lambda: datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -348,6 +359,13 @@ class CardioRAGEngine:
         # Step 4: Score confidence
         confidence = self._score_confidence(results)
 
+        # Step 4b: How much of what this workflow declared it would search actually answered.
+        # For this engine the answer was 2%: twelve of its thirteen declared collections do not
+        # exist in Milvus at all. A search against a missing collection returns an empty list
+        # rather than raising (see hcls_common.vector_search), so nothing above this line could
+        # tell the difference between that and a corpus with no relevant passage.
+        cov = retrieval_coverage(weights, results)
+
         # Step 5: Synthesise LLM response (if LLM available)
         if self.llm:
             response = self._synthesize(
@@ -366,11 +384,19 @@ class CardioRAGEngine:
                 confidence=confidence,
             )
 
+        # Step 5b: Say so in the answer when the corpus, not the question, is the limit. The
+        # structured verdict is carried either way; the prose appears only once coverage is bad
+        # enough that a reader acting on this answer needs to know.
+        if cov.is_degraded and response.answer:
+            response.answer = f"{response.answer}\n\n{cov.disclosure()}"
+
         # Step 6: Extract citations
         response.citations = self._extract_citations(results)
         response.confidence = confidence
         response.search_time_ms = (time.time() - start) * 1000
         response.collections_searched = len(collections)
+        response.collections_contributing = len(cov.contributing)
+        response.retrieval_coverage = cov.as_dict()
         response.patient_context_used = patient_context is not None
 
         # Step 7: Update conversation history

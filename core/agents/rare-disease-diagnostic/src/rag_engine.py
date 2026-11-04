@@ -44,6 +44,7 @@ from .agent import (  # noqa: F401 -- re-exported for convenience
     DiagnosticResult,
 )
 from hcls_common.conversation_store import ConversationStore
+from hcls_common.corpus_coverage import coverage as retrieval_coverage
 from hcls_common.vector_search import search_collection
 
 logger = logging.getLogger(__name__)
@@ -340,6 +341,12 @@ class RareDiseaseRAGEngine:
         # Step 5: Score confidence
         confidence = self._score_confidence(results)
 
+        # Step 5b: How much of what this workflow declared it would search actually answered.
+        # A search of an empty collection succeeds and returns zero rows, which is
+        # indistinguishable at every layer from a search that found nothing relevant. Computed
+        # from the weight map and the results already in hand, so retrieval is untouched.
+        cov = retrieval_coverage(weights, results)
+
         # Step 6: Synthesise LLM response (if LLM available)
         if self.llm:
             response = self._synthesize_response(
@@ -358,11 +365,19 @@ class RareDiseaseRAGEngine:
                 confidence=confidence,
             )
 
+        # Step 6b: Say so in the answer when the corpus, not the question, is the limit. The
+        # structured verdict is carried either way; the prose appears only once coverage is bad
+        # enough that a reader acting on this answer needs to know.
+        if cov.is_degraded and response.answer:
+            response.answer = f"{response.answer}\n\n{cov.disclosure()}"
+
         # Step 7: Extract citations
         response.citations = self._extract_citations(results)
         response.confidence = confidence
         response.search_time_ms = (time.time() - start) * 1000
         response.collections_searched = len(collections)
+        response.collections_contributing = len(cov.contributing)
+        response.retrieval_coverage = cov.as_dict()
         response.patient_context_used = patient_context is not None
 
         # Step 8: Update conversation history
