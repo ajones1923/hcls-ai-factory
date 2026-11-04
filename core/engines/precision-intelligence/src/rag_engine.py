@@ -436,8 +436,15 @@ class RAGEngine:
                     limit=limit_per_gene
                 )
                 for r in gene_results:
-                    r['score'] = 0.85  # Assign high score for direct gene match
-                    r['retrieval_method'] = 'pharmacogenomic_expansion'
+                    # These rows come from `collection.query(expr='gene == ...')`:
+                    # an exact string match on a metadata field. No embedding is
+                    # computed, so no similarity exists. This used to write a
+                    # literal 0.85, which was rendered to the reader and to the
+                    # LLM as "similarity: 0.85" and used as the sort key, so
+                    # every keyword hit outranked any genuinely retrieved
+                    # passage scoring below 0.85. Carry no score at all.
+                    r['score'] = None
+                    r['retrieval_method'] = 'gene_match'
                     results.append(r)
                 logger.info(f"Found {len(gene_results)} variants for pharmacogenomic gene {gene}")
             except Exception as e:
@@ -477,23 +484,30 @@ class RAGEngine:
 
         logger.info(f"Semantic search retrieved {len(results)} evidence items")
 
-        # Pharmacogenomic query expansion
+        # Gene-name expansion. These hits are keyword matches, not measured
+        # retrieval, so they are kept in a separate list and appended *after*
+        # the ranked semantic results rather than interleaved by score.
+        gene_match_results: List[Dict[str, Any]] = []
         pgx_genes = self._get_pharmacogenomic_genes(query)
         if pgx_genes:
-            # Get variants from relevant pharmacogenomic genes
-            pgx_results = self._retrieve_by_genes(pgx_genes, limit_per_gene=3)
+            expansion_results = self._retrieve_by_genes(pgx_genes, limit_per_gene=3)
 
             # Merge results, avoiding duplicates
             existing_ids = {r.get('id') for r in results}
-            for pgx_result in pgx_results:
-                if pgx_result.get('id') not in existing_ids:
-                    results.append(pgx_result)
-                    existing_ids.add(pgx_result.get('id'))
+            for expansion_result in expansion_results:
+                if expansion_result.get('id') not in existing_ids:
+                    gene_match_results.append(expansion_result)
+                    existing_ids.add(expansion_result.get('id'))
 
-            logger.info(f"After pharmacogenomic expansion: {len(results)} total evidence items")
+            logger.info(
+                f"After gene-name expansion: {len(results)} semantic + "
+                f"{len(gene_match_results)} gene-match evidence items"
+            )
 
-        # Sort by score and limit
-        results = sorted(results, key=lambda x: x.get('score', 0), reverse=True)[:k + 5]
+        # Rank the measured results by similarity; unscored gene matches follow
+        # them in query order. `score or 0.0` keeps a None out of the comparison.
+        results = sorted(results, key=lambda x: x.get('score') or 0.0, reverse=True)
+        results = (results + gene_match_results)[:k + 5]
 
         logger.info(f"Retrieved {len(results)} evidence items for query")
         return results
@@ -506,7 +520,16 @@ class RAGEngine:
         context_parts = ["## Retrieved Evidence\n"]
 
         for i, ev in enumerate(evidence_list, 1):
-            context_parts.append(f"### Evidence {i} (similarity: {ev['score']:.2f})")
+            # A gene-expansion hit has no similarity (it is an exact match on the
+            # `gene` field). Say so, rather than printing a number nothing
+            # measured — the model is told how each item was found.
+            score = ev.get('score')
+            if score is None:
+                context_parts.append(
+                    f"### Evidence {i} (matched by gene name; no similarity measured)"
+                )
+            else:
+                context_parts.append(f"### Evidence {i} (similarity: {score:.2f})")
             context_parts.append(ev['text_summary'])
 
             # Add structured details

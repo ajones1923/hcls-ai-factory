@@ -395,3 +395,109 @@ class TestQueryExpansionMappings:
 
         # Codeine
         assert "CYP2D6" in PHARMACOGENOMIC_GENES.get("codeine", [])
+
+
+class TestGeneMatchExpansionIsNotScored:
+    """Regression for the fabricated similarity on gene-expansion hits.
+
+    `_retrieve_by_genes` used to stamp every row from
+    `collection.query(expr='gene == "TPMT"')` with `score = 0.85`. Those rows are
+    exact matches on a metadata field: no embedding is computed, so no similarity
+    exists. The invented number was rendered to the reader and into the LLM
+    prompt as "similarity: 0.85", and was used as the sort key, so every keyword
+    hit outranked any genuinely retrieved passage scoring below 0.85.
+    """
+
+    def _engine(self, mock_milvus_client, mock_embedder, mock_llm_client,
+                semantic_score=0.81):
+        mock_milvus_client.search.return_value = [
+            {
+                'id': 'semantic-hit',
+                'score': semantic_score,
+                'gene': 'TPMT',
+                'chrom': 'chr6',
+                'pos': 18130918,
+                'text_summary': 'CPIC thiopurine dosing passage',
+            }
+        ]
+        collection = Mock()
+        collection.query.return_value = [
+            {
+                'id': 'gene-match-hit',
+                'gene': 'TPMT',
+                'chrom': 'chr6',
+                'pos': 18139228,
+                'text_summary': 'TPMT variant row matched by gene name',
+            }
+        ]
+        mock_milvus_client.get_collection.return_value = collection
+        return RAGEngine(
+            milvus_client=mock_milvus_client,
+            embedder=mock_embedder,
+            llm_client=mock_llm_client,
+        )
+
+    def test_gene_match_hits_carry_no_similarity(
+        self, mock_milvus_client, mock_embedder, mock_llm_client
+    ):
+        engine = self._engine(mock_milvus_client, mock_embedder, mock_llm_client)
+        results = engine.retrieve("mercaptopurine dosing for a child with ALL")
+
+        gene_hits = [r for r in results if r.get('retrieval_method') == 'gene_match']
+        assert gene_hits, "expansion should have fired on 'mercaptopurine'"
+        for hit in gene_hits:
+            assert hit['score'] is None
+            assert hit['retrieval_method'] == 'gene_match'
+
+    def test_gene_match_does_not_outrank_measured_retrieval(
+        self, mock_milvus_client, mock_embedder, mock_llm_client
+    ):
+        """A real 0.81 passage must stay above a keyword hit (it lost to 0.85)."""
+        engine = self._engine(
+            mock_milvus_client, mock_embedder, mock_llm_client, semantic_score=0.81
+        )
+        results = engine.retrieve("mercaptopurine dosing for a child with ALL")
+
+        assert results[0]['id'] == 'semantic-hit'
+        assert results[0]['score'] == 0.81
+        assert results[-1]['id'] == 'gene-match-hit'
+
+    def test_low_scoring_measured_hit_still_outranks_gene_match(
+        self, mock_milvus_client, mock_embedder, mock_llm_client
+    ):
+        engine = self._engine(
+            mock_milvus_client, mock_embedder, mock_llm_client, semantic_score=0.12
+        )
+        results = engine.retrieve("mercaptopurine dosing for a child with ALL")
+        assert [r['id'] for r in results] == ['semantic-hit', 'gene-match-hit']
+
+    def test_context_labels_gene_match_instead_of_a_similarity(
+        self, mock_milvus_client, mock_embedder, mock_llm_client
+    ):
+        engine = self._engine(mock_milvus_client, mock_embedder, mock_llm_client)
+        context = engine._format_evidence_context([
+            {
+                'id': 'gene-match-hit',
+                'score': None,
+                'retrieval_method': 'gene_match',
+                'gene': 'TPMT',
+                'text_summary': 'TPMT variant row matched by gene name',
+            }
+        ])
+        assert 'matched by gene name' in context
+        assert 'similarity:' not in context
+        assert '0.85' not in context
+
+    def test_measured_hits_still_show_their_similarity(
+        self, mock_milvus_client, mock_embedder, mock_llm_client
+    ):
+        engine = self._engine(mock_milvus_client, mock_embedder, mock_llm_client)
+        context = engine._format_evidence_context([
+            {
+                'id': 'semantic-hit',
+                'score': 0.81,
+                'gene': 'TPMT',
+                'text_summary': 'CPIC thiopurine dosing passage',
+            }
+        ])
+        assert 'similarity: 0.81' in context
