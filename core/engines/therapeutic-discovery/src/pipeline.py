@@ -219,6 +219,10 @@ class DrugDiscoveryPipeline:
 
         # Stage timing
         self.stage_timings: Dict[int, float] = {}
+        # Set by CheckpointManager.restore_pipeline_state on a resume, so stage 9 can label a
+        # report whose timings and results are not all from this invocation.
+        self.restored_stages: List[int] = []
+        self.config_divergence: Optional[Dict[str, Any]] = None
 
         # Intermediate results
         self.target: Optional[TargetHypothesis] = None
@@ -244,6 +248,7 @@ class DrugDiscoveryPipeline:
         self,
         target: TargetHypothesis = None,
         resume_from_run_id: str = None,
+        allow_config_change: bool = False,
     ) -> PipelineRun:
         """
         Run the complete pipeline.
@@ -261,7 +266,8 @@ class DrugDiscoveryPipeline:
             if latest is not None:
                 checkpoint = self.checkpoint_manager.load(resume_from_run_id, latest)
                 if checkpoint:
-                    self.checkpoint_manager.restore_pipeline_state(self, checkpoint)
+                    self.checkpoint_manager.restore_pipeline_state(
+                        self, checkpoint, allow_config_change=allow_config_change)
                     self.run_id = resume_from_run_id
                     resume_stage = latest
                     self._report_progress(
@@ -956,6 +962,22 @@ class DrugDiscoveryPipeline:
             "top_candidates": [c.dict() for c in self.ranked_candidates],
             "structures_used": [s.dict() for s in (self.structures.structures if self.structures else [])],
             "stage_timings": self.stage_timings,
+            # A resumed run is not an end-to-end run. Timings restored from a checkpoint were
+            # measured in an earlier invocation, possibly days earlier; say which are which so
+            # no total can be read off the report as this run's cost.
+            "timing_provenance": {
+                "stages_restored_from_checkpoint": sorted(self.restored_stages),
+                "stages_executed_now": sorted(
+                    s for s in self.stage_timings if s not in set(self.restored_stages)),
+                # Stages that ran but whose duration nobody holds: the boundary stage of a
+                # resume (its checkpoint is written inside the stage, before its timing is
+                # recorded) and stage 9 itself, which writes this report. Named explicitly so
+                # the timings below cannot be summed as a complete total.
+                "stages_with_no_timing": sorted(
+                    s for s in set(self.run.stages_completed) if s not in self.stage_timings),
+                "is_end_to_end": not self.restored_stages,
+            },
+            "config_divergence": self.config_divergence,
             "completed_at": datetime.now().isoformat(),
         }
 
