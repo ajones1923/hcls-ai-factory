@@ -23,6 +23,17 @@ import re
 from copy import deepcopy
 from typing import Any, Dict, List, Optional, Tuple
 
+from src.hf_thresholds import (
+    CRT_QRS_CLASS_I_MS,
+    CRT_QRS_CLASS_IIA_MS,
+    HFMREF_LVEF_UPPER_INTEGER,
+    HFPEF_LVEF_CUTOFF,
+    HFREF_LVEF_CUTOFF,
+    SGLT2I_CLASS_HFMREF,
+    SGLT2I_CLASS_HFMREF_TEXT,
+    SGLT2I_CLASS_HFPEF,
+    SGLT2I_CLASS_HFPEF_TEXT,
+)
 from src.models import (
     EjectionFractionCategory,
     EvidenceLevel,
@@ -909,9 +920,12 @@ DEVICE_THERAPY_CRITERIA: Dict[str, Dict[str, Any]] = {
 HFPEF_THERAPIES: Dict[str, Dict[str, Any]] = {
     "sglt2i": {
         "drugs": ["dapagliflozin 10 mg daily", "empagliflozin 10 mg daily"],
-        "indication": "HFpEF (LVEF >40%) - reduces HF hospitalization and CV death",
+        "indication": "HFpEF (LVEF >=50%) - reduces HF hospitalization and CV death",
+        # Class 2a, not Class 1: see src/hf_thresholds.py.  The 2022
+        # AHA/ACC/HFSA guideline recommends SGLT2i in HFpEF at Class 2a, which is
+        # also what HeartFailureWorkflow and the /gdmt/optimize fallback say.
         "evidence": {
-            "class": GuidelineClass.CLASS_I,
+            "class": SGLT2I_CLASS_HFPEF,
             "level": EvidenceLevel.LEVEL_A,
         },
         "key_trials": ["EMPEROR-Preserved", "DELIVER"],
@@ -919,7 +933,10 @@ HFPEF_THERAPIES: Dict[str, Dict[str, Any]] = {
             "EMPEROR-Preserved: 21% reduction in CV death or HF hospitalization. "
             "DELIVER: 18% reduction in worsening HF or CV death."
         ),
-        "note": "First Class I therapy for HFpEF with robust evidence.",
+        "note": (
+            "First disease-modifying therapy for HFpEF with robust randomised "
+            "evidence (Class 2a)."
+        ),
     },
     "diuretics": {
         "drugs": [
@@ -1383,6 +1400,25 @@ def _parse_dose_mg(dose_str: str) -> float:
     return 0.0
 
 
+def _dose_from_med(med: Dict[str, Any]) -> str:
+    """Extract a dose string from a medication dict.
+
+    Accepts both spellings in use across this engine: the optimizer's own
+    ``{"dose": "25 mg BID"}`` and the ``/gdmt/optimize`` request schema's
+    ``{"dose_mg": 25, "frequency": "BID"}``.  Returns ``""`` only when
+    neither is present, which callers must treat as "dose not recorded" --
+    never as a dose at the bottom of the titration ladder.
+    """
+    dose = med.get("dose")
+    if dose not in (None, ""):
+        return str(dose)
+    dose_mg = med.get("dose_mg")
+    if dose_mg in (None, ""):
+        return ""
+    frequency = str(med.get("frequency") or "").strip()
+    return f"{dose_mg} mg {frequency}".strip()
+
+
 def _normalise_drug_name(name: str) -> str:
     """Normalise a drug name to its canonical database key."""
     key = name.strip().lower().replace("-", " ").replace("/", " ")
@@ -1421,10 +1457,12 @@ class GDMTOptimizer:
         "Heidenreich PA, et al. Circulation. 2022;145:e895-e1032."
     )
 
-    # Thresholds
-    _HFREF_EF_CUTOFF = 40.0
-    _HFMREF_UPPER = 49.0
-    _HFPEF_EF_CUTOFF = 50.0
+    # Thresholds.  The EF boundaries, the CRT QRS thresholds and the non-HFrEF
+    # SGLT2i classes live in src/hf_thresholds.py so that every surface of this
+    # engine applies the same ones; see that module for the sources.
+    _HFREF_EF_CUTOFF = HFREF_LVEF_CUTOFF
+    _HFMREF_UPPER = HFMREF_LVEF_UPPER_INTEGER
+    _HFPEF_EF_CUTOFF = HFPEF_LVEF_CUTOFF
 
     _MIN_SBP_FOR_RAAS = 100.0  # mmHg
     _MIN_SBP_ABSOLUTE = 90.0
@@ -1436,8 +1474,8 @@ class GDMTOptimizer:
     _MIN_EGFR_CAUTION_ARNI = 20.0
     _ICD_EF_CUTOFF = 35.0
     _CRT_EF_CUTOFF = 35.0
-    _CRT_QRS_CLASS_I = 150  # ms
-    _CRT_QRS_CLASS_IIA = 120  # ms
+    _CRT_QRS_CLASS_I = CRT_QRS_CLASS_I_MS
+    _CRT_QRS_CLASS_IIA = CRT_QRS_CLASS_IIA_MS
     _IVABRADINE_HR_THRESHOLD = 70  # bpm
     _IVABRADINE_EF_CUTOFF = 35.0
 
@@ -1596,7 +1634,10 @@ class GDMTOptimizer:
 
         if lvef <= self._HFREF_EF_CUTOFF:
             return EjectionFractionCategory.HFrEF
-        elif lvef <= self._HFMREF_UPPER:
+        elif lvef < self._HFPEF_EF_CUTOFF:
+            # Table 4's HFmrEF band is 41-49%; comparing against the integer 49
+            # put a non-integer EF such as 49.5% into HFpEF, whose banner then
+            # read "HFpEF MANAGEMENT (LVEF >=50%)" for a 49.5% ventricle.
             return EjectionFractionCategory.HFmrEF
         else:
             return EjectionFractionCategory.HFpEF
@@ -1659,7 +1700,7 @@ class GDMTOptimizer:
             pillar, canonical_name = alias_match
             db_entry = self._drug_db.get(pillar, {}).get(canonical_name, {})
             target_dose = db_entry.get("target_dose", "unknown")
-            current_dose = med.get("dose", "")
+            current_dose = _dose_from_med(med)
 
             # Determine status
             status = self._determine_med_status(
@@ -1744,11 +1785,12 @@ class GDMTOptimizer:
         ef_category: EjectionFractionCategory,
         current_gdmt: Dict[GDMTPillar, GDMTMedication],
         contraindications: List[str],
+        patient_data: Optional[Dict[str, Any]] = None,
     ) -> List[str]:
         """Identify missing or sub-optimally treated GDMT pillars.
 
         For HFrEF, all 4 pillars should be on board.  For HFmrEF, SGLT2i
-        is Class I; others are Class IIb.  For HFpEF, only SGLT2i is Class I.
+        is Class 2a; others are Class IIb.  For HFpEF, only SGLT2i is Class 2a.
         """
         gaps: List[str] = []
 
@@ -1796,10 +1838,18 @@ class GDMTOptimizer:
                     "angioedema" in c.lower() for c in contraindications
                 )
                 if not is_arni_contraindicated:
+                    # The starting dose is taken from the ENTRESTO label, not
+                    # from blood pressure: see `_arni_starting_dose`.
+                    starting, dose_rationale = self._arni_starting_dose_for(
+                        arni_pillar,
+                        (patient_data or {}),
+                        (patient_data or {}).get("egfr"),
+                    )
                     gaps.append(
                         f"SWITCH: Currently on {arni_pillar.drug_name}; guideline preference "
                         f"is to switch to sacubitril/valsartan (ARNI) per PARADIGM-HF "
-                        f"(Class I, LOE A). 36-hour ACEi washout required before starting ARNI."
+                        f"(Class I, LOE A). Start at {starting} ({dose_rationale}). "
+                        f"36-hour ACEi washout required before starting ARNI."
                     )
 
         return gaps
@@ -1829,8 +1879,33 @@ class GDMTOptimizer:
         interval = db_entry.get("titration_interval", "2 weeks")
         monitoring = db_entry.get("monitoring", [])
 
-        # Find current step
+        # Find current step.  An unrecorded or unparseable current dose must NOT
+        # fall through to step 0: that produced a "next step" at the bottom of the
+        # ladder for a patient who might already be at target, i.e. an instruction
+        # to titrate DOWN.  Say the dose is not known instead.
         current_dose_mg = _parse_dose_mg(medication.current_dose or "")
+        if current_dose_mg <= 0:
+            return {
+                "drug": medication.drug_name,
+                "pillar": medication.pillar.value,
+                "current_dose": medication.current_dose,
+                "target_dose": db_entry.get("target_dose", "unknown"),
+                "current_step": None,
+                "remaining_steps": [],
+                "titration_interval": interval,
+                "total_remaining_titrations": 0,
+                "estimated_time_to_target": "indeterminate - current dose not recorded",
+                "monitoring_at_each_step": monitoring,
+                "precautions": [],
+                "key_trial": db_entry.get("key_trial", ""),
+                "dose_not_recorded": True,
+                "plan": (
+                    f"Current {medication.drug_name} dose not recorded - cannot place the "
+                    f"patient on the titration ladder. Record the current dose before "
+                    f"planning a titration step; do not assume the starting dose."
+                ),
+            }
+
         current_step_idx = 0
         for i, step in enumerate(titration_steps):
             step_mg = _parse_dose_mg(step)
@@ -2173,7 +2248,9 @@ class GDMTOptimizer:
         recs: List[str] = []
         days_post_mi = patient_data.get("days_post_mi")
         days_on_gdmt = patient_data.get("days_on_gdmt")
-        expected_survival = patient_data.get("expected_survival_years", 2)
+        # No default: an unknown life expectancy is not ">1 year".  This used to
+        # default to 2, so the >1-year requirement could never fail on absent data.
+        expected_survival = patient_data.get("expected_survival_years")
 
         nyha_eligible_icd = nyha in (HeartFailureClass.NYHA_II, HeartFailureClass.NYHA_III)
         nyha_eligible_crt = nyha in (
@@ -2181,9 +2258,14 @@ class GDMTOptimizer:
         )
 
         # ── ICD assessment ──────────────────────────────────────────────
+        # Eligibility is NOT assumed.  DEVICE_THERAPY_CRITERIA["ICD"] requires
+        # >=40 days post-MI, >=90 days on optimal GDMT and >1 year expected
+        # survival; a criterion whose input was never supplied is "not
+        # established", never "met".
         icd_eligible = True
         icd_reasons: List[str] = []
         icd_barriers: List[str] = []
+        icd_unestablished: List[str] = []
 
         if lvef > self._ICD_EF_CUTOFF:
             icd_eligible = False
@@ -2193,23 +2275,37 @@ class GDMTOptimizer:
             icd_eligible = False
             icd_barriers.append(f"NYHA class {nyha.value} not in II-III range")
 
-        if days_post_mi is not None and days_post_mi < 40:
+        if days_post_mi is None:
+            icd_unestablished.append(
+                "days since most recent MI not recorded (>=40 days required)"
+            )
+        elif days_post_mi < 40:
             icd_eligible = False
             icd_barriers.append(
                 f"Only {days_post_mi} days post-MI (must wait >=40 days)"
             )
 
-        if days_on_gdmt is not None and days_on_gdmt < 90:
+        if days_on_gdmt is None:
+            icd_unestablished.append(
+                "days on optimal GDMT not recorded (>=90 days required)"
+            )
+        elif days_on_gdmt < 90:
             icd_eligible = False
             icd_barriers.append(
                 f"Only {days_on_gdmt} days on optimal GDMT (must wait >=90 days)"
             )
 
-        if expected_survival is not None and expected_survival < 1:
+        if expected_survival is None:
+            icd_unestablished.append(
+                "expected survival not recorded (>1 year required)"
+            )
+        elif expected_survival < 1:
             icd_eligible = False
             icd_barriers.append("Expected survival <1 year")
 
-        if icd_eligible:
+        icd_confirmed = icd_eligible and not icd_unestablished
+
+        if icd_confirmed:
             icd_reasons.append(
                 f"LVEF {lvef}% <=35%, NYHA {nyha.value}"
             )
@@ -2217,10 +2313,17 @@ class GDMTOptimizer:
                 f"DEVICE THERAPY - ICD (Class I, LOE A): Patient meets primary prevention "
                 f"ICD criteria. LVEF {lvef}% <=35%, NYHA {nyha.value}. "
                 f"SCD-HeFT: 23% mortality reduction. "
-                f"Ensure >=90 days on optimal GDMT and reassess EF before implant."
+                f"Reassess EF before implant."
+            )
+        elif icd_eligible and lvef <= self._ICD_EF_CUTOFF:
+            recs.append(
+                f"DEVICE THERAPY - ICD: INDETERMINATE - LVEF {lvef}% <=35% and NYHA "
+                f"{nyha.value} are met, but eligibility cannot be confirmed: "
+                + "; ".join(icd_unestablished)
+                + ". Record these before asserting primary prevention ICD criteria are met."
             )
         elif lvef <= self._ICD_EF_CUTOFF:
-            barrier_str = "; ".join(icd_barriers)
+            barrier_str = "; ".join(icd_barriers + icd_unestablished)
             recs.append(
                 f"DEVICE THERAPY - ICD: Not currently eligible ({barrier_str}). "
                 f"Reassess when barriers resolved."
@@ -2229,6 +2332,15 @@ class GDMTOptimizer:
         # ── CRT assessment ──────────────────────────────────────────────
         crt_eligible = False
         crt_class = ""
+        # DEVICE_THERAPY_CRITERIA["CRT"]["criteria"]["rhythm"] is
+        # "sinus rhythm preferred (AF with rate control may benefit)", and the
+        # Class I evidence this module cites (CARE-HF) is a sinus-rhythm
+        # recommendation.  The rhythm was previously never read here, so a patient
+        # in permanent AF was told they met Class I CRT criteria.
+        rhythm_raw = patient_data.get("rhythm")
+        rhythm = str(rhythm_raw or "").lower()
+        rhythm_is_sinus = "sinus" in rhythm
+        rhythm_recorded = bool(rhythm.strip())
 
         if lvef <= self._CRT_EF_CUTOFF and nyha_eligible_crt and qrs_duration is not None:
             morphology = (qrs_morphology or "").upper()
@@ -2247,16 +2359,34 @@ class GDMTOptimizer:
                 crt_eligible = True
                 crt_class = "Class IIb, LOE B-NR"
 
-        if crt_eligible:
+        if crt_eligible and not rhythm_is_sinus:
+            morphology_str = qrs_morphology or "not specified"
+            if rhythm_recorded:
+                rhythm_note = (
+                    f"the recorded rhythm is '{rhythm_raw}', not sinus rhythm"
+                )
+            else:
+                rhythm_note = "the rhythm was not recorded"
+            recs.append(
+                f"DEVICE THERAPY - CRT: INDETERMINATE - LVEF {lvef}%, QRS {qrs_duration} ms "
+                f"({morphology_str}) and NYHA {nyha.value} would support {crt_class}, but "
+                f"{rhythm_note}. The class of recommendation cannot be asserted: the Class I "
+                f"evidence (CARE-HF) is a sinus-rhythm recommendation, and this module's own "
+                f"criteria table reads 'sinus rhythm preferred (AF with rate control may "
+                f"benefit)'. Establish the rhythm and refer for Heart Team discussion."
+            )
+            crt_eligible = False
+        elif crt_eligible:
             morphology_str = qrs_morphology or "not specified"
             recs.append(
                 f"DEVICE THERAPY - CRT ({crt_class}): Patient meets CRT criteria. "
-                f"LVEF {lvef}%, QRS {qrs_duration} ms ({morphology_str}), NYHA {nyha.value}. "
+                f"LVEF {lvef}%, QRS {qrs_duration} ms ({morphology_str}), NYHA {nyha.value}, "
+                f"sinus rhythm. "
                 f"CARE-HF: 36% mortality reduction. Greatest benefit with LBBB QRS >=150 ms."
             )
 
             # CRT-D if also ICD eligible
-            if icd_eligible:
+            if icd_confirmed:
                 recs.append(
                     f"DEVICE THERAPY - CRT-D ({crt_class}): Meets both ICD and CRT criteria. "
                     f"CRT-D preferred over CRT-P when ICD indication coexists. "
@@ -2399,7 +2529,9 @@ class GDMTOptimizer:
             )
 
         # Identify gaps
-        gaps = self._identify_gaps(ef_category, current_gdmt, contraindications)
+        gaps = self._identify_gaps(
+            ef_category, current_gdmt, contraindications, patient_data,
+        )
         rec.recommendations.extend(gaps)
 
         # For each missing pillar, recommend initiation
@@ -2420,13 +2552,133 @@ class GDMTOptimizer:
                     )
                 else:
                     plan = self._generate_titration_plan(med, patient_data)
-                    if plan.get("remaining_steps"):
+                    if plan.get("dose_not_recorded"):
+                        rec.next_steps.append(f"CANNOT TITRATE {med.drug_name}: {plan['plan']}")
+                    elif plan.get("remaining_steps"):
                         rec.next_steps.append(
                             f"TITRATE {med.drug_name}: {med.current_dose} -> "
                             f"{plan['target_dose']}. Next step: "
                             f"{plan['remaining_steps'][0]}. Interval: "
                             f"{plan['titration_interval']}."
                         )
+
+    @staticmethod
+    def _unrecorded(*fields: tuple) -> str:
+        """Name the fields among *fields* that were not supplied.
+
+        Each item is ``(value, label)``.  Returns a human-readable phrase naming
+        every ``None`` value, or ``""`` when all were supplied.  Used so that an
+        absent lab or vital produces an explicit indeterminate result naming what
+        is missing, rather than passing a guard written as
+        ``if value is not None and value < threshold``.
+        """
+        names = [label for value, label in fields if value is None]
+        if not names:
+            return ""
+        if len(names) == 1:
+            return f"{names[0]} was"
+        return f"{', '.join(names[:-1])} and {names[-1]} were"
+
+    # ENTRESTO (sacubitril/valsartan) FDA-approved labeling, DailyMed setid
+    # 000dc81d-ab91-450c-8eae-8eb74e72296f.
+    _ARNI_USUAL_START = "49/51 mg BID"   # label 2.2
+    _ARNI_HALVED_START = "24/26 mg BID"  # label 2.6-2.8
+    _ARNI_LOW_DOSE_RAASI_RATIO = 0.5
+    _ARNI_EGFR_HALVING_THRESHOLD = 30.0  # label 2.7, mL/min/1.73m2
+
+    def _arni_starting_dose(
+        self,
+        rec: GDMTRecommendation,
+        patient_data: Dict[str, Any],
+        egfr: Optional[float],
+    ) -> tuple:
+        """Choose the sacubitril/valsartan starting dose from the FDA label.
+
+        Primary source: ENTRESTO FDA-approved labeling (DailyMed setid
+        000dc81d-ab91-450c-8eae-8eb74e72296f).  Section 2.2: "The recommended
+        starting dose of ENTRESTO is 49/51 mg orally twice-daily", doubled after
+        2 to 4 weeks to the target 97/103 mg twice daily.  Section 2.6: for
+        patients "not currently taking an ACE inhibitor or ARB, or previously
+        taking low doses of these agents", "start ENTRESTO at half the usually
+        recommended starting dose".  Section 2.7 applies the same halving for
+        eGFR <30 mL/min/1.73 m2 and section 2.8 for moderate hepatic impairment
+        (Child-Pugh B).
+
+        Blood pressure is not a dosing criterion anywhere in section 2 of the
+        label.  This method replaces a systolic-BP test (``49/51 mg BID if
+        sbp >= 110``) that was taken from the PARADIGM-HF eligibility criteria in
+        section 14.1, and that doubled the label dose in exactly the RAASi-naive
+        and eGFR<30 patients the label halves it for.  Hypotension is handled
+        separately by the SBP guards in this method's caller.
+
+        Returns ``(dose_string, rationale)``.
+        """
+        raasi_med = next(
+            (m for m in rec.current_meds if m.pillar == GDMTPillar.ARNI_ACEI_ARB),
+            None,
+        )
+        return self._arni_starting_dose_for(raasi_med, patient_data, egfr)
+
+    def _arni_starting_dose_for(
+        self,
+        raasi_med: Optional[GDMTMedication],
+        patient_data: Dict[str, Any],
+        egfr: Optional[float],
+    ) -> tuple:
+        """`_arni_starting_dose` for an explicitly supplied current RAASi."""
+        halving_reasons: List[str] = []
+
+        if raasi_med is None:
+            halving_reasons.append(
+                "not currently taking an ACE inhibitor or ARB (label 2.6)"
+            )
+        elif not raasi_med.current_dose:
+            halving_reasons.append(
+                f"current {raasi_med.drug_name} dose not recorded, so "
+                f"'previously taking low doses' cannot be excluded (label 2.6)"
+            )
+        else:
+            current_mg = _parse_dose_mg(raasi_med.current_dose)
+            target_mg = _parse_dose_mg(raasi_med.target_dose or "")
+            if current_mg <= 0 or target_mg <= 0:
+                halving_reasons.append(
+                    f"current {raasi_med.drug_name} dose could not be interpreted, so "
+                    f"'previously taking low doses' cannot be excluded (label 2.6)"
+                )
+            elif current_mg / target_mg < self._ARNI_LOW_DOSE_RAASI_RATIO:
+                halving_reasons.append(
+                    f"previously taking a low dose of {raasi_med.drug_name} "
+                    f"({raasi_med.current_dose}, below half of target "
+                    f"{raasi_med.target_dose}) (label 2.6)"
+                )
+
+        if egfr is None:
+            halving_reasons.append(
+                "eGFR not recorded, so the <30 mL/min/1.73m2 criterion cannot be "
+                "excluded (label 2.7)"
+            )
+        elif egfr < self._ARNI_EGFR_HALVING_THRESHOLD:
+            halving_reasons.append(
+                f"eGFR {egfr} mL/min/1.73m2 below "
+                f"{self._ARNI_EGFR_HALVING_THRESHOLD:g} (label 2.7)"
+            )
+
+        hepatic = str(patient_data.get("hepatic_impairment") or "").lower()
+        if hepatic in ("moderate", "child-pugh b", "child_pugh_b", "child pugh b", "b"):
+            halving_reasons.append(
+                "moderate hepatic impairment, Child-Pugh B (label 2.8)"
+            )
+
+        if halving_reasons:
+            return (
+                self._ARNI_HALVED_START,
+                "half the usual starting dose per the ENTRESTO label: "
+                + "; ".join(halving_reasons),
+            )
+        return (
+            self._ARNI_USUAL_START,
+            "usual starting dose per ENTRESTO label 2.2; no label halving criterion applies",
+        )
 
     def _recommend_pillar_initiation(
         self,
@@ -2443,6 +2695,21 @@ class GDMTOptimizer:
         weight = patient_data.get("weight_kg")
 
         if pillar == GDMTPillar.BETA_BLOCKER:
+            # An absent vital is not a normal vital.  Before this guard, a request
+            # that carried no HR or BP at all got an unconditional
+            # "INITIATE BETA-BLOCKER" because every check was
+            # `if value is not None and value < threshold`.
+            unrecorded = self._unrecorded(
+                (hr, "resting heart rate"), (sbp, "systolic BP"),
+            )
+            if unrecorded:
+                rec.recommendations.append(
+                    f"BETA-BLOCKER: INDETERMINATE - cannot confirm initiation safety "
+                    f"because {unrecorded} not recorded. Obtain before starting; "
+                    f"an unrecorded value is not a normal value."
+                )
+                return
+
             # Check haemodynamic eligibility
             if hr is not None and hr < self._MIN_HR_FOR_BB:
                 rec.recommendations.append(
@@ -2465,6 +2732,20 @@ class GDMTOptimizer:
             )
 
         elif pillar == GDMTPillar.ARNI_ACEI_ARB:
+            # eGFR is needed for the label starting dose (ENTRESTO label 2.7) as
+            # well as the <20 caution; SBP for the hypotension guard.  Absence of
+            # either used to read as "fine to start at the full dose".
+            unrecorded = self._unrecorded(
+                (sbp, "systolic BP"), (egfr, "eGFR"),
+            )
+            if unrecorded:
+                rec.recommendations.append(
+                    f"ARNI/ACEi/ARB: INDETERMINATE - cannot confirm initiation safety or "
+                    f"select a starting dose because {unrecorded} not recorded. "
+                    f"Obtain before starting; an unrecorded value is not a normal value."
+                )
+                return
+
             if sbp is not None and sbp < self._MIN_SBP_FOR_RAAS:
                 rec.recommendations.append(
                     f"ARNI/ACEi/ARB: SBP {sbp} mmHg below {self._MIN_SBP_FOR_RAAS}. "
@@ -2489,17 +2770,20 @@ class GDMTOptimizer:
                     current_on_acei = True
                     break
 
+            starting, dose_rationale = self._arni_starting_dose(rec, patient_data, egfr)
+
             if current_on_acei:
                 rec.recommendations.append(
-                    "SWITCH TO ARNI: Currently on ACEi. Discontinue ACEi and wait "
-                    "36 hours before starting sacubitril/valsartan 24/26 mg BID "
-                    "(PARADIGM-HF: 20% CV death reduction vs enalapril). "
-                    "36-hour washout is mandatory to reduce angioedema risk."
+                    f"SWITCH TO ARNI: Currently on ACEi. Discontinue ACEi and wait "
+                    f"36 hours before starting sacubitril/valsartan {starting} "
+                    f"({dose_rationale}) "
+                    f"(PARADIGM-HF: 20% CV death reduction vs enalapril). "
+                    f"36-hour washout is mandatory to reduce angioedema risk."
                 )
             else:
-                starting = "49/51 mg BID" if (sbp and sbp >= 110) else "24/26 mg BID"
                 rec.recommendations.append(
                     f"INITIATE ARNI: Start sacubitril/valsartan {starting} "
+                    f"({dose_rationale}) "
                     f"(Class I, LOE A, PARADIGM-HF). Preferred over ACEi/ARB. "
                     f"Titrate every 2-4 weeks to target 97/103 mg BID. "
                     f"Monitor BP, K+, creatinine. "
@@ -2507,10 +2791,25 @@ class GDMTOptimizer:
                 )
 
         elif pillar == GDMTPillar.MRA:
+            # Spironolactone at an unmeasured K+ and an unmeasured eGFR is the
+            # combination that causes fatal hyperkalaemia; absence of the labs is
+            # not a reason to start it.
+            unrecorded = self._unrecorded(
+                (k, "serum potassium"), (egfr, "eGFR"),
+            )
+            if unrecorded:
+                rec.recommendations.append(
+                    f"MRA: INDETERMINATE - cannot confirm initiation safety because "
+                    f"{unrecorded} not recorded. MRA requires K+ <5.0 mEq/L and "
+                    f"eGFR >=30 mL/min/1.73m2 documented before initiation; "
+                    f"an unrecorded value is not a normal value."
+                )
+                return
+
             if k is not None and k > self._MAX_K_FOR_MRA:
                 rec.recommendations.append(
-                    f"MRA: K+ is {k} mEq/L (>={self._MAX_K_FOR_MRA}). "
-                    f"Defer MRA initiation until K+ <5.0. Address causes of hyperkalemia."
+                    f"MRA: K+ is {k} mEq/L (>{self._MAX_K_FOR_MRA}). "
+                    f"Defer MRA initiation until K+ <=5.0. Address causes of hyperkalemia."
                 )
                 return
 
@@ -2552,17 +2851,20 @@ class GDMTOptimizer:
     ) -> None:
         """Generate HFmrEF-specific recommendations.
 
-        SGLT2i is Class I.  Other GDMT pillars may be reasonable (Class IIb)
+        SGLT2i is Class 2a.  Other GDMT pillars may be reasonable (Class IIb)
         based on emerging evidence and clinical judgement.
         """
         rec.recommendations.append(
-            "HFmrEF MANAGEMENT (LVEF 41-49%): SGLT2i is Class I (DELIVER, "
+            f"HFmrEF MANAGEMENT (LVEF 41-49%): SGLT2i is {SGLT2I_CLASS_HFMREF_TEXT} (DELIVER, "
             "EMPEROR-Preserved included HFmrEF patients). Other GDMT pillars "
             "(beta-blocker, ARNI/ACEi/ARB, MRA) may be reasonable (Class IIb) "
             "based on clinical context - many patients with HFmrEF had prior HFrEF."
         )
 
-        gaps = self._identify_gaps(EjectionFractionCategory.HFmrEF, current_gdmt, contraindications)
+        gaps = self._identify_gaps(
+            EjectionFractionCategory.HFmrEF, current_gdmt, contraindications,
+            patient_data,
+        )
         rec.recommendations.extend(gaps)
 
         # Always recommend SGLT2i if not on it
@@ -2597,10 +2899,10 @@ class GDMTOptimizer:
     ) -> None:
         """Generate HFpEF-specific recommendations.
 
-        SGLT2i is Class I.  Management is otherwise heavily comorbidity-driven.
+        SGLT2i is Class 2a.  Management is otherwise heavily comorbidity-driven.
         """
         rec.recommendations.append(
-            "HFpEF MANAGEMENT (LVEF >=50%): SGLT2i is Class I (EMPEROR-Preserved, "
+            f"HFpEF MANAGEMENT (LVEF >=50%): SGLT2i is {SGLT2I_CLASS_HFPEF_TEXT} (EMPEROR-Preserved, "
             "DELIVER). Management otherwise focuses on diuretics for congestion "
             "and aggressive comorbidity treatment."
         )

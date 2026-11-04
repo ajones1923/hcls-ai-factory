@@ -474,9 +474,23 @@ class TestHFpEFTherapies:
         drugs = HFPEF_THERAPIES["sglt2i"]["drugs"]
         assert any("empagliflozin" in d for d in drugs)
 
-    def test_sglt2i_evidence_class_i(self):
+    def test_sglt2i_evidence_class_iia(self):
+        """SGLT2i in HFpEF is Class 2a, not Class 1.
+
+        This test previously asserted `GuidelineClass.CLASS_I`, certifying a
+        value that disagreed with the two other surfaces of this engine
+        (`HeartFailureWorkflow` and the `/gdmt/optimize` fallback both said
+        Class 2a) and with the guideline the module cites.  The 2022 AHA/ACC/HFSA
+        HF guideline recommends SGLT2i in HFmrEF and HFpEF at Class 2a -- the
+        ACC's summary of it quotes the guideline verbatim: "SGLT2i can also be
+        beneficial in patients with HFmrEF and HFpEF (Class of Recommendation
+        2a)".  Class 1 versus 2a is "should" versus "is reasonable" at the point
+        of care, so the test is corrected rather than removed.  Source and
+        provenance: src/hf_thresholds.py.
+        """
         evidence = HFPEF_THERAPIES["sglt2i"]["evidence"]
-        assert evidence["class"] == GuidelineClass.CLASS_I
+        assert evidence["class"] == GuidelineClass.CLASS_IIA
+        assert evidence["class"] != GuidelineClass.CLASS_I
 
     def test_sglt2i_key_trials(self):
         trials = HFPEF_THERAPIES["sglt2i"]["key_trials"]
@@ -625,9 +639,15 @@ class TestOptimizeMethod:
                 "egfr": 60.0,
             },
         )
-        all_text = " ".join(result.recommendations + result.next_steps).lower()
-        # Should mention potassium or caution about MRA
-        assert "potassium" in all_text or "mra" in all_text or "hyperkalemia" in all_text
+        all_text = " ".join(result.recommendations + result.next_steps)
+        # This used to assert `"potassium" in text or "mra" in text or
+        # "hyperkalemia" in text`, which the HFrEF banner emitted on EVERY run
+        # satisfies because it contains "MRA".  The assertion passed at K+ 9.9,
+        # and passed with no potassium supplied at all while the MRA was
+        # actually initiated.  Assert on the decision instead.
+        assert "INITIATE MRA" not in all_text
+        assert "Defer MRA initiation" in all_text
+        assert "K+ is 5.3 mEq/L" in all_text
 
     def test_low_egfr_impacts_recommendations(self):
         result = self.optimizer.optimize(
@@ -640,8 +660,14 @@ class TestOptimizeMethod:
                 "egfr": 25.0,
             },
         )
-        all_text = " ".join(result.recommendations + result.next_steps).lower()
-        assert "renal" in all_text or "egfr" in all_text or "creatinine" in all_text
+        all_text = " ".join(result.recommendations + result.next_steps)
+        # This used to assert `"renal"/"egfr"/"creatinine"`, which the SGLT2i
+        # monitoring line always mentions, so it passed at eGFR 95.  At eGFR 25
+        # the MRA is contraindicated (eGFR <30) and that is the decision under
+        # test.
+        assert "INITIATE MRA" not in all_text
+        assert "MRA contraindicated due to high hyperkalemia risk" in all_text
+        assert "eGFR 25.0 mL/min/1.73m2 < 30.0" in all_text
 
     def test_hfref_device_therapy_assessment(self):
         """With LVEF <=35% and NYHA III, ICD should be considered."""
@@ -658,10 +684,18 @@ class TestOptimizeMethod:
                 "sbp": 110.0, "hr": 65,
                 "potassium": 4.2, "egfr": 55.0,
                 "days_on_gdmt": 100,
+                "days_post_mi": 400,
+                "expected_survival_years": 5,
             },
         )
-        all_text = " ".join(result.recommendations).lower()
-        assert "icd" in all_text or "device" in all_text or "defibrillator" in all_text
+        all_text = " ".join(result.recommendations)
+        # This used to assert `"icd"/"device"/"defibrillator"`, which the
+        # "DEVICE THERAPY - ICD: Not currently eligible" message also satisfies,
+        # so it passed for an ICD-INELIGIBLE patient.  Assert the Class I
+        # statement itself, with every waiting period documented.
+        assert "DEVICE THERAPY - ICD (Class I, LOE A)" in all_text
+        assert "Patient meets primary prevention ICD criteria" in all_text
+        assert "Not currently eligible" not in all_text
 
 
 # ===================================================================
@@ -834,8 +868,13 @@ class TestSafetyCriticalFixes:
                 "egfr": 60.0,
             },
         )
-        all_text = " ".join(result.recommendations + result.next_steps).lower()
-        assert "potassium" in all_text or "hyperkalemia" in all_text or "mra" in all_text
+        all_text = " ".join(result.recommendations + result.next_steps)
+        # Same vacuity as `test_high_potassium_mra_concern`: the HFrEF banner
+        # contains "MRA", so the old disjunction passed at any potassium and
+        # with the MRA initiated.  Assert the decision.
+        assert "INITIATE MRA" not in all_text
+        assert "Defer MRA initiation" in all_text
+        assert "K+ is 5.1 mEq/L" in all_text
 
     # -- Candesartan in drug database --
 
