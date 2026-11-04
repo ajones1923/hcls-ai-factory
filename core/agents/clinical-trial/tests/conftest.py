@@ -12,3 +12,14 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
+
+
+def pytest_configure(config):
+    """Register custom markers."""
+    config.addinivalue_line(
+        "markers",
+        "network: test reaches an external registry or API. Skips (never "
+        "fails) when the host is unreachable, so an offline build stays "
+        "green, but fails on a genuinely wrong answer. Deselect with "
+        "-m 'not network'.",
+    )

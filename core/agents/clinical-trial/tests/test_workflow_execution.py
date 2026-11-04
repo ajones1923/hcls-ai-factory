@@ -165,7 +165,10 @@ class TestPatientMatchingExecution:
             if "no trials" in f.lower() or "no matching" in f.lower()
         ]
         assert len(matching_findings) >= 1
-        assert result.confidence == 0.0
+        # CORRECTED ASSERTION: with no trials to match, confidence is not
+        # computable, which is None. A reported 0.0 reads as a measured
+        # zero-confidence assessment rather than as no assessment at all.
+        assert result.confidence is None
 
 
 # ===================================================================
