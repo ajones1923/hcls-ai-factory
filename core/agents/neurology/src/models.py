@@ -630,6 +630,28 @@ class ScaleResult(BaseModel):
         default_factory=list,
         description="Clinical recommendations based on score",
     )
+    # -- data completeness ------------------------------------------------
+    # A scale total computed from a partial exam is not the patient's score, and several
+    # calculators used to hide that by substituting a value for every unrecorded item
+    # (ALSFRS-R substituted 4 = normal, NIHSS substituted 0 = no deficit, HIT-6 padded with
+    # "never"). The score alone cannot carry that caveat, so it is carried here and every
+    # surface that prints a score is expected to print `complete`/`warnings` with it.
+    items_scored: Optional[int] = Field(
+        default=None,
+        description="Number of scale items actually recorded (None = not tracked)",
+    )
+    items_expected: Optional[int] = Field(
+        default=None,
+        description="Number of items the instrument requires for a valid total",
+    )
+    complete: bool = Field(
+        default=True,
+        description="False when the total was computed from an incomplete instrument",
+    )
+    warnings: List[str] = Field(
+        default_factory=list,
+        description="Data-quality problems: missing items, unrecognized keys, out-of-range values",
+    )
 
 
 class WorkflowResult(BaseModel):
