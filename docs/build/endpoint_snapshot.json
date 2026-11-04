@@ -1,0 +1,165 @@
+{
+ "host": "spark-6c0f",
+ "measured_at": "2026-11-04T21:28:02+00:00",
+ "results": {
+  "cardiology-intelligence-agent": {
+   "detail": "[Errno 111] Connection refused",
+   "endpoint": "localhost:8126",
+   "how": "tcp",
+   "reachable": false
+  },
+  "cart-intelligence-agent": {
+   "detail": "[Errno 111] Connection refused",
+   "endpoint": "localhost:8521",
+   "how": "tcp",
+   "reachable": false
+  },
+  "chemprop-admet": {
+   "endpoint": "localhost:8572",
+   "how": "http",
+   "path": "/health",
+   "reachable": true,
+   "status": 200
+  },
+  "clinical-trial-intelligence-agent": {
+   "detail": "[Errno 111] Connection refused",
+   "endpoint": "localhost:8538",
+   "how": "tcp",
+   "reachable": false
+  },
+  "esm2-search": {
+   "endpoint": "localhost:8571",
+   "how": "http",
+   "path": "/health",
+   "reachable": true,
+   "status": 200
+  },
+  "esmfold-model": {
+   "endpoint": "localhost:8570",
+   "how": "http",
+   "path": "/health",
+   "reachable": true,
+   "status": 200
+  },
+  "genomics-engine": {
+   "endpoint": "localhost:5000",
+   "how": "http",
+   "path": "/health",
+   "reachable": true,
+   "status": 200
+  },
+  "imaging-intelligence-agent": {
+   "detail": "[Errno 111] Connection refused",
+   "endpoint": "localhost:8523",
+   "how": "tcp",
+   "reachable": false
+  },
+  "molecule-generator": {
+   "endpoint": "localhost:8574",
+   "how": "http",
+   "path": "/health",
+   "reachable": true,
+   "status": 200
+  },
+  "monitoring": {
+   "endpoint": "localhost:3000",
+   "how": "http",
+   "path": "/health",
+   "reachable": true,
+   "status": 200
+  },
+  "neurology-intelligence-agent": {
+   "endpoint": "localhost:8535",
+   "how": "http",
+   "path": "/health",
+   "reachable": true,
+   "status": 200
+  },
+  "pharmacogenomics-intelligence-agent": {
+   "detail": "[Errno 111] Connection refused",
+   "endpoint": "localhost:8507",
+   "how": "tcp",
+   "reachable": false
+  },
+  "precision-autoimmune-agent": {
+   "detail": "[Errno 111] Connection refused",
+   "endpoint": "localhost:8531",
+   "how": "tcp",
+   "reachable": false
+  },
+  "precision-biomarker-agent": {
+   "endpoint": "localhost:8528",
+   "how": "http",
+   "path": "/health",
+   "reachable": true,
+   "status": 200
+  },
+  "precision-intelligence-engine": {
+   "endpoint": "localhost:5001",
+   "how": "http",
+   "path": "/health",
+   "reachable": true,
+   "status": 200
+  },
+  "precision-oncology-agent": {
+   "detail": "[Errno 111] Connection refused",
+   "endpoint": "localhost:8526",
+   "how": "tcp",
+   "reachable": false
+  },
+  "proteinmpnn-design": {
+   "endpoint": "localhost:8578",
+   "how": "http",
+   "path": "/health",
+   "reachable": true,
+   "status": 200
+  },
+  "rare-disease-diagnostic-agent": {
+   "detail": "[Errno 111] Connection refused",
+   "endpoint": "localhost:8544",
+   "how": "tcp",
+   "reachable": false
+  },
+  "single-cell-intelligence-agent": {
+   "detail": "[Errno 111] Connection refused",
+   "endpoint": "localhost:8540",
+   "how": "tcp",
+   "reachable": false
+  },
+  "singlecell-compute": {
+   "endpoint": "localhost:8573",
+   "how": "http",
+   "path": "/health",
+   "reachable": true,
+   "status": 200
+  },
+  "therapeutic-discovery-engine": {
+   "endpoint": "localhost:8505",
+   "how": "http",
+   "path": "/health",
+   "reachable": true,
+   "status": 200
+  },
+  "tuberous-sclerosis-engine": {
+   "endpoint": "localhost:8560",
+   "how": "http",
+   "path": "/health",
+   "reachable": true,
+   "status": 200
+  },
+  "variant-store": {
+   "endpoint": "localhost:8575",
+   "how": "http",
+   "path": "/health",
+   "reachable": true,
+   "status": 200
+  },
+  "vector-db": {
+   "endpoint": "localhost:19530",
+   "how": "http",
+   "path": "/health",
+   "reachable": true,
+   "status": 404
+  }
+ }
+}

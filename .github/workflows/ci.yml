@@ -150,6 +150,24 @@ jobs:
       - name: Corpus-coverage ratchet
         run: .venv/bin/python scripts/check_corpus_ratchet.py --enforce
 
+      # Endpoint ratchet -- check 1 of the claim-integrity rubric: a capability registered
+      # `live` answers on the port the registry advertises. On 2026-11-03 nine did not, and
+      # nothing here could notice: test_supervisor_covers_live_ports.py checks that a
+      # capability is SUPERVISED, which a crash-looping service also is.
+      #
+      # Snapshot-based for the same reason as the corpus ratchet -- there is no running
+      # instance on this runner. The registry is still read from the source tree, so a
+      # capability flipped to `live`, or an endpoint edited, fails here with no probe record.
+      # Refresh on the box and commit:
+      #   .venv/bin/python scripts/probe_live_endpoints.py --write
+      #
+      # It is a RATCHET because nine capabilities are unserved today: v2.2.0 is released and
+      # the box still runs September code. Those nine are recorded in endpoint_baseline.json
+      # as dated, explained debt. A gate that fails on day one is switched off on day two.
+      # After the deploy, --update-baseline and this becomes absolute.
+      - name: Endpoint ratchet
+        run: .venv/bin/python scripts/check_endpoints.py --enforce
+
   registry:
     name: Capability registry validation
     runs-on: ubuntu-latest
