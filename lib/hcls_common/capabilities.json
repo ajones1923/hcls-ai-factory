@@ -217,6 +217,7 @@
       "api_endpoint": "localhost:8527",
       "serving": "native",
       "status": "live",
+      "maturity": "research-use",
       "tags": [
         "engine",
         "oncology"
@@ -287,6 +288,7 @@
       "api_endpoint": "localhost:8529",
       "serving": "native",
       "status": "live",
+      "maturity": "research-use",
       "tags": [
         "agent",
         "biomarker"
@@ -497,6 +499,7 @@
       "api_endpoint": "localhost:8524",
       "serving": "native",
       "status": "live",
+      "maturity": "research-use",
       "tags": [
         "engine",
         "imaging"
@@ -594,6 +597,7 @@
       "endpoint": "localhost:8560",
       "serving": "container",
       "status": "live",
+      "maturity": "research-use",
       "tags": [
         "engine",
         "tsc",
@@ -1081,7 +1085,7 @@
       "serving": "none",
       "gpu": false,
       "status": "live",
-      "maturity": "verified",
+      "maturity": "research-use",
       "tags": [
         "E1",
         "acmg",

@@ -201,3 +201,85 @@ The three with no weight table are the remaining gap in this mechanism. Two of t
 disclose; precision-autoimmune has seven empty of thirteen, **three of which are the
 patient-level collections in §4 that no public source can fill** — so its coverage number would
 be a standing report of a decision not yet made rather than a data gap.
+
+---
+
+## Correction to §0, 2026-11-04: the cardiology seeder could never have worked
+
+§0 above says cardiology "needs `scripts/setup_collections.py` run, then seeding." The first half
+is done — **all twelve `cardio_*` collections now exist** in the live instance, created and
+indexed (IVF_FLAT, nlist=128), verified by `--verify`. The second half was wrong:
+`scripts/seed_knowledge.py` **cannot seed them**, and reported success while writing nothing.
+
+Running it wrote **0 rows** and logged `Total records: 392 | Failed: 0`. Four independent
+defects, found in that order:
+
+1. **`_insert_records` reported success on every failure.** Five paths — pymilvus missing,
+   sentence-transformers missing, connection failed, embedding failed, insert raised — each
+   ended in `return len(records)`. The function was structurally incapable of reporting a
+   failure, which is why `Failed: 0` was guaranteed rather than observed. **Fixed:** every path
+   returns 0 and names what was lost.
+2. **The vector column was hard-coded as `vector`.** `setup_collections.py` builds and indexes
+   every `cardio_*` collection with its embedding field named `embedding`, so every insert into
+   a collection that *did* exist was rejected. **Fixed:** the field is read from
+   `describe_collection` instead of assumed.
+3. **Four seed targets are not declared collections.** `cardio_conditions` (45 records),
+   `cardio_biomarkers` (29), `cardio_drug_classes` (32) and `cardio_genes` (56) appear in
+   `seed_knowledge.py` and in `setup_collections.py`'s **docstring**, but not in
+   `ALL_COLLECTIONS`, which is the authority. 162 curated records have no home. **Not fixed —
+   this is a decision**, see below.
+4. **The parsers return `IngestRecord` dataclasses, not dicts**, so `r.get(text_field)` raises
+   for all six collections that do exist. **Fixed:** the seeder no longer inserts. It routes
+   through `hcls_common.ingest_persist.persist_records`, which exists precisely to project a
+   record onto whatever schema a collection declares. Re-deriving those rules in the seeder is
+   how the divergence happened the first time.
+
+   `persist_records` needed one fix of its own to accept these collections: **all twelve
+   `cardio_*` collections declare `auto_id=True`**, and it was supplying a content-derived
+   primary key, which Milvus rejects — the whole batch. It now reads `auto_id` from the schema,
+   omits the key, and `insert`s rather than `upsert`s, because there is no key to match on.
+   The consequence is honest and stated in the log: **an auto_id collection cannot have an
+   idempotent re-ingest.** A second run appends. The seeder therefore refuses to seed a
+   collection that already holds rows unless `--force`.
+
+5. **The `Failed: 0` counter counted only seed functions that raised**, so a run where
+   everything was rejected still printed zero. **Fixed:** outcomes are attributed per
+   collection as written / skipped / failed, the process exit code carries it (a skip is not
+   a failure; storing nothing you were given is), and `--dry-run` for imaging reported 15
+   where the real run writes 54, because it counted modalities rather than records.
+
+### Result, 2026-11-04 20:42Z
+
+**230 of the 392 records are in Milvus**, matching the dry-run intent for all six declared
+targets exactly: `cardio_imaging` 54, `cardio_guidelines` 63, `cardio_trials` 39,
+`cardio_devices` 29, `cardio_electrophysiology` 25, `cardio_hemodynamics` 20. Cardiology's
+twelve workflows moved from **2% coverage to 47–57%**, and the platform mean from 47% to 56%
+(4,764 → 4,994 rows). Every write is recorded in `docs/build/corpus_provenance.jsonl`; the six
+pre-ledger writes are backfilled there from measured `row_count`, and the entries say so.
+
+The remaining 162 are the four undeclared targets below, which now fail loudly instead of
+silently.
+
+### The three-way divergence, which is the decision
+
+| Source | Names |
+|---|---|
+| `setup_collections.py` docstring | `cardio_conditions`, `_biomarkers`, `_drug_classes`, `_genes`, `_ecg`, `_pubmed` … |
+| `ALL_COLLECTIONS` (`src/vector_collections.py`) — **authoritative** | `_electrophysiology`, `_literature`, `_heart_failure`, `_valvular`, `_prevention`, `_interventional`, `_oncology`, `_imaging`, `_guidelines`, `_devices`, `_hemodynamics`, `_trials` |
+| `seed_knowledge.py` targets | a third set, overlapping both |
+
+The docstring says `cardio_ecg` where the code says `cardio_electrophysiology`, and
+`cardio_pubmed` where the code says `cardio_literature`. **Whether cardiology's corpus should
+include conditions / biomarkers / drug_classes / genes is a design call, not a bug fix**: adding
+four collections changes the weight map, which changes every cardiology workflow's coverage
+denominator. Mapping those 162 records onto existing collections instead is equally defensible.
+That belongs to the platform owner, the same standing as an open `CLINICAL_REVIEW` entry.
+
+**What this corrects about the 2% figure.** Cardiology's coverage was never "unseeded pending a
+script run". The script existed, ran, reported success, and wrote nothing — so the gap was
+invisible from the only tool an operator would have used to check it.
+
+**Also still open:** `setup_collections.py`'s docstring is the only place `cardio_ecg` and
+`cardio_pubmed` are named. It is left as-is deliberately until the decision above is made,
+because correcting it to match `ALL_COLLECTIONS` would also quietly erase the record that four
+seed targets were ever intended to exist.

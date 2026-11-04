@@ -14,7 +14,13 @@ from __future__ import annotations
 import numpy as np
 
 _PRIOR: tuple[float, float] | None = None
-_PUBLISHED_FALLBACK = (0.026, 1e-4)   # ~3 mm/yr growing SEGA, modest prior variance
+
+# 0.026 cm/month (~3 mm/yr) for a growing SEGA. The name said _PUBLISHED_ and no publication
+# was named; it is an assumed figure, not a sourced one, and it is now recorded as open in
+# CLINICAL_REVIEW.md §5b. It is left at its current value deliberately: changing a clinical
+# constant requires a primary source, and lacking one is a reason to flag it, not to move it.
+_ASSUMED_FALLBACK = (0.026, 1e-4)
+_PUBLISHED_FALLBACK = _ASSUMED_FALLBACK   # back-compat for importers
 
 
 def _synthetic_nhd(seed: int = 7):
@@ -48,7 +54,7 @@ def population_prior() -> tuple[float, float] | None:
         var = float(res.bse["month"]) ** 2
         _PRIOR = (slope, max(var, 1e-6))
     except Exception:
-        _PRIOR = _PUBLISHED_FALLBACK
+        _PRIOR = _ASSUMED_FALLBACK
     return _PRIOR
 
 

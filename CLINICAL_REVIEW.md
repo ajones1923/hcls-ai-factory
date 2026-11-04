@@ -329,6 +329,34 @@ is guessable from a guideline PDF:
   (doi:10.1016/j.pediatrneurol.2021.07.011 — title confirmed via Crossref), and the 2012
   management recommendations it builds on.
 
+## 5b. Tuberous sclerosis — five more uncited constants, found by the claim-integrity review
+
+Opened 2026-11-04 by the per-subject review of `tuberous-sclerosis` (check 4). §5 above covers
+the SEGA 1.8 cm and AML 4.0 cm thresholds and the surveillance cadence. These five are in the
+same tree, carry the same clinical weight, and were not recorded anywhere.
+
+| Value | Where | Question |
+|---|---|---|
+| SEGA growth slope **0.026 cm/month** (~3 mm/yr) | `trajectory_modeler/population.py` | The constant the whole trajectory prior rests on. Its name said `_PUBLISHED_FALLBACK` and no publication was named. Renamed `_ASSUMED_FALLBACK` pending a source |
+| eGFR threshold **60.0** mL/min/1.73m² | `config/trajectory_config.yaml` | Matches KDIGO CKD stage G3a, but nothing in the file says so. Confirm and cite |
+| Seizure frequency threshold **15.0 / month** | `config/trajectory_config.yaml` | No basis found. This fires a crossing alert; what guideline, if any, puts the line here? |
+| Surveillance cadence multipliers **0.5 / 0.75 / 1.0**, floor **3 months** | `config/trajectory_config.yaml` | Shortens a real surveillance interval by up to half on a model-predicted crossing. Is a halved interval defensible, and is a 3-month floor the right clamp? |
+| Mosaic VAF ceiling **0.30** | `variant_curator/runner.py` | Mosaicism call boundary. `src/eval/harness.py` separately uses `STANDARD_VAF_LIMIT = 0.10`; confirm the two are answering different questions |
+
+**None of these were changed.** A clinical value moves only with a primary source cited in a
+code comment, and there is none for any of them yet.
+
+- **Settle with:** Northrup et al. 2021 (as §5) for surveillance and thresholds; KDIGO 2024
+  CKD guideline for the eGFR boundary; for the SEGA growth rate, the TSC Alliance Natural
+  History Database publications, or the EXIST-1/EXIST-2 placebo arms, which are the obvious
+  published sources for untreated SEGA growth.
+
+**Related, and not a clinical question:** the trajectory prior reported itself as an "NHD
+mixed-effects" fit with `population_informed: true`, while being fitted to 24 simulated
+patients generated from the 0.026 constant above. That was a false claim rather than a wrong
+value, so it was fixed immediately rather than recorded here — see
+`tests/unit/test_trajectory_prior_is_honest.py`. The constant itself stays open, above.
+
 ## 6. Tuberous sclerosis — ACMG criteria application
 
 `src/variant_curator/annotation.py`: PVS1 is downgraded for low VAF, and PS1 is used for "same
@@ -543,6 +571,35 @@ Any remaining per-entry resolution/method/ligand claims in
 `core/agents/precision-biomarker/app/protein_viewer.py` and the gene→PDB mappings in
 `core/engines/precision-intelligence/src/knowledge.py` should be checked the same way, one
 entry at a time, against https://data.rcsb.org/rest/v1/core/entry/<ID>.
+
+## 9b. Therapeutic discovery — the drug-likeness filter deviates from Lipinski, unexplained
+
+Opened 2026-11-04 by the per-subject review of `therapeutic-discovery` (check 4). These decide
+which generated molecules pass QC and reach the report, so they shape the output set.
+
+| Value | Where | Question |
+|---|---|---|
+| `max_mw = 550` | `src/models.py` | Lipinski's Rule of Five is **MW ≤ 500**. 550 is a common lead-like relaxation, but nothing in the repo says that is the intent or cites the source for the looser bound |
+| `max_logp = 5.0` | `src/models.py` | Matches Ro5. Uncited, but canonical — confirm and cite alongside the above |
+| `max_lipinski_violations = 1` | `src/models.py` | Allowing one violation is conventional practice; no source given |
+
+**Not a defect in the computation.** MW, logP, HBD, HBA, TPSA and QED all come from RDKit
+descriptors on the parsed molecule, and since the v2.2.0 remediation the pipeline refuses to
+mark anything as having passed drug-likeness QC when RDKit is unavailable rather than
+substituting a default. What is missing is the basis for the three cut-offs themselves.
+
+**Not changed.** Moving a filter threshold changes which molecules reach the report.
+
+- **Settle with:** Lipinski et al., *Experimental and computational approaches to estimate
+  solubility and permeability in drug discovery and development settings*, Adv Drug Deliv Rev
+  1997 (the Ro5 original), and whichever lead-likeness reference the 550 bound was taken from
+  — Teague et al. 1999 or Congreve et al. 2003 are the usual ones.
+
+**Checked and fine, recorded so it is not re-reviewed:** the composite ranking weights
+(0.4 docking / 0.3 generation / 0.3 QED) are a ranking policy rather than a scientific
+constant, and the binding-energy normalisation `-score / 12.0` carries its rationale inline.
+When QED is unavailable the composite drops the term and renormalises instead of scoring a
+constant, which is the correct behaviour and is what a prior pass fixed.
 
 ## 10. TSC corpus — prevalence figures in the TAND entries
 

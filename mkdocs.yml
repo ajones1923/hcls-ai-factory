@@ -120,6 +120,7 @@ nav:
   - Honesty & Governance:
       - Overview: honesty/index.md
       - Maturity Matrix: honesty/maturity-matrix.md
+      - Claim Integrity Review: honesty/claim-integrity.md
       - Honesty Ledger: honesty/ledger.md
       - Decision-Support Posture: honesty/decision-support.md
       - Citations & Evidence: honesty/citations.md

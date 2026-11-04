@@ -69,7 +69,7 @@ jobs:
     # needs CUDA -- and it is skipped here, because it is guarded by skipif on
     # vendor_proteinmpnn/ which is not tracked in git.
     #
-    # Expected as of 2026-11-04 (PR #160): 10,225 passed, 0 failed, 0 errors,
+    # Expected as of 2026-11-04 (PR #162): 10,236 passed, 0 failed, 0 errors,
     # 223 skipped -- identical to a developer box with Milvus and RDKit up, which is the
     # point: the runner and the box agreeing is the only evidence that a pass means the
     # code works rather than that the machine happened to have something installed. The
@@ -133,6 +133,40 @@ jobs:
       # subject may fall below its recorded baseline.
       - name: Test-depth ratchet
         run: .venv/bin/python scripts/check_test_depth.py /tmp/subject_tests.json --enforce
+
+      # Corpus-coverage ratchet. The first honest measurement of retrieval, on 2026-11-04, was
+      # that 56 of 70 workflows retrieve from under 75% of the evidence they declare, at a mean
+      # of 47%. Seeding fixes that once; this is what stops it drifting back.
+      #
+      # It reads docs/build/corpus_snapshot.json rather than querying Milvus, because there is
+      # no Milvus on this runner and a gate that cannot run where the merge happens is not a
+      # gate. The weight tables still come from the subject source trees, so this step does
+      # catch what a code change can break -- a boost edited, a collection dropped from a map.
+      # Refresh the snapshot on the box and commit it:
+      #   .venv/bin/python scripts/check_corpus_weights.py \
+      #       --write-snapshot docs/build/corpus_snapshot.json
+      # A snapshot older than 45 days FAILS: one frozen while everything was green would
+      # otherwise certify a corpus nobody has looked at since.
+      - name: Corpus-coverage ratchet
+        run: .venv/bin/python scripts/check_corpus_ratchet.py --enforce
+
+      # Endpoint ratchet -- check 1 of the claim-integrity rubric: a capability registered
+      # `live` answers on the port the registry advertises. On 2026-11-03 nine did not, and
+      # nothing here could notice: test_supervisor_covers_live_ports.py checks that a
+      # capability is SUPERVISED, which a crash-looping service also is.
+      #
+      # Snapshot-based for the same reason as the corpus ratchet -- there is no running
+      # instance on this runner. The registry is still read from the source tree, so a
+      # capability flipped to `live`, or an endpoint edited, fails here with no probe record.
+      # Refresh on the box and commit:
+      #   .venv/bin/python scripts/probe_live_endpoints.py --write
+      #
+      # It is a RATCHET because nine capabilities are unserved today: v2.2.0 is released and
+      # the box still runs September code. Those nine are recorded in endpoint_baseline.json
+      # as dated, explained debt. A gate that fails on day one is switched off on day two.
+      # After the deploy, --update-baseline and this becomes absolute.
+      - name: Endpoint ratchet
+        run: .venv/bin/python scripts/check_endpoints.py --enforce
 
   registry:
     name: Capability registry validation

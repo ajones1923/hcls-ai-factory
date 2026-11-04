@@ -1,0 +1,16 @@
+{
+ "known_down": [
+  "cardiology-intelligence-agent",
+  "cart-intelligence-agent",
+  "clinical-trial-intelligence-agent",
+  "imaging-intelligence-agent",
+  "pharmacogenomics-intelligence-agent",
+  "precision-autoimmune-agent",
+  "precision-oncology-agent",
+  "rare-disease-diagnostic-agent",
+  "single-cell-intelligence-agent"
+ ],
+ "note": "capabilities registered live that were NOT answering when recorded",
+ "reason": "v2.2.0 (a46716b) is tagged, released and NOT deployed: the box runs September code, in which these nine agents are not supervised by health-monitor.sh. Measured again 2026-11-04, same nine as 2026-11-03. Closed by deploying v2.2.0 and re-probing -- see the Claim Integrity Review PRD, phase P0. This list must shrink to zero; it may not grow without an entry here saying why.",
+ "recorded_from": "2026-11-04T21:28:02+00:00"
+}

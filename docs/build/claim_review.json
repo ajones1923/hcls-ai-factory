@@ -1,0 +1,103 @@
+{
+ "_comment": "Recorded answers to claim-integrity checks 2, 4 and 6, which cannot be measured by a script. Read by scripts/gen_maturity.py. Only PASS, FAIL and n/a count as answers; anything else leaves the check unanswered, because a reviewer who could not reach a verdict has not answered it. One entry per subject per check. Do not add a subject here without having read its code.",
+ "clinical-imaging": {
+  "2": {
+   "result": "PASS",
+   "date": "2026-11-04",
+   "reviewer": "claim-integrity review",
+   "evidence": "The workflow layer is the platform's best: `findings_provenance` is tri-valued (`measured` / `canned` / `canned_after_synthetic_forward_pass`), and `_marking_mock_inference` stamps every canned payload at the base class so a new workflow cannot forget -- the 2026-11-03 fix for workflows returning canned findings with `is_mock=False`. A workflow that raises now reports severity UNKNOWN instead of inheriting the ROUTINE default. Real inference lives in `dicom_analyzer.py` (chest X-ray, DenseNet-121, `is_mock: False`); the agent's reference workflows are constructed `mock_mode=True` and so always report canned, which matches the registry saying the CT path is placeholder. Traced the VILA-M3 and MAISI mock clients to the API: `is_mock` and `model` (\"vila-m3-mock\") both propagate into the response. NOTED WEAKNESS, not a failure: the fabricated numbers sit in real-named fields (`confidence`, `generation_time_ms`) rather than being renamed, which is the pattern therapeutic-discovery adopted after a dropped `_provenance` flag caused exactly this failure once."
+  },
+  "4": {
+   "result": "PASS",
+   "date": "2026-11-04",
+   "reviewer": "claim-integrity review",
+   "evidence": "The CAD-RADS constants carry inline attribution -- `OBSTRUCTIVE_PCT = 70.0` to CAD-RADS 2.0, `LEFT_MAIN_PCT = 50.0`, `HRP_MIN_FEATURES = 2` -- and the unsettled edges are already open: \u00a76c (HRP modifier, including that the primary Cury et al. 2022 table was not read for the change and the same-plaque qualifier is unimplemented), \u00a76d (two scoring edges the published charts do not define) and \u00a76f (ACR Lung-RADS v2022, no part-solid or non-solid table). The scheduler intervals are operational, not clinical. No uncited clinical constant found beyond what is recorded."
+  },
+  "6": {
+   "result": "FAIL",
+   "date": "2026-11-04",
+   "reviewer": "claim-integrity review",
+   "evidence": "`imaging-intelligence-agent` was `status: live` with NO maturity tier, while its own description said the CT path (VISTA-3D, VILA-M3) is \"planned/placeholder, not yet live\" and that MAISI is \"research/augmentation/QA only, never diagnostic\". The public matrix badges on tier where one exists and on serving status otherwise, so it rendered a flat `live` and the caveats never reached the badge. FIXED: now `maturity: research-use`; it remains `status: live`. The pattern is gated platform-wide by `tests/test_caveats_reach_the_badge.py`."
+  }
+ },
+ "therapeutic-discovery": {
+  "2": {
+   "result": "PASS",
+   "date": "2026-11-04",
+   "reviewer": "claim-integrity review",
+   "evidence": "The mock path is the strongest in the platform. `MockDiffDockClient` emits `score_type: \"mock_simulated\"` (which no ranking normalizer accepts), field names `simulated_score`/`simulated_confidence`, and stamps `_provenance: \"mock\"` plus a `_warning` on every pose; the invented contacts, RMSD and hydrogen-bond counts are gone. `assert_real()` IS wired in production at `pipeline.py:927` -- the report stage refuses unless `NIM_ALLOW_MOCK_FALLBACK=true`, and when opted in the artifact carries a MOCK notice naming how many poses were simulated. QED comes from RDKit; when it is unavailable the composite drops the term and renormalizes rather than substituting 0.5, which a prior pass fixed. Verified by reading, not assumed: an earlier pass of this review wrongly concluded the honesty helpers had no production caller -- a truncated grep -- and the code was right."
+  },
+  "4": {
+   "result": "FAIL",
+   "date": "2026-11-04",
+   "reviewer": "claim-integrity review",
+   "evidence": "The drug-likeness cut-offs carry no citation and one deviates from the canonical source without saying so: `max_mw = 550` against Lipinski's Rule of Five MW <= 500, plus `max_logp = 5.0` and `max_lipinski_violations = 1`. They decide which generated molecules pass QC and reach the report. Now open as `CLINICAL_REVIEW.md` \u00a79b; not changed, because moving a filter threshold changes the output set. The computation itself is sound -- all descriptors come from RDKit, and the pipeline refuses to mark QC passed when RDKit is missing."
+  },
+  "6": {
+   "result": "PASS",
+   "date": "2026-11-04",
+   "reviewer": "claim-integrity review",
+   "evidence": "The 2026-11-04 decision holds against the code. `therapeutic-discovery-engine` is `live` + `maturity: preclinical` with tags `rdkit`/`brics`/`stage3`, and RDKit chemistry and BRICS generation are real. MolMIM, DiffDock and GenMol are separately registered `planned` with no tier, and their mock clients cannot reach an artifact without an explicit env opt-in. `chemprop-admet` and `molecule-generator` are `live` + `verified`, both answering (:8572, :8574) and both stating their evidence in the entry."
+  }
+ },
+ "genomic-foundation": {
+  "2": {
+   "result": "PASS",
+   "date": "2026-11-04",
+   "reviewer": "claim-integrity review",
+   "evidence": "Traced every field of `/api/metrics` and every GPU tile to its source. No `random`, `hash()` or time-derived value survives: the only `hash(str(time.time()))` in the tree is the comment documenting its removal. `throughput_gb_hr` is modeled and says so three ways -- `throughput_is_modeled: true`, a `throughput_model` string, and the UI labels \"Estimated Throughput (modeled)\" plus \"Throughput (est.)\" in the header. The v2.2.0 NVML fix holds end to end: unmeasurable fields are null and render as `--`, while a true 0 is preserved as a reading, which the pre-v2.2.0 code got backwards. `gwas.py` reports separation/convergence failures as untestable rather than emitting a p-value."
+  },
+  "4": {
+   "result": "PASS",
+   "date": "2026-11-04",
+   "reviewer": "claim-integrity review",
+   "evidence": "`acmg_sf.py` is the worked example: the panel is cited to Miller et al., Genet Med 2023, carries `PANEL_VERSION`, and states in the module docstring that v3.3 supersedes v3.2 and that it must be validated before clinical use. `gwas.py` introduces no thresholds -- no genome-wide significance cutoff is hardcoded; callers supply `min_maf`. No uncited clinical constant found in `src/`."
+  },
+  "6": {
+   "result": "FAIL",
+   "date": "2026-11-04",
+   "reviewer": "claim-integrity review",
+   "evidence": "`acmg-secondary-findings` declared `maturity: verified` while its own description said the panel is a curated representation of ACMG SF v3.2, that ACMG has since published v3.3, and to \"validate panel vs official publication before clinical use\". Of the nine capabilities declaring `verified`, it was the only one whose description contradicted the tier -- and `verified` is rendered on the public site INSTEAD of the serving status. FIXED: now `research-use`. Pinned by `tests/test_verified_tier_is_earned.py` (2 of 5 fail against the prior commit). `variant-store` keeps `verified` and earns it: \"Verified on real HG002 PASS SNVs: Ts/Tv~2.0\". Noted, not failed: `genomics-engine` and `gwas-association` declare no tier, but neither description claims more than the code does."
+  }
+ },
+ "tuberous-sclerosis": {
+  "2": {
+   "result": "FAIL",
+   "date": "2026-11-04",
+   "reviewer": "claim-integrity review",
+   "evidence": "The Trajectory Modeler reported `method: \"population-prior shrinkage (NHD mixed-effects)\"` and `population_informed: true`, naming the TSC Alliance Natural History Database. The prior is fitted to `_synthetic_nhd()` -- 24 simulated patients whose slopes are drawn from a hardcoded 0.026 cm/month -- so the fit recovers 0.0249, the constant it was generated from, and does not converge cleanly. FIXED: the payload now says SYNTHETIC, `population_informed: false`, `prior_is_synthetic: true`; shrinkage arithmetic unchanged. Pinned by `tests/unit/test_trajectory_prior_is_honest.py` (3 of 6 fail against the prior commit). Recorded FAIL because the check records what the review found."
+  },
+  "4": {
+   "result": "FAIL",
+   "date": "2026-11-04",
+   "reviewer": "claim-integrity review",
+   "evidence": "Five clinical constants carry no primary source and were in no review record: SEGA growth 0.026 cm/month, eGFR 60.0, seizure frequency 15.0/month, surveillance cadence multipliers 0.5/0.75/1.0 with a 3-month floor, and mosaic VAF ceiling 0.30. Now open as `CLINICAL_REVIEW.md` \u00a75b. None were changed -- a clinical value moves only with a cited primary source. The 1.8 cm and 4.0 cm thresholds were already open as \u00a75, which is check 4 working as intended."
+  },
+  "6": {
+   "result": "FAIL",
+   "date": "2026-11-04",
+   "reviewer": "claim-integrity review",
+   "evidence": "`tuberous-sclerosis-engine` declared `status: live` and NO `maturity` tier, so the public maturity matrix badged the flagship disease program on serving status alone while its own description said the gene-therapy arm is preclinical. Same defect fixed for `therapeutic-discovery-engine` on 2026-11-04. FIXED: now `maturity: research-use`. The tier is orthogonal to serving -- it remains `status: live` and still answers on :8560."
+  }
+ },
+ "precision-oncology": {
+  "2": {
+   "result": "FAIL",
+   "date": "2026-11-04",
+   "reviewer": "claim-integrity review",
+   "evidence": "`OncoIntelligenceAgent.evaluate_evidence` graded retrieval as sufficient / partial / insufficient and the verdict was used for ONE thing: deciding whether to retry a broader search. Once the retry budget was spent the loop broke, synthesis ran regardless, and the grade reached a log line and nowhere else -- `AgentResponse` had no field for it and the report did not mention it, so an answer drawn from almost nothing was indistinguishable from one drawn from ample evidence. `RAGEngine.synthesize` has no empty-evidence guard either; the only thing between zero hits and a confident paragraph was a sentence in the prompt asking the model to notice. This engine ranks therapy. FIXED: `evidence_sufficiency` is now on `AgentResponse`, stated in the report header, and an `insufficient` verdict prefixes the answer itself. Grading logic unchanged. Pinned by `tests/test_evidence_verdict_reaches_the_caller.py` (all 5 fail against the prior commit). No fabricated values found: every `time.time()` is a real elapsed measurement and the one `hash()` is a Streamlit widget key."
+  },
+  "4": {
+   "result": "PASS",
+   "date": "2026-11-04",
+   "reviewer": "claim-integrity review",
+   "evidence": "The TMB thresholds are the model of how to do this: `TMB_H_LABEL_THRESHOLD = 13.0` cited to the KEYTRUDA label by setid and publication date, `TMB_H_TRIAL_THRESHOLD = 10.0` to the KEYNOTE-158 cohort cut-off, with a comment explaining that between the two the recommendation is reported but not as approved -- the previous code used >=10 and called it FDA-approved. The 51 per-gene evidence levels in `knowledge.py` are already declared unverified as `CLINICAL_REVIEW.md` \u00a722, with a 12-entry spot-check recorded. Remaining module constants are operational (page sizes, embedding dim)."
+  },
+  "6": {
+   "result": "FAIL",
+   "date": "2026-11-04",
+   "reviewer": "claim-integrity review",
+   "evidence": "`precision-oncology-agent` was `status: live` with no maturity tier, so the public matrix badged it a flat `live`. Its therapy ranking gates on `ACTIONABLE_TARGETS`, which `CLINICAL_REVIEW.md` \u00a722 records as never having been checked against a label or guideline, with a spot-check of the twelve highest-consequence entries finding several over-broad (EGFR listed for head and neck, colorectal and glioblastoma when all six drugs are NSCLC-only for an EGFR driver). A capability whose indication gate is declared unverified is not simply `live`. FIXED: now `maturity: research-use`; it remains `status: live` and still answers."
+  }
+ }
+}

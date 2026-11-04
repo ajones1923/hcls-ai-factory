@@ -231,6 +231,20 @@ class OncoIntelligenceAgent:
 
         # Attach plan and formatted report
         response.plan = plan
+        # Carry the evidence verdict to the caller. It used to end at the log line above,
+        # so an answer synthesized after the retry budget ran out looked exactly like one
+        # drawn from ample evidence.
+        response.evidence_sufficiency = verdict
+        if verdict == "insufficient":
+            # Say it in the answer itself, not only in a field. The prompt asks the model to
+            # note thin evidence, but an instruction to a model is not a guarantee, and this
+            # engine recommends therapy.
+            response.answer = (
+                "**Evidence was insufficient.** The retrieval returned too little to support "
+                "a confident answer, and the search was already broadened "
+                f"{self.MAX_RETRIES} time(s). Treat everything below as provisional and "
+                "verify against primary sources.\n\n" + response.answer
+            )
         response.report = self.generate_report(response)
 
         elapsed = time.time() - start
@@ -407,6 +421,9 @@ class OncoIntelligenceAgent:
         # Query section
         sections.append("## Query")
         sections.append(f"**Question:** {response.question}")
+        # The report is the artifact a reader keeps; the evidence verdict belongs in it,
+        # near the top, not only on the API object.
+        sections.append(f"**Evidence sufficiency:** {response.evidence_sufficiency}")
         sections.append("")
 
         # Analysis section
