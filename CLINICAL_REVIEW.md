@@ -13,6 +13,13 @@ by a clinician in the course of this work.
 cited in a comment next to the value, and delete the entry. If a value is confirmed correct,
 delete the entry and add the citation anyway — the next reader will ask the same question.
 
+**Prefer the maintained table over the guideline paper.** §3d is a correction that was correctly
+sourced to a 2019 guideline paper and still wrong, because the issuing body had since revised the
+table the paper printed. Where a body publishes a machine-readable table it maintains — CPIC
+serves allele function, diplotype-to-phenotype and drug recommendations as JSON at
+`api.cpicpgx.org` — cite **that**, with the retrieval date, and prefer checking a whole table
+exhaustively to spot-checking rows. "Checked against its source" has a shelf life.
+
 ---
 
 ## 1–2. EuroSCORE II — SETTLED 2026-11-03, four coefficients were wrong
@@ -110,7 +117,7 @@ where 0.25 vs 0.5 decides 2.25 against 2.5.
   `PhenotypeTranslator.ACTIVITY_SCORES` in `pgx_pipeline.py`, `_CYP2D6_ACTIVITY` in `dosing.py`
   — three copies of the same table, which is its own small problem.
 
-### 3c. NUDT15 — SETTLED 2026-11-03, a poor metabolizer was reported as intermediate
+### 3c. NUDT15 — SETTLED 2026-11-03, then PARTLY SUPERSEDED 2026-11-04 — see §3d
 
 Found by acting on §3a's observation that the allele tables exist in three copies: the two
 copies **disagreed**, and the one a clinician reads was the wrong one.
@@ -155,15 +162,156 @@ copies disagree about an allele they both define, with an allowlist of the asymm
 real. That is a guard, not a fix; the fix is one table, imported, and it belongs in its own
 change rather than riding along with a clinical correction.
 
-## 4. DPYD activity score 0.5 — phenotype and dose
+### 3d. NUDT15 again — SETTLED 2026-11-04, §3c was built on a superseded table
 
-`core/agents/pharmacogenomics/src/dosing.py` labels DPYD AS 0.5 Intermediate with a 50%
-reduction; `pgx_pipeline.py` calls the same score Deficient. The two disagree, so at least one
-is wrong regardless of which the guideline supports.
+§3c is right about `*2`, and the `.get(allele, 1.0)` removal it made is right. What it got wrong
+is the *source*, and the error it introduced is the same harm §3c was written to prevent,
+reached through a different door.
 
-- **Settle with:** the CPIC fluoropyrimidines/DPYD guideline dosing table (the guideline page
-  moved; find the current URL from cpicpgx.org/guidelines).
-- **Also:** DPYD HapB3 appears absent from the caller's allele set.
+§3c sourced `*4`–`*9` to **Relling 2019 Table 1**, which in 2018 designated them "unclear
+function", and so declared them unscoreable. **CPIC has since assigned them.** From CPIC's
+maintained allele-functionality table:
+
+| Allele | §3c treated as | CPIC current |
+|---|---|---|
+| `*4`, `*6`, `*7`, `*9` | uncertain → Indeterminate | **No function** |
+| `*5`, `*8` | uncertain → Indeterminate | **Decreased function** |
+
+and CPIC's diplotype table follows without ambiguity: `*1/*4` and `*1/*6` are **Intermediate**
+Metabolizers, `*2/*4`, `*3/*6` and `*6/*6` are **Poor** Metabolizers, and `*1/*5` and `*1/*8`
+are **Normal**. CPIC reserves Indeterminate for `*11`, `*12`, `*15`, `*16` and `*20`–`*23` —
+none of which were in §3c's set, and all of which the "not in the allele table" branch was
+already catching correctly.
+
+**The harm.** A 9-year-old of Han Chinese ancestry starting 6-mercaptopurine maintenance for ALL,
+NUDT15 `*3/*6` — a CPIC Poor Metabolizer — was told "No genotype-guided dose can be given …
+NUDT15 `*6` has uncertain function in CPIC's guideline … **dose on clinical grounds** with the
+standard CBC monitoring". For a thiopurine in a child that is a full weight-based dose, and what
+follows is profound, prolonged myelosuppression. `*1/*4` and `*1/*6`, Intermediate Metabolizers
+who should start reduced, got the same answer. The caveat text made it worse rather than better:
+it was *factually wrong* as of CPIC's current table, and it read as a confident justification for
+doing nothing.
+
+**The general lesson, and it applies to every table in this file.** A guideline paper and the
+table the issuing body maintains and republishes are different artefacts, and **for allele
+function the maintained table governs**. A value "checked against its source" has a shelf life.
+Where a maintained machine-readable table exists, cite that, with the retrieval date — which is
+what §4b now does for every pharmacogenomics gene.
+
+> CPIC NUDT15 allele-functionality table:
+> https://api.cpicpgx.org/v1/allele?genesymbol=eq.NUDT15 (retrieved 2026-11-03)
+> CPIC NUDT15 diplotype-to-phenotype table (276 rows, all reproduced):
+> https://api.cpicpgx.org/v1/diplotype?genesymbol=eq.NUDT15 (retrieved 2026-11-03)
+
+**Also corrected here:** §3c's dose text. Its Poor Metabolizer branch said "AVOID thiopurines if
+possible. If essential, reduce dose to 10% of standard (e.g., azathioprine 0.5 mg/kg/day thrice
+weekly)". CPIC puts the 10-fold reduction and the thrice-weekly schedule on **mercaptopurine and
+thioguanine**; its **azathioprine** row for a poor metabolizer at either locus reads, in full,
+"Consider alternative nonthiopurine immunosuppressant therapy." And `min(tpmt, nudt15)` cannot
+express a two-gene recommendation: CPIC gives a single intermediate locus 30–80% of standard and
+a double heterozygote 20–50%, where the code gave both "30–70%, start at lower end" with a
+structured field of 50 — a headline range running 20 points above CPIC's ceiling for the double
+heterozygote, with titrate-upward advice attached.
+
+> CPIC azathioprine recommendation table:
+> https://api.cpicpgx.org/v1/recommendation?drugid=eq.RxNorm%3A1256 (retrieved 2026-11-03)
+> CPIC mercaptopurine recommendation table:
+> https://api.cpicpgx.org/v1/recommendation?drugid=eq.RxNorm%3A103 (retrieved 2026-11-03)
+
+## 4. DPYD activity score 0.5 — SETTLED 2026-11-04, `pgx_pipeline.py` was right
+
+`dosing.py` labelled DPYD AS 0.5 "DPD Intermediate Activity (Partial Deficiency)" with a 50%
+reduction; `pgx_pipeline.py` called the same score Deficient; `knowledge.py` gave a third answer
+again, "25–50% dose with intensive monitoring". Three copies, three answers.
+
+CPIC settles it. Its fluorouracil and capecitabine recommendation rows for DPYD activity score
+0.5, verbatim:
+
+> "**Avoid** use of 5-fluorouracil or 5-fluorouracil prodrug-based regimens. In the event, based
+> on clinical advice, alternative agents are not considered a suitable therapeutic option,
+> 5-fluorouracil should be administered at a strongly reduced dose with early therapeutic drug
+> monitoring."
+
+CPIC calls AS 0.5 a **Poor Metabolizer** — its diplotype table assigns Poor Metabolizer to every
+no-function + decreased-function pair — so `pgx_pipeline.py` ("DPD Deficient") was right and
+`dosing.py` was wrong. All three copies now carry *avoid*.
+
+The same retrieval settled the neighbouring row: CPIC gives activity score **1.5 the same 50%
+starting-dose reduction as 1.0**, where `dosing.py` had 25% and `knowledge.py` had 25%. AS 1.5
+is DPYD `*1`/c.2846A>T, the commonest actionable DPYD genotype in European-ancestry patients.
+
+And DPYD HapB3 is present in the caller's allele set; CPIC lists it as the single allele
+"c.1129-5923C>G, c.1236G>A (HapB3) | Decreased function | 0.5", which is how all three copies
+now spell it. `knowledge.py` had listed c.1236G>A separately as "*5", so a patient genotyped for
+both HapB3 markers scored two decreased-function alleles instead of one.
+
+> CPIC fluorouracil recommendation table:
+> https://api.cpicpgx.org/v1/recommendation?drugid=eq.RxNorm%3A4492 (retrieved 2026-11-03)
+> CPIC capecitabine recommendation table:
+> https://api.cpicpgx.org/v1/recommendation?drugid=eq.RxNorm%3A194000 (retrieved 2026-11-03)
+> CPIC DPYD allele-functionality table:
+> https://api.cpicpgx.org/v1/allele?genesymbol=eq.DPYD (retrieved 2026-11-03)
+
+## 4b. Pharmacogenomics allele tables — SETTLED 2026-11-04 against CPIC's maintained tables
+
+Every allele table in the pharmacogenomics agent was re-derived from
+`api.cpicpgx.org/v1/allele`, and the phenotype thresholds were checked against
+`api.cpicpgx.org/v1/diplotype` exhaustively rather than by sampling. The values and thresholds
+now in `dosing.py` and `pgx_pipeline.py` reproduce CPIC's own phenotype for **all** 276 NUDT15,
+1,225 TPMT, 3,570 DPYD, 2,850 CYP2C9, 351 CYP2C19, 36 UGT1A1, 21 CYP3A5 and 741 SLCO1B1
+diplotypes built from alleles CPIC assigns a function to.
+
+What was wrong, beyond §3c and §4 above:
+
+| Gene | Allele | Was | CPIC |
+|---|---|---|---|
+| DPYD | `*7` (c.295_298delTCAT) | 0.5 decreased | **No function**, 0.0 |
+| DPYD | `*10` (c.2983G>T) | 0.5 decreased | **No function**, 0.0 |
+| DPYD | `*9A` (c.85T>C) | 0.5 decreased | **Normal function**, 1.0 |
+| DPYD | `*4` (c.1601G>A, `knowledge.py`) | 0.5 decreased | **Normal function**, 1.0 |
+| CYP2C9 | `*5` | 0.0 no function | **Decreased function**, 0.5 |
+| CYP2C19 | `*9`, `*10` | 0.0 no function | **Decreased function**, 0.5 |
+| UGT1A1 | `*37` | 0.0 no function | **Decreased function**, 0.5 |
+| UGT1A1 | `*80` | 0.5 | **Unknown function** → Indeterminate |
+
+Two threshold findings came out of the same retrieval and are worth recording, because neither
+is guessable from a guideline PDF:
+
+1. **TPMT and NUDT15 do not share a rule.** CPIC's diplotype tables make a no-function +
+   decreased-function pair a NUDT15 **Poor** Metabolizer but a TPMT **Intermediate** one, and a
+   decreased + normal pair **Normal** for both. One shared rule was applied to both genes.
+2. **An increased-function allele does not rescue a reduced-function one.** CPIC calls UGT1A1
+   `*28/*36` (Decreased + Increased) an **Intermediate** Metabolizer and CYP2C19 `*10/*17` a
+   (Likely) **Intermediate** Metabolizer, where the summed activity score 2.0 reads Normal. An
+   additive activity score cannot express that on its own, so the increased allele now
+   contributes a normal 1.0 when paired with a reduced-function one.
+
+### 4c. Open pharmacogenomics questions, not settled here
+
+1. **SLCO1B1 `*17`.** `dosing.py` assigned phenotypes to `*1/*17` (Decreased Function) and
+   `*5/*17` (Poor Function). `*17` appears in **neither** CPIC's SLCO1B1 allele-functionality
+   table (which runs `*1`–`*58` but skips `*3`, `*7`, `*12`, `*13`, `*17`, `*18`, `*21`, `*22`,
+   `*35`, `*38`, `*46`) nor its 741-row diplotype table. Both entries were removed rather than
+   corrected — removing a fabricated value needs no source — so a `*17` genotype now returns
+   Indeterminate. **Settle with:** PharmVar's SLCO1B1 allele definitions, then CPIC's SLCO1B1
+   table, to confirm whether CPIC retired or renamed the haplotype. If `*17` is a real
+   decreased-function haplotype, patients carrying it currently get "No recommendation" where a
+   dose ceiling would be safer.
+2. **HLA-A\*31:01 and carbamazepine severity.** `hla_screener.py` emits CONTRAINDICATED for this
+   pair (FATAL and SEVERE both map to CONTRAINDICATED) where the knowledge-base entry's own text
+   says "HIGH RISK". CPIC's carbamazepine rows in the API carry no phenotype keys, so the
+   recommendation text could not be attributed to the allele. **Settle with:** Phillips EJ et
+   al., "CPIC Guideline for HLA Genotype and Use of Carbamazepine and Oxcarbazepine: 2017
+   Update", *Clin Pharmacol Ther* 2018;103:574–581, Table 2.
+3. **CYP2D6 `*41`** — still §3a above, re-confirmed as 0.5 here against CPIC's 0.25 and
+   deliberately not changed, because this agent's CYP2D6 table was otherwise exact and the
+   change belongs with the §3a retrieval.
+4. **Allele coverage.** The tables are now correct for every allele they name, and an allele
+   they do not name returns Indeterminate rather than a normal-metabolizer guess. But coverage is
+   still partial for the largest genes — CYP2D6 scores 21 of CPIC's >100 — so a patient with an
+   uncommon CYP2D6 allele gets "No recommendation" rather than the phenotype CPIC would assign.
+   **Settle with:** loading the tables from CPIC's data at build time rather than transcribing
+   them, which is the refactor §3c's closing note describes.
 
 ## 5. Tuberous sclerosis — surveillance and treatment thresholds
 
