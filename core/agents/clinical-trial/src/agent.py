@@ -24,7 +24,7 @@ Date: March 2026
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from src.models import TrialWorkflowType
 
@@ -86,7 +86,14 @@ class TrialResponse:
         confidence: Overall confidence score (0.0 - 1.0).
         citations: Formatted citation list.
         search_time_ms: Total search time in milliseconds.
-        collections_searched: Number of collections queried.
+        collections_searched: Number of collections queried. This counts the question asked,
+            not the yield: a search of an empty collection is a successful search returning
+            nothing, so this number stays at 14 whether the corpus holds 328 rows or none.
+            `collections_contributing` is the one that moves.
+        collections_contributing: How many of those returned at least one row.
+        retrieval_coverage: `hcls_common.corpus_coverage` verdict as a dict — the share of this
+            workflow's declared retrieval weight that actually answered, and which sources were
+            silent. See that module for why the distinction matters.
         patient_context_used: Whether patient context was injected.
         timestamp: ISO 8601 timestamp of response generation.
     """
@@ -98,6 +105,8 @@ class TrialResponse:
     citations: List[Dict[str, str]] = field(default_factory=list)
     search_time_ms: float = 0.0
     collections_searched: int = 0
+    collections_contributing: int = 0
+    retrieval_coverage: Optional[Dict[str, Any]] = None
     patient_context_used: bool = False
     timestamp: str = field(
         default_factory=lambda: datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")

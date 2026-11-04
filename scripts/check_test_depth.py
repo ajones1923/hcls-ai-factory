@@ -50,7 +50,12 @@ import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 BASELINE = ROOT / "docs" / "build" / "test_depth_baseline.json"
-BASE = {"engine": "core/engines", "agent": "core/agents", "program": "core/disease-programs"}
+BASE = {"engine": "core/engines", "agent": "core/agents", "program": "core/disease-programs",
+        # The orchestrator sits at the repo root rather than under core/, and run_all_tests.py
+        # emits it with its own kind. Without this entry every CI run crashed with
+        # `KeyError: 'orchestrator'` before measuring anything -- the ratchet looked like a
+        # passing gate on the branch and only failed once a PR made CI run at all.
+        "orchestrator": "."}
 
 FLOOR = 2.0
 # A subject may not drop more than this below its baseline before the ratchet trips. Test counts
