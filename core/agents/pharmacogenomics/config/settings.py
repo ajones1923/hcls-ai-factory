@@ -12,6 +12,15 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 logger = logging.getLogger(__name__)
 
+# The one place this agent's version is written.
+#
+# pgx audit §20: src/export.py and api/main.py each carried a hardcoded
+# "1.0.0" in a v2.2.0 release, so every exported report and the OpenAPI
+# document named a version of the agent that has not existed for two
+# releases — and a report's version string is how a reader decides whether
+# a dose in it predates a correction.
+AGENT_VERSION = "2.2.0"
+
 
 class PGxSettings(BaseSettings):
     """Configuration for Pharmacogenomics Intelligence Agent."""

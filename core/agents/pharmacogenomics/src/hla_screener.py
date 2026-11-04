@@ -788,14 +788,28 @@ class HLAScreener:
 
     @staticmethod
     def _determine_status(severity: ReactionSeverity) -> HLAStatus:
-        """Map reaction severity to HLA status."""
-        if severity in (ReactionSeverity.FATAL,):
+        """Map reaction severity to HLA status.
+
+        FATAL and SEVERE both map to CONTRAINDICATED: for every carrier
+        association in this knowledge base the recommendation is not to
+        prescribe, and the severity field records how bad the reaction is,
+        not how strong the recommendation is.  MODERATE and MILD map to
+        HIGH_RISK.
+
+        pgx audit §20d: the previous form had no branch for MILD, so it
+        fell through to a `return HLAStatus.HIGH_RISK  # default to
+        cautious` — correct by accident, since an unhandled enum member
+        reached a default rather than a decision.  Any severity added
+        later now raises instead of acquiring a status by default.
+        """
+        if severity in (ReactionSeverity.FATAL, ReactionSeverity.SEVERE):
             return HLAStatus.CONTRAINDICATED
-        if severity in (ReactionSeverity.SEVERE,):
-            return HLAStatus.CONTRAINDICATED
-        if severity == ReactionSeverity.MODERATE:
+        if severity in (ReactionSeverity.MODERATE, ReactionSeverity.MILD):
             return HLAStatus.HIGH_RISK
-        return HLAStatus.HIGH_RISK  # default to cautious
+        raise ValueError(
+            f"No HLA status mapping for severity {severity!r}. A new "
+            f"severity must be given one deliberately, not defaulted."
+        )
 
     @staticmethod
     def _open_vcf(path: Path):

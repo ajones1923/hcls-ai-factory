@@ -1786,27 +1786,54 @@ ACTIVITY_SCORE_TABLES: Dict[str, Dict[str, Any]] = {
         ),
     },
     "DPYD": {
-        "description": "DPYD activity score per CPIC 2018 fluoropyrimidine guideline",
+        # Values from CPIC's maintained DPYD allele-functionality table
+        # (api.cpicpgx.org/v1/allele?genesymbol=eq.DPYD, retrieved
+        # 2026-11-03). Two were wrong in this third copy of the table:
+        #
+        #   c.1601G>A (*4)  was 0.5 "decreased"; CPIC: NORMAL function, 1.0
+        #   c.1236G>A (*5)  wrong twice over — DPYD *5 is c.1627A>G
+        #                   (rs1801159) and CPIC calls it Normal function;
+        #                   and c.1236G>A is a tag for HapB3, already listed
+        #                   on the line above, so a patient genotyped for
+        #                   both HapB3 markers scored two decreased-function
+        #                   alleles (AS 1.0) instead of one (AS 1.5). CPIC
+        #                   lists them as a SINGLE allele:
+        #                   "c.1129-5923C>G, c.1236G>A (HapB3) | Decreased
+        #                   function | 0.5". The entry is deleted and the
+        #                   HapB3 row relabelled with both markers.
+        "description": (
+            "DPYD activity score per CPIC's maintained allele-functionality "
+            "table (api.cpicpgx.org/v1/allele?genesymbol=eq.DPYD) and the "
+            "CPIC 2018 fluoropyrimidine guideline"
+        ),
         "allele_scores": {
             "reference (normal)": 1.0,
             "c.1905+1G>A (*2A, rs3918290)": 0,
             "c.1679T>G (*13, rs55886062)": 0,
+            "c.295_298delTCAT (*7)": 0,
+            "c.2983G>T (*10)": 0,
             "c.2846A>T (rs67376798)": 0.5,
-            "c.1129-5923C>G (HapB3, rs75017182)": 0.5,
-            "c.1601G>A (*4, rs1801158)": 0.5,
-            "c.1236G>A (*5, rs56038477)": 0.5,
+            "c.1129-5923C>G, c.1236G>A (HapB3, rs75017182/rs56038477)": 0.5,
+            "c.1601G>A (*4, rs1801158)": 1.0,
+            "c.1627A>G (*5, rs1801159)": 1.0,
+            "c.85T>C (*9A, rs1801265)": 1.0,
         },
         "phenotype_thresholds": {
             "Normal Metabolizer": "2.0 (two normal alleles)",
-            "Intermediate Metabolizer (reduced risk)": "1.5 (one normal + one decreased)",
-            "Intermediate Metabolizer (increased risk)": "1.0 (two decreased or one normal + one no function)",
+            "Intermediate Metabolizer": "1.0-1.5",
             "Poor Metabolizer": "0-0.5 (two no-function, or one no-function + one decreased)",
         },
+        # CPIC's fluorouracil and capecitabine recommendation rows, verbatim
+        # (api.cpicpgx.org/v1/recommendation?drugid=eq.RxNorm:4492 and
+        # =eq.RxNorm:194000, retrieved 2026-11-03). This dict used to give a
+        # 25% reduction at AS 1.5 (CPIC: 50%, the same as AS 1.0) and
+        # "25-50% dose with intensive monitoring" at AS 0.5 (CPIC: avoid) —
+        # a third, different answer from the two in the code.
         "dosing_recommendations": {
-            "AS 2.0": "100% standard dose",
-            "AS 1.5": "75% dose (25% reduction); titrate based on toxicity/response",
-            "AS 1.0": "50% dose (50% reduction); titrate based on toxicity/response",
-            "AS 0.5": "25-50% dose with intensive monitoring; consider alternative",
+            "AS 2.0": "No indication to change dose or therapy; use label-recommended dosage",
+            "AS 1.5": "Reduce starting dose by 50%; titrate on toxicity or therapeutic drug monitoring",
+            "AS 1.0": "Reduce starting dose by 50%; c.2846A>T/c.2846A>T may need >50%",
+            "AS 0.5": "AVOID fluoropyrimidines (CPIC Poor Metabolizer); if no suitable alternative, strongly reduced dose with early TDM",
             "AS 0": "AVOID fluoropyrimidines entirely; use alternative regimen",
         },
     },

@@ -599,21 +599,27 @@ with st.sidebar:
     # Knowledge graph stats
     st.markdown("---")
     st.markdown("### Knowledge Graph")
+    # pgx audit §20e: every one of these had a hardcoded fallback, so when
+    # the live value was unavailable the panel printed a plausible number
+    # instead of saying it did not know — "12 HLA Associations" while
+    # hla_screener.py actually carries 17 drugs. A displayed count must be
+    # a measurement, not a default.
     if knowledge_data and knowledge_data.get("stats"):
         ks = knowledge_data["stats"]
-        st.markdown(f"- **Pharmacogenes:** {ks.get('pharmacogenes', 25)}")
-        st.markdown(f"- **Phenotypes:** {ks.get('metabolizer_phenotypes', 5)}")
-        st.markdown(f"- **Drug Categories:** {ks.get('drug_categories', 12)}")
-        st.markdown(f"- **Drugs Tracked:** {ks.get('drugs_tracked', 100)}")
-        st.markdown(f"- **HLA Associations:** {ks.get('hla_drug_associations', 12)}")
-        st.markdown(f"- **Activity Score Tables:** {ks.get('activity_score_tables', 0)}")
-        st.markdown(f"- **Entity Aliases:** {ks.get('entity_aliases', 0)}")
+
+        def _count(key: str) -> str:
+            value = ks.get(key)
+            return str(value) if value is not None else "not available"
+
+        st.markdown(f"- **Pharmacogenes:** {_count('pharmacogenes')}")
+        st.markdown(f"- **Phenotypes:** {_count('metabolizer_phenotypes')}")
+        st.markdown(f"- **Drug Categories:** {_count('drug_categories')}")
+        st.markdown(f"- **Drugs Tracked:** {_count('drugs_tracked')}")
+        st.markdown(f"- **HLA Associations:** {_count('hla_drug_associations')}")
+        st.markdown(f"- **Activity Score Tables:** {_count('activity_score_tables')}")
+        st.markdown(f"- **Entity Aliases:** {_count('entity_aliases')}")
     else:
-        st.markdown("- **Pharmacogenes:** 25")
-        st.markdown("- **Phenotypes:** 5")
-        st.markdown("- **Drug Categories:** 12")
-        st.markdown("- **Drugs Tracked:** 100+")
-        st.markdown("- **HLA Associations:** 12")
+        st.markdown("- Knowledge-graph statistics are not available.")
 
     # System Health
     st.markdown("---")
@@ -843,17 +849,30 @@ with tab_dashboard:
 
     # Quick metrics row
     col1, col2, col3, col4, col5 = st.columns(5)
+    # pgx audit §20e: "Pharmacogenes 25" and "HLA Pairs 12" were literals,
+    # and "Collections 15" was a fallback for an unavailable measurement.
+    # Each is now counted from the knowledge base it describes —
+    # hla_screener.py carries 17 drugs, not 12.
+    from src.hla_screener import HLA_DRUG_ASSOCIATIONS as _SCREENED_HLA
+    from src.knowledge import ACTIVITY_SCORE_TABLES as _PHARMACOGENES
+
     with col1:
-        st.metric("Collections", len(collection_stats) if collection_stats else 15)
+        st.metric(
+            "Collections",
+            len(collection_stats) if collection_stats else "N/A",
+        )
     with col2:
         st.metric("Total Vectors", f"{total_vectors:,}" if total_vectors else "N/A")
     with col3:
-        st.metric("Pharmacogenes", 25)
+        st.metric("Pharmacogenes", len(_PHARMACOGENES))
     with col4:
         drug_count = len(get_all_drug_names())
         st.metric("Drugs Tracked", drug_count)
     with col5:
-        st.metric("HLA Pairs", 12)
+        st.metric(
+            "HLA Drug Associations",
+            sum(len(v) for v in _SCREENED_HLA.values()),
+        )
 
     st.markdown("---")
 

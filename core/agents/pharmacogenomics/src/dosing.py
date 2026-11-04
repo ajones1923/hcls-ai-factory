@@ -800,7 +800,7 @@ class DosingCalculator:
     def thiopurine_dose(
         self,
         tpmt_diplotype: str,
-        nudt15_diplotype: str = "*1/*1",
+        nudt15_diplotype: str = "",
     ) -> Dict[str, Any]:
         """Calculate TPMT + NUDT15 genotype-guided thiopurine dose.
 
@@ -814,11 +814,12 @@ class DosingCalculator:
         tpmt_diplotype : str
             e.g. "*1/*1", "*1/*3A", "*3A/*3C"
         nudt15_diplotype : str
-            Must be given explicitly whenever NUDT15 was genotyped.  The
-            default is wild-type, which means a TPMT-only panel reports
-            NUDT15 Normal; callers that did not genotype NUDT15 should pass
-            "" so the result comes back Indeterminate rather than asserting
-            a normal NUDT15.
+            e.g. "*1/*1", "*1/*3", "*3/*3".  The default used to be
+            "*1/*1", so a TPMT-only panel silently reported NUDT15 Normal
+            and dosed on it (pgx audit §20h).  It is now empty, which
+            returns CPIC's Indeterminate: "Neither TPMT or NUDT15 phenotype
+            could be assigned ... if thiopurines are required and either
+            TPMT or NUDT15 status is unknown, monitor closely for toxicity."
 
         Returns
         -------

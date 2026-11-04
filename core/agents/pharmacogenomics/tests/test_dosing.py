@@ -427,8 +427,28 @@ class TestDosingCalculator:
             assert len(result["affected_drugs"]) == 3
 
         def test_monitoring_included(self):
-            result = self.calc.thiopurine_dose("*1/*1")
+            """CORRECTED (pgx audit §20h): NUDT15 must be passed explicitly.
+
+            This called thiopurine_dose("*1/*1") with no NUDT15 argument.
+            The parameter defaulted to "*1/*1", so a TPMT-only panel
+            silently reported NUDT15 Normal and dosed on it.  The default
+            is now empty and returns Indeterminate, so the test states the
+            NUDT15 result it means.
+            """
+            result = self.calc.thiopurine_dose("*1/*1", "*1/*1")
             assert "CBC" in result["monitoring"]
+
+        def test_an_ungenotyped_nudt15_is_not_reported_as_normal(self):
+            """Regression for pgx audit §20h.
+
+            CPIC's TPMT-Indeterminate / NUDT15-Indeterminate row: "Neither
+            TPMT or NUDT15 phenotype could be assigned based on genotyping
+            performed ... if thiopurines are required and either TPMT or
+            NUDT15 status is unknown, monitor closely for toxicity."
+            """
+            result = self.calc.thiopurine_dose("*1/*1")
+            assert result["nudt15_phenotype"] == "NUDT15 Indeterminate"
+            assert result["dose_percent_of_standard"] is None
 
     # ═══════════════════════════════════════════════════════════════════
     # PRIVATE HELPERS
