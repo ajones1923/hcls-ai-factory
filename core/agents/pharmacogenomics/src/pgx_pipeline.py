@@ -475,47 +475,78 @@ class PhenotypeTranslator:
             "*17": 0.5, "*29": 0.5, "*35": 1.0, "*36": 0.0,
             "*40": 0.0, "*41": 0.5, "*45": 1.0,
         },
+        # Every table below is the corresponding gene's CPIC
+        # allele-functionality table (api.cpicpgx.org/v1/allele?genesymbol=eq.<GENE>,
+        # retrieved 2026-11-03), mapping CPIC's clinical function to the
+        # activity value it publishes: Normal 1.0, Decreased 0.5, No
+        # function 0.0, Increased 1.5. See dosing.py for the per-allele
+        # notes on what each correction was.
         "CYP2C19": {
-            "*1": 1.0, "*2": 0.0, "*3": 0.0, "*4": 0.0, "*5": 0.0,
-            "*6": 0.0, "*7": 0.0, "*8": 0.0, "*9": 0.0, "*10": 0.0,
+            "*1": 1.0, "*11": 1.0, "*13": 1.0, "*15": 1.0, "*18": 1.0,
+            "*28": 1.0, "*38": 1.0,
+            "*2": 0.0, "*3": 0.0, "*4": 0.0, "*5": 0.0, "*6": 0.0,
+            "*7": 0.0, "*8": 0.0, "*22": 0.0, "*24": 0.0, "*35": 0.0,
+            "*36": 0.0, "*37": 0.0,
+            "*9": 0.5, "*10": 0.5, "*16": 0.5, "*19": 0.5, "*25": 0.5,
+            "*26": 0.5,
             "*17": 1.5,
         },
         "CYP2C9": {
-            "*1": 1.0, "*2": 0.5, "*3": 0.0, "*5": 0.0, "*6": 0.0,
-            "*8": 0.5, "*11": 0.5,
+            "*1": 1.0, "*9": 1.0,
+            "*2": 0.5, "*4": 0.5, "*5": 0.5, "*8": 0.5, "*11": 0.5,
+            "*12": 0.5, "*14": 0.5, "*16": 0.5, "*23": 0.5, "*26": 0.5,
+            "*28": 0.5, "*29": 0.5, "*30": 0.5, "*31": 0.5, "*37": 0.5,
+            "*38": 0.5, "*44": 0.5, "*46": 0.5, "*50": 0.5, "*55": 0.5,
+            "*61": 0.5,
+            "*3": 0.0, "*6": 0.0, "*13": 0.0, "*15": 0.0, "*24": 0.0,
+            "*25": 0.0, "*33": 0.0, "*35": 0.0, "*39": 0.0, "*42": 0.0,
+            "*43": 0.0, "*45": 0.0, "*52": 0.0,
         },
         "DPYD": {
-            "*1": 1.0, "*2A": 0.0, "*13": 0.0, "c.2846A>T": 0.5,
+            "*1": 1.0, "*9A": 1.0,
+            "*2A": 0.0, "*3": 0.0, "*7": 0.0, "*8": 0.0, "*10": 0.0,
+            "*12": 0.0, "*13": 0.0,
+            "c.2846A>T": 0.5, "HapB3": 0.5,
         },
         "TPMT": {
             "*1": 1.0, "*2": 0.0, "*3A": 0.0, "*3B": 0.0, "*3C": 0.0,
-            "*4": 0.0,
+            "*4": 0.0, "*8": 0.5,
         },
-        # NUDT15 per CPIC's thiopurine guideline, Table 1. Only three alleles have a function
-        # assignment there: *1 normal, *2 and *3 NO function. *4 through *9 are "unclear
-        # function" and must not be given a number -- see UNCERTAIN_FUNCTION_ALLELES below.
-        #
-        # This table previously read *2: 0.5, *4: 0.5, *5: 0.5, *6: 1.0. Scoring *2 as a
-        # decreased-function allele made *2/*2 -- two NO-function alleles, a CPIC poor
-        # metabolizer -- come out as AS 1.0 and report "NUDT15 Intermediate". A NUDT15 poor
-        # metabolizer who reads as intermediate is told 30-70% of a standard thiopurine dose
-        # where CPIC says avoid the drug or give 10%, and the toxicity that follows is
-        # life-threatening myelosuppression. The dose calculator in dosing.py had *2 right at
-        # 0.0 all along; these two copies of the same table disagreed.
-        #
-        # Source: Relling MV, Schwab M, Whirl-Carrillo M, et al. "Clinical Pharmacogenetics
-        # Implementation Consortium (CPIC) Guideline for Thiopurine Dosing Based on TPMT and
-        # NUDT15 Genotypes: 2018 Update." Clin Pharmacol Ther 2019;105(5):1095-1105, Table 1.
-        # doi:10.1002/cpt.1304, PMID 30447069, PMC6576267.
+        # NUDT15 from CPIC's MAINTAINED allele-functionality table, not from
+        # Relling 2019 Table 1. The 2018 paper called *4-*9 "unclear
+        # function"; CPIC has since assigned them (*4, *6, *7, *9 no
+        # function; *5, *8 decreased), and for allele function the
+        # maintained table governs. Scoring them as unscoreable made a
+        # NUDT15 poor metabolizer Indeterminate and sent a child on
+        # 6-mercaptopurine away with a full weight-based dose.
+        # api.cpicpgx.org/v1/allele?genesymbol=eq.NUDT15, retrieved
+        # 2026-11-03; diplotype assignments cross-checked against
+        # api.cpicpgx.org/v1/diplotype?genesymbol=eq.NUDT15 (276 rows,
+        # all reproduced).
         "NUDT15": {
-            "*1": 1.0, "*2": 0.0, "*3": 0.0,
+            "*1": 1.0,
+            "*2": 0.0, "*3": 0.0, "*4": 0.0, "*6": 0.0, "*7": 0.0,
+            "*9": 0.0, "*10": 0.0, "*13": 0.0, "*14": 0.0, "*17": 0.0,
+            "*18": 0.0, "*19": 0.0,
+            "*5": 0.5, "*8": 0.5,
         },
+        # UGT1A1: *37 was scored 0.0 (no function), making *1/*37 a Poor
+        # Metabolizer where CPIC's diplotype table says Intermediate -- an
+        # over-called irinotecan reduction in a curative-intent regimen.
+        # *80 was given 0.5, a function CPIC declines to assign: CPIC says
+        # Unknown function and answers Indeterminate for *1/*80, so it is
+        # listed in UNCERTAIN_FUNCTION_ALLELES instead.
+        # api.cpicpgx.org/v1/allele?genesymbol=eq.UGT1A1, retrieved 2026-11-03.
         "UGT1A1": {
-            "*1": 1.0, "*6": 0.5, "*28": 0.5, "*36": 1.5, "*37": 0.0,
-            "*80": 0.5,
+            "*1": 1.0, "*6": 0.5, "*27": 0.5, "*28": 0.5, "*36": 1.5,
+            "*37": 0.5, "*80+*28": 0.5, "*80+*37": 0.5,
         },
+        # CYP3A5 *7 is a no-function allele (CPIC); it was in dosing.py and
+        # not here, which is the asymmetry test_allele_tables_do_not_drift
+        # allowlisted pending retrieval of the CPIC table. Retrieved
+        # 2026-11-03: api.cpicpgx.org/v1/allele?genesymbol=eq.CYP3A5.
         "CYP3A5": {
-            "*1": 1.0, "*3": 0.0, "*6": 0.0,
+            "*1": 1.0, "*3": 0.0, "*6": 0.0, "*7": 0.0,
         },
         # VKORC1, SLCO1B1, CYP4F2 use genotype-based categories, not activity scores
     }
@@ -525,12 +556,52 @@ class PhenotypeTranslator:
     # carrying one is **Indeterminate** -- not Normal, and not a guess in between. Scoring them
     # produces a confident-looking phenotype out of an allele the guideline says it cannot call.
     #
-    # NUDT15 *4-*9: "these variants (*4 to *9) are designated as unclear function but may be
-    # clarified as more data emerge" (Relling 2019, which lists *1/*4, *1/*5, *4/*5 and *5/*6
-    # as Indeterminate and *2/*5, *3/*6 as "possible intermediate metabolizer").
+    # Each set is the gene's "Uncertain function" / "Unknown function" rows
+    # in CPIC's allele-functionality table (api.cpicpgx.org/v1/allele,
+    # retrieved 2026-11-03), plus rows CPIC leaves unassigned. CPIC's
+    # diplotype table returns Indeterminate for every diplotype carrying
+    # one of them.
+    #
+    # NUDT15 previously held *4-*9 on the strength of Relling 2019's
+    # "unclear function". CPIC has since assigned *4, *6, *7 and *9 (no
+    # function) and *5 and *8 (decreased), and reserves Indeterminate for
+    # the alleles below -- so the old set withheld a dose reduction from
+    # NUDT15 poor and intermediate metabolizers.
     UNCERTAIN_FUNCTION_ALLELES: Dict[str, frozenset] = {
-        "NUDT15": frozenset({"*4", "*5", "*6", "*7", "*8", "*9"}),
+        "NUDT15": frozenset({
+            "*11", "*12", "*15", "*16", "*20", "*21", "*22", "*23",
+        }),
+        "UGT1A1": frozenset({"*80"}),
+        "CYP3A5": frozenset({"*8", "*9", "*10", "*11"}),
+        "CYP2C19": frozenset({
+            "*12", "*14", "*23", "*29", "*30", "*31", "*32", "*33", "*34",
+            "*39",
+        }),
+        "CYP2C9": frozenset({
+            "*7", "*10", "*17", "*18", "*19", "*20", "*21", "*22", "*27",
+            "*32", "*34", "*36", "*40", "*41", "*47", "*48", "*49", "*51",
+            "*53", "*54", "*56", "*57", "*58", "*59", "*60", "*62", "*63",
+            "*64", "*65", "*66", "*67", "*68", "*69", "*70", "*71", "*72",
+            "*73", "*74", "*75",
+        }),
+        "TPMT": frozenset({
+            "*9", "*12", "*19", "*24", "*30", "*32", "*35", "*36", "*40",
+        }),
     }
+
+    # An increased-function allele does not rescue a reduced-function one.
+    # CPIC's diplotype tables are explicit: UGT1A1 *28/*36 (Decreased +
+    # Increased) is an **Intermediate** Metabolizer, not the Normal the
+    # summed activity score 2.0 would give, and CYP2C19 *10/*17 is a
+    # (Likely) Intermediate Metabolizer rather than Normal. So when an
+    # increased-function allele is paired with a decreased- or no-function
+    # allele, it contributes a normal 1.0 and no more.
+    #
+    # Verified: with this rule the activity-score model reproduces CPIC's
+    # phenotype for all 36 UGT1A1 and all 351 CYP2C19 diplotypes built
+    # from assigned alleles (api.cpicpgx.org/v1/diplotype, 2026-11-03).
+    INCREASED_FUNCTION_SCORE: float = 1.5
+    _NORMAL_FUNCTION_SCORE: float = 1.0
 
     # ── Phenotype thresholds: activity score range → phenotype ──────────
     # Ranges use half-open intervals [low, high) — the last bucket is
@@ -563,10 +634,19 @@ class PhenotypeTranslator:
             (2.5,  99.0,  "Ultrarapid Metabolizer"),
         ],
         "CYP2C19": [
-            # CPIC: PM=0, IM=0.5-1.5, NM=2.0, RM=2.5, UM≥3.0
-            # With *1=1.0, *17=1.5, *2/*3=0: *1/*1=2.0, *1/*17=2.5, *17/*17=3.0
-            (0.0,  0.5,   "Poor Metabolizer"),
-            (0.5,  2.0,   "Intermediate Metabolizer"),
+            # CPIC: *2/*2 = PM, *1/*2 = IM, *1/*1 = NM, *1/*17 = RM,
+            # *17/*17 = UM. The Poor bucket's top is 1.0 (exclusive), not
+            # 0.5, because CPIC calls a no-function + decreased-function
+            # pair -- AS 0.5, e.g. *2/*10 -- a (Likely) **Poor**
+            # Metabolizer; with *9/*10/*16/*19/*25/*26 now correctly
+            # scored 0.5 that score is reachable, and the old 0.5 bound
+            # put those patients in Intermediate.
+            #
+            # Verified against api.cpicpgx.org/v1/diplotype?genesymbol=eq.CYP2C19
+            # (retrieved 2026-11-03): these bounds reproduce CPIC's
+            # phenotype for all 351 diplotypes built from assigned alleles.
+            (0.0,  1.0,   "Poor Metabolizer"),
+            (1.0,  2.0,   "Intermediate Metabolizer"),
             (2.0,  2.5,   "Normal Metabolizer"),
             (2.5,  3.0,   "Rapid Metabolizer"),
             (3.0,  99.0,  "Ultrarapid Metabolizer"),
@@ -584,22 +664,43 @@ class PhenotypeTranslator:
             (2.0,  2.1,   "DPD Normal Activity"),
         ],
         "TPMT": [
-            # Deficient=AS 0, Intermediate=AS 0.5-1.0, Normal=AS 2.0
+            # CPIC: no/no = PM; no/decreased, no/normal and
+            # decreased/decreased = IM; decreased/normal and normal/normal
+            # = NM. With *8 (decreased, 0.5) now present, AS 0.5 and AS
+            # 1.5 are both reachable and the old 0.5/2.0 bounds put AS 1.5
+            # (*1/*8, a CPIC **Normal** Metabolizer) in Intermediate.
+            # Verified against api.cpicpgx.org/v1/diplotype?genesymbol=eq.TPMT
+            # (retrieved 2026-11-03): reproduces all 1,225 diplotypes.
             (0.0,  0.5,   "TPMT Deficient"),
-            (0.5,  2.0,   "TPMT Intermediate"),
-            (2.0,  2.1,   "TPMT Normal"),
+            (0.5,  1.5,   "TPMT Intermediate"),
+            (1.5,  2.0,   "TPMT Normal"),
         ],
         "NUDT15": [
-            # Deficient=AS 0, Intermediate=AS 0.5-1.0, Normal=AS 2.0
-            (0.0,  0.5,   "NUDT15 Deficient"),
-            (0.5,  2.0,   "NUDT15 Intermediate"),
-            (2.0,  2.1,   "NUDT15 Normal"),
+            # CPIC: no/no and no/decreased = PM; no/normal and
+            # decreased/decreased = IM; decreased/normal and normal/normal
+            # = NM. Note NUDT15 differs from TPMT here -- a no-function
+            # plus a decreased-function allele is a NUDT15 **Poor**
+            # Metabolizer but a TPMT **Intermediate** one, which is why
+            # these two tables are not the same.
+            # Verified against api.cpicpgx.org/v1/diplotype?genesymbol=eq.NUDT15
+            # (retrieved 2026-11-03): reproduces all 276 diplotypes.
+            (0.0,  1.0,   "NUDT15 Deficient"),
+            (1.0,  1.5,   "NUDT15 Intermediate"),
+            (1.5,  2.0,   "NUDT15 Normal"),
         ],
         "UGT1A1": [
-            # CPIC: *28/*28 (AS=1.0) = PM, *1/*28 (AS=1.5) = IM, *1/*1 (AS=2.0) = NM
+            # CPIC: *28/*28 (AS=1.0) = PM, *1/*28 (AS=1.5) = IM, *1/*1 (AS=2.0) = NM.
+            # The Normal bucket's top was 2.1, below the AS 2.5 and 3.0 that
+            # *36 (increased function, 1.5) produces, so *1/*36 and *36/*36 --
+            # CPIC **Normal** Metabolizers both -- fell off the end of the
+            # table and were reported "Indeterminate". Raised to 3.0, the
+            # highest attainable UGT1A1 activity score.
+            # Verified against api.cpicpgx.org/v1/diplotype?genesymbol=eq.UGT1A1
+            # (retrieved 2026-11-03): reproduces all 36 diplotypes built from
+            # assigned alleles.
             (0.0,  1.5,   "Poor Metabolizer"),
             (1.5,  2.0,   "Intermediate Metabolizer"),
-            (2.0,  2.1,   "Normal Metabolizer"),
+            (2.0,  3.0,   "Normal Metabolizer"),
         ],
         "CYP3A5": [
             # Non-expresser=AS 0, Intermediate=AS 0.5-1.0, Expresser=AS 2.0
@@ -711,7 +812,25 @@ class PhenotypeTranslator:
             return self._translate_genotype_based(gene, diplotype)
 
         # Activity-score-based genes
-        allele1, allele2 = self._parse_diplotype(diplotype)
+        try:
+            allele1, allele2 = self._parse_diplotype(diplotype)
+        except ValueError as exc:
+            # A genotype string that is not two alleles is an absent or
+            # malformed result, never wild-type. CPIC's answer for an
+            # unassignable genotype is Indeterminate.
+            return {
+                "gene": gene,
+                "diplotype": diplotype,
+                "phenotype": "Indeterminate",
+                "activity_score": None,
+                "allele_scores": {},
+                "clinical_meaning": (
+                    f"No phenotype can be assigned: {exc} Report the genotype "
+                    f"as two alleles, or treat this gene as not called. Do not "
+                    f"infer normal function from an unparseable result."
+                ),
+                "unscoreable_alleles": [diplotype],
+            }
         scores = self.ACTIVITY_SCORES.get(gene, {})
 
         # An allele the guideline calls uncertain, or one this table has never heard of, cannot
@@ -742,8 +861,7 @@ class PhenotypeTranslator:
                 "unscoreable_alleles": [a for a, _ in unscoreable],
             }
 
-        score1 = scores[allele1]
-        score2 = scores[allele2]
+        score1, score2 = self._paired_scores(scores[allele1], scores[allele2])
         total = score1 + score2
 
         phenotype = self._score_to_phenotype(gene, total)
@@ -775,32 +893,192 @@ class PhenotypeTranslator:
         """
         results: Dict[str, Dict[str, Any]] = {}
         for gene, data in profile.items():
-            diplotype = data.get("diplotype", "*1/*1")
+            # A gene with no called diplotype is NOT wild-type. The old
+            # default "*1/*1" translated an uncalled gene as a normal
+            # metabolizer. translate() returns Indeterminate for the empty
+            # string.
+            diplotype = data.get("diplotype") or ""
             results[gene] = self.translate(gene, diplotype)
         return results
 
     # ── Private helpers ─────────────────────────────────────────────────
 
+    @classmethod
+    def _paired_scores(
+        cls, score1: float, score2: float
+    ) -> Tuple[float, float]:
+        """Apply CPIC's "an increased allele does not rescue a reduced one".
+
+        See INCREASED_FUNCTION_SCORE for the primary source. An
+        increased-function allele paired with a decreased- or no-function
+        allele contributes a normal 1.0, so UGT1A1 ``*28/*36`` scores 1.5
+        (Intermediate, as CPIC says) rather than 2.0 (Normal).
+        """
+        inc, norm = cls.INCREASED_FUNCTION_SCORE, cls._NORMAL_FUNCTION_SCORE
+        if score1 == inc and score2 < norm:
+            return norm, score2
+        if score2 == inc and score1 < norm:
+            return score1, norm
+        return score1, score2
+
     @staticmethod
     def _parse_diplotype(diplotype: str) -> Tuple[str, str]:
-        """Split diplotype string into two allele labels."""
-        parts = diplotype.split("/")
-        if len(parts) == 2:
+        """Split a diplotype string into its two allele labels.
+
+        Raises
+        ------
+        ValueError
+            If the string is not exactly two slash-separated non-empty
+            fields.  This used to return ``("*1", "*1")`` — homozygous
+            wild-type — for an empty string, a single allele, "Unknown",
+            "not reported" or any free-text value, so every downstream
+            calculator then reported a normal metabolizer and a standard
+            dose.  ``translate`` turns this into CPIC's Indeterminate
+            rather than letting it propagate.
+        """
+        parts = diplotype.split("/") if diplotype else []
+        if len(parts) == 2 and parts[0].strip() and parts[1].strip():
             return parts[0].strip(), parts[1].strip()
-        return "*1", "*1"
+        raise ValueError(
+            f"Not a diplotype: {diplotype!r}. Expected two slash-separated "
+            f"alleles, e.g. '*1/*2'. This is not wild-type."
+        )
+
+    @staticmethod
+    def _translate_slco1b1(diplotype: str) -> Dict[str, Any]:
+        """SLCO1B1 via CPIC's allele functions and function-pair rule.
+
+        Source: api.cpicpgx.org/v1/allele?genesymbol=eq.SLCO1B1 and
+        api.cpicpgx.org/v1/diplotype?genesymbol=eq.SLCO1B1, retrieved
+        2026-11-03.  The tables live in dosing.py so there is one copy.
+        """
+        from src.dosing import (  # local import: dosing.py imports nothing here
+            _SLCO1B1_ALLELE_FUNCTION,
+            _SLCO1B1_PAIR_PHENOTYPE,
+            _SLCO1B1_UNCERTAIN,
+        )
+
+        _MEANINGS = {
+            "Normal Function": (
+                "Normal OATP1B1 transporter function — typical statin "
+                "exposure."
+            ),
+            "Increased Function": (
+                "Increased OATP1B1 transporter function — statin exposure at "
+                "or below the population average."
+            ),
+            "Decreased Function": (
+                "Reduced OATP1B1 hepatic uptake — increased statin exposure "
+                "and myopathy risk. CPIC: prescribe an alternative statin; "
+                "if simvastatin is warranted, limit the dose to <20 mg/day."
+            ),
+            "Possible Decreased Function": (
+                "One allele is of uncertain function; CPIC gives this class "
+                "the same recommendation as Decreased Function — prescribe "
+                "an alternative statin, or simvastatin at <20 mg/day."
+            ),
+            "Poor Function": (
+                "No functional OATP1B1 — highest myopathy/rhabdomyolysis "
+                "risk with statins. CPIC: prescribe an alternative statin."
+            ),
+        }
+
+        try:
+            allele1, allele2 = PhenotypeTranslator._parse_diplotype(diplotype)
+        except ValueError as exc:
+            allele1 = allele2 = ""
+            unrecognised = [diplotype]
+            why = str(exc)
+        else:
+            unrecognised = [
+                a for a in (allele1, allele2)
+                if a not in _SLCO1B1_ALLELE_FUNCTION
+                and a not in _SLCO1B1_UNCERTAIN
+            ]
+            why = (
+                f"SLCO1B1 {', '.join(dict.fromkeys(unrecognised))} is not in "
+                f"CPIC's SLCO1B1 allele-functionality table."
+            )
+        if unrecognised:
+            return {
+                "gene": "SLCO1B1",
+                "diplotype": diplotype,
+                "phenotype": "Indeterminate",
+                "activity_score": None,
+                "clinical_meaning": (
+                    f"No phenotype can be assigned: {why} CPIC assigns "
+                    f"Indeterminate and makes no recommendation here. Do NOT "
+                    f"read this as normal transporter function."
+                ),
+                "unscoreable_alleles": list(dict.fromkeys(unrecognised)),
+            }
+
+        def _fn(allele: str) -> str:
+            return _SLCO1B1_ALLELE_FUNCTION.get(allele, "uncertain")
+
+        phenotype = _SLCO1B1_PAIR_PHENOTYPE.get(
+            frozenset({_fn(allele1), _fn(allele2)}), "Indeterminate")
+        return {
+            "gene": "SLCO1B1",
+            "diplotype": diplotype,
+            "phenotype": phenotype,
+            "activity_score": None,  # not an activity-score gene
+            "clinical_meaning": _MEANINGS.get(phenotype, (
+                "At least one allele is of uncertain function at CPIC; CPIC "
+                "assigns Indeterminate and makes no recommendation."
+            )),
+        }
 
     def _translate_genotype_based(
         self, gene: str, diplotype: str
     ) -> Dict[str, Any]:
         """Handle genes that use genotype-based phenotype assignment."""
+        if gene == "SLCO1B1":
+            # _GENOTYPE_PHENOTYPES defines THREE SLCO1B1 diplotypes; CPIC's
+            # own diplotype table has 741. Three of 741 is not a table, it
+            # is three examples — and with the wild-type fallback that used
+            # to sit below, *5/*15 and *15/*15 (CPIC Poor Function, ~17-fold
+            # myopathy risk on simvastatin) were reported as "Normal
+            # Function — wild-type 521TT, typical statin metabolism", which
+            # contradicted dosing.py's answer for the same genotype.
+            # Delegate to the same CPIC allele functions and function-pair
+            # rule the dose calculator uses, so the report and the
+            # calculator cannot disagree.
+            return self._translate_slco1b1(diplotype)
+
         lookup = self._GENOTYPE_PHENOTYPES.get(gene, {})
         match = lookup.get(diplotype)
         if not match:
-            # Try to find the closest match
-            match = lookup.get("*1/*1", {
-                "phenotype": "Unknown",
-                "clinical_meaning": f"No CPIC phenotype mapping for {gene} {diplotype}.",
-            })
+            # This used to read `lookup.get("*1/*1", ...)` under a comment
+            # saying "try to find the closest match". *1/*1 is present for
+            # all three of these genes, so the Unknown default below it was
+            # dead code and **every** unrecognised genotype was reported as
+            # the wild-type phenotype with the wild-type prose attached:
+            # SLCO1B1 *5/*15 -- a CPIC Poor Function patient with ~17-fold
+            # myopathy risk on simvastatin -- rendered as "Normal Function:
+            # wild-type 521TT, typical statin metabolism", and VKORC1 "A/A"
+            # as "Normal Warfarin Sensitivity, standard warfarin dose
+            # range". These genes do not use activity scores, so they
+            # bypassed the Indeterminate handling the scored path has.
+            #
+            # CPIC's answer for a genotype it cannot map is Indeterminate /
+            # "No recommendation" (e.g. simvastatin SLCO1B1 Indeterminate,
+            # api.cpicpgx.org/v1/recommendation drugid RxNorm:36567,
+            # retrieved 2026-11-03).
+            known = ", ".join(sorted(lookup)) or "none"
+            return {
+                "gene": gene,
+                "diplotype": diplotype,
+                "phenotype": "Indeterminate",
+                "activity_score": None,
+                "clinical_meaning": (
+                    f"No phenotype can be assigned: {gene} {diplotype!r} is not "
+                    f"in this agent's {gene} genotype table, which covers "
+                    f"{known}. CPIC assigns Indeterminate and makes no "
+                    f"recommendation here. Do NOT read this as wild-type."
+                ),
+                "unscoreable_alleles": [diplotype],
+            }
         return {
             "gene": gene,
             "diplotype": diplotype,
@@ -827,7 +1105,17 @@ class PhenotypeTranslator:
             else:
                 if low <= score < high:
                     return phenotype
-        return "Indeterminate"
+        # An activity score that falls off the end of a gene's threshold
+        # table is a bug in the table, not a clinical finding. This used to
+        # return "Indeterminate", which is a *clinical answer* and hid the
+        # UGT1A1 dead zone: *1/*36 (AS 2.5) and *36/*36 (AS 3.0) are CPIC
+        # Normal Metabolizers and were reported Indeterminate because the
+        # Normal bucket stopped at 2.1.
+        raise ValueError(
+            f"{gene} activity score {score} falls outside "
+            f"PHENOTYPE_THRESHOLDS[{gene!r}] = {thresholds}. The threshold "
+            f"table does not cover every attainable score for this gene."
+        )
 
     def _get_clinical_meaning(self, gene: str, phenotype: str) -> str:
         """Retrieve a clinical interpretation string."""
@@ -1613,8 +1901,13 @@ class DrugGeneMatcher:
             if not gene_data:
                 continue
 
-            phenotype = gene_data.get("phenotype", "Normal Metabolizer")
-            diplotype = gene_data.get("diplotype", "*1/*1")
+            # A gene entry with no phenotype or no diplotype is an absent
+            # call, not a normal metabolizer carrying *1/*1. The old
+            # defaults made an uncalled gene look like a confident negative
+            # result; "Indeterminate" matches no action, so no alert is
+            # emitted and nothing is asserted.
+            phenotype = gene_data.get("phenotype") or "Indeterminate"
+            diplotype = gene_data.get("diplotype") or "not called"
             actions = entry.get("actions", {})
 
             action = actions.get(phenotype)

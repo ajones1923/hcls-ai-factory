@@ -27,16 +27,13 @@ TRANSLATOR = PhenotypeTranslator.ACTIVITY_SCORES
 
 # gene -> alleles one copy defines and another does not, with why that is acceptable today.
 KNOWN_ASYMMETRIES = {
-    # dosing.py carries a CYP3A5 allele the translator does not. *7 is a no-function allele;
-    # adding it to the translator is a change to a clinical table and needs the CPIC CYP3A5
-    # allele-functionality table in hand, which has not been retrieved.
-    ("CYP3A5", "dosing"): {"*7"},
-    # dosing.py scores four DPYD alleles the translator does not. They agree on every allele
-    # both define, so this is coverage, not conflict -- the translator is the thinner table.
-    # CLINICAL_REVIEW §4 covers the DPYD activity values themselves.
-    # (knowledge.py keys DPYD by c. nomenclature rather than star allele, so it is excluded
-    # from comparison in _knowledge_table rather than allowlisted here.)
-    ("DPYD", "dosing"): {"*10", "*7", "*9A", "HapB3"},
+    # CLOSED 2026-11-03 (pgx audit §4, §17): the CYP3A5 and DPYD entries that stood here are
+    # gone. Both said, in effect, "the CPIC table has not been retrieved". It has now --
+    # api.cpicpgx.org/v1/allele?genesymbol=eq.CYP3A5 gives *7 | No function, and
+    # ?genesymbol=eq.DPYD gives *7 and *10 No function and *9A Normal function -- so the
+    # translator's copy was filled in from the source rather than left thinner, and the
+    # allowlist entries describe nothing any more.
+    #
     # knowledge.py's CYP2D6 list predates two alleles the translator scores.
     ("CYP2D6", "knowledge"): {"*40", "*45"},
 }
