@@ -250,13 +250,56 @@ points warrants FNA or follow-up at any size — so nothing turns on it clinical
 choice and should be a documented one.
 
 **ACR Lung-RADS v2022, baseline only.** `classify_solid_nodule_lung_rads` takes a diameter and
-nothing else. Lung-RADS also keys on exam context: at follow-up, a NEW 4–6 mm solid nodule is
+nothing else, and it is now applied to solid nodules only (§6f). Lung-RADS also keys on exam context: at follow-up, a NEW 4–6 mm solid nodule is
 category 3 rather than 2, a new 6–8 mm nodule is 4A rather than 3, and a growing nodule moves
 up a category. So on a follow-up LDCT this can under-call by one category. The fix is to give
 the workflow a prior exam to compare against, not to change the thresholds.
 
 - **Settle with:** Tessler FN et al., J Am Coll Radiol 2017;14(5):587-595 (TI-RADS); the ACR
   Lung-RADS v2022 assessment categories.
+
+## 6f. ACR Lung-RADS v2022 — OPEN: no part-solid or non-solid table is implemented
+
+`core/engines/clinical-imaging/agent/src/workflows/ct_chest_lung_nodule.py`
+
+**What was wrong.** `classify_solid_nodule_lung_rads` — a function whose name, docstring and
+cited source all say *solid* — was being handed every nodule the workflow detected, with only
+the choice of *which* diameter varying by density. Lung-RADS v2022 grades part-solid nodules on
+criteria that differ from the solid table and non-solid (ground-glass) nodules on a different
+scale again, so the solid table was wrong in both directions. Measured on the release
+candidate:
+
+| Nodule | Reported | Consequence |
+|---|---|---|
+| part-solid, 25 mm total, **9.3 mm solid component** | **4A**, "3-month LDCT or PET/CT" | the classic invasive-adenocarcinoma appearance, and the exact nodule shipped as the demo case; three months of growth is stage migration |
+| part-solid, 18 mm, 6.5 mm solid component | **3**, 6-month LDCT | under-called |
+| pure ground-glass, 20 mm | **4B, CRITICAL**, "tissue sampling recommended" | a biopsy of an indolent lesion that belongs on annual screening |
+
+**What was changed (2026-11-03).** Nodule density is now explicit and required
+(`resolve_nodule_type`), and `classify_nodule_lung_rads` grades a density only if this module
+holds its published table. It holds **solid only**. A part-solid nodule, a ground-glass nodule,
+an unstated density and an unrecognised density are each **refused** — `LungRADSGradingError`,
+no category, no screening interval — and the workflow reports the study
+`WorkflowStatus.FAILED`, severity `UNKNOWN`, with the ungraded nodule carried as an explicit
+indeterminate finding. The demo payload deliberately still contains the part-solid nodule, so
+the gap is visible in the demo rather than hidden by it.
+
+**The open question — the thresholds themselves. Do not guess them.** No part-solid or
+non-solid band is written into this code, because the issuing body's own document could not be
+retrieved: the ACR asset
+(`https://www.acr.org/-/media/ACR/Files/RADS/Lung-RADS/Lung-RADS-2022.pdf`) 302-redirects to a
+Sitecore tenant page and serves no document. Reconstructing the bands from secondary sources
+would be the same failure as the defect, one step further from the source.
+
+- **Settle with:** Christensen J et al. (ACR Lung-RADS Committee), "ACR Lung-RADS v2022:
+  Assessment Categories and Management Recommendations", *Chest* 2024;165(3):738-753 (also
+  *J Am Coll Radiol* 2024;21(3):473-488), **Table 1** — the issuing body's own table
+  reproduced in the literature.
+- **Then:** add `classify_part_solid_lung_rads` and `classify_non_solid_lung_rads` with those
+  thresholds cited at the values, extend `_IMPLEMENTED_DENSITY_TABLES`, and add one reference
+  case per density to
+  `core/engines/clinical-imaging/agent/tests/test_radiology_reference_cases.py`. Until then
+  the refusal is the correct behaviour, not a placeholder.
 
 ## 6e. Risk scores verified against their publications (no action needed)
 
@@ -267,11 +310,11 @@ cases live in `core/engines/cardiology/tests/test_score_reference_cases.py`,
 
 | Instrument | Source | Result |
 |---|---|---|
-| CHA2DS2-VASc | Lip, Chest 2010 | all components and both age bands correct |
-| HAS-BLED | Pisters, Chest 2010 | correct, including renal/liver and drugs/alcohol scoring separately and E being age >65 |
+| CHA2DS2-VASc | Lip, Chest 2010 | point table and both age bands correct; one defect found and fixed (every comorbidity defaulted to absent, so the score came from age and sex alone) |
+| HAS-BLED | Pisters, Chest 2010 | point table correct, including renal/liver and drugs/alcohol scoring separately and E being age >65; same defaulting defect found and fixed |
 | HEART | Six 2008 / Backus 2013 | bands correct; one defect found and fixed (missing troponin scored as normal) |
 | ACR TI-RADS | Tessler 2017 | all five feature tables, level mapping and FNA size thresholds correct |
-| ACR Lung-RADS v2022 | ACR | solid-nodule size bands correct (baseline; see §6d) |
+| ACR Lung-RADS v2022 | ACR | solid-nodule size bands correct (baseline; see §6d). **Part-solid and non-solid tables are NOT implemented and must not be guessed — see §6f** |
 | ACMG/AMP combining rules | Richards 2015, Table 5 | every row correct, including conflicting-evidence → VUS |
 | ASCVD Pooled Cohort Equations | Goff 2013, Appendix 7 + guideline vignette | all four cohorts' coefficients correct; vignette reproduced within 0.09 pp |
 | EuroSCORE II | Nashef 2012, Table 6 | **4 coefficients wrong, corrected** (see §1–2); 3 fourth-decimal values still open |

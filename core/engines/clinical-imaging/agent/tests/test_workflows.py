@@ -169,10 +169,30 @@ class TestCTChestLungNoduleWorkflow:
         assert wf.MODALITY == "ct"
         assert wf.BODY_REGION == "chest"
 
-    def test_mock_run_returns_completed(self):
+    def test_mock_run_reports_the_ungradeable_part_solid_nodule(self):
+        """CORRECTED 2026-11-03: this asserted COMPLETED on a study that cannot be graded.
+
+        The canned payload's second nodule is part-solid with a 9.3 mm solid component.
+        Lung-RADS v2022 grades part-solid nodules on criteria that differ from the solid table;
+        this module does not hold that table (the ACR asset could not be retrieved, see
+        CLINICAL_REVIEW.md §6d), so it refuses to grade it rather than mis-call it in either
+        direction. The run therefore reports FAILED, with the solid nodule still graded and the
+        part-solid one explicitly not. Asserting COMPLETED here is what made the mis-grading
+        invisible, so the assertion is corrected to the honest outcome and the reason is
+        checked rather than dropped.
+        """
         wf = CTChestLungNoduleWorkflow(mock_mode=True)
         result = wf.run()
-        assert result.status == WorkflowStatus.COMPLETED
+        assert result.status == WorkflowStatus.FAILED
+        assert result.severity == FindingSeverity.UNKNOWN
+        assert "part" in result.classification.lower()
+
+        graded = [f for f in result.findings if f.get("lung_rads")]
+        ungraded = [f for f in result.findings if f.get("lung_rads") is None]
+        assert len(graded) == 1 and graded[0]["lung_rads"] == LungRADS.CAT_3.value
+        assert len(ungraded) == 1
+        assert ungraded[0]["category"] == FindingCategory.INDETERMINATE.value
+        assert ungraded[0]["severity"] == FindingSeverity.UNKNOWN.value
 
     def test_mock_run_detects_nodules(self):
         wf = CTChestLungNoduleWorkflow(mock_mode=True)
