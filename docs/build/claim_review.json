@@ -1,5 +1,25 @@
 {
  "_comment": "Recorded answers to claim-integrity checks 2, 4 and 6, which cannot be measured by a script. Read by scripts/gen_maturity.py. Only PASS, FAIL and n/a count as answers; anything else leaves the check unanswered, because a reviewer who could not reach a verdict has not answered it. One entry per subject per check. Do not add a subject here without having read its code.",
+ "genomic-foundation": {
+  "2": {
+   "result": "PASS",
+   "date": "2026-11-04",
+   "reviewer": "claim-integrity review",
+   "evidence": "Traced every field of `/api/metrics` and every GPU tile to its source. No `random`, `hash()` or time-derived value survives: the only `hash(str(time.time()))` in the tree is the comment documenting its removal. `throughput_gb_hr` is modeled and says so three ways -- `throughput_is_modeled: true`, a `throughput_model` string, and the UI labels \"Estimated Throughput (modeled)\" plus \"Throughput (est.)\" in the header. The v2.2.0 NVML fix holds end to end: unmeasurable fields are null and render as `--`, while a true 0 is preserved as a reading, which the pre-v2.2.0 code got backwards. `gwas.py` reports separation/convergence failures as untestable rather than emitting a p-value."
+  },
+  "4": {
+   "result": "PASS",
+   "date": "2026-11-04",
+   "reviewer": "claim-integrity review",
+   "evidence": "`acmg_sf.py` is the worked example: the panel is cited to Miller et al., Genet Med 2023, carries `PANEL_VERSION`, and states in the module docstring that v3.3 supersedes v3.2 and that it must be validated before clinical use. `gwas.py` introduces no thresholds -- no genome-wide significance cutoff is hardcoded; callers supply `min_maf`. No uncited clinical constant found in `src/`."
+  },
+  "6": {
+   "result": "FAIL",
+   "date": "2026-11-04",
+   "reviewer": "claim-integrity review",
+   "evidence": "`acmg-secondary-findings` declared `maturity: verified` while its own description said the panel is a curated representation of ACMG SF v3.2, that ACMG has since published v3.3, and to \"validate panel vs official publication before clinical use\". Of the nine capabilities declaring `verified`, it was the only one whose description contradicted the tier -- and `verified` is rendered on the public site INSTEAD of the serving status. FIXED: now `research-use`. Pinned by `tests/test_verified_tier_is_earned.py` (2 of 5 fail against the prior commit). `variant-store` keeps `verified` and earns it: \"Verified on real HG002 PASS SNVs: Ts/Tv~2.0\". Noted, not failed: `genomics-engine` and `gwas-association` declare no tier, but neither description claims more than the code does."
+  }
+ },
  "tuberous-sclerosis": {
   "2": {
    "result": "FAIL",
