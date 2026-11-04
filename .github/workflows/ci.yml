@@ -134,6 +134,22 @@ jobs:
       - name: Test-depth ratchet
         run: .venv/bin/python scripts/check_test_depth.py /tmp/subject_tests.json --enforce
 
+      # Corpus-coverage ratchet. The first honest measurement of retrieval, on 2026-11-04, was
+      # that 56 of 70 workflows retrieve from under 75% of the evidence they declare, at a mean
+      # of 47%. Seeding fixes that once; this is what stops it drifting back.
+      #
+      # It reads docs/build/corpus_snapshot.json rather than querying Milvus, because there is
+      # no Milvus on this runner and a gate that cannot run where the merge happens is not a
+      # gate. The weight tables still come from the subject source trees, so this step does
+      # catch what a code change can break -- a boost edited, a collection dropped from a map.
+      # Refresh the snapshot on the box and commit it:
+      #   .venv/bin/python scripts/check_corpus_weights.py \
+      #       --write-snapshot docs/build/corpus_snapshot.json
+      # A snapshot older than 45 days FAILS: one frozen while everything was green would
+      # otherwise certify a corpus nobody has looked at since.
+      - name: Corpus-coverage ratchet
+        run: .venv/bin/python scripts/check_corpus_ratchet.py --enforce
+
   registry:
     name: Capability registry validation
     runs-on: ubuntu-latest

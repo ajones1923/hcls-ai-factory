@@ -179,3 +179,72 @@ def coverage(
         weight_declared=total,
         weight_contributing=got,
     )
+
+
+# --------------------------------------------------------------------------- #
+# Ratchet: comparing one measurement against a recorded baseline
+# --------------------------------------------------------------------------- #
+#: How far a workflow's coverage may fall before it counts as a regression.
+#: Coverage is a ratio of renormalized weights, so a collection appearing or a
+#: boost changing can move a workflow by a fraction of a point without anything
+#: having gone wrong. One point is wide enough to absorb that and narrow enough
+#: to catch a collection going quiet.
+RATCHET_TOLERANCE = 0.01
+
+
+@dataclass(frozen=True)
+class CoverageRegression:
+    """One workflow that covers less than the baseline recorded."""
+
+    subject: str
+    workflow: str
+    baseline: float
+    current: float
+
+    @property
+    def dropped(self) -> float:
+        return self.baseline - self.current
+
+    def __str__(self) -> str:
+        return (f"{self.subject}/{self.workflow}: {self.baseline:.0%} -> {self.current:.0%} "
+                f"(-{self.dropped:.0%})")
+
+
+def compare_coverage(
+    baseline: Mapping[tuple[str, str], float] | Mapping[str, float],
+    current: Mapping[tuple[str, str], float] | Mapping[str, float],
+    *,
+    tolerance: float = RATCHET_TOLERANCE,
+) -> tuple[list[CoverageRegression], list[str]]:
+    """Compare per-workflow coverage against a baseline.
+
+    Returns ``(regressions, vanished)``. A workflow present in the baseline and absent from
+    the current measurement is reported in ``vanished`` rather than silently ignored: a
+    workflow that stopped being measured looks identical to one that never regressed, and
+    that equivalence is how a gate stops meaning anything. The same reasoning as the
+    test-depth ratchet, which treats a subject disappearing as a failure rather than a pass.
+
+    Keys may be ``(subject, workflow)`` tuples or ``"subject/workflow"`` strings; JSON
+    round-trips force the latter, and accepting both keeps the caller from stringifying twice.
+    """
+    def norm(m):
+        out = {}
+        for k, v in m.items():
+            key = k if isinstance(k, str) else f"{k[0]}/{k[1]}"
+            out[key] = float(v)
+        return out
+
+    b, c = norm(baseline), norm(current)
+
+    regressions: list[CoverageRegression] = []
+    for key, was in sorted(b.items()):
+        if key not in c:
+            continue
+        now = c[key]
+        if was - now > tolerance:
+            subject, _, workflow = key.partition("/")
+            regressions.append(CoverageRegression(subject, workflow, was, now))
+
+    vanished = sorted(set(b) - set(c))
+    regressions.sort(key=lambda r: -r.dropped)
+    return regressions, vanished

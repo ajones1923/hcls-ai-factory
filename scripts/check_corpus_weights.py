@@ -171,6 +171,10 @@ def main() -> int:
                     help="exit non-zero if any workflow is below the floor")
     ap.add_argument("--min", type=float, default=MIN_COVERAGE, dest="floor")
     ap.add_argument("--json", metavar="PATH", help="write the full result as JSON")
+    ap.add_argument("--write-snapshot", metavar="PATH",
+                    help="record live per-collection row counts for the CI ratchet. CI has no "
+                         "Milvus, so the gate recomputes coverage from this file instead of "
+                         "querying; refresh it on the box and commit it.")
     a = ap.parse_args()
 
     from hcls_common.corpus_coverage import coverage
@@ -179,6 +183,19 @@ def main() -> int:
     if err:
         print(f"  {err}")
         return 1 if a.enforce else 0
+
+    if a.write_snapshot:
+        import datetime
+        snap = {
+            "measured_at": datetime.datetime.now(datetime.timezone.utc)
+                                   .replace(microsecond=0).isoformat(),
+            "host": f"{os.getenv('MILVUS_HOST', 'localhost')}:"
+                    f"{os.getenv('MILVUS_PORT', '19530')}",
+            "collections": {k: int(v) for k, v in sorted(counts.items())},
+        }
+        pathlib.Path(a.write_snapshot).write_text(json.dumps(snap, indent=1) + "\n")
+        print(f"  wrote snapshot: {len(snap['collections'])} collections, "
+              f"{sum(snap['collections'].values())} rows -> {a.write_snapshot}")
 
     rows = []
     notes = []

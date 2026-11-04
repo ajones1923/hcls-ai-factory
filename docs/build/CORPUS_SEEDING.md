@@ -111,3 +111,31 @@ The loader reports exactly which fields it ignored, once per collection.
 ```
 
 Both assert on retrieved content, so an empty corpus fails them rather than passing quietly.
+
+## After seeding: refresh the snapshot, or CI will not notice
+
+Coverage is gated in CI by `scripts/check_corpus_ratchet.py`, which cannot query Milvus — there
+is none on the runner. It recomputes coverage from a committed snapshot of row counts plus the
+weight tables in the subject source trees. So **seeding a collection changes nothing a reviewer
+can see until the snapshot is refreshed**:
+
+```bash
+.venv/bin/python scripts/check_corpus_weights.py --write-snapshot docs/build/corpus_snapshot.json
+python scripts/check_corpus_ratchet.py            # what the gate will say
+python scripts/check_corpus_ratchet.py --update-baseline   # pin the improvement
+```
+
+Commit both files. Two rules the gate enforces that are worth knowing before you hit them:
+
+- **A snapshot older than 45 days fails.** One frozen while everything was green would certify a
+  corpus nobody has looked at since.
+- **A workflow that disappears from the measurement fails**, rather than passing. A workflow that
+  stopped reporting looks identical to one that never regressed, and that equivalence is how the
+  test-depth ratchet managed to crash on every invocation without anyone noticing.
+
+Update the baseline when coverage *improves*, so the new floor is the one that holds. Never lower
+it to make a red run green — the point is that it only moves one way.
+
+**Three subjects are not measured at all:** `precision-biomarker`, `precision-autoimmune` and
+`clinical-imaging` declare no weight table and search a flat collection set, so their 1,244 / 265
+/ 440 rows are invisible to this gate. Wiring them is open work.
