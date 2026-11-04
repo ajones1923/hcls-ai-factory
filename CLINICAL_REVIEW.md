@@ -420,3 +420,100 @@ published MAGGIC, and the score maps directly onto 1- and 3-year mortality estim
 in the published score the way age points are. This code stratifies age by EF but not SBP.
 
 - **Settle with:** Pocock 2013 Table 2/Table 4, or the calculator at heartfailurerisk.org.
+
+**4. The HF-duration term reaches the calculator now, but its direction is still inverted —
+SETTLED by the source, fix NOT applied here.** `api/routes/cardio_clinical.py` used to send
+`extra={"hf_duration_18m": ...}` while `calculate_maggic` reads `extra["hf_duration_months"]`,
+so the duration fell back to 0 on every API call and the "HF diagnosed >18 months ago" checkbox
+had no effect on the score. The route now sends `hf_duration_months`, which is what makes the
+remaining defect visible: `risk_calculators.py:1458-1461` reads
+
+```python
+# HF first diagnosed within 18 months = +2 (higher risk for new diagnosis)
+hf_new_pts = 2 if not hf_duration_gte_18 else 0
+```
+
+The published model's variable is **"HF duration >18 months"** — longer-standing heart failure
+carries the HIGHER risk — so the two points belong to the chronic patient, not the newly
+diagnosed one. The magnitude (2) is right; only the direction is wrong.
+
+- **Primary source:** Pocock SJ et al., *Eur Heart J* 2013;34(19):1404-1413, **Table 2**
+  (multivariable model, all 39,372 patients): "HF duration >18 months — rate ratio 1.188
+  (1.139, 1.240), log rate ratio 0.173, Z 7.96, P<0.0001". The integer rule is in the same
+  paper's Methods (p.1405): "the score increases by an integer amount for each risk factor
+  level above the lowest risk ... making log rate ratio 0.1 equivalent to 1 point", so
+  0.173 → 2 points, awarded for duration >18 months.
+- **Why it was not changed here:** `src/risk_calculators.py` is owned by a parallel change in
+  this release and was deliberately not touched. Until the direction is corrected there, a
+  patient with HF for six years scores 2 points BELOW the published MAGGIC (the mirror image of
+  the pre-fix behaviour, which charged every API-scored patient the +2 "new HF" point). 20% is
+  the threshold at which this function emits "consider referral to advanced heart failure /
+  transplant centre", so the sign matters at the point of referral. The regression test added
+  for the route (`tests/test_cardio_safety_regressions.py::TestA2MAGGICDurationReachesTheCalculator`)
+  asserts only that the input reaches the calculator and changes the score, so it is
+  direction-agnostic and will stay green either way — **it does not prove the direction**.
+
+---
+
+## 13. CRT Class 2a QRS lower bound — converged on 120 ms, full text not retrievable
+
+`core/engines/cardiology/src/hf_thresholds.py`
+
+`GDMTOptimizer` used 120 ms and `HeartFailureWorkflow` used 130 ms for the QRS duration at
+which CRT becomes Class 2a in LBBB, both citing the 2022 AHA/ACC/HFSA HF guideline. A patient
+with LVEF 32%, QRS 125 ms and LBBB therefore got a Class 2a CRT recommendation from
+`/gdmt/optimize` and nothing at all from `/workflow/heart-failure`. The two surfaces now share
+one constant, `CRT_QRS_CLASS_IIA_MS = 120`.
+
+- **Why 120:** both surfaces cite the 2022 AHA/ACC/HFSA guideline, and the only retrievable
+  reproductions of that guideline's own recommendation text put the Class 2a LBBB band at
+  120–149 ms ("For patients who have LVEF <=35%, sinus rhythm, LBBB with a QRS duration of 120
+  to 149 ms, and NYHA class II, III, or ambulatory IV symptoms on GDMT, CRT can be useful...",
+  COR 2a, LOE B-NR), corroborated independently by the 2023 HRS physiologic-pacing guideline's
+  2a (B-R) recommendation for the same band. 130 ms is the **2021 ESC** figure (McDonagh TA et
+  al., *Eur Heart J* 2021;42:3599-3726), not a value of the guideline the code cites.
+- **What is unsettled:** the publisher's full text could not be retrieved from this
+  environment — ahajournals.org and jacc.org both return HTTP 403 — so this rests on
+  reproductions of the recommendation rather than on the article.
+- **Settle with:** Heidenreich PA et al., 2022 AHA/ACC/HFSA Guideline for the Management of
+  Heart Failure, *Circulation* 2022;145:e895-e1032, device-therapy recommendation table
+  (section 7.4.1), recommendations 8 and 13.
+- **A second question in the same table, NOT acted on:** the same reproductions restrict the
+  **non-LBBB 120–149 ms** band to Class 2b *and to NYHA III or ambulatory IV*.
+  `_assess_device_therapy` gives Class IIb for non-LBBB QRS >=120 at NYHA II as well, which
+  would over-recommend a device. Settle with the same table before changing it.
+
+---
+
+## 14. Cardiology defaults and gaps found during the November 2026 fix pass, left as they are
+
+`core/engines/cardiology/`
+
+Behaviours noticed while fixing the audited defects, each outside the scope of that fix list and
+none of them changed:
+
+1. **`_parse_nyha("unknown")` and `_classify_nyha("unknown")` both return NYHA II**
+   (`src/gdmt_optimizer.py`, `src/clinical_workflows.py`), and NYHA II is the gate for ICD
+   eligibility and for ivabradine, so an unparseable functional class silently becomes
+   device-eligible. Two tests assert this value
+   (`tests/test_gdmt_optimizer.py:156`, `tests/test_clinical_workflows.py:331`), so changing it
+   is a deliberate behaviour change, not a bug fix. The ICD path no longer asserts eligibility
+   on absent waiting periods, which blunts the consequence but does not remove it.
+2. **Every comorbidity flag across this engine defaults to `False`** (CHA2DS2-VASc, HAS-BLED,
+   `bp_treatment` in the preventive workflow, the EuroSCORE II booleans), so "not stated" and
+   "absent" are the same value. This is the audit's finding A-9 and is not confined to
+   cardiology.
+3. **SGLT2i initiation consults no renal function.** `_recommend_pillar_initiation` now refuses
+   to start a beta-blocker, an ARNI or an MRA without the relevant vital or lab, but the SGLT2i
+   branch reads nothing at all, so it does not invent a value — it simply never checks one.
+   Dapagliflozin and empagliflozin both carry eGFR thresholds in their labels. Settle with the
+   DAPA-HF and EMPEROR-Reduced labels before adding a guard.
+4. **A beta-blocker already at target is not re-checked against the current vitals.**
+   `_check_contraindications` is consulted only on the titration path, so a patient at
+   carvedilol 25 mg BID with HR 48 and SBP 82 gets no "hold" advice from `/gdmt/optimize`.
+5. **`_assess_current_gdmt` resolves a bare `"metoprolol"` to `metoprolol_succinate`** via
+   substring matching (`src/gdmt_optimizer.py`), which would score an immediate-release
+   tartrate patient as being on a pillar drug that is not indicated in heart failure.
+6. **`SeverityLevel` has no "unknown" member.** Workflows whose inputs were not supplied now
+   report `INFORMATIONAL` with the indeterminacy stated in the findings, because the alternative
+   was to map an unmeasured patient onto a disease severity. A dedicated level would be better.
