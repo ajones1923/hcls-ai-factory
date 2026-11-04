@@ -700,14 +700,24 @@ def render_summary():
                 st.success(f"Saved to {output_file}")
 
     with col2:
-        if st.button("Export Full Report (PDF)"):
-            with st.spinner("Generating professional PDF report..."):
+        # This button used to construct VCPReportGeneratorEnhanced with NO data argument, so the
+        # PDF it produced was the generator's hard-coded VCP/CB-5083 result set -- named
+        # "<GENE>_Drug_Candidate_Report.pdf" for whatever gene was selected, containing four
+        # invented candidates with DiffDock affinities and a Parabricks/MolMIM/DiffDock
+        # provenance line, and none of the molecules the session had actually generated. The
+        # session's own molecules are now what gets exported, with their provenance attached.
+        molecules = st.session_state.get('generated_molecules', [])
+        if st.button("Export Full Report (PDF)", disabled=not molecules):
+            with st.spinner("Generating PDF report from this session's molecules..."):
                 try:
                     sys.path.insert(0, str(Path(__file__).parent.parent))
                     from generate_vcp_report_enhanced import VCPReportGeneratorEnhanced
 
                     output_path = f"outputs/{target.gene}_Drug_Candidate_Report.pdf"
-                    generator = VCPReportGeneratorEnhanced(output_path=output_path)
+                    generator = VCPReportGeneratorEnhanced(
+                        output_path=output_path,
+                        results=_session_results(target, molecules),
+                    )
                     output_file = generator.generate()
 
                     with open(output_file, "rb") as f:
@@ -722,6 +732,47 @@ def render_summary():
                     )
                 except Exception as e:
                     st.error(f"Report generation failed: {e}")
+        if not molecules:
+            st.caption("Generate molecules in step 3 first — the PDF reports the molecules this "
+                       "session produced, and will not be written without them.")
+
+
+def _session_results(target, molecules) -> dict:
+    """Package this session's molecules in the report generator's `results` shape.
+
+    No docking runs in this UI, so `num_docked` is 0 and `docking_method` is None: the report
+    then states plainly that no docking was performed, instead of printing kcal/mol affinities
+    for molecules nothing docked. Provenance travels with every candidate.
+    """
+    candidates = []
+    for i, mol in enumerate(molecules, start=1):
+        props = dict(getattr(mol, 'properties', None) or {})
+        candidates.append({
+            'rank': i,
+            'id': getattr(mol, 'name', None) or f'molecule-{i}',
+            'smiles': getattr(mol, 'smiles', ''),
+            'score': getattr(mol, 'score', None),
+            'score_type': None,          # nothing was docked
+            'docking_score': None,
+            'properties': props,
+            'provenance': props.get('provenance', getattr(mol, 'generation_method', 'not recorded')),
+        })
+    seed = st.session_state.get('reference_smiles', '') or ''
+    return {
+        'pipeline': {
+            'target_gene': target.gene,
+            'generator': (getattr(molecules[0], 'generation_method', None) or 'not recorded')
+                         if molecules else 'not recorded',
+            'seed_compound': st.session_state.get('reference_drug', '') or 'not recorded',
+            'seed_smiles': seed,
+            'num_generated': len(molecules),
+            'num_passed_qc': None,       # this UI applies no QC filter
+            'num_docked': 0,
+            'docking_method': None,
+            'pdb_id': st.session_state.get('target_pdb'),
+        },
+        'top_candidates': candidates,
+    }
 
 
 def main():
