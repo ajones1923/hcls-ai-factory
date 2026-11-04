@@ -462,35 +462,64 @@ with tab_matcher:
 
             if result:
                 matches = result.get("matches", [])
-                st.subheader(f"Matching Trials ({len(matches)} found)")
-                st.caption(f"Screened {result.get('total_screened', 0)} trials")
+                st.subheader(f"Retrieved Trials ({len(matches)} found)")
+                st.caption(f"Retrieved from {result.get('total_screened', 0)} candidate records")
+
+                # This endpoint retrieves; it does not screen. The score it
+                # returns is a vector similarity over diagnosis + biomarkers +
+                # therapeutic area only, and the patient's age, sex,
+                # medications and comorbidities are not in the search string.
+                # It was previously labelled "Match Score" and coloured green
+                # above 0.7, and the criteria line was hidden whenever the
+                # counts were 0/0 -- which was always.
+                if not result.get("criteria_evaluated", False):
+                    st.warning(
+                        "**No eligibility criteria were evaluated.** These "
+                        "results are ranked by text similarity to the "
+                        "diagnosis, biomarkers and therapeutic area only. Age, "
+                        "sex, medications and comorbidities were not used. "
+                        "This is not an eligibility assessment."
+                    )
+                if result.get("disclaimer"):
+                    st.caption(result["disclaimer"])
 
                 for match in matches:
-                    score = match.get("overall_score", 0)
-                    score_color = NVIDIA_THEME["success"] if score >= 0.7 else (
-                        NVIDIA_THEME["warning"] if score >= 0.4 else NVIDIA_THEME["danger"]
-                    )
+                    score = match.get("retrieval_similarity")
+                    score_text = "n/a" if score is None else f"{score:.2f}"
+                    trial_id = match.get("trial_id") or "no registry ID in record"
                     with st.expander(
-                        f"{match.get('trial_id', 'N/A')} | "
+                        f"{trial_id} | "
                         f"{match.get('trial_title', 'Unknown')[:60]} | "
-                        f"Score: {score:.2f}"
+                        f"Retrieval similarity: {score_text}"
                     ):
                         mcol1, mcol2, mcol3 = st.columns(3)
                         with mcol1:
-                            st.metric("Match Score", f"{score:.2f}")
+                            st.metric("Retrieval similarity", score_text)
+                            st.caption("Text similarity, not eligibility")
                         with mcol2:
-                            st.metric("Phase", match.get("phase", "N/A"))
+                            st.metric("Phase", match.get("phase") or "unknown")
                         with mcol3:
-                            st.metric("Status", match.get("status", "N/A"))
+                            st.metric("Status", match.get("status") or "unknown")
 
-                        inc_met = match.get("inclusion_met", 0)
-                        inc_total = match.get("inclusion_total", 0)
-                        exc_clear = match.get("exclusion_clear", 0)
-                        exc_total = match.get("exclusion_total", 0)
-                        if inc_total > 0 or exc_total > 0:
-                            st.write(f"Inclusion: {inc_met}/{inc_total} met | Exclusion: {exc_clear}/{exc_total} clear")
-
-                        st.write(f"Confidence: {match.get('confidence', 0):.2f}")
+                        if match.get("criteria_evaluated"):
+                            inc_met = match.get("inclusion_met")
+                            inc_total = match.get("inclusion_total")
+                            exc_clear = match.get("exclusion_clear")
+                            exc_total = match.get("exclusion_total")
+                            st.write(
+                                f"Inclusion: {inc_met}/{inc_total} met | "
+                                f"Exclusion: {exc_clear}/{exc_total} clear"
+                            )
+                        else:
+                            st.write(
+                                "Inclusion criteria: **not evaluated** | "
+                                "Exclusion criteria: **not evaluated**"
+                            )
+                        if not match.get("trial_id"):
+                            st.info(
+                                "This record carries no ClinicalTrials.gov "
+                                "registration. It may not be a trial."
+                            )
         else:
             st.warning("Please enter a primary diagnosis.")
 
