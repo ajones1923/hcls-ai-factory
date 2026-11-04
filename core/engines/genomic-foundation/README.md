@@ -758,6 +758,22 @@ The VCF file feeds into the **RAG/Chat Pipeline** (Stage 2), where:
 
 ## Configuration
 
+### Security-relevant settings (read this before exposing anything)
+
+| Variable | Default | What it controls |
+|----------|---------|------------------|
+| `PORTAL_API_KEY` | *(generated)* | Web portal credential. Auth on the portal is **always enforced**; with this unset the portal generates an ephemeral key, writes it to a mode-0600 file and logs the file's path. See `web-portal/README.md`. |
+| `CORS_ORIGINS` | `http://localhost:5000,http://127.0.0.1:5000` | Portal CORS allowlist. Was `*`. Never set it to `*`. |
+| `PORTAL_ALLOWED_IMAGES` | pinned Parabricks set | Images `PB_IMG` may be set to through `/api/config`. That value is the image `docker run` is given with host mounts and GPU access. |
+| `PORTAL_CONFIG_PATH_ROOT` | this engine's directory | Directory the path-valued config keys (`GP`, `IN`, `REF`, `OUT`, `LOG`) must stay inside. |
+| `PORTAL_MAX_UPLOAD_BYTES` | `107374182400` (100 GB) | Upload ceiling, enforced while streaming. |
+| `VARIANT_STORE_DATA_ROOT` | this engine's `data/` | Directory that `POST /load` on the variant store service (:8575) may read VCFs from. Paths outside it are refused. |
+| `HCLS_API_KEY` | *(unset → open)* | Platform-wide API key. The variant store service now installs the shared gate; with no key set, the shared gate's documented posture is open, so set it before any network exposure. |
+
+Note that `config/pipeline.env` is `source`d by the pipeline scripts — bash executes it — so
+anything written there is shell input. The portal writes values shell-quoted and validates
+them per key; if you edit the file by hand, quote your values.
+
 ### Configuration File
 
 Edit `config/pipeline.env` to customize behavior:
