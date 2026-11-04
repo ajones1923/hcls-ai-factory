@@ -1,6 +1,21 @@
 /*
- * RAG Chat Pipeline Module
+ * Target Lookup Module
  * VCF → Target Hypothesis identification
+ *
+ * NOT RAG. The process below was named RAG_IDENTIFY_TARGETS, commented "Identify drug targets
+ * using RAG", wired into main.nf as "Stage 2 (RAG Chat)" and wrote `gene_table_lookup: 1.0` into
+ * versions.yml -- while contacting no Milvus, no embedding model and no LLM. It is an 11-gene
+ * literal dictionary. Three further faults made its output fabricated rather than merely
+ * limited, and all are fixed here (see the process body):
+ *   1. `if gene in info` was a substring test against the raw INFO column, so VCP matched
+ *      VCPIP1/VCPKMT, ALK matched ALKBH1/ALKBH5, GRN matched PGRN and KRAS matched KRASP1.
+ *   2. The rsID clause sat inside the per-gene loop, so one variant carrying rs188935092
+ *      emitted all eleven genes as targets.
+ *   3. Every emitted target was stamped confidence 'high', priority 5, status 'validated'
+ *      regardless of evidence, and a VCF with no hit at all defaulted to a VCP/FTD target with
+ *      the same stamps and a CB-5083 reference compound -- so a healthy control's report read
+ *      "Target Gene: VCP".
+ * `params.confidence_threshold` and `params.max_targets` were never read.
  */
 
 process RAG_EXTRACT_VARIANTS {
@@ -52,7 +67,7 @@ process RAG_EXTRACT_VARIANTS {
     """
 }
 
-process RAG_IDENTIFY_TARGETS {
+process LOOKUP_TARGETS_IN_GENE_TABLE {
     tag "$sample_id"
     label 'process_medium'
     errorStrategy 'retry'
@@ -161,35 +176,83 @@ process RAG_IDENTIFY_TARGETS {
         },
     }
 
-    # Identify target genes from variants
-    targets = []
-    for variant in data.get('variants', []):
-        # Parse gene from INFO field (simplified)
-        info = variant.get('info', '')
-        for gene in disease_genes:
-            if gene in info or (variant.get('rsid') and 'rs188935092' in str(variant.get('rsid'))):
-                gene_info = disease_genes[gene]
-                target_entry = {
-                    'gene': gene,
-                    'protein': f'{gene} protein',
-                    'uniprot_id': gene_info.get('uniprot_id'),
-                    'variant': variant,
-                    'diseases': gene_info['diseases'],
-                    'mechanism': gene_info['mechanism'],
-                    'druggability': gene_info['druggability'],
-                    'pdb_ids': gene_info['pdb_ids'],
-                    'confidence': 'high',
-                    'priority': 5,
-                    'status': 'validated',
-                }
-                if gene_info.get('reference_smiles'):
-                    target_entry['reference_smiles'] = gene_info['reference_smiles']
-                if gene_info.get('reference_drug'):
-                    target_entry['reference_drug'] = gene_info['reference_drug']
-                targets.append(target_entry)
+    def genes_in(variant):
+        '''Gene symbols annotated on a variant, parsed out of the structured field.
 
-    # Default to VCP demo target if no targets identified from variants
-    if not targets:
+        `if gene in info` was a substring test against the whole raw INFO column, so VCP matched
+        VCPIP1 and VCPKMT, ALK matched ALKBH1/ALKBH5, GRN matched PGRN and KRAS matched KRASP1 --
+        a target for a gene the variant does not touch. snpEff ANN= and VEP CSQ= are
+        pipe-delimited; the gene symbol is one field, so compare that field for equality.
+        '''
+        info = variant.get('info', '') or ''
+        symbols = set()
+        for key in ('ANN=', 'CSQ='):
+            start = info.find(key)
+            if start < 0:
+                continue
+            block = info[start + len(key):].split(';')[0]
+            for annotation in block.split(','):
+                fields = annotation.split('|')
+                # snpEff ANN: allele|effect|impact|gene_name|... ; VEP CSQ: allele|effect|impact|symbol|...
+                if len(fields) > 3 and fields[3].strip():
+                    symbols.add(fields[3].strip().upper())
+        if not symbols:
+            # No structured annotation: a bare GENE=... key is the only other explicit form.
+            for part in info.split(';'):
+                if part.upper().startswith('GENE='):
+                    symbols.add(part.split('=', 1)[1].strip().upper())
+        return symbols
+
+    # Identify target genes from variants. Every emitted target used to be stamped
+    # confidence 'high', priority 5, status 'validated' regardless of evidence; those are now
+    # derived from what the table and the annotation actually say, and params.max_targets /
+    # params.confidence_threshold (which were never read) are applied.
+    CONFIDENCE_SCORE = {'high': 0.9, 'medium': 0.6, 'low': 0.3}
+    threshold = float(${params.confidence_threshold})
+    max_targets = int(${params.max_targets})
+
+    by_gene = {}
+    for variant in data.get('variants', []):
+        for gene in genes_in(variant):
+            if gene not in disease_genes:
+                continue
+            gene_info = disease_genes[gene]
+            # Druggability is a property of the gene in the table, not of this variant, so it is
+            # what the confidence derives from -- never an unconditional 'high'.
+            druggability = gene_info['druggability']
+            score = CONFIDENCE_SCORE.get(druggability, 0.0)
+            if score < threshold:
+                continue
+            impact = str(variant.get('impact', '') or '').upper()
+            entry = by_gene.setdefault(gene, {
+                'gene': gene,
+                'protein': f'{gene} protein',
+                'uniprot_id': gene_info.get('uniprot_id'),
+                'variants': [],
+                'diseases': gene_info['diseases'],
+                'mechanism': gene_info['mechanism'],
+                'druggability': druggability,
+                'pdb_ids': gene_info['pdb_ids'],
+                'confidence': druggability,
+                'confidence_score': score,
+                # 'validated' is a claim about a target, not about a gene table lookup.
+                'status': 'gene_table_match',
+                'evidence': 'matched a gene symbol in the built-in 11-gene table; no retrieval, '
+                            'no literature search and no model inference was performed',
+            })
+            entry['variants'].append(variant)
+            if gene_info.get('reference_smiles'):
+                entry['reference_smiles'] = gene_info['reference_smiles']
+            if gene_info.get('reference_drug'):
+                entry['reference_drug'] = gene_info['reference_drug']
+
+    targets = sorted(by_gene.values(), key=lambda t: -t['confidence_score'])[:max_targets]
+
+    # No match is no match. This used to append a VCP/FTD target stamped confidence 'high',
+    # status 'validated' and seeded with CB-5083, so a VCF with no variant in any of the eleven
+    # genes -- a healthy control -- produced a report reading "Target Gene: VCP" for that
+    # patient. A built-in demo target now requires an explicit opt-in and says what it is.
+    if not targets and '${params.demo_target_fallback}'.lower() == 'true':
         targets.append({
             'gene': 'VCP',
             'protein': 'Valosin-containing protein (p97)',
@@ -200,15 +263,22 @@ process RAG_IDENTIFY_TARGETS {
             'pdb_ids': ['5FTK', '8OOI', '9DIL', '7K56'],
             'reference_smiles': 'CC(C)C1=C(C=C(C=C1)NC2=NC3=C(C=N2)N(C=C3)C)C(=O)NC4=CC=C(C=C4)CN5CCOCC5',
             'reference_drug': 'CB-5083',
-            'confidence': 'high',
-            'priority': 5,
-            'status': 'validated',
-            'rationale': 'VCP mutations cause FTD-ALS. CB-5083 is a known VCP inhibitor (demo default).'
+            'confidence': 'not derived from this sample',
+            'confidence_score': 0.0,
+            'status': 'demo_default',
+            'evidence': 'DEMO DEFAULT -- not identified from this VCF. No variant in this '
+                        'sample matched any gene in the built-in table.',
+            'rationale': 'VCP mutations cause FTD-ALS. CB-5083 is a known VCP inhibitor '
+                         '(demo default, --demo_target_fallback true).'
         })
 
     output = {
         'sample': '${sample_id}',
         'targets': targets,
+        'method': 'built-in 11-gene table lookup (not RAG: no vector search, no LLM)',
+        'n_targets': len(targets),
+        'confidence_threshold': threshold,
+        'max_targets': max_targets,
         'analysis_version': '1.0'
     }
 
@@ -216,11 +286,11 @@ process RAG_IDENTIFY_TARGETS {
         json.dump(output, f, indent=2)
 
     with open('versions.yml', 'w') as f:
-        f.write('"${task.process}":\\n  rag_chat: 1.0\\n')
+        f.write('"${task.process}":\\n  gene_table_lookup: 1.0\\n')
     """
 }
 
-// Main RAG Chat workflow
+// Main target-lookup workflow (named RAG_CHAT_PIPELINE for the callers in main.nf)
 workflow RAG_CHAT_PIPELINE {
     take:
     vcf  // tuple(sample_id, vcf_file)
@@ -241,11 +311,11 @@ workflow RAG_CHAT_PIPELINE {
     RAG_EXTRACT_VARIANTS(ch_vcf)
     ch_versions = ch_versions.mix(RAG_EXTRACT_VARIANTS.out.versions)
 
-    // Identify drug targets using RAG
-    RAG_IDENTIFY_TARGETS(RAG_EXTRACT_VARIANTS.out.variants)
-    ch_versions = ch_versions.mix(RAG_IDENTIFY_TARGETS.out.versions)
+    // Look the variants' genes up in the built-in gene table (no RAG involved)
+    LOOKUP_TARGETS_IN_GENE_TABLE(RAG_EXTRACT_VARIANTS.out.variants)
+    ch_versions = ch_versions.mix(LOOKUP_TARGETS_IN_GENE_TABLE.out.versions)
 
     emit:
-    targets = RAG_IDENTIFY_TARGETS.out.targets
+    targets = LOOKUP_TARGETS_IN_GENE_TABLE.out.targets
     versions = ch_versions
 }

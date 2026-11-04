@@ -37,7 +37,7 @@ from .models import (
     PediatricSafetyFlag,
     PediatricSafetyAssessment,
 )
-from .nim_clients import create_nim_clients, NIMServiceManager
+from .nim_clients import create_nim_clients, NIMServiceManager, assert_real
 from .checkpoint import CheckpointManager
 
 
@@ -50,8 +50,20 @@ def pediatric_safety_assessment(molecule_data: dict) -> PediatricSafetyAssessmen
     - Higher body water percentage (affects hydrophilic drug distribution)
     - Cardiac sensitivity (lower threshold for QT prolongation)
     - Renal maturation (GFR reaches adult levels by age 2)
+
+    This function returns a clinical-shaped verdict, so it refuses to produce one it cannot
+    support. The only `critical` rule -- and therefore the only thing that can set
+    `pediatric_safe=False` -- is hERG cardiac liability. When no hERG prediction is supplied,
+    the verdict is `None` ("not assessed"), never `True`. Before 2026-11-04 the caller fed this
+    function `herg_ic50` from a hand-written expression, `max(0.5, 30 - logP*4 - (MW-350)*0.02)`,
+    cited as "Ref: Aronov (2005) J Med Chem 48:1341-1348" -- a paper that publishes no such
+    equation -- and only when `logP > 3.5 and MW > 350`. Everything else got
+    `herg_ic50 = inf` by default, raised no cardiac flag, and was reported
+    `pediatric_safe: true, recommendation: "Suitable for pediatric development"`. A candidate
+    with dofetilide's physicochemistry (MW 441, logP 2.3, hERG IC50 ~10 nM) passed that way.
     """
     safety_flags = []
+    unassessed = []
 
     # Molecular weight check for BBB crossing
     mw = molecule_data.get("molecular_weight", 0)
@@ -71,13 +83,36 @@ def pediatric_safety_assessment(molecule_data: dict) -> PediatricSafetyAssessmen
             severity="high",
         ))
 
-    # hERG cardiac liability
-    if molecule_data.get("herg_ic50", float("inf")) < 10:
-        safety_flags.append(PediatricSafetyFlag(
-            flag="HERG_CARDIAC_RISK",
-            detail="hERG IC50 < 10uM — pediatric patients more sensitive to QT prolongation",
-            severity="critical",
-        ))
+    # hERG cardiac liability. Two accepted inputs, both of which must come from a model:
+    #   * `herg_inhibition_probability` — ADMETPredictor's hERG endpoint, P(inhibitor) in [0,1]
+    #   * `herg_ic50` — a measured or predicted IC50 in uM, from a named source
+    # Absence is not safety: it makes the verdict unassessable.
+    herg_prob = molecule_data.get("herg_inhibition_probability")
+    herg_ic50 = molecule_data.get("herg_ic50")
+    cardiac_assessed = False
+
+    if isinstance(herg_prob, (int, float)):
+        cardiac_assessed = True
+        if herg_prob >= 0.5:
+            safety_flags.append(PediatricSafetyFlag(
+                flag="HERG_CARDIAC_RISK",
+                detail=(f"predicted hERG inhibition probability {herg_prob:.2f} — pediatric "
+                        "patients are more sensitive to QT prolongation"),
+                severity="critical",
+            ))
+    elif isinstance(herg_ic50, (int, float)):
+        cardiac_assessed = True
+        if herg_ic50 < 10:
+            safety_flags.append(PediatricSafetyFlag(
+                flag="HERG_CARDIAC_RISK",
+                detail="hERG IC50 < 10uM — pediatric patients more sensitive to QT prolongation",
+                severity="critical",
+            ))
+    else:
+        unassessed.append(
+            "no cardiac liability model was run: neither a hERG inhibition probability nor a "
+            "hERG IC50 was supplied, and none is estimated from physicochemical properties"
+        )
 
     # Teratogenicity check (for adolescent patients)
     if molecule_data.get("teratogenic_risk", False):
@@ -107,14 +142,30 @@ def pediatric_safety_assessment(molecule_data: dict) -> PediatricSafetyAssessmen
 
     has_critical = len([f for f in safety_flags if f.severity == "critical"]) > 0
 
+    if has_critical:
+        verdict = False
+        recommendation = "Critical pediatric safety flag — not suitable without further work"
+    elif not cardiac_assessed:
+        # No critical rule could be evaluated, so there is no verdict to give.
+        verdict = None
+        recommendation = (
+            "NOT ASSESSED — " + "; ".join(unassessed) +
+            ". Run ADMETPredictor().predict(smiles) and pass its hERG endpoint as "
+            "herg_inhibition_probability to obtain a verdict."
+        )
+    elif safety_flags:
+        verdict = True
+        recommendation = "Requires additional pediatric safety evaluation"
+    else:
+        verdict = True
+        recommendation = "No pediatric safety flag raised by the rules applied"
+
     return PediatricSafetyAssessment(
-        pediatric_safe=not has_critical,
+        pediatric_safe=verdict,
         safety_flags=safety_flags,
-        recommendation=(
-            "Suitable for pediatric development"
-            if not safety_flags
-            else "Requires additional pediatric safety evaluation"
-        ),
+        recommendation=recommendation,
+        cardiac_liability_assessed=cardiac_assessed,
+        unassessed_reasons=unassessed,
     )
 
 
@@ -159,11 +210,19 @@ class DrugDiscoveryPipeline:
             config=self.config.dict(),
         )
 
+        # Lazy ADMET predictor for the pediatric cardiac-liability rule.
+        # None = not loaded yet; False = loading failed, do not retry.
+        self._admet = None
+
         # Checkpoint manager
         self.checkpoint_manager = CheckpointManager(self.output_dir)
 
         # Stage timing
         self.stage_timings: Dict[int, float] = {}
+        # Set by CheckpointManager.restore_pipeline_state on a resume, so stage 9 can label a
+        # report whose timings and results are not all from this invocation.
+        self.restored_stages: List[int] = []
+        self.config_divergence: Optional[Dict[str, Any]] = None
 
         # Intermediate results
         self.target: Optional[TargetHypothesis] = None
@@ -189,6 +248,7 @@ class DrugDiscoveryPipeline:
         self,
         target: TargetHypothesis = None,
         resume_from_run_id: str = None,
+        allow_config_change: bool = False,
     ) -> PipelineRun:
         """
         Run the complete pipeline.
@@ -206,7 +266,8 @@ class DrugDiscoveryPipeline:
             if latest is not None:
                 checkpoint = self.checkpoint_manager.load(resume_from_run_id, latest)
                 if checkpoint:
-                    self.checkpoint_manager.restore_pipeline_state(self, checkpoint)
+                    self.checkpoint_manager.restore_pipeline_state(
+                        self, checkpoint, allow_config_change=allow_config_change)
                     self.run_id = resume_from_run_id
                     resume_stage = latest
                     self._report_progress(
@@ -358,19 +419,87 @@ class DrugDiscoveryPipeline:
         self.run.stages_completed.append(2)
         self._save_checkpoint(2)
 
+    def _structure_cache_dirs(self):
+        """Every directory that may hold a cached PDB file, in search order.
+
+        `StructureViewer` -- the component that actually downloads structures -- caches them
+        under `<engine>/data/structures/pdb_cache/`, which this pipeline never consulted, and
+        the project's own PDB cache lives outside the repo entirely. `PDB_CACHE_DIR` makes that
+        reachable without editing code.
+        """
+        dirs = []
+        env = os.environ.get("PDB_CACHE_DIR")
+        if env:
+            dirs.append(Path(env))
+        cache = Path(self.config.structure_cache)
+        dirs += [cache / "pdb_cache", cache]
+        dirs.append(Path(__file__).resolve().parent.parent / "data" / "structures" / "pdb_cache")
+        return dirs
+
+    def _resolve_structure_file(self, pdb_id: str):
+        """Path to coordinates for `pdb_id`, or None. Never invents a file.
+
+        Looks in every known cache directory, then (unless `HCLS_NO_PDB_FETCH` is set) fetches
+        the entry from RCSB and caches it, because docking needs coordinates and an accession is
+        not coordinates.
+        """
+        pdb_id = pdb_id.upper().replace("PDB:", "").strip()
+        names = (f"{pdb_id}.pdb", f"{pdb_id.lower()}.pdb", f"pdb{pdb_id.lower()}.ent",
+                 f"{pdb_id.lower()}.cif")
+        for root in self._structure_cache_dirs():
+            for name in names:
+                candidate = root / name
+                if candidate.is_file():
+                    return candidate
+
+        if os.environ.get("HCLS_NO_PDB_FETCH"):
+            return None
+
+        try:
+            import requests
+            response = requests.get(
+                f"https://files.rcsb.org/download/{pdb_id}.pdb", timeout=30)
+            response.raise_for_status()
+            target_dir = Path(self.config.structure_cache) / "pdb_cache"
+            target_dir.mkdir(parents=True, exist_ok=True)
+            out = target_dir / f"{pdb_id.lower()}.pdb"
+            out.write_text(response.text)
+            logger.info(f"Fetched {pdb_id} from RCSB into {out}")
+            return out
+        except Exception as e:
+            logger.warning(f"Could not resolve {pdb_id} to coordinates: {type(e).__name__}: {e}")
+            return None
+
     def stage_3_structure_prep(self):
-        """Stage 3: Prepare structures for docking."""
-        self._report_progress(3, "Preparing structures for docking")
+        """Stage 3: locate coordinates. No preparation step is implemented.
 
-        # In production, would:
-        # 1. Download PDB files
-        # 2. Remove water, ions
-        # 3. Add hydrogens
-        # 4. Identify binding site
+        The body used to be four lines of comment ("In production, would: 1. Download PDB files
+        2. Remove water, ions 3. Add hydrogens 4. Identify binding site") followed by
+        `struct.prepared = True` for every structure -- so `report_<run>.json` recorded
+        `"prepared": true` for entries that had never been downloaded, let alone stripped of
+        water or protonated, and a consumer read that as docking-ready input. (The same bug was
+        fixed in hcls-orchestrator/run_pipeline.py; its honesty test only greps that file, so
+        this copy survived.) This stage now does the one thing it can do honestly -- resolve
+        each accession to coordinates on disk -- and reports `prepared: False`.
+        """
+        self._report_progress(3, "Locating structure coordinates (no preparation implemented)")
 
+        located = 0
         for struct in self.structures.structures:
-            struct.prepared = True
+            if not struct.structure_file:
+                path = self._resolve_structure_file(struct.pdb_id)
+                if path:
+                    struct.structure_file = str(path)
+            if struct.structure_file:
+                located += 1
+            struct.prepared = False
+            struct.preparation = "not performed — no preparation step is implemented"
 
+        self._report_progress(
+            3,
+            f"{located}/{len(self.structures.structures)} structures have coordinates on disk; "
+            "no water/ion removal, protonation or binding-site detection was performed",
+        )
         self.run.current_stage = 3
         self.run.stages_completed.append(3)
         self._save_checkpoint(3)
@@ -416,24 +545,29 @@ class DrugDiscoveryPipeline:
         self._save_checkpoint(4)
 
     def stage_5_chemistry_qc(self):
-        """Stage 5: Filter molecules by drug-likeness."""
+        """Stage 5: Filter molecules by drug-likeness.
+
+        Without RDKit this stage used to do `mol.passed_qc = True; passed.append(mol)` for every
+        molecule: a drug-likeness filter that examined nothing reported every candidate as having
+        passed, left `mol.properties` as None, and stage 8 then substituted `qed_score = 0.5` for
+        all of them. The engine already has a "RDKit not installed" branch elsewhere, so this is
+        reachable (aarch64 in particular). A filter that cannot run now refuses rather than
+        passing its input.
+        """
         self._report_progress(5, "Running chemistry QC filters")
 
         try:
             from rdkit import Chem
             from rdkit.Chem import Descriptors, Lipinski, QED
-            HAS_RDKIT = True
-        except ImportError:
-            HAS_RDKIT = False
-            logger.warning("RDKit not available, skipping detailed QC")
+        except ImportError as e:
+            raise RuntimeError(
+                "Chemistry QC needs RDKit and it is not importable "
+                f"({e}). Refusing to mark molecules as having passed drug-likeness QC without "
+                "examining them; install the engine's requirements and retry."
+            ) from e
 
         passed = []
         for mol in self.molecules:
-            if not HAS_RDKIT:
-                mol.passed_qc = True
-                passed.append(mol)
-                continue
-
             rdmol = Chem.MolFromSmiles(mol.smiles)
             if rdmol is None:
                 continue
@@ -532,15 +666,40 @@ class DrugDiscoveryPipeline:
             self.run.stages_completed.append(7)
             return
 
-        # Use primary structure
-        primary = self.structures.primary_structure or self.structures.structures[0].pdb_id
+        # Dock against COORDINATES. `primary_structure` is an accession ("5FTK"); passing it
+        # straight to dock() meant the literal four characters were POSTed as the protein (and
+        # uploaded to NVCF as chemical/x-pdb in cloud mode), so the stage docked against nothing
+        # and stage 8 still weighted the result at 0.4. Resolve it, or refuse the stage.
+        primary_id = self.structures.primary_structure or self.structures.structures[0].pdb_id
+        receptor = next(
+            (s for s in self.structures.structures
+             if s.pdb_id == primary_id and s.structure_file),
+            None,
+        ) or next((s for s in self.structures.structures if s.structure_file), None)
+
+        if receptor is None:
+            path = self._resolve_structure_file(primary_id)
+            if path is None:
+                raise RuntimeError(
+                    f"Docking requires structure coordinates and none could be resolved for "
+                    f"{primary_id}. Searched "
+                    f"{[str(d) for d in self._structure_cache_dirs()]} and the RCSB download "
+                    "(set PDB_CACHE_DIR to point at an existing cache, or unset "
+                    "HCLS_NO_PDB_FETCH to allow the fetch). Refusing to dock against a PDB "
+                    "accession string."
+                )
+            receptor = next(s for s in self.structures.structures if s.pdb_id == primary_id)
+            receptor.structure_file = str(path)
+
+        primary = receptor.pdb_id
+        receptor_coordinates = Path(receptor.structure_file).read_text()
 
         # Dock each molecule
         dock_failures = 0
         for mol in self.molecules:
             try:
                 poses = self.nim.diffdock.dock(
-                    protein_pdb=primary,
+                    protein_pdb=receptor_coordinates,
                     ligand_smiles=mol.smiles,
                     num_poses=self.config.num_poses,
                 )
@@ -557,7 +716,10 @@ class DrugDiscoveryPipeline:
             dock_failures = 0  # Reset on success
             if poses:
                 best_pose = poses[0]
+                # `_provenance="mock"` is stamped by MockDiffDockClient. Carrying it into the
+                # record is what stops stage 9 presenting a simulated pose as a measurement.
                 self.docking_results.append(DockingResult(
+                    provenance=best_pose.get("_provenance", "real"),
                     molecule_id=mol.id,
                     structure_id=primary,
                     # Carry the method's own units through instead of forcing everything into
@@ -577,6 +739,38 @@ class DrugDiscoveryPipeline:
         self.run.stages_completed.append(7)
         self._save_checkpoint(7)
 
+    def _predict_herg(self, smiles: str):
+        """P(hERG inhibition) from the engine's trained ADMET suite, or None.
+
+        The engine ships a real ADMET predictor with a trained `hERG` endpoint
+        (src/admet_predictor.py); the pediatric assessment used a hand-written expression
+        instead. Returning None when the model is unavailable is deliberate: the assessment then
+        reports "not assessed" rather than defaulting to safe.
+        """
+        if not smiles:
+            return None
+        if self._admet is False:                     # a previous call already failed
+            return None
+        try:
+            if self._admet is None:
+                from .admet_predictor import ADMETPredictor
+                self._admet = ADMETPredictor()
+            result = self._admet.predict(smiles)
+        except Exception as e:                       # model absent, weights missing, bad SMILES
+            logger.warning(
+                f"No hERG prediction available ({type(e).__name__}: {e}); pediatric cardiac "
+                "liability will be reported as not assessed."
+            )
+            self._admet = False
+            return None
+        for key, value in (result.predictions or {}).items():
+            if "herg" in key.lower():
+                try:
+                    return float(value)
+                except (TypeError, ValueError):
+                    return None
+        return None
+
     def stage_8_ranking(self):
         """Stage 8: Score and rank candidates."""
         self._report_progress(8, "Ranking candidates")
@@ -591,7 +785,11 @@ class DrugDiscoveryPipeline:
 
             # Calculate composite score
             gen_score = mol.generation_score
-            qed_score = mol.properties.qed if mol.properties else 0.5
+            # `0.5` used to be substituted whenever properties were missing -- a constant
+            # standing in for a drug-likeness score, at weight `qed_weight`. Without a QED the
+            # term is dropped and the remaining weights renormalized, so the composite reflects
+            # only what was measured.
+            qed_score = mol.properties.qed if mol.properties else None
 
             # Normalize the docking term ACCORDING TO ITS UNITS. Until 2026-11-03 every
             # result was normalized as if it were a kcal/mol affinity (`-score / 12`), which
@@ -600,6 +798,9 @@ class DrugDiscoveryPipeline:
             dock_score = dock_result.docking_score if dock_result else None
             if dock_result is None:
                 dock_normalized = 0.0  # No docking data = worst score
+            elif dock_result.provenance == "mock" or dock_result.score_type == "mock_simulated":
+                # A simulated number has no units and must not earn a ranking term.
+                dock_normalized = 0.0
             elif dock_result.score_type == "diffdock_confidence":
                 # `confidence` is already P(pose within 2 A RMSD) in [0, 1].
                 dock_normalized = max(0.0, min(1.0, dock_result.confidence))
@@ -609,11 +810,18 @@ class DrugDiscoveryPipeline:
             else:
                 dock_normalized = 0.0  # scored by no quantity we can rank on
 
-            composite = (
-                self.config.generation_weight * gen_score +
-                self.config.docking_weight * dock_normalized +
-                self.config.qed_weight * qed_score
-            )
+            if qed_score is None:
+                # Drop the QED term and renormalize, rather than scoring a constant.
+                w_gen, w_dock = self.config.generation_weight, self.config.docking_weight
+                total = w_gen + w_dock
+                composite = ((w_gen * gen_score + w_dock * dock_normalized) / total
+                             if total else 0.0)
+            else:
+                composite = (
+                    self.config.generation_weight * gen_score +
+                    self.config.docking_weight * dock_normalized +
+                    self.config.qed_weight * qed_score
+                )
 
             candidates.append(RankedCandidate(
                 rank=1,  # Temporary value, updated after sorting
@@ -627,6 +835,7 @@ class DrugDiscoveryPipeline:
                 generation_score=gen_score,
                 qed_score=qed_score,
                 composite_score=round(composite, 4),
+                docking_provenance=(dock_result.provenance if dock_result else "none"),
                 properties=mol.properties,
                 binding_residues=dock_result.contacts if dock_result else [],
             ))
@@ -639,14 +848,17 @@ class DrugDiscoveryPipeline:
                 mol_data["logP"] = c.properties.logP
                 mol_data["tpsa"] = c.properties.tpsa
                 mol_data["rotatable_bonds"] = c.properties.rotatable_bonds
-                # Estimate hERG IC50 from physicochemical properties
-                # High logP + high basicity correlate with hERG channel binding
-                # Ref: Aronov (2005) J Med Chem 48:1341-1348
-                mw = c.properties.molecular_weight or 0
-                logp = c.properties.logP or 0
-                if logp > 3.5 and mw > 350:
-                    estimated_herg = max(0.5, 30 - (logp * 4) - (mw - 350) * 0.02)
-                    mol_data["herg_ic50"] = round(estimated_herg, 1)
+                # The hERG input used to be invented here:
+                #     if logp > 3.5 and mw > 350:
+                #         estimated_herg = max(0.5, 30 - (logp*4) - (mw-350)*0.02)
+                # cited as "Ref: Aronov (2005) J Med Chem 48:1341-1348". Aronov 2005 publishes
+                # no such equation, the expression is not a hERG model, and the gate meant most
+                # candidates got no value at all and were then declared pediatric-safe by
+                # default. Ask the real ADMET model; if it is unavailable, pass nothing and let
+                # the assessment return "not assessed".
+                herg = self._predict_herg(c.smiles)
+                if herg is not None:
+                    mol_data["herg_inhibition_probability"] = herg
                 # Screen for known teratogenic structural alerts via RDKit
                 # Thalidomide-like glutarimides, retinoids, warfarin scaffolds
                 try:
@@ -667,8 +879,12 @@ class DrugDiscoveryPipeline:
                 except Exception:
                     pass
             c.pediatric_safety = pediatric_safety_assessment(mol_data)
-            if not c.pediatric_safety.pediatric_safe:
+            # `pediatric_safe` is three-valued now: `not safe` would have swept "not assessed"
+            # in with "critical flag raised", which are different claims.
+            if c.pediatric_safety.pediatric_safe is False:
                 c.alerts.append("PEDIATRIC_CRITICAL_FLAG")
+            elif c.pediatric_safety.pediatric_safe is None:
+                c.alerts.append("PEDIATRIC_NOT_ASSESSED")
             elif c.pediatric_safety.safety_flags:
                 c.alerts.append("PEDIATRIC_REVIEW_NEEDED")
 
@@ -688,34 +904,86 @@ class DrugDiscoveryPipeline:
         self._save_checkpoint(8)
 
     def stage_9_reporting(self):
-        """Stage 9: Generate final report."""
+        """Stage 9: Generate final report.
+
+        The report boundary is where mock data stopped being distinguishable from real. The mock
+        clients stamp `_provenance="mock"` on every molecule and pose, and the helpers built for
+        exactly this -- `is_mock_result` / `contains_mock` / `assert_real` -- had no caller
+        anywhere in the repo. With `NIM_ALLOW_MOCK_FALLBACK=true` (a documented degradation mode)
+        `MockDiffDockClient` produced `-8.0 + random.gauss(0, 2)` labelled
+        `score_type: "binding_energy"`, with randomly numbered ALA/GLY/ASP contacts -- the same
+        fabrication whose removal from modules/drug_discovery.nf is the documented fix -- and the
+        report showed it with the word "mock" appearing only inside a class name.
+        """
         self._report_progress(9, "Generating report")
+
+        # Mock-derived results may be written, but never silently: the artifact is renamed and
+        # stamped, or the stage refuses.
+        mock_poses = [d for d in self.docking_results if d.provenance == "mock"]
+        mock_notice = None
+        if mock_poses:
+            if os.environ.get("NIM_ALLOW_MOCK_FALLBACK", "false").lower() != "true":
+                # Nothing but an explicit opt-in gets simulated numbers into an artifact.
+                assert_real([{"_provenance": "mock"}], context="the pipeline report")
+            mock_notice = (
+                "MOCK — SIMULATED DATA, NOT A MEASUREMENT. "
+                f"{len(mock_poses)}/{len(self.docking_results)} docking results came from "
+                "MockDiffDockClient (random numbers, no docking was performed). Any binding "
+                "value, pose confidence, contact list and the docking term of every composite "
+                "score below is simulated. Not valid for any scientific or clinical use."
+            )
+            logger.warning(mock_notice)
 
         report = {
             "run_id": self.run_id,
             "target": self.target.dict() if self.target else None,
             "config": self.config.dict(),
+            "data_provenance": mock_notice or "real",
             "summary": {
                 "molecules_generated": len(self.molecules),
                 "molecules_docked": len(self.docking_results),
                 "top_n": self.config.top_n_candidates,
+                # `pediatric_flagged_count` used to be "not pediatric_safe", which counted
+                # every candidate whose cardiac liability was never evaluated as flagged.
+                # Three states, three counts.
                 "pediatric_safe_count": len([
                     c for c in self.ranked_candidates
-                    if c.pediatric_safety and c.pediatric_safety.pediatric_safe
+                    if c.pediatric_safety and c.pediatric_safety.pediatric_safe is True
                 ]),
                 "pediatric_flagged_count": len([
                     c for c in self.ranked_candidates
-                    if c.pediatric_safety and not c.pediatric_safety.pediatric_safe
+                    if c.pediatric_safety and c.pediatric_safety.pediatric_safe is False
+                ]),
+                "pediatric_not_assessed_count": len([
+                    c for c in self.ranked_candidates
+                    if c.pediatric_safety and c.pediatric_safety.pediatric_safe is None
                 ]),
             },
             "top_candidates": [c.dict() for c in self.ranked_candidates],
             "structures_used": [s.dict() for s in (self.structures.structures if self.structures else [])],
             "stage_timings": self.stage_timings,
+            # A resumed run is not an end-to-end run. Timings restored from a checkpoint were
+            # measured in an earlier invocation, possibly days earlier; say which are which so
+            # no total can be read off the report as this run's cost.
+            "timing_provenance": {
+                "stages_restored_from_checkpoint": sorted(self.restored_stages),
+                "stages_executed_now": sorted(
+                    s for s in self.stage_timings if s not in set(self.restored_stages)),
+                # Stages that ran but whose duration nobody holds: the boundary stage of a
+                # resume (its checkpoint is written inside the stage, before its timing is
+                # recorded) and stage 9 itself, which writes this report. Named explicitly so
+                # the timings below cannot be summed as a complete total.
+                "stages_with_no_timing": sorted(
+                    s for s in set(self.run.stages_completed) if s not in self.stage_timings),
+                "is_end_to_end": not self.restored_stages,
+            },
+            "config_divergence": self.config_divergence,
             "completed_at": datetime.now().isoformat(),
         }
 
-        # Save report
-        report_file = self.output_dir / f"report_{self.run_id}.json"
+        # Save report. A mock-derived artifact says so in its filename as well as its body.
+        prefix = "MOCK_report_" if mock_notice else "report_"
+        report_file = self.output_dir / f"{prefix}{self.run_id}.json"
         with open(report_file, 'w') as f:
             json.dump(report, f, indent=2, default=str)
 
@@ -730,6 +998,7 @@ class DrugDiscoveryPipeline:
 def run_vcp_demo_pipeline(
     output_dir: str = "outputs",
     resume_from: str = None,
+    structure_cache: str = "data/structures",
 ) -> PipelineRun:
     """
     Run the VCP FTD demo pipeline.
@@ -739,13 +1008,15 @@ def run_vcp_demo_pipeline(
     Args:
         output_dir: Directory for pipeline outputs
         resume_from: Run ID to resume from (uses latest checkpoint)
+        structure_cache: Where to look for (and cache) PDB coordinates. Stage 7 refuses to dock
+            without them, so this is injectable rather than hard-coded.
     """
     config = PipelineConfig(
         target_gene="VCP",
         reference_compound_smiles="CC(C)C1=C(C=C(C=C1)NC2=NC3=C(C=N2)N(C=C3)C)C(=O)NC4=CC=C(C=C4)CN5CCOCC5",
         num_molecules=20,
         output_dir=output_dir,
-        structure_cache="data/structures",
+        structure_cache=structure_cache,
     )
 
     target = TargetHypothesis(

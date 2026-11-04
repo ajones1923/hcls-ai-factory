@@ -84,20 +84,72 @@ class SafeGenerator:
         return self._designer
 
     def generate(self, seeds: list[str], n: int = 10, scaffold: str | None = None) -> list[dict[str, Any]]:
+        """Generate from a scaffold, or from a seed-derived scaffold. Never ignores both.
+
+        With a seed list and no scaffold this used to call
+        `d.de_novo_generation(n_samples_per_trial=n)`, which takes no seed argument: the seeds
+        were discarded and the molecules sampled from the model's prior bore no relation to the
+        requested chemistry. The capability is registered `live`/`verified` with `seeds` among
+        its inputs, so `POST /generate {"seeds": [CB-5083], "n": 10}` returned ten unrelated
+        de-novo molecules under `{"backend": "safe", "n": 10}` -- and `GuidedDesignLoop.run`
+        reseeds the next iteration from them, so the optimization drifted off the target series
+        while reporting a rising reward trajectory.
+
+        A seeded request is now honoured by decorating the seed's Murcko scaffold, and refused
+        if that cannot be done, rather than silently answering a different question.
+        """
         d = self._load()
-        if scaffold:
-            smis = d.scaffold_decoration(scaffold=scaffold, n_samples_per_trial=n, n_trials=1,
-                                         sanitize=True, do_not_fragment_further=True)
+        applied_scaffold = scaffold
+        if not applied_scaffold and seeds:
+            applied_scaffold = self._seed_scaffold(seeds)
+            if not applied_scaffold:
+                raise ValueError(
+                    "SAFE generation was asked to honour seeds but no usable scaffold could be "
+                    f"derived from them ({seeds[:3]}). Refusing to sample from the model's prior "
+                    "and return molecules unrelated to the seeds; pass an explicit `scaffold`, "
+                    "or call the BRICS backend, which recombines fragments of the seeds."
+                )
+
+        if applied_scaffold:
+            smis = d.scaffold_decoration(scaffold=applied_scaffold, n_samples_per_trial=n,
+                                         n_trials=1, sanitize=True,
+                                         do_not_fragment_further=True)
         else:
+            # No seeds and no scaffold: de novo is what was asked for.
             smis = d.de_novo_generation(n_samples_per_trial=n, sanitize=True)
+
         out, seen = [], set()
         for s in smis:
             c = canonical(s)
             if not c or c in seen:
                 continue
             seen.add(c)
-            out.append({"smiles": c, "qed": round(QED.qed(Chem.MolFromSmiles(c)), 3), "source": self.name})
+            out.append({
+                "smiles": c,
+                "qed": round(QED.qed(Chem.MolFromSmiles(c)), 3),
+                "source": self.name,
+                "scaffold_applied": applied_scaffold,
+                "seeds_honoured": bool(applied_scaffold and seeds),
+            })
         return out[:n]
+
+    @staticmethod
+    def _seed_scaffold(seeds: list[str]) -> str | None:
+        """The Bemis-Murcko scaffold of the first parseable seed, or None."""
+        from rdkit.Chem.Scaffolds import MurckoScaffold
+
+        for seed in seeds:
+            mol = Chem.MolFromSmiles(seed or "")
+            if mol is None:
+                continue
+            try:
+                scaffold = MurckoScaffold.GetScaffoldForMol(mol)
+            except Exception:
+                continue
+            if scaffold is None or scaffold.GetNumAtoms() == 0:
+                continue
+            return Chem.MolToSmiles(scaffold)
+        return None
 
 
 # --------------------------------------------------------------------------- #
@@ -113,12 +165,43 @@ class MoleculeGenerator:
         return "safe" if self._safe else "brics"
 
     def generate(self, seeds: list[str], n: int = 10, scaffold: str | None = None) -> dict[str, Any]:
+        """Generate molecules, and state which constraints were actually honoured.
+
+        The BRICS fallback accepts `scaffold` at the API boundary and ignores it entirely, so a
+        scaffold-constrained request returned unconstrained fragment recombinations labelled
+        `{"backend": "brics"}` with nothing recording that the constraint had been dropped --
+        which is how the registry's "scaffold-constrained generation" became unreachable in
+        practice. Every response now reports `scaffold_applied` and `seeds_honoured`, and a
+        dropped scaffold is named in `constraints_dropped`.
+        """
         if self._safe:
             try:
                 mols = self._safe.generate(seeds, n=n, scaffold=scaffold)
                 if mols:
-                    return {"backend": "safe", "n": len(mols), "molecules": mols}
-            except Exception:
-                pass   # degrade to BRICS, never fail the request
+                    return {"backend": "safe", "n": len(mols), "molecules": mols,
+                            "scaffold_applied": mols[0].get("scaffold_applied"),
+                            "seeds_honoured": mols[0].get("seeds_honoured", False),
+                            "constraints_dropped": []}
+            except Exception as e:
+                safe_error = f"{type(e).__name__}: {e}"
+            else:
+                safe_error = "the SAFE backend returned no molecules"
+        else:
+            safe_error = None
+
         mols = self.brics.generate(seeds, n=n)
-        return {"backend": "brics", "n": len(mols), "molecules": mols}
+        # BRICS decomposes and recombines the seeds, so seeds ARE honoured here; a scaffold
+        # constraint is not supported and is reported as dropped rather than ignored.
+        dropped = ["scaffold"] if scaffold else []
+        result = {"backend": "brics", "n": len(mols), "molecules": mols,
+                  "scaffold_applied": None,
+                  "seeds_honoured": bool(seeds),
+                  "constraints_dropped": dropped}
+        if dropped:
+            result["constraints_dropped_detail"] = (
+                "the BRICS backend cannot constrain generation to a scaffold; the molecules "
+                "below are unconstrained recombinations of the seeds' fragments"
+            )
+        if safe_error:
+            result["degraded_from"] = f"safe ({safe_error})"
+        return result

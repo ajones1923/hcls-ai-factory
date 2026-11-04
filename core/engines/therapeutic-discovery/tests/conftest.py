@@ -74,14 +74,44 @@ def sample_molecule():
     )
 
 
+# A minimal but genuine PDB fragment. Stage 7 now refuses to dock against a PDB accession
+# string ("5FTK"), so any test that reaches docking needs coordinates on disk.
+MINIMAL_PDB = """HEADER    TEST STRUCTURE
+ATOM      1  N   ALA A   1       0.000   0.000   0.000  1.00  0.00           N
+ATOM      2  CA  ALA A   1       1.458   0.000   0.000  1.00  0.00           C
+ATOM      3  C   ALA A   1       2.009   1.420   0.000  1.00  0.00           C
+ATOM      4  O   ALA A   1       1.251   2.390   0.000  1.00  0.00           O
+END
+"""
+
+
+@pytest.fixture(autouse=True)
+def no_pdb_fetch(monkeypatch):
+    """Never reach RCSB from a test. A missing structure must fail locally, not over the wire."""
+    monkeypatch.setenv("HCLS_NO_PDB_FETCH", "1")
+    monkeypatch.delenv("PDB_CACHE_DIR", raising=False)
+
+
 @pytest.fixture
-def sample_config():
+def structure_cache(tmp_path_factory):
+    """A structure cache holding coordinates for the demo PDB IDs."""
+    cache = tmp_path_factory.mktemp("structures")
+    pdb_cache = cache / "pdb_cache"
+    pdb_cache.mkdir()
+    for pdb_id in ("5ftk", "8ooi", "9dil", "7k56"):
+        (pdb_cache / f"{pdb_id}.pdb").write_text(MINIMAL_PDB)
+    return cache
+
+
+@pytest.fixture
+def sample_config(structure_cache):
     """Create a sample pipeline config."""
     return PipelineConfig(
         target_gene="VCP",
         reference_compound_smiles="CC(C)C1=C(C=C(C=C1)NC2=NC3=C(C=N2)N(C=C3)C)C(=O)NC4=CC=C(C=C4)CN5CCOCC5",
         num_molecules=10,
         output_dir="test_outputs",
+        structure_cache=str(structure_cache),
     )
 
 

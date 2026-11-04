@@ -50,23 +50,93 @@ def print_stage(stage_num: int, name: str, message: str = ""):
 def _mol_to_dict(m):
     """Coerce a molecule to the dict shape the downstream stages expect. The real
     generate_vcp_molecules() returns GeneratedMolecule dataclass objects; the mock fallback
-    returns dicts. (Pre-existing bug: stages used .get() on objects → AttributeError.)"""
+    returns dicts. (Pre-existing bug: stages used .get() on objects → AttributeError.)
+
+    The generator deliberately labels its output -- `properties["provenance"] =
+    "hand_written_analogue_library"`, `properties["score_is_placeholder"] = True`,
+    `generation_method="analogue_library"` -- and this function used to keep only
+    id/smiles/target_gene/score/properties, after which the candidate rows kept no provenance
+    field at all. So report.json's `top_candidates` and report.html's "Top Drug Candidates"
+    presented a hand-written CB-5083 analogue library, ranked by a fixed `0.9 - 0.05*i`
+    placeholder, with nothing marking either fact. The labels are now carried through.
+    """
     if isinstance(m, dict):
         return m
+    props = getattr(m, 'properties', {}) or {}
     return {
         'id': getattr(m, 'name', None) or f"mol-{abs(hash(getattr(m, 'smiles', ''))) & 0xffffff:06x}",
         'smiles': getattr(m, 'smiles', ''),
         'target_gene': getattr(m, 'target_gene', ''),
         'score': getattr(m, 'score', 0.0),
-        'properties': getattr(m, 'properties', {}) or {},
+        'generation_method': getattr(m, 'generation_method', None),
+        'provenance': props.get('provenance', 'not recorded'),
+        'score_is_placeholder': bool(props.get('score_is_placeholder', False)),
+        'properties': props,
     }
+
+
+def _qed(mol):
+    """QED for a molecule, computed from its SMILES, or None.
+
+    `_calculate_properties` in the generator computes MW, logP, hbd, hba, tpsa, rotatable bonds
+    and Lipinski violations -- never `qed`. The ranking read `properties.get('qed', 0.4)`, so
+    every candidate's QED was the literal default 0.4, half of every composite score with no
+    docking was that constant, and report.html printed "0.400" for every row, to three decimals.
+    """
+    cached = (mol.get('properties') or {}).get('qed')
+    if isinstance(cached, (int, float)):
+        return float(cached)
+    smiles = mol.get('smiles') or ''
+    if not smiles:
+        return None
+    try:
+        from rdkit import Chem
+        from rdkit.Chem import QED
+    except ImportError:
+        return None
+    rdmol = Chem.MolFromSmiles(smiles)
+    if rdmol is None:
+        return None
+    return round(QED.qed(rdmol), 3)
+
+
+def _structure_search_roots():
+    """Every directory that may hold a cached PDB file, in search order.
+
+    The search used to be `hcls-orchestrator/data/structures` and `<repo>/data/structures` --
+    neither of which is where this repo caches PDB files. The component that actually downloads
+    and caches them, the engine's `StructureViewer`, writes to
+    `core/engines/therapeutic-discovery/data/structures/pdb_cache/`, and the project's own cache
+    lives outside the repo entirely (hcls-ai-factory-core-data/structures/pdb_cache/) with no
+    env var or config entry pointing here. The consequence was that `_run_docking` returned
+    `performed: False` on every run, permanently -- honest, but a stage that could never run,
+    and a report that looked complete because the skip was the only possible outcome.
+    `PDB_CACHE_DIR` now reaches an external cache without editing code.
+    """
+    roots = []
+    env = os.environ.get("PDB_CACHE_DIR")
+    if env:
+        roots.append(Path(env))
+    engine_cache = _ENGINE_DIR / "data" / "structures"
+    roots += [
+        DATA_DIR / "structures" / "pdb_cache",
+        DATA_DIR / "structures",
+        SCRIPT_DIR.parent / "data" / "structures" / "pdb_cache",
+        SCRIPT_DIR.parent / "data" / "structures",
+        engine_cache / "pdb_cache",
+        engine_cache,
+    ]
+    return roots
 
 
 def _find_structure_file(pdb_id: str):
     """Locate a cached PDB file for `pdb_id`, or None. Docking needs the coordinates; without
     them there is nothing to dock against and the stage must report that, not invent scores."""
-    for root in (DATA_DIR / "structures", SCRIPT_DIR.parent / "data" / "structures"):
-        for name in (f"{pdb_id}.pdb", f"{pdb_id.lower()}.pdb", f"pdb{pdb_id.lower()}.ent"):
+    pdb_id = pdb_id.upper().replace("PDB:", "").strip()
+    names = (f"{pdb_id}.pdb", f"{pdb_id.lower()}.pdb", f"pdb{pdb_id.lower()}.ent",
+             f"{pdb_id.lower()}.cif")
+    for root in _structure_search_roots():
+        for name in names:
             p = root / name
             if p.is_file():
                 return p
@@ -85,14 +155,16 @@ def _run_docking(molecules, target):
     structure_file = next((f for f in (_find_structure_file(p) for p in pdb_ids) if f), None)
     if not structure_file:
         status['reason'] = (
-            f"no cached structure file for {', '.join(pdb_ids) or 'the target'} under "
-            f"{DATA_DIR / 'structures'}"
+            f"no cached structure file for {', '.join(pdb_ids) or 'the target'}. Searched: "
+            + ", ".join(str(r) for r in _structure_search_roots())
+            + ". Set PDB_CACHE_DIR to an existing PDB cache, or view the structure in the "
+              "Drug Discovery UI once to populate the engine's pdb_cache."
         )
         status['message'] = f"SKIPPED - {status['reason']}"
         return [], status
 
     try:
-        from src.nim_clients import create_nim_clients
+        from src.nim_clients import create_nim_clients, contains_mock
         nim = create_nim_clients()          # raises unless a real NIM/cloud backend is set up
     except Exception as e:
         status['reason'] = f"DiffDock unavailable ({type(e).__name__}: {e})"
@@ -110,6 +182,21 @@ def _run_docking(molecules, target):
             continue
         if not poses:
             continue
+        # NIM_ALLOW_MOCK_FALLBACK=true substitutes MockDiffDockClient, whose poses are random
+        # numbers stamped `_provenance="mock"`. _run_docking used to read that flag into its
+        # result dict and the ranking stage then dropped it, so report.html showed a green
+        # "Docking: MockDiffDockClient" banner over simulated scores. A skipped stage is honest;
+        # a simulated one presented as performed is not.
+        if contains_mock(poses):
+            status['method'] = type(nim.diffdock).__name__
+            status['reason'] = (
+                f"the docking backend is mock ({status['method']}): its poses are simulated "
+                "numbers, not a docking. Set NIM_MODE=cloud with NVIDIA_API_KEY, or start the "
+                "local NIM containers, for a docking term to be included."
+            )
+            status['message'] = f"SKIPPED - {status['reason']}"
+            status['performed'] = False
+            return [], status
         best = poses[0]
         results.append({
             'molecule_id': mol_id,
@@ -169,8 +256,25 @@ def run_demo_pipeline(num_molecules: int = 20, output_dir: Path = None):
     print(f"  Output:        {output_dir}")
     print(f"  Molecules:     {num_molecules}")
 
-    # Load demo target
+    # Load demo target.
+    #
+    # This was an unconditional open(). The file exists on the development box but
+    # `hcls-orchestrator/data/` was gitignored (the root `!data/demo/**` re-include contains a
+    # slash, so it is anchored at the repo root and never covered this subdirectory), so it was
+    # absent from every clone and release tarball -- which is exactly the artifact a release
+    # ships. `--mode demo` is the only implemented mode, so in the artifact `run_pipeline.py`
+    # had no working path at all, and the portal's Launch button rendered "Pipeline FAILED
+    # (exit code 1)" with a bare traceback. The file is tracked now; this message is the
+    # fallback if it is ever missing again.
     target_file = DATA_DIR / "demo" / "vcp_target.json"
+    if not target_file.is_file():
+        raise FileNotFoundError(
+            f"The demo target {target_file} is missing, so the demo pipeline cannot run. It is "
+            "tracked in git at hcls-orchestrator/data/demo/vcp_target.json -- if you are in a "
+            "clone or an extracted tarball, the file was excluded from the artifact. Restore it "
+            "(git checkout hcls-orchestrator/data/demo/vcp_target.json) or pass your own target "
+            "JSON. This stage will not substitute a built-in target."
+        )
     with open(target_file) as f:
         target = json.load(f)
 
@@ -240,9 +344,32 @@ def run_demo_pipeline(num_molecules: int = 20, output_dir: Path = None):
     molecules = [_mol_to_dict(m) for m in molecules]
 
     # Stage 5: Chemistry QC
-    print_stage(5, "Chemistry QC", "Filtering by drug-likeness...")
-    passed = [m for m in molecules if m.get('properties', {}).get('molecular_weight', 500) < 550]
-    print(f"  {len(passed)} molecules passed QC")
+    #
+    # This was `m.get('properties', {}).get('molecular_weight', 500) < 550`: a molecule with no
+    # computed MW got the literal default 500, silently passed, and the stage printed "N
+    # molecules passed QC" -- a filter reporting a pass for a molecule it never examined. The
+    # header also said "Filtering by drug-likeness" while applying one of the four Lipinski
+    # terms. A molecule with no MW is now not examined and not passed.
+    print_stage(5, "Chemistry QC", "Filtering on molecular weight (MW < 550 Da) only")
+    passed, unexamined = [], []
+    for m in molecules:
+        mw = (m.get('properties') or {}).get('molecular_weight')
+        if not isinstance(mw, (int, float)):
+            unexamined.append(m.get('id', m.get('smiles', '')[:8]))
+            continue
+        if mw < 550:
+            passed.append(m)
+    print(f"  {len(passed)}/{len(molecules)} molecules passed the MW filter")
+    if unexamined:
+        print(f"  {len(unexamined)} molecules had no computed molecular weight and were NOT "
+              f"examined (and so did not pass): {', '.join(unexamined[:5])}"
+              f"{' ...' if len(unexamined) > 5 else ''}")
+    if not passed:
+        raise RuntimeError(
+            f"No molecule could be examined by chemistry QC ({len(unexamined)} had no computed "
+            "molecular weight). Install RDKit so properties are computed; this stage will not "
+            "pass molecules it did not examine."
+        )
 
     # Stage 6: Conformers
     print_stage(6, "Conformer Generation", f"Generating 3D conformers for {len(passed)} molecules")
@@ -262,20 +389,36 @@ def run_demo_pipeline(num_molecules: int = 20, output_dir: Path = None):
 
     candidates = []
     dock_lookup = {d['molecule_id']: d for d in docking_results}
+
+    # QED is computed, not defaulted. When RDKit cannot give one, the term is dropped from the
+    # composite rather than filled in -- a composite built on a constant is not a ranking.
+    qed_by_id = {}
+    for mol in passed:
+        qed_by_id[mol.get('id', mol.get('smiles', '')[:8])] = _qed(mol)
+    have_qed = all(v is not None for v in qed_by_id.values()) and bool(qed_by_id)
+    if not have_qed:
+        print("  QED unavailable (RDKit missing or unparseable SMILES); "
+              "ranking on generation score" + (" and docking" if docking_results else "") +
+              " only — no QED term is included")
+
     # Without docking the composite cannot carry a docking term. Rather than substitute a
     # default score (the old code used -5 kcal/mol for every undocked molecule, which simply
     # added a constant), renormalize over the terms we actually have.
-    if docking_results:
+    if docking_results and have_qed:
         w_gen, w_dock, w_qed = 0.3, 0.4, 0.3
-    else:
+    elif docking_results:
+        w_gen, w_dock, w_qed = 0.5, 0.5, 0.0
+    elif have_qed:
         w_gen, w_dock, w_qed = 0.5, 0.0, 0.5
+    else:
+        w_gen, w_dock, w_qed = 1.0, 0.0, 0.0
 
     for mol in passed:
         mol_id = mol.get('id', mol.get('smiles', '')[:8])
         dock = dock_lookup.get(mol_id, {})
 
         gen_score = mol.get('score', 0.5)
-        qed = mol.get('properties', {}).get('qed', 0.4)
+        qed = qed_by_id.get(mol_id)
 
         dock_norm = 0.0
         dock_score = dock.get('docking_score')
@@ -285,7 +428,7 @@ def run_demo_pipeline(num_molecules: int = 20, output_dir: Path = None):
             # kcal/mol: -12 (excellent) -> 1.0, 0 (no binding) -> 0.0
             dock_norm = max(0.0, min(1.0, -dock_score / 12.0))
 
-        composite = w_gen * gen_score + w_dock * dock_norm + w_qed * qed
+        composite = w_gen * gen_score + w_dock * dock_norm + w_qed * (qed or 0.0)
 
         candidates.append({
             'molecule_id': mol_id,
@@ -294,7 +437,13 @@ def run_demo_pipeline(num_molecules: int = 20, output_dir: Path = None):
             'docking_score': dock_score,
             'pose_confidence': dock.get('confidence'),
             'docking_performed': bool(dock),
-            'qed_score': qed,
+            'docking_provenance': dock.get('provenance', 'none'),
+            'qed_score': qed,                       # None when it could not be computed
+            # Carried from the generator so no surface can present a hand-written library with
+            # a placeholder rank as generative-model output.
+            'generation_method': mol.get('generation_method'),
+            'provenance': mol.get('provenance', 'not recorded'),
+            'score_is_placeholder': mol.get('score_is_placeholder', False),
             'composite_score': round(composite, 4),
             'composite_weights': {'generation': w_gen, 'docking': w_dock, 'qed': w_qed},
         })
@@ -441,6 +590,16 @@ def generate_html_report(report: dict, output_file: Path):
             prediction of any kind is included.
         </p>'''
 
+    # The generator's provenance labels used to stop at this table: every row read as a ranked
+    # drug candidate, and the QED column printed a hard-coded 0.400 to three decimals.
+    if any(c.get('score_is_placeholder') for c in candidates):
+        html += '''
+        <p style="padding:10px;border-left:4px solid #e08700;background:#fff8ec;">
+            <strong>Scores are placeholder ranks, not predictions.</strong> These candidates come
+            from a hand-written analogue library; the generation score is a fixed rank order, so
+            the ordering below carries no model confidence.
+        </p>'''
+
     html += '''
         <table>
             <tr>
@@ -449,6 +608,7 @@ def generate_html_report(report: dict, output_file: Path):
                 <th>Docking</th>
                 <th>QED</th>
                 <th>Composite Score</th>
+                <th>Provenance</th>
             </tr>'''
 
     for c in candidates[:10]:
@@ -458,13 +618,21 @@ def generate_html_report(report: dict, output_file: Path):
             dock_cell = f"{c['docking_score']} kcal/mol"
         else:
             dock_cell = 'not docked'
+        qed = c.get('qed_score')
+        qed_cell = f"{qed:.3f}" if isinstance(qed, (int, float)) else 'not computed'
+        composite = c.get('composite_score')
+        composite_cell = f"{composite:.4f}" if isinstance(composite, (int, float)) else 'n/a'
+        prov = c.get('provenance', 'not recorded')
+        if c.get('score_is_placeholder'):
+            prov += ' (placeholder rank)'
         html += f'''
             <tr>
                 <td><span class="badge">{c.get('rank', 'N/A')}</span></td>
                 <td>{c.get('molecule_id', 'N/A')}</td>
                 <td>{dock_cell}</td>
-                <td>{c.get('qed_score', 'N/A'):.3f}</td>
-                <td><strong>{c.get('composite_score', 'N/A'):.4f}</strong></td>
+                <td>{qed_cell}</td>
+                <td><strong>{composite_cell}</strong></td>
+                <td>{prov}</td>
             </tr>'''
 
     html += '''

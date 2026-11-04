@@ -1,5 +1,9 @@
 """
 Tests for pipeline performance timing.
+
+Stage 7 refuses to dock against a PDB accession string as of 2026-11-04, so these tests take
+their structure coordinates from the `structure_cache` fixture. Before that fix they passed
+while the pipeline docked CB-5083 analogues into the four characters "5FTK".
 """
 import pytest
 from src.pipeline import DrugDiscoveryPipeline
@@ -60,13 +64,14 @@ class TestStageTimings:
         assert len(report["stage_timings"]) == 9
 
     def test_resume_preserves_prior_timings(
-        self, temp_output_dir, mock_nim_manager, sample_target
+        self, temp_output_dir, mock_nim_manager, sample_target, structure_cache
     ):
         """Resumed pipeline should have timings for stages it actually ran."""
         config = PipelineConfig(
             target_gene="VCP",
             num_molecules=2,
             output_dir=str(temp_output_dir),
+            structure_cache=str(structure_cache),
         )
 
         # Run first pipeline through all stages

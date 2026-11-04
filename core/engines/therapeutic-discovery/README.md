@@ -612,10 +612,17 @@ The pipeline generates stunning PDF reports suitable for VP-level presentations:
 ### Generate Report
 
 ```python
+import json
 from generate_vcp_report_enhanced import VCPReportGeneratorEnhanced
 
+# The generator reports a run; it does not invent one. Without `results` the sections that
+# would have to assert computed numbers raise ReportDataUnavailable.
+with open("outputs/cloud_nim_results.json") as f:
+    run = json.load(f)
+
 generator = VCPReportGeneratorEnhanced(
-    output_path="outputs/VCP_Drug_Candidate_Report.pdf"
+    output_path="outputs/VCP_Drug_Candidate_Report.pdf",
+    results=run,
 )
 generator.generate()
 ```
@@ -657,8 +664,8 @@ nano .env  # Add your NGC_API_KEY
 # Option 1: Streamlit Discovery UI (Recommended)
 streamlit run app/discovery_ui.py --server.port 8505
 
-# Option 2: Generate PDF Report
-python generate_vcp_report_enhanced.py
+# Option 2: Generate PDF Report from a completed run (--results is required)
+python generate_vcp_report_enhanced.py --results outputs/cloud_nim_results.json
 ```
 
 Access the UI at: **http://localhost:8505**
@@ -750,7 +757,10 @@ streamlit run app/discovery_ui.py --server.port 8505
 Generate executive-ready reports:
 
 ```bash
-python generate_vcp_report_enhanced.py
+# Produce a run first (real MolMIM + DiffDock), then report it:
+python run_cloud_nim_report.py
+# or report an existing run:
+python generate_vcp_report_enhanced.py --results outputs/cloud_nim_results.json
 ```
 
 Output: `outputs/VCP_Drug_Candidate_Report.pdf`
@@ -977,7 +987,7 @@ ls -la data/structures/image_cache/
 
 # Clear cache and regenerate
 rm -rf data/structures/image_cache/*
-python generate_vcp_report_enhanced.py
+python generate_vcp_report_enhanced.py --results outputs/cloud_nim_results.json
 ```
 
 ### Structure Images Not Loading

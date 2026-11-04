@@ -24,6 +24,23 @@ _REPO_ROOT = Path(os.environ.get("HCLS_ROOT", Path(__file__).resolve().parents[4
 RAG_EXPORT_PATH = _REPO_ROOT / "core/engines/precision-intelligence/data/targets/targets_for_phase5.json"
 
 
+def _score_label(mol) -> str:
+    """Render a molecule's score with what it actually is.
+
+    `molecule_generator` stamps `score_is_placeholder=True` on every hand-written library
+    molecule because its score is a fixed rank order (0.85 - 0.05*i), not a prediction. This UI
+    rendered a bare "(Score: 0.85)" and dropped the flag, so nine hand-written analogues read as
+    ranked generative-model output.
+    """
+    props = getattr(mol, 'properties', None) or {}
+    score = getattr(mol, 'score', None)
+    if not isinstance(score, (int, float)):
+        return "(no score)"
+    if props.get('score_is_placeholder'):
+        return f"(Score: {score:.2f} — placeholder rank, hand-written library)"
+    return f"(Score: {score:.2f})"
+
+
 def load_targets_from_export() -> List[Dict[str, Any]]:
     """Load targets from Stage 2 RAG/Chat export file."""
     if RAG_EXPORT_PATH.exists():
@@ -169,7 +186,7 @@ def render_header():
     st.markdown(f"""
     <div class="main-header">
         <h1>💊 Drug Discovery Pipeline <span class="pipeline-badge">{badge}</span></h1>
-        <p>Target Hypothesis → Structural Evidence → BioNeMo Molecule Generation</p>
+        <p>Target Hypothesis → Structural Evidence → Molecule Generation (RDKit / hand-written library — no generative model on this surface)</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -434,8 +451,18 @@ def render_molecule_generation():
     ref_smiles = st.session_state.get('reference_smiles', '')
     ref_drug = st.session_state.get('reference_drug', '')
 
-    st.markdown("## Step 3: BioNeMo Molecule Generation")
-    st.markdown("*AI-generated drug candidates from structural knowledge*")
+    # This heading said "BioNeMo Molecule Generation" and "AI-generated drug candidates".
+    # MoleculeGenerator has no BioNeMo backend at all (_generate_bionemo raises), so this
+    # surface has never run a generative model: it returns the seed plus a hand-written
+    # analogue library with placeholder ranks.
+    st.markdown("## Step 3: Molecule Generation")
+    st.markdown("*Seed analogues from RDKit and a hand-written library — not generative-model output*")
+    st.info(
+        "No generative model runs on this page. Candidates are the seed compound plus a "
+        "hand-written VCP analogue library, and their 'Score' is a fixed rank-order "
+        "placeholder, not a prediction. For real MolMIM generation use the NIM clients "
+        "(NIM_MODE=cloud|local) via run_cloud_nim_report.py."
+    )
 
     col1, col2 = st.columns([2, 1])
 
@@ -451,7 +478,9 @@ def render_molecule_generation():
         if st.button("🚀 Generate Molecules", type="primary"):
             seed = ref_smiles if use_seed and ref_smiles else None
             with st.spinner(f"Generating {target.gene} inhibitor candidates..."):
-                generator = MoleculeGenerator()
+                # use_bionemo defaults to True, which only prints a warning and then falls
+                # through to the hand-written library. Ask for the labeled path explicitly.
+                generator = MoleculeGenerator(use_bionemo=False)
                 if seed:
                     molecules = generator.generate_from_seed(
                         seed_smiles=seed,
@@ -478,7 +507,13 @@ def render_molecule_generation():
             that may have improved properties.
             """)
         else:
-            st.warning("No known seed compound available for this target. Generic scaffolds will be used.")
+            # "Generic scaffolds will be used" was untrue: with no seed the page passed benzene
+            # and then appended the VCP library stamped with this target's gene.
+            st.warning(
+                f"No known seed compound for {target.gene}. This page has no analogue library "
+                f"for {target.gene}, so generation will return only the seed you supply — it "
+                "will not substitute another target's molecules."
+            )
 
     # Display generated molecules
     if 'generated_molecules' in st.session_state and st.session_state.generated_molecules:
@@ -494,7 +529,11 @@ def render_molecule_generation():
             rdkit_available = False
 
         for i, mol in enumerate(molecules):
-            with st.expander(f"💊 {mol.name or f'Molecule-{i+1}'} (Score: {mol.score:.2f})", expanded=(i < 3)):
+            # `properties["provenance"]` and `["score_is_placeholder"]` are set by
+            # molecule_generator precisely so a surface cannot present a hand-written
+            # library as model output. This UI used to read neither.
+            label = _score_label(mol)
+            with st.expander(f"💊 {mol.name or f'Molecule-{i+1}'} {label}", expanded=(i < 3)):
                 col1, col2 = st.columns([1, 1])
 
                 with col1:
@@ -503,7 +542,8 @@ def render_molecule_generation():
                         <h4>{mol.name or f'Molecule-{i+1}'}</h4>
                         <p><strong>Method:</strong> {mol.generation_method}</p>
                         <p><strong>Target:</strong> {mol.target_gene}</p>
-                        <p><strong>Score:</strong> {mol.score:.2f}</p>
+                        <p><strong>Score:</strong> {mol.score:.2f} {"(placeholder rank, not a prediction)" if (mol.properties or {}).get("score_is_placeholder") else ""}</p>
+                        <p><strong>Provenance:</strong> {(mol.properties or {}).get("provenance", "not recorded")}</p>
                     </div>
                     """, unsafe_allow_html=True)
 
@@ -667,7 +707,9 @@ def render_summary():
             st.success(f"Generated: **{len(molecules)} candidates**")
             st.write(f"- Best score: {max(m.score for m in molecules):.2f}")
             st.write(f"- Method: {molecules[0].generation_method}")
-            st.write("- Ready for docking/screening")
+            if any((m.properties or {}).get("score_is_placeholder") for m in molecules):
+                st.caption("Scores are placeholder ranks from a hand-written library, "
+                           "not model predictions.")
 
     st.markdown("---")
 
@@ -679,11 +721,9 @@ def render_summary():
     2. **Structural evidence** grounds our understanding in physical reality — we can see the
        actual 3D shape of {target.gene}, its binding pockets, and how compounds interact with it.
 
-    3. **BioNeMo molecule generation** produces novel candidate molecules informed by both the
-       genomic context and structural knowledge — molecules designed to potentially modulate {target.gene}
-       and address the underlying disease mechanism.
-
-    This is the promise of AI-accelerated drug discovery: **from variant to molecule in one session**.
+    3. **Molecule generation on this page** returns the seed compound plus a hand-written
+       {target.gene} analogue library with placeholder ranks. It is not generative-model output and
+       no binding prediction has been made for any of these molecules.
     """)
 
     # Export options
@@ -694,20 +734,32 @@ def render_summary():
         if st.button("Export Molecules (JSON)"):
             molecules = st.session_state.get('generated_molecules', [])
             if molecules:
-                generator = MoleculeGenerator()
+                # use_bionemo defaults to True, which only prints a warning and then falls
+                # through to the hand-written library. Ask for the labeled path explicitly.
+                generator = MoleculeGenerator(use_bionemo=False)
                 filename = f"{target.gene.lower()}_candidates.json"
                 output_file = generator.save_molecules(molecules, filename)
                 st.success(f"Saved to {output_file}")
 
     with col2:
-        if st.button("Export Full Report (PDF)"):
-            with st.spinner("Generating professional PDF report..."):
+        # This button used to construct VCPReportGeneratorEnhanced with NO data argument, so the
+        # PDF it produced was the generator's hard-coded VCP/CB-5083 result set -- named
+        # "<GENE>_Drug_Candidate_Report.pdf" for whatever gene was selected, containing four
+        # invented candidates with DiffDock affinities and a Parabricks/MolMIM/DiffDock
+        # provenance line, and none of the molecules the session had actually generated. The
+        # session's own molecules are now what gets exported, with their provenance attached.
+        molecules = st.session_state.get('generated_molecules', [])
+        if st.button("Export Full Report (PDF)", disabled=not molecules):
+            with st.spinner("Generating PDF report from this session's molecules..."):
                 try:
                     sys.path.insert(0, str(Path(__file__).parent.parent))
                     from generate_vcp_report_enhanced import VCPReportGeneratorEnhanced
 
                     output_path = f"outputs/{target.gene}_Drug_Candidate_Report.pdf"
-                    generator = VCPReportGeneratorEnhanced(output_path=output_path)
+                    generator = VCPReportGeneratorEnhanced(
+                        output_path=output_path,
+                        results=_session_results(target, molecules),
+                    )
                     output_file = generator.generate()
 
                     with open(output_file, "rb") as f:
@@ -722,6 +774,47 @@ def render_summary():
                     )
                 except Exception as e:
                     st.error(f"Report generation failed: {e}")
+        if not molecules:
+            st.caption("Generate molecules in step 3 first — the PDF reports the molecules this "
+                       "session produced, and will not be written without them.")
+
+
+def _session_results(target, molecules) -> dict:
+    """Package this session's molecules in the report generator's `results` shape.
+
+    No docking runs in this UI, so `num_docked` is 0 and `docking_method` is None: the report
+    then states plainly that no docking was performed, instead of printing kcal/mol affinities
+    for molecules nothing docked. Provenance travels with every candidate.
+    """
+    candidates = []
+    for i, mol in enumerate(molecules, start=1):
+        props = dict(getattr(mol, 'properties', None) or {})
+        candidates.append({
+            'rank': i,
+            'id': getattr(mol, 'name', None) or f'molecule-{i}',
+            'smiles': getattr(mol, 'smiles', ''),
+            'score': getattr(mol, 'score', None),
+            'score_type': None,          # nothing was docked
+            'docking_score': None,
+            'properties': props,
+            'provenance': props.get('provenance', getattr(mol, 'generation_method', 'not recorded')),
+        })
+    seed = st.session_state.get('reference_smiles', '') or ''
+    return {
+        'pipeline': {
+            'target_gene': target.gene,
+            'generator': (getattr(molecules[0], 'generation_method', None) or 'not recorded')
+                         if molecules else 'not recorded',
+            'seed_compound': st.session_state.get('reference_drug', '') or 'not recorded',
+            'seed_smiles': seed,
+            'num_generated': len(molecules),
+            'num_passed_qc': None,       # this UI applies no QC filter
+            'num_docked': 0,
+            'docking_method': None,
+            'pdb_id': st.session_state.get('target_pdb'),
+        },
+        'top_candidates': candidates,
+    }
 
 
 def main():

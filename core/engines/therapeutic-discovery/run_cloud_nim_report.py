@@ -252,6 +252,9 @@ def main():
             "num_generated": len(raw_molecules),
             "num_passed_qc": len(molecules),
             "num_docked": len(docking_results),
+            # Name the clients that actually ran, so the report credits those and nothing else.
+            "generator": type(nim.molmim).__name__,
+            "docking_method": type(nim.diffdock).__name__ if docking_results else None,
             "generation_time_sec": round(gen_time, 1),
             "docking_time_sec": round(dock_time, 1),
             "total_time_sec": round(total_time, 1),
@@ -501,13 +504,11 @@ def _generate_pdf_report(results: dict):
             top = self.real_results["top_candidates"]
             top1 = top[0] if top else {}
 
+            # Three literal "achievements" used to lead this list: an AlphaMissense score of
+            # 0.89 for a variant this script never calls (it starts from a target, not a VCF),
+            # "VCP/p97 confirmed", and "4 high-resolution structures (2.3-3.2 A)" that nothing
+            # here retrieves or measures. Only what this run did is listed.
             achievements = [
-                ("Pathogenic Variant Identified",
-                 "VCP missense variant (rs188935092) with AlphaMissense score 0.89"),
-                ("Validated Drug Target",
-                 "VCP/p97 confirmed as high-priority therapeutic target for FTD"),
-                ("Structural Templates",
-                 "4 high-resolution structures (2.3-3.2 Å) for structure-based design"),
                 ("Live NIM Inference",
                  f"Cloud MolMIM generated {pipeline['num_generated']} molecules, "
                  f"{pipeline['num_passed_qc']} passed QC, docked via Cloud DiffDock"),
@@ -573,6 +574,9 @@ def _generate_pdf_report(results: dict):
     generator = RealNIMReportGenerator(
         real_results=results,
         output_path="outputs/VCP_Drug_Candidate_Report.pdf",
+        # Also hand the run to the base class, so its header, structure template and footer
+        # report this run instead of a hard-coded "Target: VCP / Patient: HG002 / Parabricks".
+        results=results,
     )
     output_file = generator.generate()
 

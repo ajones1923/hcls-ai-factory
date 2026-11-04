@@ -136,8 +136,16 @@ Thumbs.db
 media/infographics-updates/
 
 # keep the tiny demo fixture (small VCF + readme for reproducibility)
+# NB: these patterns contain a slash, so they are anchored at the repo root and do NOT
+# re-include `<subdir>/data/demo/`. The active orchestrator's demo target lived in
+# hcls-orchestrator/data/demo/ and was therefore absent from every clone and release tarball,
+# while still present on the development box -- so `run_pipeline.py --mode demo`, the only
+# implemented mode, raised FileNotFoundError in the artifact we ship. Re-include it explicitly.
 !data/demo/
 !data/demo/**
+!hcls-orchestrator/data/
+!hcls-orchestrator/data/demo/
+!hcls-orchestrator/data/demo/**
 
 
 # scratch notes — not for publish
