@@ -35,6 +35,9 @@ sys.path.insert(0, str(ROOT / "lib"))
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
 logger = logging.getLogger("ingest_literature")
 
+sys.path.insert(0, str(ROOT / "lib"))
+from hcls_common.ingest_ledger import DEFAULT_LEDGER  # noqa: E402
+
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
@@ -45,9 +48,26 @@ def main() -> int:
     ap.add_argument("--dry-run", action="store_true", help="fetch and show, write nothing")
     ap.add_argument("--min-abstract", type=int, default=200,
                     help="skip records with a shorter abstract (default 200 chars)")
+    ap.add_argument("--ledger", default=None,
+                    help=f"provenance ledger (default {DEFAULT_LEDGER})")
+    ap.add_argument("--allow-model-change", action="store_true",
+                    help="write even though this collection holds another model's vectors. "
+                         "Only correct if you are re-embedding the whole collection.")
     a = ap.parse_args()
+    ledger = a.ledger or str(ROOT / DEFAULT_LEDGER)
+
+    from hcls_common.ingest_ledger import IngestEvent, append, model_conflict
+    from hcls_common.ingest_persist import DEFAULT_EMBED_MODEL
 
     from hcls_common.pubmed import PubMed
+
+    # Checked BEFORE the fetch: a model conflict is not worth 200 PubMed requests, and the
+    # whole point is to refuse before anything lands in the collection.
+    conflict = model_conflict(a.collection, DEFAULT_EMBED_MODEL, ledger)
+    if conflict and not a.allow_model_change:
+        logger.error("%s", conflict)
+        logger.error("pass --allow-model-change only if you are re-embedding the collection")
+        return 1
 
     pm = PubMed()
     logger.info("searching PubMed: %s", a.query)
@@ -85,6 +105,16 @@ def main() -> int:
         milvus_uri=f"http://{host}:{port}",
     )
     logger.info("wrote %d rows to %s", written, a.collection)
+
+    # Provenance, recorded whatever the outcome: a run that wrote nothing is part of the
+    # history too, and a ledger that only holds successes cannot be used to explain a corpus.
+    append(IngestEvent(
+        collection=a.collection, source="pubmed", query=a.query,
+        embed_model=DEFAULT_EMBED_MODEL,
+        fetched=len(arts), written=written, skipped=skipped,
+        note=f"min_abstract={a.min_abstract}",
+    ), ledger)
+    logger.info("provenance recorded in %s", ledger)
     # persist_records never raises; a zero here means the projection or the client failed, and
     # reporting success on zero rows is the exact failure this platform keeps finding.
     if written == 0:
