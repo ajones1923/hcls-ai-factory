@@ -5,8 +5,6 @@ service that installed neither the shared API-key gate nor governance. On a box 
 genomics, "any file the service user can read, parsed and returned" means other patients'
 VCFs. These tests assert the refusals.
 """
-import os
-
 import pytest
 from fastapi.testclient import TestClient
 
