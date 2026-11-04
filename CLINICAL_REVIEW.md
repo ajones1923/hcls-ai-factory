@@ -61,26 +61,54 @@ figure), so they were NOT changed on a single reading:
 - ⚠️ **Do not substitute the paper's UNIVARIABLE coefficients** (e.g. CC ≤50 at 1.688774,
   CC 50–85 at 0.6674962). Those belong to the derivation analysis, not the final model.
 
-## 3. CYP2D6 activity score 1.0 — phenotype boundary
+## 3. CYP2D6 activity score 1.0 — SETTLED 2026-11-03, and a second boundary was wrong too
 
-`core/agents/pharmacogenomics/src/pgx_pipeline.py` and `src/dosing.py` place activity score
-1.0 in **Normal Metabolizer**.
+**Resolved against the primary source**, which was retrieved rather than inferred this time:
+the consensus paper itself, whose Discussion says in as many words **"reclassify AS of 1 from NM
+to IM"**, and whose Table 3 gives PM = 0, **IM = 0 < AS < 1.25**, NM = 1.25 ≤ AS ≤ 2.25,
+UM > 2.25.
 
-The CPIC/DPWG consensus (Caudle et al. 2020) places AS 1.0 in **Intermediate Metabolizer**:
-0 = poor, >0 to 1.0 = intermediate, 1.25–2.25 = normal, >2.25 = ultrarapid. The repo
-contradicts itself — `pgx knowledge.py` states NM is 1.25–2.25, and the biomarker agent
-classifies `*1/*4` (AS 1.0) as IM. A test pins the current value "per CPIC 2023".
+> Caudle KE, Sangkuhl K, Whirl-Carrillo M, Swen JJ, Haidar CE, Klein TE, Gammal RS, Relling MV,
+> Scott SA, Hertz DL, Guchelaar HJ, Gaedigk A. "Standardizing CYP2D6 Genotype to Phenotype
+> Translation: Consensus Recommendations from the Clinical Pharmacogenetics Implementation
+> Consortium and Dutch Pharmacogenetics Working Group." *Clin Transl Sci* 2020;13(1):116–124,
+> Table 3. doi:10.1111/cts.12692, PMID 31647186.
+> https://pmc.ncbi.nlm.nih.gov/articles/PMC6951851/
 
-This one is close to settled against secondary sources but was left alone because it changes a
-dosing phenotype and the CPIC table itself was not retrieved.
+Reading the table rather than a summary of it surfaced a **second** error at the other end:
 
-- **Settle with:** the CPIC CYP2D6 genotype-to-phenotype table at cpicpgx.org.
-- **Secondary sources checked:** Frontiers Pharmacol 2021 on the consensus
-  (https://www.frontiersin.org/journals/pharmacology/articles/10.3389/fphar.2021.650750/epub);
-  a lab-report study showing AS 1 reclassified NM → IM
-  (https://um.edu.mt/library/oar/bitstream/123456789/60804/1/FIP%20Poster%20Submission.pdf).
-- **When settled:** fix `pgx_pipeline.py`, `dosing.py`, the pinning test, and the comment that
-  states "IM=0.25-0.75, NM≥1.0".
+| Activity score | Was | Consensus | Who that is |
+|---|---|---|---|
+| 1.00 | Normal | **Intermediate** | `*1/*4`, `*1/*5`, `*41/*41` — common diplotypes |
+| 2.25 | Ultrarapid | **Normal** | `*1x2/*41` — 2.25 is the inclusive *top* of Normal |
+
+Clinically: an AS 1.0 patient was getting standard tricyclic dosing where CPIC asks for a 25%
+reduction, and an AS 2.25 patient was getting the ultrarapid recommendation to change drug
+class. Both ends corrected in `pgx_pipeline.py` (`PHENOTYPE_THRESHOLDS`) and `dosing.py` (the
+TCA path carried its own copy of the same thresholds, with the same two errors), each with the
+citation at the change.
+
+The contradiction §3 was originally about is also closed: `knowledge.py` already stated
+NM = 1.25–2.25, so the knowledge base and the code now agree.
+`tests/test_cyp2d6_consensus_reference.py` holds **both** sides to the table, including the test
+that previously asserted the wrong value "per CPIC 2023".
+
+### 3a. `*41` allele activity value — OPEN, and probably harmless
+
+While reading the consensus table: this repo scores `*41` at **0.5**, where CPIC's
+allele-functionality table assigns **0.25**. `*10` is already 0.25 here, consistent with CPIC.
+
+It appears to change no phenotype in practice, because the diplotypes it affects land in the
+same bucket either way (`*41/*41` → AS 1.0 here vs 0.5 there; Intermediate in both), but it will
+shift AS values the agent *reports*, and a `*1x2/*41` patient sits exactly on the NM/UM boundary
+where 0.25 vs 0.5 decides 2.25 against 2.5.
+
+- **Settle with:** the CPIC CYP2D6 Allele Functionality Table (the companion file to the paper
+  above, not the genotype-to-phenotype table) — I did not retrieve it, so I did not touch the
+  allele scores.
+- **Scope if it changes:** `ACTIVITY_SCORE_TABLES["CYP2D6"]["allele_scores"]` in `knowledge.py`,
+  `PhenotypeTranslator.ACTIVITY_SCORES` in `pgx_pipeline.py`, `_CYP2D6_ACTIVITY` in `dosing.py`
+  — three copies of the same table, which is its own small problem.
 
 ## 4. DPYD activity score 0.5 — phenotype and dose
 

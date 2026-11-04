@@ -30,6 +30,16 @@ PR-to-main.
   fix and after it, because monotonic ordering was preserved — which is why range assertions
   could not see a coefficient wrong by a factor of 2.6.
   (Nashef et al., *Eur J Cardiothorac Surg* 2012;41(4):734–745, Table 6.)
+- **CYP2D6 activity score 1.0 was classified Normal Metabolizer; the consensus calls it
+  Intermediate** — and the opposite boundary was wrong too: AS 2.25 was classified Ultrarapid,
+  where 2.25 is the inclusive top of Normal. An AS 1.0 patient (`*1/*4`, `*1/*5`, `*41/*41`)
+  therefore received standard tricyclic dosing where CPIC asks for a 25% reduction, and an
+  AS 2.25 patient (`*1x2/*41`) received the ultrarapid recommendation to change drug class. Both
+  corrected in `pgx_pipeline.py` and in `dosing.py`, which carried its own copy of the same
+  thresholds with the same two errors. The repo had contradicted itself: `knowledge.py` already
+  stated NM as 1.25–2.25, and a test pinned the wrong value "per CPIC 2023".
+  (Caudle et al., *Clin Transl Sci* 2020;13(1):116–124, Table 3, PMID 31647186 — "reclassify AS
+  of 1 from NM to IM".)
 - **HEART score treated a missing troponin as a normal one**, scoring 0 and moving patients
   toward the low-risk discharge band. It now raises.
 - **PhenoAge alkaline phosphatase coefficient** 0.0019 → **0.00188**, the published value
@@ -118,9 +128,11 @@ Stated here because a release is a promise the repo can keep.
   regression in a demo and is not one.
 - **Cardiology's twelve collections do not exist in Milvus.** Its risk calculators are pure
   functions and unaffected; its retrieved output has always been empty.
-- **Nine entries in `CLINICAL_REVIEW.md` are open** and await a reviewer's ruling, including
-  CYP2D6 activity score 1.0 (where the repo contradicts itself) and MAGGIC's creatinine
-  conversion. They are recorded in the repo rather than silently resolved.
+- **Thirteen entries in `CLINICAL_REVIEW.md` are open** and await a reviewer's ruling, the
+  largest being MAGGIC's creatinine conversion (§12) and the PhenoAge CRP convention (§8).
+  Three were settled in this release — EuroSCORE II (§1–2) and CYP2D6 (§3) — and §6e records
+  the instruments checked that needed no change. They are recorded in the repo rather than
+  silently resolved.
 - **No clinical evaluation figure is claimed in this release.** v2.1.0's "26/27 cases correct"
   is not restated, because `scripts/run_clinical_eval.py` has not been re-run against this code.
 

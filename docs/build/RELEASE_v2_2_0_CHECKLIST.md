@@ -65,7 +65,7 @@ If you do not want to run them, **omit the rows** rather than carry last release
 | Item | Blocks v2.2.0? |
 |---|---|
 | **Merge #158** | **Yes.** Nothing else can proceed. |
-| **`CLINICAL_REVIEW` §8 PhenoAge CRP** (2.40 years), **§3 CYP2D6** (repo self-contradicts), **§12 MAGGIC** (creatinine ÷100 vs ÷88.4) | **No**, if the notes say nine entries are open and point at the file. That is honest for a research-use platform and better than a silent guess. **Yes**, if you would rather not ship a self-contradiction in CYP2D6 — that one is a five-minute ruling. |
+| **`CLINICAL_REVIEW` §8 PhenoAge CRP** (2.40 years), **§12 MAGGIC** (creatinine ÷100 vs ÷88.4), and ten smaller entries | **No**, if the notes say thirteen entries are open and point at the file. That is honest for a research-use platform and better than a silent guess. §3 CYP2D6 — the one that read worst, because the repo contradicted itself — was **settled against the primary source** and is no longer on this list. |
 | **Cardiology's twelve absent collections** | **No.** A data/deployment gap, declared in the Known Limitations and in `docs/build/EMPTY_COLLECTIONS.md`. The calculators are unaffected. Fixing it is one `setup_collections.py` run plus seeding, and would be a strong v2.2.1. |
 | **The 5 patient-level collections** (synthetic cohort vs nothing vs IRB) | **No.** "Nothing, and the agent says so" is a defensible shipped state — and as of this release the agents actually do say so. |
 | **Deploying to the box** | **No** — the tag describes the repo, not the running instance. But the live tree still runs 2026-09-17 code, so until it is deployed the released code is not the demonstrated code. |
