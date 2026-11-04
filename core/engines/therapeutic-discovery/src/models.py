@@ -158,10 +158,20 @@ class PediatricSafetyFlag(BaseModel):
 class PediatricSafetyAssessment(BaseModel):
     """
     Pediatric safety assessment result for a drug candidate.
+
+    `pediatric_safe` is three-valued. It was a bare bool, which forced the assessment to answer
+    "safe" whenever no critical flag had been raised -- including when the only critical rule
+    (cardiac liability) had no input to evaluate. `None` means "not assessed", and
+    `cardiac_liability_assessed` records whether a hERG prediction was available at all.
     """
-    pediatric_safe: bool = Field(..., description="True if no critical flags")
+    pediatric_safe: Optional[bool] = Field(
+        ..., description="True if no critical flags; None if the assessment could not be made")
     safety_flags: List[PediatricSafetyFlag] = Field(default_factory=list)
     recommendation: str = Field("", description="Summary recommendation")
+    cardiac_liability_assessed: bool = Field(
+        False, description="True only if a hERG prediction from a model was available")
+    unassessed_reasons: List[str] = Field(
+        default_factory=list, description="Why the verdict is None, when it is")
 
 
 class RankedCandidate(BaseModel):

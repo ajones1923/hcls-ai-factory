@@ -50,8 +50,20 @@ def pediatric_safety_assessment(molecule_data: dict) -> PediatricSafetyAssessmen
     - Higher body water percentage (affects hydrophilic drug distribution)
     - Cardiac sensitivity (lower threshold for QT prolongation)
     - Renal maturation (GFR reaches adult levels by age 2)
+
+    This function returns a clinical-shaped verdict, so it refuses to produce one it cannot
+    support. The only `critical` rule -- and therefore the only thing that can set
+    `pediatric_safe=False` -- is hERG cardiac liability. When no hERG prediction is supplied,
+    the verdict is `None` ("not assessed"), never `True`. Before 2026-11-04 the caller fed this
+    function `herg_ic50` from a hand-written expression, `max(0.5, 30 - logP*4 - (MW-350)*0.02)`,
+    cited as "Ref: Aronov (2005) J Med Chem 48:1341-1348" -- a paper that publishes no such
+    equation -- and only when `logP > 3.5 and MW > 350`. Everything else got
+    `herg_ic50 = inf` by default, raised no cardiac flag, and was reported
+    `pediatric_safe: true, recommendation: "Suitable for pediatric development"`. A candidate
+    with dofetilide's physicochemistry (MW 441, logP 2.3, hERG IC50 ~10 nM) passed that way.
     """
     safety_flags = []
+    unassessed = []
 
     # Molecular weight check for BBB crossing
     mw = molecule_data.get("molecular_weight", 0)
@@ -71,13 +83,36 @@ def pediatric_safety_assessment(molecule_data: dict) -> PediatricSafetyAssessmen
             severity="high",
         ))
 
-    # hERG cardiac liability
-    if molecule_data.get("herg_ic50", float("inf")) < 10:
-        safety_flags.append(PediatricSafetyFlag(
-            flag="HERG_CARDIAC_RISK",
-            detail="hERG IC50 < 10uM — pediatric patients more sensitive to QT prolongation",
-            severity="critical",
-        ))
+    # hERG cardiac liability. Two accepted inputs, both of which must come from a model:
+    #   * `herg_inhibition_probability` — ADMETPredictor's hERG endpoint, P(inhibitor) in [0,1]
+    #   * `herg_ic50` — a measured or predicted IC50 in uM, from a named source
+    # Absence is not safety: it makes the verdict unassessable.
+    herg_prob = molecule_data.get("herg_inhibition_probability")
+    herg_ic50 = molecule_data.get("herg_ic50")
+    cardiac_assessed = False
+
+    if isinstance(herg_prob, (int, float)):
+        cardiac_assessed = True
+        if herg_prob >= 0.5:
+            safety_flags.append(PediatricSafetyFlag(
+                flag="HERG_CARDIAC_RISK",
+                detail=(f"predicted hERG inhibition probability {herg_prob:.2f} — pediatric "
+                        "patients are more sensitive to QT prolongation"),
+                severity="critical",
+            ))
+    elif isinstance(herg_ic50, (int, float)):
+        cardiac_assessed = True
+        if herg_ic50 < 10:
+            safety_flags.append(PediatricSafetyFlag(
+                flag="HERG_CARDIAC_RISK",
+                detail="hERG IC50 < 10uM — pediatric patients more sensitive to QT prolongation",
+                severity="critical",
+            ))
+    else:
+        unassessed.append(
+            "no cardiac liability model was run: neither a hERG inhibition probability nor a "
+            "hERG IC50 was supplied, and none is estimated from physicochemical properties"
+        )
 
     # Teratogenicity check (for adolescent patients)
     if molecule_data.get("teratogenic_risk", False):
@@ -107,14 +142,30 @@ def pediatric_safety_assessment(molecule_data: dict) -> PediatricSafetyAssessmen
 
     has_critical = len([f for f in safety_flags if f.severity == "critical"]) > 0
 
+    if has_critical:
+        verdict = False
+        recommendation = "Critical pediatric safety flag — not suitable without further work"
+    elif not cardiac_assessed:
+        # No critical rule could be evaluated, so there is no verdict to give.
+        verdict = None
+        recommendation = (
+            "NOT ASSESSED — " + "; ".join(unassessed) +
+            ". Run ADMETPredictor().predict(smiles) and pass its hERG endpoint as "
+            "herg_inhibition_probability to obtain a verdict."
+        )
+    elif safety_flags:
+        verdict = True
+        recommendation = "Requires additional pediatric safety evaluation"
+    else:
+        verdict = True
+        recommendation = "No pediatric safety flag raised by the rules applied"
+
     return PediatricSafetyAssessment(
-        pediatric_safe=not has_critical,
+        pediatric_safe=verdict,
         safety_flags=safety_flags,
-        recommendation=(
-            "Suitable for pediatric development"
-            if not safety_flags
-            else "Requires additional pediatric safety evaluation"
-        ),
+        recommendation=recommendation,
+        cardiac_liability_assessed=cardiac_assessed,
+        unassessed_reasons=unassessed,
     )
 
 
@@ -158,6 +209,10 @@ class DrugDiscoveryPipeline:
             started_at=datetime.now(),
             config=self.config.dict(),
         )
+
+        # Lazy ADMET predictor for the pediatric cardiac-liability rule.
+        # None = not loaded yet; False = loading failed, do not retry.
+        self._admet = None
 
         # Checkpoint manager
         self.checkpoint_manager = CheckpointManager(self.output_dir)
@@ -577,6 +632,38 @@ class DrugDiscoveryPipeline:
         self.run.stages_completed.append(7)
         self._save_checkpoint(7)
 
+    def _predict_herg(self, smiles: str):
+        """P(hERG inhibition) from the engine's trained ADMET suite, or None.
+
+        The engine ships a real ADMET predictor with a trained `hERG` endpoint
+        (src/admet_predictor.py); the pediatric assessment used a hand-written expression
+        instead. Returning None when the model is unavailable is deliberate: the assessment then
+        reports "not assessed" rather than defaulting to safe.
+        """
+        if not smiles:
+            return None
+        if self._admet is False:                     # a previous call already failed
+            return None
+        try:
+            if self._admet is None:
+                from .admet_predictor import ADMETPredictor
+                self._admet = ADMETPredictor()
+            result = self._admet.predict(smiles)
+        except Exception as e:                       # model absent, weights missing, bad SMILES
+            logger.warning(
+                f"No hERG prediction available ({type(e).__name__}: {e}); pediatric cardiac "
+                "liability will be reported as not assessed."
+            )
+            self._admet = False
+            return None
+        for key, value in (result.predictions or {}).items():
+            if "herg" in key.lower():
+                try:
+                    return float(value)
+                except (TypeError, ValueError):
+                    return None
+        return None
+
     def stage_8_ranking(self):
         """Stage 8: Score and rank candidates."""
         self._report_progress(8, "Ranking candidates")
@@ -639,14 +726,17 @@ class DrugDiscoveryPipeline:
                 mol_data["logP"] = c.properties.logP
                 mol_data["tpsa"] = c.properties.tpsa
                 mol_data["rotatable_bonds"] = c.properties.rotatable_bonds
-                # Estimate hERG IC50 from physicochemical properties
-                # High logP + high basicity correlate with hERG channel binding
-                # Ref: Aronov (2005) J Med Chem 48:1341-1348
-                mw = c.properties.molecular_weight or 0
-                logp = c.properties.logP or 0
-                if logp > 3.5 and mw > 350:
-                    estimated_herg = max(0.5, 30 - (logp * 4) - (mw - 350) * 0.02)
-                    mol_data["herg_ic50"] = round(estimated_herg, 1)
+                # The hERG input used to be invented here:
+                #     if logp > 3.5 and mw > 350:
+                #         estimated_herg = max(0.5, 30 - (logp*4) - (mw-350)*0.02)
+                # cited as "Ref: Aronov (2005) J Med Chem 48:1341-1348". Aronov 2005 publishes
+                # no such equation, the expression is not a hERG model, and the gate meant most
+                # candidates got no value at all and were then declared pediatric-safe by
+                # default. Ask the real ADMET model; if it is unavailable, pass nothing and let
+                # the assessment return "not assessed".
+                herg = self._predict_herg(c.smiles)
+                if herg is not None:
+                    mol_data["herg_inhibition_probability"] = herg
                 # Screen for known teratogenic structural alerts via RDKit
                 # Thalidomide-like glutarimides, retinoids, warfarin scaffolds
                 try:
@@ -667,8 +757,12 @@ class DrugDiscoveryPipeline:
                 except Exception:
                     pass
             c.pediatric_safety = pediatric_safety_assessment(mol_data)
-            if not c.pediatric_safety.pediatric_safe:
+            # `pediatric_safe` is three-valued now: `not safe` would have swept "not assessed"
+            # in with "critical flag raised", which are different claims.
+            if c.pediatric_safety.pediatric_safe is False:
                 c.alerts.append("PEDIATRIC_CRITICAL_FLAG")
+            elif c.pediatric_safety.pediatric_safe is None:
+                c.alerts.append("PEDIATRIC_NOT_ASSESSED")
             elif c.pediatric_safety.safety_flags:
                 c.alerts.append("PEDIATRIC_REVIEW_NEEDED")
 
@@ -699,13 +793,20 @@ class DrugDiscoveryPipeline:
                 "molecules_generated": len(self.molecules),
                 "molecules_docked": len(self.docking_results),
                 "top_n": self.config.top_n_candidates,
+                # `pediatric_flagged_count` used to be "not pediatric_safe", which counted
+                # every candidate whose cardiac liability was never evaluated as flagged.
+                # Three states, three counts.
                 "pediatric_safe_count": len([
                     c for c in self.ranked_candidates
-                    if c.pediatric_safety and c.pediatric_safety.pediatric_safe
+                    if c.pediatric_safety and c.pediatric_safety.pediatric_safe is True
                 ]),
                 "pediatric_flagged_count": len([
                     c for c in self.ranked_candidates
-                    if c.pediatric_safety and not c.pediatric_safety.pediatric_safe
+                    if c.pediatric_safety and c.pediatric_safety.pediatric_safe is False
+                ]),
+                "pediatric_not_assessed_count": len([
+                    c for c in self.ranked_candidates
+                    if c.pediatric_safety and c.pediatric_safety.pediatric_safe is None
                 ]),
             },
             "top_candidates": [c.dict() for c in self.ranked_candidates],
