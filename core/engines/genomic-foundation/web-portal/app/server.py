@@ -1121,9 +1121,12 @@ def get_metrics():
     gpu_percent = 0
     if gpu_util['available'] and len(gpu_util['devices']) > 0:
         gpu_percent = gpu_util['devices'][0].get('utilization', 0)
-        # Parabricks on GB10 can process ~45-60 GB/hr at full utilization
+        # MODELED, NOT MEASURED. Parabricks on GB10 runs roughly 45-60 GB/hr at full
+        # utilization, so this is utilization scaled by a 55 GB/hr ceiling. It is not a
+        # throughput measurement of this run: nothing here counts bases or bytes. The
+        # payload carries throughput_is_modeled so no caller can mistake it for one.
         if gpu_percent > 0:
-            throughput = (gpu_percent / 100) * 55  # Max ~55 GB/hr
+            throughput = (gpu_percent / 100) * 55
 
     # Get pipeline runtime - use saved value for completed jobs
     runtime_seconds = pipeline_state.get('runtime_seconds', 0)
@@ -1134,6 +1137,9 @@ def get_metrics():
 
     return jsonify({
         'throughput_gb_hr': round(throughput, 1),
+        'throughput_is_modeled': True,
+        'throughput_model': ('GPU utilization scaled by a 55 GB/hr Parabricks ceiling on '
+                             'GB10. Not a measurement of this run.'),
         'runtime_seconds': runtime_seconds,
         'gpu_utilization': gpu_percent,
         'status': pipeline_state['status'],
@@ -1145,58 +1151,75 @@ def get_metrics():
 
 
 def get_detailed_gpu_metrics():
-    """Get detailed GPU performance metrics"""
+    """Real GPU telemetry from NVML, or None per field where this box cannot measure it.
+
+    AUDIT FIX (2026-11-04): five of the six fields this returned were invented. `iops`,
+    `memory_bandwidth`, `sm_efficiency`, `tensor_usage` and `pcie_throughput` were each a
+    theoretical maximum scaled by GPU utilization and then jittered with
+    `hash(str(time.time()))`, so the dashboard moved like an instrument while measuring
+    nothing. Only `power_draw` was real.
+
+    Two of those are not NVML-visible at all without DCGM profiling (SM efficiency,
+    tensor-core usage), memory bandwidth in GB/s is not exposed either, and IOPS is a
+    storage metric rather than a GPU one. So they are gone rather than re-derived.
+
+    What remains is what NVML actually reports. A field this machine cannot measure is
+    None -- never 0, and never a plausible-looking number -- and the dashboard renders
+    '--' for it. Every value here is read, not modeled; see /api/metrics for the one
+    number that IS modeled, which says so in its own payload.
+    """
     metrics = {
-        'iops': 0,
-        'memory_bandwidth': 0,
-        'sm_efficiency': 0,
-        'tensor_usage': 0,
-        'pcie_throughput': 0,
-        'power_draw': 0
+        'power_draw_w': None,
+        'memory_controller_pct': None,
+        'pcie_tx_gb_s': None,
+        'pcie_rx_gb_s': None,
+        'temperature_c': None,
+        'sm_clock_mhz': None,
     }
 
     if not NVML_AVAILABLE:
         return metrics
 
+    def _read(fn):
+        """One field failing must not cost the others."""
+        try:
+            return fn()
+        except Exception:
+            return None
+
     try:
         pynvml.nvmlInit()
         handle = pynvml.nvmlDeviceGetHandleByIndex(0)
 
-        # Get utilization rates
-        util = pynvml.nvmlDeviceGetUtilizationRates(handle)
+        util = _read(lambda: pynvml.nvmlDeviceGetUtilizationRates(handle))
+        if util is not None:
+            # The fraction of time the memory controller was busy. This is a real NVML
+            # reading, and it is NOT bandwidth in GB/s -- the old field claimed GB/s.
+            metrics['memory_controller_pct'] = float(util.memory)
 
-        # Check for running processes to determine if GPU is active
-        try:
-            compute_procs = pynvml.nvmlDeviceGetComputeRunningProcesses(handle)
-            is_active = len(compute_procs) > 0
-        except Exception:
-            is_active = False
+        power_mw = _read(lambda: pynvml.nvmlDeviceGetPowerUsage(handle))
+        if power_mw is not None:
+            metrics['power_draw_w'] = round(power_mw / 1000.0, 1)
 
-        # Get power usage
-        try:
-            power = pynvml.nvmlDeviceGetPowerUsage(handle) / 1000.0
-            metrics['power_draw'] = round(power, 1)
-        except Exception:
-            pass
+        # NVML reports PCIe throughput in KB/s over a ~20ms sample.
+        tx_kb_s = _read(lambda: pynvml.nvmlDeviceGetPcieThroughput(
+            handle, pynvml.NVML_PCIE_UTIL_TX_BYTES))
+        if tx_kb_s is not None:
+            metrics['pcie_tx_gb_s'] = round(tx_kb_s / 1_000_000.0, 3)
 
-        # Estimate other metrics based on utilization when GPU is active
-        if is_active and util.gpu > 0:
-            gpu_util_pct = util.gpu / 100.0
+        rx_kb_s = _read(lambda: pynvml.nvmlDeviceGetPcieThroughput(
+            handle, pynvml.NVML_PCIE_UTIL_RX_BYTES))
+        if rx_kb_s is not None:
+            metrics['pcie_rx_gb_s'] = round(rx_kb_s / 1_000_000.0, 3)
 
-            # IOPS estimate (GB10 theoretical ~500K IOPS for genomics workloads)
-            metrics['iops'] = round(450 * gpu_util_pct + (50 * gpu_util_pct * (0.5 + 0.5 * (hash(str(time.time())) % 100) / 100)), 1)
+        temp_c = _read(lambda: pynvml.nvmlDeviceGetTemperature(
+            handle, pynvml.NVML_TEMPERATURE_GPU))
+        if temp_c is not None:
+            metrics['temperature_c'] = float(temp_c)
 
-            # Memory bandwidth (GB10 has ~200 GB/s theoretical)
-            metrics['memory_bandwidth'] = round(180 * gpu_util_pct + (20 * gpu_util_pct * (0.5 + 0.5 * (hash(str(time.time() + 1)) % 100) / 100)), 1)
-
-            # SM efficiency (streaming multiprocessor)
-            metrics['sm_efficiency'] = round(util.gpu * (0.9 + 0.1 * (hash(str(time.time() + 2)) % 100) / 100), 1)
-
-            # Tensor core usage (Parabricks uses tensor cores for certain operations)
-            metrics['tensor_usage'] = round(35 * gpu_util_pct + (25 * gpu_util_pct * (hash(str(time.time() + 3)) % 100) / 100), 1)
-
-            # PCIe throughput (GB10 PCIe 5.0 x16 = ~64 GB/s theoretical)
-            metrics['pcie_throughput'] = round(12 * gpu_util_pct + (8 * gpu_util_pct * (hash(str(time.time() + 4)) % 100) / 100), 1)
+        sm_mhz = _read(lambda: pynvml.nvmlDeviceGetClockInfo(handle, pynvml.NVML_CLOCK_SM))
+        if sm_mhz is not None:
+            metrics['sm_clock_mhz'] = float(sm_mhz)
 
         pynvml.nvmlShutdown()
 

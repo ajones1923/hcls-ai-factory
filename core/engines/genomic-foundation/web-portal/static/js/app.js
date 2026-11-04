@@ -1246,24 +1246,30 @@ function updateGPUMetricsPanel(gpuMetrics) {
         }
     };
 
-    if (!gpuMetrics || (gpuMetrics.iops === 0 && gpuMetrics.power_draw === 0)) {
-        // No active GPU work
-        setMetric('metric-iops', '--', false);
-        setMetric('metric-bandwidth', '--', false);
-        setMetric('metric-sm', '--', false);
-        setMetric('metric-tensor', '--', false);
-        setMetric('metric-pcie', '--', false);
-        setMetric('metric-power', '--', false);
+    // AUDIT FIX (2026-11-04): these tiles used to read invented fields (iops,
+    // memory_bandwidth, sm_efficiency, tensor_usage), each a theoretical maximum scaled by
+    // utilization and jittered per request. The API now returns only what NVML reports and
+    // null for anything this machine cannot measure, so a tile shows '--' instead of a
+    // number nobody read off the hardware. Note 0 is a REAL reading here (an idle GPU
+    // genuinely draws a low wattage and moves no PCIe traffic), so null is the only
+    // "unknown" -- the old code treated 0 as unknown and hid true zeros.
+    const render = (id, value, digits) => {
+        const known = value !== null && value !== undefined;
+        setMetric(id, known ? Number(value).toFixed(digits) : '--', known);
+    };
+
+    if (!gpuMetrics) {
+        ['metric-memctl', 'metric-pcie-tx', 'metric-pcie-rx',
+         'metric-clock', 'metric-temp', 'metric-power'].forEach(id => setMetric(id, '--', false));
         return;
     }
 
-    // Update metrics with values
-    setMetric('metric-iops', gpuMetrics.iops > 0 ? gpuMetrics.iops.toFixed(0) : '--', gpuMetrics.iops > 0);
-    setMetric('metric-bandwidth', gpuMetrics.memory_bandwidth > 0 ? gpuMetrics.memory_bandwidth.toFixed(0) : '--', gpuMetrics.memory_bandwidth > 0);
-    setMetric('metric-sm', gpuMetrics.sm_efficiency > 0 ? gpuMetrics.sm_efficiency.toFixed(0) : '--', gpuMetrics.sm_efficiency > 0);
-    setMetric('metric-tensor', gpuMetrics.tensor_usage > 0 ? gpuMetrics.tensor_usage.toFixed(0) : '--', gpuMetrics.tensor_usage > 0);
-    setMetric('metric-pcie', gpuMetrics.pcie_throughput > 0 ? gpuMetrics.pcie_throughput.toFixed(1) : '--', gpuMetrics.pcie_throughput > 0);
-    setMetric('metric-power', gpuMetrics.power_draw > 0 ? gpuMetrics.power_draw.toFixed(0) : '--', gpuMetrics.power_draw > 0);
+    render('metric-memctl',  gpuMetrics.memory_controller_pct, 0);
+    render('metric-pcie-tx', gpuMetrics.pcie_tx_gb_s,          2);
+    render('metric-pcie-rx', gpuMetrics.pcie_rx_gb_s,          2);
+    render('metric-clock',   gpuMetrics.sm_clock_mhz,          0);
+    render('metric-temp',    gpuMetrics.temperature_c,         0);
+    render('metric-power',   gpuMetrics.power_draw_w,          0);
 }
 
 function updatePipelineFlow(currentStep, status) {

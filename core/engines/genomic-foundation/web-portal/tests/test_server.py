@@ -750,3 +750,101 @@ class TestUploadSizeCap:
                                    content_type='multipart/form-data')
             assert response.status_code == 200
             assert (tmp_path / 'input' / 'small.fastq').exists()
+
+
+class TestGpuMetricsAreMeasuredNotInvented:
+    """Regression tests for the fabricated GPU telemetry (2026-11-04 audit).
+
+    `get_detailed_gpu_metrics` used to return six fields of which five were invented: a
+    theoretical maximum scaled by GPU utilization, then jittered with
+    `hash(str(time.time()))` so the dashboard moved like an instrument while measuring
+    nothing. The jitter is what makes this testable -- a fabricated reading cannot be
+    reproducible, so determinism under fixed inputs is the assertion that pins it.
+    """
+
+    def test_unmeasurable_fields_are_none_not_zero(self):
+        """None renders as '--'. Zero is a real reading and must stay distinguishable."""
+        import server
+        with patch('server.NVML_AVAILABLE', False):
+            metrics = server.get_detailed_gpu_metrics()
+        assert metrics, "expected a dict of fields even with NVML absent"
+        assert all(v is None for v in metrics.values()), metrics
+
+    def _fake_pynvml(self):
+        """NVML stubbed with fixed readings; nothing here varies between calls."""
+        # create=True: `pynvml` is imported inside a try/except, so on a box without the
+        # package the module has no such attribute to patch.
+        fake = MagicMock()
+        fake.nvmlDeviceGetUtilizationRates.return_value = Mock(gpu=70, memory=42)
+        fake.nvmlDeviceGetPowerUsage.return_value = 91_500          # mW
+        fake.nvmlDeviceGetPcieThroughput.side_effect = lambda h, kind: (
+            2_000_000 if kind == fake.NVML_PCIE_UTIL_TX_BYTES else 3_000_000)  # KB/s
+        fake.nvmlDeviceGetTemperature.return_value = 61
+        fake.nvmlDeviceGetClockInfo.return_value = 1_400
+        # The current implementation never asks about running processes. The OLD one gated
+        # its invented fields on `len(nvmlDeviceGetComputeRunningProcesses(h)) > 0`, and a
+        # bare MagicMock raises on len(), which sent it down the all-zeros branch -- so the
+        # determinism test below passed against the defect for the wrong reason. A
+        # one-process list makes the fabrication path execute, which is what that test needs
+        # in order to be able to fail.
+        fake.nvmlDeviceGetComputeRunningProcesses.return_value = [Mock()]
+        return fake
+
+    def test_identical_readings_give_identical_output(self):
+        """The defining property of a measurement: same input, same output.
+
+        The old implementation failed this, because each field mixed in
+        hash(str(time.time())).
+        """
+        import server
+        fake = self._fake_pynvml()
+        with patch('server.NVML_AVAILABLE', True), patch('server.pynvml', fake, create=True):
+            first = server.get_detailed_gpu_metrics()
+            second = server.get_detailed_gpu_metrics()
+        assert first == second, f"telemetry is not reproducible: {first} != {second}"
+
+    def test_values_come_from_nvml_not_from_a_ceiling(self):
+        """Each field must trace to the stubbed NVML reading, with unit conversion only."""
+        import server
+        fake = self._fake_pynvml()
+        with patch('server.NVML_AVAILABLE', True), patch('server.pynvml', fake, create=True):
+            m = server.get_detailed_gpu_metrics()
+        assert m['memory_controller_pct'] == 42.0      # utilization.memory, verbatim
+        assert m['power_draw_w'] == 91.5               # 91,500 mW -> W
+        assert m['pcie_tx_gb_s'] == 2.0                # 2,000,000 KB/s -> GB/s
+        assert m['pcie_rx_gb_s'] == 3.0
+        assert m['temperature_c'] == 61.0
+        assert m['sm_clock_mhz'] == 1400.0
+
+    def test_one_failing_field_does_not_cost_the_others(self):
+        """A device that cannot report power must still report its temperature."""
+        import server
+        fake = self._fake_pynvml()
+        fake.nvmlDeviceGetPowerUsage.side_effect = RuntimeError("not supported")
+        with patch('server.NVML_AVAILABLE', True), patch('server.pynvml', fake, create=True):
+            m = server.get_detailed_gpu_metrics()
+        assert m['power_draw_w'] is None
+        assert m['temperature_c'] == 61.0
+
+    def test_no_fabrication_in_the_executable_body(self):
+        """A source guard, because the next regression would look plausible on a chart."""
+        import ast
+        import inspect
+        import server
+        fn = ast.parse(inspect.getsource(server.get_detailed_gpu_metrics)).body[0]
+        body = [n for n in fn.body
+                if not (isinstance(n, ast.Expr)
+                        and isinstance(n.value, ast.Constant)
+                        and isinstance(n.value.value, str))]
+        code = ast.unparse(ast.Module(body=body, type_ignores=[]))
+        for token in ('hash(', 'random', 'time.time'):
+            assert token not in code, f"{token} is back in the telemetry path"
+
+    def test_modeled_throughput_declares_itself(self, client, mock_psutil):
+        """The one number that is a model must say so in its own payload."""
+        with patch('server.NVML_AVAILABLE', False):
+            response = client.get('/api/metrics')
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data['throughput_is_modeled'] is True
+        assert 'Not a measurement' in data['throughput_model']
