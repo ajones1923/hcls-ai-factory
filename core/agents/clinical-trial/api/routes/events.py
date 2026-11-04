@@ -16,11 +16,19 @@ from collections import deque
 from datetime import datetime, timezone
 from typing import AsyncGenerator, List, Optional
 
-from fastapi import APIRouter, Query, Request
+from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse
 from loguru import logger
 
 router = APIRouter(prefix="/v1/events", tags=["events"])
+
+#: Attached to every frame the demo animation emits. The generator sleeps and
+#: yields step labels; it calls no engine and computes nothing.
+_DEMO_NOTE = (
+    "DEMO ANIMATION — no workflow was executed, no collection was queried and "
+    "no criterion was evaluated. This stream is not evidence that any step "
+    "named in it was performed."
+)
 
 
 # =====================================================================
@@ -157,12 +165,42 @@ async def _heartbeat_generator(
     yield _sse_message("done", {"reason": "max_duration_reached"})
 
 
-async def _workflow_progress_generator(
+async def _demo_progress_generator(
     workflow_id: str,
     data: dict,
     req: Request,
 ) -> AsyncGenerator[str, None]:
-    """Simulate workflow progress events for demo / UI integration."""
+    """Emit a DEMO ANIMATION. No workflow is executed and nothing is computed.
+
+    This generator sleeps and yields step labels. It does not call any engine,
+    query any collection, run any predictor, or evaluate any criterion.
+
+    It used to emit the step names below under the event names
+    ``workflow_progress`` / ``workflow_complete``, with ``"status":
+    "running"``, then ``"status": "completed"`` and ``"result_summary":
+    "<id> workflow completed successfully"``. The word "Simulate" appeared
+    only in this docstring and an inline comment -- no part of the wire payload
+    said so, and the public endpoint docstring called it "real-time workflow
+    progress".
+
+    These streams were the only place in the product that CLAIMED the
+    evidence work was done, and the one place guaranteed not to have done it.
+    A clinician watching six steps tick to 100% ending "variant_interpretation
+    workflow completed successfully" had positive, specific, step-by-step
+    assurance that ClinVar was checked, population frequency evaluated,
+    in-silico predictors run and ACMG criteria applied -- the four things they
+    would otherwise verify by hand. A coordinator watching "Screening
+    eligibility criteria -> Scoring inclusion criteria -> Checking exclusion
+    criteria -> Ranking matches" concluded the patient's criteria had been
+    checked against the trials shown. For ``competitive_intel`` the step
+    "Scanning trial registries" asserted a ClinicalTrials.gov query that never
+    happened.
+
+    Every payload now carries ``"simulated": true`` and a note, the events are
+    named ``demo_progress`` / ``demo_complete``, the terminal status is
+    ``"simulated"`` rather than ``"completed"``, and the endpoint refuses to
+    serve the animation unless the caller explicitly passes ``demo=true``.
+    """
     steps = {
         "protocol_design": ["Analyzing protocol structure", "Scoring complexity", "Benchmarking against competitors", "Generating optimization recommendations", "Finalizing report"],
         "patient_matching": ["Loading patient profile", "Screening eligibility criteria", "Scoring inclusion criteria", "Checking exclusion criteria", "Ranking matches"],
@@ -175,32 +213,45 @@ async def _workflow_progress_generator(
     workflow_steps = steps.get(workflow_id, ["Processing step 1", "Processing step 2", "Processing step 3", "Finalizing"])
     total = len(workflow_steps)
 
-    yield _sse_message("workflow_start", {
+    yield _sse_message("demo_start", {
         "workflow_id": workflow_id,
         "total_steps": total,
-        "status": "running",
+        "status": "simulated",
+        "simulated": True,
+        "note": _DEMO_NOTE,
     }, event_id=f"{workflow_id}-start")
 
     for i, step_name in enumerate(workflow_steps, 1):
-        await asyncio.sleep(0.8)  # Simulate processing time
-        yield _sse_message("workflow_progress", {
+        await asyncio.sleep(0.8)  # a sleep, not processing
+        yield _sse_message("demo_progress", {
             "workflow_id": workflow_id,
             "step": i,
             "total_steps": total,
-            "step_name": step_name,
+            "step_name": f"[SIMULATED] {step_name}",
             "progress_pct": round(i / total * 100, 1),
-            "status": "running",
+            "status": "simulated",
+            "simulated": True,
+            "note": _DEMO_NOTE,
         }, event_id=f"{workflow_id}-step-{i}")
 
     await asyncio.sleep(0.5)
-    yield _sse_message("workflow_complete", {
+    yield _sse_message("demo_complete", {
         "workflow_id": workflow_id,
-        "status": "completed",
+        "status": "simulated",
         "progress_pct": 100.0,
-        "result_summary": f"{workflow_id} workflow completed successfully",
+        "simulated": True,
+        "note": _DEMO_NOTE,
+        "result_summary": (
+            f"Demo animation for '{workflow_id}' finished. NOTHING WAS "
+            f"COMPUTED: no engine was called, no collection was queried and "
+            f"no criterion was evaluated. Do not read this as a completed "
+            f"workflow."
+        ),
     }, event_id=f"{workflow_id}-done")
 
-    yield _sse_message("done", {"workflow_id": workflow_id})
+    yield _sse_message("done", {
+        "workflow_id": workflow_id, "simulated": True,
+    })
 
 
 # =====================================================================
@@ -213,13 +264,26 @@ async def event_stream(
     workflow_id: Optional[str] = Query(None, description="Workflow to stream progress for"),
     heartbeat_only: bool = Query(False, description="Only send heartbeat pings"),
     cross_agent: bool = Query(False, description="Subscribe to cross-agent event bus"),
+    demo: bool = Query(
+        False,
+        description=(
+            "Required to receive the canned demo animation for a workflow_id. "
+            "The animation executes no workflow and computes nothing."
+        ),
+    ),
     last_n: int = Query(0, ge=0, le=1000, description="Replay last N events (cross_agent mode)"),
 ):
-    """SSE endpoint for real-time workflow progress and cross-agent events.
+    """SSE endpoint for heartbeats, cross-agent events, and a DEMO animation.
 
-    Connect with EventSource:
-        const es = new EventSource('/v1/events/stream?workflow_id=patient_matching');
-        es.addEventListener('workflow_progress', (e) => { ... });
+    There is no live progress stream for a workflow. Passing a ``workflow_id``
+    without ``demo=true`` returns HTTP 400; with ``demo=true`` it returns a
+    canned animation whose every frame is marked ``"simulated": true``.
+    Nothing is computed by it.
+
+    Demo animation (nothing is executed):
+        const es = new EventSource(
+            '/v1/events/stream?workflow_id=patient_matching&demo=true');
+        es.addEventListener('demo_progress', (e) => { ... });
 
     Cross-agent event bus:
         const es = new EventSource('/v1/events/stream?cross_agent=true&last_n=10');
@@ -231,7 +295,23 @@ async def event_stream(
     elif heartbeat_only:
         generator = _heartbeat_generator()
     elif workflow_id:
-        generator = _workflow_progress_generator(workflow_id, {}, req)
+        # The animation is opt-in. A caller that wants progress for real work
+        # has to ask for a simulation by name; it is no longer what you get by
+        # default from a workflow_id. Previously any `?workflow_id=` value --
+        # unvalidated, so any string at all -- produced a step-by-step success
+        # stream for work that never ran.
+        if not demo:
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    f"No live progress stream exists for workflow "
+                    f"'{workflow_id}'. This endpoint can only replay a "
+                    f"canned demo animation, which computes nothing; pass "
+                    f"demo=true to receive it. To execute the workflow, POST "
+                    f"to the workflow endpoint instead."
+                ),
+            )
+        generator = _demo_progress_generator(workflow_id, {}, req)
     else:
         generator = _heartbeat_generator(interval=10.0, max_duration=60.0)
 
