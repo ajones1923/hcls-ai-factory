@@ -1731,6 +1731,14 @@ class RareDiseaseAgent:
                     sub_response = self.rag.search(sub_q, top_k=top_k)
                     if sub_response:
                         response.results.extend(sub_response)
+                # Re-grade AFTER widening: the first verdict described the evidence that
+                # triggered the expansion, not the evidence the answer now rests on.
+                quality = self.evaluate_evidence(response.results)
+            # Carry it. Until 2026-11-04 `quality` was dropped here, so a diagnosis built on
+            # almost nothing was indistinguishable from one built on good evidence -- and
+            # unlike precision-oncology, which had the same defect, there was not even a log
+            # line. This agent produces differential diagnoses.
+            response.evidence_sufficiency = quality
 
         return response
 
@@ -1831,14 +1839,26 @@ class RareDiseaseAgent:
         question = results.question if hasattr(results, "question") else ""
         plan = self.search_plan(question) if question else SearchPlan(question="")
 
+        # How well grounded the result is belongs in the header of the artifact a clinician
+        # reads, not only on the API object.
+        sufficiency = getattr(results, "evidence_sufficiency", "unknown")
+
         report_lines = [
             "# Rare Disease Diagnostic Intelligence Report",
             f"**Query:** {question}",
             f"**Generated:** {timestamp}",
             f"**Workflows:** {', '.join(wf.value for wf in plan.relevant_workflows)}",
             f"**Strategy:** {plan.search_strategy}",
+            f"**Evidence sufficiency:** {sufficiency}",
             "",
         ]
+        if sufficiency == "insufficient":
+            report_lines += [
+                "> **Evidence was insufficient.** Retrieval returned too little to support a "
+                "differential, and widening the search did not change that. Treat everything "
+                "below as provisional and verify against primary sources.",
+                "",
+            ]
 
         # Detected entities
         if plan.conditions or plan.genes or plan.phenotypes:

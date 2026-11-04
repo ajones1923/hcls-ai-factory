@@ -112,7 +112,7 @@ python -m venv .venv && .venv/bin/pip install --upgrade pip
     python-multipart tqdm python-dotenv flask flask-cors nibabel pydicom highdicom tenacity \
     reportlab python-docx lxml plotly scanpy anndata sentence-transformers
 
-.venv/bin/python scripts/run_all_tests.py       # 18 suites, 10,236 tests
+.venv/bin/python scripts/run_all_tests.py       # 18 suites, 10,253 tests
 .venv/bin/python scripts/validate_registry.py   # the capability manifest
 ```
 

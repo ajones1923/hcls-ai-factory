@@ -69,7 +69,7 @@ jobs:
     # needs CUDA -- and it is skipped here, because it is guarded by skipif on
     # vendor_proteinmpnn/ which is not tracked in git.
     #
-    # Expected as of 2026-11-04 (PR #162): 10,236 passed, 0 failed, 0 errors,
+    # Expected as of 2026-11-04 (PR #162): 10,253 passed, 0 failed, 0 errors,
     # 223 skipped -- identical to a developer box with Milvus and RDKit up, which is the
     # point: the runner and the box agreeing is the only evidence that a pass means the
     # code works rather than that the machine happened to have something installed. The

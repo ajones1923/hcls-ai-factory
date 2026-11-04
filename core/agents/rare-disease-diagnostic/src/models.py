@@ -457,6 +457,17 @@ class DiagnosticResult(BaseModel):
         default_factory=list,
         description="Raw search results from knowledge collections",
     )
+    evidence_sufficiency: str = Field(
+        default="unknown",
+        description=(
+            "'sufficient', 'partial', 'insufficient' or 'unknown' — how well grounded this "
+            "result is, from RareDiseaseAgent.evaluate_evidence. The agent has always "
+            "computed this and until 2026-11-04 used it only to decide whether to widen the "
+            "search, then discarded it, returning the diagnosis with no record of how much "
+            "evidence stood behind it. Distinct from `confidence`, which scores the "
+            "candidate ranking; this scores the retrieval the ranking was drawn from."
+        ),
+    )
 
 
 # ===================================================================
