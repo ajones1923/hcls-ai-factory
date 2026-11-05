@@ -3,8 +3,16 @@ name: CI
 on:
   push:
     branches: [main]
+  # NO `branches:` filter here, deliberately. It used to read `branches: [main]`, which runs CI
+  # only for pull requests whose BASE is main -- so a PR stacked on another branch ran no CI at
+  # all. Found 2026-11-04: #163 (base feat/corpus-coverage-gate) and #166 (base
+  # review/claim-class-sweep) each reported mergeStateStatus CLEAN with zero checks, because
+  # "clean" means no conflicts and nothing REQUIRED failing, and a PR with no checks satisfies
+  # that. Untested work looked reviewed-and-green.
+  #
+  # Stacking is the house style for this review (one PR per phase, based on the phase before),
+  # so the filter silently exempted exactly the PRs most likely to need testing.
   pull_request:
-    branches: [main]
 
 # Least privilege: no job here writes to the repo, and an unset block would hand every
 # job whatever the repository default grants. Raise it per-job if one ever needs more.
