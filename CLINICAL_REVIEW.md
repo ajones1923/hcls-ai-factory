@@ -1293,3 +1293,54 @@ All **OPEN**, confirmed by the audit, out of scope for `fix/rare-trial`.
   wrong-drug and wrong-prognosis results. The **drug indication wordings themselves** are
   unverified: settle Camzyos (mavacamten) and mexiletine against DailyMed before any fix text
   restates an indication.
+
+---
+
+## 40. Precision biomarker — CPIC citations were wrong; the DOSES behind them are still unverified
+
+Found 2026-11-04, hand-reviewing precision-biomarker for check 4. `CPIC_GUIDELINE_VERSIONS` in
+`core/agents/precision-biomarker/src/pharmacogenomics.py` is the module's provenance record and
+`map_all()` returns it to callers as `guideline_versions`. Every PMID in it was resolved against
+the NCBI E-utilities API. Three cited papers with no connection to pharmacogenomics:
+
+| Gene | Was | What that PMID actually is | Now |
+|---|---|---|---|
+| CYP2C19 | 34697867 | abuse prevention for adults with intellectual disabilities (2022) | 35034351 — clopidogrel 2022 update |
+| UGT1A1 | 32233013 | diabetes as a risk factor in COVID-19 (2020) | 26417955 — UGT1A1/atazanavir 2016 |
+| CYP2C9 | 27441996 | CPIC *terminology standardization* (Genet Med 2017) — a real CPIC paper containing no dosing | 28198005 — warfarin 2017 update |
+| VKORC1 | 27441996 | same terminology paper | 28198005 — warfarin 2017 update |
+
+Two more were mislabeled rather than wrong: CYP2D6 cited a genuine CPIC CYP2D6 guideline
+(33387367, opioids, 2021) under version "2019", and HLA-B\*58:01 cited the 2013 allopurinol
+guideline under version "2015" when the 2016 update is 26094938.
+
+**Fixed, and gated** by `tests/test_cpic_citations_resolve.py`, which pins each PMID to a fragment
+of the title NCBI returned and fails if one of the three rejected PMIDs reappears.
+
+### What is still open, and it is the larger half
+
+Correcting a citation does not verify the number it is attached to. **No dose in this module has
+been checked against the guideline it now correctly cites.** The module emits dosing text for
+20+ drugs, including:
+
+- warfarin maintenance by CYP2C9/VKORC1 combination (`2 mg/day`, `4 mg/day`, `5–7 mg/day`)
+- thiopurine reductions (`3 mg/kg/day`, `1.5 mg/kg/day`, `0.5 mg/kg/day` with CBC monitoring)
+- simvastatin `20 mg/day` with "AVOID 80mg dose"
+- tacrolimus `0.3 mg/kg/day` / `0.2 mg/kg/day` by CYP3A5 expresser status
+- tamoxifen `20 mg/day` / `40 mg/day` or switch to an aromatase inhibitor
+- SSRI starting doses (`10 mg/day`, `20 mg/day`) with a QTc caveat
+
+Each needs reading against the cited guideline's recommendation table by someone qualified. Until
+then the honest status of the dosing text is **unverified**, and the corrected citations must not
+be read as evidence for it.
+
+### A scope problem the data structure cannot currently express
+
+CPIC publishes per **gene–drug pair**; this record holds one PMID per **gene**. CYP2D6 here drives
+tamoxifen and SSRI recommendations as well as opioids, and CYP2C19 drives SSRIs as well as
+clopidogrel — different guidelines. An `also` field now names the others (29385237 tamoxifen,
+25974703 SSRIs), which is a stopgap. Still unresolved: several drugs the module covers have **no
+CPIC guideline at all** — irinotecan under UGT1A1, ondansetron under CYP2D6, phenytoin and
+celecoxib under CYP2C9, voriconazole under CYP2C19 — and their recommendations' real provenance
+(FDA label, DPWG, or neither) is unrecorded. Per-drug provenance is the right fix; it is a
+structural change and is not made here.

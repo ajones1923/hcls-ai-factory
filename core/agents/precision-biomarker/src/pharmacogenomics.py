@@ -11,23 +11,122 @@ from typing import Any, Dict, List, Optional
 
 from loguru import logger
 
-# CPIC guideline versions used for each gene
-# Update when new CPIC publications change recommendations
+# CPIC guideline provenance for each gene.
+#
+# EVERY PMID BELOW WAS RESOLVED AGAINST THE NCBI E-UTILITIES API ON 2026-11-04 and the paper
+# it returns is named in the `title` field. Do not add or change a PMID without doing the same:
+#
+#   curl -s "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&id=<PMID>&retmode=json"
+#
+# That verification found three citations pointing at papers with no connection to
+# pharmacogenomics at all, in the structure this module returns as its audit trail:
+#
+#   CYP2C19  34697867 -> "Detection and prevention of abuse of adults with intellectual and
+#                         other developmental disabilities in care services" (2022)
+#   UGT1A1   32233013 -> "Diabetes is a risk factor for the progression and prognosis of
+#                         COVID-19" (2020)
+#   CYP2C9 } 27441996 -> "Standardizing terms for clinical pharmacogenetic test results"
+#   VKORC1 }             (Genet Med 2017) -- a real CPIC paper, but a terminology consensus
+#                        that contains no dosing guidance, cited by the two genes that drive
+#                        this module's warfarin mg/day recommendations.
+#
+# A wrong citation in an audit trail is worse than a missing one: a reviewer checking
+# provenance is handed something that looks authoritative and resolves to an unrelated paper.
+# Two further entries were mislabeled rather than wrong -- CYP2D6's PMID is a genuine CPIC
+# CYP2D6 guideline published 2021 but was labeled version "2019", and HLA-B*58:01 cited the
+# 2013 allopurinol guideline under version "2015" when the 2016 update is 26094938.
+#
+# `update` NOW MEANS the publication date of the cited guideline, and nothing else. It is the
+# one field `map_all()` surfaces to callers, and it previously carried later dates (TPMT
+# "2023-03", DPYD "2023-12", CYP3A5 "2022-11") that no source here supports -- plausibly CPIC's
+# web-revised recommendation dates, which are real but were not recorded as such and could not
+# be told apart from the publication date by anyone reading the output. A date whose meaning is
+# ambiguous is not provenance. If CPIC's online revision dates are wanted, add a separate
+# `recommendation_revised` field with a retrieval date, rather than overloading this one.
+#
+# `covers` is load-bearing, not decoration. CPIC publishes per gene-drug pair, this module
+# recommends across 20+ drugs, and one PMID per gene cannot be provenance for all of them --
+# so `covers` names the drugs the cited guideline actually governs and `also` carries the
+# other guidelines a gene's recommendations draw on. Where a drug this module covers has no
+# CPIC guideline at all, that is recorded in CLINICAL_REVIEW.md rather than papered over.
 CPIC_GUIDELINE_VERSIONS = {
-    "CYP2D6": {"version": "2019", "pmid": "33387367", "update": "2020-12", "level": "1A"},
-    "CYP2C19": {"version": "2022", "pmid": "34697867", "update": "2022-12", "level": "1A"},
-    "CYP2C9": {"version": "2017", "pmid": "27441996", "update": "2020-01", "level": "1A"},
-    "VKORC1": {"version": "2017", "pmid": "27441996", "update": "2020-01", "level": "1A"},
-    "SLCO1B1": {"version": "2022", "pmid": "35152405", "update": "2022-06", "level": "1A"},
-    "TPMT": {"version": "2018", "pmid": "30447069", "update": "2023-03", "level": "1A"},
-    "DPYD": {"version": "2017", "pmid": "29152729", "update": "2023-12", "level": "1A"},
-    "MTHFR": {"version": "N/A", "pmid": "N/A", "update": "N/A", "level": "Informational"},
-    "HLA-B*57:01": {"version": "2014", "pmid": "24561393", "update": "2014-01", "level": "1A"},
-    "G6PD": {"version": "N/A", "pmid": "N/A", "update": "N/A", "level": "Informational"},
-    "HLA-B*58:01": {"version": "2015", "pmid": "23232549", "update": "2015-01", "level": "1A"},
-    "CYP3A5": {"version": "2015", "pmid": "25801146", "update": "2022-11", "level": "1A"},
-    "UGT1A1": {"version": "2020", "pmid": "32233013", "update": "2020-04", "level": "1A"},
-    "NUDT15": {"version": "2018", "pmid": "30447069", "update": "2023-03", "level": "1A"},
+    "CYP2D6": {
+        "version": "2021", "pmid": "33387367", "update": "2021-10", "level": "1A",
+        "title": "CPIC Guideline for CYP2D6, OPRM1, and COMT Genotypes and Select Opioid Therapy",
+        "covers": "codeine, tramadol",
+        # tamoxifen and the SSRIs are separate CPIC guidelines; this module recommends on both.
+        "also": "29385237 (CYP2D6/tamoxifen, 2018), 25974703 (CYP2D6+CYP2C19/SSRIs, 2015)",
+    },
+    "CYP2C19": {
+        "version": "2022", "pmid": "35034351", "update": "2022-11", "level": "1A",
+        "title": "CPIC Guideline for CYP2C19 Genotype and Clopidogrel Therapy: 2022 Update",
+        "covers": "clopidogrel",
+        "also": "25974703 (CYP2D6+CYP2C19/SSRIs, 2015)",
+    },
+    "CYP2C9": {
+        "version": "2017", "pmid": "28198005", "update": "2017-09", "level": "1A",
+        "title": "CPIC Guideline for Pharmacogenetics-Guided Warfarin Dosing: 2017 Update",
+        "covers": "warfarin",
+    },
+    "VKORC1": {
+        "version": "2017", "pmid": "28198005", "update": "2017-09", "level": "1A",
+        "title": "CPIC Guideline for Pharmacogenetics-Guided Warfarin Dosing: 2017 Update",
+        "covers": "warfarin",
+    },
+    "SLCO1B1": {
+        "version": "2022", "pmid": "35152405", "update": "2022-05", "level": "1A",
+        "title": "CPIC Guideline for SLCO1B1, ABCG2, and CYP2C9 genotypes and Statin-Associated "
+                 "Musculoskeletal Symptoms",
+        "covers": "simvastatin",
+    },
+    "TPMT": {
+        "version": "2018", "pmid": "30447069", "update": "2019-05", "level": "1A",
+        "title": "CPIC Guideline for Thiopurine Dosing Based on TPMT and NUDT15 Genotypes: "
+                 "2018 Update",
+        "covers": "azathioprine, mercaptopurine",
+    },
+    "DPYD": {
+        "version": "2017", "pmid": "29152729", "update": "2018-02", "level": "1A",
+        "title": "CPIC Guideline for Dihydropyrimidine Dehydrogenase Genotype and "
+                 "Fluoropyrimidine Dosing",
+        "covers": "fluorouracil, capecitabine",
+    },
+    "MTHFR": {
+        "version": "N/A", "pmid": "N/A", "update": "N/A", "level": "Informational",
+        "title": "no CPIC guideline exists for MTHFR",
+        "covers": "",
+    },
+    "HLA-B*57:01": {
+        "version": "2014", "pmid": "24561393", "update": "2014-05", "level": "1A",
+        "title": "CPIC Guidelines for HLA-B Genotype and Abacavir Dosing: 2014 update",
+        "covers": "abacavir",
+    },
+    "G6PD": {
+        "version": "N/A", "pmid": "N/A", "update": "N/A", "level": "Informational",
+        "title": "no CPIC guideline exists for G6PD",
+        "covers": "",
+    },
+    "HLA-B*58:01": {
+        "version": "2016", "pmid": "26094938", "update": "2016-01", "level": "1A",
+        "title": "CPIC guidelines for HLA-B genotype and allopurinol dosing: 2015 update",
+        "covers": "allopurinol",
+    },
+    "CYP3A5": {
+        "version": "2015", "pmid": "25801146", "update": "2015-07", "level": "1A",
+        "title": "CPIC Guidelines for CYP3A5 Genotype and Tacrolimus Dosing",
+        "covers": "tacrolimus",
+    },
+    "UGT1A1": {
+        "version": "2016", "pmid": "26417955", "update": "2016-04", "level": "1A",
+        "title": "CPIC Guideline for UGT1A1 and Atazanavir Prescribing",
+        "covers": "atazanavir",
+    },
+    "NUDT15": {
+        "version": "2018", "pmid": "30447069", "update": "2019-05", "level": "1A",
+        "title": "CPIC Guideline for Thiopurine Dosing Based on TPMT and NUDT15 Genotypes: "
+                 "2018 Update",
+        "covers": "azathioprine, mercaptopurine",
+    },
 }
 
 
