@@ -34,6 +34,7 @@ from src.knowledge import (
     get_drug_context,
     get_hla_context,
 )
+from src.dosing import CapabilityWithdrawn, IndeterminateGenotype
 from src.metrics import record_pipeline_stage
 from api.routes.events import emit_event
 
@@ -525,6 +526,18 @@ async def warfarin_dosing(request: WarfarinDosingRequest):
 
     try:
         return _warfarin_dosing_impl(request, t0)
+    except CapabilityWithdrawn as exc:
+        # NOT a 500. A calculator withheld because its coefficients are known to be wrong is
+        # permanent-until-fixed and non-retryable, and the reason belongs in the response: a
+        # generic "Internal processing error" reads as a transient server fault and invites a
+        # retry. 501 Not Implemented is the honest code for a capability that is deliberately
+        # not served. See src/dosing.py CapabilityWithdrawn and CLINICAL_REVIEW.md §21.
+        logger.warning(f"Warfarin dosing withdrawn: {exc}")
+        raise HTTPException(status_code=501, detail=str(exc))
+    except IndeterminateGenotype as exc:
+        # A genotype no table can score is not wild-type. See the block in _warfarin_dosing_impl.
+        logger.info(f"Warfarin dosing declined on indeterminate genotype: {exc}")
+        raise HTTPException(status_code=422, detail=str(exc))
     except Exception as exc:
         logger.error(f"Warfarin dosing calculation failed: {exc}")
         raise HTTPException(status_code=500, detail="Internal processing error")
@@ -556,7 +569,27 @@ def _warfarin_dosing_impl(request: WarfarinDosingRequest, t0: float) -> Warfarin
     elif vkorc1 == "GG":
         pass  # Reference genotype, no adjustment
     else:
-        warnings.append(f"Unrecognized VKORC1 genotype '{request.vkorc1_genotype}'. Using GG (reference).")
+        # DO NOT substitute the reference genotype. `src/dosing.py` states the principle this
+        # block used to break: an unscoreable genotype "is not a normal metabolizer, not
+        # wild-type, and not a dose."
+        #
+        # Silently treating an unreadable VKORC1 as GG biases the prediction UPWARD, because
+        # both real variants (GA -0.8677, AA -1.6974) reduce the dose. The caller received a
+        # warning string alongside a confidently-typed `predicted_weekly_dose_mg`, and a
+        # warning next to a number is not a refusal -- the number is what gets used.
+        #
+        # IWPC does publish indicator terms for unknown VKORC1 and unknown CYP2C9. They are not
+        # transcribed here, and per this repo's rule a clinical coefficient is not added
+        # without the primary source in hand, so the honest response is to decline rather than
+        # to approximate. Restoring those terms is recorded in CLINICAL_REVIEW.md §21.
+        raise IndeterminateGenotype(
+            genotype=request.vkorc1_genotype,
+            reason=(f"VKORC1 genotype '{request.vkorc1_genotype}' cannot be scored (expected "
+                    f"GG, GA or AA). No dose is returned: substituting the reference genotype "
+                    f"would bias the prediction upward, and the IWPC 'unknown genotype' terms "
+                    f"are not implemented. See CLINICAL_REVIEW.md §21."),
+            alleles=["GG", "GA", "AA"],
+        )
 
     # CYP2C9 contribution
     cyp2c9 = request.cyp2c9_genotype.upper().replace(" ", "")
@@ -571,7 +604,18 @@ def _warfarin_dosing_impl(request: WarfarinDosingRequest, t0: float) -> Warfarin
     if cyp2c9 in cyp2c9_adjustments:
         dose_sq += cyp2c9_adjustments[cyp2c9]
     else:
-        warnings.append(f"Unrecognized CYP2C9 genotype '{request.cyp2c9_genotype}'. Using *1/*1 (reference).")
+        # Same reasoning as VKORC1 above, and the bias is larger: every scoreable CYP2C9
+        # genotype other than *1/*1 reduces the dose, by up to -2.3312 for *3/*3. Assuming
+        # *1/*1 for an unreadable genotype is the single most dose-inflating default available
+        # in this algorithm, on a narrow-therapeutic-index anticoagulant.
+        raise IndeterminateGenotype(
+            genotype=request.cyp2c9_genotype,
+            reason=(f"CYP2C9 genotype '{request.cyp2c9_genotype}' cannot be scored (expected "
+                    f"one of {', '.join(sorted(cyp2c9_adjustments))}). No dose is returned: "
+                    f"assuming *1/*1 would inflate the prediction, and the IWPC 'unknown "
+                    f"genotype' term is not implemented. See CLINICAL_REVIEW.md §21."),
+            alleles=sorted(cyp2c9_adjustments),
+        )
 
     # Race contribution
     if request.race:

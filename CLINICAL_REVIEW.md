@@ -711,6 +711,14 @@ none of them changed:
 
 ## 21. Warfarin IWPC — DISABLED 2026-11-04, the coefficient column is shifted and the error is race-specific
 
+> ⚠️ **"Disabled" below means `precision-biomarker/src/dosing.py` and
+> `pharmacogenomics/src/dosing.py`. It does NOT mean the HTTP endpoint.** There is a second,
+> independently transcribed copy of the IWPC algorithm in
+> `pharmacogenomics/api/routes/pgx_clinical.py::_warfarin_dosing_impl`, it does not call the
+> library, and it still returns warfarin doses. That copy does **not** carry the defect
+> described here — it assigns −0.2760 to Black/African American race, which is the term the
+> library copy misapplies. Detail and what is still open: **§41**.
+
 **This is the most harmful defect the pre-release audit found, and the function no longer returns
 a dose.** `DosingCalculator.warfarin_dose` now raises; the Streamlit page shows the reason and
 tells the clinician to dose by protocol with INR monitoring.
@@ -1293,3 +1301,65 @@ All **OPEN**, confirmed by the audit, out of scope for `fix/rare-trial`.
   wrong-drug and wrong-prognosis results. The **drug indication wordings themselves** are
   unverified: settle Camzyos (mavacamten) and mexiletine against DailyMed before any fix text
   restates an indication.
+
+---
+
+## 41. Pharmacogenomics — two IWPC implementations, one disabled and one serving
+
+Found 2026-11-04, hand-reviewing pharmacogenomics for check 4.
+
+### The duplication
+
+| | Coefficients | Behaviour |
+|---|---|---|
+| `src/dosing.py::warfarin_dose` | mis-transcribed, race-specific error (§21) | refuses — raises `CapabilityWithdrawn` |
+| `api/routes/pgx_clinical.py::_warfarin_dosing_impl` | **separate copy, appears correct** | **returns a dose over HTTP** |
+
+The route computes the dose inline and never calls the library, so §21's "disabled" was true of
+the library and false of `POST /v1/pgx/dosing/warfarin` — the surface a caller actually touches.
+
+The route's copy assigns the coefficients to the right variables, including −0.2760 to
+Black/African American race, which is the exact term the library copy misapplies. **That is why
+the endpoint was not disabled in this pass**: disabling a working calculator on suspicion would
+remove a real capability, and the evidence says this copy is not the broken one.
+
+**Still unverified, and it is the reason this entry exists:** the route's coefficients have been
+checked only against §21's own transcription of the published algorithm, not against Klein 2009
+Supplementary Appendix 1, which could not be retrieved. Base 5.6044, age −0.2614/decade, height
++0.0087, weight +0.0128, VKORC1 GA −0.8677 / AA −1.6974, CYP2C9 *1/*2 −0.5211 / *1/*3 −0.9357 /
+*2/*2 −1.0616 / *2/*3 −1.9206 / *3/*3 −2.3312, Asian −0.1092, Black −0.2760, amiodarone −0.5503,
+inducer +1.2799. **Someone with the appendix should check that list against it.** Two independent
+transcriptions of a narrow-therapeutic-index dosing algorithm, one already known to be wrong, is
+not a state to leave alone — the right end state is one implementation, verified, called by both.
+
+### Fixed in this pass
+
+- **The library's refusal reached no caller.** It raised a bare `RuntimeError`; the route caught
+  `Exception` and returned HTTP 500 `"Internal processing error"`. A written explanation of a
+  race-specific dosing error went to the server log only, and a 500 reads as a transient fault
+  that invites a retry. New `CapabilityWithdrawn` exception, and the route answers **501** with
+  the reason.
+- **An unreadable genotype was scored as reference.** An unrecognised VKORC1 became GG and an
+  unrecognised CYP2C9 became *1/*1, with a warning appended beside a confidently-typed
+  `predicted_weekly_dose_mg`. A warning next to a number is not a refusal. Both defaults bias the
+  dose **upward**, since every scoreable alternative reduces it — the most dose-inflating default
+  available in the algorithm. Now **422** with the reason. `src/dosing.py` already stated the rule
+  this broke, in `IndeterminateGenotype`: such a genotype "is not a normal metabolizer, not
+  wild-type, and not a dose."
+- A pre-existing test, `test_unrecognized_vkorc1_warning`, **asserted the defect** — it required
+  that a warning be produced, and passed while a dose was returned from an assumed genotype. The
+  assertion is inverted, not deleted.
+
+### Also open: the IWPC "unknown genotype" terms
+
+IWPC publishes indicator terms for unknown VKORC1 and unknown CYP2C9. Neither is implemented in
+either copy. Until they are, declining is correct; with them, the endpoint could answer properly
+for a partially genotyped patient instead of refusing. Needs the same appendix.
+
+### Minor: a dummy PMID in the LLM system prompt
+
+`src/rag_engine.py` instructs the model to cite with `[Evidence:PMID 12345678](...)` as the format
+example. `12345678` is well-formed and fake, and a model short of a real citation has a documented
+tendency to reproduce the example. In a clinical citation path that is a plausible-looking
+fabricated reference. A non-numeric placeholder (`<pmid>`) removes the hazard. Not changed here —
+it is a prompt edit with its own retrieval-quality implications and belongs with a prompt pass.
