@@ -45,7 +45,9 @@
         "deepvariant",
         "genomic-foundation",
         "engine"
-      ]
+      ],
+      "maturity": "preclinical",
+      "maturity_basis": "Real GPU variant calling with standard tools (fq2bam/BWA-MEM2 + DeepVariant); the variant store it feeds is verified against HG002. Not a clinically validated assay, and no accuracy run against a truth set is recorded for the engine as a whole."
     },
     {
       "id": "precision-intelligence-engine",
@@ -82,7 +84,9 @@
         "rag",
         "annotation",
         "interpretation"
-      ]
+      ],
+      "maturity": "research-use",
+      "maturity_basis": "Annotation against ClinVar/AlphaMissense is a real data lookup, but the interpretation layer is RAG over a corpus measured at ~5k vectors (2026-11-04) and its answers are LLM-synthesised. No retrieval-accuracy or groundedness benchmark is recorded."
     },
     {
       "id": "therapeutic-discovery-engine",
@@ -115,7 +119,8 @@
         "rdkit",
         "brics",
         "stage3"
-      ]
+      ],
+      "maturity_basis": "The 10-stage RDKit chemistry is real and live, but molecule generation runs the BRICS backend (MolMIM not deployed) and stage-7 docking needs the DiffDock NIM. Generated leads are design candidates, never drugs."
     },
     {
       "id": "molmim-nim",
@@ -221,7 +226,8 @@
       "tags": [
         "engine",
         "oncology"
-      ]
+      ],
+      "maturity_basis": "51 per-gene evidence levels and indication lists are declared unverified; a spot-check of the twelve highest-consequence entries left open questions (CLINICAL_REVIEW \u00a722)."
     },
     {
       "id": "cart-intelligence-agent",
@@ -257,7 +263,8 @@
       "tags": [
         "agent",
         "cart"
-      ]
+      ],
+      "maturity_basis": "Its knowledge base carries approval dates the FDA record contradicts (CLINICAL_REVIEW \u00a77)."
     },
     {
       "id": "precision-biomarker-agent",
@@ -293,7 +300,8 @@
       "tags": [
         "agent",
         "biomarker"
-      ]
+      ],
+      "maturity_basis": "Biological-age clocks are research-use by construction; the warfarin IWPC coefficients were disabled for a race-specific column shift (\u00a721) and three CPIC citations resolved to unrelated papers (\u00a740), with the doses behind them still unverified."
     },
     {
       "id": "cardiology-intelligence-agent",
@@ -328,7 +336,9 @@
       "tags": [
         "engine",
         "cardiology"
-      ]
+      ],
+      "maturity": "research-use",
+      "maturity_basis": "Implements published instruments (ACC/AHA ASCVD, CAC) correctly as far as reading shows, but no calculator is validated against the publications' own test vectors, and CLINICAL_REVIEW \u00a725 has its drug-indication wordings open (Camzyos, mexiletine)."
     },
     {
       "id": "neurology-intelligence-agent",
@@ -363,7 +373,9 @@
       "tags": [
         "agent",
         "neurology"
-      ]
+      ],
+      "maturity": "research-use",
+      "maturity_basis": "Its own description is already explicit: NSD-ISS / SynNeurGe staging, alpha-synuclein SAA and plasma p-tau217 are research-/trial-use inputs, not routine diagnostics."
     },
     {
       "id": "precision-autoimmune-agent",
@@ -398,7 +410,9 @@
       "tags": [
         "agent",
         "autoimmune"
-      ]
+      ],
+      "maturity": "research-use",
+      "maturity_basis": "RAG decision support over 13 conditions with no validation of the five-level disease-activity scoring or the HLA association analysis against a reference cohort."
     },
     {
       "id": "rare-disease-diagnostic-agent",
@@ -433,7 +447,9 @@
       "tags": [
         "agent",
         "rare-disease"
-      ]
+      ],
+      "maturity": "research-use",
+      "maturity_basis": "ACMG classification has known open defects: PVS1 needs a per-gene loss-of-function mechanism table, the revised Ghent family-history criteria are unimplemented, and HPO information content is hand-estimated rather than derived (CLINICAL_REVIEW \u00a730-34)."
     },
     {
       "id": "pharmacogenomics-intelligence-agent",
@@ -468,7 +484,9 @@
       "tags": [
         "agent",
         "pgx"
-      ]
+      ],
+      "maturity": "research-use",
+      "maturity_basis": "44 gene-drug pairs stated as CPIC-checked. The sibling CPIC implementation in precision-biomarker had three citations resolve to unrelated papers (CLINICAL_REVIEW \u00a740), so 'checked against CPIC' here is unverified by the same standard until read."
     },
     {
       "id": "imaging-intelligence-agent",
@@ -504,7 +522,8 @@
       "tags": [
         "engine",
         "imaging"
-      ]
+      ],
+      "maturity_basis": "Chest X-ray via DenseNet-121 is live on real pixels, but the CT coronary workflow returns fixed representative findings and the VISTA-3D / VILA-M3 CT path is not wired."
     },
     {
       "id": "single-cell-intelligence-agent",
@@ -539,7 +558,9 @@
       "tags": [
         "agent",
         "single-cell"
-      ]
+      ],
+      "maturity": "research-use",
+      "maturity_basis": "Reasons over real computed clusters from Engine 8, but its own description is explicit that drug-response predictions are hypotheses to test, not predictions to act on."
     },
     {
       "id": "clinical-trial-intelligence-agent",
@@ -574,7 +595,9 @@
       "tags": [
         "agent",
         "trials"
-      ]
+      ],
+      "maturity": "research-use",
+      "maturity_basis": "Eligibility criteria that no rule parses now return UNKNOWN rather than a guess, which is honest but is a capability gap; exclusion severity is keyword-matched, and four NCT IDs in a LANDMARK_TRIALS copy are wrong (CLINICAL_REVIEW \u00a735-37)."
     },
     {
       "id": "tuberous-sclerosis-engine",
@@ -603,7 +626,8 @@
         "engine",
         "tsc",
         "disease-program"
-      ]
+      ],
+      "maturity_basis": "The trajectory modeller shrinks toward a SYNTHETIC NHD-style prior, not the TSC Alliance Natural History Database; five clinical constants remain unsourced (CLINICAL_REVIEW \u00a75b)."
     },
     {
       "id": "vector-db",
@@ -839,7 +863,8 @@
         "scanpy",
         "cpu-served"
       ],
-      "invoke_path": "/analyze"
+      "invoke_path": "/analyze",
+      "maturity_basis": "Real scanpy compute (QC -> clustering -> DE -> annotation) producing reproducible results on real inputs; verified by recorded runs rather than by claim."
     },
     {
       "id": "structural-biology-engine",
@@ -869,7 +894,9 @@
         "engine",
         "structural-biology",
         "proteins"
-      ]
+      ],
+      "maturity": "roadmap",
+      "maturity_basis": "Aggregate engine endpoint (:8581) is not stood up. Its constituent services -- ESMFold, ESM-2 search, ProteinMPNN -- are separately registered and live; developability scoring and the design optimiser are written and tested (34 tests) but unserved."
     },
     {
       "id": "mcp-tool-surface",

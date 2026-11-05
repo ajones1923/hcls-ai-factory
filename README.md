@@ -67,6 +67,33 @@ CAR-T · Precision Biomarker · Pharmacogenomics · Precision Autoimmune · Neur
 Rare-Disease · Single-Cell · Clinical-Trial — RAG clinical-decision-support over a
 shared vector database.
 
+## Where each engine and agent actually stands
+
+**The seventeen subjects are not interchangeable, and this table is the honest gradient.** Every
+capability in the registry carries a `maturity` tier — what the *evidence* behind it supports —
+and a `maturity_basis` saying why, in one line. The tier is orthogonal to whether something runs:
+`status: live` answers that separately, and most of what is `research-use` here is live.
+
+<!-- MATURITY-TABLE:BEGIN (generated from lib/hcls_common/capabilities.json; a test asserts this matches) -->
+
+| Tier | What it claims | Subjects |
+|---|---|---|
+| **`verified`** | Proven on real reference data, with a recorded run | Single-Cell Analysis Engine |
+| **`preclinical`** | Real compute, standard tools, not a clinically validated assay | Genomics Foundations Engine · Therapeutic Discovery Engine |
+| **`research-use`** | Works and is useful; the evidence behind its output is not established | CAR-T · Cardiology · Clinical Imaging · Clinical Trial · Neurology · Pharmacogenomics · Precision Autoimmune · Precision Biomarker · Precision Intelligence · Precision Oncology · Rare Disease · Single-Cell Intelligence · Tuberous Sclerosis |
+| **`roadmap`** | Written and tested, not stood up | Large-Molecule / Structural Biology Engine |
+
+<!-- MATURITY-TABLE:END -->
+
+Read that as it is meant: **one engine is verified, two do real preclinical compute, thirteen are
+research-use, one is roadmap.** The first engines in the pipeline are the solid ones; the breadth
+further out is foundation — present, tested, and honest about what stands behind it.
+
+Why each subject sits where it does is in the registry itself (`maturity_basis`), not in prose
+somewhere else — so every generated surface shows the same thing this table does. The open
+clinical questions behind the `research-use` tiers are itemised in
+[`CLINICAL_REVIEW.md`](CLINICAL_REVIEW.md), by subject, with what would settle each one.
+
 ## The platform layer
 
 - **Capability Registry** — one manifest of every engine/agent/model/service with typed I/O.
