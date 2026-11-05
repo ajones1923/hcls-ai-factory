@@ -53,6 +53,23 @@ class IndeterminateGenotype(ValueError):
         self.alleles = alleles
 
 
+class CapabilityWithdrawn(RuntimeError):
+    """A calculator deliberately withheld for a correctness reason, not a failure.
+
+    Distinct from an exception, and the distinction is the point. A caller that sees HTTP 500
+    "Internal processing error" reasonably concludes the server is broken and may retry, report
+    a bug, or treat the result as transient. None of those is right for a calculator that has
+    been withdrawn because its coefficients are known to be wrong: the correct response is
+    permanent-until-fixed and non-retryable, and it should carry the reason.
+
+    Added 2026-11-04. The IWPC refusal below raised a bare RuntimeError, and the API route
+    caught `Exception` and replaced it with "Internal processing error" — so a carefully
+    written explanation of a race-specific dosing error reached the server log and never the
+    caller. The same shape as the rest of this review: the honest words were somewhere nobody
+    reads.
+    """
+
+
 # ═════════════════════════════════════════════════════════════════════════════
 # Activity score lookups (shared with PhenotypeTranslator but duplicated
 # here for module independence)
@@ -438,8 +455,8 @@ class DosingCalculator:
         # workbook) carries the table; neither could be retrieved tonight. Restoring it also
         # means adding the three "genotype unknown" terms the block never had.
         # Recorded as CLINICAL_REVIEW.md §21 with the full mapping.
-        raise RuntimeError(
-            "IWPC warfarin dosing is disabled: the coefficient block in this function is "
+        raise CapabilityWithdrawn(
+            "IWPC warfarin dosing is disabled: the coefficient block in this function is"
             "mis-transcribed from Klein 2009 and the error is race-specific (a Black patient "
             "receives the enzyme-inducer coefficient, inflating the predicted dose ~1.5-1.7x). "
             "No dose is returned until the published coefficients are restored from "

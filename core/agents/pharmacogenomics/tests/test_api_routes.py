@@ -526,14 +526,31 @@ class TestWarfarinDosingEndpoint:
         assert inducer_resp.predicted_weekly_dose_mg > base_resp.predicted_weekly_dose_mg
 
     @pytest.mark.asyncio
-    async def test_unrecognized_vkorc1_warning(self):
-        """Unrecognized VKORC1 genotype should produce a warning."""
+    async def test_unrecognized_vkorc1_is_declined_not_warned(self):
+        """REWRITTEN 2026-11-04. This test used to assert the defect.
+
+        It asked that an unrecognised VKORC1 genotype "produce a warning", and it passed,
+        because the endpoint appended a warning string and then returned a dose computed as if
+        the genotype were GG. A warning beside a confidently-typed `predicted_weekly_dose_mg`
+        is not a refusal -- the number is what gets used -- and GG is the dose-inflating
+        default, since both real variants reduce the dose (GA -0.8677, AA -1.6974).
+
+        `src/dosing.py` already stated the rule this broke, in `IndeterminateGenotype`: such a
+        genotype "is not a normal metabolizer, not wild-type, and not a dose." The endpoint now
+        declines with 422 and says why. The assertion is inverted rather than deleted, so the
+        old behaviour cannot come back quietly.
+        """
+        from fastapi import HTTPException
+
         req = WarfarinDosingRequest(
             age=50, height_cm=170, weight_kg=80,
             vkorc1_genotype="XY", cyp2c9_genotype="*1/*1",
         )
-        resp = await warfarin_dosing(req)
-        assert any("VKORC1" in w for w in resp.warnings)
+        with pytest.raises(HTTPException) as caught:
+            await warfarin_dosing(req)
+        assert caught.value.status_code == 422
+        assert "VKORC1" in caught.value.detail
+        assert "cannot be scored" in caught.value.detail
 
     @pytest.mark.asyncio
     async def test_race_asian_reduces_dose(self):
