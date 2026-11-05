@@ -166,3 +166,39 @@ reverting the fleet to September to fix one agent trades a small problem for the
 | Tree is on a merged commit | `git branch -r --contains HEAD` | includes `origin/main` |
 
 The last row is the one that would have prevented this whole situation.
+
+---
+
+## While the box is stale, worktree test runs are not testing what you think
+
+The shared `.venv` has `hcls_common` installed pointing at the **live tree**:
+
+```
+$ .venv/bin/python -c "import hcls_common; print(hcls_common.__file__)"
+/home/adam/projects/hcls-ai-factory/lib/hcls_common/__init__.py
+```
+
+So a subject suite run from a git worktree tests the worktree's *subject* code against the live
+tree's *platform library* — September's. Hit on 2026-11-04 reviewing precision-biomarker: eight
+tests in `test_query_stream_gated.py` failed with
+
+```
+ImportError: cannot import name 'gate_token_stream' from 'hcls_common.api_gate'
+```
+
+The function exists in the worktree and not in the live tree. Nothing was wrong with the subject;
+the suite was half-testing September. With the library path corrected the same suite is clean:
+
+```bash
+cd core/agents/<subject>
+PYTHONPATH=<worktree>/lib ../../../.venv/bin/python -m pytest tests/ -q   # 745 passed
+```
+
+Two things follow. **Set `PYTHONPATH` to the worktree's `lib` for every subject suite run from a
+worktree**, or a platform change will read as a subject failure — or, worse, a subject regression
+will be masked by a library that happens to be older. And this disappears the moment the live tree
+is on `main`, which is one more reason the stale checkout is not a cosmetic problem: it is
+silently in the path of every verification done on this machine.
+
+Platform tests (`cd lib/hcls_common && pytest`) are unaffected — they resolve the package from
+the directory they run in.
