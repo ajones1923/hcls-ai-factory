@@ -137,7 +137,11 @@ def facts_for(kind, name, title, idx):
         # declared one. A projection that silently drops the load-bearing field makes the
         # documents built on it wrong in the one place they are most read.
         "capabilities": [{"id": c["id"], "type": c.get("type"), "status": c.get("status"),
-                          "maturity": c.get("maturity"), "endpoint": c.get("endpoint"),
+                          "maturity": c.get("maturity"),
+                          # The REASON for the tier. Projected because a basis that reaches no
+                          # generated surface is the defect this review keeps finding.
+                          "maturity_basis": c.get("maturity_basis") or "",
+                          "endpoint": c.get("endpoint"),
                           "description": (c.get("description") or "")[:400]} for c in caps],
         "ui_port": ui, "api_port": (None if (single or not ui) else ui + 1),
         "single_service": single,

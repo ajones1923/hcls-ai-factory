@@ -77,12 +77,18 @@ CAVEATS = (
 #: rot-guard below rejected the two it had swept in. The phrase list is deliberately narrow:
 #: a loose one produces a long exemption list, and a long exemption list is how a guard stops
 #: meaning anything.
-ACCEPTED_UNTIERED = {
-    # Its caveat is about serving SHAPE -- "not yet a request/response API" -- not about the
-    # evidence behind what it produces, so an evidence tier would answer a question nobody
-    # asked and would hide the `live` badge that is accurate for it.
-    "genomics-engine",
-}
+#: EMPTY SINCE 2026-11-04, and the rot-guard below is what emptied it.
+#:
+#: genomics-engine was the one exemption, on the reasoning that its caveat is about serving
+#: SHAPE ("not yet a request/response API") rather than about evidence, so an evidence tier
+#: would answer a question nobody asked. That reasoning was wrong in one respect: the two are
+#: not alternatives. Tiering it `preclinical` says something true about the evidence (real
+#: GPU variant calling with standard tools, no recorded accuracy run against a truth set) and
+#: costs nothing, because `status: live` is still there for anyone asking whether it runs.
+#:
+#: When the whole roster was tiered, this test failed with "genomics-engine no longer needs an
+#: exemption" -- which is the guard doing exactly its job, against its own author.
+ACCEPTED_UNTIERED: set[str] = set()
 
 
 def capabilities() -> list[dict]:

@@ -203,6 +203,20 @@ class Capability:
     status: Status = Status.LIVE
     # Honest evidence/access tier, orthogonal to `status` (see MaturityTier). Optional; None = untiered.
     maturity: MaturityTier | None = None
+    # WHY the tier is what it is, in one line, machine-readable and round-tripped.
+    #
+    # Added 2026-11-04, tiering the whole roster. A tier on its own is an assertion: a reader sees
+    # `research-use` and cannot tell whether someone judged the evidence or someone needed the
+    # field filled in. The basis is what makes it checkable -- it names the specific thing that
+    # holds the tier down ("CPIC citations were wrong, doses unverified"), so a later reader can
+    # go and disagree with it.
+    #
+    # It has to be a real field rather than a JSON comment or a line in a doc, because every
+    # other time this review found an honesty defect the cause was the same: the honest words
+    # were somewhere no generator reads. `from_dict` ignores keys it does not name, so a basis
+    # added to the manifest without this field would load as nothing and be dropped on the next
+    # save -- present in the file, absent from every surface built from it.
+    maturity_basis: str = ""
     tags: list[str] = field(default_factory=list)
 
     @classmethod
@@ -223,6 +237,7 @@ class Capability:
             cost_class=d.get("cost_class", "low"),
             status=Status(d.get("status", "live")),
             maturity=MaturityTier(d["maturity"]) if d.get("maturity") else None,
+            maturity_basis=d.get("maturity_basis", ""),
             tags=d.get("tags", []),
         )
 

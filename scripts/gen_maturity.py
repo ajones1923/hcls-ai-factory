@@ -300,6 +300,26 @@ def render(facts: dict, tests: pathlib.Path | None) -> str:
                      f"{c.get('endpoint') or '—'} |")
     else:
         L.append("| *none registered* | — | — | — |")
+    # WHY each tier is what it is. A tier alone is an assertion; the basis is what lets a reader
+    # disagree with it. It lives in the registry (`maturity_basis`) so that it reaches here and
+    # every other generated surface, rather than sitting in prose none of them read.
+    bases = [(c["id"], c["maturity"], c["maturity_basis"]) for c in facts["capabilities"]
+             if c.get("maturity") and c.get("maturity_basis")]
+    if bases:
+        L += ["", "**Why those tiers.**", ""]
+        for cid, tier, basis in bases:
+            # Basis verbatim, after a colon. An earlier draft wrote "... because {basis}" and
+            # lowercased the first character to make the clause read, which turned "RAG decision
+            # support" into "rAG decision support" and left several bases as fragments. A colon
+            # takes whatever the registry says without needing it to be a grammatical clause.
+            L.append(f"- **`{cid}`** — `{tier}`: {basis}")
+        L.append("")
+    untiered = [c["id"] for c in facts["capabilities"]
+                if c.get("maturity") and not c.get("maturity_basis")]
+    if untiered:
+        L += ["", f"⚠️ Declares a tier with no recorded basis: {', '.join(f'`{u}`' for u in untiered)}."
+                  " A tier nobody can check is an assertion, not a statement about evidence.", ""]
+
     L += ["", f"Source tree: `{facts['path']}` · {facts['py_files']} Python files · "
               f"{facts['loc']:,} lines including tests · {facts['test_files']} test files. "
               f"Check 5 below counts non-test source only, so the two differ by design.", ""]

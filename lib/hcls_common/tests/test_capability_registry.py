@@ -55,19 +55,61 @@ class TestMaturity:
         assert r.get("chai2-binder-design").maturity is MaturityTier.GATED  # partnership-gated
 
     def test_default_none_and_round_trips(self):
-        # This used cart-intelligence-agent as the untiered example until 2026-11-04, when the
-        # claim-integrity review gave cart `research-use` (its knowledge base carries approval
-        # dates the FDA record contradicts -- CLINICAL_REVIEW §7). genomics-engine is the
-        # durable choice instead: it is untiered ON PURPOSE, because its caveat is about
-        # serving shape ("not yet a request/response API") rather than evidence, and
-        # test_caveats_reach_the_badge.py pins that exemption with its reason.
+        """Both states survive a round-trip: a declared tier, and no tier at all.
+
+        This test picked a real capability as its untiered example twice, and was broken twice
+        by the roster becoming more honest -- cart-intelligence-agent, until the claim-integrity
+        review gave cart `research-use` on 2026-11-04 (CLINICAL_REVIEW §7), then
+        genomics-engine, until the whole roster was tiered later the same day. The lesson is
+        that "which real capability happens to be untiered" is not a fact worth encoding here:
+        it changes as the review proceeds, and each change costs a confusing failure in a test
+        about serialization. The untiered side is now a capability this test constructs, so it
+        tests the round-trip and nothing else. Which real capabilities carry which tier is
+        asserted in test_live_subjects_declare_maturity.py, where it belongs.
+        """
         r = get_registry(reload=True)
-        assert r.get("genomics-engine").maturity is None              # untiered by decision
         r2 = CapabilityRegistry()
         for entry in r.to_manifest()["capabilities"]:
             r2.register(Capability.from_dict(entry), overwrite=True)
         assert r2.get("variant-store").maturity is MaturityTier.VERIFIED  # set survives round-trip
-        assert r2.get("genomics-engine").maturity is None             # unset survives round-trip
+
+        untiered = Capability(id="untiered", type=CapabilityType.SERVICE, name="U",
+                              description="", status=Status.LIVE, serving=Serving.NATIVE)
+        assert untiered.maturity is None                 # the field defaults to untiered
+        assert untiered.maturity_basis == ""
+        reg = CapabilityRegistry()
+        reg.register(untiered)
+        reg2 = CapabilityRegistry()
+        for entry in reg.to_manifest()["capabilities"]:
+            reg2.register(Capability.from_dict(entry), overwrite=True)
+        assert reg2.get("untiered").maturity is None     # unset survives round-trip
+
+    def test_maturity_basis_round_trips(self):
+        """A basis that did not survive serialization would be worse than none.
+
+        `from_dict` only reads keys it names, so a basis added to the manifest without a
+        matching dataclass field loads as nothing and is dropped on the next save: present in
+        the file, absent from every surface generated from it. That is the exact failure this
+        whole review keeps finding, so it gets its own assertion.
+        """
+        reg = CapabilityRegistry()
+        reg.register(Capability(
+            id="b", type=CapabilityType.SERVICE, name="B", description="",
+            status=Status.LIVE, serving=Serving.NATIVE, maturity=MaturityTier.RESEARCH_USE,
+            maturity_basis="no accuracy run is recorded",
+        ))
+        reg2 = CapabilityRegistry()
+        for entry in reg.to_manifest()["capabilities"]:
+            reg2.register(Capability.from_dict(entry), overwrite=True)
+        assert reg2.get("b").maturity_basis == "no accuracy run is recorded"
+
+    def test_the_real_manifest_bases_survive_a_round_trip(self):
+        r = get_registry(reload=True)
+        r2 = CapabilityRegistry()
+        for entry in r.to_manifest()["capabilities"]:
+            r2.register(Capability.from_dict(entry), overwrite=True)
+        assert r2.get("genomics-engine").maturity_basis == r.get("genomics-engine").maturity_basis
+        assert r2.get("genomics-engine").maturity_basis, "the basis came back empty"
 
     def test_verified_requires_live(self):
         # verified on a not-yet-live capability is dishonest -> rejected. (verified + mock is
